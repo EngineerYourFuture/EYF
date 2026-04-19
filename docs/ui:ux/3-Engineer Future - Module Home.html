@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script>
+        window.FontAwesomeConfig = {
+          autoReplaceSvg: 'nest'
+        };
+      </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EYF - Engineer Your Future | Module Home</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        indigo: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            900: '#312e81',
+                        },
+                        gray: {
+                            50: '#f9fafb',
+                            100: '#f3f4f6',
+                            200: '#e5e7eb',
+                            800: '#1f2937',
+                            900: '#111827',
+                        }
+                    },
+                    boxShadow: {
+                        'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
+                        'glow': '0 0 20px rgba(79, 70, 229, 0.3)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { margin: 0; padding: 0; font-family: 'Inter', sans-serif; background-color: #f9fafb; }
+        .mesh-bg {
+            background-color: #f9fafb;
+            background-image: 
+                radial-gradient(at 40% 20%, hsla(228,100%,74%,0.15) 0px, transparent 50%),
+                radial-gradient(at 80% 0%, hsla(189,100%,56%,0.15) 0px, transparent 50%),
+                radial-gradient(at 0% 50%, hsla(355,100%,93%,0.1) 0px, transparent 50%);
+        }
+        ::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="m-0 p-0 text-gray-900 antialiased min-h-screen flex flex-col mesh-bg">
+
+    <!-- Top Navigation Bar -->
+    <header id="top-nav" class="w-full bg-white/60 backdrop-blur-xl border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-[1440px] mx-auto px-6 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-8">
+                <!-- Logo -->
+                <a href="#" class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold text-sm shadow-glow">
+                        <i class="fa-solid fa-code"></i>
+                    </div>
+                    <span class="text-xl font-bold tracking-tight text-gray-900">EYF</span>
+                </a>
+
+                <!-- Main Nav Links -->
+                <nav class="hidden md:flex items-center gap-1">
+                    <a href="#" class="px-3 py-2 rounded-md text-sm font-medium text-indigo-700 bg-indigo-50/50 hover:bg-indigo-50 transition-colors">Module Home</a>
+                    <a href="#" class="px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors">DSA Practice</a>
+                    <a href="#" class="px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors">Core Subjects</a>
+                    <a href="#" class="px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors">Placement Prep</a>
+                    <a href="#" class="px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors">Resume Builder</a>
+                    <a href="#" class="px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors">Tech Skills</a>
+                </nav>
+            </div>
+
+            <!-- Right Actions -->
+            <div class="flex items-center gap-4">
+                <div class="hidden md:flex items-center gap-2 bg-indigo-50/50 px-3 py-1.5 rounded-full border border-indigo-100/50 backdrop-blur-sm">
+                    <i class="fa-solid fa-fire text-orange-500"></i>
+                    <span class="text-sm font-bold text-indigo-700">14 Day Streak</span>
+                </div>
+                
+                <button class="p-2 rounded-full text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors relative">
+                    <i class="fa-regular fa-bell"></i>
+                    <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500 border-2 border-white"></span>
+                </button>
+
+                <div class="h-8 w-8 rounded-full border border-gray-200 overflow-hidden cursor-pointer shadow-sm">
+                    <img src="https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-4.jpg" alt="User Profile" class="w-full h-full object-cover">
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col min-w-0 overflow-y-auto w-full max-w-[1440px] mx-auto z-10 relative">
+        
+        <!-- Search & Header Bar -->
+        <div class="px-8 py-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <h1 class="text-2xl font-bold text-gray-900 tracking-tight">Dashboard</h1>
+            <div class="relative w-full md:w-auto">
+                <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                <input type="text" placeholder="Search problems, topics..." class="w-full md:w-80 pl-10 pr-4 py-2.5 bg-white/60 backdrop-blur-md border border-gray-200/60 rounded-[12px] text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm transition-all">
+            </div>
+        </div>
+
+        <div class="px-8 pb-12 w-full space-y-8">
+            
+            <!-- Welcome & Progress Header -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Welcome Card -->
+                <div class="lg:col-span-2 bg-white/70 backdrop-blur-xl rounded-[24px] shadow-soft border border-gray-200/60 p-8 relative overflow-hidden">
+                    <div class="relative z-10">
+                        <div class="flex items-center gap-3 mb-4">
+                            <h2 class="text-2xl font-bold text-gray-900">Welcome back, Alex! 👋</h2>
+                            <span class="px-2.5 py-1 bg-indigo-100 text-indigo-700 text-xs font-semibold rounded-full border border-indigo-200">PRO PLAN</span>
+                        </div>
+                        <p class="text-gray-600 mb-6 max-w-xl">You're making great progress. Keep up the momentum to reach your placement goals. Your next recommended problem is waiting.</p>
+                        <div class="flex items-center gap-4">
+                            <button class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg shadow-sm transition-colors flex items-center gap-2">
+                                Resume Practice <i class="fa-solid fa-arrow-right text-sm"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Decorative element matching prior screen style -->
+                    <div class="absolute right-0 top-0 w-80 h-80 bg-indigo-100 rounded-full blur-[80px] opacity-40 -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
+                </div>
+
+                <!-- Stats Widget -->
+                <div class="bg-white/70 backdrop-blur-xl rounded-[24px] shadow-soft border border-gray-200/60 p-6 flex flex-col justify-center relative overflow-hidden">
+                     <div class="absolute bottom-0 right-0 w-40 h-40 bg-blue-50 rounded-full blur-[40px] opacity-60 translate-y-1/2 translate-x-1/4 pointer-events-none"></div>
+                    <div class="flex justify-between items-start mb-6">
+                        <div>
+                            <p class="text-sm font-medium text-gray-500 mb-1">Current Streak</p>
+                            <div class="flex items-baseline gap-2">
+                                <span class="text-3xl font-bold text-gray-900">14</span>
+                                <span class="text-sm text-gray-500">days</span>
+                            </div>
+                        </div>
+                        <div class="w-10 h-10 rounded-full bg-orange-50 flex items-center justify-center text-orange-500">
+                            <i class="fa-solid fa-fire"></i>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600">Level 5 <span class="text-gray-400">(Novice)</span></span>
+                            <span class="font-medium text-indigo-600">2,450 XP</span>
+                        </div>
+                        <div class="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                            <div class="h-full bg-indigo-600 rounded-full" style="width: 70%"></div>
+                        </div>
+                        <p class="text-xs text-gray-500 text-right">550 XP to Level 6</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Recommendation Card -->
+            <div class="bg-white/80 backdrop-blur-xl rounded-[20px] shadow-soft border border-indigo-100/80 p-6 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-1.5 h-full bg-indigo-500 rounded-l-[20px]"></div>
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                    <div class="flex items-start gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0 border border-indigo-100">
+                            <i class="fa-solid fa-wand-magic-sparkles text-xl"></i>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2 mb-1">
+                                <h3 class="text-lg font-semibold text-gray-900">AI Recommendation</h3>
+                                <span class="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs font-medium rounded">Arrays</span>
+                            </div>
+                            <p class="text-gray-600 text-sm mb-2">Based on your recent struggles with Two Pointers, we recommend practicing this specific pattern.</p>
+                            <a href="#" class="text-indigo-600 font-medium text-sm hover:text-indigo-700 flex items-center gap-1">
+                                Two Sum II - Input Array Is Sorted <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <button class="px-6 py-3 bg-gray-900 hover:bg-gray-800 text-white font-medium rounded-lg shadow-sm transition-colors whitespace-nowrap">
+                        Solve Now
+                    </button>
+                </div>
+            </div>
+
+            <!-- Feature Grid 1 -->
+            <section class="w-full bg-white py-20 border-b border-gray-200">
+                <div class="max-w-[1440px] mx-auto px-6">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                        <!-- Feature Card -->
+                        <div class="group p-6 rounded-[16px] hover:bg-white border border-transparent hover:border-gray-200 hover:shadow-glow hover:-translate-y-2 transition-all duration-300 cursor-pointer relative overflow-hidden">
+                            <div class="absolute inset-0 bg-gradient-to-br from-indigo-50/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+                            <div class="w-12 h-12 bg-indigo-100 rounded-[8px] flex items-center justify-center text-indigo-600 mb-4 text-xl group-hover:scale-110 group-hover:bg-indigo-600 group-hover:text-white group-hover:shadow-glow transition-all duration-300 relative z-10">
+                                <i class="fa-solid fa-brain group-hover:animate-pulse"></i>
+                            </div>
+                            <h4 class="text-lg font-bold text-gray-900 mb-2 group-hover:text-indigo-600 transition-colors relative z-10">Smart Spaced Repetition</h4>
+                            <p class="text-sm text-gray-600 relative z-10">Our algorithm surfaces problems exactly when you need to review them to ensure long-term retention.</p>
+                        </div>
+                        <!-- Feature Card -->
+                        <div class="group p-6 rounded-[16px] hover:bg-white border border-transparent hover:border-gray-200 hover:shadow-glow hover:-translate-y-2 transition-all duration-300 cursor-pointer relative overflow-hidden">
+                            <div class="absolute inset-0 bg-gradient-to-br from-indigo-50/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+                            <div class="w-12 h-12 bg-indigo-100 rounded-[8px] flex items-center justify-center text-indigo-600 mb-4 text-xl group-hover:scale-110 group-hover:bg-indigo-600 group-hover:text-white group-hover:shadow-glow transition-all duration-300 relative z-10">
+                                <i class="fa-solid fa-code group-hover:animate-pulse"></i>
+                            </div>
+                            <h4 class="text-lg font-bold text-gray-900 mb-2 group-hover:text-indigo-600 transition-colors relative z-10">In-Browser IDE</h4>
+                            <p class="text-sm text-gray-600 relative z-10">Write, test, and debug code directly in your browser with support for 10+ languages.</p>
+                        </div>
+                        <!-- Feature Card -->
+                        <div class="group p-6 rounded-[16px] hover:bg-white border border-transparent hover:border-gray-200 hover:shadow-glow hover:-translate-y-2 transition-all duration-300 cursor-pointer relative overflow-hidden">
+                            <div class="absolute inset-0 bg-gradient-to-br from-indigo-50/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+                            <div class="w-12 h-12 bg-indigo-100 rounded-[8px] flex items-center justify-center text-indigo-600 mb-4 text-xl group-hover:scale-110 group-hover:bg-indigo-600 group-hover:text-white group-hover:shadow-glow transition-all duration-300 relative z-10">
+                                <i class="fa-solid fa-chart-line group-hover:animate-pulse"></i>
+                            </div>
+                            <h4 class="text-lg font-bold text-gray-900 mb-2 group-hover:text-indigo-600 transition-colors relative z-10">Progress Analytics</h4>
+                            <p class="text-sm text-gray-600 relative z-10">Track your performance across different topics and identify areas that need improvement.</p>
+                        </div>
+                        <!-- Feature Card -->
+                        <div class="group p-6 rounded-[16px] hover:bg-white border border-transparent hover:border-gray-200 hover:shadow-glow hover:-translate-y-2 transition-all duration-300 cursor-pointer relative overflow-hidden">
+                            <div class="absolute inset-0 bg-gradient-to-br from-indigo-50/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+                            <div class="w-12 h-12 bg-indigo-100 rounded-[8px] flex items-center justify-center text-indigo-600 mb-4 text-xl group-hover:scale-110 group-hover:bg-indigo-600 group-hover:text-white group-hover:shadow-glow transition-all duration-300 relative z-10">
+                                <i class="fa-solid fa-users group-hover:animate-pulse"></i>
+                            </div>
+                            <h4 class="text-lg font-bold text-gray-900 mb-2 group-hover:text-indigo-600 transition-colors relative z-10">Peer Discussions</h4>
+                            <p class="text-sm text-gray-600 relative z-10">Discuss optimal solutions and approaches with a community of driven learners.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Modules Grid -->
+            <div>
+                <h3 class="text-xl font-bold text-gray-900 mb-6 tracking-tight">Learning Modules</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    
+                    <!-- DSA Practice -->
+                    <div class="bg-white/60 backdrop-blur-md rounded-[20px] shadow-sm border border-gray-200/60 p-6 hover:shadow-soft hover:bg-white/80 transition-all duration-300 group cursor-pointer relative overflow-hidden">
+                        <div class="w-12 h-12 rounded-[12px] bg-blue-50/80 text-blue-600 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300 shadow-sm border border-blue-100/50">
+                            <i class="fa-solid fa-laptop-code text-xl"></i>
+                        </div>
+                        <h4 class="text-lg font-semibold text-gray-900 mb-2">DSA Practice</h4>
+                        <p class="text-sm text-gray-500 mb-4 h-10">Master data structures and algorithms with curated problem lists.</p>
+                        <div class="flex items-center justify-between mt-auto">
+                            <span class="text-sm font-medium text-gray-900">145 / 450 Solved</span>
+                            <i class="fa-solid fa-chevron-right text-gray-400 group-hover:text-indigo-600 transition-colors"></i>
+                        </div>
+                    </div>
+
+                    <!-- Visualizer (Pro Locked State Example) -->
+                    <div class="bg-white/60 backdrop-blur-md rounded-[20px] shadow-sm border border-gray-200/60 p-6 relative overflow-hidden group">
+                        <div class="absolute inset-0 bg-white/40 backdrop-blur-[4px] z-10 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <div class="w-12 h-12 bg-gray-900 rounded-full flex items-center justify-center text-white mb-3 shadow-xl">
+                                <i class="fa-solid fa-lock text-sm"></i>
+                            </div>
+                            <span class="text-sm font-bold text-gray-900 mb-2">Pro Feature</span>
+                            <button class="text-xs font-semibold text-white bg-indigo-600 px-4 py-2 rounded-[8px] hover:bg-indigo-700 transition-colors shadow-soft">Upgrade Plan</button>
+                        </div>
+                        <div class="w-12 h-12 rounded-[12px] bg-purple-50/80 text-purple-600 flex items-center justify-center mb-5 shadow-sm border border-purple-100/50">
+                            <i class="fa-solid fa-diagram-project text-xl"></i>
+                        </div>
+                        <h4 class="text-lg font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                            Visualizer 
+                            <i class="fa-solid fa-crown text-amber-500 text-xs"></i>
+                        </h4>
+                        <p class="text-sm text-gray-500 mb-4 h-10">Step-by-step code execution visualization for complex algorithms.</p>
+                        <div class="flex items-center justify-between mt-auto">
+                            <span class="text-sm font-medium text-gray-400">Locked</span>
+                            <i class="fa-solid fa-chevron-right text-gray-300"></i>
+                        </div>
+                    </div>
+
+                    <!-- Core Subjects -->
+                    <div class="bg-white/60 backdrop-blur-md rounded-[20px] shadow-sm border border-gray-200/60 p-6 hover:shadow-soft hover:bg-white/80 transition-all duration-300 group cursor-pointer">
+                        <div class="w-12 h-12 rounded-[12px] bg-emerald-50/80 text-emerald-600 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300 shadow-sm border border-emerald-100/50">
+                            <i class="fa-solid fa-book-open text-xl"></i>
+                        </div>
+                        <h4 class="text-lg font-semibold text-gray-900 mb-2">Core Subjects</h4>
+                        <p class="text-sm text-gray-500 mb-4 h-10">OS, DBMS, Computer Networks, and System Design fundamentals.</p>
+                        <div class="flex items-center justify-between mt-auto">
+                            <span class="text-sm font-medium text-gray-900">4 / 12 Modules</span>
+                            <i class="fa-solid fa-chevron-right text-gray-400 group-hover:text-indigo-600 transition-colors"></i>
+                        </div>
+                    </div>
+
+                    <!-- Placement Prep -->
+                    <div class="bg-white/60 backdrop-blur-md rounded-[20px] shadow-sm border border-gray-200/60 p-6 hover:shadow-soft hover:bg-white/80 transition-all duration-300 group cursor-pointer">
+                        <div class="w-12 h-12 rounded-[12px] bg-rose-50/80 text-rose-600 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300 shadow-sm border border-rose-100/50">
+                            <i class="fa-solid fa-briefcase text-xl"></i>
+                        </div>
+                        <h4 class="text-lg font-semibold text-gray-900 mb-2">Placement Prep</h4>
+                        <p class="text-sm text-gray-500 mb-4 h-10">Company-specific mock tests, interview experiences, and guides.</p>
+                        <div class="flex items-center justify-between mt-auto">
+                            <span class="text-sm font-medium text-gray-900">Next Test: Amazon</span>
+                            <i class="fa-solid fa-chevron-right text-gray-400 group-hover:text-indigo-600 transition-colors"></i>
+                        </div>
+                    </div>
+
+                    <!-- Resume Builder -->
+                    <div class="bg-white/60 backdrop-blur-md rounded-[20px] shadow-sm border border-gray-200/60 p-6 hover:shadow-soft hover:bg-white/80 transition-all duration-300 group cursor-pointer relative">
+                        <div class="absolute top-5 right-5 px-2.5 py-1 bg-gray-100/80 backdrop-blur-sm text-gray-600 text-[10px] font-bold rounded-[6px] uppercase tracking-wider border border-gray-200/50">Beta</div>
+                        <div class="w-12 h-12 rounded-[12px] bg-amber-50/80 text-amber-600 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300 shadow-sm border border-amber-100/50">
+                            <i class="fa-solid fa-file-lines text-xl"></i>
+                        </div>
+                        <h4 class="text-lg font-semibold text-gray-900 mb-2">Resume Builder</h4>
+                        <p class="text-sm text-gray-500 mb-4 h-10">ATS-friendly templates and AI bullet point optimization.</p>
+                        <div class="flex items-center justify-between mt-auto">
+                            <span class="text-sm font-medium text-gray-900">1 Draft</span>
+                            <i class="fa-solid fa-chevron-right text-gray-400 group-hover:text-indigo-600 transition-colors"></i>
+                        </div>
+                    </div>
+
+                    <!-- Tech Skills -->
+                    <div class="bg-white/60 backdrop-blur-md rounded-[20px] shadow-sm border border-gray-200/60 p-6 hover:shadow-soft hover:bg-white/80 transition-all duration-300 group cursor-pointer">
+                        <div class="w-12 h-12 rounded-[12px] bg-cyan-50/80 text-cyan-600 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300 shadow-sm border border-cyan-100/50">
+                            <i class="fa-solid fa-microchip text-xl"></i>
+                        </div>
+                        <h4 class="text-lg font-semibold text-gray-900 mb-2">Tech Skills</h4>
+                        <p class="text-sm text-gray-500 mb-4 h-10">Web Dev, Cloud, DevOps, and trending technology pathways.</p>
+                        <div class="flex items-center justify-between mt-auto">
+                            <span class="text-sm font-medium text-gray-900">React Track Active</span>
+                            <i class="fa-solid fa-chevron-right text-gray-400 group-hover:text-indigo-600 transition-colors"></i>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Activity Summary Section -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Recent Activity List -->
+                <div class="bg-white/70 backdrop-blur-xl rounded-[24px] shadow-soft border border-gray-200/60 p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-lg font-bold text-gray-900 tracking-tight">Recent Activity</h3>
+                        <a href="#" class="text-sm text-indigo-600 hover:text-indigo-700 font-medium bg-indigo-50/50 px-3 py-1.5 rounded-[8px] transition-colors">View All</a>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="flex items-start gap-4 p-3.5 rounded-[12px] hover:bg-white/80 transition-colors border border-transparent hover:border-gray-100 shadow-sm hover:shadow-md">
+                            <div class="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center text-green-600 shrink-0">
+                                <i class="fa-solid fa-check"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-medium text-gray-900">Solved "Valid Parentheses"</p>
+                                <p class="text-xs text-gray-500">DSA Practice • Stack</p>
+                            </div>
+                            <span class="text-xs text-gray-400 whitespace-nowrap">2h ago</span>
+                        </div>
+                        <div class="flex items-start gap-4 p-3.5 rounded-[12px] hover:bg-white/80 transition-colors border border-transparent hover:border-gray-100 shadow-sm hover:shadow-md">
+                            <div class="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0">
+                                <i class="fa-solid fa-star"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-medium text-gray-900">Earned 50 XP</p>
+                                <p class="text-xs text-gray-500">Daily Goal Reached</p>
+                            </div>
+                            <span class="text-xs text-gray-400 whitespace-nowrap">Yesterday</span>
+                        </div>
+                        <div class="flex items-start gap-4 p-3.5 rounded-[12px] hover:bg-white/80 transition-colors border border-transparent hover:border-gray-100 shadow-sm hover:shadow-md">
+                            <div class="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0">
+                                <i class="fa-solid fa-book"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-medium text-gray-900">Completed "OS Intro"</p>
+                                <p class="text-xs text-gray-500">Core Subjects</p>
+                            </div>
+                            <span class="text-xs text-gray-400 whitespace-nowrap">2 days ago</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- XP Chart / Summary -->
+                <div class="bg-white/70 backdrop-blur-xl rounded-[24px] shadow-soft border border-gray-200/60 p-6 flex flex-col">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-lg font-bold text-gray-900 tracking-tight">Weekly Progress</h3>
+                        <select class="text-sm border border-gray-200/60 bg-white/80 backdrop-blur-sm rounded-[8px] py-1.5 px-3 text-gray-600 focus:ring-2 focus:ring-indigo-500 outline-none cursor-pointer shadow-sm">
+                            <option>This Week</option>
+                            <option>Last Week</option>
+                        </select>
+                    </div>
+                    <div class="flex-1 flex items-end justify-between gap-2 h-48 mt-4">
+                        <!-- Simple CSS Bar Chart representing activity -->
+                        <div class="w-full flex flex-col items-center gap-2 group">
+                            <div class="w-full bg-indigo-100 rounded-t-md h-[40%] relative group-hover:bg-indigo-200 transition-colors"></div>
+                            <span class="text-xs text-gray-500">Mon</span>
+                        </div>
+                        <div class="w-full flex flex-col items-center gap-2 group">
+                            <div class="w-full bg-indigo-100 rounded-t-md h-[65%] relative group-hover:bg-indigo-200 transition-colors"></div>
+                            <span class="text-xs text-gray-500">Tue</span>
+                        </div>
+                        <div class="w-full flex flex-col items-center gap-2 group">
+                            <div class="w-full bg-indigo-600 rounded-t-md h-[85%] relative shadow-sm"></div>
+                            <span class="text-xs font-medium text-gray-900">Wed</span>
+                        </div>
+                        <div class="w-full flex flex-col items-center gap-2 group">
+                            <div class="w-full bg-indigo-100 rounded-t-md h-[30%] relative group-hover:bg-indigo-200 transition-colors"></div>
+                            <span class="text-xs text-gray-500">Thu</span>
+                        </div>
+                        <div class="w-full flex flex-col items-center gap-2 group">
+                            <div class="w-full bg-indigo-100 rounded-t-md h-[50%] relative group-hover:bg-indigo-200 transition-colors"></div>
+                            <span class="text-xs text-gray-500">Fri</span>
+                        </div>
+                        <div class="w-full flex flex-col items-center gap-2 group">
+                            <div class="w-full bg-gray-100 rounded-t-md h-[10%] relative"></div>
+                            <span class="text-xs text-gray-400">Sat</span>
+                        </div>
+                        <div class="w-full flex flex-col items-center gap-2 group">
+                            <div class="w-full bg-gray-100 rounded-t-md h-[10%] relative"></div>
+                            <span class="text-xs text-gray-400">Sun</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+</body>
+</html>

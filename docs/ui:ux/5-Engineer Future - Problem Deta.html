@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script>
+        window.FontAwesomeConfig = {
+          autoReplaceSvg: 'nest'
+        };
+      </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EYF - Engineer Your Future | Problem Detail + Code Editor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Fira Code', 'monospace'],
+                    },
+                    colors: {
+                        indigo: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            900: '#312e81',
+                        },
+                        gray: {
+                            50: '#f9fafb',
+                            100: '#f3f4f6',
+                            200: '#e5e7eb',
+                            800: '#1f2937',
+                            900: '#111827',
+                            950: '#030712',
+                        }
+                    },
+                    boxShadow: {
+                        'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
+                        'glow': '0 0 20px rgba(79, 70, 229, 0.3)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { margin: 0; padding: 0; font-family: 'Inter', sans-serif; background-color: #f9fafb; }
+        .mesh-bg {
+            background-color: #f9fafb;
+            background-image: 
+                radial-gradient(at 40% 20%, hsla(228,100%,74%,0.15) 0px, transparent 50%),
+                radial-gradient(at 80% 0%, hsla(189,100%,56%,0.15) 0px, transparent 50%),
+                radial-gradient(at 0% 50%, hsla(355,100%,93%,0.1) 0px, transparent 50%);
+        }
+        ::-webkit-scrollbar { display: none; }
+        
+        /* Markdown Styles for Problem Description */
+        .prose h3 { font-size: 1.125rem; font-weight: 600; color: #111827; margin-top: 1.5rem; margin-bottom: 0.75rem; }
+        .prose p { color: #374151; line-height: 1.6; margin-bottom: 1rem; font-size: 0.875rem; }
+        .prose pre { background-color: #f3f4f6; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem; font-family: 'Fira Code', monospace; font-size: 0.875rem; color: #1f2937; }
+        .prose code { background-color: #f3f4f6; padding: 0.125rem 0.25rem; border-radius: 0.25rem; font-family: 'Fira Code', monospace; font-size: 0.875rem; color: #ef4444; }
+        .prose ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 1rem; color: #374151; font-size: 0.875rem; }
+        .prose li { margin-bottom: 0.25rem; }
+        
+        /* Code Editor Syntax Highlighting Mock */
+        .code-keyword { color: #c678dd; }
+        .code-function { color: #61afef; }
+        .code-string { color: #98c379; }
+        .code-comment { color: #5c6370; font-style: italic; }
+        .code-number { color: #d19a66; }
+        .code-operator { color: #56b6c2; }
+        .code-variable { color: #e06c75; }
+    </style>
+</head>
+<body class="m-0 p-0 text-gray-900 antialiased h-screen flex flex-col mesh-bg overflow-hidden">
+
+    <!-- Top Navigation Bar -->
+    <header id="top-nav" class="w-full bg-white/60 backdrop-blur-xl border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-[1440px] mx-auto px-6 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-8">
+                <!-- Logo -->
+                <a href="#" class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold text-sm shadow-glow">
+                        <i class="fa-solid fa-code"></i>
+                    </div>
+                    <span class="text-xl font-bold tracking-tight text-gray-900">EYF</span>
+                </a>
+
+                <!-- Main Nav Links -->
+                <nav class="hidden md:flex items-center gap-1">
+                    <a href="#" class="px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors">Module Home</a>
+                    <a href="#" class="px-3 py-2 rounded-md text-sm font-medium text-gray-900 bg-gray-100/50 hover:bg-gray-100 transition-colors">DSA Practice</a>
+                    <a href="#" class="px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors">Core Subjects</a>
+                    <a href="#" class="px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors">Placement Prep</a>
+                    <a href="#" class="px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors">Resume Builder</a>
+                    <a href="#" class="px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors">Tech Skills</a>
+                </nav>
+            </div>
+
+            <!-- Right Actions -->
+            <div class="flex items-center gap-4">
+                <div class="hidden md:flex items-center gap-2 bg-indigo-50/50 px-3 py-1.5 rounded-full border border-indigo-100/50 backdrop-blur-sm">
+                    <i class="fa-solid fa-fire text-orange-500"></i>
+                    <span class="text-sm font-bold text-indigo-700">14 Day Streak</span>
+                </div>
+                
+                <button class="p-2 rounded-full text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors relative">
+                    <i class="fa-regular fa-bell"></i>
+                    <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500 border-2 border-white"></span>
+                </button>
+
+                <div class="h-8 w-8 rounded-full border border-gray-200 overflow-hidden cursor-pointer shadow-sm">
+                    <img src="https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-4.jpg" alt="User Profile" class="w-full h-full object-cover">
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main id="main-content" class="flex-1 flex flex-col min-w-0 overflow-hidden relative z-10">
+        
+        <!-- Top Nav specific to Problem Detail -->
+        <header id="header" class="bg-white/40 backdrop-blur-lg border-b border-gray-200/60 shrink-0 px-6 py-3 flex items-center justify-between z-10">
+            <div class="flex items-center gap-4">
+                <button class="md:hidden text-gray-600 hover:text-gray-900">
+                    <i class="fa-solid fa-bars text-xl"></i>
+                </button>
+                <div class="flex items-center gap-3">
+                    <a href="#" class="text-gray-400 hover:text-gray-700 transition-colors">
+                        <i class="fa-solid fa-arrow-left"></i>
+                    </a>
+                    <h1 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                        <span class="text-gray-400">1.</span> Two Sum
+                        <span class="px-2 py-0.5 bg-green-50 text-green-700 text-xs font-medium rounded">Easy</span>
+                    </h1>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-3">
+                <div class="hidden sm:flex items-center gap-2 mr-2">
+                    <button class="w-8 h-8 rounded hover:bg-gray-100 flex items-center justify-center text-gray-500 transition-colors tooltip" title="Previous Problem">
+                        <i class="fa-solid fa-chevron-left"></i>
+                    </button>
+                    <button class="w-8 h-8 rounded hover:bg-gray-100 flex items-center justify-center text-gray-500 transition-colors tooltip" title="Next Problem">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+                    <button class="w-8 h-8 rounded hover:bg-gray-100 flex items-center justify-center text-gray-500 transition-colors tooltip" title="Random Problem">
+                        <i class="fa-solid fa-shuffle"></i>
+                    </button>
+                </div>
+                
+                <button class="px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors flex items-center gap-2">
+                    <i class="fa-solid fa-play text-indigo-600"></i> Run
+                </button>
+                <button id="submit-btn" class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors shadow-sm flex items-center gap-2 relative overflow-hidden group">
+                    <span class="relative z-10 flex items-center gap-2"><i class="fa-solid fa-cloud-arrow-up"></i> Submit</span>
+                    <div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+                </button>
+            </div>
+        </header>
+
+        <!-- Split Layout Container -->
+        <div class="flex-1 flex flex-col lg:flex-row overflow-hidden p-4 gap-4 max-w-[1440px] mx-auto w-full">
+            
+            <!-- Left Pane: Problem Description -->
+            <div id="problem-pane" class="w-full lg:w-1/2 flex flex-col bg-white/70 backdrop-blur-xl border border-gray-200/60 rounded-[20px] overflow-hidden shadow-soft h-full">
+                <!-- Tabs -->
+                <div class="flex border-b border-gray-200/60 bg-white/40 backdrop-blur-sm px-2 pt-2 shrink-0">
+                    <button class="px-4 py-2 text-sm font-medium text-indigo-600 bg-white/80 border-t border-l border-r border-gray-200/60 rounded-t-lg flex items-center gap-2 relative -mb-px shadow-sm">
+                        <i class="fa-regular fa-file-lines"></i> Description
+                    </button>
+                    <button class="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 hover:bg-white/50 rounded-t-lg flex items-center gap-2 transition-colors">
+                        <i class="fa-solid fa-clock-rotate-left"></i> Submissions
+                    </button>
+                    <button class="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 hover:bg-white/50 rounded-t-lg flex items-center gap-2 transition-colors ml-auto">
+                        <i class="fa-regular fa-lightbulb"></i> Hints (3)
+                    </button>
+                </div>
+
+                <!-- Content -->
+                <div class="flex-1 overflow-y-auto p-6 prose max-w-none">
+                    <p>Given an array of integers <code>nums</code> and an integer <code>target</code>, return <em>indices of the two numbers such that they add up to <code>target</code></em>.</p>
+                    <p>You may assume that each input would have <strong><em>exactly</em> one solution</strong>, and you may not use the <em>same</em> element twice.</p>
+                    <p>You can return the answer in any order.</p>
+
+                    <h3>Example 1:</h3>
+                    <pre><strong>Input:</strong> nums = [2,7,11,15], target = 9
+<strong>Output:</strong> [0,1]
+<strong>Explanation:</strong> Because nums[0] + nums[1] == 9, we return [0, 1].</pre>
+
+                    <h3>Example 2:</h3>
+                    <pre><strong>Input:</strong> nums = [3,2,4], target = 6
+<strong>Output:</strong> [1,2]</pre>
+
+                    <h3>Example 3:</h3>
+                    <pre><strong>Input:</strong> nums = [3,3], target = 6
+<strong>Output:</strong> [0,1]</pre>
+
+                    <h3>Constraints:</h3>
+                    <ul>
+                        <li><code>2 &lt;= nums.length &lt;= 10<sup>4</sup></code></li>
+                        <li><code>-10<sup>9</sup> &lt;= nums[i] &lt;= 10<sup>9</sup></code></li>
+                        <li><code>-10<sup>9</sup> &lt;= target &lt;= 10<sup>9</sup></code></li>
+                        <li><strong>Only one valid answer exists.</strong></li>
+                    </ul>
+
+                    <div class="mt-8 pt-6 border-t border-gray-200">
+                        <div class="flex items-center justify-between text-sm text-gray-500">
+                            <div class="flex gap-4">
+                                <span class="flex items-center gap-1 hover:text-gray-900 cursor-pointer"><i class="fa-regular fa-thumbs-up"></i> 52.4K</span>
+                                <span class="flex items-center gap-1 hover:text-gray-900 cursor-pointer"><i class="fa-regular fa-thumbs-down"></i> 1.8K</span>
+                            </div>
+                            <div class="flex gap-4">
+                                <span class="flex items-center gap-1 hover:text-gray-900 cursor-pointer tooltip" title="Add to List"><i class="fa-regular fa-star"></i></span>
+                                <span class="flex items-center gap-1 hover:text-gray-900 cursor-pointer tooltip" title="Share"><i class="fa-solid fa-share-nodes"></i></span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Company Tags (Mock) -->
+                    <div class="mt-6 flex flex-wrap gap-2">
+                        <span class="px-3 py-1 bg-gray-100 text-gray-600 text-xs rounded-full font-medium border border-gray-200">Amazon</span>
+                        <span class="px-3 py-1 bg-gray-100 text-gray-600 text-xs rounded-full font-medium border border-gray-200">Google</span>
+                        <span class="px-3 py-1 bg-gray-100 text-gray-600 text-xs rounded-full font-medium border border-gray-200">Apple</span>
+                        <span class="px-3 py-1 bg-gray-100 text-gray-600 text-xs rounded-full font-medium border border-gray-200">Adobe</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Pane: Code Editor & Test Cases -->
+            <div id="editor-pane" class="w-full lg:w-1/2 flex flex-col gap-4 h-full">
+                
+                <!-- Editor Section -->
+                <div class="flex-1 flex flex-col bg-[#111827]/90 backdrop-blur-xl rounded-[20px] border border-gray-700/50 overflow-hidden shadow-2xl relative">
+                    <!-- Editor Toolbar -->
+                    <div class="flex items-center justify-between px-4 py-2 bg-[#1f2937]/80 backdrop-blur-md border-b border-gray-800 shrink-0">
+                        <div class="relative">
+                            <button class="flex items-center gap-2 text-sm text-gray-300 hover:text-white transition-colors bg-[#3d3d3d] px-3 py-1.5 rounded border border-gray-700">
+                                <i class="fa-brands fa-python text-yellow-400"></i> Python3 <i class="fa-solid fa-chevron-down text-xs ml-1"></i>
+                            </button>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <button class="text-gray-400 hover:text-white transition-colors tooltip" title="Reset Code">
+                                <i class="fa-solid fa-rotate-right"></i>
+                            </button>
+                            <button class="text-gray-400 hover:text-white transition-colors tooltip" title="Editor Settings">
+                                <i class="fa-solid fa-gear"></i>
+                            </button>
+                            <button class="text-gray-400 hover:text-white transition-colors tooltip" title="Full Screen">
+                                <i class="fa-solid fa-expand"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Code Area (Mock) -->
+                    <div class="flex-1 overflow-auto bg-transparent p-4 font-mono text-sm leading-relaxed relative">
+                        <!-- Line Numbers -->
+                        <div class="absolute left-0 top-0 bottom-0 w-12 bg-transparent border-r border-gray-800/50 flex flex-col items-end py-4 pr-3 text-gray-600 select-none">
+                            <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span>
+                        </div>
+                        
+                        <!-- Code Content -->
+                        <div class="ml-10 text-[#d4d4d4] whitespace-pre">
+<span class="code-keyword">class</span> <span class="code-function">Solution</span>:
+    <span class="code-keyword">def</span> <span class="code-function">twoSum</span>(<span class="code-keyword">self</span>, nums: List[<span class="code-keyword">int</span>], target: <span class="code-keyword">int</span>) -> List[<span class="code-keyword">int</span>]:
+        <span class="code-comment"># Create a hash map to store value -> index</span>
+        num_map = {}
+        
+        <span class="code-keyword">for</span> i, num <span class="code-keyword">in</span> <span class="code-function">enumerate</span>(nums):
+            complement = target <span class="code-operator">-</span> num
+            
+            <span class="code-keyword">if</span> complement <span class="code-keyword">in</span> num_map:
+                <span class="code-keyword">return</span> [num_map[complement], i]
+                
+            num_map[num] = i
+            
+        <span class="code-keyword">return</span> [] <span class="code-comment"># Should not be reached based on constraints</span>
+                        </div>
+                        
+                        <!-- Blinking Cursor Mock -->
+                        <div class="absolute left-[120px] top-[245px] w-[2px] h-[18px] bg-white animate-pulse"></div>
+                    </div>
+                </div>
+
+                <!-- Test Cases Section -->
+                <div id="test-cases-pane" class="h-1/3 min-h-[200px] bg-white/70 backdrop-blur-xl rounded-[20px] border border-gray-200/60 overflow-hidden shadow-soft flex flex-col shrink-0">
+                    <!-- Tabs -->
+                    <div class="flex border-b border-gray-200/60 bg-white/40 backdrop-blur-sm px-2 pt-2 shrink-0 justify-between items-center">
+                        <div class="flex">
+                            <button class="px-4 py-2 text-sm font-medium text-gray-700 bg-white/80 border-t border-l border-r border-gray-200/60 rounded-t-lg flex items-center gap-2 relative -mb-px shadow-sm">
+                                <i class="fa-solid fa-vial"></i> Test Cases
+                            </button>
+                            <button class="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 hover:bg-white/50 rounded-t-lg flex items-center gap-2 transition-colors">
+                                <i class="fa-solid fa-terminal"></i> Test Result
+                            </button>
+                        </div>
+                        <button class="text-gray-400 hover:text-gray-600 px-2 py-1 text-sm flex items-center gap-1">
+                            <i class="fa-solid fa-chevron-down"></i>
+                        </button>
+                    </div>
+
+                    <!-- Test Cases Content -->
+                    <div class="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
+                        <!-- Case Tabs -->
+                        <div class="flex gap-2">
+                            <button class="px-3 py-1.5 bg-gray-100 text-gray-800 text-sm font-medium rounded-md hover:bg-gray-200 transition-colors">Case 1</button>
+                            <button class="px-3 py-1.5 bg-white border border-gray-200 text-gray-600 text-sm font-medium rounded-md hover:bg-gray-50 transition-colors">Case 2</button>
+                            <button class="px-3 py-1.5 bg-white border border-gray-200 text-gray-600 text-sm font-medium rounded-md hover:bg-gray-50 transition-colors">Case 3</button>
+                            <button class="px-3 py-1.5 bg-white border border-gray-200 text-gray-400 text-sm rounded-md hover:bg-gray-50 transition-colors"><i class="fa-solid fa-plus"></i></button>
+                        </div>
+
+                        <!-- Input Fields -->
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-500 mb-1">nums =</label>
+                                <div class="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 font-mono text-sm text-gray-800 focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500 transition-all">
+                                    [2,7,11,15]
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-500 mb-1">target =</label>
+                                <div class="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 font-mono text-sm text-gray-800 focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500 transition-all">
+                                    9
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+</body>
+</html>

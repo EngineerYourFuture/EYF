@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script>
+        window.FontAwesomeConfig = {
+          autoReplaceSvg: 'nest'
+        };
+      </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EYF - Engineer Your Future | Placement Prep</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script src="https://cdn.plot.ly/plotly-3.1.1.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Fira Code', 'monospace'],
+                    },
+                    colors: {
+                        indigo: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            900: '#312e81',
+                        },
+                        gray: {
+                            50: '#f9fafb',
+                            100: '#f3f4f6',
+                            200: '#e5e7eb',
+                            800: '#1f2937',
+                            900: '#111827',
+                            950: '#030712',
+                        }
+                    },
+                    boxShadow: {
+                        'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
+                        'glow': '0 0 20px rgba(79, 70, 229, 0.3)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { margin: 0; padding: 0; font-family: 'Inter', sans-serif; background-color: #f9fafb; }
+        .mesh-bg {
+            background-color: #f9fafb;
+            background-image: 
+                radial-gradient(at 40% 20%, hsla(228,100%,74%,0.15) 0px, transparent 50%),
+                radial-gradient(at 80% 0%, hsla(189,100%,56%,0.15) 0px, transparent 50%),
+                radial-gradient(at 0% 50%, hsla(355,100%,93%,0.1) 0px, transparent 50%);
+        }
+        ::-webkit-scrollbar { display: none; }
+        
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        .animate-float { animation: float 3s ease-in-out infinite; }
+        
+        @keyframes pulse-glow {
+            0% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.4); }
+            70% { box-shadow: 0 0 0 15px rgba(79, 70, 229, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0); }
+        }
+        .animate-pulse-glow { animation: pulse-glow 2s infinite; }
+
+        .progress-ring__circle {
+            transition: stroke-dashoffset 0.35s;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+
+        /* Added Hover Effects */
+        .hover-card-float {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .hover-card-float:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px -5px rgba(79, 70, 229, 0.15);
+        }
+        
+        .hover-icon-scale i {
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .hover-icon-scale:hover i {
+            transform: scale(1.2);
+        }
+    </style>
+</head>
+<body class="m-0 p-0 text-gray-900 antialiased min-h-screen flex flex-col mesh-bg">
+
+    <!-- Top Navigation Bar -->
+    <header id="top-nav" class="w-full bg-white/60 backdrop-blur-xl border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-[1440px] mx-auto px-6 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-8">
+                <!-- Logo -->
+                <a href="#" class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold text-sm shadow-glow">
+                        <i class="fa-solid fa-code"></i>
+                    </div>
+                    <span class="text-xl font-bold tracking-tight text-gray-900">EYF</span>
+                </a>
+
+                <!-- Main Nav Links -->
+                <nav class="hidden md:flex items-center gap-1">
+                    <a href="#" class="px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors">Module Home</a>
+                    <a href="#" class="px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors">DSA Practice</a>
+                    <a href="#" class="px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors">Core Subjects</a>
+                    <a href="#" class="px-3 py-2 rounded-md text-sm font-medium text-indigo-700 bg-indigo-50/50 border border-indigo-100/50 backdrop-blur-sm transition-colors">Placement Prep</a>
+                    <a href="#" class="px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors">Resume Builder</a>
+                    <a href="#" class="px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors">Tech Skills</a>
+                </nav>
+            </div>
+
+            <!-- Right Actions -->
+            <div class="flex items-center gap-4">
+                <div class="hidden md:flex items-center gap-2 bg-indigo-50/50 px-3 py-1.5 rounded-full border border-indigo-100/50 backdrop-blur-sm">
+                    <i class="fa-solid fa-fire text-orange-500"></i>
+                    <span class="text-sm font-bold text-indigo-700">15 Day Streak</span>
+                </div>
+                <div class="hidden md:flex items-center gap-2 bg-white/60 px-3 py-1.5 rounded-full border border-gray-200/60 backdrop-blur-sm">
+                    <i class="fa-solid fa-star text-yellow-400"></i>
+                    <span class="text-sm font-bold text-gray-700">3,250 XP</span>
+                </div>
+                
+                <button class="p-2 rounded-full text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors relative">
+                    <i class="fa-regular fa-bell"></i>
+                    <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500 border-2 border-white"></span>
+                </button>
+
+                <div class="h-8 w-8 rounded-full border border-gray-200 overflow-hidden cursor-pointer shadow-sm">
+                    <img src="https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-4.jpg" alt="User Profile" class="w-full h-full object-cover">
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main id="main-content" class="w-full max-w-[1440px] mx-auto flex-1 p-6 md:p-8 relative z-10">
+        
+        <div class="space-y-8">
+            
+            <!-- Page Header -->
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900">Placement Prep</h1>
+                    <p class="text-gray-500 text-sm mt-1">Track applications, practice interviews, and monitor your readiness.</p>
+                </div>
+            </div>
+
+            <!-- Top Row: Performance & Calendar -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                <!-- Performance Dashboard -->
+                <div class="lg:col-span-2 bg-white/70 backdrop-blur-xl rounded-[24px] border border-gray-200/60 p-6 shadow-soft">
+                    <div class="flex items-center justify-between mb-6">
+                        <div>
+                            <h2 class="text-lg font-bold text-gray-900">Placement Readiness</h2>
+                            <p class="text-sm text-gray-500">Your overall interview and technical readiness trend.</p>
+                        </div>
+                        <button class="text-sm font-medium text-indigo-600 hover:text-indigo-700 bg-indigo-50/50 backdrop-blur-sm border border-indigo-100/50 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-2">
+                            <i class="fa-solid fa-download"></i> Export Report
+                        </button>
+                    </div>
+                    <div id="readiness-chart" class="h-[250px] w-full"></div>
+                    
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+                        <div class="p-4 rounded-xl border border-white/60 bg-white/50 backdrop-blur-sm">
+                            <p class="text-xs text-gray-500 mb-1">Total Mock Interviews</p>
+                            <p class="text-xl font-bold text-gray-900">24</p>
+                        </div>
+                        <div class="p-4 rounded-xl border border-white/60 bg-white/50 backdrop-blur-sm">
+                            <p class="text-xs text-gray-500 mb-1">Avg. Score</p>
+                            <p class="text-xl font-bold text-gray-900 text-indigo-600">82%</p>
+                        </div>
+                        <div class="p-4 rounded-xl border border-white/60 bg-white/50 backdrop-blur-sm">
+                            <p class="text-xs text-gray-500 mb-1">Top Strength</p>
+                            <p class="text-sm font-bold text-gray-900">System Design</p>
+                        </div>
+                        <div class="p-4 rounded-xl border border-white/60 bg-white/50 backdrop-blur-sm">
+                            <p class="text-xs text-gray-500 mb-1">Needs Work</p>
+                            <p class="text-sm font-bold text-gray-900">Dynamic Prog.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Calendar & Next Actions -->
+                <div class="bg-white/70 backdrop-blur-xl rounded-[24px] border border-gray-200/60 p-6 shadow-soft flex flex-col">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-lg font-bold text-gray-900">Next Actions</h2>
+                        <button class="text-gray-400 hover:text-indigo-600"><i class="fa-solid fa-plus"></i></button>
+                    </div>
+                    
+                    <div class="space-y-4 flex-1">
+                        <!-- Action Item 1 -->
+                        <div class="flex items-start gap-4 p-3 rounded-xl hover:bg-white/80 bg-white/40 border border-white/60 transition-colors">
+                            <div class="w-10 h-10 rounded-lg bg-indigo-50/80 text-indigo-600 flex items-center justify-center shrink-0 border border-indigo-100/50">
+                                <i class="fa-solid fa-video"></i>
+                            </div>
+                            <div class="flex-1">
+                                <h4 class="text-sm font-bold text-gray-900">Google Mock Interview</h4>
+                                <p class="text-xs text-gray-500 mt-1">Today, 4:00 PM • Peer-to-peer</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Action Item 2 -->
+                        <div class="flex items-start gap-4 p-3 rounded-xl hover:bg-white/80 bg-white/40 border border-white/60 transition-colors">
+                            <div class="w-10 h-10 rounded-lg bg-gray-50/80 text-gray-600 flex items-center justify-center shrink-0 border border-gray-200/50">
+                                <i class="fa-solid fa-paper-plane"></i>
+                            </div>
+                            <div class="flex-1">
+                                <h4 class="text-sm font-bold text-gray-900">Submit Amazon OA</h4>
+                                <p class="text-xs text-gray-500 mt-1">Tomorrow, 11:59 PM</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Action Item 3 -->
+                        <div class="flex items-start gap-4 p-3 rounded-xl hover:bg-white/80 bg-white/40 border border-white/60 transition-colors">
+                            <div class="w-10 h-10 rounded-lg bg-gray-50/80 text-gray-600 flex items-center justify-center shrink-0 border border-gray-200/50">
+                                <i class="fa-solid fa-code-branch"></i>
+                            </div>
+                            <div class="flex-1">
+                                <h4 class="text-sm font-bold text-gray-900">Review Graph Algos</h4>
+                                <p class="text-xs text-gray-500 mt-1">Suggested based on recent performance</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4 pt-4 border-t border-gray-200/60">
+                        <div class="flex items-center justify-between text-sm">
+                            <span class="font-medium text-gray-700">Weekly Goal</span>
+                            <span class="text-indigo-600 font-bold">3/5 Tasks</span>
+                        </div>
+                        <div class="w-full bg-gray-200/60 rounded-full h-2 mt-2 overflow-hidden">
+                            <div class="bg-indigo-600 h-2 rounded-full" style="width: 60%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Middle Row: Mock Interview UI -->
+            <div class="bg-white/70 backdrop-blur-xl rounded-[24px] border border-gray-200/60 shadow-soft overflow-hidden">
+                <div class="p-6 border-b border-gray-200/60 bg-white/40 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-lg font-bold text-gray-900">Mock Interview Environment</h2>
+                        <p class="text-sm text-gray-500">Practice behavioral and technical questions with real-time feedback.</p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="px-3 py-1.5 bg-white/80 border border-gray-200/60 rounded-lg text-sm font-medium font-mono text-gray-700 flex items-center gap-2 shadow-sm">
+                            <div class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
+                            14:32
+                        </div>
+                        <button class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-lg shadow-sm transition-colors">
+                            End Session
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="flex flex-col lg:flex-row h-[500px]">
+                    <!-- Left: Video/Prompt Area -->
+                    <div class="flex-1 p-6 flex flex-col border-b lg:border-b-0 lg:border-r border-gray-200/60">
+                        <div class="mb-4">
+                            <span class="text-xs font-bold text-indigo-600 uppercase tracking-wider mb-1 block">Question 3 of 5</span>
+                            <h3 class="text-xl font-bold text-gray-900">Tell me about a time you had to optimize a slow system.</h3>
+                        </div>
+                        
+                        <div class="flex-1 bg-gray-900 rounded-xl overflow-hidden relative group shadow-inner">
+                            <img src="https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-4.jpg" alt="User Camera" class="w-full h-full object-cover opacity-80">
+                            <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-3 bg-gray-900/80 backdrop-blur-md px-4 py-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity border border-gray-700">
+                                <button class="w-10 h-10 rounded-full bg-gray-800 text-white flex items-center justify-center hover:bg-gray-700 transition-colors"><i class="fa-solid fa-microphone"></i></button>
+                                <button class="w-10 h-10 rounded-full bg-gray-800 text-white flex items-center justify-center hover:bg-gray-700 transition-colors"><i class="fa-solid fa-video"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Right: Feedback Rubric -->
+                    <div class="w-full lg:w-[350px] bg-white/30 backdrop-blur-sm p-6 overflow-y-auto">
+                        <h4 class="text-sm font-bold text-gray-900 mb-4">Live Evaluation Rubric</h4>
+                        
+                        <div class="space-y-4">
+                            <!-- Rubric Item -->
+                            <div class="bg-white/80 backdrop-blur-md p-4 rounded-xl border border-white">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-sm font-semibold text-gray-900">STAR Method</span>
+                                    <span class="text-xs font-medium bg-green-100/80 text-green-700 px-2 py-0.5 rounded border border-green-200/50">Good</span>
+                                </div>
+                                <p class="text-xs text-gray-500">Clearly defined Situation and Task. Ensure you highlight the Result more strongly.</p>
+                            </div>
+                            
+                            <!-- Rubric Item -->
+                            <div class="bg-white/80 backdrop-blur-md p-4 rounded-xl border border-white">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-sm font-semibold text-gray-900">Technical Depth</span>
+                                    <span class="text-xs font-medium bg-yellow-100/80 text-yellow-700 px-2 py-0.5 rounded border border-yellow-200/50">Needs Detail</span>
+                                </div>
+                                <p class="text-xs text-gray-500">Mention specific metrics (e.g., latency reduction from 500ms to 50ms).</p>
+                            </div>
+                            
+                            <!-- Rubric Item -->
+                            <div class="bg-white/80 backdrop-blur-md p-4 rounded-xl border border-white">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-sm font-semibold text-gray-900">Communication</span>
+                                    <span class="text-xs font-medium text-gray-400">Evaluating...</span>
+                                </div>
+                                <div class="w-full bg-gray-200/60 rounded-full h-1.5 mt-2 overflow-hidden">
+                                    <div class="bg-indigo-500 h-1.5 rounded-full w-1/2 animate-pulse"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Row: Application Tracker -->
+            <div class="bg-white/70 backdrop-blur-xl rounded-[24px] border border-gray-200/60 shadow-soft overflow-hidden">
+                <div class="p-6 border-b border-gray-200/60 bg-white/40 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-lg font-bold text-gray-900">Attempt Tracking</h2>
+                        <p class="text-sm text-gray-500">Manage your active job applications and interview stages.</p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="relative">
+                            <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                            <input type="text" placeholder="Search companies..." class="bg-white/60 backdrop-blur-sm pl-9 pr-4 py-2 border border-gray-200/60 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent w-full sm:w-64 transition-shadow">
+                        </div>
+                        <button class="px-4 py-2 bg-gray-900 hover:bg-black text-white text-sm font-semibold rounded-lg shadow-sm transition-colors whitespace-nowrap">
+                            Add Application
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-white/40 border-b border-gray-200/60">
+                                <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Company & Role</th>
+                                <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                                <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Date Applied</th>
+                                <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Next Step</th>
+                                <th class="px-6 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200/60">
+                            <!-- Row 1 -->
+                            <tr class="hover:bg-white/60 transition-colors">
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-8 h-8 rounded bg-white/80 flex items-center justify-center text-gray-700 font-bold border border-gray-200/60 shadow-sm">G</div>
+                                        <div>
+                                            <p class="text-sm font-bold text-gray-900">Google</p>
+                                            <p class="text-xs text-gray-500">Software Engineer II</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100/50">
+                                        Interviewing
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 text-sm text-gray-500">Oct 12, 2023</td>
+                                <td class="px-6 py-4">
+                                    <p class="text-sm text-gray-900 font-medium">Onsite Loop</p>
+                                    <p class="text-xs text-gray-500">Oct 28</p>
+                                </td>
+                                <td class="px-6 py-4 text-right">
+                                    <button class="text-gray-400 hover:text-indigo-600"><i class="fa-solid fa-ellipsis-vertical px-2"></i></button>
+                                </td>
+                            </tr>
+                            
+                            <!-- Row 2 -->
+                            <tr class="hover:bg-white/60 transition-colors">
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-8 h-8 rounded bg-white/80 flex items-center justify-center text-gray-700 font-bold border border-gray-200/60 shadow-sm">M</div>
+                                        <div>
+                                            <p class="text-sm font-bold text-gray-900">Microsoft</p>
+                                            <p class="text-xs text-gray-500">Backend Developer</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-100/50">
+                                        Offer
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 text-sm text-gray-500">Sep 28, 2023</td>
+                                <td class="px-6 py-4">
+                                    <p class="text-sm text-gray-900 font-medium">Accept Deadline</p>
+                                    <p class="text-xs text-gray-500">Nov 05</p>
+                                </td>
+                                <td class="px-6 py-4 text-right">
+                                    <button class="text-gray-400 hover:text-indigo-600"><i class="fa-solid fa-ellipsis-vertical px-2"></i></button>
+                                </td>
+                            </tr>
+                            
+                            <!-- Row 3 -->
+                            <tr class="hover:bg-white/60 transition-colors">
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-8 h-8 rounded bg-white/80 flex items-center justify-center text-gray-700 font-bold border border-gray-200/60 shadow-sm">S</div>
+                                        <div>
+                                            <p class="text-sm font-bold text-gray-900">Stripe</p>
+                                            <p class="text-xs text-gray-500">Frontend Engineer</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-50 text-yellow-700 border border-yellow-100/50">
+                                        Applied
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 text-sm text-gray-500">Oct 20, 2023</td>
+                                <td class="px-6 py-4">
+                                    <p class="text-sm text-gray-900 font-medium">Awaiting OA</p>
+                                    <p class="text-xs text-gray-500">--</p>
+                                </td>
+                                <td class="px-6 py-4 text-right">
+                                    <button class="text-gray-400 hover:text-indigo-600"><i class="fa-solid fa-ellipsis-vertical px-2"></i></button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        // Initialize Plotly Chart for Readiness
+        window.addEventListener('load', function() {
+            try {
+                const data = [{
+                    type: 'scatter',
+                    mode: 'lines+markers',
+                    name: 'Readiness Score',
+                    x: ['Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                    y: [45, 58, 72, 82, 88],
+                    line: {
+                        color: '#6366f1',
+                        width: 3,
+                        shape: 'spline',
+                        smoothing: 1.3
+                    },
+                    marker: {
+                        size: 8,
+                        color: '#ffffff',
+                        line: {
+                            color: '#6366f1',
+                            width: 2
+                        }
+                    },
+                    fill: 'tozeroy',
+                    fillcolor: 'rgba(99, 102, 241, 0.1)'
+                }];
+
+                const layout = {
+                    margin: { t: 10, r: 10, b: 30, l: 30 },
+                    plot_bgcolor: 'transparent',
+                    paper_bgcolor: 'transparent',
+                    xaxis: {
+                        showgrid: false,
+                        color: '#9ca3af',
+                        tickfont: { size: 12 }
+                    },
+                    yaxis: {
+                        showgrid: true,
+                        gridcolor: 'rgba(229, 231, 235, 0.5)',
+                        color: '#9ca3af',
+                        tickfont: { size: 12 },
+                        range: [0, 100]
+                    },
+                    showlegend: false,
+                    hovermode: 'x unified'
+                };
+
+                const config = {
+                    responsive: true,
+                    displayModeBar: false,
+                    displaylogo: false
+                };
+
+                Plotly.newPlot('readiness-chart', data, layout, config);
+            } catch(e) {
+                console.error('Error initializing chart:', e);
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script>
+        window.FontAwesomeConfig = {
+          autoReplaceSvg: 'nest'
+        };
+      </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EYF - Engineer Your Future | Submission Success</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script src="https://cdn.plot.ly/plotly-3.1.1.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Fira Code', 'monospace'],
+                    },
+                    colors: {
+                        indigo: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            900: '#312e81',
+                        },
+                        gray: {
+                            50: '#f9fafb',
+                            100: '#f3f4f6',
+                            200: '#e5e7eb',
+                            800: '#1f2937',
+                            900: '#111827',
+                            950: '#030712',
+                        }
+                    },
+                    boxShadow: {
+                        'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
+                        'glow': '0 0 20px rgba(79, 70, 229, 0.3)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { margin: 0; padding: 0; font-family: 'Inter', sans-serif; background-color: #f9fafb; }
+        .mesh-bg {
+            background-color: #f9fafb;
+            background-image: 
+                radial-gradient(at 40% 20%, hsla(228,100%,74%,0.15) 0px, transparent 50%),
+                radial-gradient(at 80% 0%, hsla(189,100%,56%,0.15) 0px, transparent 50%),
+                radial-gradient(at 0% 50%, hsla(355,100%,93%,0.1) 0px, transparent 50%);
+        }
+        ::-webkit-scrollbar { display: none; }
+        
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        .animate-float { animation: float 3s ease-in-out infinite; }
+        
+        @keyframes pulse-glow {
+            0% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.4); }
+            70% { box-shadow: 0 0 0 15px rgba(79, 70, 229, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0); }
+        }
+        .animate-pulse-glow { animation: pulse-glow 2s infinite; }
+    </style>
+</head>
+<body class="m-0 p-0 text-gray-900 antialiased min-h-screen flex flex-col mesh-bg">
+
+    <!-- Top Navigation Bar -->
+    <header id="top-nav" class="w-full bg-white/60 backdrop-blur-xl border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-[1440px] mx-auto px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <div class="flex items-center gap-3">
+                    <a href="#" class="text-gray-400 hover:text-gray-700 transition-colors">
+                        <i class="fa-solid fa-arrow-left"></i>
+                    </a>
+                    <h1 class="text-xl font-semibold text-gray-900 flex items-center gap-2">
+                        <span class="text-gray-400">1.</span> Two Sum
+                    </h1>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-3">
+                <button class="px-4 py-2 bg-white/80 backdrop-blur-sm border border-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors flex items-center gap-2 shadow-sm">
+                    <i class="fa-solid fa-list"></i> Problems List
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main id="main-content" class="w-full">
+        
+        <!-- Content -->
+        <div class="p-6 max-w-[1440px] mx-auto w-full space-y-8 pb-20 relative z-10">
+            
+            <!-- Celebration Hero -->
+            <div class="bg-white/70 backdrop-blur-xl rounded-[24px] border border-gray-200/60 p-10 shadow-soft text-center relative overflow-hidden group hover:shadow-glow transition-all duration-500">
+                <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-500"></div>
+                
+                <div class="w-24 h-24 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-6 border-4 border-green-100 animate-float group-hover:scale-110 transition-transform duration-500">
+                    <i class="fa-solid fa-check text-4xl text-green-500"></i>
+                </div>
+                
+                <h2 class="text-3xl font-bold text-gray-900 mb-2">Accepted!</h2>
+                <p class="text-gray-500 mb-8 max-w-md mx-auto">Your solution passed all test cases. Excellent work optimizing the time complexity.</p>
+                
+                <div class="flex flex-wrap items-center justify-center gap-4">
+                    <div class="px-6 py-3 bg-gray-50 border border-gray-200 rounded-[16px] flex items-center gap-3 group-hover:bg-white transition-colors duration-300">
+                        <i class="fa-solid fa-clock text-gray-400 group-hover:text-indigo-500 transition-colors"></i>
+                        <div class="text-left">
+                            <p class="text-xs text-gray-500 font-medium">Runtime</p>
+                            <p class="text-sm font-bold text-gray-900">56 ms <span class="text-green-500 text-xs font-normal">beats 89.2%</span></p>
+                        </div>
+                    </div>
+                    <div class="px-6 py-3 bg-gray-50 border border-gray-200 rounded-[16px] flex items-center gap-3 group-hover:bg-white transition-colors duration-300">
+                        <i class="fa-solid fa-memory text-gray-400 group-hover:text-indigo-500 transition-colors"></i>
+                        <div class="text-left">
+                            <p class="text-xs text-gray-500 font-medium">Memory</p>
+                            <p class="text-sm font-bold text-gray-900">16.2 MB <span class="text-green-500 text-xs font-normal">beats 45.1%</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gamification Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- XP Card -->
+                <div class="bg-white/70 backdrop-blur-xl rounded-[20px] border border-gray-200/60 p-6 shadow-sm flex items-center gap-5 transition-all hover:scale-[1.02] hover:shadow-glow duration-300 group cursor-pointer">
+                    <div class="w-14 h-14 bg-indigo-50 rounded-[16px] flex items-center justify-center shrink-0 shadow-sm border border-indigo-100/50 group-hover:bg-indigo-600 transition-colors duration-300">
+                        <i class="fa-solid fa-arrow-up-right-dots text-2xl text-indigo-600 group-hover:text-white transition-colors duration-300"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500 font-medium mb-1">Experience Gained</p>
+                        <div class="flex items-end gap-2">
+                            <h3 class="text-2xl font-bold text-gray-900 group-hover:text-indigo-600 transition-colors">+150 XP</h3>
+                            <span class="text-xs text-indigo-600 font-medium mb-1 bg-indigo-50 px-2 py-0.5 rounded">Level 12</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Streak Card -->
+                <div class="bg-white/70 backdrop-blur-xl rounded-[20px] border border-gray-200/60 p-6 shadow-sm flex items-center gap-5 transition-all hover:scale-[1.02] hover:shadow-glow duration-300 group cursor-pointer">
+                    <div class="w-14 h-14 bg-orange-50 rounded-[16px] flex items-center justify-center shrink-0 shadow-sm border border-orange-100/50 group-hover:bg-orange-500 transition-colors duration-300">
+                        <i class="fa-solid fa-fire text-2xl text-orange-500 group-hover:text-white transition-colors duration-300"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500 font-medium mb-1">Current Streak</p>
+                        <div class="flex items-end gap-2">
+                            <h3 class="text-2xl font-bold text-gray-900 group-hover:text-orange-500 transition-colors">7 Days</h3>
+                            <span class="text-xs text-orange-600 font-medium mb-1 bg-orange-50 px-2 py-0.5 rounded">On Fire!</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Badge Card -->
+                <div class="bg-white/70 backdrop-blur-xl rounded-[20px] border border-gray-200/60 p-6 shadow-sm flex items-center gap-5 transition-all hover:scale-[1.02] hover:shadow-glow duration-300 group cursor-pointer">
+                    <div class="w-14 h-14 bg-yellow-50 rounded-[16px] flex items-center justify-center shrink-0 shadow-sm border border-yellow-100/50 group-hover:bg-yellow-500 transition-colors duration-300">
+                        <i class="fa-solid fa-medal text-2xl text-yellow-600 group-hover:text-white transition-colors duration-300"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500 font-medium mb-1">Milestone Reached</p>
+                        <div class="flex items-end gap-2">
+                            <h3 class="text-lg font-bold text-gray-900 leading-tight group-hover:text-yellow-600 transition-colors">50 Problems Solved</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pro Gating & Next Actions Split -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                
+                <!-- Visualizer Upgrade Nudge -->
+                <div class="bg-gray-900/90 backdrop-blur-xl rounded-[24px] border border-gray-700/50 p-8 shadow-glow relative overflow-hidden group hover:scale-[1.01] transition-transform duration-500 cursor-pointer">
+                    <div class="absolute top-0 right-0 w-64 h-64 bg-indigo-600/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 group-hover:bg-indigo-500/30 transition-colors duration-500"></div>
+                    
+                    <div class="relative z-10 flex flex-col h-full">
+                        <div class="flex items-center justify-between mb-6">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 bg-indigo-500/20 rounded-[12px] flex items-center justify-center border border-indigo-500/30 group-hover:bg-indigo-500 group-hover:text-white transition-colors duration-300">
+                                    <i class="fa-solid fa-play text-indigo-400 group-hover:text-white transition-colors duration-300"></i>
+                                </div>
+                                <h3 class="text-xl font-bold text-white">Visualize Solution</h3>
+                            </div>
+                            <span class="px-3 py-1 bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-xs font-bold rounded-full uppercase tracking-wider animate-pulse-glow">Pro</span>
+                        </div>
+                        
+                        <p class="text-gray-400 mb-8 text-sm leading-relaxed flex-1 group-hover:text-gray-300 transition-colors">
+                            See exactly how your algorithm executes step-by-step. Understand memory allocation, pointer movements, and variable states in real-time to master DSA concepts faster.
+                        </p>
+                        
+                        <button class="w-full py-3 bg-white text-gray-900 rounded-[12px] font-semibold hover:bg-gray-100 transition-colors flex items-center justify-center gap-2 shadow-sm group-hover:shadow-md">
+                            <i class="fa-solid fa-bolt text-indigo-600"></i> Upgrade to Pro to Unlock
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Next Recommended Problem -->
+                <div class="bg-white/70 backdrop-blur-xl rounded-[24px] border border-gray-200/60 p-8 shadow-sm flex flex-col h-full hover:shadow-soft transition-shadow duration-300">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 bg-gray-100 rounded-[12px] flex items-center justify-center text-gray-600">
+                            <i class="fa-solid fa-compass"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-900">Up Next</h3>
+                            <p class="text-xs text-gray-500">Recommended based on your performance</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex-1 bg-gray-50/80 backdrop-blur-sm rounded-[16px] border border-gray-200/60 p-5 mb-6 hover:bg-white hover:border-indigo-200 transition-colors duration-300 cursor-pointer group">
+                        <div class="flex justify-between items-start mb-2">
+                            <h4 class="font-semibold text-gray-900 group-hover:text-indigo-600 transition-colors">3Sum</h4>
+                            <span class="px-2 py-0.5 bg-yellow-50 text-yellow-700 text-xs font-medium rounded border border-yellow-100">Medium</span>
+                        </div>
+                        <p class="text-sm text-gray-600 mb-4 line-clamp-2">Given an integer array nums, return all the triplets [nums[i], nums[j], nums[k]] such that i != j, i != k, and j != k, and nums[i] + nums[j] + nums[k] == 0.</p>
+                        <div class="flex gap-2">
+                            <span class="px-2 py-1 bg-white/80 border border-gray-200 text-gray-500 text-xs rounded-md shadow-sm">Array</span>
+                            <span class="px-2 py-1 bg-white/80 border border-gray-200 text-gray-500 text-xs rounded-md shadow-sm">Two Pointers</span>
+                        </div>
+                    </div>
+                    
+                    <button class="w-full py-3 bg-indigo-600 text-white rounded-[12px] font-semibold hover:bg-indigo-700 transition-all duration-300 flex items-center justify-center gap-2 shadow-soft hover:shadow-glow hover:-translate-y-0.5">
+                        Solve Next Problem <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+                
+            </div>
+            
+            <!-- Performance Chart -->
+            <div class="bg-white/70 backdrop-blur-xl rounded-[24px] border border-gray-200/60 p-6 shadow-sm hover:shadow-soft transition-shadow duration-300">
+                <h3 class="text-lg font-bold text-gray-900 mb-6">Recent Performance Progress</h3>
+                <div id="performance-chart" class="w-full h-[300px]"></div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer id="footer" class="bg-gray-900 text-white pt-16 pb-8">
+        <div class="max-w-[1440px] mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <div class="w-10 h-10 rounded-full border border-gray-200 overflow-hidden cursor-pointer shadow-sm">
+                        <img src="https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-4.jpg" alt="User Profile" class="w-full h-full object-cover">
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium text-gray-900 truncate">Alex Developer</p>
+                        <p class="text-xs text-gray-500 truncate">alex@university.edu</p>
+                    </div>
+                </div>
+                <button class="text-gray-400 hover:text-gray-200">
+                    <i class="fa-solid fa-gear"></i>
+                </button>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function initializeCharts() {
+            try {
+                const chartData = [{
+                    x: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Today'],
+                    y: [12, 19, 15, 25, 22, 30, 35],
+                    type: 'scatter',
+                    mode: 'lines',
+                    fill: 'tozeroy',
+                    line: {
+                        color: '#4f46e5',
+                        width: 3,
+                        shape: 'spline',
+                        smoothing: 1.3
+                    },
+                    fillcolor: 'rgba(79, 70, 229, 0.1)',
+                    marker: {
+                        size: 8,
+                        color: '#4f46e5',
+                        symbol: 'circle'
+                    }
+                }];
+
+                const layout = {
+                    margin: { t: 10, r: 10, b: 30, l: 30 },
+                    plot_bgcolor: 'transparent',
+                    paper_bgcolor: 'transparent',
+                    xaxis: {
+                        showgrid: false,
+                        tickfont: { color: '#6b7280', size: 12 },
+                        linecolor: '#e5e7eb'
+                    },
+                    yaxis: {
+                        showgrid: true,
+                        gridcolor: '#f3f4f6',
+                        tickfont: { color: '#6b7280', size: 12 },
+                        zeroline: false
+                    },
+                    hovermode: 'closest'
+                };
+
+                const config = {
+                    responsive: true,
+                    displayModeBar: false,
+                    displaylogo: false
+                };
+
+                Plotly.newPlot('performance-chart', chartData, layout, config);
+            } catch (error) {
+                console.error('Error initializing chart:', error);
+            }
+        }
+
+        window.addEventListener('load', initializeCharts);
+        setTimeout(initializeCharts, 1200);
+    </script>
+</body>
+</html>
