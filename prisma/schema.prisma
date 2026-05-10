@@ -1,0 +1,405 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  user
+  staff
+  admin
+}
+
+enum Plan {
+  free
+  basic
+  pro
+  elite
+}
+
+enum Zone {
+  public
+  authority
+}
+
+enum SubmissionStatus {
+  accepted
+  wrong_answer
+  runtime_error
+  time_limit_exceeded
+  compilation_error
+  pending
+}
+
+enum TraceStatus {
+  pending
+  processing
+  completed
+  failed
+}
+
+enum Difficulty {
+  easy
+  medium
+  hard
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(user)
+  plan         Plan     @default(free)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  sessions           Session[]
+  refreshTokens      RefreshToken[]
+  security           SecuritySettings?
+  loginEvents        LoginEvent[]
+  submissions        Submission[]
+  executionRuns      ExecutionRun[]
+  placementAttempts  PlacementAttempt[]
+  mentorshipBookings MentorshipBooking[]
+  resume             Resume?
+  subscription       Subscription?
+  analyticsEvents    AnalyticsEvent[]
+  supportTickets     SupportTicket[]
+  moduleProgress     ModuleProgress[]
+  learningGoal       UserLearningGoal?
+  techSkillProgress  TechSkillProgress[]
+  recentActivity     RecentActivity[]
+  techTaskAttempts   TechSkillTaskAttempt[]
+  xp                 UserXP?
+  dailyUsage         DailySubmissionUsage[]
+  monthlyUsage       MonthlyUsage[]
+  auditActorLogs     AuditLog[]             @relation("AuditActor")
+}
+
+model Session {
+  id        String    @id @default(uuid())
+  userId    String
+  zone      Zone      @default(public)
+  ip        String
+  device    String
+  createdAt DateTime  @default(now())
+  revokedAt DateTime?
+
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  refreshTokens RefreshToken[]
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  userId    String
+  sessionId String
+  familyId  String
+  tokenHash String   @unique
+  used      Boolean  @default(false)
+  revoked   Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+}
+
+model SecuritySettings {
+  id                String   @id @default(uuid())
+  userId            String   @unique
+  totpEnabled       Boolean  @default(false)
+  totpSecret        String?
+  pendingTotpSecret String?
+  backupCodes       String[]
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model LoginEvent {
+  id        String   @id @default(uuid())
+  userId    String
+  ip        String
+  device    String
+  riskScore Int
+  outcome   String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model PlanEntitlement {
+  id         String  @id @default(uuid())
+  plan       Plan
+  featureKey String
+  enabled    Boolean
+  limitValue Int?
+
+  @@unique([plan, featureKey])
+}
+
+model Problem {
+  id          String     @id @default(uuid())
+  slug        String     @unique
+  title       String
+  difficulty  Difficulty
+  topics      String[]
+  planAccess  Plan       @default(free)
+  statement   String
+  examples    Json       @default("[]")
+  constraints String[]
+  hints       String[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  testCases   ProblemTestCase[]
+  submissions Submission[]
+  traces      VisualizerTrace[]
+}
+
+model ProblemTestCase {
+  id             String  @id @default(uuid())
+  problemId      String
+  input          String
+  expectedOutput String
+  isHidden       Boolean @default(false)
+  orderIndex     Int     @default(0)
+
+  problem Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)
+}
+
+model Submission {
+  id         String           @id @default(uuid())
+  userId     String
+  problemId  String
+  language   String
+  sourceCode String
+  status     SubmissionStatus @default(pending)
+  runtimeMs  Int?
+  memoryKb   Int?
+  createdAt  DateTime         @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  problem Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  trace   VisualizerTrace?
+}
+
+model ExecutionRun {
+  id         String   @id @default(uuid())
+  userId     String
+  problemId  String
+  language   String
+  sourceCode String
+  stdout     String   @default("")
+  stderr     String   @default("")
+  runtimeMs  Int?
+  exitCode   Int
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VisualizerTrace {
+  id           String      @id @default(uuid())
+  submissionId String      @unique
+  problemId    String
+  status       TraceStatus @default(pending)
+  frames       Json        @default("[]")
+  retryCount   Int         @default(0)
+  createdAt    DateTime    @default(now())
+
+  submission Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  problem    Problem    @relation(fields: [problemId], references: [id], onDelete: Cascade)
+}
+
+model CoreSubjectContent {
+  id         String   @id @default(uuid())
+  subject    String
+  topic      String
+  slug       String   @unique
+  title      String
+  content    String
+  planAccess Plan     @default(free)
+  orderIndex Int      @default(0)
+  createdAt  DateTime @default(now())
+
+  @@unique([subject, topic])
+}
+
+model PlacementAttempt {
+  id        String   @id @default(uuid())
+  userId    String
+  company   String
+  role      String
+  kind      String
+  outcome   String?
+  notes     String?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model MentorshipBooking {
+  id          String   @id @default(uuid())
+  userId      String
+  mentorId    String
+  scheduledAt DateTime
+  month       String
+  status      String   @default("booked")
+  createdAt   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Resume {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  template  String   @default("default")
+  dataJson  Json     @default("{}")
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Subscription {
+  id            String   @id @default(uuid())
+  userId        String   @unique
+  plan          Plan
+  status        String   @default("active")
+  periodStart   DateTime
+  periodEnd     DateTime
+  providerSubId String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model BillingEvent {
+  id              String   @id @default(uuid())
+  providerEventId String   @unique
+  type            String
+  userId          String?
+  payload         Json
+  processedAt     DateTime @default(now())
+}
+
+model AnalyticsEvent {
+  id        String   @id @default(uuid())
+  userId    String
+  eventType String
+  payload   Json     @default("{}")
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model SupportTicket {
+  id        String   @id @default(uuid())
+  userId    String
+  subject   String
+  body      String
+  status    String   @default("open")
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model AuditLog {
+  id           String   @id @default(uuid())
+  actorId      String
+  actorRole    Role
+  action       String
+  resourceType String
+  resourceId   String
+  createdAt    DateTime @default(now())
+
+  actor User @relation("AuditActor", fields: [actorId], references: [id], onDelete: Cascade)
+}
+
+model ModuleProgress {
+  id             String   @id @default(uuid())
+  userId         String
+  moduleKey      String
+  completionPct  Float    @default(0)
+  status         String   @default("not_started")
+  lastActivityAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, moduleKey])
+}
+
+model UserLearningGoal {
+  id              String   @id @default(uuid())
+  userId          String   @unique
+  targetRole      String   @default("Software Engineer")
+  priorityModules String[]
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model TechSkillProgress {
+  id       String @id @default(uuid())
+  userId   String
+  skillKey String
+  level    Int    @default(1)
+  xp       Int    @default(0)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, skillKey])
+}
+
+model RecentActivity {
+  id        String   @id @default(uuid())
+  userId    String
+  moduleKey String
+  action    String
+  payload   Json     @default("{}")
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model TechSkillTaskAttempt {
+  id       String  @id @default(uuid())
+  userId   String
+  taskKey  String
+  status   String  @default("not_started")
+  evidence String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, taskKey])
+}
+
+model UserXP {
+  id               String    @id @default(uuid())
+  userId           String    @unique
+  totalXp          Int       @default(0)
+  streak           Int       @default(0)
+  lastActivityDate DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model DailySubmissionUsage {
+  id     String @id @default(uuid())
+  userId String
+  date   String
+  count  Int    @default(0)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+}
+
+model MonthlyUsage {
+  id             String @id @default(uuid())
+  userId         String
+  month          String
+  mentorshipUsed Int    @default(0)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, month])
+}

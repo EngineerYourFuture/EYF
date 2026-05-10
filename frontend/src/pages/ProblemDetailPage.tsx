@@ -1,29 +1,96 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import Editor from '@monaco-editor/react';
 import { Icon } from '../components/Icon';
 import { apiRequest } from '../lib/api';
 import { getSession } from '../lib/session';
 
 interface Problem {
   id: string;
+  slug: string;
   title: string;
   difficulty: 'easy' | 'medium' | 'hard';
   description: string;
-  examples?: Array<{ input: string; output: string; explanation?: string }>;
-  constraints?: string[];
-  category?: string;
-}
-interface SubmitResponse {
-  verdict: string;
-  message?: string;
-  submissionId?: string;
+  examples: Array<{ input: string; output: string; explanation?: string }>;
+  constraints: string[];
+  hints: string[];
+  testCases: Array<{ input: string; output: string }>;
 }
 
-const diffColor = (d: string) => {
-  if (d === 'easy') return 'text-green-400 bg-green-400/10';
-  if (d === 'medium') return 'text-yellow-400 bg-yellow-400/10';
-  return 'text-red-400 bg-red-400/10';
+interface RunResponse {
+  runId: string;
+  stdout: string;
+  stderr: string;
+  exitCode: number;
+  runtimeMs: number;
+}
+
+interface SubmitResponse {
+  submissionId: string;
+  verdict: string;
+  passed: number;
+  total: number;
+  testResults: Array<{ testCase: number; passed: boolean }>;
+  runtimeMs: number;
+  memoryKb: number;
+}
+
+type Language = 'javascript' | 'python' | 'java' | 'cpp' | 'c';
+
+const LANG_STARTERS: Record<Language, string> = {
+  javascript: `/**
+ * @param {number[]} nums
+ * @return {number}
+ */
+function solution(nums) {
+  // Your code here
+
+}`,
+  python: `class Solution:
+    def solution(self, nums: list[int]) -> int:
+        # Your code here
+        pass`,
+  java: `class Solution {
+    public int solution(int[] nums) {
+        // Your code here
+        return 0;
+    }
+}`,
+  cpp: `#include <vector>
+using namespace std;
+
+class Solution {
+public:
+    int solution(vector<int>& nums) {
+        // Your code here
+        return 0;
+    }
+};`,
+  c: `#include <stdio.h>
+#include <stdlib.h>
+
+int solution(int* nums, int numsSize) {
+    // Your code here
+    return 0;
+}`,
 };
+
+const LANG_MONACO: Record<Language, string> = {
+  javascript: 'javascript',
+  python: 'python',
+  java: 'java',
+  cpp: 'cpp',
+  c: 'c',
+};
+
+const diffColor = (d: string) => {
+  if (d === 'easy') return 'text-green-400 bg-green-400/10 border border-green-400/20';
+  if (d === 'medium') return 'text-yellow-400 bg-yellow-400/10 border border-yellow-400/20';
+  return 'text-red-400 bg-red-400/10 border border-red-400/20';
+};
+
+type PanelTab = 'description' | 'hints' | 'submissions';
+type OutputTab = 'output' | 'verdict';
 
 export function ProblemDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -31,10 +98,15 @@ export function ProblemDetailPage() {
 
   const [problem, setProblem] = useState<Problem | null>(null);
   const [loading, setLoading] = useState(true);
-  const [code, setCode] = useState('// Write your solution here\n\nfunction solution() {\n  \n}');
-  const [language, setLanguage] = useState('javascript');
+  const [language, setLanguage] = useState<Language>('javascript');
+  const [code, setCode] = useState(LANG_STARTERS.javascript);
+  const [panelTab, setPanelTab] = useState<PanelTab>('description');
+  const [outputTab, setOutputTab] = useState<OutputTab>('output');
+  const [running, setRunning] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [verdict, setVerdict] = useState<SubmitResponse | null>(null);
+  const [runResult, setRunResult] = useState<RunResponse | null>(null);
+  const [submitResult, setSubmitResult] = useState<SubmitResponse | null>(null);
+  const [showHints, setShowHints] = useState(false);
 
   useEffect(() => {
     if (!id || !session?.accessToken) return;
@@ -45,154 +117,289 @@ export function ProblemDetailPage() {
       .finally(() => setLoading(false));
   }, [id, session?.accessToken]);
 
-  const onSubmit = async () => {
+  const onLanguageChange = (lang: Language) => {
+    setLanguage(lang);
+    setCode(LANG_STARTERS[lang]);
+  };
+
+  const onRun = async () => {
     if (!id || !session?.accessToken) return;
-    setSubmitting(true);
-    setVerdict(null);
+    setRunning(true);
+    setRunResult(null);
+    setOutputTab('output');
     try {
-      const res = await apiRequest<SubmitResponse>(`/problems/${id}/submit`, {
+      const result = await apiRequest<RunResponse>(`/problems/${id}/run`, {
         method: 'POST',
         token: session.accessToken,
         body: { code, language },
       });
-      setVerdict(res);
+      setRunResult(result);
     } catch {
-      setVerdict({ verdict: 'error', message: 'Submission failed.' });
+      setRunResult({ runId: '', stdout: '', stderr: 'Run failed. Please try again.', exitCode: 1, runtimeMs: 0 });
+    } finally {
+      setRunning(false);
+    }
+  };
+
+  const onSubmit = async () => {
+    if (!id || !session?.accessToken) return;
+    setSubmitting(true);
+    setSubmitResult(null);
+    setOutputTab('verdict');
+    try {
+      const result = await apiRequest<SubmitResponse>(`/problems/${id}/submit`, {
+        method: 'POST',
+        token: session.accessToken,
+        body: { code, language },
+      });
+      setSubmitResult(result);
+    } catch {
+      setSubmitResult({ submissionId: '', verdict: 'error', passed: 0, total: 0, testResults: [], runtimeMs: 0, memoryKb: 0 });
     } finally {
       setSubmitting(false);
     }
   };
 
-  const verdictColor = (v: string) => {
-    if (v === 'accepted') return 'text-green-400 bg-green-400/10 border-green-400/30';
-    if (v === 'wrong_answer') return 'text-red-400 bg-red-400/10 border-red-400/30';
-    return 'text-yellow-400 bg-yellow-400/10 border-yellow-400/30';
+  const verdictColors: Record<string, string> = {
+    accepted: 'text-green-400',
+    wrong_answer: 'text-red-400',
+    error: 'text-yellow-400',
   };
 
   return (
-    <div className="dark min-h-screen bg-surface text-on-surface flex flex-col">
-      {/* Top nav */}
-      <header className="fixed top-0 left-0 right-0 z-50 h-16 bg-[#131313]/80 backdrop-blur-xl border-b border-white/5 flex items-center justify-between px-8">
-        <div className="flex items-center gap-4">
-          <Link to="/app/problems" className="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors">
-            <Icon name="arrow_back" size={20} />
-            <span className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold">Problems</span>
+    <div className="dark min-h-screen bg-[#0e0e0e] text-on-surface flex flex-col" style={{ fontFamily: 'Inter, sans-serif' }}>
+      {/* Top bar */}
+      <header className="fixed top-0 left-0 right-0 z-50 h-14 bg-[#111]/90 backdrop-blur-xl border-b border-white/5 flex items-center justify-between px-6 gap-4">
+        <div className="flex items-center gap-3 min-w-0">
+          <Link to="/app/problems" className="flex items-center gap-1.5 text-zinc-500 hover:text-white transition-colors shrink-0">
+            <Icon name="chevron_left" size={20} />
+            <span className="text-[11px] font-bold uppercase tracking-widest hidden sm:block">Problems</span>
           </Link>
-          <span className="text-zinc-700">/</span>
+          <span className="text-zinc-700 hidden sm:block">/</span>
           {problem && (
-            <span className="text-on-surface text-sm font-semibold truncate max-w-xs">{problem.title}</span>
+            <span className="text-sm font-semibold text-zinc-300 truncate">{problem.title}</span>
           )}
         </div>
-        <div className="flex items-center gap-3">
+
+        <div className="flex items-center gap-2 shrink-0">
           <select
             value={language}
-            onChange={(e) => setLanguage(e.target.value)}
-            className="bg-surface-container-low rounded-full px-4 py-2 text-[11px] font-bold uppercase tracking-widest text-zinc-300 border-none focus:outline-none"
+            onChange={(e) => onLanguageChange(e.target.value as Language)}
+            className="bg-[#1a1a1a] border border-white/10 rounded-lg px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-zinc-300 focus:outline-none cursor-pointer"
           >
-            {['javascript', 'python', 'java', 'cpp', 'c'].map((l) => (
-              <option key={l} value={l}>{l.toUpperCase()}</option>
+            {(['javascript', 'python', 'java', 'cpp', 'c'] as Language[]).map((l) => (
+              <option key={l} value={l}>{l === 'cpp' ? 'C++' : l.toUpperCase()}</option>
             ))}
           </select>
+
+          <button
+            onClick={onRun}
+            disabled={running || submitting}
+            className="flex items-center gap-1.5 bg-[#1a1a1a] border border-white/10 text-zinc-300 hover:text-white font-bold px-4 py-1.5 rounded-lg text-[11px] uppercase tracking-wider transition-all disabled:opacity-40"
+          >
+            <Icon name="play_arrow" size={16} />
+            {running ? 'Running...' : 'Run'}
+          </button>
+
           <button
             onClick={onSubmit}
-            disabled={submitting}
-            className="bg-primary-container text-white font-bold px-6 py-2 rounded-full text-[11px] uppercase tracking-widest hover:brightness-110 transition-all active:scale-95 disabled:opacity-60 flex items-center gap-2"
+            disabled={running || submitting}
+            className="flex items-center gap-1.5 bg-[#e82127] text-white font-bold px-4 py-1.5 rounded-lg text-[11px] uppercase tracking-wider hover:brightness-110 active:scale-95 transition-all disabled:opacity-40"
           >
+            <Icon name="send" size={14} />
             {submitting ? 'Submitting...' : 'Submit'}
-            <Icon name="send" size={16} />
           </button>
         </div>
       </header>
 
-      {/* Two-panel layout */}
-      <div className="flex pt-16 h-screen">
-        {/* Left: problem */}
-        <div className="w-1/2 overflow-y-auto p-8 border-r border-white/5">
-          {loading ? (
-            <div className="text-zinc-500 mt-8">Loading problem...</div>
-          ) : problem ? (
-            <div>
-              <div className="flex items-start justify-between mb-6">
-                <div>
-                  <h1 className="text-3xl font-black tracking-tighter mb-3">{problem.title}</h1>
-                  <div className="flex items-center gap-3">
-                    <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${diffColor(problem.difficulty)}`}>
-                      {problem.difficulty}
-                    </span>
-                    {problem.category && (
-                      <span className="px-3 py-1 bg-surface-container-highest rounded-full text-[10px] font-bold uppercase tracking-widest text-zinc-400">
-                        {problem.category}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
+      {/* Main two-panel layout */}
+      <div className="flex pt-14 h-screen">
+        {/* Left panel: problem */}
+        <div className="w-[45%] min-w-[320px] flex flex-col border-r border-white/5 overflow-hidden">
+          {/* Panel tabs */}
+          <div className="flex gap-0 border-b border-white/5 shrink-0">
+            {(['description', 'hints', 'submissions'] as PanelTab[]).map((t) => (
+              <button
+                key={t}
+                onClick={() => setPanelTab(t)}
+                className={`px-5 py-3 text-[11px] font-bold uppercase tracking-widest transition-colors border-b-2 ${panelTab === t ? 'text-white border-[#e82127]' : 'text-zinc-600 border-transparent hover:text-zinc-400'}`}
+              >
+                {t}
+              </button>
+            ))}
+          </div>
 
-              <div className="prose prose-invert max-w-none">
-                <div className="text-on-surface-variant leading-relaxed whitespace-pre-wrap text-sm mb-8">
-                  {problem.description}
-                </div>
-              </div>
-
-              {problem.examples && problem.examples.length > 0 && (
-                <div className="space-y-4 mb-8">
-                  <h3 className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-zinc-500">Examples</h3>
-                  {problem.examples.map((ex, i) => (
-                    <div key={i} className="bg-surface-container rounded-xl p-6">
-                      <p className="text-[11px] font-bold uppercase tracking-widest text-zinc-500 mb-2">Example {i + 1}</p>
-                      <div className="font-mono text-sm">
-                        <p className="text-zinc-300"><span className="text-zinc-500">Input: </span>{ex.input}</p>
-                        <p className="text-zinc-300"><span className="text-zinc-500">Output: </span>{ex.output}</p>
-                        {ex.explanation && (
-                          <p className="text-zinc-400 text-xs mt-2">{ex.explanation}</p>
-                        )}
+          <div className="overflow-y-auto flex-1 p-6">
+            {loading ? (
+              <div className="text-zinc-600 text-sm mt-8">Loading problem...</div>
+            ) : problem ? (
+              <>
+                {panelTab === 'description' && (
+                  <div>
+                    <div className="flex items-start gap-3 mb-6">
+                      <div>
+                        <h1 className="text-2xl font-black tracking-tight mb-2">{problem.title}</h1>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${diffColor(problem.difficulty)}`}>
+                            {problem.difficulty}
+                          </span>
+                        </div>
                       </div>
                     </div>
-                  ))}
-                </div>
-              )}
 
-              {problem.constraints && problem.constraints.length > 0 && (
-                <div>
-                  <h3 className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-zinc-500 mb-3">Constraints</h3>
-                  <ul className="space-y-1">
-                    {problem.constraints.map((c, i) => (
-                      <li key={i} className="text-zinc-400 text-sm font-mono">{c}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="text-zinc-500 mt-8">Problem not found.</div>
-          )}
+                    <div className="text-[#c9c9c9] leading-relaxed text-sm mb-8 whitespace-pre-wrap">
+                      {problem.description}
+                    </div>
+
+                    {(problem.examples as Array<{ input: string; output: string; explanation?: string }>).length > 0 && (
+                      <div className="mb-8">
+                        <h3 className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-3">Examples</h3>
+                        <div className="space-y-3">
+                          {(problem.examples as Array<{ input: string; output: string; explanation?: string }>).map((ex, i) => (
+                            <div key={i} className="bg-[#1a1a1a] rounded-lg p-4 border border-white/5">
+                              <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 mb-2">Example {i + 1}</p>
+                              <div className="font-mono text-sm space-y-1">
+                                <p><span className="text-zinc-500">Input: </span><span className="text-zinc-300">{ex.input}</span></p>
+                                <p><span className="text-zinc-500">Output: </span><span className="text-zinc-300">{ex.output}</span></p>
+                                {ex.explanation && <p className="text-zinc-500 text-xs mt-1">{ex.explanation}</p>}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {problem.constraints.length > 0 && (
+                      <div>
+                        <h3 className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-3">Constraints</h3>
+                        <ul className="space-y-1">
+                          {problem.constraints.map((c, i) => (
+                            <li key={i} className="text-zinc-400 text-sm font-mono flex items-start gap-2">
+                              <span className="text-zinc-700 mt-0.5">•</span>
+                              {c}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {panelTab === 'hints' && (
+                  <div>
+                    <p className="text-zinc-500 text-sm mb-4">Think before revealing hints.</p>
+                    {problem.hints.length > 0 ? (
+                      <div className="space-y-3">
+                        {problem.hints.map((hint, i) => (
+                          <div key={i}>
+                            <button
+                              onClick={() => setShowHints(true)}
+                              className={`w-full text-left p-4 rounded-lg border border-white/5 text-sm transition-all ${showHints ? 'bg-[#1a1a1a] text-zinc-300' : 'bg-[#1a1a1a] text-transparent blur-sm select-none hover:blur-0 hover:text-zinc-300'}`}
+                            >
+                              Hint {i + 1}: {hint}
+                            </button>
+                          </div>
+                        ))}
+                        {!showHints && (
+                          <button onClick={() => setShowHints(true)} className="text-[#e82127] text-xs font-bold uppercase tracking-widest hover:underline">
+                            Reveal hints
+                          </button>
+                        )}
+                      </div>
+                    ) : (
+                      <p className="text-zinc-600 text-sm">No hints for this problem.</p>
+                    )}
+                  </div>
+                )}
+
+                {panelTab === 'submissions' && (
+                  <div className="text-zinc-500 text-sm">
+                    <p>View your submission history in the <Link to="/app/submissions" className="text-[#e82127] hover:underline">Submissions</Link> page.</p>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="text-zinc-600 text-sm mt-8">Problem not found.</div>
+            )}
+          </div>
         </div>
 
-        {/* Right: editor */}
-        <div className="w-1/2 flex flex-col">
-          <div className="flex-1 relative">
-            <textarea
+        {/* Right panel: editor + output */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Monaco editor */}
+          <div className="flex-1 overflow-hidden">
+            <Editor
+              height="100%"
+              language={LANG_MONACO[language]}
               value={code}
-              onChange={(e) => setCode(e.target.value)}
-              className="w-full h-full bg-surface-container-lowest text-on-surface font-mono text-sm p-6 resize-none focus:outline-none border-none leading-relaxed"
-              spellCheck={false}
+              onChange={(val) => setCode(val ?? '')}
+              theme="vs-dark"
+              options={{
+                fontSize: 14,
+                fontFamily: "'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace",
+                fontLigatures: true,
+                lineHeight: 1.6,
+                minimap: { enabled: false },
+                scrollBeyondLastLine: false,
+                renderLineHighlight: 'line',
+                padding: { top: 16, bottom: 16 },
+                wordWrap: 'on',
+                tabSize: 2,
+                automaticLayout: true,
+              }}
             />
           </div>
-          {verdict && (
-            <div className={`p-6 border-t border-white/5 flex items-center gap-4 ${verdictColor(verdict.verdict)}`}>
-              <Icon name={verdict.verdict === 'accepted' ? 'check_circle' : 'cancel'} size={24} filled />
-              <div>
-                <p className="font-bold uppercase tracking-widest text-[11px]">{verdict.verdict.replace('_', ' ')}</p>
-                {verdict.message && <p className="text-xs opacity-70 mt-0.5">{verdict.message}</p>}
+
+          {/* Output panel */}
+          {(runResult || submitResult) && (
+            <div className="h-48 border-t border-white/5 bg-[#0e0e0e] flex flex-col shrink-0">
+              <div className="flex gap-0 border-b border-white/5 shrink-0">
+                {(['output', 'verdict'] as OutputTab[]).map((t) => (
+                  <button
+                    key={t}
+                    onClick={() => setOutputTab(t)}
+                    className={`px-5 py-2 text-[10px] font-bold uppercase tracking-widest transition-colors border-b-2 ${outputTab === t ? 'text-white border-[#e82127]' : 'text-zinc-600 border-transparent hover:text-zinc-400'}`}
+                  >
+                    {t}
+                  </button>
+                ))}
               </div>
-              {verdict.submissionId && (
-                <Link
-                  to={`/app/submissions`}
-                  className="ml-auto text-[10px] font-bold uppercase tracking-widest hover:underline"
-                >
-                  View Submission →
-                </Link>
-              )}
+              <div className="flex-1 overflow-y-auto p-4 font-mono text-sm">
+                {outputTab === 'output' && runResult && (
+                  <div>
+                    {runResult.stdout && <div className="text-green-400 whitespace-pre-wrap">{runResult.stdout}</div>}
+                    {runResult.stderr && <div className="text-red-400 whitespace-pre-wrap">{runResult.stderr}</div>}
+                    <div className="text-zinc-600 text-xs mt-2">Runtime: {runResult.runtimeMs}ms</div>
+                  </div>
+                )}
+                {outputTab === 'verdict' && submitResult && (
+                  <div>
+                    <div className={`text-lg font-black uppercase tracking-wide mb-2 ${verdictColors[submitResult.verdict] ?? 'text-zinc-400'}`}>
+                      {submitResult.verdict.replace('_', ' ')}
+                    </div>
+                    <div className="text-zinc-400 text-xs mb-3">
+                      Passed {submitResult.passed}/{submitResult.total} test cases
+                      {submitResult.runtimeMs ? ` · ${submitResult.runtimeMs}ms` : ''}
+                      {submitResult.memoryKb ? ` · ${Math.round(submitResult.memoryKb / 1024 * 10) / 10}MB` : ''}
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {submitResult.testResults.map((tr) => (
+                        <span
+                          key={tr.testCase}
+                          className={`px-2 py-0.5 rounded text-[10px] font-bold ${tr.passed ? 'bg-green-400/10 text-green-400' : 'bg-red-400/10 text-red-400'}`}
+                        >
+                          #{tr.testCase} {tr.passed ? '✓' : '✗'}
+                        </span>
+                      ))}
+                    </div>
+                    {submitResult.verdict === 'accepted' && (
+                      <Link to="/app/problems" className="inline-flex items-center gap-1.5 mt-4 text-[#e82127] text-[11px] font-bold uppercase tracking-widest hover:underline">
+                        Next Problem <Icon name="arrow_forward" size={14} />
+                      </Link>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>

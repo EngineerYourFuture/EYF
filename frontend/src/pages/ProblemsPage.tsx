@@ -16,7 +16,7 @@ interface Problem {
 }
 
 interface ProblemsResponse {
-  items: Problem[];
+  problems: Problem[];
   total?: number;
 }
 
@@ -37,7 +37,7 @@ export function ProblemsPage() {
     if (!session?.accessToken) return;
     setLoading(true);
     apiRequest<ProblemsResponse>('/problems', { token: session.accessToken })
-      .then((d) => setProblems(d.items ?? []))
+      .then((d) => setProblems(d.problems ?? []))
       .catch(() => setProblems([]))
       .finally(() => setLoading(false));
   }, [session?.accessToken]);

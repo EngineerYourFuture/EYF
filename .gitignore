@@ -6,3 +6,5 @@ dist
 *.log
 /tmp
 frontend/public/stitch
+
+/src/generated/prisma
