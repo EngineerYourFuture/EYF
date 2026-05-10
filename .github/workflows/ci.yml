@@ -7,26 +7,35 @@ on:
     branches: ["**"]
 
 jobs:
-  validate:
+  typecheck-and-build:
+    name: Typecheck & Build
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
 
-      - name: Install dependencies
+      - name: Install backend deps
         run: npm ci
 
-      - name: Install frontend dependencies
-        run: npm --prefix frontend ci
+      - name: Generate Prisma client
+        run: npx prisma generate
 
       - name: Typecheck backend
         run: npm run typecheck
 
-      - name: Build backend + frontend
-        run: npm run build:all
+      - name: Build backend
+        run: npm run build
+
+      - name: Install frontend deps
+        run: npm --prefix frontend ci
+
+      - name: Typecheck frontend
+        run: npm --prefix frontend exec tsc -- --noEmit
+
+      - name: Build frontend
+        run: npm run frontend:build
