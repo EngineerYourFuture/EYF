@@ -89,7 +89,7 @@ export function AdminOperationsPage() {
           <h2 className="text-lg font-black tracking-tight mb-6">Recent Activity</h2>
           {loading ? (
             <div className="text-zinc-500 text-center py-8">Loading...</div>
-          ) : activity.length === 0 ? (
+          ) : (activity.length === 0 ? (
             <div className="text-zinc-500 text-center py-8">No recent activity.</div>
           ) : (
             <div className="space-y-3">
@@ -106,7 +106,7 @@ export function AdminOperationsPage() {
                 </div>
               ))}
             </div>
-          )}
+          ))}
         </div>
       </div>
     </AuthorityShell>

@@ -232,7 +232,7 @@ export function ProblemDetailPage() {
           <div className="overflow-y-auto flex-1 p-6">
             {loading ? (
               <div className="text-zinc-600 text-sm mt-8">Loading problem...</div>
-            ) : problem ? (
+            ) : (problem ? (
               <>
                 {panelTab === 'description' && (
                   <div>
@@ -256,7 +256,7 @@ export function ProblemDetailPage() {
                         <h3 className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-3">Examples</h3>
                         <div className="space-y-3">
                           {(problem.examples as Array<{ input: string; output: string; explanation?: string }>).map((ex, i) => (
-                            <div key={i} className="bg-[#1a1a1a] rounded-lg p-4 border border-white/5">
+                            <div key={ex.input.slice(0, 30)} className="bg-[#1a1a1a] rounded-lg p-4 border border-white/5">
                               <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 mb-2">Example {i + 1}</p>
                               <div className="font-mono text-sm space-y-1">
                                 <p><span className="text-zinc-500">Input: </span><span className="text-zinc-300">{ex.input}</span></p>
@@ -273,8 +273,8 @@ export function ProblemDetailPage() {
                       <div>
                         <h3 className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-3">Constraints</h3>
                         <ul className="space-y-1">
-                          {problem.constraints.map((c, i) => (
-                            <li key={i} className="text-zinc-400 text-sm font-mono flex items-start gap-2">
+                          {problem.constraints.map((c) => (
+                            <li key={c.slice(0, 40)} className="text-zinc-400 text-sm font-mono flex items-start gap-2">
                               <span className="text-zinc-700 mt-0.5">•</span>
                               {c}
                             </li>
@@ -290,13 +290,13 @@ export function ProblemDetailPage() {
                     <p className="text-zinc-500 text-sm mb-4">Think before revealing hints.</p>
                     {problem.hints.length > 0 ? (
                       <div className="space-y-3">
-                        {problem.hints.map((hint, i) => (
-                          <div key={i}>
+                        {problem.hints.map((hint, hintIdx) => (
+                          <div key={hint.slice(0, 40)}>
                             <button
                               onClick={() => setShowHints(true)}
                               className={`w-full text-left p-4 rounded-lg border border-white/5 text-sm transition-all ${showHints ? 'bg-[#1a1a1a] text-zinc-300' : 'bg-[#1a1a1a] text-transparent blur-sm select-none hover:blur-0 hover:text-zinc-300'}`}
                             >
-                              Hint {i + 1}: {hint}
+                              Hint {hintIdx + 1}: {hint}
                             </button>
                           </div>
                         ))}
@@ -320,7 +320,7 @@ export function ProblemDetailPage() {
               </>
             ) : (
               <div className="text-zinc-600 text-sm mt-8">Problem not found.</div>
-            )}
+            ))}
           </div>
         </div>
 

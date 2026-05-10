@@ -135,7 +135,7 @@ export function VisualizerPage() {
                 <p className="text-zinc-500">Run a trace to see step-by-step visualization</p>
               </div>
             </div>
-          ) : step ? (
+          ) : (step ? (
             <div className="flex-1 overflow-y-auto p-8">
               <div className="mb-6">
                 <span className="px-3 py-1 bg-primary-container/20 text-primary-container rounded-full text-[10px] font-bold uppercase tracking-widest">
@@ -159,7 +159,7 @@ export function VisualizerPage() {
                 </div>
               </div>
             </div>
-          ) : null}
+          ) : null)}
         </div>
       </div>
     </div>
