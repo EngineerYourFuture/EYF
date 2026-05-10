@@ -67,7 +67,7 @@ export function LandingPage() {
     <div className="dark min-h-screen bg-[#0e0e0e] text-[#e2e2e2] overflow-x-hidden">
 
       {/* ── Navbar ── */}
-      <header className="fixed top-4 left-1/2 -translate-x-1/2 w-[92%] max-w-6xl z-50">
+      <header className="fixed top-4 left-1/2 -translate-x-1/2 w-[95%] max-w-screen-2xl z-50">
         <div className="bg-[#1a1a1a]/80 backdrop-blur-xl border border-white/[0.06] rounded-full px-6 py-3 flex items-center justify-between shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
           <span className="text-xl font-black tracking-tighter text-white">EYF</span>
           <nav className="hidden md:flex items-center gap-8 text-[11px] font-bold uppercase tracking-widest text-zinc-400">
@@ -105,7 +105,7 @@ export function LandingPage() {
             style={{ backgroundImage: 'linear-gradient(#fff 1px,transparent 1px),linear-gradient(90deg,#fff 1px,transparent 1px)', backgroundSize: '80px 80px' }}
           />
 
-          <div className="relative z-10 max-w-5xl mx-auto px-6 text-center">
+          <div className="relative z-10 max-w-6xl mx-auto px-6 text-center">
             {/* Eyebrow */}
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#E82127]/10 border border-[#E82127]/20 mb-8">
               <span className="w-1.5 h-1.5 rounded-full bg-[#E82127] animate-pulse" />
@@ -136,7 +136,7 @@ export function LandingPage() {
             </div>
 
             {/* Stats row */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
               {STATS.map((s) => (
                 <div key={s.label} className="bg-white/[0.03] border border-white/[0.06] rounded-2xl px-6 py-5 backdrop-blur-sm">
                   <p className="text-2xl font-black text-white tracking-tight">{s.value}</p>
@@ -148,7 +148,7 @@ export function LandingPage() {
         </section>
 
         {/* ── Features ── */}
-        <section id="features" className="max-w-7xl mx-auto px-6 py-28">
+        <section id="features" className="max-w-screen-2xl mx-auto px-6 xl:px-16 py-28">
           <div className="mb-16">
             <p className="text-[11px] font-bold uppercase tracking-widest text-[#E82127] mb-3">Everything You Need</p>
             <h2 className="text-4xl md:text-5xl font-black tracking-tight text-white">
@@ -156,7 +156,7 @@ export function LandingPage() {
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-3 gap-5 xl:gap-6">
             {FEATURES.map((f) => (
               <div
                 key={f.title}
@@ -183,7 +183,7 @@ export function LandingPage() {
         {/* ── How It Works ── */}
         <section id="how" className="py-28 relative overflow-hidden">
           <div className="absolute inset-0 bg-[#E82127]/3 pointer-events-none" />
-          <div className="max-w-7xl mx-auto px-6 relative">
+          <div className="max-w-screen-2xl mx-auto px-6 xl:px-16 relative">
             <div className="mb-16 text-center">
               <p className="text-[11px] font-bold uppercase tracking-widest text-[#E82127] mb-3">Simple Process</p>
               <h2 className="text-4xl md:text-5xl font-black tracking-tight text-white">How it works</h2>
@@ -207,7 +207,7 @@ export function LandingPage() {
         </section>
 
         {/* ── Curriculum ── */}
-        <section id="modules" className="max-w-7xl mx-auto px-6 py-28">
+        <section id="modules" className="max-w-screen-2xl mx-auto px-6 xl:px-16 py-28">
           <div className="flex items-end justify-between mb-16 flex-wrap gap-6">
             <div>
               <p className="text-[11px] font-bold uppercase tracking-widest text-[#E82127] mb-3">Full Curriculum</p>
@@ -220,7 +220,7 @@ export function LandingPage() {
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 xl:gap-6">
             {MODULES.map((m) => (
               <div
                 key={m.num}
@@ -240,7 +240,7 @@ export function LandingPage() {
         </section>
 
         {/* ── CTA Banner ── */}
-        <section className="max-w-7xl mx-auto px-6 py-16 mb-16">
+        <section className="max-w-screen-2xl mx-auto px-6 xl:px-16 py-16 mb-16">
           <div className="relative rounded-3xl overflow-hidden bg-[#161616] border border-white/[0.06]">
             {/* Red gradient glow */}
             <div className="absolute inset-0 pointer-events-none">
@@ -275,7 +275,7 @@ export function LandingPage() {
 
       {/* ── Footer ── */}
       <footer className="border-t border-white/[0.06] bg-[#0e0e0e]">
-        <div className="max-w-7xl mx-auto px-6 py-16">
+        <div className="max-w-screen-2xl mx-auto px-6 xl:px-16 py-16">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-10 mb-16">
             <div className="col-span-2 md:col-span-1">
               <span className="text-2xl font-black tracking-tighter text-white block mb-4">EYF</span>
