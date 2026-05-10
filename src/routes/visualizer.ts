@@ -1,8 +1,44 @@
 import { Router, Response } from "express";
 import { z } from "zod";
 import { Plan } from "@prisma/client";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { requireAuth, AuthRequest } from "../middleware/auth";
 import { prisma } from "../lib/prisma";
+
+const genai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY ?? "");
+
+const GUIDE_SYSTEM_PROMPT = `You are a Socratic DSA tutor inside "Engineer Your Future" — a platform that builds real problem-solving skills, not shortcut-memorizers.
+
+Your only job is to guide the student toward discovering the solution themselves. You NEVER hand over the answer.
+
+STRICT RULES:
+1. Ask EXACTLY ONE question per response. Never multiple questions.
+2. Never name the algorithm or technique directly. Don't say "use BFS" or "try dynamic programming". Instead ask "what if you could remember results you've already computed?" or "what if you tracked two positions simultaneously?"
+3. Never write code or pseudocode — not even partial.
+4. Keep every response under 4 sentences. Short = more thinking for them.
+5. Always acknowledge what the student got right before pushing further.
+6. If the student has tried 3+ times and is stuck, give a slightly more direct nudge — but still phrased as a question, never as an answer.
+7. Be warm and encouraging. Struggle is the point — frame it positively.
+
+PROGRESSION GUIDE (move through these stages naturally):
+- Stage 1: Understand the problem — "What exactly is the output? What are we trying to return?"
+- Stage 2: Identify constraints — "What's the size of input? What does that suggest about how fast our solution needs to be?"
+- Stage 3: Brute force first — "How would you solve this if you had unlimited time and didn't care about speed?"
+- Stage 4: Pattern recognition — "Does this problem shape remind you of anything? What properties do you notice about the data?"
+- Stage 5: Approach — Guide toward the right data structure/strategy without naming it
+- Stage 6: Edge cases — "What happens when the input is empty? When all values are the same?"
+
+When seeing a problem for the FIRST TIME, always start with: confirm you understood it in one sentence, then ask about inputs and outputs.
+
+The student's growth matters more than their speed. Never rush them.`;
+
+const GuideSchema = z.object({
+  problem: z.string().min(10).max(5000),
+  messages: z.array(z.object({
+    role: z.enum(["user", "assistant"]),
+    content: z.string().max(2000),
+  })).max(40),
+});
 
 interface Frame {
   array: number[];
@@ -227,5 +263,51 @@ function binarySearchTrace(arr: number[], target: number) {
   frames.push({ array: [...arr], highlights: [], target, phase: "not-found", description: `${target} not found` });
   return frames;
 }
+
+// POST /visualizer/guide
+router.post("/guide", requireAuth("public"), async (req: AuthRequest, res: Response): Promise<void> => {
+  if (!process.env.GEMINI_API_KEY) {
+    res.status(503).json({ error: { code: "AI_UNAVAILABLE", message: "AI guide is not configured." } });
+    return;
+  }
+
+  const parse = GuideSchema.safeParse(req.body);
+  if (!parse.success) {
+    res.status(400).json({ error: { code: "VALIDATION", message: parse.error.issues[0]?.message } });
+    return;
+  }
+
+  const { problem, messages } = parse.data;
+
+  type GeminiRole = "user" | "model";
+  const history: Array<{ role: GeminiRole; parts: Array<{ text: string }> }> = messages.map((m) => ({
+    role: m.role === "assistant" ? "model" : "user",
+    parts: [{ text: m.content }],
+  }));
+
+  // Prime with the problem statement if this is the first turn
+  const userMessage = history.length === 0
+    ? `Here is the problem I'm working on:\n\n${problem}`
+    : (messages[messages.length - 1]?.content ?? "");
+
+  // Build chat history without the last user message (Gemini sends it separately)
+  const chatHistory = history.length > 0 ? history.slice(0, -1) : [];
+
+  try {
+    const model = genai.getGenerativeModel({
+      model: "gemini-2.0-flash",
+      systemInstruction: GUIDE_SYSTEM_PROMPT,
+    });
+    const chat = model.startChat({
+      history: chatHistory,
+      generationConfig: { maxOutputTokens: 300, temperature: 0.7 },
+    });
+    const result = await chat.sendMessage(userMessage);
+    const text = result.response.text();
+    res.json({ message: text });
+  } catch {
+    res.status(502).json({ error: { code: "AI_ERROR", message: "Failed to get AI response." } });
+  }
+});
 
 export { router as visualizerRouter };
