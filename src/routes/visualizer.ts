@@ -1,11 +1,11 @@
 import { Router, Response } from "express";
 import { z } from "zod";
 import { Plan } from "@prisma/client";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import Groq from "groq-sdk";
 import { requireAuth, AuthRequest } from "../middleware/auth";
 import { prisma } from "../lib/prisma";
 
-const genai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY ?? "");
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY ?? "" });
 
 const GUIDE_SYSTEM_PROMPT = `You are a Socratic DSA tutor inside "Engineer Your Future" — a platform that builds real problem-solving skills, not shortcut-memorizers.
 
@@ -266,7 +266,7 @@ function binarySearchTrace(arr: number[], target: number) {
 
 // POST /visualizer/guide
 router.post("/guide", requireAuth("public"), async (req: AuthRequest, res: Response): Promise<void> => {
-  if (!process.env.GEMINI_API_KEY) {
+  if (!process.env.GROQ_API_KEY) {
     res.status(503).json({ error: { code: "AI_UNAVAILABLE", message: "AI guide is not configured." } });
     return;
   }
@@ -279,39 +279,31 @@ router.post("/guide", requireAuth("public"), async (req: AuthRequest, res: Respo
 
   const { problem, messages } = parse.data;
 
-  type GeminiRole = "user" | "model";
-  const history: Array<{ role: GeminiRole; parts: Array<{ text: string }> }> = messages.map((m) => ({
-    role: m.role === "assistant" ? "model" : "user",
-    parts: [{ text: m.content }],
-  }));
+  // Build full message history for Groq (OpenAI-compatible format)
+  const chatMessages: Array<{ role: "system" | "user" | "assistant"; content: string }> = [
+    { role: "system", content: GUIDE_SYSTEM_PROMPT },
+    ...messages.map((m) => ({ role: m.role, content: m.content })),
+  ];
 
-  // Prime with the problem statement if this is the first turn
-  const userMessage = history.length === 0
-    ? `Here is the problem I'm working on:\n\n${problem}`
-    : (messages[messages.length - 1]?.content ?? "");
-
-  // Build chat history without the last user message (Gemini sends it separately)
-  const chatHistory = history.length > 0 ? history.slice(0, -1) : [];
+  // Prime with the problem on the first turn
+  if (messages.length === 0) {
+    chatMessages.push({ role: "user", content: `Here is the problem I'm working on:\n\n${problem}` });
+  }
 
   try {
-    const model = genai.getGenerativeModel({
-      model: "gemini-flash-latest",
-      systemInstruction: GUIDE_SYSTEM_PROMPT,
+    const completion = await groq.chat.completions.create({
+      model: "llama-3.3-70b-versatile",
+      messages: chatMessages,
+      max_tokens: 300,
+      temperature: 0.7,
     });
-    const chat = model.startChat({
-      history: chatHistory,
-      generationConfig: { maxOutputTokens: 300, temperature: 0.7 },
-    });
-    const result = await chat.sendMessage(userMessage);
-    const text = result.response.text();
+    const text = completion.choices[0]?.message?.content ?? "";
     res.json({ message: text });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
-    console.error("[guide] Gemini error:", msg.slice(0, 500));
-    if (msg.includes("429") || msg.includes("RESOURCE_EXHAUSTED")) {
-      res.status(429).json({ error: { code: "QUOTA_EXCEEDED", message: "Gemini API quota exceeded. Enable billing at console.cloud.google.com for the project linked to your API key." } });
-    } else if (msg.includes("404") || msg.includes("not found")) {
-      res.status(502).json({ error: { code: "AI_ERROR", message: `Model not available: ${msg.slice(0, 120)}` } });
+    console.error("[guide] Groq error:", msg.slice(0, 500));
+    if (msg.includes("429") || msg.includes("rate_limit")) {
+      res.status(429).json({ error: { code: "QUOTA_EXCEEDED", message: "AI rate limit hit. Please wait a moment and try again." } });
     } else {
       res.status(502).json({ error: { code: "AI_ERROR", message: msg.slice(0, 200) } });
     }
