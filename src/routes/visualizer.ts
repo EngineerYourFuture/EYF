@@ -70,7 +70,10 @@ function generateTrace(algorithm: string, arr: number[], target?: number) {
     case "insertion-sort": return insertionSortTrace(arr);
     case "merge-sort": return mergeSortTrace(arr);
     case "quick-sort": return quickSortTrace(arr);
-    case "binary-search": return binarySearchTrace(arr.sort((a, b) => a - b), target ?? arr[0]);
+    case "binary-search": {
+      const sorted = [...arr].sort((a, b) => a - b);
+      return binarySearchTrace(sorted, target ?? sorted[0]);
+    }
     default: return [];
   }
 }

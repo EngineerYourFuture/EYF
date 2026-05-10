@@ -17,7 +17,7 @@ const AUTH_NAV_ITEMS: NavItem[] = [
 ];
 
 interface AuthorityShellProps {
-  children: ReactNode;
+  readonly children: ReactNode;
 }
 
 export function AuthorityShell({ children }: AuthorityShellProps) {
@@ -47,8 +47,10 @@ export function AuthorityShell({ children }: AuthorityShellProps) {
       {/* Backdrop */}
       {sidebarOpen && (
         <div
+          role="presentation"
           className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
           onClick={() => setSidebarOpen(false)}
+          onKeyDown={(e) => { if (e.key === 'Escape') setSidebarOpen(false); }}
         />
       )}
 

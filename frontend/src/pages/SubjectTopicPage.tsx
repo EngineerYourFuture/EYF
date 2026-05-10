@@ -26,11 +26,11 @@ const TOPIC_CONTENT: Record<string, TopicContent> = {
       'fork() creates a child process; exec() replaces the process image',
       'Thread safety requires locks, semaphores, or atomic operations',
     ],
-    code: `// Creating a thread in C (POSIX)
+    code: String.raw`// Creating a thread in C (POSIX)
 #include <pthread.h>
 
 void* worker(void* arg) {
-    printf("Thread running\\n");
+    printf("Thread running\n");
     return NULL;
 }
 
@@ -315,8 +315,8 @@ export function SubjectTopicPage() {
           {/* Overview */}
           <div className="bg-surface-container rounded-xl p-8">
             <p className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-zinc-500 mb-4">Overview</p>
-            {content.overview.split('\n\n').map((para, i) => (
-              <p key={i} className="text-on-surface-variant leading-relaxed mb-4 last:mb-0">{para}</p>
+            {content.overview.split('\n\n').map((para) => (
+              <p key={para.slice(0, 40)} className="text-on-surface-variant leading-relaxed mb-4 last:mb-0">{para}</p>
             ))}
           </div>
 
@@ -324,8 +324,8 @@ export function SubjectTopicPage() {
           <div className="bg-surface-container rounded-xl p-8">
             <p className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-zinc-500 mb-4">Key Concepts</p>
             <ul className="space-y-3">
-              {content.keyPoints.map((point, i) => (
-                <li key={i} className="flex items-start gap-3">
+              {content.keyPoints.map((point) => (
+                <li key={point.slice(0, 40)} className="flex items-start gap-3">
                   <div className="w-5 h-5 rounded-full bg-primary-container/20 flex items-center justify-center flex-shrink-0 mt-0.5">
                     <div className="w-1.5 h-1.5 rounded-full bg-primary-container" />
                   </div>

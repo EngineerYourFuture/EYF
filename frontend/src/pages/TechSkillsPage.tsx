@@ -67,7 +67,7 @@ export function TechSkillsPage() {
                       />
                     </div>
                     <p className="text-[10px] uppercase tracking-widest text-zinc-500 mt-2 font-bold">
-                      {skill.level >= 80 ? 'Expert' : skill.level >= 60 ? 'Proficient' : skill.level >= 40 ? 'Intermediate' : 'Beginner'}
+                      {skill.level >= 80 ? 'Expert' : (skill.level >= 60 ? 'Proficient' : (skill.level >= 40 ? 'Intermediate' : 'Beginner'))}
                     </p>
                   </div>
                 ))}

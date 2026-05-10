@@ -37,7 +37,7 @@ router.get("/:id", requireAuth("public"), async (req: AuthRequest, res: Response
     },
   });
 
-  if (!submission || submission.userId !== req.auth!.sub) {
+  if (submission?.userId !== req.auth!.sub) {
     res.status(404).json({ error: { code: "NOT_FOUND", message: "Submission not found." } });
     return;
   }

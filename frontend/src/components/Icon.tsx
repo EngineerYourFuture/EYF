@@ -1,8 +1,8 @@
 interface IconProps {
-  name: string;
-  className?: string;
-  filled?: boolean;
-  size?: number;
+  readonly name: string;
+  readonly className?: string;
+  readonly filled?: boolean;
+  readonly size?: number;
 }
 
 export function Icon({ name, className = '', filled = false, size = 24 }: IconProps) {

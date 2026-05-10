@@ -152,8 +152,8 @@ export function PlacementTrackPage() {
         <div className="mb-10">
           <p className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-zinc-500 mb-6">Interview Rounds</p>
           <div className="space-y-3">
-            {track.rounds.map((round, i) => (
-              <div key={i} className="bg-surface-container rounded-xl p-6 hover:bg-surface-container-high transition-colors">
+            {track.rounds.map((round) => (
+              <div key={round.name} className="bg-surface-container rounded-xl p-6 hover:bg-surface-container-high transition-colors">
                 <div className="flex items-center gap-4 mb-3">
                   <div className="w-7 h-7 rounded-full bg-surface-container-highest flex items-center justify-center text-xs font-black text-zinc-400">
                     {i + 1}
@@ -175,8 +175,8 @@ export function PlacementTrackPage() {
           <div>
             <p className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-zinc-500 mb-4">Curated Resources</p>
             <div className="space-y-3">
-              {track.resources.map((r, i) => (
-                <div key={i} className="bg-surface-container rounded-xl px-6 py-4 flex items-center gap-4 hover:bg-surface-container-high transition-colors">
+              {track.resources.map((r) => (
+                <div key={r.title} className="bg-surface-container rounded-xl px-6 py-4 flex items-center gap-4 hover:bg-surface-container-high transition-colors">
                   <div className="w-8 h-8 bg-surface-container-highest rounded-lg flex items-center justify-center flex-shrink-0">
                     <Icon name="bookmark" size={16} className="text-primary-container" />
                   </div>

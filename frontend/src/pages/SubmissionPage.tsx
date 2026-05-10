@@ -57,7 +57,7 @@ export function SubmissionPage() {
 
         {loading ? (
           <div className="text-center py-20 text-zinc-500">Loading submissions...</div>
-        ) : submissions.length === 0 ? (
+        ) : (submissions.length === 0 ? (
           <div className="text-center py-20">
             <Icon name="inbox" size={48} className="text-zinc-700 mx-auto mb-4" />
             <p className="text-zinc-500">No submissions yet. Start solving problems!</p>
@@ -71,7 +71,7 @@ export function SubmissionPage() {
                 </div>
                 <div className="col-span-2 flex justify-center">
                   <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${verdictColor(s.verdict)}`}>
-                    {s.verdict.replace(/_/g, ' ')}
+                    {s.verdict.replaceAll('_', ' ')}
                   </span>
                 </div>
                 <div className="col-span-2 text-center">
@@ -86,7 +86,7 @@ export function SubmissionPage() {
               </div>
             ))}
           </div>
-        )}
+        ))}
       </div>
     </AppShell>
   );

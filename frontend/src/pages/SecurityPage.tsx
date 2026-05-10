@@ -124,8 +124,8 @@ export function SecurityPage() {
             {[
               { device: 'MacBook Pro', browser: 'Chrome 120', location: 'San Francisco, CA', current: true },
               { device: 'iPhone 15', browser: 'Safari', location: 'San Francisco, CA', current: false },
-            ].map((s, i) => (
-              <div key={i} className="flex items-center justify-between bg-surface-container-low rounded-xl p-5">
+            ].map((s) => (
+              <div key={s.device} className="flex items-center justify-between bg-surface-container-low rounded-xl p-5">
                 <div className="flex items-center gap-4">
                   <Icon name={s.device.includes('iPhone') ? 'smartphone' : 'laptop'} size={24} className="text-zinc-400" />
                   <div>

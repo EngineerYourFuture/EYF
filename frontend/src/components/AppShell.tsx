@@ -21,7 +21,7 @@ const NAV_ITEMS: NavItem[] = [
 ];
 
 interface AppShellProps {
-  children: ReactNode;
+  readonly children: ReactNode;
 }
 
 export function AppShell({ children }: AppShellProps) {
@@ -57,8 +57,10 @@ export function AppShell({ children }: AppShellProps) {
       {/* Backdrop overlay — only shown when sidebar is open */}
       {sidebarOpen && (
         <div
+          role="presentation"
           className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
           onClick={() => setSidebarOpen(false)}
+          onKeyDown={(e) => { if (e.key === 'Escape') setSidebarOpen(false); }}
         />
       )}
 

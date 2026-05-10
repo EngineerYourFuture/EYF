@@ -4,12 +4,15 @@ import { Icon } from '../components/Icon';
 import { apiRequest } from '../lib/api';
 import { getSession } from '../lib/session';
 
+type Difficulty = 'easy' | 'medium' | 'hard';
+type ProblemStatus = 'published' | 'draft';
+
 interface Problem {
   id: string;
   title: string;
-  difficulty: 'easy' | 'medium' | 'hard';
+  difficulty: Difficulty;
   category?: string;
-  status?: 'published' | 'draft';
+  status?: ProblemStatus;
 }
 interface ProblemsResponse {
   items: Problem[];
@@ -68,7 +71,7 @@ export function AdminProblemsPage() {
   };
 
   const deleteProblem = async (id: string) => {
-    if (!window.confirm('Delete this problem? This action cannot be undone.')) return;
+    if (!globalThis.confirm('Delete this problem? This action cannot be undone.')) return;
     if (!session?.accessToken) return;
     try {
       await apiRequest(`/admin/problems/${id}`, { method: 'DELETE', token: session.accessToken });
@@ -103,7 +106,7 @@ export function AdminProblemsPage() {
 
         {loading ? (
           <div className="text-center py-20 text-zinc-500">Loading problems...</div>
-        ) : problems.length === 0 ? (
+        ) : (problems.length === 0 ? (
           <div className="text-center py-20 text-zinc-500">No problems yet.</div>
         ) : (
           <div className="space-y-2">
@@ -139,7 +142,7 @@ export function AdminProblemsPage() {
               </div>
             ))}
           </div>
-        )}
+        ))}
 
         {/* Modal */}
         {showModal && (
@@ -153,8 +156,9 @@ export function AdminProblemsPage() {
               </div>
               <form onSubmit={addProblem} className="space-y-6">
                 <div>
-                  <label className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-zinc-500 block mb-2">Title</label>
+                  <label htmlFor="prob-title" className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-zinc-500 block mb-2">Title</label>
                   <input
+                    id="prob-title"
                     value={newTitle}
                     onChange={(e) => setNewTitle(e.target.value)}
                     className="w-full bg-surface-container-low rounded-xl px-5 py-3.5 text-on-surface text-sm border-none focus:outline-none"
@@ -163,10 +167,11 @@ export function AdminProblemsPage() {
                   />
                 </div>
                 <div>
-                  <label className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-zinc-500 block mb-2">Difficulty</label>
+                  <label htmlFor="prob-diff" className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-zinc-500 block mb-2">Difficulty</label>
                   <select
+                    id="prob-diff"
                     value={newDiff}
-                    onChange={(e) => setNewDiff(e.target.value as 'easy' | 'medium' | 'hard')}
+                    onChange={(e) => setNewDiff(e.target.value as Difficulty)}
                     className="w-full bg-surface-container-low rounded-xl px-5 py-3.5 text-on-surface text-sm border-none focus:outline-none"
                   >
                     <option value="easy">Easy</option>
@@ -175,8 +180,9 @@ export function AdminProblemsPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-zinc-500 block mb-2">Category</label>
+                  <label htmlFor="prob-cat" className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-zinc-500 block mb-2">Category</label>
                   <input
+                    id="prob-cat"
                     value={newCat}
                     onChange={(e) => setNewCat(e.target.value)}
                     className="w-full bg-surface-container-low rounded-xl px-5 py-3.5 text-on-surface text-sm border-none focus:outline-none"

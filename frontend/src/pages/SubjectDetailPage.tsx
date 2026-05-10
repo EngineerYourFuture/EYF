@@ -73,7 +73,10 @@ export function SubjectDetailPage() {
                 {section.topics.map((topic) => (
                   <div
                     key={topic.id}
+                    role="button"
+                    tabIndex={0}
                     onClick={() => navigate(`/app/subjects/${subjectId}/${topic.id}`)}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') navigate(`/app/subjects/${subjectId}/${topic.id}`); }}
                     className="bg-surface-container rounded-xl px-6 py-4 flex items-center gap-4 hover:bg-surface-container-high transition-colors group cursor-pointer"
                   >
                     {/* Completion circle */}

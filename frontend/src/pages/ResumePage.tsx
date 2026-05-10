@@ -75,8 +75,9 @@ export function ResumePage() {
                   </div>
                 ))}
                 <div>
-                  <label className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-zinc-500 block mb-2">Summary</label>
+                  <label htmlFor="resume-summary" className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-zinc-500 block mb-2">Summary</label>
                   <textarea
+                    id="resume-summary"
                     value={data.summary}
                     onChange={(e) => update('summary', e.target.value)}
                     rows={3}
@@ -88,8 +89,9 @@ export function ResumePage() {
 
             {section === 'skills' && (
               <div className="bg-surface-container rounded-xl p-8">
-                <label className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-zinc-500 block mb-4">Skills (comma-separated)</label>
+                <label htmlFor="resume-skills" className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-zinc-500 block mb-4">Skills (comma-separated)</label>
                 <input
+                  id="resume-skills"
                   type="text"
                   value={data.skills.join(', ')}
                   onChange={(e) => update('skills', e.target.value.split(',').map((s) => s.trim()).filter(Boolean))}
@@ -130,19 +132,19 @@ export function ResumePage() {
               </div>
             )}
             {data.education.map((e, i) => (
-              <div key={i} className="mb-2">
+              <div key={`edu-${e.school ?? i}`} className="mb-2">
                 {i === 0 && <h2 className="text-xs font-black uppercase tracking-widest mb-1">Education</h2>}
                 <p className="font-semibold">{e.degree}</p>
                 <p className="text-gray-600 text-xs">{e.school} · {e.year}</p>
               </div>
             ))}
             {data.experience.map((ex, i) => (
-              <div key={i} className="mb-3">
+              <div key={`exp-${ex.company ?? i}`} className="mb-3">
                 {i === 0 && <h2 className="text-xs font-black uppercase tracking-widest mb-1 mt-3">Experience</h2>}
                 <p className="font-semibold">{ex.role} — {ex.company}</p>
                 <p className="text-gray-500 text-xs">{ex.duration}</p>
                 <ul className="list-disc ml-4 text-gray-700 text-xs mt-1">
-                  {ex.bullets.map((b, j) => <li key={j}>{b}</li>)}
+                  {ex.bullets.map((b) => <li key={b}>{b}</li>)}
                 </ul>
               </div>
             ))}

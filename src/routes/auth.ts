@@ -178,7 +178,7 @@ router.post("/login", async (req: Request, res: Response): Promise<void> => {
     });
     if (!valid) {
       // Check backup codes
-      const normalizedCode = totpCode.replace(/-/g, "").toLowerCase();
+      const normalizedCode = totpCode.replaceAll("-", "").toLowerCase();
       const codeHash = sha256(normalizedCode);
       const backupValid = user.security.backupCodes.includes(codeHash);
       if (!backupValid) {
@@ -343,7 +343,7 @@ router.get("/sessions", requireAuth("public"), async (req: AuthRequest, res: Res
 router.delete("/sessions/:id", requireAuth("public"), async (req: AuthRequest, res: Response): Promise<void> => {
   const id = String(req.params.id);
   const session = await prisma.session.findUnique({ where: { id } });
-  if (!session || session.userId !== req.auth!.sub) {
+  if (session?.userId !== req.auth!.sub) {
     res.status(404).json({ error: { code: "NOT_FOUND", message: "Session not found." } });
     return;
   }

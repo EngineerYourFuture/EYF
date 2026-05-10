@@ -25,8 +25,9 @@ export const NavShell = () => {
         : "text-zinc-500 hover:text-zinc-200 hover:bg-[#353535]"
     }`;
 
-  const quickLinks = !isAuthority
-    ? [
+  const quickLinks = isAuthority
+    ? [{ to: "/authority/queue", label: "Queue", icon: "fa-solid fa-list-check" }]
+    : [
         { to: "/app/home", label: "Home", icon: "fa-solid fa-house" },
         { to: "/app/problems", label: "Problems", icon: "fa-solid fa-code" },
         { to: "/app/core-subjects", label: "Subjects", icon: "fa-solid fa-book" },
@@ -34,16 +35,10 @@ export const NavShell = () => {
         { to: "/app/resume", label: "Resume", icon: "fa-solid fa-file-lines" },
         { to: "/app/tech-skills", label: "Skills", icon: "fa-solid fa-laptop-code" },
         { to: "/app/mentorship", label: "Mentorship", icon: "fa-solid fa-users" }
-      ]
-    : [{ to: "/authority/queue", label: "Queue", icon: "fa-solid fa-list-check" }];
+      ];
 
-  const secondaryLinks = !isAuthority
+  const secondaryLinks = isAuthority
     ? [
-        { to: "/app/support", label: "Support", icon: "fa-solid fa-circle-question" },
-        { to: "/app/billing", label: "Billing", icon: "fa-solid fa-credit-card" },
-        { to: "/app/security", label: "Security", icon: "fa-solid fa-shield-halved" }
-      ]
-    : [
         { to: "/authority/queue", label: "Queue", icon: "fa-solid fa-list-check" },
         ...(session?.role === "admin"
           ? [
@@ -52,6 +47,11 @@ export const NavShell = () => {
               { to: "/authority/admin/problems", label: "Problems", icon: "fa-solid fa-database" }
             ]
           : [])
+      ]
+    : [
+        { to: "/app/support", label: "Support", icon: "fa-solid fa-circle-question" },
+        { to: "/app/billing", label: "Billing", icon: "fa-solid fa-credit-card" },
+        { to: "/app/security", label: "Security", icon: "fa-solid fa-shield-halved" }
       ];
 
   const initials = session?.email
@@ -118,7 +118,7 @@ export const NavShell = () => {
             type="button"
           >
             <i className="fa-solid fa-right-from-bracket w-4 text-center" />
-            Logout
+            {' '}Logout
           </button>
         </div>
       </aside>

@@ -123,11 +123,12 @@ export function LoginPage() {
             {tab === 'login' ? (
               <form onSubmit={onLogin} className="space-y-8">
                 <div className="space-y-3">
-                  <label className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-on-surface-variant block px-4">
+                  <label htmlFor="login-email" className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-on-surface-variant block px-4">
                     Email
                   </label>
                   <div className="relative">
                     <input
+                      id="login-email"
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
@@ -141,11 +142,12 @@ export function LoginPage() {
                   </div>
                 </div>
                 <div className="space-y-3">
-                  <label className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-on-surface-variant block px-4">
+                  <label htmlFor="login-password" className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-on-surface-variant block px-4">
                     Password
                   </label>
                   <div className="relative">
                     <input
+                      id="login-password"
                       type="password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}

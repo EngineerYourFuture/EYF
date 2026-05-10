@@ -88,9 +88,9 @@ export function BillingPage() {
                 className={`relative rounded-xl p-8 flex flex-col ${
                   isPopular
                     ? 'bg-primary-container/10 border-2 border-primary-container'
-                    : isCurrent
-                    ? 'bg-surface-container-high border border-white/10'
-                    : 'bg-surface-container border border-white/5 hover:bg-surface-container-high transition-colors'
+                    : (isCurrent
+                      ? 'bg-surface-container-high border border-white/10'
+                      : 'bg-surface-container border border-white/5 hover:bg-surface-container-high transition-colors')
                 }`}
               >
                 {isPopular && (
@@ -124,12 +124,12 @@ export function BillingPage() {
                   className={`w-full py-3.5 rounded-full font-bold text-[11px] uppercase tracking-widest transition-all active:scale-95 ${
                     isCurrent
                       ? 'bg-surface-container-highest text-zinc-500 cursor-default'
-                      : isPopular
-                      ? 'bg-primary-container text-white hover:brightness-110 shadow-lg shadow-red-900/20'
-                      : 'bg-surface-container-high text-on-surface hover:bg-primary-container hover:text-white'
+                      : (isPopular
+                        ? 'bg-primary-container text-white hover:brightness-110 shadow-lg shadow-red-900/20'
+                        : 'bg-surface-container-high text-on-surface hover:bg-primary-container hover:text-white')
                   }`}
                 >
-                  {isCurrent ? 'Current Plan' : loadingPlan === plan.id ? 'Processing…' : 'Upgrade'}
+                  {isCurrent ? 'Current Plan' : (loadingPlan === plan.id ? 'Processing…' : 'Upgrade')}
                 </button>
               </div>
             );

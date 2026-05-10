@@ -2,7 +2,7 @@ import { Router, Response } from "express";
 import { z } from "zod";
 import { Plan } from "@prisma/client";
 import { prisma } from "../lib/prisma";
-import { requireAuth, AuthRequest, asStr } from "../middleware/auth";
+import { requireAuth, AuthRequest } from "../middleware/auth";
 
 const router = Router();
 
@@ -74,7 +74,7 @@ router.post("/attempts", requireAuth("public"), async (req: AuthRequest, res: Re
 // PATCH /placement/attempts/:id
 router.patch("/attempts/:id", requireAuth("public"), async (req: AuthRequest, res: Response): Promise<void> => {
   const attempt = await prisma.placementAttempt.findUnique({ where: { id: String(req.params.id) } });
-  if (!attempt || attempt.userId !== req.auth!.sub) {
+  if (attempt?.userId !== req.auth!.sub) {
     res.status(404).json({ error: { code: "NOT_FOUND", message: "Attempt not found." } });
     return;
   }

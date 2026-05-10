@@ -131,7 +131,7 @@ export function ProblemsPage() {
 
           {loading ? (
             <div className="text-center py-20 text-zinc-500">Loading problems...</div>
-          ) : filtered.length === 0 ? (
+          ) : (filtered.length === 0 ? (
             <div className="text-center py-20 text-zinc-500">No problems found.</div>
           ) : (
             filtered.map((p, i) => (
@@ -161,7 +161,7 @@ export function ProblemsPage() {
                 </div>
               </Link>
             ))
-          )}
+          ))}
         </section>
       </div>
     </AppShell>

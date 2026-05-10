@@ -77,7 +77,7 @@ export function AuthorityQueuePage() {
 
         {loading ? (
           <div className="text-center py-20 text-zinc-500">Loading queue...</div>
-        ) : items.length === 0 ? (
+        ) : (items.length === 0 ? (
           <div className="text-center py-20">
             <Icon name="done_all" size={48} className="text-green-400/40 mx-auto mb-4" />
             <p className="text-zinc-500">Queue is empty. All caught up!</p>
@@ -128,7 +128,7 @@ export function AuthorityQueuePage() {
               </div>
             ))}
           </div>
-        )}
+        ))}
       </div>
     </AuthorityShell>
   );

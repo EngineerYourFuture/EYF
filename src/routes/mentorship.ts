@@ -2,7 +2,7 @@ import { Router, Response } from "express";
 import { z } from "zod";
 import { Plan } from "@prisma/client";
 import { prisma } from "../lib/prisma";
-import { requireAuth, AuthRequest, asStr } from "../middleware/auth";
+import { requireAuth, AuthRequest } from "../middleware/auth";
 
 const router = Router();
 
@@ -85,7 +85,7 @@ router.post("/bookings", requireAuth("public"), async (req: AuthRequest, res: Re
 // DELETE /mentorship/bookings/:id
 router.delete("/bookings/:id", requireAuth("public"), async (req: AuthRequest, res: Response): Promise<void> => {
   const booking = await prisma.mentorshipBooking.findUnique({ where: { id: String(req.params.id) } });
-  if (!booking || booking.userId !== req.auth!.sub) {
+  if (booking?.userId !== req.auth!.sub) {
     res.status(404).json({ error: { code: "NOT_FOUND", message: "Booking not found." } });
     return;
   }

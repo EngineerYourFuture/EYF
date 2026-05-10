@@ -89,11 +89,12 @@ export function AuthorityLoginPage() {
 
           <form onSubmit={onLogin} className="space-y-8">
             <div className="space-y-3">
-              <label className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-on-surface-variant block">
+              <label htmlFor="auth-email" className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-on-surface-variant block">
                 Authority Email
               </label>
               <div className="relative">
                 <input
+                  id="auth-email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -108,11 +109,12 @@ export function AuthorityLoginPage() {
             </div>
 
             <div className="space-y-3">
-              <label className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-on-surface-variant block">
+              <label htmlFor="auth-token" className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-on-surface-variant block">
                 Security Token
               </label>
               <div className="relative">
                 <input
+                  id="auth-token"
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}

@@ -71,8 +71,9 @@ export function SupportPage() {
           ) : (
             <form onSubmit={handleSubmit} className="space-y-5">
               <div>
-                <label className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-zinc-500 block mb-2">Subject</label>
+                <label htmlFor="ticket-subject" className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-zinc-500 block mb-2">Subject</label>
                 <input
+                  id="ticket-subject"
                   value={ticketTitle}
                   onChange={(e) => setTicketTitle(e.target.value)}
                   className="w-full bg-surface-container-low rounded-xl px-5 py-3.5 text-on-surface text-sm border-none focus:outline-none focus:ring-1 focus:ring-primary-container/50"
@@ -81,8 +82,9 @@ export function SupportPage() {
                 />
               </div>
               <div>
-                <label className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-zinc-500 block mb-2">Description</label>
+                <label htmlFor="ticket-desc" className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-zinc-500 block mb-2">Description</label>
                 <textarea
+                  id="ticket-desc"
                   value={ticketDesc}
                   onChange={(e) => setTicketDesc(e.target.value)}
                   rows={4}
@@ -113,8 +115,8 @@ export function SupportPage() {
               { q: 'Can I cancel my subscription?', a: 'Yes, you can cancel anytime from your billing settings.' },
               { q: 'How does the visualizer work?', a: 'Enter your algorithm and input, then click Run Trace to see step-by-step execution.' },
               { q: 'How do I book a mentorship session?', a: 'Navigate to the Mentorship page and click Book Session on any mentor card.' },
-            ].map((faq, i) => (
-              <div key={i} className="bg-surface-container-low rounded-xl p-6">
+            ].map((faq) => (
+              <div key={faq.q} className="bg-surface-container-low rounded-xl p-6">
                 <p className="font-bold text-on-surface mb-2">{faq.q}</p>
                 <p className="text-on-surface-variant text-sm">{faq.a}</p>
               </div>

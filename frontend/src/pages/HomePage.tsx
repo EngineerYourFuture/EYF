@@ -23,7 +23,7 @@ const MODULE_CONFIG: Record<string, { icon: string; title: string; desc: string;
   visualizer: { icon: 'visibility', title: 'Visualizer', desc: 'Step-by-step algorithm traces', path: '/app/visualizer' },
 };
 
-function ProgressRing({ pct }: { pct: number }) {
+function ProgressRing({ pct }: { readonly pct: number }) {
   const r = 20;
   const circ = 2 * Math.PI * r;
   const offset = circ - (pct / 100) * circ;

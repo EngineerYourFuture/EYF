@@ -71,9 +71,7 @@ export const AuthorityApplicationDetailPage = () => {
         </div>
       )}
 
-      {!item ? (
-        <div className="glass-card p-10 text-center text-gray-400">Loading application...</div>
-      ) : (
+      {item ? (
         <div className="glass-card p-6 space-y-5">
           <div className="grid md:grid-cols-2 gap-4">
             <div>
@@ -82,7 +80,7 @@ export const AuthorityApplicationDetailPage = () => {
             </div>
             <div>
               <p className="text-xs text-gray-500 uppercase tracking-wide">Status</p>
-              <span className={`px-2 py-0.5 rounded-full text-xs font-medium border ${item.status === "approved" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : item.status === "rejected" ? "bg-red-50 text-red-700 border-red-200" : "bg-amber-50 text-amber-700 border-amber-200"}`}>
+              <span className={`px-2 py-0.5 rounded-full text-xs font-medium border ${item.status === "approved" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : (item.status === "rejected" ? "bg-red-50 text-red-700 border-red-200" : "bg-amber-50 text-amber-700 border-amber-200")}`}>
                 {item.status}
               </span>
             </div>
@@ -115,6 +113,8 @@ export const AuthorityApplicationDetailPage = () => {
             </div>
           )}
         </div>
+      ) : (
+        <div className="glass-card p-10 text-center text-gray-400">Loading application...</div>
       )}
     </div>
   );

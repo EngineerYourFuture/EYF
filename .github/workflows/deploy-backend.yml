@@ -1,0 +1,25 @@
+name: Deploy Backend (Render)
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - "src/**"
+      - "prisma/**"
+      - "package*.json"
+      - "tsconfig.json"
+      - "render.yaml"
+      - ".github/workflows/deploy-backend.yml"
+
+jobs:
+  deploy:
+    name: Trigger Render Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Trigger Render deploy hook
+        run: |
+          curl -s -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            --fail-with-body
+          echo "Render deploy triggered."
