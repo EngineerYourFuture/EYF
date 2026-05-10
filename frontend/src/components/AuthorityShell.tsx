@@ -47,10 +47,9 @@ export function AuthorityShell({ children }: AuthorityShellProps) {
       {/* Backdrop */}
       {sidebarOpen && (
         <div
-          role="presentation"
+          aria-hidden="true"
           className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
           onClick={() => setSidebarOpen(false)}
-          onKeyDown={(e) => { if (e.key === 'Escape') setSidebarOpen(false); }}
         />
       )}
 

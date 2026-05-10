@@ -196,7 +196,10 @@ router.post("/:id/submit", requireAuth("public"), async (req: AuthRequest, res: 
   });
 
   if (allPassed) {
-    const xpReward = problem.difficulty === "easy" ? 50 : (problem.difficulty === "medium" ? 100 : 200);
+    let xpReward: number;
+    if (problem.difficulty === "easy") { xpReward = 50; }
+    else if (problem.difficulty === "medium") { xpReward = 100; }
+    else { xpReward = 200; }
     await Promise.all([
       prisma.userXP.upsert({
         where: { userId },

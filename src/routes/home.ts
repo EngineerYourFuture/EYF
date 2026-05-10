@@ -49,7 +49,11 @@ router.get("/modules-status", requireAuth("public"), async (req: AuthRequest, re
       module,
       unlocked: true,
       progress: p?.completionPct ?? 0,
-      cta: p?.status === "completed" ? "Review" : (p?.status === "in_progress" ? "Continue" : "Start"),
+      cta: (() => {
+        if (p?.status === "completed") return "Review";
+        if (p?.status === "in_progress") return "Continue";
+        return "Start";
+      })(),
     };
   });
 

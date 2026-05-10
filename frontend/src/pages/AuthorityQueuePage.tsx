@@ -75,14 +75,14 @@ export function AuthorityQueuePage() {
           <div className="col-span-3 text-right">Actions</div>
         </div>
 
-        {loading ? (
-          <div className="text-center py-20 text-zinc-500">Loading queue...</div>
-        ) : (items.length === 0 ? (
+        {loading && <div className="text-center py-20 text-zinc-500">Loading queue...</div>}
+        {!loading && items.length === 0 && (
           <div className="text-center py-20">
             <Icon name="done_all" size={48} className="text-green-400/40 mx-auto mb-4" />
             <p className="text-zinc-500">Queue is empty. All caught up!</p>
           </div>
-        ) : (
+        )}
+        {!loading && items.length > 0 && (
           <div className="space-y-2">
             {items.map((item) => (
               <div key={item.id} className="grid grid-cols-12 gap-4 bg-surface-container rounded-xl px-8 py-5 hover:bg-surface-container-high transition-colors items-center">
@@ -128,7 +128,7 @@ export function AuthorityQueuePage() {
               </div>
             ))}
           </div>
-        ))}
+        )}
       </div>
     </AuthorityShell>
   );

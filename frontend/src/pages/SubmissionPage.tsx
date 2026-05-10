@@ -55,14 +55,14 @@ export function SubmissionPage() {
           <div className="col-span-2 text-center">Date</div>
         </div>
 
-        {loading ? (
-          <div className="text-center py-20 text-zinc-500">Loading submissions...</div>
-        ) : (submissions.length === 0 ? (
+        {loading && <div className="text-center py-20 text-zinc-500">Loading submissions...</div>}
+        {!loading && submissions.length === 0 && (
           <div className="text-center py-20">
             <Icon name="inbox" size={48} className="text-zinc-700 mx-auto mb-4" />
             <p className="text-zinc-500">No submissions yet. Start solving problems!</p>
           </div>
-        ) : (
+        )}
+        {!loading && submissions.length > 0 && (
           <div className="space-y-2">
             {submissions.map((s) => (
               <div key={s.id} className="grid grid-cols-12 gap-4 bg-surface-container rounded-xl px-8 py-5 hover:bg-surface-container-high transition-colors items-center">
@@ -86,7 +86,7 @@ export function SubmissionPage() {
               </div>
             ))}
           </div>
-        ))}
+        )}
       </div>
     </AppShell>
   );

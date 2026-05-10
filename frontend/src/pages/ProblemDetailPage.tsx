@@ -230,9 +230,9 @@ export function ProblemDetailPage() {
           </div>
 
           <div className="overflow-y-auto flex-1 p-6">
-            {loading ? (
-              <div className="text-zinc-600 text-sm mt-8">Loading problem...</div>
-            ) : (problem ? (
+            {loading && <div className="text-zinc-600 text-sm mt-8">Loading problem...</div>}
+            {!loading && !problem && <div className="text-zinc-600 text-sm mt-8">Problem not found.</div>}
+            {!loading && problem && (
               <>
                 {panelTab === 'description' && (
                   <div>
@@ -319,8 +319,7 @@ export function ProblemDetailPage() {
                 )}
               </>
             ) : (
-              <div className="text-zinc-600 text-sm mt-8">Problem not found.</div>
-            ))}
+            )}
           </div>
         </div>
 

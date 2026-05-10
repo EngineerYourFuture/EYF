@@ -128,14 +128,15 @@ export function VisualizerPage() {
             )}
           </div>
 
-          {steps.length === 0 ? (
+          {steps.length === 0 && (
             <div className="flex-1 flex items-center justify-center">
               <div className="text-center">
                 <Icon name="play_circle" size={64} className="text-zinc-700 mx-auto mb-4" />
                 <p className="text-zinc-500">Run a trace to see step-by-step visualization</p>
               </div>
             </div>
-          ) : (step ? (
+          )}
+          {steps.length > 0 && step && (
             <div className="flex-1 overflow-y-auto p-8">
               <div className="mb-6">
                 <span className="px-3 py-1 bg-primary-container/20 text-primary-container rounded-full text-[10px] font-bold uppercase tracking-widest">
@@ -159,7 +160,7 @@ export function VisualizerPage() {
                 </div>
               </div>
             </div>
-          ) : null)}
+          )}
         </div>
       </div>
     </div>

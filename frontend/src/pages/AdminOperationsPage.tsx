@@ -87,11 +87,9 @@ export function AdminOperationsPage() {
         {/* Recent activity */}
         <div className="bg-surface-container rounded-xl p-8">
           <h2 className="text-lg font-black tracking-tight mb-6">Recent Activity</h2>
-          {loading ? (
-            <div className="text-zinc-500 text-center py-8">Loading...</div>
-          ) : (activity.length === 0 ? (
-            <div className="text-zinc-500 text-center py-8">No recent activity.</div>
-          ) : (
+          {loading && <div className="text-zinc-500 text-center py-8">Loading...</div>}
+          {!loading && activity.length === 0 && <div className="text-zinc-500 text-center py-8">No recent activity.</div>}
+          {!loading && activity.length > 0 && (
             <div className="space-y-3">
               {activity.slice(0, 10).map((a) => (
                 <div key={a.id} className="flex items-center gap-4 bg-surface-container-low rounded-xl px-6 py-4">
@@ -106,7 +104,7 @@ export function AdminOperationsPage() {
                 </div>
               ))}
             </div>
-          ))}
+          )}
         </div>
       </div>
     </AuthorityShell>

@@ -71,13 +71,11 @@ export function SubjectDetailPage() {
               </p>
               <div className="space-y-2">
                 {section.topics.map((topic) => (
-                  <div
+                  <button
                     key={topic.id}
-                    role="button"
-                    tabIndex={0}
+                    type="button"
                     onClick={() => navigate(`/app/subjects/${subjectId}/${topic.id}`)}
-                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') navigate(`/app/subjects/${subjectId}/${topic.id}`); }}
-                    className="bg-surface-container rounded-xl px-6 py-4 flex items-center gap-4 hover:bg-surface-container-high transition-colors group cursor-pointer"
+                    className="w-full bg-surface-container rounded-xl px-6 py-4 flex items-center gap-4 hover:bg-surface-container-high transition-colors group cursor-pointer text-left"
                   >
                     {/* Completion circle */}
                     <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 border-2 transition-colors ${
@@ -107,7 +105,7 @@ export function SubjectDetailPage() {
                     </button>
 
                     <Icon name="chevron_right" size={18} className="text-zinc-600 group-hover:text-zinc-300 transition-colors" />
-                  </div>
+                  </button>
                 ))}
               </div>
             </div>

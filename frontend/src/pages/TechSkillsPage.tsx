@@ -54,23 +54,30 @@ export function TechSkillsPage() {
                 <h2 className="text-xl font-black tracking-tight">{cat.name}</h2>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {cat.skills.map((skill) => (
-                  <div key={skill.name} className="bg-surface-container rounded-xl p-6 hover:bg-surface-container-high transition-colors">
-                    <div className="flex justify-between items-center mb-3">
-                      <span className="font-semibold text-on-surface">{skill.name}</span>
-                      <span className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-primary-container">{skill.level}%</span>
+                {cat.skills.map((skill) => {
+                  let levelLabel: string;
+                  if (skill.level >= 80) { levelLabel = 'Expert'; }
+                  else if (skill.level >= 60) { levelLabel = 'Proficient'; }
+                  else if (skill.level >= 40) { levelLabel = 'Intermediate'; }
+                  else { levelLabel = 'Beginner'; }
+                  return (
+                    <div key={skill.name} className="bg-surface-container rounded-xl p-6 hover:bg-surface-container-high transition-colors">
+                      <div className="flex justify-between items-center mb-3">
+                        <span className="font-semibold text-on-surface">{skill.name}</span>
+                        <span className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-primary-container">{skill.level}%</span>
+                      </div>
+                      <div className="h-2 bg-surface-container-highest rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-primary-container rounded-full transition-all duration-700"
+                          style={{ width: `${skill.level}%` }}
+                        />
+                      </div>
+                      <p className="text-[10px] uppercase tracking-widest text-zinc-500 mt-2 font-bold">
+                        {levelLabel}
+                      </p>
                     </div>
-                    <div className="h-2 bg-surface-container-highest rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-primary-container rounded-full transition-all duration-700"
-                        style={{ width: `${skill.level}%` }}
-                      />
-                    </div>
-                    <p className="text-[10px] uppercase tracking-widest text-zinc-500 mt-2 font-bold">
-                      {skill.level >= 80 ? 'Expert' : (skill.level >= 60 ? 'Proficient' : (skill.level >= 40 ? 'Intermediate' : 'Beginner'))}
-                    </p>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           ))}

@@ -104,11 +104,9 @@ export function AdminProblemsPage() {
           <div className="col-span-1 text-right">Actions</div>
         </div>
 
-        {loading ? (
-          <div className="text-center py-20 text-zinc-500">Loading problems...</div>
-        ) : (problems.length === 0 ? (
-          <div className="text-center py-20 text-zinc-500">No problems yet.</div>
-        ) : (
+        {loading && <div className="text-center py-20 text-zinc-500">Loading problems...</div>}
+        {!loading && problems.length === 0 && <div className="text-center py-20 text-zinc-500">No problems yet.</div>}
+        {!loading && problems.length > 0 && (
           <div className="space-y-2">
             {problems.map((p) => (
               <div key={p.id} className="grid grid-cols-12 gap-4 bg-surface-container rounded-xl px-8 py-5 hover:bg-surface-container-high transition-colors items-center">
@@ -142,7 +140,7 @@ export function AdminProblemsPage() {
               </div>
             ))}
           </div>
-        ))}
+        )}
 
         {/* Modal */}
         {showModal && (

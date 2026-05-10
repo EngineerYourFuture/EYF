@@ -82,16 +82,26 @@ export function BillingPage() {
           {plans.map((plan) => {
             const isCurrent = plan.id === currentPlan;
             const isPopular = plan.popular;
+
+            let cardClass: string;
+            if (isPopular) { cardClass = 'bg-primary-container/10 border-2 border-primary-container'; }
+            else if (isCurrent) { cardClass = 'bg-surface-container-high border border-white/10'; }
+            else { cardClass = 'bg-surface-container border border-white/5 hover:bg-surface-container-high transition-colors'; }
+
+            let btnClass: string;
+            if (isCurrent) { btnClass = 'bg-surface-container-highest text-zinc-500 cursor-default'; }
+            else if (isPopular) { btnClass = 'bg-primary-container text-white hover:brightness-110 shadow-lg shadow-red-900/20'; }
+            else { btnClass = 'bg-surface-container-high text-on-surface hover:bg-primary-container hover:text-white'; }
+
+            let btnLabel: string;
+            if (isCurrent) { btnLabel = 'Current Plan'; }
+            else if (loadingPlan === plan.id) { btnLabel = 'Processing…'; }
+            else { btnLabel = 'Upgrade'; }
+
             return (
               <div
                 key={plan.id}
-                className={`relative rounded-xl p-8 flex flex-col ${
-                  isPopular
-                    ? 'bg-primary-container/10 border-2 border-primary-container'
-                    : (isCurrent
-                      ? 'bg-surface-container-high border border-white/10'
-                      : 'bg-surface-container border border-white/5 hover:bg-surface-container-high transition-colors')
-                }`}
+                className={`relative rounded-xl p-8 flex flex-col ${cardClass}`}
               >
                 {isPopular && (
                   <div className="absolute -top-4 left-1/2 -translate-x-1/2">
@@ -121,15 +131,9 @@ export function BillingPage() {
                 <button
                   disabled={isCurrent || loadingPlan === plan.id}
                   onClick={() => !isCurrent && handleUpgrade(plan.id)}
-                  className={`w-full py-3.5 rounded-full font-bold text-[11px] uppercase tracking-widest transition-all active:scale-95 ${
-                    isCurrent
-                      ? 'bg-surface-container-highest text-zinc-500 cursor-default'
-                      : (isPopular
-                        ? 'bg-primary-container text-white hover:brightness-110 shadow-lg shadow-red-900/20'
-                        : 'bg-surface-container-high text-on-surface hover:bg-primary-container hover:text-white')
-                  }`}
+                  className={`w-full py-3.5 rounded-full font-bold text-[11px] uppercase tracking-widest transition-all active:scale-95 ${btnClass}`}
                 >
-                  {isCurrent ? 'Current Plan' : (loadingPlan === plan.id ? 'Processing…' : 'Upgrade')}
+                  {btnLabel}
                 </button>
               </div>
             );

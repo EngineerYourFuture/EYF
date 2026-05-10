@@ -129,12 +129,9 @@ export function ProblemsPage() {
             <div className="col-span-2 text-center">STATUS</div>
           </div>
 
-          {loading ? (
-            <div className="text-center py-20 text-zinc-500">Loading problems...</div>
-          ) : (filtered.length === 0 ? (
-            <div className="text-center py-20 text-zinc-500">No problems found.</div>
-          ) : (
-            filtered.map((p, i) => (
+          {loading && <div className="text-center py-20 text-zinc-500">Loading problems...</div>}
+          {!loading && filtered.length === 0 && <div className="text-center py-20 text-zinc-500">No problems found.</div>}
+          {!loading && filtered.length > 0 && filtered.map((p, i) => (
               <Link key={p.id} to={`/app/problems/${p.id}`}>
                 <div className="grid grid-cols-12 gap-6 bg-surface-container rounded-xl px-10 py-5 hover:bg-surface-container-high transition-colors group cursor-pointer items-center">
                   <div className="col-span-6 flex items-center gap-4">
@@ -160,8 +157,7 @@ export function ProblemsPage() {
                   </div>
                 </div>
               </Link>
-            ))
-          ))}
+            ))}
         </section>
       </div>
     </AppShell>

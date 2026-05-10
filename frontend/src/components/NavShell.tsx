@@ -212,7 +212,7 @@ export const NavShell = () => {
                 type="button"
               >
                 <i className="fa-solid fa-right-from-bracket w-4 text-center" />
-                Logout
+                {' '}Logout
               </button>
             </div>
           </aside>
