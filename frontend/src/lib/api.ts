@@ -1,3 +1,5 @@
+import { clearSession, getSession, setSession } from "./session";
+
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "/api";
 
 export class ApiError extends Error {
@@ -12,6 +14,40 @@ export class ApiError extends Error {
   }
 }
 
+// Attempt to refresh the access token using the httpOnly refresh cookie.
+// Returns the new access token on success, null on failure.
+let refreshPromise: Promise<string | null> | null = null;
+
+async function refreshAccessToken(): Promise<string | null> {
+  // Deduplicate concurrent refresh calls — only one in-flight at a time.
+  if (refreshPromise) return refreshPromise;
+
+  refreshPromise = (async () => {
+    try {
+      const res = await fetch(`${API_BASE}/auth/refresh`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+      });
+      if (!res.ok) {
+        clearSession();
+        window.location.href = "/login";
+        return null;
+      }
+      const data = (await res.json()) as { accessToken: string };
+      const session = getSession();
+      if (session) {
+        setSession({ ...session, accessToken: data.accessToken });
+      }
+      return data.accessToken;
+    } finally {
+      refreshPromise = null;
+    }
+  })();
+
+  return refreshPromise;
+}
+
 export const apiRequest = async <T>(
   path: string,
   options?: {
@@ -21,15 +57,26 @@ export const apiRequest = async <T>(
     credentials?: RequestCredentials;
   }
 ): Promise<T> => {
-  const response = await fetch(`${API_BASE}${path}`, {
-    method: options?.method ?? "GET",
-    credentials: options?.credentials ?? "include",
-    headers: {
-      "Content-Type": "application/json",
-      ...(options?.token ? { Authorization: `Bearer ${options.token}` } : {}),
-    },
-    body: options?.body ? JSON.stringify(options.body) : undefined,
-  });
+  const doFetch = (token?: string) =>
+    fetch(`${API_BASE}${path}`, {
+      method: options?.method ?? "GET",
+      credentials: options?.credentials ?? "include",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: options?.body ? JSON.stringify(options.body) : undefined,
+    });
+
+  let response = await doFetch(options?.token);
+
+  // On 401, attempt a silent token refresh and retry once.
+  if (response.status === 401) {
+    const newToken = await refreshAccessToken();
+    if (newToken) {
+      response = await doFetch(newToken);
+    }
+  }
 
   const rawText = await response.text();
   const json = rawText ? (JSON.parse(rawText) as unknown) : null;
