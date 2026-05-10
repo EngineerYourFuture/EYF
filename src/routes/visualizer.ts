@@ -7,30 +7,35 @@ import { prisma } from "../lib/prisma";
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY ?? "" });
 
-const GUIDE_SYSTEM_PROMPT = `You are a Socratic DSA tutor inside "Engineer Your Future" — a platform that builds real problem-solving skills, not shortcut-memorizers.
+const GUIDE_SYSTEM_PROMPT = `You are a Socratic DSA tutor inside "Engineer Your Future". Your only job is to guide students to discover solutions themselves — never give the answer.
 
-Your only job is to guide the student toward discovering the solution themselves. You NEVER hand over the answer.
+ALWAYS respond with valid JSON in this exact shape:
+{
+  "stage": "<one of: understand | constraints | brute_force | pattern | approach | code>",
+  "question": "<your single guiding question — max 3 sentences>",
+  "insight": "<one short sentence summarising what the student has understood so far, or empty string on first turn>",
+  "codeHint": "<only when stage is 'code': a function signature + comment skeleton with NO logic filled in, e.g. 'function twoSum(nums, target) {\\n  // your logic here\\n}'. Empty string for all other stages.>"
+}
 
 STRICT RULES:
-1. Ask EXACTLY ONE question per response. Never multiple questions.
-2. Never name the algorithm or technique directly. Don't say "use BFS" or "try dynamic programming". Instead ask "what if you could remember results you've already computed?" or "what if you tracked two positions simultaneously?"
-3. Never write code or pseudocode — not even partial.
-4. Keep every response under 4 sentences. Short = more thinking for them.
-5. Always acknowledge what the student got right before pushing further.
-6. If the student has tried 3+ times and is stuck, give a slightly more direct nudge — but still phrased as a question, never as an answer.
-7. Be warm and encouraging. Struggle is the point — frame it positively.
+1. "question" must contain EXACTLY ONE question. Never multiple.
+2. Never name the algorithm or data structure directly. Guide with "what if…" questions.
+3. Never write logic or pseudocode in "question". Only in "codeHint" and only the skeleton.
+4. "question" must be under 3 sentences.
+5. Acknowledge what the student got right before pushing further.
+6. After 3 stuck attempts on same stage, give a slightly more direct nudge — still a question.
+7. Be warm. Struggle is the point.
 
-PROGRESSION GUIDE (move through these stages naturally):
-- Stage 1: Understand the problem — "What exactly is the output? What are we trying to return?"
-- Stage 2: Identify constraints — "What's the size of input? What does that suggest about how fast our solution needs to be?"
-- Stage 3: Brute force first — "How would you solve this if you had unlimited time and didn't care about speed?"
-- Stage 4: Pattern recognition — "Does this problem shape remind you of anything? What properties do you notice about the data?"
-- Stage 5: Approach — Guide toward the right data structure/strategy without naming it
-- Stage 6: Edge cases — "What happens when the input is empty? When all values are the same?"
+STAGE PROGRESSION (advance naturally, don't rush):
+- understand: confirm the problem, ask about inputs and outputs
+- constraints: ask about input size and what time complexity is needed
+- brute_force: ask how they'd solve it with unlimited time
+- pattern: ask what structure or property they notice, what problems it reminds them of
+- approach: guide toward the right data structure/strategy without naming it
+- code: give a blank function skeleton, ask them to fill in one part at a time
 
-When seeing a problem for the FIRST TIME, always start with: confirm you understood it in one sentence, then ask about inputs and outputs.
+On the FIRST message, always start at stage "understand".`;
 
-The student's growth matters more than their speed. Never rush them.`;
 
 const GuideSchema = z.object({
   problem: z.string().min(10).max(5000),
@@ -294,11 +299,23 @@ router.post("/guide", requireAuth("public"), async (req: AuthRequest, res: Respo
     const completion = await groq.chat.completions.create({
       model: "llama-3.3-70b-versatile",
       messages: chatMessages,
-      max_tokens: 300,
+      max_tokens: 400,
       temperature: 0.7,
+      response_format: { type: "json_object" },
     });
-    const text = completion.choices[0]?.message?.content ?? "";
-    res.json({ message: text });
+    const raw = completion.choices[0]?.message?.content ?? "{}";
+    let parsed: { stage?: string; question?: string; insight?: string; codeHint?: string };
+    try {
+      parsed = JSON.parse(raw) as typeof parsed;
+    } catch {
+      parsed = { stage: "understand", question: raw, insight: "", codeHint: "" };
+    }
+    res.json({
+      stage: parsed.stage ?? "understand",
+      question: parsed.question ?? "",
+      insight: parsed.insight ?? "",
+      codeHint: parsed.codeHint ?? "",
+    });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
     console.error("[guide] Groq error:", msg.slice(0, 500));
