@@ -295,7 +295,7 @@ router.post("/guide", requireAuth("public"), async (req: AuthRequest, res: Respo
 
   try {
     const model = genai.getGenerativeModel({
-      model: "gemini-2.5-flash",
+      model: "gemini-flash-latest",
       systemInstruction: GUIDE_SYSTEM_PROMPT,
     });
     const chat = model.startChat({
