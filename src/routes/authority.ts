@@ -1,5 +1,6 @@
 import { Router, Response } from "express";
 import { z } from "zod";
+import { Prisma, Plan, Role } from "@prisma/client";
 import { prisma } from "../lib/prisma";
 import { requireAuth, requireRole, AuthRequest, asStr } from "../middleware/auth";
 
@@ -30,10 +31,10 @@ router.get("/users", ...adminGuard, async (req: AuthRequest, res: Response): Pro
   const take = 50;
   const skip = (Math.max(Number(page) || 1, 1) - 1) * take;
 
-  const where: Record<string, unknown> = {};
+  const where: Prisma.UserWhereInput = {};
   if (search) where.email = { contains: search, mode: "insensitive" };
-  if (plan) where.plan = plan;
-  if (role) where.role = role;
+  if (plan) where.plan = plan as Plan;
+  if (role) where.role = role as Role;
 
   const [users, total] = await Promise.all([
     prisma.user.findMany({
@@ -74,7 +75,7 @@ router.patch("/users/:id", ...adminGuard, async (req: AuthRequest, res: Response
   await prisma.auditLog.create({
     data: {
       actorId: req.auth!.sub,
-      actorRole: req.auth!.role as never,
+      actorRole: req.auth!.role as Role,
       action: "user.update",
       resourceType: "User",
       resourceId: userId,
@@ -130,7 +131,7 @@ router.post("/problems", ...authGuard, async (req: AuthRequest, res: Response): 
   await prisma.auditLog.create({
     data: {
       actorId: req.auth!.sub,
-      actorRole: req.auth!.role as never,
+      actorRole: req.auth!.role as Role,
       action: "problem.create",
       resourceType: "Problem",
       resourceId: problem.id,
@@ -162,7 +163,7 @@ router.patch("/problems/:id", ...authGuard, async (req: AuthRequest, res: Respon
   await prisma.auditLog.create({
     data: {
       actorId: req.auth!.sub,
-      actorRole: req.auth!.role as never,
+      actorRole: req.auth!.role as Role,
       action: "problem.update",
       resourceType: "Problem",
       resourceId: problem.id,
@@ -180,7 +181,7 @@ router.delete("/problems/:id", ...adminGuard, async (req: AuthRequest, res: Resp
   await prisma.auditLog.create({
     data: {
       actorId: req.auth!.sub,
-      actorRole: req.auth!.role as never,
+      actorRole: req.auth!.role as Role,
       action: "problem.delete",
       resourceType: "Problem",
       resourceId: delId,
@@ -233,7 +234,7 @@ router.put("/entitlements", ...adminGuard, async (req: AuthRequest, res: Respons
   const entitlement = await prisma.planEntitlement.upsert({
     where: { plan_featureKey: { plan: parse.data.plan as never, featureKey: parse.data.featureKey } },
     update: { enabled: parse.data.enabled, limitValue: parse.data.limitValue },
-    create: parse.data as never,
+    create: { plan: parse.data.plan as Plan, featureKey: parse.data.featureKey, enabled: parse.data.enabled, limitValue: parse.data.limitValue },
   });
 
   res.json({ entitlement });

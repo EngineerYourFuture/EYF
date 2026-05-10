@@ -67,7 +67,7 @@ app.use(
 
 app.use(
   cors({
-    origin: (origin, cb) => {
+    origin: (origin: string | undefined, cb: (err: Error | null, allow?: boolean) => void) => {
       if (!origin || env.corsAllowedOrigins.includes(origin)) {
         cb(null, true);
       } else {

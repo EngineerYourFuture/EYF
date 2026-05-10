@@ -1,14 +1,26 @@
 import { Router, Response } from "express";
 import { z } from "zod";
+import { Plan } from "@prisma/client";
 import { requireAuth, AuthRequest } from "../middleware/auth";
 import { prisma } from "../lib/prisma";
+
+interface Frame {
+  array: number[];
+  highlights: number[];
+  phase: string;
+  description: string;
+  low?: number;
+  high?: number;
+  mid?: number;
+  target?: number;
+}
 
 const router = Router();
 
 // GET /visualizer/algorithms
 router.get("/algorithms", requireAuth("public"), async (req: AuthRequest, res: Response): Promise<void> => {
   const entitlement = await prisma.planEntitlement.findUnique({
-    where: { plan_featureKey: { plan: req.auth!.plan as never, featureKey: "visualizer" } },
+    where: { plan_featureKey: { plan: req.auth!.plan as Plan, featureKey: "visualizer" } },
   });
 
   const algorithms = [
@@ -32,7 +44,7 @@ const TraceSchema = z.object({
 // POST /visualizer/trace
 router.post("/trace", requireAuth("public"), async (req: AuthRequest, res: Response): Promise<void> => {
   const entitlement = await prisma.planEntitlement.findUnique({
-    where: { plan_featureKey: { plan: req.auth!.plan as never, featureKey: "visualizer" } },
+    where: { plan_featureKey: { plan: req.auth!.plan as Plan, featureKey: "visualizer" } },
   });
   if (!entitlement?.enabled) {
     res.status(403).json({ error: { code: "PLAN_REQUIRED", message: "Visualizer requires Pro plan or above." } });
@@ -64,7 +76,7 @@ function generateTrace(algorithm: string, arr: number[], target?: number) {
 }
 
 function bubbleSortTrace(arr: number[]) {
-  const frames: object[] = [];
+  const frames: Frame[] = [];
   const a = [...arr];
   frames.push({ array: [...a], highlights: [], phase: "start", description: "Initial array" });
 
@@ -84,7 +96,7 @@ function bubbleSortTrace(arr: number[]) {
 }
 
 function selectionSortTrace(arr: number[]) {
-  const frames: object[] = [];
+  const frames: Frame[] = [];
   const a = [...arr];
   frames.push({ array: [...a], highlights: [], phase: "start", description: "Initial array" });
 
@@ -105,7 +117,7 @@ function selectionSortTrace(arr: number[]) {
 }
 
 function insertionSortTrace(arr: number[]) {
-  const frames: object[] = [];
+  const frames: Frame[] = [];
   const a = [...arr];
   frames.push({ array: [...a], highlights: [0], phase: "start", description: "Initial array" });
 
@@ -127,23 +139,23 @@ function insertionSortTrace(arr: number[]) {
 }
 
 function mergeSortTrace(arr: number[]) {
-  const frames: object[] = [];
+  const frames: Frame[] = [];
   frames.push({ array: [...arr], highlights: [], phase: "start", description: "Starting merge sort" });
 
-  const sorted = mergeSort([...arr], frames, 0, arr.length - 1);
+  const sorted = mergeSort([...arr], frames, 0);
   frames.push({ array: sorted, highlights: [], phase: "done", description: "Array sorted!" });
   return frames;
 }
 
-function mergeSort(arr: number[], frames: object[], left: number, right: number): number[] {
+function mergeSort(arr: number[], frames: Frame[], left: number): number[] {
   if (arr.length <= 1) return arr;
   const mid = Math.floor(arr.length / 2);
-  const leftArr = mergeSort(arr.slice(0, mid), frames, left, left + mid - 1);
-  const rightArr = mergeSort(arr.slice(mid), frames, left + mid, right);
-  return merge(leftArr, rightArr, frames, left);
+  const leftArr = mergeSort(arr.slice(0, mid), frames, left);
+  const rightArr = mergeSort(arr.slice(mid), frames, left + mid);
+  return mergeParts(leftArr, rightArr, frames, left);
 }
 
-function merge(left: number[], right: number[], frames: object[], offset: number): number[] {
+function mergeParts(left: number[], right: number[], frames: Frame[], offset: number): number[] {
   const result: number[] = [];
   let i = 0, j = 0;
   while (i < left.length && j < right.length) {
@@ -156,7 +168,7 @@ function merge(left: number[], right: number[], frames: object[], offset: number
 }
 
 function quickSortTrace(arr: number[]) {
-  const frames: object[] = [];
+  const frames: Frame[] = [];
   const a = [...arr];
   frames.push({ array: [...a], highlights: [], phase: "start", description: "Starting quick sort" });
   quickSort(a, 0, a.length - 1, frames);
@@ -164,7 +176,7 @@ function quickSortTrace(arr: number[]) {
   return frames;
 }
 
-function quickSort(arr: number[], low: number, high: number, frames: object[]) {
+function quickSort(arr: number[], low: number, high: number, frames: Frame[]) {
   if (low < high) {
     const pi = partition(arr, low, high, frames);
     quickSort(arr, low, pi - 1, frames);
@@ -172,7 +184,7 @@ function quickSort(arr: number[], low: number, high: number, frames: object[]) {
   }
 }
 
-function partition(arr: number[], low: number, high: number, frames: object[]): number {
+function partition(arr: number[], low: number, high: number, frames: Frame[]): number {
   const pivot = arr[high];
   frames.push({ array: [...arr], highlights: [high], phase: "pivot", description: `Pivot: ${pivot}` });
   let i = low - 1;
@@ -189,7 +201,7 @@ function partition(arr: number[], low: number, high: number, frames: object[]): 
 }
 
 function binarySearchTrace(arr: number[], target: number) {
-  const frames: object[] = [];
+  const frames: Frame[] = [];
   let low = 0, high = arr.length - 1;
   frames.push({ array: [...arr], highlights: [], low, high, target, phase: "start", description: `Searching for ${target}` });
 

@@ -1,4 +1,5 @@
 import { Router, Response } from "express";
+import { Plan } from "@prisma/client";
 import { prisma } from "../lib/prisma";
 import { requireAuth, AuthRequest } from "../middleware/auth";
 
@@ -15,7 +16,7 @@ router.get("/summary", requireAuth("public"), async (req: AuthRequest, res: Resp
       where: { userId_date: { userId, date: new Date().toISOString().slice(0, 10) } },
     }),
     prisma.planEntitlement.findMany({
-      where: { plan: req.auth!.plan as never, featureKey: "dsa_daily_submissions" },
+      where: { plan: req.auth!.plan as Plan, featureKey: "dsa_daily_submissions" },
     }),
   ]);
 

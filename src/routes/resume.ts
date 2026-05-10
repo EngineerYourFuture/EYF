@@ -1,5 +1,6 @@
 import { Router, Response } from "express";
 import { z } from "zod";
+import { Plan, Prisma } from "@prisma/client";
 import { prisma } from "../lib/prisma";
 import { requireAuth, AuthRequest } from "../middleware/auth";
 
@@ -69,8 +70,8 @@ router.put("/", requireAuth("public"), async (req: AuthRequest, res: Response): 
 
   const resume = await prisma.resume.upsert({
     where: { userId: req.auth!.sub },
-    update: { template: parse.data.template, dataJson: parse.data.data as object },
-    create: { userId: req.auth!.sub, template: parse.data.template, dataJson: parse.data.data as object },
+    update: { template: parse.data.template, dataJson: parse.data.data as Prisma.InputJsonValue },
+    create: { userId: req.auth!.sub, template: parse.data.template, dataJson: parse.data.data as Prisma.InputJsonValue },
   });
 
   res.json({ resume });
@@ -79,7 +80,7 @@ router.put("/", requireAuth("public"), async (req: AuthRequest, res: Response): 
 // POST /resume/export  (PDF export — requires basic plan+)
 router.post("/export", requireAuth("public"), async (req: AuthRequest, res: Response): Promise<void> => {
   const entitlement = await prisma.planEntitlement.findUnique({
-    where: { plan_featureKey: { plan: req.auth!.plan as never, featureKey: "resume_pdf_export" } },
+    where: { plan_featureKey: { plan: req.auth!.plan as Plan, featureKey: "resume_pdf_export" } },
   });
   if (!entitlement?.enabled) {
     res.status(403).json({ error: { code: "PLAN_REQUIRED", message: "PDF export requires Basic plan or above." } });

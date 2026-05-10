@@ -1,5 +1,6 @@
 import { Router, Response } from "express";
 import { z } from "zod";
+import { Prisma } from "@prisma/client";
 import { prisma } from "../lib/prisma";
 import { requireAuth, AuthRequest } from "../middleware/auth";
 
@@ -19,7 +20,7 @@ router.post("/events", requireAuth("public"), async (req: AuthRequest, res: Resp
   }
 
   await prisma.analyticsEvent.create({
-    data: { userId: req.auth!.sub, eventType: parse.data.eventType, payload: (parse.data.payload ?? {}) as object },
+    data: { userId: req.auth!.sub, eventType: parse.data.eventType, payload: (parse.data.payload ?? {}) as Prisma.InputJsonValue },
   });
 
   res.status(202).json({ ok: true });

@@ -1,5 +1,6 @@
 import { Router, Response } from "express";
 import { z } from "zod";
+import { Plan } from "@prisma/client";
 import { prisma } from "../lib/prisma";
 import { requireAuth, AuthRequest, asStr } from "../middleware/auth";
 
@@ -40,7 +41,7 @@ router.post("/bookings", requireAuth("public"), async (req: AuthRequest, res: Re
   }
 
   const entitlement = await prisma.planEntitlement.findUnique({
-    where: { plan_featureKey: { plan: req.auth!.plan as never, featureKey: "mentorship_monthly" } },
+    where: { plan_featureKey: { plan: req.auth!.plan as Plan, featureKey: "mentorship_monthly" } },
   });
   if (!entitlement?.enabled || entitlement.limitValue === 0) {
     res.status(403).json({ error: { code: "PLAN_REQUIRED", message: "Mentorship requires Pro plan or above." } });

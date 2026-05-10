@@ -1,5 +1,6 @@
 import { Router, Response } from "express";
 import { z } from "zod";
+import { Plan } from "@prisma/client";
 import { prisma } from "../lib/prisma";
 import { requireAuth, AuthRequest, asStr } from "../middleware/auth";
 
@@ -55,7 +56,7 @@ router.post("/attempts", requireAuth("public"), async (req: AuthRequest, res: Re
   // Check mock interview entitlement
   if (parse.data.kind === "mock") {
     const entitlement = await prisma.planEntitlement.findUnique({
-      where: { plan_featureKey: { plan: req.auth!.plan as never, featureKey: "mock_interviews" } },
+      where: { plan_featureKey: { plan: req.auth!.plan as Plan, featureKey: "mock_interviews" } },
     });
     if (!entitlement?.enabled || entitlement.limitValue === 0) {
       res.status(403).json({ error: { code: "PLAN_REQUIRED", message: "Mock interviews require Pro plan or above." } });

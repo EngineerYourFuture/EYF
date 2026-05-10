@@ -1,12 +1,23 @@
 import { Router, Response } from "express";
 import { z } from "zod";
-import { Prisma } from "@prisma/client";
+import { Prisma, Plan } from "@prisma/client";
 import { prisma } from "../lib/prisma";
 import { requireAuth, AuthRequest, asStr } from "../middleware/auth";
 
 const router = Router();
 
 const PLAN_ORDER: Record<string, number> = { free: 0, basic: 1, pro: 2, elite: 3 };
+
+async function checkDailyLimit(userId: string, plan: Plan, today: string): Promise<boolean> {
+  const entitlement = await prisma.planEntitlement.findUnique({
+    where: { plan_featureKey: { plan, featureKey: "dsa_daily_submissions" } },
+  });
+  if (entitlement?.limitValue == null) return false;
+  const usage = await prisma.dailySubmissionUsage.findUnique({
+    where: { userId_date: { userId, date: today } },
+  });
+  return (usage?.count ?? 0) >= entitlement.limitValue;
+}
 
 interface TestCaseResult { passed: boolean; hidden: boolean; }
 
@@ -106,18 +117,10 @@ router.post("/:id/run", requireAuth("public"), async (req: AuthRequest, res: Res
 
   const today = new Date().toISOString().slice(0, 10);
   const userId = req.auth!.sub;
-  const entitlement = await prisma.planEntitlement.findUnique({
-    where: { plan_featureKey: { plan: req.auth!.plan as never, featureKey: "dsa_daily_submissions" } },
-  });
 
-  if (entitlement?.limitValue !== null && entitlement?.limitValue !== undefined) {
-    const usage = await prisma.dailySubmissionUsage.findUnique({
-      where: { userId_date: { userId, date: today } },
-    });
-    if ((usage?.count ?? 0) >= entitlement.limitValue) {
-      res.status(429).json({ error: { code: "DAILY_LIMIT", message: "Daily submission limit reached." } });
-      return;
-    }
+  if (await checkDailyLimit(userId, req.auth!.plan as Plan, today)) {
+    res.status(429).json({ error: { code: "DAILY_LIMIT", message: "Daily submission limit reached." } });
+    return;
   }
 
   const startMs = Date.now();
@@ -164,17 +167,9 @@ router.post("/:id/submit", requireAuth("public"), async (req: AuthRequest, res: 
   const userId = req.auth!.sub;
   const today = new Date().toISOString().slice(0, 10);
 
-  const entitlement = await prisma.planEntitlement.findUnique({
-    where: { plan_featureKey: { plan: req.auth!.plan as never, featureKey: "dsa_daily_submissions" } },
-  });
-  if (entitlement?.limitValue !== null && entitlement?.limitValue !== undefined) {
-    const usage = await prisma.dailySubmissionUsage.findUnique({
-      where: { userId_date: { userId, date: today } },
-    });
-    if ((usage?.count ?? 0) >= entitlement.limitValue) {
-      res.status(429).json({ error: { code: "DAILY_LIMIT", message: "Daily submission limit reached." } });
-      return;
-    }
+  if (await checkDailyLimit(userId, req.auth!.plan as Plan, today)) {
+    res.status(429).json({ error: { code: "DAILY_LIMIT", message: "Daily submission limit reached." } });
+    return;
   }
 
   const results: TestCaseResult[] = problem.testCases.map((tc) => {
@@ -214,7 +209,7 @@ router.post("/:id/submit", requireAuth("public"), async (req: AuthRequest, res: 
         create: { userId, moduleKey: "dsa", status: "in_progress" },
       }),
       prisma.recentActivity.create({
-        data: { userId, moduleKey: "dsa", action: "problem_solved", payload: { problemId: problem.id, difficulty: problem.difficulty } as object },
+        data: { userId, moduleKey: "dsa", action: "problem_solved", payload: { problemId: problem.id, difficulty: problem.difficulty } as Prisma.InputJsonValue },
       }),
     ]);
   }

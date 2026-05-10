@@ -90,7 +90,9 @@ router.post("/webhook", async (req: Request, res: Response): Promise<void> => {
   hmac.update(rawBody);
   const expected = `sha256=${hmac.digest("hex")}`;
 
-  if (!crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) {
+  const sigBuf = Buffer.from(sig);
+  const expectedBuf = Buffer.from(expected);
+  if (sigBuf.length !== expectedBuf.length || !crypto.timingSafeEqual(sigBuf, expectedBuf)) {
     res.status(400).json({ error: { code: "INVALID_SIGNATURE", message: "Webhook signature mismatch." } });
     return;
   }

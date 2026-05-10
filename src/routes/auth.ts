@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import speakeasy from "speakeasy";
 import { z } from "zod";
 import { prisma } from "../lib/prisma";
+import { env } from "../config/env";
 import {
   issueAccessToken,
   issueRefreshToken,
@@ -25,7 +26,7 @@ const REFRESH_COOKIE = "eyf_refresh";
 const cookieOpts = (maxAgeSec: number) => ({
   httpOnly: true,
   sameSite: "lax" as const,
-  secure: process.env.NODE_ENV === "production",
+  secure: env.nodeEnv === "production",
   maxAge: maxAgeSec * 1000,
 });
 
