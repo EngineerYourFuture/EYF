@@ -318,7 +318,6 @@ export function ProblemDetailPage() {
                   </div>
                 )}
               </>
-            ) : (
             )}
           </div>
         </div>
