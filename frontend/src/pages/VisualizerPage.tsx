@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Icon } from '../components/Icon';
-import { apiRequest } from '../lib/api';
+import { ApiError, apiRequest } from '../lib/api';
 import { getSession } from '../lib/session';
 
 // ─── Trace types ────────────────────────────────────────────────────────────
@@ -94,8 +94,8 @@ export function VisualizerPage() {
         body: { problem, messages: nextMessages },
       });
       setMessages([...nextMessages, { role: 'assistant', content: res.message }]);
-    } catch {
-      setGuideError('AI guide is unavailable right now.');
+    } catch (err) {
+      setGuideError(err instanceof ApiError ? err.message : 'AI guide is unavailable right now.');
     } finally {
       setGuideLoading(false);
     }

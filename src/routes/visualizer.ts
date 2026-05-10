@@ -295,7 +295,7 @@ router.post("/guide", requireAuth("public"), async (req: AuthRequest, res: Respo
 
   try {
     const model = genai.getGenerativeModel({
-      model: "gemini-2.0-flash",
+      model: "gemini-2.5-flash",
       systemInstruction: GUIDE_SYSTEM_PROMPT,
     });
     const chat = model.startChat({
@@ -305,8 +305,13 @@ router.post("/guide", requireAuth("public"), async (req: AuthRequest, res: Respo
     const result = await chat.sendMessage(userMessage);
     const text = result.response.text();
     res.json({ message: text });
-  } catch {
-    res.status(502).json({ error: { code: "AI_ERROR", message: "Failed to get AI response." } });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    if (msg.includes("429") || msg.includes("RESOURCE_EXHAUSTED")) {
+      res.status(429).json({ error: { code: "QUOTA_EXCEEDED", message: "Gemini API quota exceeded. Enable billing at console.cloud.google.com for the project linked to your API key." } });
+    } else {
+      res.status(502).json({ error: { code: "AI_ERROR", message: "Failed to get AI response." } });
+    }
   }
 });
 
