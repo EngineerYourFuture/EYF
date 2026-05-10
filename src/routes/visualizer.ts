@@ -307,10 +307,13 @@ router.post("/guide", requireAuth("public"), async (req: AuthRequest, res: Respo
     res.json({ message: text });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
+    console.error("[guide] Gemini error:", msg.slice(0, 500));
     if (msg.includes("429") || msg.includes("RESOURCE_EXHAUSTED")) {
       res.status(429).json({ error: { code: "QUOTA_EXCEEDED", message: "Gemini API quota exceeded. Enable billing at console.cloud.google.com for the project linked to your API key." } });
+    } else if (msg.includes("404") || msg.includes("not found")) {
+      res.status(502).json({ error: { code: "AI_ERROR", message: `Model not available: ${msg.slice(0, 120)}` } });
     } else {
-      res.status(502).json({ error: { code: "AI_ERROR", message: "Failed to get AI response." } });
+      res.status(502).json({ error: { code: "AI_ERROR", message: msg.slice(0, 200) } });
     }
   }
 });
