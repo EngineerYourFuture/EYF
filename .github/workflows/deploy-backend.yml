@@ -17,9 +17,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Trigger Render deploy hook
+      - name: Trigger Render deploy via API
         run: |
-          curl -s -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}" \
+          response=$(curl -s -w "\n%{http_code}" -X POST \
+            "https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/deploys" \
+            -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
             -H "Content-Type: application/json" \
-            --fail-with-body
-          echo "Render deploy triggered."
+            -d '{"clearCache":"do_not_clear"}')
+          http_code=$(echo "$response" | tail -1)
+          body=$(echo "$response" | head -1)
+          echo "Response: $body"
+          if [ "$http_code" != "201" ]; then
+            echo "Deploy trigger failed with status $http_code"
+            exit 1
+          fi
+          echo "Render deploy triggered successfully."
