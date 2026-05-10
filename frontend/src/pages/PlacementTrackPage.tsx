@@ -152,11 +152,11 @@ export function PlacementTrackPage() {
         <div className="mb-10">
           <p className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-zinc-500 mb-6">Interview Rounds</p>
           <div className="space-y-3">
-            {track.rounds.map((round) => (
+            {track.rounds.map((round, roundIdx) => (
               <div key={round.name} className="bg-surface-container rounded-xl p-6 hover:bg-surface-container-high transition-colors">
                 <div className="flex items-center gap-4 mb-3">
                   <div className="w-7 h-7 rounded-full bg-surface-container-highest flex items-center justify-center text-xs font-black text-zinc-400">
-                    {i + 1}
+                    {roundIdx + 1}
                   </div>
                   <h3 className="font-bold text-on-surface">{round.name}</h3>
                   <span className={`ml-auto px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${typeColor(round.type)}`}>
