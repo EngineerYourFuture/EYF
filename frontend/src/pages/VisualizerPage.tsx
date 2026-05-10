@@ -434,7 +434,7 @@ export function VisualizerPage() {
               ) : (
                 <>
                   {/* Guidance scroll area */}
-                  <div className="flex-1 overflow-y-auto p-6 space-y-5">
+                  <div className="flex-1 overflow-y-auto p-6 space-y-5 bg-[#111111]">
 
                     {/* Previous turns (compact) */}
                     {turns.slice(0, -1).map((turn, i) => (
@@ -497,40 +497,46 @@ function ActiveGuidanceCard({ turn, stageMeta }: {
   stageMeta: typeof STAGES[0];
 }) {
   return (
-    <div className={`rounded-2xl border border-white/5 overflow-hidden`}>
-      {/* Stage header */}
-      <div className={`px-5 py-3 flex items-center gap-3 bg-surface-container-high`}>
-        <div className={`w-7 h-7 rounded-full bg-surface-container flex items-center justify-center ${stageMeta.color}`}>
-          <Icon name={stageMeta.icon} size={14} />
+    <div className="rounded-2xl overflow-hidden border border-zinc-700/60 bg-zinc-900">
+      {/* Stage badge */}
+      <div className="px-5 pt-4 pb-3 flex items-center gap-3 border-b border-zinc-700/40">
+        <div className={`w-8 h-8 rounded-xl flex items-center justify-center bg-zinc-800 ${stageMeta.color}`}>
+          <Icon name={stageMeta.icon} size={16} />
         </div>
         <div>
-          <p className={`text-[10px] font-black uppercase tracking-widest ${stageMeta.color}`}>{stageMeta.label}</p>
-          <p className="text-[10px] text-zinc-500">{stageMeta.desc}</p>
+          <p className={`text-xs font-black uppercase tracking-widest ${stageMeta.color}`}>{stageMeta.label}</p>
+          <p className="text-[10px] text-zinc-500 mt-0.5">{stageMeta.desc}</p>
+        </div>
+        <div className="ml-auto">
+          <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest bg-zinc-800 ${stageMeta.color}`}>
+            Stage {STAGES.findIndex(s => s.key === stageMeta.key) + 1} / {STAGES.length}
+          </span>
         </div>
       </div>
 
-      {/* Question */}
-      <div className="bg-surface-container px-5 py-4">
-        <p className="text-on-surface text-sm leading-relaxed">{turn.question}</p>
+      {/* Question — the core content */}
+      <div className="px-5 py-5">
+        <p className="text-white text-base font-medium leading-relaxed">{turn.question}</p>
       </div>
 
-      {/* Code hint box — only at code stage */}
+      {/* Code scaffold — code stage only */}
       {turn.codeHint && (
-        <div className="border-t border-white/5">
-          <div className="px-5 pt-3 pb-1">
-            <p className="font-['Inter'] uppercase tracking-widest text-[9px] font-bold text-zinc-600">Scaffold — fill in the logic</p>
+        <div className="mx-5 mb-5 rounded-xl bg-zinc-950 border border-zinc-700/40 overflow-hidden">
+          <div className="px-4 py-2 border-b border-zinc-700/40 flex items-center gap-2">
+            <Icon name="code" size={12} className="text-zinc-500" />
+            <p className="text-[9px] font-bold uppercase tracking-widest text-zinc-500">Scaffold — you fill in the logic</p>
           </div>
-          <pre className="font-mono text-xs text-zinc-300 px-5 pb-4 leading-relaxed">{turn.codeHint}</pre>
+          <pre className="font-mono text-sm text-zinc-300 px-4 py-3 leading-relaxed overflow-x-auto">{turn.codeHint}</pre>
         </div>
       )}
 
-      {/* Student reply (if already answered) */}
+      {/* Student reply */}
       {turn.userReply && (
-        <div className="border-t border-white/5 bg-surface-container-high px-5 py-3 flex items-start gap-3">
-          <div className="w-5 h-5 rounded-full bg-primary-container/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-            <Icon name="person" size={12} className="text-primary-container" />
+        <div className="border-t border-zinc-700/40 bg-zinc-800/50 px-5 py-3 flex items-start gap-3">
+          <div className="w-5 h-5 rounded-full bg-primary-container/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+            <Icon name="person" size={11} className="text-primary-container" />
           </div>
-          <p className="text-xs text-zinc-300 leading-relaxed">{turn.userReply}</p>
+          <p className="text-sm text-zinc-300 leading-relaxed">{turn.userReply}</p>
         </div>
       )}
     </div>
@@ -540,15 +546,15 @@ function ActiveGuidanceCard({ turn, stageMeta }: {
 function PastTurnCard({ turn }: { turn: Turn }) {
   const meta = STAGES.find((s) => s.key === turn.stage) ?? STAGES[0];
   return (
-    <div className="rounded-xl bg-surface-container border border-white/5 px-4 py-3 opacity-50">
-      <div className="flex items-center gap-2 mb-2">
+    <div className="rounded-xl bg-zinc-800/60 border border-zinc-700/40 px-4 py-3 opacity-60">
+      <div className="flex items-center gap-2 mb-1.5">
         <Icon name={meta.icon} size={12} className={meta.color} />
         <p className={`text-[9px] font-bold uppercase tracking-widest ${meta.color}`}>{meta.label}</p>
         <Icon name="check_circle" size={12} className="text-emerald-400 ml-auto" />
       </div>
-      <p className="text-xs text-zinc-400 line-clamp-2">{turn.question}</p>
+      <p className="text-xs text-zinc-300 line-clamp-2">{turn.question}</p>
       {turn.userReply && (
-        <p className="text-xs text-zinc-500 mt-1 line-clamp-1 border-t border-white/5 pt-1">You: {turn.userReply}</p>
+        <p className="text-xs text-zinc-500 mt-1 line-clamp-1 border-t border-zinc-700/40 pt-1">You: {turn.userReply}</p>
       )}
     </div>
   );
