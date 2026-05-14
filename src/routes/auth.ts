@@ -239,7 +239,8 @@ router.post("/refresh", async (req: Request, res: Response): Promise<void> => {
   let payload;
   try {
     payload = verifyRefresh(token);
-  } catch (_err) {
+  } catch (err: unknown) {
+    console.debug("Refresh token verification failed:", err);
     res.status(401).json({ error: { code: "TOKEN_EXPIRED", message: "Refresh token expired." } });
     return;
   }

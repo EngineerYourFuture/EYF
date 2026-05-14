@@ -25,7 +25,8 @@ export const requireAuth = (zone?: Zone | null) => {
       }
       req.auth = payload;
       next();
-    } catch (_err) {
+    } catch (err: unknown) {
+      console.debug("Token verification failed:", err);
       res.status(401).json({ error: { code: "TOKEN_EXPIRED", message: "Token expired or invalid." } });
     }
   };
