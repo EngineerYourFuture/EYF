@@ -12,6 +12,7 @@ if (!["development", "test", "production"].includes(nodeEnvFromProcess)) {
 const resolvedNodeEnv = nodeEnvFromProcess as NodeEnv;
 const resolvedPort = Number(process.env.PORT ?? 3000);
 const serveFrontend = process.env.SERVE_FRONTEND === "true";
+const appUrl = process.env.APP_URL?.replace(/\/$/, "") ?? "";
 const corsAllowedOrigins = (
   process.env.CORS_ALLOWED_ORIGINS ??
   (serveFrontend
@@ -21,6 +22,11 @@ const corsAllowedOrigins = (
   .split(",")
   .map((origin) => origin.trim())
   .filter((origin) => origin.length > 0);
+
+// When serving frontend from the same process, always allow the server's own origin.
+if (appUrl && !corsAllowedOrigins.includes(appUrl)) {
+  corsAllowedOrigins.push(appUrl);
+}
 
 if (Number.isNaN(resolvedPort) || resolvedPort <= 0) {
   throw new Error("PORT must be a positive number.");
