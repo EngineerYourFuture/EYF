@@ -1,12 +1,21 @@
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY ?? "");
 const FROM = "EYF <noreply@eyf.dev>";
 const APP_URL = process.env.APP_URL ?? "http://localhost:5173";
 
+let _resend: Resend | null = null;
+function getResend(): Resend {
+  if (!_resend) {
+    const key = process.env.RESEND_API_KEY;
+    if (!key) throw new Error("RESEND_API_KEY is not configured");
+    _resend = new Resend(key);
+  }
+  return _resend;
+}
+
 export async function sendVerificationEmail(email: string, token: string): Promise<void> {
   const link = `${APP_URL}/verify-email?token=${token}`;
-  await resend.emails.send({
+  await getResend().emails.send({
     from: FROM,
     to: email,
     subject: "Verify your EYF account",
@@ -23,7 +32,7 @@ export async function sendVerificationEmail(email: string, token: string): Promi
 
 export async function sendPasswordResetEmail(email: string, token: string): Promise<void> {
   const link = `${APP_URL}/reset-password?token=${token}`;
-  await resend.emails.send({
+  await getResend().emails.send({
     from: FROM,
     to: email,
     subject: "Reset your EYF password",
