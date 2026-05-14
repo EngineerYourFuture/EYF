@@ -307,7 +307,8 @@ router.post("/guide", requireAuth("public"), async (req: AuthRequest, res: Respo
     let parsed: { stage?: string; question?: string; insight?: string; codeHint?: string };
     try {
       parsed = JSON.parse(raw) as typeof parsed;
-    } catch {
+    } catch (err: unknown) {
+      void err;
       parsed = { stage: "understand", question: raw, insight: "", codeHint: "" };
     }
     res.json({

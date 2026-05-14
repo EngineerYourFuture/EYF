@@ -246,7 +246,8 @@ router.post("/:id/submit", requireAuth("public"), async (req: AuthRequest, res: 
     results = raw.map(({ passed, hidden }) => ({ passed, hidden }));
     totalRuntimeMs = Math.max(...raw.map((r) => r.runtimeMs));
     peakMemoryKb = Math.max(...raw.map((r) => r.memoryKb));
-  } catch {
+  } catch (err: unknown) {
+    void err;
     executionFailed = true;
     results = problem.testCases.map((tc) => ({ passed: false, hidden: tc.isHidden }));
   }
