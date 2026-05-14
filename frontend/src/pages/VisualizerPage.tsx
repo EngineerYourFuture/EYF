@@ -310,7 +310,10 @@ export function VisualizerPage() {
                 {STAGES.map((s, i) => {
                   const done = i < stageIndex;
                   const active = i === stageIndex;
-                  const stageOpacity = active ? 'opacity-100' : done ? 'opacity-70' : 'opacity-30';
+                  let stageOpacity: string;
+                  if (active) { stageOpacity = 'opacity-100'; }
+                  else if (done) { stageOpacity = 'opacity-70'; }
+                  else { stageOpacity = 'opacity-30'; }
                   let stageBg: string;
                   if (active) {
                     stageBg = `bg-primary-container/20 ring-2 ring-primary-container ${s.color}`;
