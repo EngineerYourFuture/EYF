@@ -1,7 +1,7 @@
 import { type ReactNode, useState, useEffect } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { Icon } from './Icon';
-import { EYFMark } from './EYFLogo';
+import { EYFMark, EYFLogo } from './EYFLogo';
 import { clearSession, getSession } from '../lib/session';
 
 interface NavItem {
@@ -157,8 +157,15 @@ export function AppShell({ children }: AppShellProps) {
           <Icon name="menu" size={20} />
         </button>
 
-        {/* Logo mark */}
-        <EYFMark size={28} className="text-[#0E0E0E] mr-2 flex-shrink-0" />
+        {/* Logo — hover shows animated mark */}
+        <div className="relative group/logo mr-1 flex-shrink-0">
+          <span className="text-lg font-black tracking-tighter text-white cursor-default select-none">EYF</span>
+          <div className="absolute left-1/2 -translate-x-1/2 top-full mt-3 z-50 opacity-0 scale-90 pointer-events-none group-hover/logo:opacity-100 group-hover/logo:scale-100 transition-all duration-200 origin-top">
+            <div className="bg-[#0E0E0E] rounded-2xl shadow-2xl border border-white/10 p-4">
+              <EYFLogo animated size={160} />
+            </div>
+          </div>
+        </div>
 
         {/* Search */}
         <div className="flex-1 max-w-lg">
