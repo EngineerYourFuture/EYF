@@ -4,6 +4,57 @@ import { Prisma, Plan } from "@prisma/client";
 import { prisma } from "../lib/prisma";
 import { requireAuth, AuthRequest, asStr } from "../middleware/auth";
 
+// Judge0 CE language IDs
+const JUDGE0_LANG: Record<string, number> = {
+  javascript: 93, // Node.js 18
+  python: 71,     // Python 3.8
+  java: 91,       // Java 17
+  cpp: 54,        // C++17
+  c: 50,          // C (GCC 9)
+};
+
+const JUDGE0_BASE = (process.env.JUDGE0_API_URL ?? "https://api.judge0.com").replace(/\/$/, "");
+
+interface Judge0Result {
+  stdout: string | null;
+  stderr: string | null;
+  compile_output: string | null;
+  status: { id: number; description: string };
+  time: string | null;
+  memory: number | null;
+}
+
+async function runOnJudge0(
+  code: string,
+  language: string,
+  stdin: string
+): Promise<{ stdout: string; stderr: string; exitCode: number; runtimeMs: number; memoryKb: number }> {
+  const langId = JUDGE0_LANG[language];
+  if (!langId) throw new Error(`Unsupported language: ${language}`);
+
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (process.env.JUDGE0_API_KEY) headers["X-RapidAPI-Key"] = process.env.JUDGE0_API_KEY;
+
+  const submitRes = await fetch(`${JUDGE0_BASE}/submissions?base64_encoded=false&wait=true`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ source_code: code, language_id: langId, stdin, cpu_time_limit: 5, memory_limit: 262144 }),
+    signal: AbortSignal.timeout(15000),
+  });
+
+  if (!submitRes.ok) throw new Error(`Judge0 error: ${submitRes.status}`);
+  const result = await submitRes.json() as Judge0Result;
+
+  const stdout = result.stdout ?? "";
+  const stderr = (result.stderr ?? "") || (result.compile_output ?? "");
+  // status id 3 = Accepted, anything else is an error
+  const exitCode = result.status.id === 3 ? 0 : 1;
+  const runtimeMs = result.time ? Math.round(parseFloat(result.time) * 1000) : 0;
+  const memoryKb = result.memory ?? 0;
+
+  return { stdout, stderr, exitCode, runtimeMs, memoryKb };
+}
+
 const router = Router();
 
 const PLAN_ORDER: Record<string, number> = { free: 0, basic: 1, pro: 2, elite: 3 };
@@ -123,15 +174,19 @@ router.post("/:id/run", requireAuth("public"), async (req: AuthRequest, res: Res
     return;
   }
 
-  const startMs = Date.now();
-  const simulatedResult = simulateExecution(parse.data.code, parse.data.language, parse.data.input ?? "");
-  const runtimeMs = Date.now() - startMs + Math.floor(Math.random() * 200);
+  let execResult: { stdout: string; stderr: string; exitCode: number; runtimeMs: number; memoryKb: number };
+  try {
+    execResult = await runOnJudge0(parse.data.code, parse.data.language, parse.data.input ?? "");
+  } catch (err) {
+    res.status(503).json({ error: { code: "EXECUTION_UNAVAILABLE", message: "Code execution service is temporarily unavailable." } });
+    return;
+  }
 
   const run = await prisma.executionRun.create({
     data: {
       userId, problemId: problem.id, language: parse.data.language,
-      sourceCode: parse.data.code, stdout: simulatedResult.stdout,
-      stderr: simulatedResult.stderr, exitCode: simulatedResult.exitCode, runtimeMs,
+      sourceCode: parse.data.code, stdout: execResult.stdout,
+      stderr: execResult.stderr, exitCode: execResult.exitCode, runtimeMs: execResult.runtimeMs,
     },
   });
 
@@ -141,7 +196,7 @@ router.post("/:id/run", requireAuth("public"), async (req: AuthRequest, res: Res
     create: { userId, date: today, count: 1 },
   });
 
-  res.json({ runId: run.id, stdout: simulatedResult.stdout, stderr: simulatedResult.stderr, exitCode: simulatedResult.exitCode, runtimeMs });
+  res.json({ runId: run.id, stdout: execResult.stdout, stderr: execResult.stderr, exitCode: execResult.exitCode, runtimeMs: execResult.runtimeMs });
 });
 
 const SubmitSchema = z.object({
@@ -172,20 +227,38 @@ router.post("/:id/submit", requireAuth("public"), async (req: AuthRequest, res: 
     return;
   }
 
-  const results: TestCaseResult[] = problem.testCases.map((tc) => {
-    const result = simulateExecution(parse.data.code, parse.data.language, tc.input);
-    return { passed: result.stdout.trim() === tc.expectedOutput.trim(), hidden: tc.isHidden };
-  });
+  let results: TestCaseResult[];
+  let totalRuntimeMs = 0;
+  let peakMemoryKb = 0;
+  let executionFailed = false;
 
-  const allPassed = results.every((r) => r.passed);
-  const status = allPassed ? "accepted" : "wrong_answer";
+  try {
+    const execPromises = problem.testCases.map((tc) =>
+      runOnJudge0(parse.data.code, parse.data.language, tc.input).then((r) => ({
+        passed: r.stdout.trim() === tc.expectedOutput.trim() && r.exitCode === 0,
+        hidden: tc.isHidden,
+        runtimeMs: r.runtimeMs,
+        memoryKb: r.memoryKb,
+      }))
+    );
+    const raw = await Promise.all(execPromises);
+    results = raw.map(({ passed, hidden }) => ({ passed, hidden }));
+    totalRuntimeMs = Math.max(...raw.map((r) => r.runtimeMs));
+    peakMemoryKb = Math.max(...raw.map((r) => r.memoryKb));
+  } catch {
+    executionFailed = true;
+    results = problem.testCases.map((tc) => ({ passed: false, hidden: tc.isHidden }));
+  }
+
+  const allPassed = !executionFailed && results.every((r) => r.passed);
+  const status = executionFailed ? "runtime_error" : allPassed ? "accepted" : "wrong_answer";
 
   const submission = await prisma.submission.create({
     data: {
       userId, problemId: problem.id, language: parse.data.language,
       sourceCode: parse.data.code, status,
-      runtimeMs: 100 + Math.floor(Math.random() * 400),
-      memoryKb: 1024 + Math.floor(Math.random() * 8192),
+      runtimeMs: totalRuntimeMs,
+      memoryKb: peakMemoryKb,
     },
   });
 
@@ -240,10 +313,5 @@ router.get("/:id/submissions", requireAuth("public"), async (req: AuthRequest, r
   });
   res.json({ submissions });
 });
-
-function simulateExecution(code: string, _language: string, input: string): { stdout: string; stderr: string; exitCode: number } {
-  if (code.trim().length < 5) return { stdout: "", stderr: "Empty code.", exitCode: 1 };
-  return { stdout: input || "output", stderr: "", exitCode: 0 };
-}
 
 export { router as problemsRouter };

@@ -1,3 +1,4 @@
+import PDFDocument from "pdfkit";
 import { Router, Response } from "express";
 import { z } from "zod";
 import { Plan, Prisma } from "@prisma/client";
@@ -87,8 +88,102 @@ router.post("/export", requireAuth("public"), async (req: AuthRequest, res: Resp
     return;
   }
 
-  // MVP: return a placeholder — real impl would generate PDF via puppeteer/wkhtmltopdf
-  res.json({ ok: true, message: "PDF export queued. Download will be available shortly." });
+  const parse = ResumeDataSchema.safeParse(req.body);
+  if (!parse.success) {
+    res.status(400).json({ error: { code: "VALIDATION", message: parse.error.issues[0]?.message } });
+    return;
+  }
+
+  const { data: rd } = parse.data;
+  const pi = rd.personalInfo;
+
+  res.setHeader("Content-Type", "application/pdf");
+  res.setHeader("Content-Disposition", 'attachment; filename="resume.pdf"');
+
+  const doc = new PDFDocument({ margin: 50, size: "A4" });
+  doc.pipe(res);
+
+  const accent = "#c0392b";
+  const textColor = "#1a1a1a";
+  const mutedColor = "#555555";
+  const W = doc.page.width - 100;
+
+  const section = (title: string) => {
+    doc.moveDown(0.5);
+    doc.fontSize(9).fillColor(accent).font("Helvetica-Bold").text(title.toUpperCase(), { characterSpacing: 1.5 });
+    doc.moveTo(50, doc.y).lineTo(50 + W, doc.y).strokeColor(accent).lineWidth(0.5).stroke();
+    doc.moveDown(0.3);
+    doc.fillColor(textColor);
+  };
+
+  // Header
+  doc.fontSize(22).font("Helvetica-Bold").fillColor(textColor).text(pi?.name ?? "Your Name");
+  const contactParts = [pi?.email, pi?.phone, pi?.location, pi?.linkedin, pi?.github].filter(Boolean);
+  doc.fontSize(9).font("Helvetica").fillColor(mutedColor).text(contactParts.join("  ·  "), { lineGap: 2 });
+  if (pi?.summary) {
+    doc.moveDown(0.4).fontSize(9.5).fillColor(textColor).text(pi.summary, { lineGap: 2 });
+  }
+
+  // Experience
+  if (rd.experience?.length) {
+    section("Experience");
+    for (const exp of rd.experience) {
+      const dateStr = exp.endDate ? `${exp.startDate} – ${exp.endDate}` : exp.current ? `${exp.startDate} – Present` : exp.startDate;
+      doc.fontSize(10).font("Helvetica-Bold").fillColor(textColor).text(`${exp.role}  —  ${exp.company}`, { continued: false });
+      doc.fontSize(8.5).font("Helvetica").fillColor(mutedColor).text(dateStr);
+      for (const bullet of exp.bullets.filter(Boolean)) {
+        doc.fontSize(9).fillColor(textColor).text(`•  ${bullet}`, { indent: 10, lineGap: 1 });
+      }
+      doc.moveDown(0.3);
+    }
+  }
+
+  // Education
+  if (rd.education?.length) {
+    section("Education");
+    for (const edu of rd.education) {
+      const degreeStr = [edu.degree, edu.field].filter(Boolean).join(", ");
+      doc.fontSize(10).font("Helvetica-Bold").fillColor(textColor).text(degreeStr);
+      const metaParts = [edu.institution, edu.startDate, edu.gpa ? `GPA: ${edu.gpa}` : null].filter(Boolean);
+      doc.fontSize(8.5).font("Helvetica").fillColor(mutedColor).text(metaParts.join("  ·  "));
+      doc.moveDown(0.3);
+    }
+  }
+
+  // Skills
+  if (rd.skills?.length) {
+    section("Skills");
+    for (const sg of rd.skills) {
+      doc.fontSize(9).font("Helvetica-Bold").fillColor(textColor).text(`${sg.category}: `, { continued: true });
+      doc.font("Helvetica").fillColor(mutedColor).text(sg.items.join(", "), { lineGap: 1 });
+    }
+    doc.moveDown(0.3);
+  }
+
+  // Projects
+  if (rd.projects?.length) {
+    section("Projects");
+    for (const proj of rd.projects) {
+      doc.fontSize(10).font("Helvetica-Bold").fillColor(textColor).text(proj.name, { continued: proj.tech.length > 0 });
+      if (proj.tech.length) doc.font("Helvetica").fillColor(mutedColor).text(`  ·  ${proj.tech.join(", ")}`);
+      if (proj.description) doc.fontSize(9).fillColor(textColor).text(proj.description, { lineGap: 1 });
+      for (const b of proj.bullets.filter(Boolean)) {
+        doc.fontSize(9).fillColor(textColor).text(`•  ${b}`, { indent: 10, lineGap: 1 });
+      }
+      doc.moveDown(0.3);
+    }
+  }
+
+  // Certifications
+  if (rd.certifications?.length) {
+    section("Certifications");
+    for (const cert of rd.certifications) {
+      doc.fontSize(9).font("Helvetica-Bold").fillColor(textColor).text(cert.name, { continued: true });
+      doc.font("Helvetica").fillColor(mutedColor).text(`  —  ${cert.issuer}${cert.date ? ", " + cert.date : ""}`);
+    }
+  }
+
+  doc.end();
 });
 
 export { router as resumeRouter };

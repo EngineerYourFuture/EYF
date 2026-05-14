@@ -185,7 +185,6 @@ export function VisualizerPage() {
   };
 
   const stageIndex = STAGES.findIndex((s) => s.key === currentStage);
-  const currentStageMeta = STAGES[stageIndex] ?? STAGES[0];
   const latestTurn = turns[turns.length - 1];
   const step = steps[currentStep];
 

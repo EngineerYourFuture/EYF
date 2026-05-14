@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { AppShell } from '../components/AppShell';
 import { Icon } from '../components/Icon';
+import { getSession } from '../lib/session';
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL ?? '/api';
 
 interface ResumeData {
   name: string; email: string; phone: string; location: string; summary: string;
@@ -22,9 +25,49 @@ const INITIAL: ResumeData = {
 export function ResumePage() {
   const [data, setData] = useState<ResumeData>(INITIAL);
   const [section, setSection] = useState<'personal' | 'education' | 'experience' | 'skills' | 'projects'>('personal');
+  const [exporting, setExporting] = useState(false);
 
   const update = <K extends keyof ResumeData>(key: K, val: ResumeData[K]) =>
     setData((d) => ({ ...d, [key]: val }));
+
+  const exportPdf = async () => {
+    setExporting(true);
+    try {
+      const session = getSession();
+      const res = await fetch(`${API_BASE}/resume/export`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(session?.accessToken ? { Authorization: `Bearer ${session.accessToken}` } : {}),
+        },
+        body: JSON.stringify({
+          template: 'default',
+          data: {
+            personalInfo: { name: data.name, email: data.email, phone: data.phone, location: data.location, summary: data.summary },
+            experience: data.experience.map((e) => ({ company: e.company, role: e.role, startDate: e.duration, bullets: e.bullets })),
+            education: data.education.map((e) => ({ institution: e.school, degree: e.degree, field: '', startDate: e.year })),
+            skills: [{ category: 'Technical', items: data.skills }],
+            projects: data.projects.map((p) => ({ name: p.name, description: p.desc, tech: p.stack.split(',').map((s) => s.trim()), bullets: [] })),
+          },
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json() as { error?: { message?: string } };
+        alert(err?.error?.message ?? 'Export failed.');
+        return;
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'resume.pdf';
+      a.click();
+      URL.revokeObjectURL(url);
+    } finally {
+      setExporting(false);
+    }
+  };
 
   return (
     <AppShell>
@@ -34,9 +77,13 @@ export function ResumePage() {
             <h1 className="text-5xl font-black tracking-tighter mb-2">Resume <span className="text-primary-container">Builder.</span></h1>
             <p className="text-on-surface-variant">ATS-optimized engineering resume.</p>
           </div>
-          <button className="bg-primary-container text-white font-bold px-8 py-3 rounded-full text-[11px] uppercase tracking-widest flex items-center gap-2 hover:brightness-110 transition-all active:scale-95">
+          <button
+            onClick={exportPdf}
+            disabled={exporting}
+            className="bg-primary-container text-white font-bold px-8 py-3 rounded-full text-[11px] uppercase tracking-widest flex items-center gap-2 hover:brightness-110 transition-all active:scale-95 disabled:opacity-60"
+          >
             <Icon name="download" size={18} />
-            Export PDF
+            {exporting ? 'Generating…' : 'Export PDF'}
           </button>
         </div>
 
@@ -105,10 +152,124 @@ export function ResumePage() {
               </div>
             )}
 
-            {(section === 'education' || section === 'experience' || section === 'projects') && (
-              <div className="bg-surface-container rounded-xl p-8 text-zinc-500 text-sm text-center py-12">
-                <Icon name="construction" size={32} className="mx-auto mb-4 opacity-30" />
-                <p>Section editor coming soon.</p>
+            {section === 'education' && (
+              <div className="space-y-4">
+                {data.education.map((edu, i) => (
+                  <div key={i} className="bg-surface-container rounded-xl p-6 space-y-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-zinc-500">Entry {i + 1}</span>
+                      <button onClick={() => update('education', data.education.filter((_, j) => j !== i))} className="text-zinc-600 hover:text-red-400 transition-colors">
+                        <Icon name="delete" size={16} />
+                      </button>
+                    </div>
+                    {(['school', 'degree', 'year'] as const).map((f) => (
+                      <div key={f}>
+                        <label className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-zinc-500 block mb-1">{f}</label>
+                        <input
+                          type="text"
+                          value={edu[f]}
+                          onChange={(e) => {
+                            const updated = [...data.education];
+                            updated[i] = { ...updated[i], [f]: e.target.value };
+                            update('education', updated);
+                          }}
+                          className="w-full bg-surface-container-low rounded-xl px-4 py-3 text-on-surface text-sm border-none focus:outline-none"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                ))}
+                <button
+                  onClick={() => update('education', [...data.education, { school: '', degree: '', year: '' }])}
+                  className="w-full border border-dashed border-zinc-700 rounded-xl py-3 text-zinc-500 hover:text-zinc-300 hover:border-zinc-500 transition-all text-sm flex items-center justify-center gap-2"
+                >
+                  <Icon name="add" size={16} /> Add Education
+                </button>
+              </div>
+            )}
+
+            {section === 'experience' && (
+              <div className="space-y-4">
+                {data.experience.map((exp, i) => (
+                  <div key={i} className="bg-surface-container rounded-xl p-6 space-y-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-zinc-500">Entry {i + 1}</span>
+                      <button onClick={() => update('experience', data.experience.filter((_, j) => j !== i))} className="text-zinc-600 hover:text-red-400 transition-colors">
+                        <Icon name="delete" size={16} />
+                      </button>
+                    </div>
+                    {(['company', 'role', 'duration'] as const).map((f) => (
+                      <div key={f}>
+                        <label className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-zinc-500 block mb-1">{f}</label>
+                        <input
+                          type="text"
+                          value={exp[f]}
+                          onChange={(e) => {
+                            const updated = [...data.experience];
+                            updated[i] = { ...updated[i], [f]: e.target.value };
+                            update('experience', updated);
+                          }}
+                          className="w-full bg-surface-container-low rounded-xl px-4 py-3 text-on-surface text-sm border-none focus:outline-none"
+                        />
+                      </div>
+                    ))}
+                    <div>
+                      <label className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-zinc-500 block mb-1">Bullets (one per line)</label>
+                      <textarea
+                        rows={3}
+                        value={exp.bullets.join('\n')}
+                        onChange={(e) => {
+                          const updated = [...data.experience];
+                          updated[i] = { ...updated[i], bullets: e.target.value.split('\n') };
+                          update('experience', updated);
+                        }}
+                        className="w-full bg-surface-container-low rounded-xl px-4 py-3 text-on-surface text-sm border-none focus:outline-none resize-none"
+                      />
+                    </div>
+                  </div>
+                ))}
+                <button
+                  onClick={() => update('experience', [...data.experience, { company: '', role: '', duration: '', bullets: [''] }])}
+                  className="w-full border border-dashed border-zinc-700 rounded-xl py-3 text-zinc-500 hover:text-zinc-300 hover:border-zinc-500 transition-all text-sm flex items-center justify-center gap-2"
+                >
+                  <Icon name="add" size={16} /> Add Experience
+                </button>
+              </div>
+            )}
+
+            {section === 'projects' && (
+              <div className="space-y-4">
+                {data.projects.map((proj, i) => (
+                  <div key={i} className="bg-surface-container rounded-xl p-6 space-y-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-zinc-500">Project {i + 1}</span>
+                      <button onClick={() => update('projects', data.projects.filter((_, j) => j !== i))} className="text-zinc-600 hover:text-red-400 transition-colors">
+                        <Icon name="delete" size={16} />
+                      </button>
+                    </div>
+                    {(['name', 'desc', 'stack'] as const).map((f) => (
+                      <div key={f}>
+                        <label className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-zinc-500 block mb-1">{f === 'desc' ? 'Description' : f === 'stack' ? 'Tech Stack' : 'Project Name'}</label>
+                        <input
+                          type="text"
+                          value={proj[f]}
+                          onChange={(e) => {
+                            const updated = [...data.projects];
+                            updated[i] = { ...updated[i], [f]: e.target.value };
+                            update('projects', updated);
+                          }}
+                          className="w-full bg-surface-container-low rounded-xl px-4 py-3 text-on-surface text-sm border-none focus:outline-none"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                ))}
+                <button
+                  onClick={() => update('projects', [...data.projects, { name: '', desc: '', stack: '' }])}
+                  className="w-full border border-dashed border-zinc-700 rounded-xl py-3 text-zinc-500 hover:text-zinc-300 hover:border-zinc-500 transition-all text-sm flex items-center justify-center gap-2"
+                >
+                  <Icon name="add" size={16} /> Add Project
+                </button>
               </div>
             )}
           </div>
@@ -144,10 +305,21 @@ export function ResumePage() {
                 <p className="font-semibold">{ex.role} — {ex.company}</p>
                 <p className="text-gray-500 text-xs">{ex.duration}</p>
                 <ul className="list-disc ml-4 text-gray-700 text-xs mt-1">
-                  {ex.bullets.map((b) => <li key={b}>{b}</li>)}
+                  {ex.bullets.filter(Boolean).map((b, bi) => <li key={bi}>{b}</li>)}
                 </ul>
               </div>
             ))}
+            {data.projects.length > 0 && (
+              <div className="mt-3">
+                <h2 className="text-xs font-black uppercase tracking-widest mb-1">Projects</h2>
+                {data.projects.map((p, i) => (
+                  <div key={`proj-${p.name ?? i}`} className="mb-2">
+                    <p className="font-semibold">{p.name} <span className="font-normal text-gray-500 text-xs">· {p.stack}</span></p>
+                    <p className="text-gray-700 text-xs">{p.desc}</p>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>

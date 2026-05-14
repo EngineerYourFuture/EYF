@@ -165,6 +165,9 @@ export function LoginPage() {
                       <span>{error}</span>
                     </div>
                   )}
+                  <div className="text-right mt-2 px-1">
+                    <a href="/forgot-password" className="text-zinc-500 hover:text-zinc-300 text-xs transition-colors">Forgot password?</a>
+                  </div>
                 </div>
                 <div className="pt-4">
                   <button

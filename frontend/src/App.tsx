@@ -20,6 +20,9 @@ import { SubmissionPage } from './pages/SubmissionPage';
 import { SecurityPage } from './pages/SecurityPage';
 import { BillingPage } from './pages/BillingPage';
 import { SupportPage } from './pages/SupportPage';
+import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
+import { ResetPasswordPage } from './pages/ResetPasswordPage';
+import { VerifyEmailPage } from './pages/VerifyEmailPage';
 import { AuthorityQueuePage } from './pages/AuthorityQueuePage';
 import { AdminOperationsPage } from './pages/AdminOperationsPage';
 import { AdminProblemsPage } from './pages/AdminProblemsPage';
@@ -33,6 +36,9 @@ export default function App() {
       <Route path="/auth/login" element={<Navigate to="/login" replace />} />
       <Route path="/auth/register" element={<Navigate to="/login?tab=register" replace />} />
       <Route path="/authority/login" element={<AuthorityLoginPage />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
+      <Route path="/verify-email" element={<VerifyEmailPage />} />
 
       {/* Authenticated app routes */}
       <Route

@@ -14,6 +14,7 @@ import {
   Role,
 } from "../lib/tokens";
 import { requireAuth, AuthRequest } from "../middleware/auth";
+import { sendVerificationEmail, sendPasswordResetEmail } from "../lib/email";
 
 const router = Router();
 
@@ -111,15 +112,23 @@ router.post("/register", async (req: Request, res: Response): Promise<void> => {
   }
 
   const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
+  const verificationToken = crypto.randomBytes(32).toString("hex");
+  const verificationExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
   const user = await prisma.user.create({
     data: {
       email: normalized,
       passwordHash,
+      emailVerificationToken: verificationToken,
+      emailVerificationExpiry: verificationExpiry,
       security: { create: {} },
       xp: { create: {} },
       learningGoal: { create: { priorityModules: ["dsa", "core-subjects", "placement"] } },
     },
   });
+
+  // Fire-and-forget — don't block registration if email fails
+  sendVerificationEmail(normalized, verificationToken).catch(() => {});
 
   const ip = getIp(req);
   const device = getDevice(req);
@@ -136,6 +145,7 @@ router.post("/register", async (req: Request, res: Response): Promise<void> => {
   res.status(201).json({
     user: { id: user.id, email: user.email, role: user.role, plan: user.plan },
     accessToken,
+    emailVerificationSent: true,
   });
 });
 
@@ -458,6 +468,111 @@ router.patch("/password", requireAuth("public"), async (req: AuthRequest, res: R
 
   const passwordHash = await bcrypt.hash(newPassword, SALT_ROUNDS);
   await prisma.user.update({ where: { id: user.id }, data: { passwordHash } });
+  res.json({ ok: true });
+});
+
+// POST /auth/verify-email
+router.post("/verify-email", async (req: Request, res: Response): Promise<void> => {
+  const { token } = req.body;
+  if (!token || typeof token !== "string") {
+    res.status(400).json({ error: { code: "INVALID_TOKEN", message: "Token required." } });
+    return;
+  }
+
+  const user = await prisma.user.findUnique({ where: { emailVerificationToken: token } });
+  if (!user || !user.emailVerificationExpiry || user.emailVerificationExpiry < new Date()) {
+    res.status(400).json({ error: { code: "INVALID_TOKEN", message: "Token is invalid or expired." } });
+    return;
+  }
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: {
+      emailVerified: true,
+      emailVerificationToken: null,
+      emailVerificationExpiry: null,
+    },
+  });
+
+  res.json({ ok: true });
+});
+
+// POST /auth/resend-verification
+router.post("/resend-verification", requireAuth("public"), async (req: AuthRequest, res: Response): Promise<void> => {
+  const user = await prisma.user.findUnique({ where: { id: req.auth!.sub } });
+  if (!user) { res.status(404).json({ error: { code: "NOT_FOUND", message: "User not found." } }); return; }
+  if (user.emailVerified) {
+    res.status(400).json({ error: { code: "ALREADY_VERIFIED", message: "Email already verified." } });
+    return;
+  }
+
+  const verificationToken = crypto.randomBytes(32).toString("hex");
+  const verificationExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { emailVerificationToken: verificationToken, emailVerificationExpiry: verificationExpiry },
+  });
+
+  await sendVerificationEmail(user.email, verificationToken);
+  res.json({ ok: true });
+});
+
+// POST /auth/forgot-password
+router.post("/forgot-password", async (req: Request, res: Response): Promise<void> => {
+  const { email } = req.body;
+  if (!email || typeof email !== "string") {
+    res.status(400).json({ error: { code: "VALIDATION", message: "Email required." } });
+    return;
+  }
+
+  const user = await prisma.user.findUnique({ where: { email: normalizeEmail(email) } });
+  // Always respond OK to avoid user enumeration
+  if (user) {
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    const resetExpiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { passwordResetToken: resetToken, passwordResetExpiry: resetExpiry },
+    });
+    sendPasswordResetEmail(user.email, resetToken).catch(() => {});
+  }
+
+  res.json({ ok: true });
+});
+
+// POST /auth/reset-password
+router.post("/reset-password", async (req: Request, res: Response): Promise<void> => {
+  const { token, password } = req.body;
+  if (!token || !password) {
+    res.status(400).json({ error: { code: "VALIDATION", message: "Token and password required." } });
+    return;
+  }
+
+  const user = await prisma.user.findUnique({ where: { passwordResetToken: String(token) } });
+  if (!user || !user.passwordResetExpiry || user.passwordResetExpiry < new Date()) {
+    res.status(400).json({ error: { code: "INVALID_TOKEN", message: "Reset link is invalid or expired." } });
+    return;
+  }
+
+  const isStrong = password.length >= 8 &&
+    /[A-Z]/.test(password) && /[a-z]/.test(password) &&
+    /\d/.test(password) && /[^A-Za-z0-9]/.test(password);
+  if (!isStrong) {
+    res.status(400).json({ error: { code: "WEAK_PASSWORD", message: "Password doesn't meet requirements (8+ chars, uppercase, lowercase, digit, special char)." } });
+    return;
+  }
+
+  const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { passwordHash, passwordResetToken: null, passwordResetExpiry: null },
+  });
+
+  // Revoke all active sessions so old tokens are invalid
+  await prisma.session.updateMany({ where: { userId: user.id, revokedAt: null }, data: { revokedAt: new Date() } });
+  await prisma.refreshToken.updateMany({ where: { userId: user.id }, data: { revoked: true } });
+
   res.json({ ok: true });
 });
 
