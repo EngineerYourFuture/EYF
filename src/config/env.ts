@@ -50,6 +50,7 @@ export const env = {
   nodeEnv: resolvedNodeEnv,
   port: resolvedPort,
   appName: process.env.APP_NAME ?? "eyf-api",
+  appUrl,
   jwtAccessSecret,
   jwtRefreshSecret,
   billingWebhookSecret: webhookSigningSecret,

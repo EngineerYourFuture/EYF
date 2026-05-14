@@ -164,7 +164,7 @@ router.post("/login", async (req: Request, res: Response): Promise<void> => {
     include: { security: true },
   });
 
-  if (!user || !(await bcrypt.compare(password, user.passwordHash))) {
+  if (!user || !user.passwordHash || !(await bcrypt.compare(password, user.passwordHash))) {
     res.status(401).json({ error: { code: "INVALID_CREDENTIALS", message: "Invalid email or password." } });
     return;
   }
@@ -424,7 +424,7 @@ router.post("/2fa/confirm", requireAuth("public"), async (req: AuthRequest, res:
 router.delete("/2fa", requireAuth("public"), async (req: AuthRequest, res: Response): Promise<void> => {
   const { password } = req.body;
   const user = await prisma.user.findUnique({ where: { id: req.auth!.sub } });
-  if (!user || !(await bcrypt.compare(password, user.passwordHash))) {
+  if (!user || !user.passwordHash || !(await bcrypt.compare(password, user.passwordHash))) {
     res.status(401).json({ error: { code: "INVALID_CREDENTIALS", message: "Wrong password." } });
     return;
   }
@@ -454,7 +454,7 @@ router.get("/security", requireAuth("public"), async (req: AuthRequest, res: Res
 router.patch("/password", requireAuth("public"), async (req: AuthRequest, res: Response): Promise<void> => {
   const { currentPassword, newPassword } = req.body;
   const user = await prisma.user.findUnique({ where: { id: req.auth!.sub } });
-  if (!user || !(await bcrypt.compare(currentPassword, user.passwordHash))) {
+  if (!user || !user.passwordHash || !(await bcrypt.compare(currentPassword, user.passwordHash))) {
     res.status(401).json({ error: { code: "INVALID_CREDENTIALS", message: "Wrong current password." } });
     return;
   }
@@ -577,6 +577,112 @@ router.post("/reset-password", async (req: Request, res: Response): Promise<void
   await prisma.refreshToken.updateMany({ where: { userId: user.id }, data: { revoked: true } });
 
   res.json({ ok: true });
+});
+
+// GET /auth/google — redirect to Google consent screen
+router.get("/google", (_req: Request, res: Response) => {
+  const clientId = process.env.GOOGLE_CLIENT_ID;
+  if (!clientId) {
+    res.status(503).json({ error: { code: "OAUTH_UNAVAILABLE", message: "Google OAuth is not configured." } });
+    return;
+  }
+  const redirectUri = `${env.appUrl}/api/auth/google/callback`;
+  const params = new URLSearchParams({
+    client_id: clientId,
+    redirect_uri: redirectUri,
+    response_type: "code",
+    scope: "openid email profile",
+    access_type: "offline",
+    prompt: "select_account",
+  });
+  res.redirect(`https://accounts.google.com/o/oauth2/v2/auth?${params}`);
+});
+
+interface GoogleTokenResponse { access_token?: string; error?: string; }
+interface GoogleUserInfo { sub: string; email: string; name: string; email_verified: boolean; }
+
+// GET /auth/google/callback — exchange code, create/find user, issue session
+router.get("/google/callback", async (req: Request, res: Response): Promise<void> => {
+  const frontendUrl = env.appUrl || "http://localhost:5173";
+  const code = req.query.code as string | undefined;
+  const errorParam = req.query.error as string | undefined;
+
+  if (errorParam || !code) {
+    res.redirect(`${frontendUrl}/login?error=oauth_cancelled`);
+    return;
+  }
+
+  try {
+    const redirectUri = `${env.appUrl}/api/auth/google/callback`;
+
+    const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        code,
+        client_id: process.env.GOOGLE_CLIENT_ID ?? "",
+        client_secret: process.env.GOOGLE_CLIENT_SECRET ?? "",
+        redirect_uri: redirectUri,
+        grant_type: "authorization_code",
+      }),
+    });
+    const tokenData = await tokenRes.json() as GoogleTokenResponse;
+
+    if (!tokenData.access_token) {
+      res.redirect(`${frontendUrl}/login?error=oauth_failed`);
+      return;
+    }
+
+    const userInfoRes = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+      headers: { Authorization: `Bearer ${tokenData.access_token}` },
+    });
+    const profile = await userInfoRes.json() as GoogleUserInfo;
+
+    if (!profile.email) {
+      res.redirect(`${frontendUrl}/login?error=oauth_no_email`);
+      return;
+    }
+
+    const email = normalizeEmail(profile.email);
+
+    let user = await prisma.user.findFirst({
+      where: { OR: [{ googleId: profile.sub }, { email }] },
+    });
+
+    if (!user) {
+      user = await prisma.user.create({
+        data: {
+          email,
+          name: profile.name,
+          googleId: profile.sub,
+          emailVerified: profile.email_verified,
+          passwordHash: null,
+        },
+      });
+    } else if (!user.googleId) {
+      user = await prisma.user.update({
+        where: { id: user.id },
+        data: { googleId: profile.sub, emailVerified: true },
+      });
+    }
+
+    const { accessToken } = await createSession(
+      user.id,
+      "public",
+      user.role as Role,
+      user.plan,
+      getIp(req),
+      getDevice(req),
+      res
+    );
+
+    res.redirect(
+      `${frontendUrl}/auth/callback?token=${encodeURIComponent(accessToken)}&email=${encodeURIComponent(email)}`
+    );
+  } catch (err: unknown) {
+    console.error("Google OAuth callback error:", err);
+    res.redirect(`${frontendUrl}/login?error=oauth_error`);
+  }
 });
 
 export { router as authRouter };

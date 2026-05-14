@@ -23,6 +23,7 @@ import { SupportPage } from './pages/SupportPage';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { ResetPasswordPage } from './pages/ResetPasswordPage';
 import { VerifyEmailPage } from './pages/VerifyEmailPage';
+import { OAuthCallbackPage } from './pages/OAuthCallbackPage';
 import { AuthorityQueuePage } from './pages/AuthorityQueuePage';
 import { AdminOperationsPage } from './pages/AdminOperationsPage';
 import { AdminProblemsPage } from './pages/AdminProblemsPage';
@@ -39,6 +40,7 @@ export default function App() {
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route path="/verify-email" element={<VerifyEmailPage />} />
+      <Route path="/auth/callback" element={<OAuthCallbackPage />} />
 
       {/* Authenticated app routes */}
       <Route
