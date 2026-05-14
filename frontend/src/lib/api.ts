@@ -31,7 +31,7 @@ async function refreshAccessToken(): Promise<string | null> {
       });
       if (!res.ok) {
         clearSession();
-        window.location.href = "/login";
+        globalThis.location.href = "/login";
         return null;
       }
       const data = (await res.json()) as { accessToken: string };

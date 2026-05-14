@@ -49,7 +49,7 @@ async function runOnJudge0(
   const stderr = (result.stderr ?? "") || (result.compile_output ?? "");
   // status id 3 = Accepted, anything else is an error
   const exitCode = result.status.id === 3 ? 0 : 1;
-  const runtimeMs = result.time ? Math.round(parseFloat(result.time) * 1000) : 0;
+  const runtimeMs = result.time ? Math.round(Number.parseFloat(result.time) * 1000) : 0;
   const memoryKb = result.memory ?? 0;
 
   return { stdout, stderr, exitCode, runtimeMs, memoryKb };
@@ -177,7 +177,8 @@ router.post("/:id/run", requireAuth("public"), async (req: AuthRequest, res: Res
   let execResult: { stdout: string; stderr: string; exitCode: number; runtimeMs: number; memoryKb: number };
   try {
     execResult = await runOnJudge0(parse.data.code, parse.data.language, parse.data.input ?? "");
-  } catch (err) {
+  } catch (err: unknown) {
+    console.error("Judge0 run error:", err);
     res.status(503).json({ error: { code: "EXECUTION_UNAVAILABLE", message: "Code execution service is temporarily unavailable." } });
     return;
   }
@@ -251,7 +252,14 @@ router.post("/:id/submit", requireAuth("public"), async (req: AuthRequest, res: 
   }
 
   const allPassed = !executionFailed && results.every((r) => r.passed);
-  const status = executionFailed ? "runtime_error" : allPassed ? "accepted" : "wrong_answer";
+  let status: "runtime_error" | "accepted" | "wrong_answer";
+  if (executionFailed) {
+    status = "runtime_error";
+  } else if (allPassed) {
+    status = "accepted";
+  } else {
+    status = "wrong_answer";
+  }
 
   const submission = await prisma.submission.create({
     data: {

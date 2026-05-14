@@ -78,6 +78,93 @@ router.put("/", requireAuth("public"), async (req: AuthRequest, res: Response): 
   res.json({ resume });
 });
 
+type ResumeDoc = InstanceType<typeof PDFDocument>;
+type ParsedResumeData = NonNullable<ReturnType<typeof ResumeDataSchema.safeParse> & { success: true }>["data"]["data"];
+
+const PDF_ACCENT = "#c0392b";
+const PDF_TEXT = "#1a1a1a";
+const PDF_MUTED = "#555555";
+
+function pdfSection(doc: ResumeDoc, title: string) {
+  const W = doc.page.width - 100;
+  doc.moveDown(0.5);
+  doc.fontSize(9).fillColor(PDF_ACCENT).font("Helvetica-Bold").text(title.toUpperCase(), { characterSpacing: 1.5 });
+  doc.moveTo(50, doc.y).lineTo(50 + W, doc.y).strokeColor(PDF_ACCENT).lineWidth(0.5).stroke();
+  doc.moveDown(0.3);
+  doc.fillColor(PDF_TEXT);
+}
+
+function pdfHeader(doc: ResumeDoc, pi: ParsedResumeData["personalInfo"]) {
+  doc.fontSize(22).font("Helvetica-Bold").fillColor(PDF_TEXT).text(pi?.name ?? "Your Name");
+  const contact = [pi?.email, pi?.phone, pi?.location, pi?.linkedin, pi?.github].filter(Boolean);
+  doc.fontSize(9).font("Helvetica").fillColor(PDF_MUTED).text(contact.join("  ·  "), { lineGap: 2 });
+  if (pi?.summary) {
+    doc.moveDown(0.4).fontSize(9.5).fillColor(PDF_TEXT).text(pi.summary, { lineGap: 2 });
+  }
+}
+
+function pdfExperience(doc: ResumeDoc, experience: NonNullable<ParsedResumeData["experience"]>) {
+  pdfSection(doc, "Experience");
+  for (const exp of experience) {
+    let dateStr: string;
+    if (exp.endDate) {
+      dateStr = `${exp.startDate} – ${exp.endDate}`;
+    } else if (exp.current) {
+      dateStr = `${exp.startDate} – Present`;
+    } else {
+      dateStr = exp.startDate;
+    }
+    doc.fontSize(10).font("Helvetica-Bold").fillColor(PDF_TEXT).text(`${exp.role}  —  ${exp.company}`, { continued: false });
+    doc.fontSize(8.5).font("Helvetica").fillColor(PDF_MUTED).text(dateStr);
+    for (const bullet of exp.bullets.filter(Boolean)) {
+      doc.fontSize(9).fillColor(PDF_TEXT).text(`•  ${bullet}`, { indent: 10, lineGap: 1 });
+    }
+    doc.moveDown(0.3);
+  }
+}
+
+function pdfEducation(doc: ResumeDoc, education: NonNullable<ParsedResumeData["education"]>) {
+  pdfSection(doc, "Education");
+  for (const edu of education) {
+    const degreeStr = [edu.degree, edu.field].filter(Boolean).join(", ");
+    doc.fontSize(10).font("Helvetica-Bold").fillColor(PDF_TEXT).text(degreeStr);
+    const meta = [edu.institution, edu.startDate, edu.gpa ? `GPA: ${edu.gpa}` : null].filter(Boolean);
+    doc.fontSize(8.5).font("Helvetica").fillColor(PDF_MUTED).text(meta.join("  ·  "));
+    doc.moveDown(0.3);
+  }
+}
+
+function pdfSkills(doc: ResumeDoc, skills: NonNullable<ParsedResumeData["skills"]>) {
+  pdfSection(doc, "Skills");
+  for (const sg of skills) {
+    doc.fontSize(9).font("Helvetica-Bold").fillColor(PDF_TEXT).text(`${sg.category}: `, { continued: true });
+    doc.font("Helvetica").fillColor(PDF_MUTED).text(sg.items.join(", "), { lineGap: 1 });
+  }
+  doc.moveDown(0.3);
+}
+
+function pdfProjects(doc: ResumeDoc, projects: NonNullable<ParsedResumeData["projects"]>) {
+  pdfSection(doc, "Projects");
+  for (const proj of projects) {
+    doc.fontSize(10).font("Helvetica-Bold").fillColor(PDF_TEXT).text(proj.name, { continued: proj.tech.length > 0 });
+    if (proj.tech.length) doc.font("Helvetica").fillColor(PDF_MUTED).text(`  ·  ${proj.tech.join(", ")}`);
+    if (proj.description) doc.fontSize(9).fillColor(PDF_TEXT).text(proj.description, { lineGap: 1 });
+    for (const b of proj.bullets.filter(Boolean)) {
+      doc.fontSize(9).fillColor(PDF_TEXT).text(`•  ${b}`, { indent: 10, lineGap: 1 });
+    }
+    doc.moveDown(0.3);
+  }
+}
+
+function pdfCertifications(doc: ResumeDoc, certifications: NonNullable<ParsedResumeData["certifications"]>) {
+  pdfSection(doc, "Certifications");
+  for (const cert of certifications) {
+    const suffix = cert.date ? `, ${cert.date}` : "";
+    doc.fontSize(9).font("Helvetica-Bold").fillColor(PDF_TEXT).text(cert.name, { continued: true });
+    doc.font("Helvetica").fillColor(PDF_MUTED).text(`  —  ${cert.issuer}${suffix}`);
+  }
+}
+
 // POST /resume/export  (PDF export — requires basic plan+)
 router.post("/export", requireAuth("public"), async (req: AuthRequest, res: Response): Promise<void> => {
   const entitlement = await prisma.planEntitlement.findUnique({
@@ -94,8 +181,7 @@ router.post("/export", requireAuth("public"), async (req: AuthRequest, res: Resp
     return;
   }
 
-  const { data: rd } = parse.data;
-  const pi = rd.personalInfo;
+  const rd = parse.data.data;
 
   res.setHeader("Content-Type", "application/pdf");
   res.setHeader("Content-Disposition", 'attachment; filename="resume.pdf"');
@@ -103,85 +189,12 @@ router.post("/export", requireAuth("public"), async (req: AuthRequest, res: Resp
   const doc = new PDFDocument({ margin: 50, size: "A4" });
   doc.pipe(res);
 
-  const accent = "#c0392b";
-  const textColor = "#1a1a1a";
-  const mutedColor = "#555555";
-  const W = doc.page.width - 100;
-
-  const section = (title: string) => {
-    doc.moveDown(0.5);
-    doc.fontSize(9).fillColor(accent).font("Helvetica-Bold").text(title.toUpperCase(), { characterSpacing: 1.5 });
-    doc.moveTo(50, doc.y).lineTo(50 + W, doc.y).strokeColor(accent).lineWidth(0.5).stroke();
-    doc.moveDown(0.3);
-    doc.fillColor(textColor);
-  };
-
-  // Header
-  doc.fontSize(22).font("Helvetica-Bold").fillColor(textColor).text(pi?.name ?? "Your Name");
-  const contactParts = [pi?.email, pi?.phone, pi?.location, pi?.linkedin, pi?.github].filter(Boolean);
-  doc.fontSize(9).font("Helvetica").fillColor(mutedColor).text(contactParts.join("  ·  "), { lineGap: 2 });
-  if (pi?.summary) {
-    doc.moveDown(0.4).fontSize(9.5).fillColor(textColor).text(pi.summary, { lineGap: 2 });
-  }
-
-  // Experience
-  if (rd.experience?.length) {
-    section("Experience");
-    for (const exp of rd.experience) {
-      const dateStr = exp.endDate ? `${exp.startDate} – ${exp.endDate}` : exp.current ? `${exp.startDate} – Present` : exp.startDate;
-      doc.fontSize(10).font("Helvetica-Bold").fillColor(textColor).text(`${exp.role}  —  ${exp.company}`, { continued: false });
-      doc.fontSize(8.5).font("Helvetica").fillColor(mutedColor).text(dateStr);
-      for (const bullet of exp.bullets.filter(Boolean)) {
-        doc.fontSize(9).fillColor(textColor).text(`•  ${bullet}`, { indent: 10, lineGap: 1 });
-      }
-      doc.moveDown(0.3);
-    }
-  }
-
-  // Education
-  if (rd.education?.length) {
-    section("Education");
-    for (const edu of rd.education) {
-      const degreeStr = [edu.degree, edu.field].filter(Boolean).join(", ");
-      doc.fontSize(10).font("Helvetica-Bold").fillColor(textColor).text(degreeStr);
-      const metaParts = [edu.institution, edu.startDate, edu.gpa ? `GPA: ${edu.gpa}` : null].filter(Boolean);
-      doc.fontSize(8.5).font("Helvetica").fillColor(mutedColor).text(metaParts.join("  ·  "));
-      doc.moveDown(0.3);
-    }
-  }
-
-  // Skills
-  if (rd.skills?.length) {
-    section("Skills");
-    for (const sg of rd.skills) {
-      doc.fontSize(9).font("Helvetica-Bold").fillColor(textColor).text(`${sg.category}: `, { continued: true });
-      doc.font("Helvetica").fillColor(mutedColor).text(sg.items.join(", "), { lineGap: 1 });
-    }
-    doc.moveDown(0.3);
-  }
-
-  // Projects
-  if (rd.projects?.length) {
-    section("Projects");
-    for (const proj of rd.projects) {
-      doc.fontSize(10).font("Helvetica-Bold").fillColor(textColor).text(proj.name, { continued: proj.tech.length > 0 });
-      if (proj.tech.length) doc.font("Helvetica").fillColor(mutedColor).text(`  ·  ${proj.tech.join(", ")}`);
-      if (proj.description) doc.fontSize(9).fillColor(textColor).text(proj.description, { lineGap: 1 });
-      for (const b of proj.bullets.filter(Boolean)) {
-        doc.fontSize(9).fillColor(textColor).text(`•  ${b}`, { indent: 10, lineGap: 1 });
-      }
-      doc.moveDown(0.3);
-    }
-  }
-
-  // Certifications
-  if (rd.certifications?.length) {
-    section("Certifications");
-    for (const cert of rd.certifications) {
-      doc.fontSize(9).font("Helvetica-Bold").fillColor(textColor).text(cert.name, { continued: true });
-      doc.font("Helvetica").fillColor(mutedColor).text(`  —  ${cert.issuer}${cert.date ? ", " + cert.date : ""}`);
-    }
-  }
+  pdfHeader(doc, rd.personalInfo);
+  if (rd.experience?.length) pdfExperience(doc, rd.experience);
+  if (rd.education?.length) pdfEducation(doc, rd.education);
+  if (rd.skills?.length) pdfSkills(doc, rd.skills);
+  if (rd.projects?.length) pdfProjects(doc, rd.projects);
+  if (rd.certifications?.length) pdfCertifications(doc, rd.certifications);
 
   doc.end();
 });

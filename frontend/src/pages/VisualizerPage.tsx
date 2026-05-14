@@ -310,10 +310,19 @@ export function VisualizerPage() {
                 {STAGES.map((s, i) => {
                   const done = i < stageIndex;
                   const active = i === stageIndex;
+                  const stageOpacity = active ? 'opacity-100' : done ? 'opacity-70' : 'opacity-30';
+                  let stageBg: string;
+                  if (active) {
+                    stageBg = `bg-primary-container/20 ring-2 ring-primary-container ${s.color}`;
+                  } else if (done) {
+                    stageBg = 'bg-surface-container-high text-zinc-400';
+                  } else {
+                    stageBg = 'bg-surface-container text-zinc-600';
+                  }
                   return (
                     <div key={s.key} className="flex items-center flex-1">
-                      <div className={`flex flex-col items-center gap-1 flex-shrink-0 transition-all ${active ? 'opacity-100' : done ? 'opacity-70' : 'opacity-30'}`}>
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${active ? `bg-primary-container/20 ring-2 ring-primary-container ${s.color}` : done ? 'bg-surface-container-high text-zinc-400' : 'bg-surface-container text-zinc-600'}`}>
+                      <div className={`flex flex-col items-center gap-1 flex-shrink-0 transition-all ${stageOpacity}`}>
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${stageBg}`}>
                           {done
                             ? <Icon name="check" size={14} />
                             : <Icon name={s.icon} size={14} />}
@@ -346,22 +355,7 @@ export function VisualizerPage() {
                 )}
               </div>
 
-              {!sessionStarted ? (
-                <>
-                  <textarea value={problem} onChange={(e) => setProblem(e.target.value)}
-                    className="flex-1 bg-surface-container-lowest text-on-surface font-mono text-sm p-5 resize-none focus:outline-none border-none"
-                    placeholder={`Paste any DSA problem here…\n\nExample:\n"Given an integer array nums and an integer target, return indices of the two numbers such that they add up to target."`} />
-                  {!problem.trim() && (
-                    <div className="p-5 border-t border-white/5 space-y-2">
-                      {['Paste any DSA problem above', 'AI asks you guiding questions — not answers', 'Discover the logic yourself, then write the code'].map((tip) => (
-                        <div key={tip} className="flex items-start gap-2 text-[11px] text-zinc-500">
-                          <span className="text-primary-container mt-0.5 flex-shrink-0">→</span>{tip}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </>
-              ) : (
+              {sessionStarted ? (
                 <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
                   {/* Problem text */}
                   <div className="p-5 border-b border-white/5 overflow-y-auto max-h-48 flex-shrink-0">
@@ -375,8 +369,8 @@ export function VisualizerPage() {
                       <p className="text-zinc-600 text-xs">Nothing yet — answer the first question to start building your understanding.</p>
                     ) : (
                       <div className="space-y-2">
-                        {insights.map((insight, i) => (
-                          <div key={i} className="flex items-start gap-2 bg-surface-container rounded-lg px-3 py-2">
+                        {insights.map((insight) => (
+                          <div key={insight} className="flex items-start gap-2 bg-surface-container rounded-lg px-3 py-2">
                             <span className="text-emerald-400 mt-0.5 flex-shrink-0 text-xs">✓</span>
                             <p className="text-xs text-zinc-300 leading-relaxed">{insight}</p>
                           </div>
@@ -403,41 +397,34 @@ export function VisualizerPage() {
                     </div>
                   )}
                 </div>
+              ) : (
+                <>
+                  <textarea value={problem} onChange={(e) => setProblem(e.target.value)}
+                    className="flex-1 bg-surface-container-lowest text-on-surface font-mono text-sm p-5 resize-none focus:outline-none border-none"
+                    placeholder={`Paste any DSA problem here…\n\nExample:\n"Given an integer array nums and an integer target, return indices of the two numbers such that they add up to target."`} />
+                  {!problem.trim() && (
+                    <div className="p-5 border-t border-white/5 space-y-2">
+                      {['Paste any DSA problem above', 'AI asks you guiding questions — not answers', 'Discover the logic yourself, then write the code'].map((tip) => (
+                        <div key={tip} className="flex items-start gap-2 text-[11px] text-zinc-500">
+                          <span className="text-primary-container mt-0.5 flex-shrink-0">→</span>{tip}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
               )}
             </div>
 
             {/* ── Right: Guidance ── */}
             <div className="flex-1 flex flex-col min-h-0">
-              {!sessionStarted ? (
-                <div className="flex-1 flex items-center justify-center">
-                  <div className="text-center max-w-sm">
-                    <div className="w-16 h-16 bg-primary-container/10 rounded-2xl flex items-center justify-center mx-auto mb-5">
-                      <Icon name="psychology" size={32} className="text-primary-container" />
-                    </div>
-                    <p className="text-zinc-400 text-sm leading-relaxed">
-                      Paste a problem on the left, then hit{' '}
-                      <span className="text-primary-container font-bold">Guide Me</span>.
-                      <br /><br />
-                      The AI walks you through 6 thinking stages — from understanding the problem to writing the code — asking questions instead of giving answers.
-                    </p>
-                    <div className="mt-6 grid grid-cols-3 gap-2">
-                      {STAGES.map((s) => (
-                        <div key={s.key} className="bg-surface-container rounded-xl p-3 text-center">
-                          <Icon name={s.icon} size={16} className={`mx-auto mb-1 ${s.color}`} />
-                          <p className={`text-[9px] font-bold uppercase tracking-widest ${s.color}`}>{s.label}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              ) : (
+              {sessionStarted ? (
                 <>
                   {/* Guidance scroll area */}
                   <div className="flex-1 overflow-y-auto p-6 space-y-5 bg-[#111111]">
 
                     {/* Previous turns (compact) */}
-                    {turns.slice(0, -1).map((turn, i) => (
-                      <PastTurnCard key={i} turn={turn} />
+                    {turns.slice(0, -1).map((turn) => (
+                      <PastTurnCard key={turn.question.slice(0, 40)} turn={turn} />
                     ))}
 
                     {/* Current guidance card */}
@@ -480,6 +467,28 @@ export function VisualizerPage() {
                     <p className="text-[10px] text-zinc-600 mt-2 px-1">The AI will never write your code — only guide your thinking.</p>
                   </div>
                 </>
+              ) : (
+                <div className="flex-1 flex items-center justify-center">
+                  <div className="text-center max-w-sm">
+                    <div className="w-16 h-16 bg-primary-container/10 rounded-2xl flex items-center justify-center mx-auto mb-5">
+                      <Icon name="psychology" size={32} className="text-primary-container" />
+                    </div>
+                    <p className="text-zinc-400 text-sm leading-relaxed">
+                      Paste a problem on the left, then hit{' '}
+                      <span className="text-primary-container font-bold">Guide Me</span>.
+                      <br /><br />
+                      The AI walks you through 6 thinking stages — from understanding the problem to writing the code — asking questions instead of giving answers.
+                    </p>
+                    <div className="mt-6 grid grid-cols-3 gap-2">
+                      {STAGES.map((s) => (
+                        <div key={s.key} className="bg-surface-container rounded-xl p-3 text-center">
+                          <Icon name={s.icon} size={16} className={`mx-auto mb-1 ${s.color}`} />
+                          <p className={`text-[9px] font-bold uppercase tracking-widest ${s.color}`}>{s.label}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
               )}
             </div>
           </div>
@@ -491,10 +500,10 @@ export function VisualizerPage() {
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-function ActiveGuidanceCard({ turn, stageMeta }: {
+function ActiveGuidanceCard({ turn, stageMeta }: Readonly<{
   turn: Turn;
   stageMeta: typeof STAGES[0];
-}) {
+}>) {
   return (
     <div className="rounded-2xl overflow-hidden border border-zinc-700/60 bg-zinc-900">
       {/* Stage badge */}
@@ -542,7 +551,7 @@ function ActiveGuidanceCard({ turn, stageMeta }: {
   );
 }
 
-function PastTurnCard({ turn }: { turn: Turn }) {
+function PastTurnCard({ turn }: Readonly<{ turn: Turn }>) {
   const meta = STAGES.find((s) => s.key === turn.stage) ?? STAGES[0];
   return (
     <div className="rounded-xl bg-zinc-800/60 border border-zinc-700/40 px-4 py-3 opacity-60">

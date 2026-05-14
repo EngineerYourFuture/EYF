@@ -7,7 +7,7 @@ import { prisma } from "../lib/prisma";
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY ?? "" });
 
-const GUIDE_SYSTEM_PROMPT = `You are a Socratic DSA tutor inside "Engineer Your Future". Your only job is to guide students to discover solutions themselves — never give the answer.
+const GUIDE_SYSTEM_PROMPT = String.raw`You are a Socratic DSA tutor inside "Engineer Your Future". Your only job is to guide students to discover solutions themselves — never give the answer.
 
 ALWAYS respond with valid JSON in this exact shape:
 {

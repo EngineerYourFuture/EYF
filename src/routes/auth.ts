@@ -480,7 +480,8 @@ router.post("/verify-email", async (req: Request, res: Response): Promise<void> 
   }
 
   const user = await prisma.user.findUnique({ where: { emailVerificationToken: token } });
-  if (!user || !user.emailVerificationExpiry || user.emailVerificationExpiry < new Date()) {
+  const verifyExpiry = user?.emailVerificationExpiry;
+  if (!verifyExpiry || verifyExpiry < new Date()) {
     res.status(400).json({ error: { code: "INVALID_TOKEN", message: "Token is invalid or expired." } });
     return;
   }
@@ -550,7 +551,8 @@ router.post("/reset-password", async (req: Request, res: Response): Promise<void
   }
 
   const user = await prisma.user.findUnique({ where: { passwordResetToken: String(token) } });
-  if (!user || !user.passwordResetExpiry || user.passwordResetExpiry < new Date()) {
+  const resetExpiry = user?.passwordResetExpiry;
+  if (!resetExpiry || resetExpiry < new Date()) {
     res.status(400).json({ error: { code: "INVALID_TOKEN", message: "Reset link is invalid or expired." } });
     return;
   }

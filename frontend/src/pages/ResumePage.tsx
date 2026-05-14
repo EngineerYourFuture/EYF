@@ -155,7 +155,7 @@ export function ResumePage() {
             {section === 'education' && (
               <div className="space-y-4">
                 {data.education.map((edu, i) => (
-                  <div key={i} className="bg-surface-container rounded-xl p-6 space-y-4">
+                  <div key={edu.school || String(i)} className="bg-surface-container rounded-xl p-6 space-y-4">
                     <div className="flex items-center justify-between mb-2">
                       <span className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-zinc-500">Entry {i + 1}</span>
                       <button onClick={() => update('education', data.education.filter((_, j) => j !== i))} className="text-zinc-600 hover:text-red-400 transition-colors">
@@ -191,7 +191,7 @@ export function ResumePage() {
             {section === 'experience' && (
               <div className="space-y-4">
                 {data.experience.map((exp, i) => (
-                  <div key={i} className="bg-surface-container rounded-xl p-6 space-y-4">
+                  <div key={exp.company || String(i)} className="bg-surface-container rounded-xl p-6 space-y-4">
                     <div className="flex items-center justify-between mb-2">
                       <span className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-zinc-500">Entry {i + 1}</span>
                       <button onClick={() => update('experience', data.experience.filter((_, j) => j !== i))} className="text-zinc-600 hover:text-red-400 transition-colors">
@@ -214,8 +214,9 @@ export function ResumePage() {
                       </div>
                     ))}
                     <div>
-                      <label className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-zinc-500 block mb-1">Bullets (one per line)</label>
+                      <label htmlFor={`bullets-${i}`} className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-zinc-500 block mb-1">Bullets (one per line)</label>
                       <textarea
+                        id={`bullets-${i}`}
                         rows={3}
                         value={exp.bullets.join('\n')}
                         onChange={(e) => {
@@ -240,16 +241,21 @@ export function ResumePage() {
             {section === 'projects' && (
               <div className="space-y-4">
                 {data.projects.map((proj, i) => (
-                  <div key={i} className="bg-surface-container rounded-xl p-6 space-y-4">
+                  <div key={proj.name || String(i)} className="bg-surface-container rounded-xl p-6 space-y-4">
                     <div className="flex items-center justify-between mb-2">
                       <span className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-zinc-500">Project {i + 1}</span>
                       <button onClick={() => update('projects', data.projects.filter((_, j) => j !== i))} className="text-zinc-600 hover:text-red-400 transition-colors">
                         <Icon name="delete" size={16} />
                       </button>
                     </div>
-                    {(['name', 'desc', 'stack'] as const).map((f) => (
+                    {(['name', 'desc', 'stack'] as const).map((f) => {
+                      let fieldLabel: string;
+                      if (f === 'desc') { fieldLabel = 'Description'; }
+                      else if (f === 'stack') { fieldLabel = 'Tech Stack'; }
+                      else { fieldLabel = 'Project Name'; }
+                      return (
                       <div key={f}>
-                        <label className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-zinc-500 block mb-1">{f === 'desc' ? 'Description' : f === 'stack' ? 'Tech Stack' : 'Project Name'}</label>
+                        <label className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-zinc-500 block mb-1">{fieldLabel}</label>
                         <input
                           type="text"
                           value={proj[f]}
@@ -261,7 +267,8 @@ export function ResumePage() {
                           className="w-full bg-surface-container-low rounded-xl px-4 py-3 text-on-surface text-sm border-none focus:outline-none"
                         />
                       </div>
-                    ))}
+                    );
+                    })}
                   </div>
                 ))}
                 <button
@@ -305,7 +312,7 @@ export function ResumePage() {
                 <p className="font-semibold">{ex.role} — {ex.company}</p>
                 <p className="text-gray-500 text-xs">{ex.duration}</p>
                 <ul className="list-disc ml-4 text-gray-700 text-xs mt-1">
-                  {ex.bullets.filter(Boolean).map((b, bi) => <li key={bi}>{b}</li>)}
+                  {ex.bullets.filter(Boolean).map((b) => <li key={b}>{b}</li>)}
                 </ul>
               </div>
             ))}
