@@ -4,6 +4,7 @@ import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { ApiError, apiRequest } from '../lib/api';
 import { setSession } from '../lib/session';
 import { Icon } from '../components/Icon';
+import { EYFMark } from '../components/EYFLogo';
 
 interface LoginResponse {
   accessToken: string;
@@ -73,7 +74,10 @@ export function LoginPage() {
     <div className="dark bg-surface-dim text-on-surface min-h-screen overflow-hidden selection:bg-primary-container selection:text-white">
       {/* Brand header */}
       <header className="fixed top-0 w-full z-50 flex justify-between items-center px-8 h-20 bg-gradient-to-b from-[#1F1F1F] to-transparent">
-        <Link to="/" className="text-2xl font-black tracking-tighter text-[#E82127]">EYF</Link>
+        <Link to="/" className="flex items-center gap-2">
+          <EYFMark size={28} className="text-[#0E0E0E]" />
+          <span className="text-xl font-black tracking-tighter text-white">EYF</span>
+        </Link>
         <Link
           to="/authority/login"
           className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-zinc-400 hover:text-white transition-colors duration-300"

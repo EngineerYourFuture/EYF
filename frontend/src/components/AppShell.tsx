@@ -1,6 +1,7 @@
 import { type ReactNode, useState, useEffect } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { Icon } from './Icon';
+import { EYFMark } from './EYFLogo';
 import { clearSession, getSession } from '../lib/session';
 
 interface NavItem {
@@ -72,12 +73,10 @@ export function AppShell({ children }: AppShellProps) {
         {/* Header row: logo + close button */}
         <div className="px-6 mb-10 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-primary-container rounded-lg flex items-center justify-center flex-shrink-0">
-              <Icon name="terminal" className="text-white" size={18} filled />
-            </div>
+            <EYFMark size={36} className="text-[#0E0E0E] flex-shrink-0" />
             <div>
               <h1 className="text-base font-black text-white leading-none">EYF PLATFORM</h1>
-              <p className="font-['Inter'] uppercase tracking-widest text-[9px] font-bold text-zinc-500 mt-0.5">Kinetic Noir v1.0</p>
+              <p className="font-['Inter'] uppercase tracking-widest text-[9px] font-bold text-zinc-500 mt-0.5">Engineer Your Future</p>
             </div>
           </div>
           <button
@@ -158,8 +157,8 @@ export function AppShell({ children }: AppShellProps) {
           <Icon name="menu" size={20} />
         </button>
 
-        {/* Logo text */}
-        <span className="text-lg font-black tracking-tighter text-white mr-4">EYF</span>
+        {/* Logo mark */}
+        <EYFMark size={28} className="text-[#0E0E0E] mr-2 flex-shrink-0" />
 
         {/* Search */}
         <div className="flex-1 max-w-lg">
