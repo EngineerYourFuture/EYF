@@ -20,8 +20,8 @@ export function LoginPage() {
   const defaultTab = searchParams.get('tab') === 'register' ? 'register' : 'login';
   const [tab, setTab] = useState<'login' | 'register'>(defaultTab);
 
-  const [email, setEmail] = useState('user@eyf.dev');
-  const [password, setPassword] = useState('Password123!');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -95,10 +95,10 @@ export function LoginPage() {
           {/* Headline */}
           <div className="space-y-4">
             <h1 className="text-5xl md:text-6xl font-bold tracking-tight text-white leading-tight">
-              Kinetic <span className="text-primary-container">Precision</span>
+              Engineer Your <span className="text-primary-container">Future</span>
             </h1>
             <p className="text-on-surface-variant text-lg max-w-md font-light leading-relaxed">
-              Access the high-performance environment of EYF Platform.
+              Your all-in-one platform to master DSA, ace placements, and land your dream tech role.
             </p>
           </div>
 
@@ -133,7 +133,7 @@ export function LoginPage() {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       className="w-full bg-surface-container-low border-none rounded-xl px-6 py-4 text-on-surface placeholder:text-zinc-600 focus:outline-none focus:ring-0 focus:border-b-2 focus:border-b-primary-container transition-all"
-                      placeholder="operator@eyf.platform"
+                      placeholder="you@example.com"
                       required
                     />
                     <div className="absolute right-6 top-1/2 -translate-y-1/2 text-zinc-600">
@@ -175,7 +175,7 @@ export function LoginPage() {
                     disabled={loading}
                     className="w-full bg-primary-container text-white font-bold py-4 rounded-full text-lg shadow-lg shadow-red-900/20 active:scale-[0.98] transition-transform flex items-center justify-center gap-3 disabled:opacity-60"
                   >
-                    {loading ? 'Initializing...' : 'Initialize Session'}
+                    {loading ? 'Signing in...' : 'Sign In'}
                     <Icon name="arrow_forward" size={20} />
                   </button>
                   <div className="relative flex items-center gap-3">
@@ -263,11 +263,11 @@ export function LoginPage() {
 
           {/* Footer meta */}
           <div className="flex items-center gap-4 text-zinc-600 font-['Inter'] uppercase tracking-widest text-[10px] font-bold">
-            <span>V1.0 Kinetic Noir</span>
+            <span>EYF Platform</span>
             <span className="w-1 h-1 bg-zinc-800 rounded-full" />
-            <span>Encrypted Transaction</span>
+            <span>Secure Login</span>
             <span className="w-1 h-1 bg-zinc-800 rounded-full" />
-            <span className="text-primary-container">Live Operations</span>
+            <span className="text-primary-container">Live</span>
           </div>
         </div>
       </main>
