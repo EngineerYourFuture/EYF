@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useEffect, useRef, useState } from 'react';
+import { Icon } from '../components/Icon';
 
 function useCountUp(target: number, duration = 2000, startOnMount = true) {
   const [value, setValue] = useState(0);
@@ -203,7 +204,7 @@ export function LandingPage() {
             {MODULES.map((m) => (
               <div key={m.title} className={`bg-gradient-to-br ${m.color} border ${m.border} rounded-2xl p-5 group hover:scale-[1.02] transition-all duration-300 cursor-default`}>
                 <div className={`w-10 h-10 rounded-xl bg-black/20 flex items-center justify-center mb-4 ${m.accent}`}>
-                  <span className="material-icons text-xl">{m.icon}</span>
+                  <Icon name={m.icon} size={20} />
                 </div>
                 <h3 className="font-black text-sm tracking-tight mb-2 text-white">{m.title}</h3>
                 <p className="text-zinc-400 text-xs leading-relaxed">{m.desc}</p>
@@ -220,7 +221,7 @@ export function LandingPage() {
           <div className="bg-gradient-to-br from-purple-900/30 to-purple-900/5 border border-purple-500/20 rounded-3xl p-8">
             <div className="flex items-center gap-3 mb-6">
               <div className="w-12 h-12 bg-purple-600/20 rounded-2xl flex items-center justify-center">
-                <span className="material-icons text-purple-400 text-2xl">account_tree</span>
+                <Icon name="account_tree" className="text-purple-400" size={24} />
               </div>
               <div>
                 <h3 className="font-black text-lg tracking-tight">OOP & Design Patterns</h3>
@@ -230,7 +231,7 @@ export function LandingPage() {
             <div className="space-y-3 mb-6">
               {['All 23 GoF patterns in TypeScript', 'SOLID principles with bad/good examples', 'Intent, structure & real-world use cases', 'Progress tracking per pattern', 'Creational → Structural → Behavioral'].map((f) => (
                 <div key={f} className="flex items-center gap-3 text-sm text-zinc-300">
-                  <span className="material-icons text-purple-400 text-base flex-shrink-0">check_circle</span>
+                  <Icon name="check_circle" className="text-purple-400 flex-shrink-0" size={18} filled />
                   {f}
                 </div>
               ))}
@@ -248,7 +249,7 @@ export function LandingPage() {
           <div className="bg-gradient-to-br from-red-900/30 to-red-900/5 border border-red-500/20 rounded-3xl p-8">
             <div className="flex items-center gap-3 mb-6">
               <div className="w-12 h-12 bg-red-600/20 rounded-2xl flex items-center justify-center">
-                <span className="material-icons text-red-400 text-2xl">shield</span>
+                <Icon name="shield" className="text-red-400" size={24} />
               </div>
               <div>
                 <h3 className="font-black text-lg tracking-tight">Cybersecurity</h3>
@@ -258,7 +259,7 @@ export function LandingPage() {
             <div className="space-y-3 mb-6">
               {['OWASP Top 10 with exploit demos', 'CTF challenges with real flag submission', 'Cryptography, network & cloud security', 'Bcrypt-verified challenge answers', 'Cert roadmaps: Security+, CEH, OSCP'].map((f) => (
                 <div key={f} className="flex items-center gap-3 text-sm text-zinc-300">
-                  <span className="material-icons text-red-400 text-base flex-shrink-0">check_circle</span>
+                  <Icon name="check_circle" className="text-red-400 flex-shrink-0" size={18} filled />
                   {f}
                 </div>
               ))}
@@ -295,7 +296,7 @@ export function LandingPage() {
                 { icon: 'stars', label: '10 XP Levels', color: 'text-purple-400', bg: 'bg-purple-500/10' },
               ].map((f) => (
                 <div key={f.label} className={`${f.bg} border border-white/5 rounded-2xl p-4 flex items-center gap-3`}>
-                  <span className={`material-icons ${f.color} text-xl`}>{f.icon}</span>
+                  <Icon name={f.icon} className={f.color} size={20} />
                   <span className="text-sm font-bold text-white">{f.label}</span>
                 </div>
               ))}
@@ -328,7 +329,7 @@ export function LandingPage() {
                   </div>
                   <p className="text-xs text-zinc-500 truncate">{a.desc}</p>
                 </div>
-                {a.earned && <span className="material-icons text-green-400 text-base flex-shrink-0">check_circle</span>}
+                {a.earned && <Icon name="check_circle" className="text-green-400 flex-shrink-0" size={18} filled />}
               </div>
             ))}
           </div>
@@ -408,13 +409,13 @@ export function LandingPage() {
                 <div className="space-y-2.5">
                   {plan.features.map((f) => (
                     <div key={f} className="flex items-center gap-2.5 text-sm text-zinc-300">
-                      <span className="material-icons text-green-400 text-base flex-shrink-0">check</span>
+                      <Icon name="check" className="text-green-400 flex-shrink-0" size={18} />
                       {f}
                     </div>
                   ))}
                   {plan.missing.map((f) => (
                     <div key={f} className="flex items-center gap-2.5 text-sm text-zinc-600">
-                      <span className="material-icons text-zinc-700 text-base flex-shrink-0">remove</span>
+                      <Icon name="remove" className="text-zinc-700 flex-shrink-0" size={18} />
                       {f}
                     </div>
                   ))}
@@ -437,9 +438,7 @@ export function LandingPage() {
                   onClick={() => setOpenFaq(openFaq === faq.q ? null : faq.q)}
                 >
                   <span className="font-bold text-sm text-white pr-4">{faq.q}</span>
-                  <span className="material-icons text-zinc-400 flex-shrink-0 transition-transform" style={{ transform: openFaq === faq.q ? 'rotate(180deg)' : 'rotate(0deg)' }}>
-                    expand_more
-                  </span>
+                  <Icon name="expand_more" className="text-zinc-400 flex-shrink-0 transition-transform" size={20} style={{ transform: openFaq === faq.q ? 'rotate(180deg)' : 'rotate(0deg)' }} />
                 </button>
                 {openFaq === faq.q && (
                   <div className="px-6 pb-4 text-zinc-400 text-sm leading-relaxed border-t border-white/5 pt-4">{faq.a}</div>
