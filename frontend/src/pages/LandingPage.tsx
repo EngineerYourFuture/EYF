@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom';
 import { useEffect, useRef, useState } from 'react';
-import { Icon } from '../components/Icon';
 
 function useCountUp(target: number, duration = 2000, startOnMount = true) {
   const [value, setValue] = useState(0);
