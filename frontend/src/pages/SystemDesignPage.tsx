@@ -140,8 +140,9 @@ export function SystemDesignPage() {
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-bold mb-2 text-on-surface-variant">Your Design Response</label>
+                <label htmlFor="sd-response" className="block text-sm font-bold mb-2 text-on-surface-variant">Your Design Response</label>
                 <textarea
+                  id="sd-response"
                   value={response}
                   onChange={(e) => setResponse(e.target.value)}
                   placeholder="Start with requirements clarification, then capacity estimation, then architecture..."
@@ -235,12 +236,11 @@ export function SystemDesignPage() {
               const catMeta = CATEGORY_META[q.category] ?? { icon: 'design_services', color: 'text-zinc-400', bg: 'bg-zinc-500/10' };
               const locked = q.planAccess === 'pro' || q.planAccess === 'elite';
               return (
-                <div key={q.id}
-                  role="button"
-                  tabIndex={locked ? -1 : 0}
-                  className={`bg-surface-container rounded-xl p-6 transition-all ${locked ? 'opacity-60' : 'hover:bg-surface-container-high cursor-pointer'} ${q.attempted ? 'border border-purple-500/20' : ''}`}
-                  onClick={() => !locked && setSelected(q)}
-                  onKeyDown={(e) => { if (!locked && (e.key === 'Enter' || e.key === ' ')) setSelected(q); }}>
+                <button key={q.id}
+                  type="button"
+                  disabled={locked}
+                  onClick={() => setSelected(q)}
+                  className={`w-full text-left bg-surface-container rounded-xl p-6 transition-all ${locked ? 'opacity-60 cursor-not-allowed' : 'hover:bg-surface-container-high cursor-pointer'} ${q.attempted ? 'border border-purple-500/20' : ''}`}>
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-2">
                       <div className={`w-8 h-8 ${catMeta.bg} rounded-lg flex items-center justify-center`}>
@@ -259,7 +259,7 @@ export function SystemDesignPage() {
                   {q.lastAttemptAt && (
                     <p className="text-[10px] text-zinc-600 mt-3">Last attempted {new Date(q.lastAttemptAt).toLocaleDateString()}</p>
                   )}
-                </div>
+                </button>
               );
             })}
           </div>

@@ -68,10 +68,16 @@ router.get("/modules-status", requireAuth("public"), async (req: AuthRequest, re
     prisma.systemDesignQuestion.count(),
   ]);
 
+  const moduleCta = (status: string | undefined): string => {
+    if (status === "completed") return "Review";
+    if (status === "in_progress") return "Continue";
+    return "Start";
+  };
+
   const coreModules = ["dsa", "core-subjects", "placement", "resume-builder", "tech-skills", "mentorship", "visualizer"];
   const coreItems = coreModules.map((module) => {
     const p = progressMap.get(module);
-    return { module, progress: p?.completionPct ?? 0, cta: p?.status === "completed" ? "Review" : p?.status === "in_progress" ? "Continue" : "Start" };
+    return { module, progress: p?.completionPct ?? 0, cta: moduleCta(p?.status) };
   });
 
   const extendedItems = [

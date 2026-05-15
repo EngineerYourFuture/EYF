@@ -31,7 +31,7 @@ const STATIC_EXPERTS: Expert[] = [
   { id: 'e6', displayName: 'Kavya Reddy', title: 'DevOps/SRE Lead', company: 'Flipkart', bio: 'SRE lead managing Flipkart\'s 99.99% uptime infrastructure. Deep expertise in Kubernetes, observability, incident management, and reliability engineering.', specializations: ['DevOps', 'SRE', 'Kubernetes', 'Observability'], yearsExperience: 7, available: true, hourlyRate: 120, rating: 4.7, reviewCount: 31 },
 ];
 
-function StarRating({ rating }: { rating: number }) {
+function StarRating({ rating }: { readonly rating: number }) {
   return (
     <div className="flex items-center gap-0.5">
       {[1, 2, 3, 4, 5].map((s) => (
@@ -87,7 +87,7 @@ export function ExpertsPage() {
       setSelected((prev) => prev ? {
         ...prev,
         reviews: [{ id: 'new', rating, comment, createdAt: new Date().toISOString(), reviewer: 'you' }, ...prev.reviews],
-        rating: parseFloat(((prev.rating * prev.reviewCount + rating) / (prev.reviewCount + 1)).toFixed(1)),
+        rating: Number.parseFloat(((prev.rating * prev.reviewCount + rating) / (prev.reviewCount + 1)).toFixed(1)),
         reviewCount: prev.reviewCount + 1,
       } : prev);
       setComment('');
@@ -277,13 +277,11 @@ export function ExpertsPage() {
         {/* Expert Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {filtered.map((expert) => (
-            <div
+            <button
               key={expert.id}
-              role="button"
-              tabIndex={0}
+              type="button"
               onClick={() => openExpert(expert.id)}
-              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') openExpert(expert.id); }}
-              className="bg-surface-container rounded-2xl p-7 hover:bg-surface-container-high transition-all cursor-pointer group"
+              className="w-full text-left bg-surface-container rounded-2xl p-7 hover:bg-surface-container-high transition-all cursor-pointer group"
             >
               <div className="flex items-start gap-4 mb-4">
                 <div className="w-12 h-12 rounded-xl bg-primary-container flex items-center justify-center text-white text-lg font-black flex-shrink-0">
@@ -321,7 +319,7 @@ export function ExpertsPage() {
               </div>
 
               <div className="text-[10px] text-zinc-600 mt-2">{expert.yearsExperience} years experience</div>
-            </div>
+            </button>
           ))}
           {filtered.length === 0 && (
             <div className="col-span-3 text-center py-16">

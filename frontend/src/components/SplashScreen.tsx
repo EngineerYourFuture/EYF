@@ -3,7 +3,7 @@ import { EYFLogo } from './EYFLogo';
 
 const SPLASH_KEY = 'eyf_splash_shown';
 
-export function SplashScreen({ children }: { children: ReactNode }) {
+export function SplashScreen({ children }: { readonly children: ReactNode }) {
   const [phase, setPhase] = useState<'splash' | 'fading' | 'done'>(() =>
     sessionStorage.getItem(SPLASH_KEY) ? 'done' : 'splash'
   );

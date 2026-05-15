@@ -52,7 +52,7 @@ export function CommunityPage() {
 
   useEffect(() => {
     if (!session?.accessToken) return;
-    const url = activeCategory !== 'all' ? `/community/posts?category=${activeCategory}` : '/community/posts';
+    const url = activeCategory === 'all' ? '/community/posts' : `/community/posts?category=${activeCategory}`;
     apiRequest<{ posts: Post[] }>(url, { token: session.accessToken })
       .then((d) => { if (d.posts.length > 0) setPosts(d.posts); })
       .catch(() => {});
@@ -306,22 +306,20 @@ export function CommunityPage() {
           {filtered.map((post) => {
             const catMeta = CAT_META[post.category] ?? CAT_META.general;
             return (
-              <div
+              <button
                 key={post.id}
-                role="button"
-                tabIndex={0}
-                className="bg-surface-container rounded-xl p-6 hover:bg-surface-container-high transition-all cursor-pointer group"
+                type="button"
+                className="w-full text-left bg-surface-container rounded-xl p-6 hover:bg-surface-container-high transition-all cursor-pointer group"
                 onClick={() => openPost(post.id)}
-                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') openPost(post.id); }}
               >
                 <div className="flex items-start gap-4">
                   {/* Vote column */}
-                  <div className="flex flex-col items-center gap-1 flex-shrink-0" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
-                    <button onClick={() => vote(post.id, 1)} className="w-7 h-7 rounded-lg flex items-center justify-center text-zinc-600 hover:text-green-400 hover:bg-green-500/10 transition-all">
+                  <div className="flex flex-col items-center gap-1 flex-shrink-0">
+                    <button type="button" onClick={(e) => { e.stopPropagation(); vote(post.id, 1); }} className="w-7 h-7 rounded-lg flex items-center justify-center text-zinc-600 hover:text-green-400 hover:bg-green-500/10 transition-all">
                       <Icon name="arrow_upward" size={14} />
                     </button>
                     <span className="text-sm font-bold text-zinc-400">{post.upvotes}</span>
-                    <button onClick={() => vote(post.id, -1)} className="w-7 h-7 rounded-lg flex items-center justify-center text-zinc-600 hover:text-red-400 hover:bg-red-500/10 transition-all">
+                    <button type="button" onClick={(e) => { e.stopPropagation(); vote(post.id, -1); }} className="w-7 h-7 rounded-lg flex items-center justify-center text-zinc-600 hover:text-red-400 hover:bg-red-500/10 transition-all">
                       <Icon name="arrow_downward" size={14} />
                     </button>
                   </div>
@@ -349,7 +347,7 @@ export function CommunityPage() {
                     </div>
                   </div>
                 </div>
-              </div>
+              </button>
             );
           })}
           {filtered.length === 0 && (

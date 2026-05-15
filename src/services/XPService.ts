@@ -146,7 +146,7 @@ export class XPService {
 
     // Streak logic
     const lastDate = xp.lastActivityDate?.toISOString().slice(0, 10);
-    const yesterday = new Date(Date.now() - 86400_000).toISOString().slice(0, 10);
+    const yesterday = new Date(Date.now() - 86_400_000).toISOString().slice(0, 10);
     if (lastDate !== today) {
       const newStreak = lastDate === yesterday ? (xp.streak + 1) : 1;
       await prisma.userXP.update({
@@ -205,7 +205,7 @@ export class XPService {
       level,
       name: names[level],
       currentLevelXp: thresholds[level],
-      nextLevelXp: thresholds[level + 1] ?? thresholds[thresholds.length - 1],
+      nextLevelXp: thresholds[level + 1] ?? thresholds.at(-1)!,
     };
   }
 }

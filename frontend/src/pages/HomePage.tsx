@@ -80,7 +80,7 @@ export function HomePage() {
   const levelName = LEVEL_NAMES[level] ?? 'Legend';
   const recentAchievements = summary?.summary?.recentAchievements ?? [];
   const achievementsEarned = summary?.summary?.achievementsEarned ?? 0;
-  const nextThreshold = LEVEL_THRESHOLDS[level + 1] ?? LEVEL_THRESHOLDS[LEVEL_THRESHOLDS.length - 1];
+  const nextThreshold = LEVEL_THRESHOLDS[level + 1] ?? LEVEL_THRESHOLDS.at(-1)!;
   const currThreshold = LEVEL_THRESHOLDS[level] ?? 0;
   const xpPct = nextThreshold > currThreshold
     ? Math.min(100, Math.round(((xp - currThreshold) / (nextThreshold - currThreshold)) * 100))

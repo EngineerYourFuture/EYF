@@ -1,11 +1,11 @@
 interface Props {
-  animated?: boolean;
-  size?: number;
-  className?: string;
+  readonly animated?: boolean;
+  readonly size?: number;
+  readonly className?: string;
 }
 
 // Static mark — just the Y-arrow, no background, use as inline icon
-export function EYFMark({ size = 32, className = '' }: { size?: number; className?: string }) {
+export function EYFMark({ size = 32, className = '' }: { readonly size?: number; readonly className?: string }) {
   return (
     <svg width={size} height={size} viewBox="230 75 220 260" xmlns="http://www.w3.org/2000/svg" className={className}>
       <rect x="322" y="235" width="36" height="90" rx="18" fill="#E8192C"/>

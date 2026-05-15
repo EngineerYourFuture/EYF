@@ -108,10 +108,10 @@ export function OOPPage() {
   const filtered = activeCategory === 'all' ? patterns : patterns.filter((p) => p.category === activeCategory);
   const categories = ['all', 'creational', 'structural', 'behavioral'];
 
-  const statusIcon = (s: string) =>
-    s === 'completed' ? 'check_circle' : s === 'in_progress' ? 'play_circle' : 'radio_button_unchecked';
-  const statusColor = (s: string) =>
-    s === 'completed' ? 'text-green-400' : s === 'in_progress' ? 'text-yellow-400' : 'text-zinc-600';
+  const STATUS_ICON: Record<string, string> = { completed: 'check_circle', in_progress: 'play_circle' };
+  const STATUS_COLOR: Record<string, string> = { completed: 'text-green-400', in_progress: 'text-yellow-400' };
+  const statusIcon = (s: string) => STATUS_ICON[s] ?? 'radio_button_unchecked';
+  const statusColor = (s: string) => STATUS_COLOR[s] ?? 'text-zinc-600';
 
   return (
     <AppShell>

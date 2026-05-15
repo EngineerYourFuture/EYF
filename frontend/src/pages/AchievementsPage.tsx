@@ -113,7 +113,7 @@ export function AchievementsPage() {
   const level = data?.level ?? 0;
   const levelName = LEVEL_NAMES[level] ?? 'Legend';
   const xp = data?.xp ?? 0;
-  const nextThreshold = LEVEL_THRESHOLDS[level + 1] ?? LEVEL_THRESHOLDS[LEVEL_THRESHOLDS.length - 1];
+  const nextThreshold = LEVEL_THRESHOLDS[level + 1] ?? LEVEL_THRESHOLDS.at(-1)!;
   const currThreshold = LEVEL_THRESHOLDS[level] ?? 0;
   const xpPct = nextThreshold > currThreshold
     ? Math.min(100, Math.round(((xp - currThreshold) / (nextThreshold - currThreshold)) * 100))
@@ -193,8 +193,8 @@ export function AchievementsPage() {
         {/* Grid */}
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="bg-surface-container rounded-2xl p-5 h-44 animate-pulse" />
+            {['sk-1','sk-2','sk-3','sk-4','sk-5','sk-6','sk-7','sk-8'].map((id) => (
+              <div key={id} className="bg-surface-container rounded-2xl p-5 h-44 animate-pulse" />
             ))}
           </div>
         ) : (

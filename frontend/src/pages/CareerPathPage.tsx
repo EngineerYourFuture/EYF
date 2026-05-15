@@ -151,16 +151,15 @@ export function CareerPathPage() {
         <section className="mb-12">
           <h2 className="font-['Inter'] uppercase tracking-[0.3em] text-[10px] font-bold text-on-surface-variant/60 mb-6 ml-1">Choose Your Track</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {TRACKS.map((track) => (
-              <div
+            {TRACKS.map((track) => {
+              const activeClass = activeTrack === track.key ? `${track.bg} ${track.border}` : 'bg-surface-container border-transparent hover:bg-surface-container-high';
+              const profileClass = profile?.track === track.key ? 'ring-1 ring-offset-0 ring-current/20' : '';
+              return (
+              <button
                 key={track.key}
-                role="button"
-                tabIndex={0}
+                type="button"
                 onClick={() => setActiveTrack(track.key)}
-                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setActiveTrack(track.key); }}
-                className={`rounded-2xl p-7 cursor-pointer transition-all border ${
-                  activeTrack === track.key ? `${track.bg} ${track.border}` : 'bg-surface-container border-transparent hover:bg-surface-container-high'
-                } ${profile?.track === track.key ? `ring-1 ring-offset-0 ring-current/20` : ''}`}
+                className={`w-full text-left rounded-2xl p-7 transition-all border ${activeClass} ${profileClass}`}
               >
                 <div className="flex items-start justify-between mb-5">
                   <div className={`w-12 h-12 ${track.bg} rounded-xl flex items-center justify-center`}>
@@ -181,8 +180,9 @@ export function CareerPathPage() {
                   ))}
                 </div>
                 <p className={`text-[10px] font-bold mt-5 ${track.color}`}>{track.timeline}</p>
-              </div>
-            ))}
+              </button>
+              );
+            })}
           </div>
         </section>
 
@@ -198,7 +198,7 @@ export function CareerPathPage() {
               </button>
             </div>
 
-            {editMode ? (
+            {editMode && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {[
                   { key: 'currentRole', label: 'Current Role', placeholder: 'e.g. Software Engineer II' },
@@ -219,18 +219,20 @@ export function CareerPathPage() {
                   </div>
                 ))}
                 <div>
-                  <label className="block text-xs font-bold text-zinc-400 mb-1">Years of Experience</label>
+                  <label htmlFor="career-exp" className="block text-xs font-bold text-zinc-400 mb-1">Years of Experience</label>
                   <input
+                    id="career-exp"
                     type="number"
                     value={form.experienceYears ?? 0}
-                    onChange={(e) => setForm((prev) => ({ ...prev, experienceYears: parseInt(e.target.value, 10) }))}
+                    onChange={(e) => setForm((prev) => ({ ...prev, experienceYears: Number.parseInt(e.target.value, 10) }))}
                     min={0} max={50}
                     className="w-full bg-surface-container-highest border border-outline-variant/20 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-primary-container/40"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-zinc-400 mb-1">Track</label>
+                  <label htmlFor="career-track" className="block text-xs font-bold text-zinc-400 mb-1">Track</label>
                   <select
+                    id="career-track"
                     value={form.track ?? 'student'}
                     onChange={(e) => setForm((prev) => ({ ...prev, track: e.target.value }))}
                     className="w-full bg-surface-container-highest border border-outline-variant/20 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-primary-container/40"
@@ -248,7 +250,8 @@ export function CareerPathPage() {
                   </button>
                 </div>
               </div>
-            ) : profile ? (
+            )}
+            {!editMode && profile && (
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {[
                   { label: 'Track', value: profile.track },
@@ -262,7 +265,8 @@ export function CareerPathPage() {
                   </div>
                 ))}
               </div>
-            ) : (
+            )}
+            {!editMode && !profile && (
               <div className="text-center py-8">
                 <Icon name="person_add" className="text-zinc-600 mb-3" size={32} />
                 <p className="text-sm text-on-surface-variant mb-4">Set up your career profile to get personalized recommendations.</p>
@@ -314,7 +318,7 @@ export function CareerPathPage() {
                     <div className="flex items-center gap-1 text-xs text-zinc-500">
                       <Icon name="schedule" size={12} />~{path.estimatedWeeks} weeks
                     </div>
-                    {path.enrolled ? (
+                    {path.enrolled && (
                       <div className="flex items-center gap-3">
                         <div className="flex-1 w-24 h-1 bg-surface-container-highest rounded-full overflow-hidden">
                           <div className="h-full bg-green-400 rounded-full" style={{ width: `${path.progress * 100}%` }} />
@@ -323,11 +327,13 @@ export function CareerPathPage() {
                           Continue <Icon name="arrow_forward" size={10} />
                         </button>
                       </div>
-                    ) : locked ? (
+                    )}
+                    {!path.enrolled && locked && (
                       <Link to="/plans" className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 hover:text-primary-container flex items-center gap-1">
                         <Icon name="upgrade" size={12} />Upgrade
                       </Link>
-                    ) : (
+                    )}
+                    {!path.enrolled && !locked && (
                       <button onClick={() => enroll(path.slug)} className="text-[10px] font-bold uppercase tracking-widest text-primary-container hover:underline flex items-center gap-1">
                         Enroll <Icon name="arrow_forward" size={12} />
                       </button>

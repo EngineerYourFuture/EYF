@@ -151,6 +151,37 @@ router.post("/register", async (req: Request, res: Response): Promise<void> => {
   });
 });
 
+// --- Login helpers (extracted to reduce cognitive complexity) ---
+
+async function checkLoginCredentials(user: { passwordHash: string | null } | null, password: string): Promise<boolean> {
+  if (!user?.passwordHash) return false;
+  return bcrypt.compare(password, user.passwordHash);
+}
+
+async function onFailedLogin(userId: string, currentAttempts: number): Promise<void> {
+  const attempts = currentAttempts + 1;
+  const lockedUntil = attempts >= MAX_FAILED_ATTEMPTS ? new Date(Date.now() + LOCKOUT_DURATION_MS) : null;
+  await prisma.securitySettings.upsert({
+    where: { userId },
+    update: { failedLoginAttempts: attempts, lockedUntil },
+    create: { userId, failedLoginAttempts: attempts, lockedUntil },
+  });
+}
+
+type SecurityRow = { totpEnabled: boolean; totpSecret: string | null; backupCodes: string[]; failedLoginAttempts: number; lockedUntil: Date | null };
+
+async function verify2FACode(security: SecurityRow, totpCode: string, userId: string): Promise<"ok" | "require" | "invalid"> {
+  const valid = speakeasy.totp.verify({ secret: security.totpSecret!, encoding: "base32", token: totpCode, window: 1 });
+  if (valid) return "ok";
+  const codeHash = sha256(totpCode.replaceAll("-", "").toLowerCase());
+  if (!security.backupCodes.includes(codeHash)) return "invalid";
+  await prisma.securitySettings.update({
+    where: { userId },
+    data: { backupCodes: security.backupCodes.filter((c) => c !== codeHash) },
+  });
+  return "ok";
+}
+
 // POST /auth/login
 router.post("/login", async (req: Request, res: Response): Promise<void> => {
   const parse = LoginSchema.safeParse(req.body);
@@ -159,101 +190,44 @@ router.post("/login", async (req: Request, res: Response): Promise<void> => {
     return;
   }
   const { email, password, zone, totpCode } = parse.data;
-  const normalized = normalizeEmail(email);
+  const user = await prisma.user.findUnique({ where: { email: normalizeEmail(email) }, include: { security: true } });
 
-  const user = await prisma.user.findUnique({
-    where: { email: normalized },
-    include: { security: true },
-  });
-
-  // Check lockout before doing expensive bcrypt compare
   if (user?.security?.lockedUntil && user.security.lockedUntil > new Date()) {
     const remainingSec = Math.ceil((user.security.lockedUntil.getTime() - Date.now()) / 1000);
     res.status(423).json({ error: { code: "ACCOUNT_LOCKED", message: `Account locked. Try again in ${remainingSec}s.` } });
     return;
   }
 
-  const credentialsValid = user && user.passwordHash && await bcrypt.compare(password, user.passwordHash);
-
+  const credentialsValid = await checkLoginCredentials(user, password);
   if (!credentialsValid) {
-    // Increment failed counter and potentially lock the account
-    if (user) {
-      const attempts = (user.security?.failedLoginAttempts ?? 0) + 1;
-      const lockedUntil = attempts >= MAX_FAILED_ATTEMPTS ? new Date(Date.now() + LOCKOUT_DURATION_MS) : null;
-      await prisma.securitySettings.upsert({
-        where: { userId: user.id },
-        update: { failedLoginAttempts: attempts, lockedUntil },
-        create: { userId: user.id, failedLoginAttempts: attempts, lockedUntil },
-      });
-    }
+    if (user) await onFailedLogin(user.id, user.security?.failedLoginAttempts ?? 0);
     res.status(401).json({ error: { code: "INVALID_CREDENTIALS", message: "Invalid email or password." } });
     return;
   }
 
-  // Reset failed attempts on successful credential check
-  if (user.security && user.security.failedLoginAttempts > 0) {
-    await prisma.securitySettings.update({
-      where: { userId: user.id },
-      data: { failedLoginAttempts: 0, lockedUntil: null },
-    });
+  if (user!.security?.failedLoginAttempts) {
+    await prisma.securitySettings.update({ where: { userId: user!.id }, data: { failedLoginAttempts: 0, lockedUntil: null } });
   }
 
-  if (zone === "authority" && user.role === "user") {
+  if (zone === "authority" && user!.role === "user") {
     res.status(403).json({ error: { code: "FORBIDDEN", message: "Not authorized for authority zone." } });
     return;
   }
 
-  // 2FA check
-  if (user.security?.totpEnabled && user.security.totpSecret) {
-    if (!totpCode) {
-      res.status(200).json({ require2FA: true });
+  if (user!.security?.totpEnabled && user!.security.totpSecret) {
+    if (!totpCode) { res.status(200).json({ require2FA: true }); return; }
+    const result = await verify2FACode(user!.security as SecurityRow, totpCode, user!.id);
+    if (result !== "ok") {
+      res.status(401).json({ error: { code: "INVALID_2FA", message: "Invalid 2FA code." } });
       return;
-    }
-    const valid = speakeasy.totp.verify({
-      secret: user.security.totpSecret,
-      encoding: "base32",
-      token: totpCode,
-      window: 1,
-    });
-    if (!valid) {
-      // Check backup codes
-      const normalizedCode = totpCode.replaceAll("-", "").toLowerCase();
-      const codeHash = sha256(normalizedCode);
-      const backupValid = user.security.backupCodes.includes(codeHash);
-      if (!backupValid) {
-        res.status(401).json({ error: { code: "INVALID_2FA", message: "Invalid 2FA code." } });
-        return;
-      }
-      // Burn the backup code
-      await prisma.securitySettings.update({
-        where: { userId: user.id },
-        data: {
-          backupCodes: user.security.backupCodes.filter((c) => c !== codeHash),
-        },
-      });
     }
   }
 
   const ip = getIp(req);
   const device = getDevice(req);
-  const { accessToken } = await createSession(
-    user.id,
-    zone as Zone,
-    user.role as Role,
-    user.plan,
-    ip,
-    device,
-    res
-  );
-
-  await prisma.loginEvent.create({
-    data: { userId: user.id, ip, device, riskScore: 20, outcome: "allowed" },
-  });
-
-  res.json({
-    user: { id: user.id, email: user.email, role: user.role, plan: user.plan },
-    accessToken,
-  });
+  const { accessToken } = await createSession(user!.id, zone as Zone, user!.role as Role, user!.plan, ip, device, res);
+  await prisma.loginEvent.create({ data: { userId: user!.id, ip, device, riskScore: 20, outcome: "allowed" } });
+  res.json({ user: { id: user!.id, email: user!.email, role: user!.role, plan: user!.plan }, accessToken });
 });
 
 // POST /auth/refresh
@@ -453,12 +427,13 @@ router.post("/2fa/confirm", requireAuth("public"), async (req: AuthRequest, res:
 router.delete("/2fa", requireAuth("public"), async (req: AuthRequest, res: Response): Promise<void> => {
   const { password } = req.body;
   const user = await prisma.user.findUnique({ where: { id: req.auth!.sub } });
-  if (!user || !user.passwordHash || !(await bcrypt.compare(password, user.passwordHash))) {
+  const credOk = user?.passwordHash && await bcrypt.compare(password, user.passwordHash);
+  if (!credOk) {
     res.status(401).json({ error: { code: "INVALID_CREDENTIALS", message: "Wrong password." } });
     return;
   }
   await prisma.securitySettings.update({
-    where: { userId: user.id },
+    where: { userId: user!.id },
     data: { totpEnabled: false, totpSecret: null, backupCodes: [] },
   });
   res.json({ ok: true });
@@ -483,7 +458,8 @@ router.get("/security", requireAuth("public"), async (req: AuthRequest, res: Res
 router.patch("/password", requireAuth("public"), async (req: AuthRequest, res: Response): Promise<void> => {
   const { currentPassword, newPassword } = req.body;
   const user = await prisma.user.findUnique({ where: { id: req.auth!.sub } });
-  if (!user || !user.passwordHash || !(await bcrypt.compare(currentPassword, user.passwordHash))) {
+  const credOk = user?.passwordHash && await bcrypt.compare(currentPassword, user.passwordHash);
+  if (!credOk) {
     res.status(401).json({ error: { code: "INVALID_CREDENTIALS", message: "Wrong current password." } });
     return;
   }

@@ -160,7 +160,7 @@ export function CybersecurityPage() {
                 activeTab === tab ? 'bg-primary-container text-white' : 'text-zinc-500 hover:text-zinc-300'
               }`}
             >
-              {tab === 'learn' ? 'Learn' : tab === 'ctf' ? 'CTF Challenges' : 'Certifications'}
+              {{ learn: 'Learn', ctf: 'CTF Challenges', certs: 'Certifications' }[tab]}
             </button>
           ))}
         </div>

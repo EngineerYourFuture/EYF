@@ -126,25 +126,21 @@ export function LeaderboardPage() {
           <div className="grid grid-cols-3 gap-3 mb-8">
             {[data.entries[1], data.entries[0], data.entries[2]].map((entry, i) => {
               if (!entry) return null;
-              const heights = ['h-28', 'h-36', 'h-24'];
+              const podiumHeights = ['h-28', 'h-36', 'h-24'] as const;
+              const podiumHeight = podiumHeights[i] ?? 'h-28';
               const isChampion = entry.rank === 1;
+              const MEDAL: Record<number, string> = { 1: '🥇', 2: '🥈', 3: '🥉' };
+              const champClass = 'bg-gradient-to-t from-yellow-600/30 to-yellow-400/10 border border-yellow-500/30';
+              const normalClass = 'bg-surface-container border border-zinc-800';
               return (
                 <div key={entry.userId} className="flex flex-col items-center gap-2">
                   <div className="w-12 h-12 rounded-full bg-surface-container-highest flex items-center justify-center text-lg font-bold">
                     {entry.name[0]?.toUpperCase()}
                   </div>
-                  <p className="text-xs font-bold text-center truncate w-full text-center">{entry.name}</p>
+                  <p className="text-xs font-bold text-center truncate w-full">{entry.name}</p>
                   <p className="text-[10px] text-primary-container font-bold">{entry.xp.toLocaleString()} XP</p>
-                  <div
-                    className={`w-full ${heights[i]} rounded-t-xl flex items-center justify-center ${
-                      isChampion
-                        ? 'bg-gradient-to-t from-yellow-600/30 to-yellow-400/10 border border-yellow-500/30'
-                        : 'bg-surface-container border border-zinc-800'
-                    }`}
-                  >
-                    <span className="text-2xl">
-                      {entry.rank === 1 ? '🥇' : entry.rank === 2 ? '🥈' : '🥉'}
-                    </span>
+                  <div className={`w-full ${podiumHeight} rounded-t-xl flex items-center justify-center ${isChampion ? champClass : normalClass}`}>
+                    <span className="text-2xl">{MEDAL[entry.rank] ?? '🏅'}</span>
                   </div>
                 </div>
               );
@@ -155,8 +151,8 @@ export function LeaderboardPage() {
         {/* Entries list */}
         {loading ? (
           <div className="space-y-2">
-            {Array.from({ length: 10 }).map((_, i) => (
-              <div key={i} className="h-16 bg-surface-container rounded-xl animate-pulse" />
+            {['sk-1','sk-2','sk-3','sk-4','sk-5','sk-6','sk-7','sk-8','sk-9','sk-10'].map((id) => (
+              <div key={id} className="h-16 bg-surface-container rounded-xl animate-pulse" />
             ))}
           </div>
         ) : (

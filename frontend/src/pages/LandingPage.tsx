@@ -83,7 +83,7 @@ const FAQS = [
   { q: 'Are there refunds?', a: 'We offer a full refund within 7 days of purchase if you\'re not satisfied — no questions asked.' },
 ];
 
-function StatCounter({ target, suffix, label }: { target: number; suffix: string; label: string }) {
+function StatCounter({ target, suffix, label }: { readonly target: number; readonly suffix: string; readonly label: string }) {
   const value = useCountUp(target);
   return (
     <div className="text-center">
@@ -97,7 +97,7 @@ function StatCounter({ target, suffix, label }: { target: number; suffix: string
 
 export function LandingPage() {
   const [activeTestimonial, setActiveTestimonial] = useState(0);
-  const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [openFaq, setOpenFaq] = useState<string | null>(null);
 
   useEffect(() => {
     const id = setInterval(() => setActiveTestimonial((i) => (i + 1) % TESTIMONIALS.length), 5000);
@@ -132,7 +132,7 @@ export function LandingPage() {
         <div className="max-w-5xl mx-auto text-center relative">
           <div className="inline-flex items-center gap-2 bg-white/5 border border-white/10 rounded-full px-4 py-1.5 text-xs font-semibold text-zinc-300 mb-8">
             <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-            18,427 engineers actively learning today
+            <span>18,427 engineers actively learning today</span>
           </div>
 
           <h1 className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter leading-[0.9] mb-6">
@@ -313,14 +313,18 @@ export function LandingPage() {
               { icon: '💯', name: 'Century Club', rarity: 'legendary', desc: '100-day learning streak', earned: false },
             ].map((a) => (
               <div key={a.name} className={`flex items-center gap-4 p-3 rounded-xl border transition-all ${a.earned ? 'bg-white/5 border-white/10' : 'bg-white/[0.02] border-white/5 opacity-50'}`}>
-                <span className={`text-2xl ${!a.earned ? 'grayscale' : ''}`}>{a.icon}</span>
+                <span className={`text-2xl ${a.earned ? '' : 'grayscale'}`}>{a.icon}</span>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <p className="text-sm font-bold text-white">{a.name}</p>
-                    <span className={`text-[9px] font-bold uppercase px-2 py-0.5 rounded-full ${
-                      a.rarity === 'legendary' ? 'bg-yellow-500/20 text-yellow-400' :
-                      a.rarity === 'epic' ? 'bg-purple-500/20 text-purple-400' : 'bg-zinc-500/20 text-zinc-400'
-                    }`}>{a.rarity}</span>
+                    {(() => {
+                      const rarityClass: Record<string, string> = {
+                        legendary: 'bg-yellow-500/20 text-yellow-400',
+                        epic: 'bg-purple-500/20 text-purple-400',
+                      };
+                      const cls = rarityClass[a.rarity] ?? 'bg-zinc-500/20 text-zinc-400';
+                      return <span className={`text-[9px] font-bold uppercase px-2 py-0.5 rounded-full ${cls}`}>{a.rarity}</span>;
+                    })()}
                   </div>
                   <p className="text-xs text-zinc-500 truncate">{a.desc}</p>
                 </div>
@@ -353,9 +357,9 @@ export function LandingPage() {
               </div>
             </div>
             <div className="flex items-center justify-center gap-2 mt-4">
-              {TESTIMONIALS.map((_, i) => (
+              {TESTIMONIALS.map((t, i) => (
                 <button
-                  key={i}
+                  key={t.name}
                   onClick={() => setActiveTestimonial(i)}
                   className={`h-1.5 rounded-full transition-all ${i === activeTestimonial ? 'w-8 bg-red-500' : 'w-1.5 bg-zinc-700'}`}
                 />
@@ -426,18 +430,18 @@ export function LandingPage() {
         <div className="max-w-3xl mx-auto">
           <h2 className="text-3xl font-black tracking-tighter text-center mb-12">Frequently Asked Questions</h2>
           <div className="space-y-3">
-            {FAQS.map((faq, i) => (
-              <div key={i} className="bg-[#111] border border-white/10 rounded-2xl overflow-hidden">
+            {FAQS.map((faq) => (
+              <div key={faq.q} className="bg-[#111] border border-white/10 rounded-2xl overflow-hidden">
                 <button
                   className="w-full flex items-center justify-between px-6 py-4 text-left"
-                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                  onClick={() => setOpenFaq(openFaq === faq.q ? null : faq.q)}
                 >
                   <span className="font-bold text-sm text-white pr-4">{faq.q}</span>
-                  <span className="material-icons text-zinc-400 flex-shrink-0 transition-transform" style={{ transform: openFaq === i ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+                  <span className="material-icons text-zinc-400 flex-shrink-0 transition-transform" style={{ transform: openFaq === faq.q ? 'rotate(180deg)' : 'rotate(0deg)' }}>
                     expand_more
                   </span>
                 </button>
-                {openFaq === i && (
+                {openFaq === faq.q && (
                   <div className="px-6 pb-4 text-zinc-400 text-sm leading-relaxed border-t border-white/5 pt-4">{faq.a}</div>
                 )}
               </div>

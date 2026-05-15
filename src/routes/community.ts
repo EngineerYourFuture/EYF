@@ -21,10 +21,12 @@ const postSchema = z.object({
 
 const voteSchema = z.object({ vote: z.union([z.literal(1), z.literal(-1)]) });
 
+type QueryParam = string | string[] | undefined;
+
 router.get("/posts", requireAuth("public"), async (req: AuthRequest, res: Response): Promise<void> => {
-  const category = asStr(req.query.category as string | string[] | undefined) || undefined;
-  const page = Math.max(1, parseInt(asStr(req.query.page as string | string[] | undefined) || "1", 10));
-  const limit = Math.min(50, Math.max(1, parseInt(asStr(req.query.limit as string | string[] | undefined) || "20", 10)));
+  const category = asStr(req.query.category as QueryParam) || undefined;
+  const page = Math.max(1, Number.parseInt(asStr(req.query.page as QueryParam) || "1", 10));
+  const limit = Math.min(50, Math.max(1, Number.parseInt(asStr(req.query.limit as QueryParam) || "20", 10)));
   const skip = (page - 1) * limit;
 
   const where: Record<string, unknown> = { parentId: null };
