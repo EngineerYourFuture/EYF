@@ -10,15 +10,53 @@ interface NavItem {
   icon: string;
 }
 
-const NAV_ITEMS: NavItem[] = [
-  { path: '/app/dashboard', label: 'Dashboard', icon: 'home' },
-  { path: '/app/problems', label: 'Problems', icon: 'code' },
-  { path: '/app/subjects', label: 'Subjects', icon: 'auto_stories' },
-  { path: '/app/placement', label: 'Placement', icon: 'work' },
-  { path: '/app/resume', label: 'Resume', icon: 'description' },
-  { path: '/app/skills', label: 'Skills', icon: 'psychology' },
-  { path: '/app/mentorship', label: 'Mentorship', icon: 'groups' },
-  { path: '/app/visualizer', label: 'Visualizer', icon: 'visibility' },
+interface NavGroup {
+  label: string;
+  items: NavItem[];
+}
+
+const NAV_GROUPS: NavGroup[] = [
+  {
+    label: 'Home',
+    items: [
+      { path: '/app/dashboard', label: 'Dashboard', icon: 'home' },
+      { path: '/app/career', label: 'Career Path', icon: 'route' },
+    ],
+  },
+  {
+    label: 'Learn',
+    items: [
+      { path: '/app/problems', label: 'DSA Problems', icon: 'code' },
+      { path: '/app/subjects', label: 'Core Subjects', icon: 'auto_stories' },
+      { path: '/app/oop', label: 'OOP & Patterns', icon: 'account_tree' },
+      { path: '/app/security', label: 'Cybersecurity', icon: 'shield' },
+      { path: '/app/system-design', label: 'System Design', icon: 'architecture' },
+      { path: '/app/visualizer', label: 'Visualizer', icon: 'visibility' },
+    ],
+  },
+  {
+    label: 'Career',
+    items: [
+      { path: '/app/placement', label: 'Placement', icon: 'work' },
+      { path: '/app/resume', label: 'Resume', icon: 'description' },
+      { path: '/app/skills', label: 'Tech Skills', icon: 'psychology' },
+      { path: '/app/mentorship', label: 'Mentorship', icon: 'groups' },
+      { path: '/app/experts', label: 'Expert Network', icon: 'workspace_premium' },
+    ],
+  },
+  {
+    label: 'Community',
+    items: [
+      { path: '/app/community', label: 'Community', icon: 'forum' },
+      { path: '/app/leaderboard', label: 'Leaderboard', icon: 'leaderboard' },
+    ],
+  },
+  {
+    label: 'Progress',
+    items: [
+      { path: '/app/achievements', label: 'Achievements', icon: 'emoji_events' },
+    ],
+  },
 ];
 
 interface AppShellProps {
@@ -89,24 +127,31 @@ export function AppShell({ children }: AppShellProps) {
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 space-y-1 overflow-y-auto">
-          {NAV_ITEMS.map((item) => {
-            const isActive = location.pathname === item.path || location.pathname.startsWith(item.path + '/');
-            return (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`flex items-center gap-4 px-6 py-3 mx-4 rounded-full transition-all duration-300 hover:translate-x-1 ${
-                  isActive
-                    ? 'bg-[#E82127] text-white shadow-lg shadow-red-900/20'
-                    : 'text-zinc-500 hover:text-zinc-200 hover:bg-[#353535]'
-                }`}
-              >
-                <Icon name={item.icon} size={20} />
-                <span className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold">{item.label}</span>
-              </Link>
-            );
-          })}
+        <nav className="flex-1 space-y-4 overflow-y-auto px-4">
+          {NAV_GROUPS.map((group) => (
+            <div key={group.label}>
+              <p className="font-['Inter'] uppercase tracking-[0.25em] text-[9px] font-bold text-zinc-600 px-2 mb-1.5">{group.label}</p>
+              <div className="space-y-0.5">
+                {group.items.map((item) => {
+                  const isActive = location.pathname === item.path || location.pathname.startsWith(item.path + '/');
+                  return (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      className={`flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200 hover:translate-x-0.5 ${
+                        isActive
+                          ? 'bg-[#E82127] text-white shadow-lg shadow-red-900/20'
+                          : 'text-zinc-500 hover:text-zinc-200 hover:bg-[#353535]'
+                      }`}
+                    >
+                      <Icon name={item.icon} size={18} />
+                      <span className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold">{item.label}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </nav>
 
         {/* Bottom section */}

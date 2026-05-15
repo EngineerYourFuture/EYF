@@ -83,6 +83,17 @@ model User {
   dailyUsage         DailySubmissionUsage[]
   monthlyUsage       MonthlyUsage[]
   auditActorLogs     AuditLog[]             @relation("AuditActor")
+  oopProgress        UserOOPProgress[]
+  securityProgress   UserSecurityProgress[]
+  ctfAttempts        CTFAttempt[]
+  systemDesignAttempts SystemDesignAttempt[]
+  careerProfile      UserCareerProfile?
+  learningPaths      UserLearningPath[]
+  communityPosts     CommunityPost[]
+  communityVotes     CommunityVote[]
+  expertProfile      ExpertProfile?
+  expertReviews      ExpertReview[]
+  achievements       UserAchievement[]
 }
 
 model Session {
@@ -113,12 +124,14 @@ model RefreshToken {
 }
 
 model SecuritySettings {
-  id                String   @id @default(uuid())
-  userId            String   @unique
-  totpEnabled       Boolean  @default(false)
-  totpSecret        String?
-  pendingTotpSecret String?
-  backupCodes       String[]
+  id                   String    @id @default(uuid())
+  userId               String    @unique
+  totpEnabled          Boolean   @default(false)
+  totpSecret           String?
+  pendingTotpSecret    String?
+  backupCodes          String[]
+  failedLoginAttempts  Int       @default(0)
+  lockedUntil          DateTime?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
@@ -383,10 +396,42 @@ model UserXP {
   id               String    @id @default(uuid())
   userId           String    @unique
   totalXp          Int       @default(0)
+  weeklyXp         Int       @default(0)
   streak           Int       @default(0)
+  longestStreak    Int       @default(0)
   lastActivityDate DateTime?
+  weeklyResetAt    DateTime?
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievements UserAchievement[]
+}
+
+model Achievement {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  name        String
+  description String
+  icon        String
+  category    String   // dsa | oop | security | community | consistency | career
+  xpReward    Int      @default(0)
+  rarity      String   @default("common") // common | rare | epic | legendary
+  createdAt   DateTime @default(now())
+
+  earnedBy UserAchievement[]
+}
+
+model UserAchievement {
+  id            String   @id @default(uuid())
+  userId        String
+  achievementId String
+  xpId          String?
+  earnedAt      DateTime @default(now())
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievement Achievement @relation(fields: [achievementId], references: [id])
+  xp          UserXP?     @relation(fields: [xpId], references: [id])
+
+  @@unique([userId, achievementId])
 }
 
 model DailySubmissionUsage {
@@ -409,4 +454,260 @@ model MonthlyUsage {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, month])
+}
+
+// ── OOP & Software Engineering ──────────────────────────────────────────────
+
+model DesignPatternLesson {
+  id          String   @id @default(uuid())
+  patternKey  String   @unique
+  name        String
+  category    String   // creational | structural | behavioral
+  description String
+  intent      String
+  structure   String
+  codeExample String
+  useCase     String
+  relatedPatterns String[]
+  planAccess  Plan     @default(free)
+  orderIndex  Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  progress UserOOPProgress[]
+}
+
+model UserOOPProgress {
+  id          String    @id @default(uuid())
+  userId      String
+  patternId   String
+  status      String    @default("not_started") // not_started | in_progress | completed
+  completedAt DateTime?
+
+  user    User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pattern DesignPatternLesson @relation(fields: [patternId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, patternId])
+}
+
+model SolidPrincipleLesson {
+  id          String   @id @default(uuid())
+  principleKey String  @unique
+  letter      String   // S | O | L | I | D
+  title       String
+  description String
+  badExample  String
+  goodExample String
+  planAccess  Plan     @default(free)
+  orderIndex  Int      @default(0)
+  createdAt   DateTime @default(now())
+}
+
+// ── Cybersecurity ────────────────────────────────────────────────────────────
+
+model SecurityLesson {
+  id          String     @id @default(uuid())
+  lessonKey   String     @unique
+  title       String
+  category    String     // web | network | crypto | forensics | owasp | cloud | malware
+  description String
+  content     String
+  difficulty  Difficulty
+  planAccess  Plan       @default(free)
+  orderIndex  Int        @default(0)
+  createdAt   DateTime   @default(now())
+
+  progress UserSecurityProgress[]
+}
+
+model UserSecurityProgress {
+  id          String    @id @default(uuid())
+  userId      String
+  lessonId    String
+  status      String    @default("not_started")
+  completedAt DateTime?
+
+  user   User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson SecurityLesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, lessonId])
+}
+
+model CTFChallenge {
+  id           String     @id @default(uuid())
+  challengeKey String     @unique
+  title        String
+  category     String     // web | crypto | forensics | pwn | reverse | misc
+  difficulty   Difficulty
+  description  String
+  points       Int        @default(100)
+  hints        String[]
+  flagHash     String
+  planAccess   Plan       @default(free)
+  createdAt    DateTime   @default(now())
+
+  attempts CTFAttempt[]
+}
+
+model CTFAttempt {
+  id          String    @id @default(uuid())
+  userId      String
+  challengeId String
+  solved      Boolean   @default(false)
+  attempts    Int       @default(0)
+  solvedAt    DateTime?
+  createdAt   DateTime  @default(now())
+
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  challenge CTFChallenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, challengeId])
+}
+
+// ── System Design ─────────────────────────────────────────────────────────────
+
+model SystemDesignQuestion {
+  id          String     @id @default(uuid())
+  slug        String     @unique
+  title       String
+  category    String     // scalability | database | microservices | caching | messaging | api
+  difficulty  Difficulty
+  description String
+  approach    String
+  components  Json       @default("[]")
+  tradeoffs   String
+  planAccess  Plan       @default(free)
+  createdAt   DateTime   @default(now())
+
+  attempts SystemDesignAttempt[]
+}
+
+model SystemDesignAttempt {
+  id         String   @id @default(uuid())
+  userId     String
+  questionId String
+  response   String
+  createdAt  DateTime @default(now())
+
+  user     User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question SystemDesignQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+}
+
+// ── Career & Learning Paths ───────────────────────────────────────────────────
+
+model UserCareerProfile {
+  id              String    @id @default(uuid())
+  userId          String    @unique
+  track           String    @default("student") // student | professional | expert
+  currentRole     String?
+  targetRole      String?
+  experienceYears Int       @default(0)
+  currentCompany  String?
+  linkedinUrl     String?
+  githubUrl       String?
+  skills          String[]
+  interests       String[]
+  targetTimeline  DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model LearningPath {
+  id             String   @id @default(uuid())
+  slug           String   @unique
+  title          String
+  description    String
+  targetTrack    String   // student | professional | expert
+  targetRole     String?
+  modules        Json     @default("[]")
+  estimatedWeeks Int      @default(4)
+  planAccess     Plan     @default(free)
+  createdAt      DateTime @default(now())
+
+  enrollments UserLearningPath[]
+}
+
+model UserLearningPath {
+  id          String    @id @default(uuid())
+  userId      String
+  pathId      String
+  startedAt   DateTime  @default(now())
+  progress    Float     @default(0)
+  completedAt DateTime?
+
+  user User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  path LearningPath @relation(fields: [pathId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, pathId])
+}
+
+// ── Community ─────────────────────────────────────────────────────────────────
+
+model CommunityPost {
+  id        String   @id @default(uuid())
+  userId    String
+  parentId  String?
+  title     String?
+  body      String
+  category  String   @default("general") // general | dsa | oop | security | system-design | career
+  tags      String[]
+  upvotes   Int      @default(0)
+  pinned    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user    User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent  CommunityPost?  @relation("PostReplies", fields: [parentId], references: [id])
+  replies CommunityPost[] @relation("PostReplies")
+  votes   CommunityVote[]
+}
+
+model CommunityVote {
+  id     String @id @default(uuid())
+  userId String
+  postId String
+  vote   Int
+
+  user User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+}
+
+// ── Expert Network ────────────────────────────────────────────────────────────
+
+model ExpertProfile {
+  id              String   @id @default(uuid())
+  userId          String   @unique
+  displayName     String
+  title           String
+  company         String?
+  bio             String
+  specializations String[]
+  yearsExperience Int      @default(0)
+  linkedinUrl     String?
+  githubUrl       String?
+  available       Boolean  @default(true)
+  hourlyRate      Int?
+  rating          Float    @default(0)
+  reviewCount     Int      @default(0)
+  createdAt       DateTime @default(now())
+
+  user    User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reviews ExpertReview[]
+}
+
+model ExpertReview {
+  id        String   @id @default(uuid())
+  userId    String
+  expertId  String
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now())
+
+  user   User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expert ExpertProfile @relation(fields: [expertId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, expertId])
 }

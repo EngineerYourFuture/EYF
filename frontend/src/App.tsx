@@ -27,6 +27,14 @@ import { OAuthCallbackPage } from './pages/OAuthCallbackPage';
 import { AuthorityQueuePage } from './pages/AuthorityQueuePage';
 import { AdminOperationsPage } from './pages/AdminOperationsPage';
 import { AdminProblemsPage } from './pages/AdminProblemsPage';
+import { OOPPage } from './pages/OOPPage';
+import { CybersecurityPage } from './pages/CybersecurityPage';
+import { SystemDesignPage } from './pages/SystemDesignPage';
+import { CareerPathPage } from './pages/CareerPathPage';
+import { CommunityPage } from './pages/CommunityPage';
+import { ExpertsPage } from './pages/ExpertsPage';
+import { AchievementsPage } from './pages/AchievementsPage';
+import { LeaderboardPage } from './pages/LeaderboardPage';
 
 export default function App() {
   return (
@@ -130,6 +138,38 @@ export default function App() {
       <Route
         path="/app/billing"
         element={<Navigate to="/plans" replace />}
+      />
+      <Route
+        path="/app/oop"
+        element={<RequireAuth zone="public"><OOPPage /></RequireAuth>}
+      />
+      <Route
+        path="/app/security"
+        element={<RequireAuth zone="public"><CybersecurityPage /></RequireAuth>}
+      />
+      <Route
+        path="/app/system-design"
+        element={<RequireAuth zone="public"><SystemDesignPage /></RequireAuth>}
+      />
+      <Route
+        path="/app/career"
+        element={<RequireAuth zone="public"><CareerPathPage /></RequireAuth>}
+      />
+      <Route
+        path="/app/community"
+        element={<RequireAuth zone="public"><CommunityPage /></RequireAuth>}
+      />
+      <Route
+        path="/app/experts"
+        element={<RequireAuth zone="public"><ExpertsPage /></RequireAuth>}
+      />
+      <Route
+        path="/app/achievements"
+        element={<RequireAuth zone="public"><AchievementsPage /></RequireAuth>}
+      />
+      <Route
+        path="/app/leaderboard"
+        element={<RequireAuth zone="public"><LeaderboardPage /></RequireAuth>}
       />
       <Route
         path="/app/*"

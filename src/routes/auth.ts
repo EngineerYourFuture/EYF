@@ -23,6 +23,8 @@ const normalizeEmail = (e: string) => e.trim().toLowerCase();
 const SALT_ROUNDS = 12;
 const ACCESS_COOKIE = "eyf_access";
 const REFRESH_COOKIE = "eyf_refresh";
+const MAX_FAILED_ATTEMPTS = 5;
+const LOCKOUT_DURATION_MS = 15 * 60 * 1000; // 15 minutes
 
 const cookieOpts = (maxAgeSec: number) => ({
   httpOnly: true,
@@ -164,9 +166,36 @@ router.post("/login", async (req: Request, res: Response): Promise<void> => {
     include: { security: true },
   });
 
-  if (!user || !user.passwordHash || !(await bcrypt.compare(password, user.passwordHash))) {
+  // Check lockout before doing expensive bcrypt compare
+  if (user?.security?.lockedUntil && user.security.lockedUntil > new Date()) {
+    const remainingSec = Math.ceil((user.security.lockedUntil.getTime() - Date.now()) / 1000);
+    res.status(423).json({ error: { code: "ACCOUNT_LOCKED", message: `Account locked. Try again in ${remainingSec}s.` } });
+    return;
+  }
+
+  const credentialsValid = user && user.passwordHash && await bcrypt.compare(password, user.passwordHash);
+
+  if (!credentialsValid) {
+    // Increment failed counter and potentially lock the account
+    if (user) {
+      const attempts = (user.security?.failedLoginAttempts ?? 0) + 1;
+      const lockedUntil = attempts >= MAX_FAILED_ATTEMPTS ? new Date(Date.now() + LOCKOUT_DURATION_MS) : null;
+      await prisma.securitySettings.upsert({
+        where: { userId: user.id },
+        update: { failedLoginAttempts: attempts, lockedUntil },
+        create: { userId: user.id, failedLoginAttempts: attempts, lockedUntil },
+      });
+    }
     res.status(401).json({ error: { code: "INVALID_CREDENTIALS", message: "Invalid email or password." } });
     return;
+  }
+
+  // Reset failed attempts on successful credential check
+  if (user.security && user.security.failedLoginAttempts > 0) {
+    await prisma.securitySettings.update({
+      where: { userId: user.id },
+      data: { failedLoginAttempts: 0, lockedUntil: null },
+    });
   }
 
   if (zone === "authority" && user.role === "user") {
@@ -469,6 +498,18 @@ router.patch("/password", requireAuth("public"), async (req: AuthRequest, res: R
 
   const passwordHash = await bcrypt.hash(newPassword, SALT_ROUNDS);
   await prisma.user.update({ where: { id: user.id }, data: { passwordHash } });
+
+  // Revoke all sessions except the current one — force re-login on other devices
+  const currentSessionId = req.auth!.sessionId;
+  await prisma.session.updateMany({
+    where: { userId: user.id, revokedAt: null, NOT: { id: currentSessionId } },
+    data: { revokedAt: new Date() },
+  });
+  await prisma.refreshToken.updateMany({
+    where: { userId: user.id, sessionId: { not: currentSessionId } },
+    data: { revoked: true },
+  });
+
   res.json({ ok: true });
 });
 

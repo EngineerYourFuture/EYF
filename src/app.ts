@@ -3,6 +3,7 @@ import express, { Request, Response, NextFunction } from "express";
 import compression from "compression";
 import cors from "cors";
 import rateLimit from "express-rate-limit";
+import { authLimiter } from "./middleware/rateLimiter";
 import helmet from "helmet";
 import morgan from "morgan";
 import cookieParser from "cookie-parser";
@@ -23,6 +24,14 @@ import { visualizerRouter } from "./routes/visualizer";
 import { supportRouter } from "./routes/support";
 import { authorityRouter } from "./routes/authority";
 import { analyticsRouter } from "./routes/analytics";
+import { achievementsRouter } from "./routes/achievements";
+import { leaderboardRouter } from "./routes/leaderboard";
+import { oopRouter } from "./routes/oop";
+import { securityLearnRouter } from "./routes/security-learn";
+import { systemDesignRouter } from "./routes/system-design";
+import { careerRouter } from "./routes/career";
+import { communityRouter } from "./routes/community";
+import { expertsRouter } from "./routes/experts";
 
 export const app = express();
 
@@ -84,11 +93,8 @@ app.use(
   rateLimit({ windowMs: 60_000, max: 300, standardHeaders: true, legacyHeaders: false })
 );
 
-// Stricter limit on auth endpoints
-app.use(
-  "/api/auth/",
-  rateLimit({ windowMs: 15 * 60_000, max: 30, standardHeaders: true, legacyHeaders: false })
-);
+// Stricter limit on auth endpoints (20 per 15 min per IP)
+app.use("/api/auth/", authLimiter);
 
 // Health check
 app.get("/health", (_req, res) => {
@@ -111,6 +117,14 @@ app.use("/api/visualizer", visualizerRouter);
 app.use("/api/support", supportRouter);
 app.use("/api/authority", authorityRouter);
 app.use("/api/analytics", analyticsRouter);
+app.use("/api/achievements", achievementsRouter);
+app.use("/api/leaderboard", leaderboardRouter);
+app.use("/api/oop", oopRouter);
+app.use("/api/security-learn", securityLearnRouter);
+app.use("/api/system-design", systemDesignRouter);
+app.use("/api/career", careerRouter);
+app.use("/api/community", communityRouter);
+app.use("/api/experts", expertsRouter);
 
 // Serve frontend in production
 if (env.serveFrontend) {
