@@ -308,12 +308,15 @@ export function CommunityPage() {
             return (
               <div
                 key={post.id}
+                role="button"
+                tabIndex={0}
                 className="bg-surface-container rounded-xl p-6 hover:bg-surface-container-high transition-all cursor-pointer group"
                 onClick={() => openPost(post.id)}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') openPost(post.id); }}
               >
                 <div className="flex items-start gap-4">
                   {/* Vote column */}
-                  <div className="flex flex-col items-center gap-1 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                  <div className="flex flex-col items-center gap-1 flex-shrink-0" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
                     <button onClick={() => vote(post.id, 1)} className="w-7 h-7 rounded-lg flex items-center justify-center text-zinc-600 hover:text-green-400 hover:bg-green-500/10 transition-all">
                       <Icon name="arrow_upward" size={14} />
                     </button>

@@ -236,8 +236,11 @@ export function SystemDesignPage() {
               const locked = q.planAccess === 'pro' || q.planAccess === 'elite';
               return (
                 <div key={q.id}
+                  role="button"
+                  tabIndex={locked ? -1 : 0}
                   className={`bg-surface-container rounded-xl p-6 transition-all ${locked ? 'opacity-60' : 'hover:bg-surface-container-high cursor-pointer'} ${q.attempted ? 'border border-purple-500/20' : ''}`}
-                  onClick={() => !locked && setSelected(q)}>
+                  onClick={() => !locked && setSelected(q)}
+                  onKeyDown={(e) => { if (!locked && (e.key === 'Enter' || e.key === ' ')) setSelected(q); }}>
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-2">
                       <div className={`w-8 h-8 ${catMeta.bg} rounded-lg flex items-center justify-center`}>

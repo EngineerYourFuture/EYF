@@ -154,7 +154,10 @@ export function CareerPathPage() {
             {TRACKS.map((track) => (
               <div
                 key={track.key}
+                role="button"
+                tabIndex={0}
                 onClick={() => setActiveTrack(track.key)}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setActiveTrack(track.key); }}
                 className={`rounded-2xl p-7 cursor-pointer transition-all border ${
                   activeTrack === track.key ? `${track.bg} ${track.border}` : 'bg-surface-container border-transparent hover:bg-surface-container-high'
                 } ${profile?.track === track.key ? `ring-1 ring-offset-0 ring-current/20` : ''}`}

@@ -279,7 +279,10 @@ export function ExpertsPage() {
           {filtered.map((expert) => (
             <div
               key={expert.id}
+              role="button"
+              tabIndex={0}
               onClick={() => openExpert(expert.id)}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') openExpert(expert.id); }}
               className="bg-surface-container rounded-2xl p-7 hover:bg-surface-container-high transition-all cursor-pointer group"
             >
               <div className="flex items-start gap-4 mb-4">
