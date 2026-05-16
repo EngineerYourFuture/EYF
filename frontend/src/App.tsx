@@ -39,6 +39,7 @@ import { AchievementsPage } from './pages/AchievementsPage';
 import { LeaderboardPage } from './pages/LeaderboardPage';
 import { OnboardingPage } from './pages/OnboardingPage';
 import { MockInterviewPage } from './pages/MockInterviewPage';
+import { CheatSheetsPage } from './pages/CheatSheetsPage';
 
 export default function App() {
   return (
@@ -181,6 +182,10 @@ export default function App() {
       <Route
         path="/app/mock-interview"
         element={<RequireAuth zone="public"><MockInterviewPage /></RequireAuth>}
+      />
+      <Route
+        path="/app/cheatsheets"
+        element={<RequireAuth zone="public"><CheatSheetsPage /></RequireAuth>}
       />
       <Route
         path="/app/*"

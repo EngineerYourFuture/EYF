@@ -26,6 +26,7 @@ const ALL_ITEMS: SearchResult[] = [
   { title: 'Leaderboard',       subtitle: 'Top engineers by XP',         icon: 'leaderboard',       path: '/app/leaderboard',    color: 'text-cyan-400' },
   { title: 'Achievements',      subtitle: 'Your badges and milestones',   icon: 'emoji_events',      path: '/app/achievements',   color: 'text-yellow-400' },
   { title: 'Visualizer',        subtitle: 'Step-by-step algorithm traces',icon: 'visibility',        path: '/app/visualizer',     color: 'text-lime-400' },
+  { title: 'Cheat Sheets',     subtitle: 'Algorithm patterns, Big-O, System Design quick ref', icon: 'quick_reference_all', path: '/app/cheatsheets', color: 'text-cyan-400' },
   { title: 'Upgrade to Pro',    subtitle: 'Unlock all features',          icon: 'rocket_launch',     path: '/plans',              color: 'text-[#E82127]' },
   { title: 'Mock Interview',     subtitle: 'Behavioral, DSA, System Design simulators', icon: 'record_voice_over', path: '/app/mock-interview', color: 'text-orange-400' },
   { title: 'Profile & Security',subtitle: 'Account settings & 2FA',      icon: 'manage_accounts',   path: '/app/profile',        color: 'text-zinc-400' },

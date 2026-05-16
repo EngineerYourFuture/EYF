@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Icon } from '../components/Icon';
 import { ApiError, apiRequest } from '../lib/api';
 import { getSession } from '../lib/session';
+import { useUser } from '../contexts/UserContext';
 
 // ─── Trace types ─────────────────────────────────────────────────────────────
 
@@ -55,6 +56,7 @@ type Tab = 'trace' | 'guide';
 
 export function VisualizerPage() {
   const session = getSession();
+  const { fireXP } = useUser();
   const [tab, setTab] = useState<Tab>('trace');
 
   // Trace state
@@ -96,6 +98,7 @@ export function VisualizerPage() {
         body: { algorithm, input: code },
       });
       setSteps(res.steps ?? []);
+      fireXP(10, `${algorithm} trace generated!`);
     } catch {
       setTraceError('Failed to generate trace. Check your input.');
     } finally {
@@ -166,6 +169,7 @@ export function VisualizerPage() {
       setTurns([...updatedTurns, { stage: res.stage, question: res.question, insight: res.insight, codeHint: res.codeHint, userReply: '' }]);
       if (res.insight) setInsights((prev) => [...prev.filter((i) => i !== res.insight), res.insight]);
       if (res.codeHint && !studentCode) setStudentCode(res.codeHint);
+      if (res.stage === 'code') fireXP(30, 'Algorithm solved with AI guide!');
     } catch (err) {
       setGuideError(err instanceof ApiError ? err.message : 'AI guide is unavailable right now.');
     } finally {

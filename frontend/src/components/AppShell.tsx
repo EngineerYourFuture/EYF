@@ -28,6 +28,7 @@ const NAV_GROUPS: NavGroup[] = [
       { path: '/app/cybersecurity', label: 'Cybersecurity',  icon: 'shield' },
       { path: '/app/system-design', label: 'System Design',  icon: 'architecture' },
       { path: '/app/visualizer',    label: 'Visualizer',     icon: 'visibility' },
+      { path: '/app/cheatsheets',   label: 'Cheat Sheets',   icon: 'quick_reference_all' },
     ],
   },
   {
