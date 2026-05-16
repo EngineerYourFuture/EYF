@@ -84,6 +84,126 @@ const LANG_MONACO: Record<Language, string> = {
   c: 'c',
 };
 
+const STATIC_PROBLEM_DATA: Record<string, Problem> = {
+  'two-sum': {
+    id: 'two-sum', slug: 'two-sum', title: 'Two Sum', difficulty: 'easy',
+    description: 'Given an array of integers `nums` and an integer `target`, return **indices** of the two numbers such that they add up to `target`.\n\nYou may assume that each input would have **exactly one solution**, and you may not use the same element twice.\n\nYou can return the answer in any order.',
+    examples: [
+      { input: 'nums = [2,7,11,15], target = 9', output: '[0,1]', explanation: 'Because nums[0] + nums[1] == 9, we return [0, 1].' },
+      { input: 'nums = [3,2,4], target = 6', output: '[1,2]' },
+      { input: 'nums = [3,3], target = 6', output: '[0,1]' },
+    ],
+    constraints: ['2 ≤ nums.length ≤ 10^4', '-10^9 ≤ nums[i] ≤ 10^9', '-10^9 ≤ target ≤ 10^9', 'Only one valid answer exists.'],
+    hints: ['Use a hash map to store each number and its index as you iterate.', 'For each num, check if (target - num) exists in the map before adding num to the map.'],
+    testCases: [{ input: '[2,7,11,15]\n9', output: '[0,1]' }, { input: '[3,2,4]\n6', output: '[1,2]' }],
+  },
+  'valid-parentheses': {
+    id: 'valid-parentheses', slug: 'valid-parentheses', title: 'Valid Parentheses', difficulty: 'easy',
+    description: 'Given a string `s` containing just the characters `(`, `)`, `{`, `}`, `[` and `]`, determine if the input string is valid.\n\nAn input string is valid if:\n1. Open brackets must be closed by the same type of brackets.\n2. Open brackets must be closed in the correct order.\n3. Every close bracket has a corresponding open bracket of the same type.',
+    examples: [
+      { input: 's = "()"', output: 'true' },
+      { input: 's = "()[]{}"', output: 'true' },
+      { input: 's = "(]"', output: 'false' },
+    ],
+    constraints: ['1 ≤ s.length ≤ 10^4', 's consists of parentheses only: ()[]{}'],
+    hints: ['Use a stack.', 'Push open brackets onto the stack. When you see a close bracket, check if the top of the stack is the matching open bracket.'],
+    testCases: [{ input: '"()"', output: 'true' }, { input: '"([)]"', output: 'false' }],
+  },
+  'maximum-subarray': {
+    id: 'maximum-subarray', slug: 'maximum-subarray', title: 'Maximum Subarray (Kadane\'s)', difficulty: 'medium',
+    description: 'Given an integer array `nums`, find the **subarray** with the largest sum, and return its sum.\n\nA **subarray** is a contiguous non-empty sequence of elements within an array.',
+    examples: [
+      { input: 'nums = [-2,1,-3,4,-1,2,1,-5,4]', output: '6', explanation: 'The subarray [4,-1,2,1] has the largest sum 6.' },
+      { input: 'nums = [1]', output: '1' },
+      { input: 'nums = [5,4,-1,7,8]', output: '23' },
+    ],
+    constraints: ['1 ≤ nums.length ≤ 10^5', '-10^4 ≤ nums[i] ≤ 10^4'],
+    hints: ['Try a greedy approach. At each position, decide: extend the current subarray or start a new one?', 'currentSum = max(nums[i], currentSum + nums[i])'],
+    testCases: [{ input: '[-2,1,-3,4,-1,2,1,-5,4]', output: '6' }],
+  },
+  'climb-stairs': {
+    id: 'climb-stairs', slug: 'climb-stairs', title: 'Climbing Stairs', difficulty: 'easy',
+    description: 'You are climbing a staircase. It takes `n` steps to reach the top.\n\nEach time you can either climb `1` or `2` steps. In how many distinct ways can you climb to the top?',
+    examples: [
+      { input: 'n = 2', output: '2', explanation: 'There are two ways to climb to the top. 1 step + 1 step | 2 steps' },
+      { input: 'n = 3', output: '3', explanation: '1+1+1 | 1+2 | 2+1' },
+    ],
+    constraints: ['1 ≤ n ≤ 45'],
+    hints: ['This is a Fibonacci problem.', 'ways(n) = ways(n-1) + ways(n-2). Base cases: ways(1) = 1, ways(2) = 2.'],
+    testCases: [{ input: '5', output: '8' }],
+  },
+  'num-islands': {
+    id: 'num-islands', slug: 'num-islands', title: 'Number of Islands', difficulty: 'medium',
+    description: 'Given an `m x n` 2D binary grid which represents a map of `\'1\'`s (land) and `\'0\'`s (water), return the number of islands.\n\nAn **island** is surrounded by water and is formed by connecting adjacent lands horizontally or vertically. You may assume all four edges of the grid are all surrounded by water.',
+    examples: [
+      { input: 'grid = [["1","1","1","1","0"],["1","1","0","1","0"],["1","1","0","0","0"],["0","0","0","0","0"]]', output: '1' },
+      { input: 'grid = [["1","1","0","0","0"],["1","1","0","0","0"],["0","0","1","0","0"],["0","0","0","1","1"]]', output: '3' },
+    ],
+    constraints: ['m == grid.length', 'n == grid[i].length', '1 ≤ m, n ≤ 300', 'grid[i][j] is \'0\' or \'1\'.'],
+    hints: ['Use DFS. When you find a \'1\', increment count and flood-fill all connected \'1\'s to \'0\'.', 'The number of times you start a flood-fill = number of islands.'],
+    testCases: [{ input: '[["1","1","0"],["0","1","0"],["0","0","1"]]', output: '2' }],
+  },
+  'coin-change': {
+    id: 'coin-change', slug: 'coin-change', title: 'Coin Change', difficulty: 'medium',
+    description: 'You are given an integer array `coins` representing coins of different denominations and an integer `amount` representing a total amount of money.\n\nReturn the fewest number of coins that you need to make up that amount. If that amount of money cannot be made up by any combination of the coins, return `-1`.\n\nYou may assume that you have an infinite number of each kind of coin.',
+    examples: [
+      { input: 'coins = [1,5,11], amount = 15', output: '3', explanation: '5 + 5 + 5 = 3 coins (not 11+1+1+1+1 = 5 coins)' },
+      { input: 'coins = [2], amount = 3', output: '-1' },
+      { input: 'coins = [1], amount = 0', output: '0' },
+    ],
+    constraints: ['1 ≤ coins.length ≤ 12', '1 ≤ coins[i] ≤ 2^31 - 1', '0 ≤ amount ≤ 10^4'],
+    hints: ['Dynamic programming. dp[i] = minimum coins to make amount i.', 'dp[0] = 0. For each amount, try all coins: dp[i] = min(dp[i], dp[i - coin] + 1).', 'Note: greedy (largest coin first) does NOT always work!'],
+    testCases: [{ input: '[1,5,11]\n15', output: '3' }],
+  },
+  'reverse-linked-list': {
+    id: 'reverse-linked-list', slug: 'reverse-linked-list', title: 'Reverse a Linked List', difficulty: 'easy',
+    description: 'Given the `head` of a singly linked list, reverse the list, and return the reversed list.',
+    examples: [
+      { input: 'head = [1,2,3,4,5]', output: '[5,4,3,2,1]' },
+      { input: 'head = [1,2]', output: '[2,1]' },
+      { input: 'head = []', output: '[]' },
+    ],
+    constraints: ['The number of nodes in the list is in the range [0, 5000].', '-5000 ≤ Node.val ≤ 5000'],
+    hints: ['Iterative: use three pointers — prev, curr, next. Save next, point curr to prev, advance.', 'Recursive: reverse from the end, then make next.next = current, current.next = null.'],
+    testCases: [{ input: '[1,2,3,4,5]', output: '[5,4,3,2,1]' }],
+  },
+  'binary-search': {
+    id: 'binary-search', slug: 'binary-search', title: 'Binary Search', difficulty: 'easy',
+    description: 'Given an array of integers `nums` which is sorted in ascending order, and an integer `target`, write a function to search `target` in `nums`. If `target` exists, then return its index. Otherwise, return `-1`.\n\nYou must write an algorithm with `O(log n)` runtime complexity.',
+    examples: [
+      { input: 'nums = [-1,0,3,5,9,12], target = 9', output: '4', explanation: '9 exists in nums and its index is 4.' },
+      { input: 'nums = [-1,0,3,5,9,12], target = 2', output: '-1', explanation: '2 does not exist in nums so return -1.' },
+    ],
+    constraints: ['1 ≤ nums.length ≤ 10^4', '-10^4 < nums[i], target < 10^4', 'All integers in nums are unique.', 'nums is sorted in ascending order.'],
+    hints: ['Maintain left and right pointers. Compare target with the middle element.', 'Use left + (right - left) / 2 to avoid integer overflow.'],
+    testCases: [{ input: '[-1,0,3,5,9,12]\n9', output: '4' }],
+  },
+  'longest-substring': {
+    id: 'longest-substring', slug: 'longest-substring', title: 'Longest Substring Without Repeating Characters', difficulty: 'medium',
+    description: 'Given a string `s`, find the length of the **longest substring** without duplicate characters.',
+    examples: [
+      { input: 's = "abcabcbb"', output: '3', explanation: 'The answer is "abc", with the length of 3.' },
+      { input: 's = "bbbbb"', output: '1', explanation: 'The answer is "b", with the length of 1.' },
+      { input: 's = "pwwkew"', output: '3', explanation: 'The answer is "wke", with the length of 3.' },
+    ],
+    constraints: ['0 ≤ s.length ≤ 5 * 10^4', 's consists of English letters, digits, symbols and spaces.'],
+    hints: ['Use a sliding window with a Set.', 'Expand the right pointer; when you see a duplicate, shrink from left until no duplicate.'],
+    testCases: [{ input: '"abcabcbb"', output: '3' }],
+  },
+  'invert-tree': {
+    id: 'invert-tree', slug: 'invert-tree', title: 'Invert Binary Tree', difficulty: 'easy',
+    description: 'Given the `root` of a binary tree, invert the tree, and return its root.',
+    examples: [
+      { input: 'root = [4,2,7,1,3,6,9]', output: '[4,7,2,9,6,3,1]' },
+      { input: 'root = [2,1,3]', output: '[2,3,1]' },
+      { input: 'root = []', output: '[]' },
+    ],
+    constraints: ['The number of nodes in the tree is in the range [0, 100].', '-100 ≤ Node.val ≤ 100'],
+    hints: ['Recursively invert left and right subtrees, then swap them.', 'Base case: null node returns null.'],
+    testCases: [{ input: '[4,2,7,1,3,6,9]', output: '[4,7,2,9,6,3,1]' }],
+  },
+};
+
 const diffColor = (d: string) => {
   if (d === 'easy') return 'text-green-400 bg-green-400/10 border border-green-400/20';
   if (d === 'medium') return 'text-yellow-400 bg-yellow-400/10 border border-yellow-400/20';
@@ -111,8 +231,15 @@ export function ProblemDetailPage() {
   const [showHints, setShowHints] = useState(false);
 
   useEffect(() => {
-    if (!id || !session?.accessToken) return;
-    setLoading(true);
+    if (!id) return;
+    // Try static data first (instant)
+    const staticData = STATIC_PROBLEM_DATA[id];
+    if (staticData) {
+      setProblem(staticData);
+      setLoading(false);
+    }
+    // Also try API for richer data (overwrites static if successful)
+    if (!session?.accessToken) return;
     apiRequest<Problem>(`/problems/${id}`, { token: session.accessToken })
       .then(setProblem)
       .catch(() => {})
