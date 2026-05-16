@@ -204,6 +204,199 @@ server {
   },
 };
 
+  sync: {
+    overview: `Synchronization ensures that concurrent threads/processes access shared resources in a controlled, safe manner. Without synchronization, race conditions can corrupt data or lead to undefined behavior.\n\nA deadlock occurs when two or more processes are permanently blocked, each waiting for a resource held by the other. Coffman (1971) identified four necessary conditions for deadlock: mutual exclusion, hold-and-wait, no preemption, and circular wait.`,
+    keyPoints: [
+      'Critical section: code that accesses shared resources — must execute atomically',
+      'Mutex: binary lock with ownership — only the locking thread can unlock',
+      'Semaphore: counter-based — any thread can signal (release)',
+      'Deadlock conditions: mutual exclusion, hold-and-wait, no preemption, circular wait',
+      'Deadlock prevention: eliminate at least one of the four conditions',
+      'Deadlock detection: resource allocation graph + cycle detection',
+      'Banker\'s Algorithm: safe-state analysis for deadlock avoidance',
+    ],
+    code: `// Mutex usage (POSIX)
+pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
+int balance = 100;
+
+void deposit(int amount) {
+    pthread_mutex_lock(&lock);   // acquire
+    balance += amount;            // critical section
+    pthread_mutex_unlock(&lock); // release
+}
+
+// Semaphore for producer-consumer
+sem_t empty, full;
+sem_init(&empty, 0, BUFFER_SIZE);
+sem_init(&full, 0, 0);
+
+void producer() {
+    sem_wait(&empty);    // wait if buffer full
+    // produce item
+    sem_post(&full);     // signal item available
+}`,
+    codeLang: 'c',
+    summary: 'Synchronization is the cornerstone of concurrent programming. Use the smallest possible critical sections, prefer higher-level abstractions (channels, actors) when possible, and always use RAII-style locking to prevent forgotten unlocks.',
+  },
+  paging: {
+    overview: `Paging divides virtual memory into fixed-size pages and physical memory into frames of the same size. The OS maintains a page table per process that maps virtual page numbers to physical frame numbers.\n\nWhen a process accesses a page not in physical memory, a page fault occurs and the OS loads the page from disk (swap space). Page replacement algorithms decide which page to evict when memory is full.`,
+    keyPoints: [
+      'Page size: typically 4KB — trades off internal fragmentation vs TLB coverage',
+      'Page table entry: frame number + present bit + dirty bit + reference bit',
+      'TLB (Translation Lookaside Buffer): hardware cache for recent page table entries',
+      'Multi-level paging: hierarchical page tables save memory for sparse address spaces',
+      'LRU (Least Recently Used): near-optimal but expensive — often approximated with clock algorithm',
+      'FIFO: simple but suffers from Belady\'s anomaly (more frames → more faults)',
+      'Optimal (OPT): evict page used furthest in future — theoretical benchmark',
+    ],
+    code: `// Page fault rate analysis
+// If working set > physical memory → thrashing
+// Solution: working set model
+
+// Virtual address breakdown (32-bit, 4KB pages)
+// Bits 31-12: Virtual Page Number (20 bits = 1M pages)
+// Bits 11-0:  Page Offset (12 bits = 4KB)
+
+// Page table lookup pseudocode
+translate(virtual_addr):
+  vpn  = virtual_addr >> 12
+  off  = virtual_addr & 0xFFF
+  if TLB[vpn] exists:
+    return (TLB[vpn] << 12) | off
+  if page_table[vpn].present:
+    frame = page_table[vpn].frame
+    TLB.insert(vpn, frame)
+    return (frame << 12) | off
+  else:
+    raise PageFault(vpn)  // OS loads from disk`,
+    codeLang: 'python',
+    summary: 'Paging eliminates external fragmentation at the cost of internal fragmentation and page table overhead. TLBs are critical for performance — a TLB miss causes one or more memory accesses just to translate an address.',
+  },
+  acid: {
+    overview: `ACID is a set of properties that guarantee database transactions are processed reliably, even in the face of system failures.\n\nAtomicity ensures a transaction either completes entirely or has no effect. Consistency ensures data moves from one valid state to another. Isolation prevents concurrent transactions from seeing each other's intermediate state. Durability ensures committed transactions survive crashes through techniques like Write-Ahead Logging.`,
+    keyPoints: [
+      'Atomicity: all-or-nothing execution — implemented via undo logs (rollback)',
+      'Consistency: application-enforced invariants (FK constraints, CHECK constraints)',
+      'Isolation: concurrent transactions appear to run serially — levels trade off performance',
+      'Durability: committed data written to disk via WAL (Write-Ahead Log) before acknowledging',
+      'WAL: log changes before applying — enables crash recovery by replaying log',
+      'MVCC: allows readers and writers to not block each other (PostgreSQL default)',
+      'Savepoints: partial rollback within a transaction',
+    ],
+    code: `-- Classic bank transfer — all-or-nothing
+BEGIN;
+
+UPDATE accounts SET balance = balance - 500 WHERE id = 1;
+UPDATE accounts SET balance = balance + 500 WHERE id = 2;
+
+-- Both succeed: COMMIT; both fail: ROLLBACK
+COMMIT;
+
+-- Isolation level control (PostgreSQL)
+SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+BEGIN;
+SELECT balance FROM accounts WHERE id = 1;
+-- ...
+COMMIT;`,
+    codeLang: 'sql',
+    summary: 'ACID properties are the foundation of relational database reliability. Understanding them helps you design schemas and application code that maintain data integrity under concurrent access and partial failures.',
+  },
+  'tcp-udp': {
+    overview: `TCP (Transmission Control Protocol) and UDP (User Datagram Protocol) are the two primary transport layer protocols. They make fundamentally different tradeoffs between reliability and performance.\n\nTCP provides reliable, ordered delivery using sequence numbers, acknowledgments, retransmission, and flow/congestion control. UDP provides best-effort datagram delivery with no guarantees — the application is responsible for reliability if needed.`,
+    keyPoints: [
+      'TCP: connection-oriented — 3-way handshake before data, 4-way FIN teardown',
+      'TCP: sequence numbers + ACKs ensure ordered, reliable delivery',
+      'TCP: flow control via sliding window (receiver controls sender rate)',
+      'TCP: congestion control: slow start, AIMD, fast retransmit/recovery',
+      'UDP: connectionless, no state, header is only 8 bytes (port, length, checksum)',
+      'UDP: lower latency, good for real-time (VoIP, gaming, live video)',
+      'QUIC: UDP-based protocol with built-in TLS and streams — used in HTTP/3',
+    ],
+    code: `// TCP socket server (Node.js)
+import net from 'net';
+const server = net.createServer((socket) => {
+  socket.on('data', (data) => {
+    socket.write('Echo: ' + data);
+  });
+});
+server.listen(3000);
+
+// UDP socket (Node.js)
+import dgram from 'dgram';
+const server = dgram.createSocket('udp4');
+server.on('message', (msg, rinfo) => {
+  console.log(\`\${rinfo.address}:\${rinfo.port}: \${msg}\`);
+  server.send('ACK', rinfo.port, rinfo.address);
+});
+server.bind(3001);`,
+    codeLang: 'typescript',
+    summary: 'Choose TCP when data integrity and ordering matter (HTTP, SSH, databases). Choose UDP when speed matters more than reliability (DNS lookups, video streaming, online games). QUIC brings TCP reliability to UDP performance.',
+  },
+  caching: {
+    overview: `Caching stores frequently accessed data in a faster tier to reduce latency and backend load. Effective caching can reduce database load by 90%+ for read-heavy workloads.\n\nCache eviction policies determine what to remove when the cache is full. Common policies include LRU (Least Recently Used), LFU (Least Frequently Used), and TTL (Time To Live) expiration.`,
+    keyPoints: [
+      'Cache hit rate: hits / (hits + misses) — aim for 90%+ in production',
+      'Cache-aside (Lazy Loading): check cache → on miss, load from DB → populate cache',
+      'Write-through: write to cache and DB simultaneously — consistency, but write latency',
+      'Write-behind (write-back): write to cache, async flush to DB — low latency, risk of loss',
+      'LRU eviction: O(1) with doubly linked list + hash map (LeetCode 146)',
+      'Cache stampede: many requests hit DB simultaneously on expiry — use mutex or probabilistic early expiration',
+      'Thundering herd: use Redis SETNX lock or cache warming to mitigate',
+    ],
+    code: `// LRU Cache implementation (TypeScript)
+class LRUCache {
+  private map = new Map<number, number>();
+  constructor(private capacity: number) {}
+
+  get(key: number): number {
+    if (!this.map.has(key)) return -1;
+    const val = this.map.get(key)!;
+    this.map.delete(key);
+    this.map.set(key, val); // move to end (most recent)
+    return val;
+  }
+
+  put(key: number, value: number): void {
+    this.map.delete(key);
+    this.map.set(key, value);
+    if (this.map.size > this.capacity) {
+      this.map.delete(this.map.keys().next().value); // evict oldest
+    }
+  }
+}`,
+    codeLang: 'typescript',
+    summary: 'Caching is one of the highest-ROI optimizations in system design. Identify hot data, choose an appropriate eviction policy, and handle cache invalidation carefully — it\'s one of the famously hard problems in CS.',
+  },
+  cap: {
+    overview: `The CAP theorem (Brewer, 2000) states that a distributed system can guarantee at most 2 of 3 properties: Consistency, Availability, and Partition Tolerance.\n\nSince network partitions are inevitable in distributed systems, the real choice is between CP (consistency sacrificed during partition) and AP (availability maintained, possibly with stale data). The PACELC theorem extends this to consider latency trade-offs during normal operation.`,
+    keyPoints: [
+      'C — Consistency: every read gets the most recent write (linearizability)',
+      'A — Availability: every request gets a non-error response (may be stale)',
+      'P — Partition Tolerance: system operates despite network partitions',
+      'CP systems: HBase, Zookeeper, PAXOS-based (return error on partition)',
+      'AP systems: DynamoDB, Cassandra, CouchDB (return potentially stale data)',
+      'Most SQL databases are CA (single node, ignores P — not truly distributed)',
+      'PACELC: even without partition, choose between latency vs consistency',
+    ],
+    code: `// Quorum-based consistency (Dynamo-style)
+// R = read replicas, W = write replicas, N = total replicas
+// Strong consistency: R + W > N
+// Availability-first: R = W = 1 (fastest, potentially stale)
+
+// Example: N=3, W=2, R=2
+// R + W = 4 > 3 → strong consistency
+// Write must hit 2/3 replicas before ack
+// Read must query 2/3 replicas and return latest version
+
+// Cassandra tuning
+// ANY: lowest consistency, highest availability
+// QUORUM: (N/2)+1 replicas — good balance
+// ALL: all replicas — strongest, lowest availability`,
+    codeLang: 'python',
+    summary: 'CAP theorem shapes how you design distributed systems. When designing for high availability (AP), implement conflict resolution and eventual consistency. When requiring strong consistency (CP), accept that the system may reject requests during network partitions.',
+  },
+};
+
 const DEFAULT_CONTENT: TopicContent = {
   overview: `This topic covers fundamental concepts that are essential for mastering the subject. Understanding the core principles will help you build more complex knowledge and apply these concepts in real-world engineering scenarios.\n\nAs you work through this material, focus on understanding the underlying mechanisms rather than memorizing facts. The ability to reason from first principles will serve you better in interviews and on the job.`,
   keyPoints: [
