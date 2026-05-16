@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { AppShell } from '../components/AppShell';
 import { Icon } from '../components/Icon';
 import { apiRequest } from '../lib/api';
@@ -174,11 +175,66 @@ export function LeaderboardPage() {
         )}
 
         {!loading && (!data || data.entries.length === 0) && (
-          <div className="text-center py-20 text-zinc-600">
+          <div className="text-center py-16 text-zinc-600">
             <Icon name="emoji_events" size={48} className="mb-4 opacity-30" />
             <p className="font-bold">No data yet. Start solving to appear here!</p>
           </div>
         )}
+
+        {/* Weekly XP Challenges */}
+        <div className="mt-10 bg-surface-container rounded-2xl p-6">
+          <div className="flex items-center gap-3 mb-6">
+            <Icon name="bolt" size={20} className="text-[#E82127]" filled />
+            <h2 className="font-black text-lg text-on-surface">This Week's XP Challenges</h2>
+            <span className="ml-auto text-[10px] font-bold text-zinc-600 uppercase tracking-widest">Resets Sunday</span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {[
+              { icon: 'code',              color: 'text-blue-400',   bg: 'bg-blue-500/10',   title: 'Solve 5 DSA Problems',         xp: '+150 XP', link: '/app/problems' },
+              { icon: 'style',             color: 'text-purple-400', bg: 'bg-purple-500/10', title: 'Complete a Flashcard Session',  xp: '+50 XP',  link: '/app/flashcards' },
+              { icon: 'architecture',      color: 'text-cyan-400',   bg: 'bg-cyan-500/10',   title: 'Submit a System Design',        xp: '+100 XP', link: '/app/system-design' },
+              { icon: 'record_voice_over', color: 'text-orange-400', bg: 'bg-orange-500/10', title: 'Practice 3 Behavioral Answers', xp: '+75 XP',  link: '/app/placement' },
+              { icon: 'account_tree',      color: 'text-amber-400',  bg: 'bg-amber-500/10',  title: 'Master 2 GoF Design Patterns',  xp: '+100 XP', link: '/app/oop' },
+              { icon: 'shield',            color: 'text-red-400',    bg: 'bg-red-500/10',    title: 'Complete a Security Lesson',    xp: '+60 XP',  link: '/app/cybersecurity' },
+            ].map((challenge) => (
+              <Link key={challenge.title} to={challenge.link}>
+                <div className="flex items-center gap-3 bg-surface-container-high rounded-xl px-4 py-3 hover:bg-surface-container-highest transition-all cursor-pointer group">
+                  <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${challenge.bg} ${challenge.color}`}>
+                    <Icon name={challenge.icon} size={18} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-on-surface truncate">{challenge.title}</p>
+                  </div>
+                  <span className="text-[10px] font-black text-green-400 flex-shrink-0">{challenge.xp}</span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+
+        {/* XP guide */}
+        <div className="mt-6 bg-surface-container rounded-2xl p-6">
+          <h3 className="font-black text-sm text-on-surface mb-4">How to Earn XP</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {[
+              { action: 'Solve an Easy problem',      xp: '+10 XP' },
+              { action: 'Solve a Medium problem',     xp: '+25 XP' },
+              { action: 'Solve a Hard problem',       xp: '+50 XP' },
+              { action: 'Complete flashcard session', xp: '+5–40 XP' },
+              { action: 'Master a GoF pattern',       xp: '+50 XP' },
+              { action: 'Submit system design',       xp: '+30 XP' },
+              { action: 'Practice behavioral Q',      xp: '+20 XP' },
+              { action: 'Complete subject topic',     xp: '+15 XP' },
+              { action: 'Daily challenge bonus',      xp: '+50 XP' },
+              { action: 'Log an offer received',      xp: '+100 XP' },
+            ].map((item) => (
+              <div key={item.action} className="flex items-center justify-between text-xs py-1.5 border-b border-white/4 last:border-0">
+                <span className="text-zinc-400">{item.action}</span>
+                <span className="font-black text-green-400">{item.xp}</span>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </AppShell>
   );
