@@ -77,14 +77,25 @@ const PLANS = [
   },
 ];
 
-const COMPANIES = ['Google', 'Microsoft', 'Amazon', 'Flipkart', 'Swiggy', 'Razorpay', 'Zerodha', 'Atlassian'];
+const COMPANIES = ['Google', 'Microsoft', 'Amazon', 'Meta', 'Netflix', 'Flipkart', 'Swiggy', 'Razorpay', 'Zerodha', 'Atlassian', 'Uber', 'Stripe', 'Walmart Labs', 'Paytm', 'CRED'];
+
+const HOW_IT_WORKS = [
+  { step: '01', title: 'Pick Your Track', desc: 'Student, Working Professional, or Industry Expert — choose the path that matches where you are right now.', icon: 'route' },
+  { step: '02', title: 'Learn Systematically', desc: 'DSA, Core CS, OOP, System Design, and Security — curated modules with real code examples, not slides.', icon: 'auto_stories' },
+  { step: '03', title: 'Practice Under Pressure', desc: 'Mock interviews with timed questions, flashcards with spaced repetition, and real CTF challenges.', icon: 'timer' },
+  { step: '04', title: 'Track & Improve', desc: 'XP, streaks, achievements, and leaderboards keep you accountable. The Interview Tracker logs every round.', icon: 'leaderboard' },
+  { step: '05', title: 'Land the Offer', desc: 'With expert guidance, a polished resume, and a logged offer in your tracker — celebrate with 100 XP.', icon: 'celebration' },
+];
 
 const FAQS = [
-  { q: 'Is EYF suitable for complete beginners?', a: 'Yes. EYF starts from fundamentals — the Student track begins with core CS subjects, basic DSA, and OOP concepts before ramping up to interview-level content.' },
-  { q: 'How is this different from LeetCode or YouTube tutorials?', a: 'EYF is structured end-to-end — not just problems but also design patterns, cybersecurity, system design, career guidance, and a real expert network. It\'s an engineering growth platform, not a problem bank.' },
-  { q: 'What makes the OOP and Security content special?', a: 'All 23 GoF patterns include TypeScript code, intent, structure diagrams, and real-world use cases — not textbook definitions. Security includes hands-on CTF challenges with real flag-submission scoring.' },
-  { q: 'Can I cancel anytime?', a: 'Yes. Monthly plans can be cancelled anytime. You keep access until the end of the billing period.' },
-  { q: 'Are there refunds?', a: 'We offer a full refund within 7 days of purchase if you\'re not satisfied — no questions asked.' },
+  { q: 'Is EYF suitable for complete beginners?', a: 'Yes. EYF starts from fundamentals — the Student track begins with core CS subjects, basic DSA, and OOP concepts before ramping up to interview-level content. You don\'t need prior interview prep experience.' },
+  { q: 'How is this different from LeetCode or YouTube tutorials?', a: 'EYF is structured end-to-end — not just problems but also design patterns, cybersecurity, system design, career guidance, Interview Tracker, and a real expert network. It\'s an engineering growth platform, not a problem bank.' },
+  { q: 'What makes the OOP and Security content special?', a: 'All 23 GoF patterns include TypeScript code, intent, structure diagrams, and real-world use cases — not textbook definitions. Security includes hands-on CTF challenges with real flag-submission scoring and OWASP-aligned lessons.' },
+  { q: 'How does the Interview Tracker work?', a: 'Log your job applications, track each interview round (phone screen, technical, system design, behavioral), record results and notes, and update your application status all the way to offer. Your data stays in your browser — no backend required.' },
+  { q: 'What is the Study Plan Generator?', a: 'Enter your target company and interview date, and EYF generates a day-by-day study plan weighted by that company\'s known interview focus (e.g., Google: 50% DSA, 30% System Design; Amazon: 35% DSA, 40% Behavioral).' },
+  { q: 'Can I use EYF offline or without an account?', a: 'Most content (cheat sheets, flashcards, study plan, interview tracker) works without a network connection once loaded. Some features like the leaderboard and expert sessions require a connected account.' },
+  { q: 'Can I cancel anytime?', a: 'Yes. Monthly plans can be cancelled anytime. You keep access until the end of the billing period. No lock-ins, no cancellation fees.' },
+  { q: 'Are there refunds?', a: 'We offer a full refund within 7 days of purchase if you\'re not satisfied — no questions asked. Just email support.' },
 ];
 
 function StatCounter({ target, suffix, label }: { readonly target: number; readonly suffix: string; readonly label: string }) {
@@ -116,7 +127,7 @@ export function LandingPage() {
         <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
           <span className="text-xl font-black tracking-tighter text-white">EYF</span>
           <div className="hidden md:flex items-center gap-8">
-            {(['Features', 'Curriculum', 'How It Works', 'Pricing'] as const).map((label) => (
+            {['Features', 'How It Works', 'Curriculum', 'Pricing'].map((label) => (
               <a
                 key={label}
                 href={`#${label.toLowerCase().replace(/\s+/g, '-')}`}
@@ -190,6 +201,35 @@ export function LandingPage() {
             {COMPANIES.map((c) => (
               <span key={c} className="text-zinc-500 font-black text-sm md:text-base tracking-tight hover:text-zinc-300 transition-colors">{c}</span>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works */}
+      <section className="py-20 px-6" id="how-it-works">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-black tracking-tighter mb-4">How EYF Works</h2>
+            <p className="text-zinc-400 text-lg max-w-xl mx-auto">Five steps from where you are now to your dream offer.</p>
+          </div>
+          <div className="relative">
+            <div className="absolute left-8 top-0 bottom-0 w-px bg-gradient-to-b from-[#E82127]/40 via-[#E82127]/20 to-transparent hidden md:block" />
+            <div className="space-y-8">
+              {HOW_IT_WORKS.map((step) => (
+                <div key={step.step} className="flex items-start gap-8 group">
+                  <div className="flex-shrink-0 flex flex-col items-center gap-2">
+                    <div className="w-16 h-16 rounded-2xl bg-[#E82127]/10 border border-[#E82127]/30 flex items-center justify-center group-hover:bg-[#E82127]/20 transition-all">
+                      <Icon name={step.icon} size={24} className="text-[#E82127]" />
+                    </div>
+                    <span className="text-[10px] font-black text-[#E82127]/50 tracking-widest">{step.step}</span>
+                  </div>
+                  <div className="flex-1 pt-3">
+                    <h3 className="font-black text-lg tracking-tight mb-1">{step.title}</h3>
+                    <p className="text-zinc-400 leading-relaxed">{step.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
