@@ -77,7 +77,7 @@ export function LoginPage() {
         body: { name: regName, email: regEmail, password: regPassword },
       });
       setSession({ accessToken: result.accessToken, role: result.user.role, zone: 'public', email: result.user.email });
-      navigate('/app/dashboard', { replace: true });
+      navigate('/onboarding', { replace: true });
     } catch (err) {
       setRegError(err instanceof ApiError ? err.message : 'Unable to register.');
     } finally {

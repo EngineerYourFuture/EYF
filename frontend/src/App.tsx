@@ -37,6 +37,7 @@ import { CommunityPage } from './pages/CommunityPage';
 import { ExpertsPage } from './pages/ExpertsPage';
 import { AchievementsPage } from './pages/AchievementsPage';
 import { LeaderboardPage } from './pages/LeaderboardPage';
+import { OnboardingPage } from './pages/OnboardingPage';
 
 export default function App() {
   return (
@@ -53,6 +54,7 @@ export default function App() {
       <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route path="/verify-email" element={<VerifyEmailPage />} />
       <Route path="/auth/callback" element={<OAuthCallbackPage />} />
+      <Route path="/onboarding" element={<RequireAuth zone="public"><OnboardingPage /></RequireAuth>} />
 
       {/* Authenticated app routes */}
       <Route

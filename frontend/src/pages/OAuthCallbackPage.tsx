@@ -16,8 +16,9 @@ export function OAuthCallbackPage() {
       return;
     }
 
+    const isNew = params.get('isNew') === 'true';
     setSession({ accessToken: token, role: 'user', zone: 'public', email });
-    navigate('/app/dashboard', { replace: true });
+    navigate(isNew ? '/onboarding' : '/app/dashboard', { replace: true });
   }, [navigate, params]);
 
   return (
