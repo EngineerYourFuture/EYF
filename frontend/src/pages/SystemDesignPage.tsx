@@ -3,6 +3,7 @@ import { AppShell } from '../components/AppShell';
 import { Icon } from '../components/Icon';
 import { apiRequest } from '../lib/api';
 import { getSession } from '../lib/session';
+import { useUser } from '../contexts/UserContext';
 
 interface SDQuestion {
   id: string;
@@ -55,6 +56,7 @@ const DIFF_COLOR: Record<string, string> = {
 
 export function SystemDesignPage() {
   const session = getSession();
+  const { fireXP } = useUser();
   const [questions, setQuestions] = useState<SDQuestion[]>(STATIC_QUESTIONS);
   const [activeCategory, setActiveCategory] = useState('all');
   const [selected, setSelected] = useState<SDQuestion | null>(null);
@@ -87,6 +89,7 @@ export function SystemDesignPage() {
       });
       setSubmitted(true);
       setQuestions((prev) => prev.map((q) => q.id === selected.id ? { ...q, attempted: true, lastAttemptAt: new Date().toISOString() } : q));
+      fireXP(40, 'System design response saved!');
     } catch {
       // ignore
     } finally {

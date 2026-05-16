@@ -27,6 +27,7 @@ const ALL_ITEMS: SearchResult[] = [
   { title: 'Achievements',      subtitle: 'Your badges and milestones',   icon: 'emoji_events',      path: '/app/achievements',   color: 'text-yellow-400' },
   { title: 'Visualizer',        subtitle: 'Step-by-step algorithm traces',icon: 'visibility',        path: '/app/visualizer',     color: 'text-lime-400' },
   { title: 'Upgrade to Pro',    subtitle: 'Unlock all features',          icon: 'rocket_launch',     path: '/plans',              color: 'text-[#E82127]' },
+  { title: 'Mock Interview',     subtitle: 'Behavioral, DSA, System Design simulators', icon: 'record_voice_over', path: '/app/mock-interview', color: 'text-orange-400' },
   { title: 'Profile & Security',subtitle: 'Account settings & 2FA',      icon: 'manage_accounts',   path: '/app/profile',        color: 'text-zinc-400' },
   { title: 'Support',           subtitle: 'Get help',                     icon: 'help',              path: '/app/support',        color: 'text-zinc-400' },
 ];

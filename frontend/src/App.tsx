@@ -38,6 +38,7 @@ import { ExpertsPage } from './pages/ExpertsPage';
 import { AchievementsPage } from './pages/AchievementsPage';
 import { LeaderboardPage } from './pages/LeaderboardPage';
 import { OnboardingPage } from './pages/OnboardingPage';
+import { MockInterviewPage } from './pages/MockInterviewPage';
 
 export default function App() {
   return (
@@ -176,6 +177,10 @@ export default function App() {
       <Route
         path="/app/leaderboard"
         element={<RequireAuth zone="public"><LeaderboardPage /></RequireAuth>}
+      />
+      <Route
+        path="/app/mock-interview"
+        element={<RequireAuth zone="public"><MockInterviewPage /></RequireAuth>}
       />
       <Route
         path="/app/*"

@@ -37,7 +37,8 @@ const NAV_GROUPS: NavGroup[] = [
       { path: '/app/resume',     label: 'Resume',        icon: 'description' },
       { path: '/app/skills',     label: 'Tech Skills',   icon: 'psychology' },
       { path: '/app/mentorship', label: 'Mentorship',    icon: 'groups' },
-      { path: '/app/experts',    label: 'Expert Network',icon: 'workspace_premium' },
+      { path: '/app/experts',       label: 'Expert Network', icon: 'workspace_premium' },
+      { path: '/app/mock-interview', label: 'Mock Interview',  icon: 'record_voice_over' },
     ],
   },
   {
@@ -334,9 +335,36 @@ export function AppShell({ children }: { readonly children: ReactNode }) {
       </header>
 
       {/* Main */}
-      <main className="pt-16 min-h-screen px-4 md:px-10 pb-24">
+      <main className="pt-16 min-h-screen px-4 md:px-10 pb-24 md:pb-8">
         {children}
       </main>
+
+      {/* Mobile bottom navigation */}
+      <nav className="fixed bottom-0 left-0 right-0 z-30 md:hidden bg-[#131313]/95 backdrop-blur-xl border-t border-white/5 safe-area-pb">
+        <div className="flex items-stretch h-16">
+          {[
+            { path: '/app/dashboard',  icon: 'home',         label: 'Home' },
+            { path: '/app/problems',   icon: 'code',         label: 'Practice' },
+            { path: '/app/subjects',   icon: 'auto_stories', label: 'Learn' },
+            { path: '/app/community',  icon: 'forum',        label: 'Community' },
+            { path: '/app/profile',    icon: 'person',       label: 'Profile' },
+          ].map((item) => {
+            const isActive = location.pathname === item.path || location.pathname.startsWith(`${item.path}/`);
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`flex-1 flex flex-col items-center justify-center gap-0.5 transition-colors ${
+                  isActive ? 'text-[#E82127]' : 'text-zinc-600 hover:text-zinc-400'
+                }`}
+              >
+                <Icon name={item.icon} size={22} filled={isActive} />
+                <span className="text-[9px] font-bold uppercase tracking-widest">{item.label}</span>
+              </Link>
+            );
+          })}
+        </div>
+      </nav>
     </div>
   );
 }
