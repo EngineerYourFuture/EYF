@@ -15,8 +15,9 @@ const NAV_GROUPS: NavGroup[] = [
   {
     label: 'Home',
     items: [
-      { path: '/app/dashboard', label: 'Dashboard', icon: 'home' },
-      { path: '/app/career',    label: 'Career Path', icon: 'route' },
+      { path: '/app/dashboard', label: 'Dashboard',       icon: 'home' },
+      { path: '/app/daily',     label: 'Daily Challenge', icon: 'today' },
+      { path: '/app/career',    label: 'Career Path',     icon: 'route' },
     ],
   },
   {

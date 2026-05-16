@@ -43,6 +43,7 @@ import { CheatSheetsPage } from './pages/CheatSheetsPage';
 import { FlashcardsPage } from './pages/FlashcardsPage';
 import { StudyPlanPage } from './pages/StudyPlanPage';
 import { InterviewTrackerPage } from './pages/InterviewTrackerPage';
+import { DailyChallengePage } from './pages/DailyChallengePage';
 
 export default function App() {
   return (
@@ -201,6 +202,10 @@ export default function App() {
       <Route
         path="/app/tracker"
         element={<RequireAuth zone="public"><InterviewTrackerPage /></RequireAuth>}
+      />
+      <Route
+        path="/app/daily"
+        element={<RequireAuth zone="public"><DailyChallengePage /></RequireAuth>}
       />
       <Route
         path="/app/*"

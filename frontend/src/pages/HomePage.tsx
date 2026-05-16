@@ -149,6 +149,87 @@ const ENGINEERING_INSIGHTS = [
   { tip: "Rate limiting algorithms: token bucket (bursty, smooth average), sliding window log (precise, memory-intensive), fixed window counter (simple, edge-case spike at boundaries).", category: 'System Design', icon: 'architecture', color: 'text-cyan-400', bg: 'bg-cyan-500/10' },
 ];
 
+function DailyChallengeWidget() {
+  const todayKey = `eyf.daily.${new Date().toISOString().split('T')[0]}`;
+  const done = localStorage.getItem(todayKey) === 'done';
+
+  // Day-of-month maps to a challenge title/type (mirror DailyChallengePage logic)
+  const day = new Date().getDate() - 1;
+  const TITLES = [
+    { title: 'Two Sum', type: 'DSA', diff: 'easy' },
+    { title: 'Design a URL Shortener', type: 'System Design', diff: 'medium' },
+    { title: 'Tell Me About a Failure', type: 'Behavioral', diff: 'medium' },
+    { title: 'Valid Parentheses', type: 'DSA', diff: 'easy' },
+    { title: 'Top Earners per Department', type: 'SQL', diff: 'medium' },
+    { title: 'Maximum Subarray', type: 'DSA', diff: 'medium' },
+    { title: 'SQL Injection Defense', type: 'Security', diff: 'medium' },
+    { title: 'Climb Stairs', type: 'DSA', diff: 'easy' },
+    { title: 'Design a Parking Lot', type: 'OOP Design', diff: 'medium' },
+    { title: 'Reverse a Linked List', type: 'DSA', diff: 'easy' },
+    { title: 'Design a Rate Limiter', type: 'System Design', diff: 'medium' },
+    { title: 'Number of Islands', type: 'DSA', diff: 'medium' },
+    { title: 'Disagreement with a Manager', type: 'Behavioral', diff: 'hard' },
+    { title: 'Coin Change', type: 'DSA', diff: 'medium' },
+    { title: 'Users With No Orders', type: 'SQL', diff: 'easy' },
+    { title: 'Longest Substring Without Repeating', type: 'DSA', diff: 'medium' },
+    { title: 'XSS Attack Prevention', type: 'Security', diff: 'medium' },
+    { title: 'Binary Search', type: 'DSA', diff: 'easy' },
+    { title: 'Design a Notification System', type: 'System Design', diff: 'hard' },
+    { title: 'LRU Cache', type: 'DSA', diff: 'hard' },
+  ];
+  const today = TITLES[day % TITLES.length]!;
+  const DIFF_COLOR_MAP: Record<string, string> = { easy: 'text-green-400', medium: 'text-yellow-400', hard: 'text-red-400' };
+
+  // Compute streak
+  let streak = 0;
+  const now = new Date();
+  while (streak < 365) {
+    const d = new Date(now);
+    d.setDate(d.getDate() - streak);
+    if (localStorage.getItem(`eyf.daily.${d.toISOString().split('T')[0]}`) === 'done') streak++;
+    else break;
+  }
+
+  return (
+    <section className="mb-8">
+      <div className="bg-surface-container rounded-2xl p-6 flex items-center gap-5 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-[#E82127]/5 blur-[80px] rounded-full -mr-16 -mt-16 pointer-events-none" />
+        <div className="w-12 h-12 bg-[#E82127]/10 rounded-xl flex items-center justify-center flex-shrink-0">
+          <Icon name="today" size={24} className="text-[#E82127]" />
+        </div>
+        <div className="flex-1 min-w-0 relative">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-[#E82127]">Daily Challenge</span>
+            <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full bg-zinc-800 ${DIFF_COLOR_MAP[today.diff]}`}>{today.diff}</span>
+            <span className="text-[9px] font-bold text-zinc-600 uppercase">{today.type}</span>
+          </div>
+          <p className="text-white font-bold text-sm">{today.title}</p>
+        </div>
+        <div className="flex items-center gap-4 flex-shrink-0 relative">
+          {streak > 0 && (
+            <div className="flex items-center gap-1 text-orange-400">
+              <Icon name="local_fire_department" size={16} filled />
+              <span className="font-black text-sm">{streak}</span>
+            </div>
+          )}
+          <Link to="/app/daily">
+            <button
+              type="button"
+              className={`px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${
+                done
+                  ? 'bg-green-500/10 text-green-400 border border-green-500/20'
+                  : 'bg-[#E82127] text-white hover:brightness-110'
+              }`}
+            >
+              {done ? '✓ Done' : 'Solve Now'}
+            </button>
+          </Link>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function DailyInsightWidget() {
   const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000);
   const insight = ENGINEERING_INSIGHTS[dayOfYear % ENGINEERING_INSIGHTS.length]!;
@@ -536,6 +617,9 @@ export function HomePage() {
             ))}
           </div>
         </section>
+
+        {/* ── Daily Challenge ── */}
+        <DailyChallengeWidget />
 
         {/* ── What to Study Next ── */}
         <NextUpWidget xp={xp} streak={streak} modules={moduleList} />

@@ -30,6 +30,7 @@ const ALL_ITEMS: SearchResult[] = [
   { title: 'Flashcards',      subtitle: 'Spaced repetition review for OS, DBMS, DSA, Security', icon: 'style', path: '/app/flashcards', color: 'text-purple-400' },
   { title: 'Upgrade to Pro',    subtitle: 'Unlock all features',          icon: 'rocket_launch',     path: '/plans',              color: 'text-[#E82127]' },
   { title: 'Mock Interview',     subtitle: 'Behavioral, DSA, System Design simulators', icon: 'record_voice_over', path: '/app/mock-interview', color: 'text-orange-400' },
+  { title: 'Daily Challenge',   subtitle: 'One DSA/SD/behavioral problem per day — build a streak', icon: 'today', path: '/app/daily', color: 'text-[#E82127]' },
   { title: 'Study Plan',        subtitle: 'Personalized day-by-day interview prep schedule', icon: 'calendar_month', path: '/app/study-plan', color: 'text-indigo-400' },
   { title: 'Interview Tracker', subtitle: 'Log applications, track rounds, celebrate offers', icon: 'track_changes', path: '/app/tracker', color: 'text-emerald-400' },
   { title: 'Profile & Security',subtitle: 'Account settings & 2FA',      icon: 'manage_accounts',   path: '/app/profile',        color: 'text-zinc-400' },
