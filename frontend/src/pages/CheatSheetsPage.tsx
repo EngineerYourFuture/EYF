@@ -1127,6 +1127,383 @@ JOIN (SELECT DISTINCT user_id FROM events WHERE date BETWEEN d+7 AND d+13) w2
       },
     ],
   },
+
+  // ── Networks & HTTP ────────────────────────────────────────────────────────
+  {
+    id: 'networks',
+    title: 'Networks & HTTP',
+    icon: 'wifi',
+    color: 'text-cyan-400',
+    bg: 'bg-cyan-500/10',
+    desc: 'HTTP status codes, headers, TCP/IP, DNS, TLS — networking essentials for backend interviews',
+    cards: [
+      {
+        id: 'http-status',
+        title: 'HTTP Status Codes',
+        tags: ['HTTP', 'API', 'REST'],
+        content: 'Know these by heart. Returning 200 for an error or 500 when you should return 400 will get flagged in code review.',
+        code: `// 2xx Success
+200 OK           — successful GET, PUT, PATCH
+201 Created      — successful POST (include Location header)
+204 No Content   — successful DELETE
+
+// 3xx Redirection
+301 Moved Permanently   — URL changed forever (cached by browsers)
+302 Found               — temporary redirect (not cached)
+304 Not Modified        — client cache still valid (ETag / Last-Modified)
+
+// 4xx Client Errors
+400 Bad Request     — malformed syntax, invalid params
+401 Unauthorized    — not authenticated (missing/invalid token)
+403 Forbidden       — authenticated but lacks permission
+404 Not Found
+409 Conflict        — e.g. duplicate unique field
+422 Unprocessable   — semantically invalid payload
+429 Too Many Requests — rate limited
+
+// 5xx Server Errors
+500 Internal Server Error — unexpected exception
+502 Bad Gateway          — upstream service returned invalid response
+503 Service Unavailable  — server down / overwhelmed (use for circuit breaking)
+504 Gateway Timeout      — upstream too slow`,
+        tip: '401 = "who are you?", 403 = "I know who you are, but no." Never return 200 with { success: false } in the body.',
+      },
+      {
+        id: 'http-headers',
+        title: 'Key HTTP Headers',
+        tags: ['HTTP', 'Headers', 'Caching', 'CORS'],
+        content: 'Headers control caching, security, content negotiation, and CORS. Understanding them prevents 90% of frontend/backend integration bugs.',
+        code: `// Request headers
+Authorization: Bearer <jwt>
+Content-Type: application/json
+Accept: application/json, text/html;q=0.9
+Cache-Control: no-cache           // force revalidation
+If-None-Match: "abc123"           // ETag-based conditional GET
+X-Request-ID: uuid                // distributed tracing
+
+// Response headers
+Content-Type: application/json; charset=utf-8
+Cache-Control: public, max-age=3600, immutable   // CDN caching
+ETag: "abc123"                                    // version fingerprint
+Location: /api/users/42                           // 201 Created
+
+// Security headers (set on every response)
+Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+X-Content-Type-Options: nosniff
+X-Frame-Options: DENY
+Content-Security-Policy: default-src 'self'
+Permissions-Policy: geolocation=()
+
+// CORS (set by server when request is cross-origin)
+Access-Control-Allow-Origin: https://app.example.com
+Access-Control-Allow-Methods: GET, POST, PUT, DELETE
+Access-Control-Allow-Headers: Authorization, Content-Type
+Access-Control-Max-Age: 86400   // preflight cache duration`,
+        tip: 'CORS is enforced by the browser, not the server. Server just sends headers to tell the browser what to allow.',
+      },
+      {
+        id: 'rest-design',
+        title: 'REST API Design Rules',
+        tags: ['REST', 'API Design', 'URLs'],
+        content: 'Consistent URL patterns and HTTP verb usage are table-stakes for backend engineers. These conventions are expected in interviews.',
+        code: `// Resources: always plural nouns, never verbs
+GET    /api/users          — list all users (paginated)
+POST   /api/users          — create user
+GET    /api/users/:id      — get user by id
+PUT    /api/users/:id      — full replace user
+PATCH  /api/users/:id      — partial update user
+DELETE /api/users/:id      — delete user
+
+// Nested resources
+GET    /api/users/:id/orders       — orders for a user
+POST   /api/users/:id/orders       — create order for user
+GET    /api/users/:id/orders/:oid  — specific order
+
+// Filtering, sorting, pagination — use query strings
+GET /api/products?category=electronics&sort=price_asc&page=2&limit=20
+
+// Versioning — prefix the base URL
+GET /api/v1/users   (preferred over header versioning for discoverability)
+
+// Naming anti-patterns (never do these)
+POST /api/getUser      ← verb in URL
+POST /api/delete-user  ← verb in URL
+GET  /api/user         ← singular noun
+GET  /api/Users        ← camelCase / uppercase
+
+// Idempotency
+// GET, PUT, DELETE — idempotent (same request = same result)
+// POST — NOT idempotent (each call may create a new resource)
+// Use Idempotency-Key header for POST to make it safe to retry`,
+        tip: 'Interviewers notice if you say PATCH for partial update vs PUT for full replace — it signals attention to detail.',
+      },
+      {
+        id: 'tcp-ip-quick',
+        title: 'TCP/IP Quick Reference',
+        tags: ['TCP', 'UDP', 'Networking', 'DNS'],
+        content: 'The 3-way handshake, DNS resolution, and TCP vs UDP trade-offs appear constantly in backend and system design interviews.',
+        code: `// TCP 3-Way Handshake
+Client → Server : SYN (seq=x)
+Server → Client : SYN-ACK (seq=y, ack=x+1)
+Client → Server : ACK (ack=y+1)
+// Connection established — takes 1 RTT before data can flow
+
+// TCP vs UDP
+//          TCP                    UDP
+// Reliable  ✅ guaranteed          ❌ no guarantee
+// Ordered   ✅ in-order delivery   ❌ out-of-order OK
+// Speed     slower                 ✅ faster (no handshake)
+// Use case  HTTP, file transfer    DNS, video streaming, gaming, QUIC
+
+// DNS Resolution (recursive)
+// Browser cache → OS cache → Local Resolver → Root → TLD → Authoritative
+1. Browser: "what's the IP for api.example.com?"
+2. Local resolver (ISP or 8.8.8.8): not in cache
+3. Root nameserver: "try .com TLD server"
+4. .com TLD: "try ns1.example.com" (authoritative NS)
+5. ns1.example.com: "api.example.com → 1.2.3.4, TTL=300s"
+// Total: 4 hops; cached at each layer for TTL duration
+
+// TLS adds ~1 RTT (TLS 1.3) before HTTPS data flows
+// QUIC (HTTP/3) eliminates the TCP handshake — 0-RTT resumption`,
+        tip: 'DNS TTL is the lever for zero-downtime deployments: low TTL before a cutover, high TTL for stability.',
+      },
+      {
+        id: 'websocket-sse',
+        title: 'WebSocket vs SSE vs Long Polling',
+        tags: ['Real-time', 'WebSocket', 'SSE'],
+        content: 'Choosing the right real-time transport is a common system design sub-question.',
+        code: `//            WebSocket          SSE              Long Polling
+// Direction   bidirectional      server→client    server→client
+// Protocol    WS (over TCP)      HTTP/1.1+        HTTP
+// Overhead    low (binary frame) medium           high (new conn/req)
+// Proxy/FW    ⚠️ may block        ✅ HTTP works    ✅ HTTP works
+// Reconnect   manual             automatic        automatic
+// Use case    chat, games        feed, notifs     simple fallback
+
+// WebSocket (Node.js ws library)
+const ws = new WebSocket('wss://api.example.com/ws');
+ws.onmessage = (e) => console.log(JSON.parse(e.data));
+ws.send(JSON.stringify({ type: 'PING' }));
+
+// Server-Sent Events (SSE) — server push only
+const es = new EventSource('/api/stream');
+es.onmessage = (e) => console.log(e.data);
+// Server sends: "data: hello\\n\\n"
+
+// SSE response headers
+Content-Type: text/event-stream
+Cache-Control: no-cache
+Connection: keep-alive
+
+// Scaling: WebSocket requires sticky sessions or Redis pub/sub
+// SSE: same issue — connections are per-server
+// Both: put a consistent-hash load balancer upstream`,
+        tip: 'SSE is simpler than WebSocket for server-to-client push. Prefer SSE unless you need client→server messages.',
+      },
+    ],
+  },
+
+  // ── Git & CLI ──────────────────────────────────────────────────────────────
+  {
+    id: 'git',
+    title: 'Git & CLI Essentials',
+    icon: 'merge',
+    color: 'text-orange-400',
+    bg: 'bg-orange-500/10',
+    desc: 'Git workflows, conflict resolution, rebase, and essential shell commands for every engineer',
+    cards: [
+      {
+        id: 'git-basics',
+        title: 'Git Core Workflow',
+        tags: ['Git', 'Version Control'],
+        content: 'The foundational git commands you use every day. Understand the staging area (index) model — it\'s what makes git powerful.',
+        code: `# The three trees: working directory → index (stage) → HEAD
+
+git status                    # what changed?
+git diff                      # unstaged changes
+git diff --staged             # staged changes (ready to commit)
+git add -p                    # interactive: stage hunks, not whole files
+
+git commit -m "feat: add user auth"
+git commit --amend            # modify last commit (before push only!)
+
+# Branch operations
+git checkout -b feature/auth  # create + switch
+git switch -c feature/auth    # modern syntax
+git branch -d feature/auth    # delete local branch
+git push origin -d feature/auth # delete remote
+
+# Undoing things
+git restore file.ts           # discard unstaged changes in file
+git restore --staged file.ts  # unstage file (keeps changes)
+git revert HEAD               # safe: creates new "undo" commit
+git reset --hard HEAD~1       # DANGER: destroys last commit + changes
+
+# Stash
+git stash push -m "wip: auth refactor"
+git stash list
+git stash pop                 # apply latest + remove
+git stash apply stash@{2}     # apply specific, keep stash`,
+        tip: 'Never force-push to main. Use git revert for shared branches — it\'s safe and auditable.',
+      },
+      {
+        id: 'git-rebase',
+        title: 'Rebase & Merge Strategies',
+        tags: ['Git', 'Rebase', 'Merge'],
+        content: 'Rebase rewrites history for a clean linear log; merge preserves history with merge commits. Know when to use each.',
+        code: `# Merge vs Rebase
+# Merge: preserves branch history, creates merge commit
+git checkout main
+git merge feature/auth       # ← creates merge commit
+# Result: main → A → B → C → M(merge)
+#                          ↗ feature: X → Y ↗
+
+# Rebase: replays commits on top of target — linear history
+git checkout feature/auth
+git rebase main              # replay X, Y on top of main's latest C
+# Result: main → A → B → C → X' → Y'  (no merge commit)
+
+# Interactive rebase (clean up before PR)
+git rebase -i HEAD~3
+# Commands: pick / reword / squash / fixup / drop
+
+# Squash multiple commits into one
+git rebase -i HEAD~4
+# Change all but first to "squash" or "s"
+
+# Resolve rebase conflict
+git rebase main              # conflict!
+# Edit conflicted files
+git add resolved-file.ts
+git rebase --continue        # not git commit!
+git rebase --abort           # bail out
+
+# Fast-forward merge (when feature is ahead of main)
+git merge --ff-only feature/auth   # fails if diverged
+git merge --no-ff feature/auth     # force merge commit (for audit trail)`,
+        tip: 'Team convention: squash all WIP commits before merging a PR. Use rebase to update, merge to integrate.',
+      },
+      {
+        id: 'git-advanced',
+        title: 'Useful Git Commands',
+        tags: ['Git', 'Productivity', 'Debug'],
+        content: 'Commands that separate intermediate from advanced git users. These come up in technical interviews surprisingly often.',
+        code: `# Find which commit introduced a bug
+git bisect start
+git bisect bad HEAD           # current is broken
+git bisect good v1.2.0        # this version worked
+# git tests each commit, you mark good/bad:
+git bisect good / git bisect bad
+# Ends with: "abc123 is the first bad commit"
+git bisect reset
+
+# Cherry-pick: apply a commit from another branch
+git cherry-pick abc123        # single commit
+git cherry-pick abc123..def456 # range
+
+# View file history
+git log --follow -p -- src/auth/login.ts   # with diffs
+git blame src/auth/login.ts                 # line-by-line authorship
+git log --all --oneline --graph             # visual branch tree
+
+# Find deleted code
+git log --all --full-history -- '*/deleted-file.ts'
+git show <commit>:path/to/deleted-file.ts
+
+# Worktrees (work on two branches simultaneously)
+git worktree add ../hotfix hotfix/payment-bug
+# cd ../hotfix, fix bug, come back — no stashing needed
+
+# Config shortcuts
+git config --global alias.st status
+git config --global alias.lg "log --oneline --graph --all"
+git config --global core.autocrlf input   # LF on checkout (Mac/Linux)`,
+        tip: 'git bisect automates binary search over commits — finding a regression in 1000 commits takes 10 steps.',
+      },
+      {
+        id: 'cli-essentials',
+        title: 'Shell / CLI Essentials',
+        tags: ['Linux', 'Shell', 'Bash'],
+        content: 'File operations, process management, and text processing commands every backend engineer must know.',
+        code: `# File & Directory
+ls -la                        # list with hidden files + permissions
+find . -name "*.ts" -newer package.json
+find . -type f -size +10M     # files > 10MB
+du -sh *                      # directory sizes
+chmod 755 script.sh           # rwxr-xr-x
+chown user:group file
+
+# Text processing (the big 4)
+grep -rn "apiRequest" src/    # recursive search with line numbers
+grep -v "node_modules"        # exclude pattern
+awk '{print $1, $3}' log.txt  # print columns 1 and 3
+sed 's/foo/bar/g' file.txt    # global replace
+
+# Pipes & redirection
+cat access.log | grep "404" | wc -l              # count 404s
+cat access.log | awk '{print $1}' | sort | uniq -c | sort -rn | head -10  # top IPs
+
+# Process management
+ps aux | grep node            # find node processes
+kill -9 PID                   # force kill
+lsof -i :3000                 # what's on port 3000?
+top / htop                    # live process monitor
+
+# Networking
+curl -v https://api.example.com/health
+curl -X POST -H "Content-Type: application/json" -d '{"key":"val"}' https://api
+netstat -tuln                 # listening ports
+ping / traceroute / nslookup api.example.com
+
+# SSH & SCP
+ssh -i ~/.ssh/key.pem user@host
+scp -i key.pem local.txt user@host:/remote/path
+ssh-keygen -t ed25519 -C "your@email.com"`,
+        tip: 'Master: grep -rn, awk, sed, and pipe chaining. They\'re more useful than most specialized tools for debugging.',
+      },
+      {
+        id: 'docker-cli',
+        title: 'Docker CLI Quick Reference',
+        tags: ['Docker', 'Containers', 'CLI'],
+        content: 'The Docker commands you\'ll actually use every day in development and debugging.',
+        code: `# Image operations
+docker build -t myapp:v1.0 .
+docker build --no-cache -t myapp:latest .
+docker pull node:20-alpine
+docker images                 # list local images
+docker rmi myapp:old          # remove image
+
+# Container lifecycle
+docker run -d -p 3000:3000 --name api myapp:v1.0
+docker run --rm -it node:20 bash          # interactive + auto-remove
+docker run -v $(pwd):/app -w /app node:20 npm test  # mount + run
+
+docker ps                     # running containers
+docker ps -a                  # all containers
+docker stop api && docker rm api
+docker logs -f api            # follow logs
+docker logs --tail 100 api    # last 100 lines
+docker exec -it api sh        # shell into running container
+
+# Docker Compose
+docker compose up -d          # start services (detached)
+docker compose down           # stop + remove containers
+docker compose logs -f api    # follow service logs
+docker compose exec db psql -U postgres
+
+# Cleanup
+docker system prune -a        # remove all unused: images, containers, networks
+docker volume prune           # remove unused volumes
+
+# Inspect
+docker inspect api            # full config as JSON
+docker stats                  # live CPU / memory per container
+docker network ls             # list networks`,
+        tip: 'docker exec -it <container> sh is your debugger — get inside any running container to inspect its state.',
+      },
+    ],
+  },
 ];
 
 // ─── Component ────────────────────────────────────────────────────────────────
