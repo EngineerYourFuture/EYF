@@ -1,5 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { RequireAuth } from './components/RequireAuth';
+import { UserProvider } from './contexts/UserContext';
+import { XPToastContainer } from './components/XPToast';
 
 import { LandingPage } from './pages/LandingPage';
 import { LoginPage } from './pages/LoginPage';
@@ -38,6 +40,8 @@ import { LeaderboardPage } from './pages/LeaderboardPage';
 
 export default function App() {
   return (
+    <UserProvider>
+      <XPToastContainer />
     <Routes>
       {/* Public routes */}
       <Route path="/" element={<LandingPage />} />
@@ -212,5 +216,6 @@ export default function App() {
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    </UserProvider>
   );
 }
