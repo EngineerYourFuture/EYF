@@ -4,6 +4,7 @@ import { AppShell } from '../components/AppShell';
 import { Icon } from '../components/Icon';
 import { apiRequest } from '../lib/api';
 import { getSession } from '../lib/session';
+import { useUser } from '../contexts/UserContext';
 
 interface CareerProfile {
   track: string;
@@ -90,6 +91,7 @@ const PLAN_COLOR: Record<string, string> = {
 
 export function CareerPathPage() {
   const session = getSession();
+  const { fireXP } = useUser();
   const [profile, setProfile] = useState<CareerProfile | null>(null);
   const [paths, setPaths] = useState<LearningPath[]>(STATIC_PATHS);
   const [activeTrack, setActiveTrack] = useState('all');
@@ -130,6 +132,7 @@ export function CareerPathPage() {
     try {
       await apiRequest(`/career/paths/${slug}/enroll`, { token: session.accessToken, method: 'POST', body: {} });
       setPaths((prev) => prev.map((p) => p.slug === slug ? { ...p, enrolled: true } : p));
+      fireXP(20, 'Enrolled in learning path!');
     } catch {
       // ignore
     }

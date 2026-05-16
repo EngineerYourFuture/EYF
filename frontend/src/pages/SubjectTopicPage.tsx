@@ -3,6 +3,9 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { AppShell } from '../components/AppShell';
 import { Icon } from '../components/Icon';
 import { SUBJECT_DATA, findTopic } from '../data/subjects';
+import { apiRequest } from '../lib/api';
+import { getSession } from '../lib/session';
+import { useUser } from '../contexts/UserContext';
 
 /* ------------------------------------------------------------------ */
 /* Static topic content keyed by topic id                              */
@@ -227,6 +230,8 @@ function solve(input) {
 export function SubjectTopicPage() {
   const { subjectId, topicId } = useParams<{ subjectId: string; topicId: string }>();
   const navigate = useNavigate();
+  const { fireXP } = useUser();
+  const session = getSession();
   const [completed, setCompleted] = useState(false);
 
   const result = subjectId && topicId ? findTopic(subjectId, topicId) : null;
@@ -257,8 +262,16 @@ export function SubjectTopicPage() {
 
   const handleMarkComplete = () => {
     setCompleted(true);
+    fireXP(15, `"${topic.title}" completed!`);
+    if (session?.accessToken && subjectId && topicId) {
+      apiRequest(`/subjects/${subjectId}/topics/${topicId}/complete`, {
+        method: 'POST',
+        token: session.accessToken,
+        body: {},
+      }).catch(() => {});
+    }
     if (nextTopic) {
-      setTimeout(() => navigate(`/app/subjects/${subjectId}/${nextTopic.id}`), 400);
+      setTimeout(() => navigate(`/app/subjects/${subjectId}/${nextTopic.id}`), 500);
     }
   };
 
