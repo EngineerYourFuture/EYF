@@ -4,6 +4,7 @@ import Editor from '@monaco-editor/react';
 import { Icon } from '../components/Icon';
 import { apiRequest } from '../lib/api';
 import { getSession } from '../lib/session';
+import { useUser } from '../contexts/UserContext';
 
 interface Problem {
   id: string;
@@ -95,6 +96,7 @@ type OutputTab = 'output' | 'verdict';
 export function ProblemDetailPage() {
   const { id } = useParams<{ id: string }>();
   const session = getSession();
+  const { fireXP, refresh } = useUser();
 
   const [problem, setProblem] = useState<Problem | null>(null);
   const [loading, setLoading] = useState(true);
@@ -153,6 +155,11 @@ export function ProblemDetailPage() {
         body: { code, language },
       });
       setSubmitResult(result);
+      if (result.verdict === 'accepted') {
+        const xpEarned = problem?.difficulty === 'hard' ? 100 : problem?.difficulty === 'medium' ? 60 : 30;
+        fireXP(xpEarned, `${problem?.title ?? 'Problem'} solved!`);
+        refresh();
+      }
     } catch {
       setSubmitResult({ submissionId: '', verdict: 'error', passed: 0, total: 0, testResults: [], runtimeMs: 0, memoryKb: 0 });
     } finally {

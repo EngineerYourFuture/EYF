@@ -1,9 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
+import Editor from '@monaco-editor/react';
 import { AppShell } from '../components/AppShell';
 import { Icon } from '../components/Icon';
 import { apiRequest } from '../lib/api';
 import { getSession } from '../lib/session';
+import { useUser } from '../contexts/UserContext';
 
 interface Pattern {
   id: string;
@@ -78,6 +80,297 @@ const STATIC_SOLID: SolidLesson[] = [
   { id: 's5', principleKey: 'dip', letter: 'D', title: 'Dependency Inversion Principle', description: 'High-level modules should not depend on low-level modules. Both should depend on abstractions. Abstractions should not depend on details.' },
 ];
 
+const PATTERN_CODE: Record<string, string> = {
+  singleton: `// Singleton — one instance, global access point
+class Database {
+  private static instance: Database | null = null;
+  private constructor(private url: string) {}
+
+  static getInstance(): Database {
+    if (!Database.instance) {
+      Database.instance = new Database(process.env.DB_URL!);
+    }
+    return Database.instance;
+  }
+
+  query(sql: string) { /* ... */ }
+}
+
+// Usage
+const db1 = Database.getInstance();
+const db2 = Database.getInstance();
+console.log(db1 === db2); // true — same instance`,
+
+  'factory-method': `// Factory Method — subclasses decide which object to create
+abstract class Notifier {
+  abstract createChannel(): NotificationChannel;
+
+  notify(message: string): void {
+    const channel = this.createChannel();
+    channel.send(message);
+  }
+}
+
+class EmailNotifier extends Notifier {
+  createChannel() { return new EmailChannel(); }
+}
+class SMSNotifier extends Notifier {
+  createChannel() { return new SMSChannel(); }
+}
+
+// Usage — callers work with Notifier, not the concrete channel
+const notifier: Notifier = new EmailNotifier();
+notifier.notify('Your OTP is 123456');`,
+
+  observer: `// Observer — publish/subscribe decoupling
+interface Observer { update(event: string, data: unknown): void }
+
+class EventBus {
+  private listeners = new Map<string, Observer[]>();
+
+  subscribe(event: string, observer: Observer) {
+    const list = this.listeners.get(event) ?? [];
+    this.listeners.set(event, [...list, observer]);
+  }
+
+  publish(event: string, data: unknown) {
+    this.listeners.get(event)?.forEach((o) => o.update(event, data));
+  }
+}
+
+// Usage
+const bus = new EventBus();
+bus.subscribe('user:login', { update: (_, d) => console.log('Audit:', d) });
+bus.publish('user:login', { userId: '42', ip: '1.2.3.4' });`,
+
+  strategy: `// Strategy — swap algorithms at runtime
+interface SortStrategy {
+  sort(data: number[]): number[];
+}
+
+class QuickSort implements SortStrategy {
+  sort(data: number[]) { return [...data].sort((a, b) => a - b); }
+}
+class BubbleSort implements SortStrategy {
+  sort(data: number[]) {
+    const arr = [...data];
+    for (let i = 0; i < arr.length; i++)
+      for (let j = 0; j < arr.length - i - 1; j++)
+        if (arr[j]! > arr[j + 1]!) [arr[j], arr[j + 1]] = [arr[j + 1]!, arr[j]!];
+    return arr;
+  }
+}
+
+class Sorter {
+  constructor(private strategy: SortStrategy) {}
+  setStrategy(s: SortStrategy) { this.strategy = s; }
+  sort(data: number[]) { return this.strategy.sort(data); }
+}
+
+const sorter = new Sorter(new QuickSort());
+console.log(sorter.sort([3, 1, 4, 1, 5])); // [1, 1, 3, 4, 5]`,
+
+  decorator: `// Decorator — add behaviour without subclassing
+interface Coffee { cost(): number; description(): string }
+
+class Espresso implements Coffee {
+  cost() { return 2.5; }
+  description() { return 'Espresso'; }
+}
+
+class MilkDecorator implements Coffee {
+  constructor(private coffee: Coffee) {}
+  cost() { return this.coffee.cost() + 0.5; }
+  description() { return this.coffee.description() + ', Milk'; }
+}
+
+class SyrupDecorator implements Coffee {
+  constructor(private coffee: Coffee) {}
+  cost() { return this.coffee.cost() + 0.75; }
+  description() { return this.coffee.description() + ', Syrup'; }
+}
+
+// Usage — compose at runtime
+let drink: Coffee = new Espresso();
+drink = new MilkDecorator(drink);
+drink = new SyrupDecorator(drink);
+console.log(drink.description()); // Espresso, Milk, Syrup
+console.log(drink.cost());        // 3.75`,
+};
+
+const PATTERN_USE_CASES: Record<string, { when: string[]; avoid: string[]; realWorld: string[] }> = {
+  singleton: {
+    when: ['Database connection pool', 'Logger / telemetry client', 'Configuration manager', 'Cache manager'],
+    avoid: ['Global mutable state (prefer DI)', 'When unit testing (hard to mock)', 'Multi-threaded code without sync'],
+    realWorld: ['Prisma Client instance', 'Winston logger', 'Redux store', 'Webpack compiler'],
+  },
+  'factory-method': {
+    when: ['Creating objects whose exact type is unknown ahead of time', 'Frameworks where plugins add new types', 'When subclasses should control object creation'],
+    avoid: ['When there\'s only one product type', 'Simple object creation — just use `new`'],
+    realWorld: ['React.createElement', 'Express Router', 'ORM Model factories'],
+  },
+  observer: {
+    when: ['Event-driven systems', 'Decoupling publishers from subscribers', 'Real-time UI updates', 'Domain event propagation'],
+    avoid: ['When subscribers need guaranteed execution order', 'Synchronous pipelines where callbacks suffice'],
+    realWorld: ['EventEmitter (Node.js)', 'RxJS Observables', 'React state / Redux', 'WebSocket handlers'],
+  },
+  strategy: {
+    when: ['Multiple algorithms for the same task', 'Avoiding large if/switch on behavior', 'Runtime algorithm switching'],
+    avoid: ['When only one algorithm will ever exist', 'Very simple logic — just a function is enough'],
+    realWorld: ['Passport.js authentication strategies', 'Payment gateways (Stripe/Razorpay)', 'Sorting/compression algorithms'],
+  },
+  decorator: {
+    when: ['Adding behaviour without modifying original class', 'Combining features at runtime', 'Cross-cutting concerns (logging, caching, auth)'],
+    avoid: ['When you need to inspect the decorator stack', 'Deeply nested decorators become hard to debug'],
+    realWorld: ['NestJS @UseGuards(), @Interceptors()', 'Express middleware chain', 'TypeScript decorators (@Injectable)'],
+  },
+};
+
+interface PatternPanelProps {
+  readonly pattern: Pattern;
+  readonly onClose: () => void;
+  readonly onComplete: (key: string) => void;
+}
+
+function PatternPanel({ pattern, onClose, onComplete }: PatternPanelProps) {
+  const code = PATTERN_CODE[pattern.patternKey] ?? `// ${pattern.name} pattern\n// Content coming soon...`;
+  const useCases = PATTERN_USE_CASES[pattern.patternKey];
+  const catMeta = CATEGORY_META[pattern.category] ?? { icon: 'category', color: 'text-zinc-400', label: pattern.category };
+  const isDone = pattern.status === 'completed';
+  const [tab, setTab] = useState<'overview' | 'code' | 'usage'>('overview');
+
+  return (
+    <div className="fixed inset-0 z-50 flex">
+      <div className="flex-1 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="w-full max-w-2xl bg-[#111] border-l border-white/10 flex flex-col overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center gap-4 px-6 py-5 border-b border-white/8 flex-shrink-0">
+          <div className={`w-10 h-10 rounded-xl bg-zinc-800 flex items-center justify-center ${catMeta.color}`}>
+            <Icon name={catMeta.icon} size={20} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className={`text-[10px] font-black uppercase tracking-widest ${catMeta.color}`}>{catMeta.label}</p>
+            <h2 className="text-lg font-black text-white truncate">{pattern.name}</h2>
+          </div>
+          <button onClick={onClose} className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white transition-colors flex-shrink-0">
+            <Icon name="close" size={18} />
+          </button>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex gap-1 px-6 pt-4 flex-shrink-0">
+          {(['overview', 'code', 'usage'] as const).map((t) => (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              className={`px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${
+                tab === t ? 'bg-white/10 text-white' : 'text-zinc-600 hover:text-zinc-400'
+              }`}
+            >
+              {t}
+            </button>
+          ))}
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
+          {tab === 'overview' && (
+            <>
+              <p className="text-zinc-300 text-sm leading-relaxed">{pattern.description}</p>
+              <div className="bg-zinc-900 rounded-xl p-4 space-y-2">
+                <p className="text-[10px] font-black uppercase tracking-widest text-zinc-600 mb-3">Key Characteristics</p>
+                {[
+                  'Encapsulates object creation',
+                  'Promotes loose coupling',
+                  'Follows Open/Closed Principle',
+                  'Enables runtime flexibility',
+                ].map((c) => (
+                  <div key={c} className="flex items-center gap-2 text-sm text-zinc-400">
+                    <Icon name="check_circle" size={14} className="text-green-400 flex-shrink-0" filled />
+                    {c}
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+
+          {tab === 'code' && (
+            <div className="rounded-xl overflow-hidden border border-white/8" style={{ height: '420px' }}>
+              <Editor
+                language="typescript"
+                value={code}
+                theme="vs-dark"
+                options={{
+                  readOnly: true,
+                  minimap: { enabled: false },
+                  fontSize: 13,
+                  lineNumbers: 'on',
+                  scrollBeyondLastLine: false,
+                  wordWrap: 'on',
+                  padding: { top: 16 },
+                }}
+              />
+            </div>
+          )}
+
+          {tab === 'usage' && useCases && (
+            <div className="space-y-5">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-widest text-green-400 mb-3">✓ Use When</p>
+                <ul className="space-y-1.5">
+                  {useCases.when.map((w) => (
+                    <li key={w} className="text-sm text-zinc-300 flex items-start gap-2">
+                      <Icon name="check_circle" size={14} className="text-green-400 flex-shrink-0 mt-0.5" filled />
+                      {w}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-widest text-red-400 mb-3">✗ Avoid When</p>
+                <ul className="space-y-1.5">
+                  {useCases.avoid.map((a) => (
+                    <li key={a} className="text-sm text-zinc-400 flex items-start gap-2">
+                      <Icon name="remove_circle" size={14} className="text-red-400 flex-shrink-0 mt-0.5" filled />
+                      {a}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-widest text-blue-400 mb-3">Real World Usage</p>
+                <div className="flex flex-wrap gap-2">
+                  {useCases.realWorld.map((r) => (
+                    <span key={r} className="bg-blue-500/10 border border-blue-500/20 text-blue-300 text-xs px-3 py-1 rounded-full font-medium">{r}</span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="px-6 py-5 border-t border-white/8 flex-shrink-0">
+          {isDone ? (
+            <div className="flex items-center gap-2 justify-center text-green-400 font-black text-sm">
+              <Icon name="check_circle" size={18} filled />
+              Completed! +50 XP earned
+            </div>
+          ) : (
+            <button
+              onClick={() => onComplete(pattern.patternKey)}
+              className="w-full bg-[#E82127] text-white font-black uppercase tracking-widest text-xs py-4 rounded-full hover:brightness-110 transition-all active:scale-95 shadow-lg shadow-red-900/30 flex items-center justify-center gap-2"
+            >
+              <Icon name="check" size={16} />
+              Mark as Complete · +50 XP
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 const RESOURCES = [
   { icon: 'menu_book', title: 'UML Diagrams', desc: 'Class, sequence, state, and component diagrams for all 23 patterns', tag: 'Visual' },
   { icon: 'code', title: 'Code Examples', desc: 'Java, Python, TypeScript implementations for every pattern', tag: 'Code' },
@@ -87,10 +380,12 @@ const RESOURCES = [
 
 export function OOPPage() {
   const session = getSession();
+  const { fireXP } = useUser();
   const [patterns, setPatterns] = useState<Pattern[]>(STATIC_PATTERNS);
   const [solid, setSolid] = useState<SolidLesson[]>(STATIC_SOLID);
   const [progress, setProgress] = useState<OOPProgress | null>(null);
   const [activeCategory, setActiveCategory] = useState<string>('all');
+  const [selectedPattern, setSelectedPattern] = useState<Pattern | null>(null);
 
   useEffect(() => {
     if (!session?.accessToken) return;
@@ -105,6 +400,19 @@ export function OOPPage() {
       .catch(() => {});
   }, [session?.accessToken]);
 
+  const handleComplete = useCallback((patternKey: string) => {
+    if (!session?.accessToken) return;
+    apiRequest(`/oop/patterns/${patternKey}/progress`, {
+      method: 'POST',
+      body: { status: 'completed' },
+      token: session.accessToken,
+    }).catch(() => {});
+    setPatterns((prev) => prev.map((p) => p.patternKey === patternKey ? { ...p, status: 'completed' } : p));
+    setProgress((prev) => prev ? { ...prev, completed: prev.completed + 1, pct: Math.round(((prev.completed + 1) / prev.total) * 100) } : prev);
+    if (selectedPattern?.patternKey === patternKey) setSelectedPattern((p) => p ? { ...p, status: 'completed' } : p);
+    fireXP(50, `${patterns.find((p) => p.patternKey === patternKey)?.name ?? 'Pattern'} mastered!`);
+  }, [session?.accessToken, fireXP, patterns, selectedPattern]);
+
   const filtered = activeCategory === 'all' ? patterns : patterns.filter((p) => p.category === activeCategory);
   const categories = ['all', 'creational', 'structural', 'behavioral'];
 
@@ -115,6 +423,13 @@ export function OOPPage() {
 
   return (
     <AppShell>
+      {selectedPattern && (
+        <PatternPanel
+          pattern={selectedPattern}
+          onClose={() => setSelectedPattern(null)}
+          onComplete={handleComplete}
+        />
+      )}
       <div className="pt-8 max-w-7xl mx-auto">
         {/* Hero */}
         <div className="mb-12 p-10 bg-surface-container rounded-2xl relative overflow-hidden">
@@ -207,7 +522,12 @@ export function OOPPage() {
               const catMeta = CATEGORY_META[p.category] ?? { icon: 'category', color: 'text-zinc-400', label: p.category };
               const locked = p.planAccess === 'pro' || p.planAccess === 'elite';
               return (
-                <div key={p.id} className={`bg-surface-container rounded-xl p-6 transition-all group ${locked ? 'opacity-70' : 'hover:bg-surface-container-high'}`}>
+                <button
+                  type="button"
+                  key={p.id}
+                  onClick={() => !locked && setSelectedPattern(p)}
+                  className={`w-full text-left bg-surface-container rounded-xl p-6 transition-all group ${locked ? 'opacity-70 cursor-default' : 'hover:bg-surface-container-high hover:scale-[1.01] cursor-pointer'}`}
+                >
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-2">
                       <Icon name={catMeta.icon} className={catMeta.color} size={18} />
@@ -221,17 +541,17 @@ export function OOPPage() {
                   <h3 className="text-base font-bold text-on-surface mb-2">{p.name}</h3>
                   <p className="text-xs text-on-surface-variant leading-relaxed mb-4 line-clamp-2">{p.description}</p>
                   {locked ? (
-                    <Link to="/plans">
+                    <Link to="/plans" onClick={(e) => e.stopPropagation()}>
                       <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 hover:text-primary-container flex items-center gap-1">
                         <Icon name="upgrade" size={12} />Upgrade to access
                       </span>
                     </Link>
                   ) : (
-                    <button className="text-[10px] font-bold uppercase tracking-widest text-blue-400 hover:text-blue-300 flex items-center gap-1">
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-blue-400 group-hover:text-blue-300 flex items-center gap-1">
                       Study Pattern <Icon name="arrow_forward" size={12} />
-                    </button>
+                    </span>
                   )}
-                </div>
+                </button>
               );
             })}
           </div>
