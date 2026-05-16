@@ -730,6 +730,403 @@ localStorage (XSS risk — avoid for sensitive tokens)
       },
     ],
   },
+  {
+    id: 'behavioral',
+    title: 'Behavioral STAR Bank',
+    icon: 'psychology',
+    color: 'text-green-400',
+    bg: 'bg-green-500/10',
+    desc: 'STAR-format answer templates for every behavioral category',
+    cards: [
+      {
+        id: 'star-framework',
+        title: 'STAR Framework',
+        tags: ['Framework', 'Structure'],
+        content: 'Every behavioral answer should follow STAR. Spend 20% on S+T, 60% on Action (YOUR actions, not the team), 20% on Result with metrics.',
+        code: `S — Situation: Set context in 1-2 sentences
+         "At my internship at [Company], we had a production outage
+          that was silently dropping 15% of payment transactions."
+
+T — Task: Your responsibility in that situation
+         "I was the only backend engineer on call that weekend
+          and had to diagnose and fix it within our 4-hour SLA."
+
+A — Action: 3-4 specific actions YOU took (avoid "we")
+         "I → added structured logging to the payment service
+          I → isolated the bug to a race condition in our retry logic
+          I → wrote a targeted fix with a feature flag for safe rollout
+          I → wrote a postmortem and proposed a circuit breaker pattern"
+
+R — Result: Quantified outcome + what you learned
+         "Restored full functionality in 2h 40min, under SLA.
+          0 customer complaints. The circuit breaker was adopted
+          org-wide and prevented 3 similar incidents in the next quarter."`,
+        tip: 'Rule: Every result must have a number. "Impact" without metrics is just a story.',
+      },
+      {
+        id: 'conflict',
+        title: 'Conflict & Disagreement',
+        tags: ['Conflict', 'Leadership'],
+        content: 'Show that you resolve disagreement through data and empathy, not authority or avoidance. Interviewers want to see that you can hold a position AND collaborate.',
+        code: `Template:
+"I disagreed with [person/decision] about [topic].
+ I gathered [evidence/data] to support my position.
+ I scheduled a 1:1 to understand their perspective first.
+ We agreed on [outcome] — either I convinced them, they convinced me,
+ or we found a third option neither of us had considered."
+
+Strong signals:
+✓ Disagreed with manager/senior — and were RIGHT
+✓ Changed your mind when shown better data
+✓ Escalated appropriately when stuck
+✗ "I always defer to my manager"
+✗ "I pushed until they agreed"
+
+Example angles:
+- Tech choice: REST vs gRPC for internal service
+- Scope: pushing back on shipping without tests
+- Timeline: saying no to an unrealistic deadline`,
+        tip: 'Amazon (LP: Have Backbone) and Meta love this question. Have 2 strong examples ready.',
+      },
+      {
+        id: 'failure',
+        title: 'Failure & Mistakes',
+        tags: ['Failure', 'Growth'],
+        content: 'This is a trust question. Interviewers want to see self-awareness, ownership, and that you extracted a systemic insight, not just a personal one.',
+        code: `What NOT to say:
+✗ "I work too hard" / "I'm a perfectionist" (non-answers)
+✗ Blame the team, requirements, or tooling
+✗ A failure with no clear personal responsibility
+
+Strong structure:
+1. Own it: "I made the decision to [X]"
+2. Consequence: "This caused [specific harm]"
+3. Why: "I underestimated [Y] / didn't validate [Z]"
+4. Fix: "Immediately, I [A]. Long term, I proposed [B]"
+5. Systemic learning: "We now [process change] so this can't recur"
+
+Example: Shipped a migration without a rollback plan
+  → caused 40 min of elevated error rate
+  → added mandatory rollback criteria to our deployment checklist
+  → now a team-wide standard, not just my behavior`,
+        tip: 'The best failure stories involve a real impact AND a process that changed because of you.',
+      },
+      {
+        id: 'impact',
+        title: 'Most Impactful Contribution',
+        tags: ['Impact', 'Metrics'],
+        content: 'The impact question. Your answer should make the interviewer think "this person ships real things." Anchor everything in business value.',
+        code: `Levels of impact (weakest → strongest):
+1. "I built the feature" — code complete, nothing else
+2. "I shipped the feature" — in prod, users using it
+3. "The feature had X% adoption in first 30 days"
+4. "The feature saved $Y/month / improved retention by Z%"
+5. "The feature changed the team's approach to [problem]"
+
+Metrics that interviewers love:
+- Latency: "p99 dropped from 800ms to 180ms"
+- Cost: "Reduced infra spend by $12K/month"
+- Scale: "Now handles 10x the previous peak load"
+- Users: "5,000 MAU in first month"
+- Time: "Saved 3 hours/week per engineer"
+
+Template:
+"The highest-impact thing I shipped was [X].
+ The problem: [business context + why it mattered].
+ My approach: [key technical/design decisions].
+ Result: [metric 1, metric 2, what changed].
+ Why it was hard: [constraint or insight that made it non-trivial]."`,
+        tip: 'Prepare 3 impact stories at different scales: small (days), medium (weeks), large (months).',
+      },
+      {
+        id: 'leadership',
+        title: 'Leadership Without Authority',
+        tags: ['Leadership', 'Influence'],
+        content: 'Especially critical for senior roles. Shows you can drive outcomes beyond your org chart.',
+        code: `Common scenarios:
+- Convinced a team to adopt a new practice (TDD, code review standards)
+- Led a cross-team initiative without being the manager
+- Mentored a peer or junior who then independently owned something
+- Drove a technical RFC that got adopted
+
+Structure:
+"I identified [problem/opportunity] that affected [team/users].
+ I didn't have authority to mandate change, so I:
+ 1. Built a prototype/proof-of-concept to show feasibility
+ 2. Found internal champions in other teams
+ 3. Ran a pilot with one team, measured results
+ 4. Presented results at [all-hands/RFC review]
+ Result: [what was adopted, at what scale]"
+
+Signals of strong leadership:
+✓ People followed you voluntarily
+✓ Impact persisted after you left the project
+✓ You accelerated others, not just yourself
+✓ You influenced up (manager/director level)`,
+        tip: 'Senior eng interviews at Google/Meta care more about this than coding performance.',
+      },
+      {
+        id: 'prioritization',
+        title: 'Prioritization Under Pressure',
+        tags: ['Prioritization', 'Time Management'],
+        content: 'Shows product thinking and stakeholder management. They want to see you make principled trade-offs, not just work harder.',
+        code: `Frameworks to name-drop:
+ICE Score: Impact × Confidence / Effort (0-10 scale each)
+RICE:       Reach × Impact × Confidence / Effort
+MoSCoW:     Must have / Should have / Could have / Won't have
+Value/Effort matrix: 2×2 quick triage
+
+Template:
+"I had [N] competing priorities with [context].
+ I evaluated them by [framework/criteria]:
+ - [Task A]: blocked [N users], fix = 2h → Priority 1
+ - [Task B]: nice-to-have, deadline flexible → Priority 3
+ I communicated the trade-offs to [stakeholder] who agreed.
+ I [what you shipped] in [timeframe].
+ Result: [key outcome without dropping the ball]."
+
+What to avoid:
+✗ "I just worked 60 hours to get it all done"
+✗ No communication with stakeholders about what's slipping
+✗ Saying everything was equally urgent`,
+        tip: 'Amazon LP "Deliver Results" + "Are Right A Lot" both show up in this question.',
+      },
+    ],
+  },
+  {
+    id: 'sql',
+    title: 'SQL Patterns',
+    icon: 'storage',
+    color: 'text-violet-400',
+    bg: 'bg-violet-500/10',
+    desc: 'Query patterns for joins, window functions, and common interview problems',
+    cards: [
+      {
+        id: 'joins',
+        title: 'JOIN Types',
+        tags: ['SQL', 'Joins'],
+        content: 'Know when each join type produces which rows. The most common interview mistake: confusing INNER JOIN, LEFT JOIN, and their NULLs.',
+        code: `-- INNER JOIN: only matching rows from both tables
+SELECT u.name, o.amount
+FROM users u
+INNER JOIN orders o ON u.id = o.user_id;
+
+-- LEFT JOIN: all rows from left + matching right (NULLs if no match)
+-- "Find users with NO orders"
+SELECT u.name
+FROM users u
+LEFT JOIN orders o ON u.id = o.user_id
+WHERE o.id IS NULL;                    -- ← the NULL trick
+
+-- RIGHT JOIN: rarely used — just flip to LEFT JOIN
+
+-- FULL OUTER JOIN: all rows from both, NULLs for non-matches
+SELECT u.name, o.amount
+FROM users u
+FULL OUTER JOIN orders o ON u.id = o.user_id;
+
+-- CROSS JOIN: cartesian product — every combination
+SELECT a.size, b.color FROM sizes a CROSS JOIN colors b;
+
+-- SELF JOIN: join table to itself (org hierarchy, friends)
+SELECT e.name AS employee, m.name AS manager
+FROM employees e
+JOIN employees m ON e.manager_id = m.id;`,
+        tip: 'LEFT JOIN + WHERE right.id IS NULL = anti-join (find rows with no match). Very common!',
+      },
+      {
+        id: 'window-functions',
+        title: 'Window Functions',
+        tags: ['SQL', 'Analytics', 'OVER'],
+        content: 'Window functions run a calculation across a set of rows related to the current row — without collapsing rows like GROUP BY does.',
+        code: `-- Syntax: function() OVER (PARTITION BY ... ORDER BY ... ROWS/RANGE ...)
+
+-- ROW_NUMBER: rank within partition, no ties
+SELECT name, dept, salary,
+  ROW_NUMBER() OVER (PARTITION BY dept ORDER BY salary DESC) AS rn
+FROM employees;
+
+-- RANK / DENSE_RANK:
+-- RANK: gaps after ties (1,2,2,4)
+-- DENSE_RANK: no gaps (1,2,2,3)
+SELECT name, salary,
+  RANK()       OVER (ORDER BY salary DESC) AS rank_gap,
+  DENSE_RANK() OVER (ORDER BY salary DESC) AS rank_dense
+FROM employees;
+
+-- Running total (cumulative sum)
+SELECT date, amount,
+  SUM(amount) OVER (ORDER BY date ROWS UNBOUNDED PRECEDING) AS running_total
+FROM sales;
+
+-- Moving average (last 7 days)
+SELECT date, revenue,
+  AVG(revenue) OVER (ORDER BY date ROWS 6 PRECEDING) AS moving_avg_7d
+FROM daily_revenue;
+
+-- LAG / LEAD: access previous/next row
+SELECT date, revenue,
+  LAG(revenue, 1) OVER (ORDER BY date) AS prev_day,
+  revenue - LAG(revenue, 1) OVER (ORDER BY date) AS day_over_day
+FROM daily_revenue;
+
+-- Interview classic: top N per group
+SELECT * FROM (
+  SELECT *, ROW_NUMBER() OVER (PARTITION BY dept ORDER BY salary DESC) AS rn
+  FROM employees
+) t WHERE rn <= 3;   -- top 3 salaries per department`,
+        tip: 'Window functions are asked in ~80% of data/backend senior SQL rounds. Master PARTITION BY + ORDER BY.',
+      },
+      {
+        id: 'ctes',
+        title: 'CTEs & Subqueries',
+        tags: ['SQL', 'CTE', 'Readability'],
+        content: 'CTEs (WITH clause) make complex queries readable. Recursive CTEs handle hierarchical data.',
+        code: `-- Basic CTE — cleaner than nested subqueries
+WITH active_users AS (
+  SELECT id, name FROM users WHERE last_login > NOW() - INTERVAL '30 days'
+),
+user_orders AS (
+  SELECT user_id, COUNT(*) AS order_count, SUM(amount) AS total
+  FROM orders GROUP BY user_id
+)
+SELECT u.name, o.order_count, o.total
+FROM active_users u
+JOIN user_orders o ON u.id = o.user_id
+ORDER BY o.total DESC;
+
+-- Recursive CTE — org hierarchy / tree traversal
+WITH RECURSIVE org_tree AS (
+  -- Base case: top-level managers (no manager)
+  SELECT id, name, manager_id, 0 AS depth
+  FROM employees WHERE manager_id IS NULL
+
+  UNION ALL
+
+  -- Recursive: join children to their parent
+  SELECT e.id, e.name, e.manager_id, t.depth + 1
+  FROM employees e
+  JOIN org_tree t ON e.manager_id = t.id
+)
+SELECT * FROM org_tree ORDER BY depth, name;
+
+-- Subquery vs CTE guideline:
+-- Subquery: one-off, simple, used once
+-- CTE: reused 2+ times, or complex logic that needs a name`,
+        tip: 'Recursive CTEs handle tree/graph traversal in SQL — graphs, org charts, categories with parents.',
+      },
+      {
+        id: 'aggregation',
+        title: 'Aggregation & Grouping',
+        tags: ['SQL', 'GROUP BY', 'HAVING'],
+        content: 'Master the GROUP BY execution order. WHERE filters before grouping; HAVING filters after. Both are needed.',
+        code: `-- Execution order (logical, not physical):
+-- FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY → LIMIT
+
+-- WHERE vs HAVING:
+SELECT dept, AVG(salary) AS avg_sal
+FROM employees
+WHERE status = 'active'          -- WHERE: filter ROWS before grouping
+GROUP BY dept
+HAVING AVG(salary) > 75000;     -- HAVING: filter GROUPS after aggregation
+
+-- ROLLUP: subtotals + grand total
+SELECT dept, job_title, SUM(salary)
+FROM employees
+GROUP BY ROLLUP(dept, job_title);
+
+-- CUBE: all combinations of dimensions
+GROUP BY CUBE(region, product, quarter)
+
+-- GROUPING SETS: explicit combinations
+GROUP BY GROUPING SETS ((dept), (dept, year), ())
+
+-- Conditional aggregation (pivot without PIVOT keyword)
+SELECT
+  COUNT(*) AS total,
+  COUNT(*) FILTER (WHERE status = 'active')   AS active,   -- PostgreSQL
+  SUM(CASE WHEN status = 'active' THEN 1 END) AS active_compat  -- Standard SQL
+FROM users;
+
+-- Distinct count (avoid double counting in joins)
+SELECT dept, COUNT(DISTINCT employee_id) AS headcount
+FROM employee_projects
+GROUP BY dept;`,
+        tip: 'Conditional aggregation (SUM CASE WHEN) is the "pivot table in SQL" pattern — very common.',
+      },
+      {
+        id: 'indexes',
+        title: 'Indexes & Query Optimization',
+        tags: ['SQL', 'Performance', 'B-Tree'],
+        content: 'Indexes make reads fast by building a sorted auxiliary data structure. Understanding when indexes help (and hurt) is a senior skill.',
+        code: `-- B-Tree index (default): great for =, <, >, BETWEEN, ORDER BY
+CREATE INDEX idx_users_email ON users(email);
+CREATE INDEX idx_orders_user_date ON orders(user_id, created_at);  -- composite
+
+-- Composite index rule: leftmost prefix must be used
+-- idx(a, b, c) helps: WHERE a=1, WHERE a=1 AND b=2, WHERE a=1 AND b=2 AND c=3
+-- idx(a, b, c) does NOT help: WHERE b=2 (skips a)
+
+-- Covering index: all needed columns are in the index (no heap read)
+CREATE INDEX idx_orders_covering ON orders(user_id, created_at, amount);
+-- Query: SELECT amount FROM orders WHERE user_id=1 ORDER BY created_at
+-- → index-only scan, fastest possible
+
+-- Hash index: only equality (=), not ranges
+-- GIN index: full-text search, array containment (PostgreSQL)
+-- Partial index: index a subset of rows
+CREATE INDEX idx_active_users ON users(email) WHERE deleted_at IS NULL;
+
+-- When indexes HURT:
+-- Heavy writes: every INSERT/UPDATE/DELETE must update all indexes
+-- Low cardinality: index on boolean col (only 2 values) is pointless
+-- Small tables: sequential scan is faster than index+heap lookup
+
+-- EXPLAIN / EXPLAIN ANALYZE
+EXPLAIN ANALYZE SELECT * FROM orders WHERE user_id = 42;
+-- Look for: Seq Scan (bad on large tables), Index Scan (good), Nested Loop vs Hash Join`,
+        tip: 'Rule of thumb: index columns that appear in WHERE, JOIN ON, and ORDER BY. Not SELECT.',
+      },
+      {
+        id: 'interview-classics',
+        title: 'Classic SQL Interview Problems',
+        tags: ['Interview', 'Problems'],
+        content: 'The 6 most common SQL interview problem types — know these cold.',
+        code: `-- 1. Nth highest salary
+SELECT DISTINCT salary FROM employees
+ORDER BY salary DESC LIMIT 1 OFFSET (N-1);   -- or use DENSE_RANK
+
+-- 2. Duplicate rows
+SELECT email, COUNT(*) FROM users GROUP BY email HAVING COUNT(*) > 1;
+
+-- 3. Employees earning more than their manager
+SELECT e.name FROM employees e
+JOIN employees m ON e.manager_id = m.id
+WHERE e.salary > m.salary;
+
+-- 4. Consecutive logins (gaps-and-islands)
+SELECT user_id, MIN(date) AS start, MAX(date) AS end, COUNT(*) AS days
+FROM (
+  SELECT user_id, date,
+    DATE_PART('day', date - ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY date) * INTERVAL '1 day') AS grp
+  FROM logins
+) t GROUP BY user_id, grp HAVING COUNT(*) >= 3;
+
+-- 5. Most recent record per user (dedup)
+SELECT DISTINCT ON (user_id) *    -- PostgreSQL
+FROM events ORDER BY user_id, created_at DESC;
+-- Or: SELECT * FROM events WHERE (user_id, created_at) IN (
+--   SELECT user_id, MAX(created_at) FROM events GROUP BY user_id)
+
+-- 6. Retention: users who returned in week 2
+SELECT COUNT(DISTINCT w1.user_id) AS retained
+FROM (SELECT DISTINCT user_id FROM events WHERE date BETWEEN d AND d+6) w1
+JOIN (SELECT DISTINCT user_id FROM events WHERE date BETWEEN d+7 AND d+13) w2
+  ON w1.user_id = w2.user_id;`,
+        tip: 'Problem 4 (consecutive dates) and Problem 6 (retention) appear in 90% of data/analytics SQL rounds.',
+      },
+    ],
+  },
 ];
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -868,7 +1265,7 @@ export function CheatSheetsPage() {
         </div>
 
         {/* Sheet selector */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3 mb-8">
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3 mb-8">
           {SHEETS.map((s) => (
             <button
               key={s.id}

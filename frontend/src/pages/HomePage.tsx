@@ -113,6 +113,114 @@ function ActivityHeatmap({ streak }: { readonly streak: number }) {
   );
 }
 
+// Smart recommendations based on XP, streak, and module progress
+interface ModItem { module: string; progress: number; cta: string }
+
+function buildRecommendations(xp: number, streak: number, modules: ModItem[]): Array<{
+  icon: string; color: string; bg: string; title: string; reason: string; path: string; xp: string;
+}> {
+  const recs: Array<{ icon: string; color: string; bg: string; title: string; reason: string; path: string; xp: string; priority: number }> = [];
+
+  const progressOf = (key: string) => {
+    const m = modules.find((x) => x.module === key);
+    if (!m) return 0;
+    return m.progress > 1 ? m.progress : Math.round(m.progress * 100);
+  };
+
+  // Streak at risk
+  if (streak === 0) {
+    recs.push({ icon: 'local_fire_department', color: 'text-orange-400', bg: 'bg-orange-500/10', title: 'Start your streak', reason: "You haven't solved anything yet today — start now!", path: '/app/problems', xp: '+10 XP', priority: 10 });
+  } else if (streak > 0 && streak < 3) {
+    recs.push({ icon: 'local_fire_department', color: 'text-orange-400', bg: 'bg-orange-500/10', title: `Keep your ${streak}d streak alive`, reason: 'Solve one problem before midnight to extend it.', path: '/app/problems', xp: '+25 XP', priority: 9 });
+  }
+
+  // Flashcards
+  const flashPct = progressOf('flashcards');
+  if (flashPct === 0) {
+    recs.push({ icon: 'style', color: 'text-violet-400', bg: 'bg-violet-500/10', title: 'Try Flashcards', reason: 'SM-2 spaced repetition — never forget a concept again.', path: '/app/flashcards', xp: '+40 XP', priority: 7 });
+  } else if (flashPct < 30) {
+    recs.push({ icon: 'style', color: 'text-violet-400', bg: 'bg-violet-500/10', title: 'Review flashcard deck', reason: `You're at ${flashPct}% — a 10-min session locks in key concepts.`, path: '/app/flashcards', xp: '+20 XP', priority: 6 });
+  }
+
+  // OOP / design patterns
+  const oopPct = progressOf('oop');
+  if (oopPct < 20) {
+    recs.push({ icon: 'account_tree', color: 'text-purple-400', bg: 'bg-purple-500/10', title: 'Learn a GoF Design Pattern', reason: 'Design patterns appear in 60% of senior-level interviews.', path: '/app/oop', xp: '+50 XP', priority: 5 });
+  }
+
+  // System design
+  const sdPct = progressOf('system-design');
+  if (sdPct < 10) {
+    recs.push({ icon: 'architecture', color: 'text-cyan-400', bg: 'bg-cyan-500/10', title: 'Start System Design', reason: 'Mandatory for mid-senior roles. Begin with URL shortener.', path: '/app/system-design', xp: '+30 XP', priority: 4 });
+  }
+
+  // Core subjects
+  const csPct = progressOf('core-subjects');
+  if (csPct < 15) {
+    recs.push({ icon: 'terminal', color: 'text-green-400', bg: 'bg-green-500/10', title: 'Complete a Core CS topic', reason: 'OS, DBMS, and Networks are asked in every FAANG loop.', path: '/app/subjects', xp: '+15 XP', priority: 3 });
+  }
+
+  // Mock interview
+  const mockPct = progressOf('mock-interview' as string);
+  if (mockPct === 0 && xp > 100) {
+    recs.push({ icon: 'record_voice_over', color: 'text-orange-400', bg: 'bg-orange-500/10', title: 'Take a Mock Interview', reason: "You've built some XP — now test yourself under pressure.", path: '/app/mock-interview', xp: '+75 XP', priority: 5 });
+  }
+
+  // Study plan
+  const planConfig = localStorage.getItem('eyf.studyPlanConfig');
+  if (!planConfig && xp > 50) {
+    recs.push({ icon: 'calendar_month', color: 'text-indigo-400', bg: 'bg-indigo-500/10', title: 'Build your Study Plan', reason: 'Enter your target company and get a day-by-day schedule.', path: '/app/study-plan', xp: 'Free!', priority: 6 });
+  }
+
+  // Cheat sheets
+  if (xp < 200) {
+    recs.push({ icon: 'quick_reference_all', color: 'text-cyan-400', bg: 'bg-cyan-500/10', title: 'Explore Cheat Sheets', reason: 'Algorithm patterns, Big-O, SQL, and behavioral templates.', path: '/app/cheatsheets', xp: '+5 XP', priority: 2 });
+  }
+
+  // Placement
+  const placementPct = progressOf('placement');
+  if (placementPct === 0 && xp > 200) {
+    recs.push({ icon: 'work_history', color: 'text-orange-400', bg: 'bg-orange-500/10', title: 'Research target companies', reason: 'View interview processes, DSA focus, and insider tips.', path: '/app/placement', xp: '+10 XP', priority: 4 });
+  }
+
+  return recs.sort((a, b) => b.priority - a.priority).slice(0, 3);
+}
+
+function NextUpWidget({ xp, streak, modules }: { readonly xp: number; readonly streak: number; readonly modules: ModItem[] }) {
+  const recs = buildRecommendations(xp, streak, modules);
+  if (recs.length === 0) return null;
+
+  return (
+    <section className="mb-8">
+      <div className="flex items-center gap-2 mb-4">
+        <Icon name="auto_awesome" size={16} className="text-[#E82127]" filled />
+        <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">What to Study Next</h2>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        {recs.map((rec) => (
+          <Link key={rec.path} to={rec.path}>
+            <div className="group bg-[#161616] border border-white/5 rounded-2xl p-4 hover:bg-[#1e1e1e] hover:border-white/10 transition-all h-full flex flex-col gap-3">
+              <div className="flex items-center justify-between">
+                <div className={`w-9 h-9 ${rec.bg} rounded-xl flex items-center justify-center flex-shrink-0`}>
+                  <Icon name={rec.icon} size={18} className={rec.color} />
+                </div>
+                <span className="text-[10px] font-black text-green-400">{rec.xp}</span>
+              </div>
+              <div className="flex-1">
+                <p className="text-white text-xs font-bold mb-1">{rec.title}</p>
+                <p className="text-zinc-600 text-[10px] leading-relaxed">{rec.reason}</p>
+              </div>
+              <div className={`flex items-center gap-1 text-[10px] font-bold ${rec.color} opacity-0 group-hover:opacity-100 transition-opacity`}>
+                Go <Icon name="arrow_forward" size={11} />
+              </div>
+            </div>
+          </Link>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export function HomePage() {
   const session  = getSession();
   const { summary, displayName, refresh } = useUser();
@@ -358,6 +466,9 @@ export function HomePage() {
             ))}
           </div>
         </section>
+
+        {/* ── What to Study Next ── */}
+        <NextUpWidget xp={xp} streak={streak} modules={moduleList} />
 
         {/* ── Activity heatmap ── */}
         <section className="mb-8 bg-[#161616] border border-white/5 rounded-2xl p-6">
