@@ -71,6 +71,7 @@ export function AppShell({ children }: { readonly children: ReactNode }) {
   const [sidebarOpen,    setSidebarOpen]    = useState(false);
   const [searchOpen,     setSearchOpen]     = useState(false);
   const [notifOpen,      setNotifOpen]      = useState(false);
+  const [shortcutsOpen,  setShortcutsOpen]  = useState(false);
   const [notifications,  setNotifications]  = useState<Notification[]>([]);
 
   useEffect(() => {
@@ -109,11 +110,14 @@ export function AppShell({ children }: { readonly children: ReactNode }) {
   // Close sidebar on route change
   useEffect(() => { setSidebarOpen(false); }, [location.pathname]);
 
-  // Keyboard shortcuts: Cmd+K / Ctrl+K → search, Escape → close
+  // Keyboard shortcuts: Cmd+K → search, ? → shortcuts, Escape → close
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement).tagName;
+      const isInput = tag === 'INPUT' || tag === 'TEXTAREA' || (e.target as HTMLElement).isContentEditable;
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); setSearchOpen(true); }
-      if (e.key === 'Escape') { setSidebarOpen(false); setSearchOpen(false); }
+      if (e.key === '?' && !isInput) { e.preventDefault(); setShortcutsOpen((o) => !o); }
+      if (e.key === 'Escape') { setSidebarOpen(false); setSearchOpen(false); setShortcutsOpen(false); }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
@@ -131,6 +135,59 @@ export function AppShell({ children }: { readonly children: ReactNode }) {
 
       {/* Search modal */}
       <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
+
+      {/* Keyboard shortcuts modal */}
+      {shortcutsOpen && (
+        <div className="fixed inset-0 z-[9998] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setShortcutsOpen(false)} />
+          <div className="relative bg-[#1a1a1a] border border-white/10 rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden">
+            <div className="flex items-center justify-between px-6 py-5 border-b border-white/8">
+              <h2 className="text-base font-black text-white">Keyboard Shortcuts</h2>
+              <button onClick={() => setShortcutsOpen(false)} className="w-7 h-7 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white transition-colors">
+                <Icon name="close" size={16} />
+              </button>
+            </div>
+            <div className="p-6 space-y-5">
+              {[
+                { label: 'Navigation', items: [
+                  { keys: ['⌘', 'K'], desc: 'Open search' },
+                  { keys: ['?'], desc: 'Toggle shortcuts' },
+                  { keys: ['Esc'], desc: 'Close modal / panel' },
+                ]},
+                { label: 'Flashcards', items: [
+                  { keys: ['Space'], desc: 'Flip card' },
+                  { keys: ['1'], desc: 'Again (forgot)' },
+                  { keys: ['2'], desc: 'Hard' },
+                  { keys: ['3'], desc: 'Good' },
+                  { keys: ['4'], desc: 'Easy' },
+                ]},
+                { label: 'Search & Editor', items: [
+                  { keys: ['↑', '↓'], desc: 'Navigate results' },
+                  { keys: ['↵'], desc: 'Open selected' },
+                  { keys: ['F11'], desc: 'Toggle code fullscreen' },
+                ]},
+              ].map((group) => (
+                <div key={group.label}>
+                  <p className="text-[9px] font-black uppercase tracking-widest text-zinc-600 mb-3">{group.label}</p>
+                  <div className="space-y-2">
+                    {group.items.map((item) => (
+                      <div key={item.desc} className="flex items-center justify-between">
+                        <span className="text-sm text-zinc-400">{item.desc}</span>
+                        <div className="flex gap-1">
+                          {item.keys.map((k) => (
+                            <kbd key={k} className="px-2 py-1 bg-zinc-800 rounded text-[11px] text-zinc-300 font-mono border border-zinc-700">{k}</kbd>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="px-6 pb-5 text-[10px] text-zinc-700 text-center">Press <kbd className="bg-zinc-800 px-1.5 rounded font-mono text-zinc-500">?</kbd> anytime to toggle this panel</div>
+          </div>
+        </div>
+      )}
 
       {/* Sidebar backdrop */}
       {sidebarOpen && (
@@ -302,6 +359,17 @@ export function AppShell({ children }: { readonly children: ReactNode }) {
 
         {/* Right icons */}
         <div className="flex items-center gap-2 ml-auto">
+          {/* Keyboard shortcuts hint */}
+          <button
+            type="button"
+            onClick={() => setShortcutsOpen(true)}
+            className="hidden md:flex w-8 h-8 rounded-full bg-surface-container-high items-center justify-center text-zinc-600 hover:text-zinc-300 transition-colors font-black text-xs"
+            aria-label="Keyboard shortcuts"
+            title="Keyboard shortcuts (?)"
+          >
+            ?
+          </button>
+
           {/* Notifications bell */}
           <div className="relative">
             <button
