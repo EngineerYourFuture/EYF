@@ -114,6 +114,75 @@ function ActivityHeatmap({ streak }: { readonly streak: number }) {
   );
 }
 
+// ── Daily Engineering Insight ─────────────────────────────────────────────────
+
+const ENGINEERING_INSIGHTS = [
+  { tip: "Prefer composition over inheritance. Wrapping objects is more flexible than subclassing — you can swap behaviors at runtime without changing class hierarchies.", category: 'OOP', icon: 'account_tree', color: 'text-purple-400', bg: 'bg-purple-500/10' },
+  { tip: "Never use SELECT * in production queries. Fetching unnecessary columns increases I/O, breaks covering indexes, and leaks schema changes to callers.", category: 'DBMS', icon: 'storage', color: 'text-violet-400', bg: 'bg-violet-500/10' },
+  { tip: "When interviewing at Amazon, every behavioral answer must map to at least one Leadership Principle. Name it explicitly — it signals pattern recognition.", category: 'Career', icon: 'work', color: 'text-orange-400', bg: 'bg-orange-500/10' },
+  { tip: "In system design, state your assumptions out loud. Interviewers can't see your mental model — saying 'I'll assume 100M DAU and 10:1 read-write ratio' shows senior thinking.", category: 'System Design', icon: 'architecture', color: 'text-cyan-400', bg: 'bg-cyan-500/10' },
+  { tip: "Use EXPLAIN ANALYZE on your slow queries, not just EXPLAIN. EXPLAIN shows the planner's estimate; ANALYZE runs it and shows actual row counts — mismatches reveal stale statistics.", category: 'DBMS', icon: 'storage', color: 'text-violet-400', bg: 'bg-violet-500/10' },
+  { tip: "The sliding window pattern applies any time you need the 'best contiguous subarray'. The trigger words are: 'subarray/substring', 'at most K', 'contiguous'.", category: 'DSA', icon: 'code', color: 'text-blue-400', bg: 'bg-blue-500/10' },
+  { tip: "Don't store raw passwords, ever. Use bcrypt (cost ≥ 12), Argon2id, or scrypt. MD5 and SHA-256 are NOT password hashing algorithms — they're too fast.", category: 'Security', icon: 'shield', color: 'text-red-400', bg: 'bg-red-500/10' },
+  { tip: "In a distributed system, adding a cache doesn't eliminate consistency issues — it creates two sources of truth. Always define your invalidation strategy before adding a cache.", category: 'System Design', icon: 'architecture', color: 'text-cyan-400', bg: 'bg-cyan-500/10' },
+  { tip: "The Observer pattern is the foundation of every reactive framework (React, RxJS, Angular). When you see 'notify subscribers on state change', that's Observer.", category: 'OOP', icon: 'account_tree', color: 'text-purple-400', bg: 'bg-purple-500/10' },
+  { tip: "Write your behavioral answers from the first person: 'I', not 'we'. Interviewers are assessing your contribution, not your team's. Own every action.", category: 'Career', icon: 'record_voice_over', color: 'text-orange-400', bg: 'bg-orange-500/10' },
+  { tip: "TCP's 3-way handshake adds 1.5 RTTs of latency before data flows. HTTP/2 multiplexing and QUIC 0-RTT exist specifically to eliminate this penalty at scale.", category: 'Networks', icon: 'wifi', color: 'text-cyan-400', bg: 'bg-cyan-500/10' },
+  { tip: "For graph problems, identify directed vs undirected and weighted vs unweighted first. These determine whether to use DFS, BFS, Dijkstra, or Bellman-Ford.", category: 'DSA', icon: 'code', color: 'text-blue-400', bg: 'bg-blue-500/10' },
+  { tip: "Page faults are expensive — each one is a trip to disk (microseconds → milliseconds). The working set model predicts thrashing: if active pages > RAM, performance collapses.", category: 'OS', icon: 'terminal', color: 'text-green-400', bg: 'bg-green-500/10' },
+  { tip: "CSRF protection in 2026: SameSite=Strict cookies eliminate most CSRF risk in modern browsers without CSRF tokens. Set Secure + HttpOnly as well.", category: 'Security', icon: 'shield', color: 'text-red-400', bg: 'bg-red-500/10' },
+  { tip: "Consistent hashing solves the 'N mod N+1' problem: when you add a node with naive hashing, almost all keys must be remapped. Consistent hashing remaps only K/N.", category: 'System Design', icon: 'architecture', color: 'text-cyan-400', bg: 'bg-cyan-500/10' },
+  { tip: "DP tip: if you see 'minimum/maximum', 'count number of ways', or 'is it possible to reach' — suspect DP. Start with recursion + memoization, then optimize to tabulation.", category: 'DSA', icon: 'code', color: 'text-blue-400', bg: 'bg-blue-500/10' },
+  { tip: "2NF removes partial dependencies (non-key → part of composite key). 3NF removes transitive dependencies (non-key → non-key). Most systems need 3NF minimum.", category: 'DBMS', icon: 'storage', color: 'text-violet-400', bg: 'bg-violet-500/10' },
+  { tip: "A deadlock requires all four: mutual exclusion, hold-and-wait, no preemption, and circular wait. Eliminate ANY one to prevent deadlocks — not all four.", category: 'OS', icon: 'terminal', color: 'text-green-400', bg: 'bg-green-500/10' },
+  { tip: "Factory Method lets subclasses decide which class to instantiate. Abstract Factory creates families of related objects. Know the distinction — it appears in senior interviews.", category: 'OOP', icon: 'account_tree', color: 'text-purple-400', bg: 'bg-purple-500/10' },
+  { tip: "At Netflix, team fit matters as much as coding. The Keeper Test: 'Would I fight to keep this person?' Research company engineering blogs — it signals you care about their culture.", category: 'Career', icon: 'work', color: 'text-orange-400', bg: 'bg-orange-500/10' },
+  { tip: "Window functions don't collapse rows like GROUP BY does. ROW_NUMBER + PARTITION BY is the canonical SQL pattern for 'top N per group' — know it cold.", category: 'DBMS', icon: 'storage', color: 'text-violet-400', bg: 'bg-violet-500/10' },
+  { tip: "XSS attack: malicious JS runs in victim's browser. CSRF attack: victim's browser makes forged requests using their credentials. They're opposite attack vectors.", category: 'Security', icon: 'shield', color: 'text-red-400', bg: 'bg-red-500/10' },
+  { tip: "Binary search beyond sorted arrays: use it whenever you can reduce the search space by half based on a condition. 'Find minimum in rotated array', 'capacity planning' — all binary search.", category: 'DSA', icon: 'code', color: 'text-blue-400', bg: 'bg-blue-500/10' },
+  { tip: "Idempotency keys prevent duplicate operations in distributed systems. If your payment API can be retried safely with the same key, that's an idempotent design.", category: 'System Design', icon: 'architecture', color: 'text-cyan-400', bg: 'bg-cyan-500/10' },
+  { tip: "AP systems (Cassandra, DynamoDB) return potentially stale data during partitions. CP systems (Zookeeper, HBase) return errors. Pick based on your consistency requirements.", category: 'System Design', icon: 'architecture', color: 'text-cyan-400', bg: 'bg-cyan-500/10' },
+  { tip: "The Builder pattern solves the 'telescoping constructor' anti-pattern: instead of MyClass(a, null, null, b, null, c), use a Builder to set only what matters.", category: 'OOP', icon: 'account_tree', color: 'text-purple-400', bg: 'bg-purple-500/10' },
+  { tip: "BFS gives shortest path in unweighted graphs. Dijkstra handles weighted (non-negative). Bellman-Ford handles negative edges. Floyd-Warshall handles all-pairs.", category: 'DSA', icon: 'code', color: 'text-blue-400', bg: 'bg-blue-500/10' },
+  { tip: "Interview meta-skill: think out loud and check in. Say 'I'm going to assume X — does that make sense?' Interviewers can redirect you from wrong assumptions before you go too far.", category: 'Career', icon: 'record_voice_over', color: 'text-orange-400', bg: 'bg-orange-500/10' },
+  { tip: "MVCC (Multi-Version Concurrency Control) is why PostgreSQL reads don't block writes and writes don't block reads. Each transaction sees a snapshot of data at its start time.", category: 'DBMS', icon: 'storage', color: 'text-violet-400', bg: 'bg-violet-500/10' },
+  { tip: "Rate limiting algorithms: token bucket (bursty, smooth average), sliding window log (precise, memory-intensive), fixed window counter (simple, edge-case spike at boundaries).", category: 'System Design', icon: 'architecture', color: 'text-cyan-400', bg: 'bg-cyan-500/10' },
+];
+
+function DailyInsightWidget() {
+  const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000);
+  const insight = ENGINEERING_INSIGHTS[dayOfYear % ENGINEERING_INSIGHTS.length]!;
+  const [dismissed, setDismissed] = useState(() => {
+    return localStorage.getItem('eyf.insightDay') === String(dayOfYear);
+  });
+
+  if (dismissed) return null;
+
+  return (
+    <section className="mb-8">
+      <div className={`${insight.bg} border border-current/20 rounded-2xl p-6 flex items-start gap-5 relative overflow-hidden`}>
+        <div className="absolute right-0 top-0 w-48 h-48 bg-current/5 blur-[60px] rounded-full -mr-12 -mt-12 pointer-events-none" />
+        <div className={`w-10 h-10 ${insight.bg} border border-current/30 rounded-xl flex items-center justify-center flex-shrink-0`}>
+          <Icon name={insight.icon} size={20} className={insight.color} />
+        </div>
+        <div className="flex-1 min-w-0 relative">
+          <div className="flex items-center gap-2 mb-2">
+            <span className={`text-[9px] font-black uppercase tracking-[0.2em] ${insight.color}`}>Engineering Insight</span>
+            <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${insight.bg} ${insight.color} border border-current/20`}>{insight.category}</span>
+          </div>
+          <p className="text-white text-sm leading-relaxed font-medium">{insight.tip}</p>
+        </div>
+        <button
+          onClick={() => { setDismissed(true); localStorage.setItem('eyf.insightDay', String(dayOfYear)); }}
+          className="text-zinc-700 hover:text-zinc-400 transition-colors flex-shrink-0 relative"
+        >
+          <Icon name="close" size={16} />
+        </button>
+      </div>
+    </section>
+  );
+}
+
 // Smart recommendations based on XP, streak, and module progress
 interface ModItem { module: string; progress: number; cta: string }
 
@@ -506,6 +575,9 @@ export function HomePage() {
             </Link>
           ))}
         </section>
+
+        {/* ── Daily Engineering Insight ── */}
+        <DailyInsightWidget />
 
         {/* ── Career track CTA ── */}
         <div className="mb-8 bg-gradient-to-r from-[#1a1a1a] to-[#161616] border border-white/5 rounded-2xl p-5 flex items-center justify-between gap-4">

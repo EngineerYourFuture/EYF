@@ -35,6 +35,49 @@ const RARITY_STYLES: Record<string, { border: string; badge: string; glow: strin
   legendary: { border: 'border-yellow-500/60', badge: 'bg-yellow-500/20 text-yellow-300', glow: 'shadow-[0_0_25px_rgba(234,179,8,0.25)]', label: 'Legendary' },
 };
 
+const STATIC_ACHIEVEMENTS: Achievement[] = [
+  // DSA
+  { id: 'a1', key: 'first_solve', name: 'Hello, World!', description: 'Solve your very first DSA problem', icon: '🎯', category: 'dsa', xpReward: 10, rarity: 'common', earnedAt: null },
+  { id: 'a2', key: 'dsa_10', name: 'Warm Up', description: 'Solve 10 problems across any difficulty', icon: '💪', category: 'dsa', xpReward: 25, rarity: 'common', earnedAt: null },
+  { id: 'a3', key: 'dsa_50', name: 'Grinder', description: 'Solve 50 DSA problems', icon: '⚡', category: 'dsa', xpReward: 75, rarity: 'rare', earnedAt: null },
+  { id: 'a4', key: 'dsa_100', name: 'Century', description: 'Solve 100 DSA problems — you are committed', icon: '💯', category: 'dsa', xpReward: 150, rarity: 'rare', earnedAt: null },
+  { id: 'a5', key: 'dsa_hard_5', name: 'Hard Mode', description: 'Solve 5 hard difficulty problems', icon: '🔥', category: 'dsa', xpReward: 100, rarity: 'epic', earnedAt: null },
+  { id: 'a6', key: 'dsa_hard_25', name: 'Pain Enjoyer', description: 'Solve 25 hard problems — truly unhinged', icon: '💀', category: 'dsa', xpReward: 250, rarity: 'legendary', earnedAt: null },
+  { id: 'a7', key: 'first_dp', name: 'Dynamic Thinker', description: 'Solve your first dynamic programming problem', icon: '🧩', category: 'dsa', xpReward: 30, rarity: 'common', earnedAt: null },
+  { id: 'a8', key: 'graph_master', name: 'Graph Master', description: 'Solve 10 graph problems (BFS, DFS, Dijkstra)', icon: '🕸️', category: 'dsa', xpReward: 80, rarity: 'rare', earnedAt: null },
+  // OOP
+  { id: 'b1', key: 'first_pattern', name: 'Patterned Mind', description: 'Study your first GoF design pattern', icon: '🏗️', category: 'oop', xpReward: 20, rarity: 'common', earnedAt: null },
+  { id: 'b2', key: 'all_creational', name: 'The Creator', description: 'Master all 5 creational design patterns', icon: '✨', category: 'oop', xpReward: 100, rarity: 'rare', earnedAt: null },
+  { id: 'b3', key: 'all_23_patterns', name: 'GoF Legend', description: 'Master all 23 Gang of Four design patterns', icon: '👑', category: 'oop', xpReward: 500, rarity: 'legendary', earnedAt: null },
+  { id: 'b4', key: 'solid_all', name: 'SOLID Foundation', description: 'Study all 5 SOLID principles', icon: '🧱', category: 'oop', xpReward: 75, rarity: 'rare', earnedAt: null },
+  // Security
+  { id: 'c1', key: 'first_ctf', name: 'Flag Captured', description: 'Complete your first CTF challenge', icon: '🚩', category: 'security', xpReward: 50, rarity: 'common', earnedAt: null },
+  { id: 'c2', key: 'ctf_10', name: 'Ethical Hacker', description: 'Complete 10 CTF challenges', icon: '🕵️', category: 'security', xpReward: 150, rarity: 'rare', earnedAt: null },
+  { id: 'c3', key: 'owasp_all', name: 'OWASP Scholar', description: 'Complete all OWASP Top 10 lessons', icon: '🛡️', category: 'security', xpReward: 200, rarity: 'epic', earnedAt: null },
+  { id: 'c4', key: 'sec_cert_path', name: 'Security Career', description: 'Complete the security certification roadmap', icon: '🏆', category: 'security', xpReward: 300, rarity: 'legendary', earnedAt: null },
+  // System Design
+  { id: 'd1', key: 'first_design', name: 'Architect in Training', description: 'Submit your first system design attempt', icon: '📐', category: 'system-design', xpReward: 30, rarity: 'common', earnedAt: null },
+  { id: 'd2', key: 'design_5', name: 'System Thinker', description: 'Complete 5 system design problems', icon: '🏛️', category: 'system-design', xpReward: 100, rarity: 'rare', earnedAt: null },
+  { id: 'd3', key: 'design_all_hard', name: 'Grand Architect', description: 'Complete all hard system design problems', icon: '🌆', category: 'system-design', xpReward: 400, rarity: 'legendary', earnedAt: null },
+  // Consistency
+  { id: 'e1', key: 'streak_7', name: 'Week Warrior', description: 'Maintain a 7-day learning streak', icon: '🔥', category: 'consistency', xpReward: 50, rarity: 'common', earnedAt: null },
+  { id: 'e2', key: 'streak_30', name: 'Monthly Monk', description: 'Maintain a 30-day learning streak', icon: '🌙', category: 'consistency', xpReward: 150, rarity: 'rare', earnedAt: null },
+  { id: 'e3', key: 'streak_100', name: 'Centurion', description: 'Maintain a 100-day learning streak — legendary discipline', icon: '⚔️', category: 'consistency', xpReward: 500, rarity: 'legendary', earnedAt: null },
+  { id: 'e4', key: 'daily_5', name: 'On A Roll', description: 'Complete the daily challenge 5 times', icon: '🎲', category: 'consistency', xpReward: 75, rarity: 'common', earnedAt: null },
+  { id: 'e5', key: 'xp_1000', name: 'Rising Engineer', description: 'Earn 1,000 total XP', icon: '📈', category: 'consistency', xpReward: 50, rarity: 'common', earnedAt: null },
+  { id: 'e6', key: 'xp_10000', name: 'Senior Level', description: 'Earn 10,000 total XP', icon: '🎖️', category: 'consistency', xpReward: 200, rarity: 'epic', earnedAt: null },
+  // Community
+  { id: 'f1', key: 'first_post', name: 'Voice of the Community', description: 'Create your first community post', icon: '✍️', category: 'community', xpReward: 15, rarity: 'common', earnedAt: null },
+  { id: 'f2', key: 'post_upvoted_10', name: 'Popular Take', description: 'Get 10 upvotes on a single post', icon: '👍', category: 'community', xpReward: 50, rarity: 'rare', earnedAt: null },
+  { id: 'f3', key: 'helped_10', name: 'Helpful Engineer', description: 'Reply to 10 community posts', icon: '🤝', category: 'community', xpReward: 40, rarity: 'common', earnedAt: null },
+  // Career
+  { id: 'g1', key: 'resume_complete', name: 'Resume Ready', description: 'Complete your EYF resume profile', icon: '📄', category: 'career', xpReward: 30, rarity: 'common', earnedAt: null },
+  { id: 'g2', key: 'mock_interview_1', name: 'First Interview', description: 'Complete your first mock interview session', icon: '🎙️', category: 'career', xpReward: 50, rarity: 'common', earnedAt: null },
+  { id: 'g3', key: 'mock_interview_10', name: 'Interview Ready', description: 'Complete 10 mock interview sessions', icon: '🎯', category: 'career', xpReward: 150, rarity: 'rare', earnedAt: null },
+  { id: 'g4', key: 'offer_received', name: 'Offer Received 🎉', description: 'Log an offer received in Interview Tracker', icon: '🎊', category: 'career', xpReward: 500, rarity: 'legendary', earnedAt: null },
+  { id: 'g5', key: 'study_plan_complete', name: 'Plan Executed', description: 'Complete a full week of your study plan', icon: '📅', category: 'career', xpReward: 100, rarity: 'rare', earnedAt: null },
+];
+
 const CATEGORY_ICONS: Record<string, string> = {
   all: 'emoji_events',
   dsa: 'code',
@@ -97,10 +140,16 @@ export function AchievementsPage() {
   const [category, setCategory] = useState('all');
 
   useEffect(() => {
-    if (!session?.accessToken) return;
+    if (!session?.accessToken) { setLoading(false); return; }
     apiRequest<AchievementsData>('/achievements', { token: session.accessToken })
       .then(setData)
-      .catch(() => {})
+      .catch(() => {
+        setData({
+          achievements: STATIC_ACHIEVEMENTS,
+          level: 0, levelName: 'Newcomer', xp: 0, xpToNext: 100,
+          streak: 0, longestStreak: 0, earnedCount: 0, totalCount: STATIC_ACHIEVEMENTS.length,
+        });
+      })
       .finally(() => setLoading(false));
   }, [session?.accessToken]);
 
