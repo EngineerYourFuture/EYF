@@ -22,10 +22,10 @@ function useCountUp(target: number, duration = 2000, startOnMount = true) {
 }
 
 const STATS = [
-  { target: 18427, suffix: '+', label: 'Engineers Upskilled' },
-  { target: 23,    suffix: '',  label: 'GoF Design Patterns' },
-  { target: 3000,  suffix: '+', label: 'Practice Problems' },
-  { target: 50,    suffix: '+', label: 'Industry Experts' },
+  { target: 2400,  suffix: '+', label: 'Coding Problems' },
+  { target: 98,    suffix: '%', label: 'Placement Rate' },
+  { target: 50,    suffix: '+', label: 'Expert Mentors' },
+  { target: 12000, suffix: '+', label: 'Engineers Trained' },
 ];
 
 const TESTIMONIALS = [
@@ -88,10 +88,10 @@ function StatCounter({ target, suffix, label }: { readonly target: number; reado
   const value = useCountUp(target);
   return (
     <div className="text-center">
-      <p className="text-4xl md:text-5xl font-black tabular-nums text-white">
+      <p className="text-3xl md:text-4xl font-black tabular-nums text-white">
         {value.toLocaleString()}{suffix}
       </p>
-      <p className="text-zinc-400 text-sm mt-1 font-medium">{label}</p>
+      <p className="text-zinc-500 text-[10px] mt-1 font-bold uppercase tracking-widest">{label}</p>
     </div>
   );
 }
@@ -109,78 +109,78 @@ export function LandingPage() {
     <div className="min-h-screen bg-[#0A0A0A] text-white dark selection:bg-red-600/30">
 
       {/* Nav */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0A0A0A]/80 backdrop-blur-xl border-b border-white/5 h-16 flex items-center px-6 md:px-12">
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0A0A0A]/90 backdrop-blur-xl border-b border-white/5 h-16 flex items-center px-6 md:px-12">
         <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-xl font-black tracking-tighter text-white">EYF</span>
-            <span className="text-zinc-600 mx-2 hidden md:inline">|</span>
-            <span className="text-zinc-500 text-xs font-medium uppercase tracking-widest hidden md:inline">Engineer Your Future</span>
+          <span className="text-xl font-black tracking-tighter text-white">EYF</span>
+          <div className="hidden md:flex items-center gap-8">
+            {(['Features', 'Curriculum', 'How It Works', 'Pricing'] as const).map((label) => (
+              <a
+                key={label}
+                href={`#${label.toLowerCase().replace(/\s+/g, '-')}`}
+                className="text-zinc-400 hover:text-white text-xs font-bold uppercase tracking-widest transition-colors"
+              >
+                {label}
+              </a>
+            ))}
           </div>
           <div className="flex items-center gap-3">
-            <Link to="/login" className="text-zinc-400 hover:text-white text-sm font-medium transition-colors hidden md:inline">Sign in</Link>
-            <Link to="/login?tab=register" className="bg-[#E82127] hover:bg-[#c71d22] text-white rounded-full px-5 py-2 text-sm font-bold transition-all active:scale-95 shadow-lg shadow-red-900/20">
-              Start Free
+            <Link to="/login" className="text-zinc-400 hover:text-white text-sm font-bold uppercase tracking-widest transition-colors hidden md:inline">Sign In</Link>
+            <Link to="/login?tab=register" className="bg-[#E82127] hover:bg-[#c71d22] text-white rounded-full px-5 py-2 text-xs font-black uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-red-900/20">
+              Get Started
             </Link>
           </div>
         </div>
       </nav>
 
       {/* Hero */}
-      <section className="pt-32 pb-20 px-6 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-red-950/20 via-transparent to-transparent pointer-events-none" />
-        <div className="absolute top-20 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-red-600/5 rounded-full blur-[120px] pointer-events-none" />
+      <section className="pt-36 pb-24 px-6 relative overflow-hidden" id="features">
+        <div className="absolute inset-0 bg-gradient-to-b from-red-950/10 via-transparent to-transparent pointer-events-none" />
 
-        <div className="max-w-5xl mx-auto text-center relative">
-          <div className="inline-flex items-center gap-2 bg-white/5 border border-white/10 rounded-full px-4 py-1.5 text-xs font-semibold text-zinc-300 mb-8">
-            <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-            <span>18,427 engineers actively learning today</span>
+        <div className="max-w-5xl mx-auto relative">
+          <div className="inline-flex items-center gap-2 border border-[#E82127]/60 rounded-full px-4 py-1.5 text-[10px] font-black text-[#E82127] uppercase tracking-widest mb-10">
+            ✦ The Complete Engineering Career Platform
           </div>
 
-          <h1 className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter leading-[0.9] mb-6">
-            <span className="text-white">Master</span>{' '}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-rose-600">Engineering.</span>
+          <h1 className="text-6xl md:text-8xl lg:text-9xl font-black tracking-tighter leading-[0.88] mb-8">
+            <span className="text-white">Engineer Your</span>
             <br />
-            <span className="text-white">Get Hired.</span>{' '}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-500">Lead Teams.</span>
+            <span className="text-[#E82127]">Future.</span>
           </h1>
 
-          <p className="text-lg md:text-xl text-zinc-400 max-w-2xl mx-auto mb-10 leading-relaxed">
-            The only platform that takes you from DSA fundamentals to system architecture, cybersecurity, OOP mastery, and industry expert mentorship — in one structured journey.
+          <p className="text-lg md:text-xl text-zinc-400 max-w-2xl mb-12 leading-relaxed">
+            One platform to master DSA, ace interviews, build your resume, and land roles at top companies — guided by engineers who've done it.
           </p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
+          <div className="flex flex-col sm:flex-row items-center gap-4 mb-20">
             <Link
               to="/login?tab=register"
-              className="w-full sm:w-auto bg-[#E82127] hover:bg-[#c71d22] text-white rounded-full px-8 py-4 text-base font-black tracking-wider uppercase transition-all active:scale-95 shadow-xl shadow-red-900/30 hover:shadow-red-900/50"
+              className="w-full sm:w-auto bg-[#E82127] hover:bg-[#c71d22] text-white rounded-full px-8 py-4 text-sm font-black uppercase tracking-widest transition-all active:scale-95 shadow-xl shadow-red-900/30"
             >
-              Start for Free — No Card Needed
+              Start for Free
             </Link>
             <Link
-              to="/login"
-              className="w-full sm:w-auto border border-white/10 hover:border-white/20 text-zinc-300 rounded-full px-8 py-4 text-base font-medium transition-all hover:bg-white/5"
+              to="#curriculum"
+              className="w-full sm:w-auto border border-white/15 hover:border-white/30 text-zinc-300 hover:text-white rounded-full px-8 py-4 text-sm font-bold uppercase tracking-widest transition-all hover:bg-white/5 text-center"
             >
-              Sign in to continue
+              Explore Curriculum
             </Link>
-          </div>
-
-          {/* Live trust badges */}
-          <div className="flex flex-wrap items-center justify-center gap-6 text-zinc-600 text-xs font-medium">
-            {['🔒 Secure & Private', '🇮🇳 Built for Indian Engineers', '⚡ Cancel Anytime', '🎯 7-Day Money-Back'].map((t) => (
-              <span key={t}>{t}</span>
-            ))}
           </div>
         </div>
       </section>
 
       {/* Stats */}
-      <section className="py-16 border-y border-white/5 bg-white/[0.02]">
-        <div className="max-w-4xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-8">
-          {STATS.map((s) => <StatCounter key={s.label} {...s} />)}
+      <section className="py-6 px-6">
+        <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-4">
+          {STATS.map((s) => (
+            <div key={s.label} className="bg-[#111] border border-white/8 rounded-2xl px-6 py-5 text-center">
+              <StatCounter {...s} />
+            </div>
+          ))}
         </div>
       </section>
 
       {/* Companies */}
-      <section className="py-12 px-6">
+      <section className="py-12 px-6" id="curriculum">
         <div className="max-w-4xl mx-auto text-center">
           <p className="text-zinc-600 text-xs font-bold uppercase tracking-widest mb-8">Where EYF engineers work</p>
           <div className="flex flex-wrap items-center justify-center gap-6 md:gap-10">
@@ -276,7 +276,7 @@ export function LandingPage() {
       </section>
 
       {/* Gamification */}
-      <section className="py-20 px-6">
+      <section className="py-20 px-6" id="how-it-works">
         <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-12 items-center">
           <div>
             <div className="inline-flex items-center gap-2 bg-yellow-500/10 border border-yellow-500/20 rounded-full px-4 py-1.5 text-xs font-bold text-yellow-400 mb-6 uppercase tracking-widest">
