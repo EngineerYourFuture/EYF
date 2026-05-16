@@ -815,6 +815,889 @@ const dfa: DFA = {
     codeLang: 'typescript',
     summary: 'DFAs are the theoretical foundation of regular expression engines, lexers, and network packet filtering. Understanding them helps you reason about what patterns are and aren\'t expressible with regex, and why some problems require a stack (CFGs) or Turing machine.',
   },
+
+  // ── System Design ─────────────────────────────────────────────────────────
+
+  'api-design': {
+    overview: `API design is the art of building interfaces that are intuitive, consistent, and future-proof. A well-designed API reduces coupling, enables independent deployment, and can outlive the implementation behind it by years.\n\nThe three dominant paradigms — REST, gRPC, and GraphQL — each optimize for different constraints. REST is human-readable and cacheable. gRPC is binary-efficient and strongly typed. GraphQL gives clients precise control over data shape. Choosing between them is a product decision as much as an engineering one.`,
+    keyPoints: [
+      'REST: resources as URLs, stateless, leverage HTTP verbs (GET/POST/PUT/PATCH/DELETE)',
+      'gRPC: Protocol Buffers, bidirectional streaming, generated clients, ideal for service-to-service',
+      'GraphQL: single endpoint, client-specified queries, solves over-fetching and under-fetching',
+      'Versioning strategies: URL path (/v1/), header (Accept-Version), or query param',
+      'Idempotency: GET, PUT, DELETE must be idempotent; POST is not; use idempotency keys for payments',
+      'Pagination: offset/limit vs cursor-based (cursor wins for real-time feeds)',
+      'Rate limiting, authentication (API keys, JWT, OAuth2), and error format conventions (RFC 7807)',
+    ],
+    code: `// REST: GET /api/v1/users/:id
+// gRPC (proto definition)
+syntax = "proto3";
+service UserService {
+  rpc GetUser (GetUserRequest) returns (User);
+  rpc ListUsers (ListUsersRequest) returns (stream User);
+}
+message User { string id = 1; string email = 2; string name = 3; }
+
+// REST error format (RFC 7807)
+{
+  "type": "https://api.example.com/errors/not-found",
+  "title": "User not found",
+  "status": 404,
+  "detail": "No user with id abc123 exists.",
+  "instance": "/users/abc123"
+}
+
+// GraphQL query — fetch exactly what you need
+query {
+  user(id: "abc123") {
+    name
+    posts(first: 5) { title publishedAt }
+  }
+}`,
+    codeLang: 'typescript',
+    summary: 'Choose REST for public APIs where cacheability and human readability matter. Choose gRPC for internal microservices that need high throughput and strong contracts. Choose GraphQL when clients have highly variable data requirements (e.g., mobile apps with different screen sizes).',
+  },
+
+  'rate-limiting': {
+    overview: `Rate limiting protects services from abuse, ensures fair resource allocation, and prevents cascading failures under traffic spikes. Every public API and most internal services need some form of rate limiting.\n\nThe algorithm you choose determines the traffic shape allowed and the memory overhead. Token bucket is the industry default — it handles burst well and is easy to reason about.`,
+    keyPoints: [
+      'Fixed Window: count resets every N seconds — simple but boundary surge problem (2× burst at window edge)',
+      'Sliding Window Log: store timestamps of each request, O(1) check but O(request count) memory',
+      'Sliding Window Counter: interpolate between two fixed windows — best accuracy/memory tradeoff',
+      'Token Bucket: tokens refill at rate r, burst up to capacity B — allows bursting, industry standard',
+      'Leaky Bucket: requests drain at fixed rate — smooths output, no burst allowed',
+      'Implementation: Redis + Lua scripts for atomic multi-key ops; use TTL to expire windows automatically',
+      'Headers: X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset, Retry-After',
+    ],
+    code: `// Token Bucket with Redis (Lua script — atomic)
+const BUCKET_SCRIPT = \`
+  local key = KEYS[1]
+  local capacity = tonumber(ARGV[1])
+  local refill_rate = tonumber(ARGV[2])  -- tokens/sec
+  local now = tonumber(ARGV[3])
+  local requested = tonumber(ARGV[4])
+
+  local bucket = redis.call('HMGET', key, 'tokens', 'last_refill')
+  local tokens = tonumber(bucket[1]) or capacity
+  local last = tonumber(bucket[2]) or now
+
+  -- Refill
+  local elapsed = math.max(0, now - last)
+  tokens = math.min(capacity, tokens + elapsed * refill_rate)
+
+  if tokens >= requested then
+    tokens = tokens - requested
+    redis.call('HMSET', key, 'tokens', tokens, 'last_refill', now)
+    redis.call('EXPIRE', key, 3600)
+    return 1  -- allowed
+  end
+  return 0  -- denied
+\`;
+
+async function isAllowed(userId: string): Promise<boolean> {
+  const allowed = await redis.eval(
+    BUCKET_SCRIPT, 1,
+    \`rl:\${userId}\`,
+    100,   // capacity
+    10,    // 10 tokens/sec refill
+    Date.now() / 1000,
+    1      // cost
+  );
+  return allowed === 1;
+}`,
+    codeLang: 'typescript',
+    summary: 'For most APIs, token bucket with Redis is the right choice — it handles burst gracefully and scales horizontally with a shared Redis cluster. Sliding window counter is better when you need strict per-second limits. Always expose rate limit headers so clients can back off gracefully.',
+  },
+
+  consistency: {
+    overview: `Consistency models define the guarantees a distributed system makes about the order and visibility of writes across replicas. Choosing the wrong model can mean users seeing stale data, lost updates, or phantom reads.\n\nThe spectrum runs from strong (linearizable) to eventual. The further you move toward eventual consistency, the higher your throughput — but the more complex your application logic becomes to handle conflicts.`,
+    keyPoints: [
+      'Linearizability (Strong): reads always see the latest write — as if the system is one machine. Cost: high latency',
+      'Sequential Consistency: all operations appear in some global order consistent with each process\'s order',
+      'Causal Consistency: causally related operations are seen in order; concurrent ops can differ',
+      'Eventual Consistency: given no new writes, all replicas converge. Most NoSQL systems default to this',
+      'Read-Your-Writes: you always see your own writes — minimum useful guarantee for UX',
+      'Monotonic Reads: once you see value V, you won\'t see an older value — prevents "going back in time"',
+      'CRDTs (Conflict-free Replicated Data Types): data structures that merge automatically without conflicts',
+    ],
+    code: `// Conflict resolution strategies for eventual consistency
+
+// 1. Last-Write-Wins (LWW) — simplest, use timestamps or logical clocks
+interface VersionedValue<T> {
+  value: T;
+  timestamp: number;  // Lamport clock or wall clock
+}
+function merge<T>(a: VersionedValue<T>, b: VersionedValue<T>): VersionedValue<T> {
+  return a.timestamp >= b.timestamp ? a : b;
+}
+
+// 2. Vector Clocks — track causality across nodes
+type VectorClock = Record<string, number>;
+function happensBefore(a: VectorClock, b: VectorClock): boolean {
+  return Object.keys(a).every(k => (a[k] ?? 0) <= (b[k] ?? 0)) &&
+         Object.keys(b).some(k => (a[k] ?? 0) < (b[k] ?? 0));
+}
+
+// 3. G-Counter CRDT — increment-only counter, merge by max
+class GCounter {
+  private counts: Record<string, number> = {};
+  increment(nodeId: string) { this.counts[nodeId] = (this.counts[nodeId] ?? 0) + 1; }
+  value() { return Object.values(this.counts).reduce((a, b) => a + b, 0); }
+  merge(other: GCounter) {
+    for (const [id, v] of Object.entries(other.counts)) {
+      this.counts[id] = Math.max(this.counts[id] ?? 0, v);
+    }
+  }
+}`,
+    codeLang: 'typescript',
+    summary: 'Strong consistency is easy to program against but limits throughput. Eventual consistency scales but shifts conflict resolution into application code. Most real systems choose per-operation: use strong consistency for financial records, causal consistency for feeds, and eventual for analytics counters.',
+  },
+
+  messaging: {
+    overview: `Message queues and event streaming decouple producers from consumers, enabling asynchronous workflows, buffering traffic spikes, and building event-driven architectures. The choice between Kafka and RabbitMQ (or similar) depends on whether you need a log (replay) vs a queue (at-most-once delivery).\n\nKafka is a distributed commit log — consumers track their own offset and can replay from any point. RabbitMQ is a traditional broker — messages are deleted after delivery.`,
+    keyPoints: [
+      'Kafka: topics split into partitions, consumers in groups, each partition assigned to one consumer',
+      'Kafka offsets: consumers commit offsets after processing — exactly-once requires idempotent consumers',
+      'RabbitMQ: exchanges route to queues via bindings; direct, fanout, topic, headers exchange types',
+      'Dead-letter queues (DLQ): messages that fail N times are routed here for inspection',
+      'Backpressure: producers slow down when consumers lag — prevent OOM and cascade failures',
+      'Ordering: Kafka preserves order within a partition; use consistent hashing on partition key',
+      'At-least-once vs exactly-once: Kafka acks=all + idempotent producer + transactional consumer',
+    ],
+    code: `// Kafka producer with guaranteed delivery
+import { Kafka, CompressionTypes } from 'kafkajs';
+
+const kafka = new Kafka({ brokers: ['kafka:9092'] });
+const producer = kafka.producer({ idempotent: true });
+
+await producer.connect();
+await producer.send({
+  topic: 'order-events',
+  acks: -1,  // wait for all ISR replicas
+  compression: CompressionTypes.GZIP,
+  messages: [
+    {
+      key: order.userId,  // same user → same partition → ordered
+      value: JSON.stringify({ type: 'ORDER_PLACED', orderId: order.id }),
+      headers: { 'correlation-id': requestId },
+    },
+  ],
+});
+
+// Consumer with manual commit (at-least-once)
+const consumer = kafka.consumer({ groupId: 'order-service' });
+await consumer.subscribe({ topic: 'order-events', fromBeginning: false });
+await consumer.run({
+  autoCommit: false,
+  eachMessage: async ({ topic, partition, message, heartbeat }) => {
+    await processOrder(JSON.parse(message.value!.toString()));
+    await consumer.commitOffsets([{ topic, partition, offset: (Number(message.offset) + 1).toString() }]);
+    await heartbeat();  // prevent session timeout on long processing
+  },
+});`,
+    codeLang: 'typescript',
+    summary: 'Use Kafka when you need event replay, high throughput (millions/sec), or audit logs. Use RabbitMQ when you need complex routing, priority queues, or simple task queues. In both cases, design consumers to be idempotent — network failures mean you will process the same message twice.',
+  },
+
+  observability: {
+    overview: `Observability is the ability to understand a system's internal state from its external outputs — metrics, logs, and traces (the "three pillars"). Unlike monitoring (checking known failure modes), observability lets you debug novel failures you didn't anticipate.\n\nA production system without observability is a black box. When it breaks at 3 AM, you need to answer: what changed, where is the bottleneck, which users are affected, and why.`,
+    keyPoints: [
+      'Metrics: numeric time-series (counters, gauges, histograms). Use Prometheus + Grafana',
+      'Logs: structured (JSON) > unstructured. Include trace_id, user_id, duration in every log line',
+      'Traces: distributed request tracing across services. OpenTelemetry → Jaeger or Zipkin',
+      'RED method: Rate (req/sec), Errors (error rate), Duration (latency percentiles) — for every service',
+      'USE method: Utilization, Saturation, Errors — for every resource (CPU, memory, disk, network)',
+      'SLI/SLO/SLA: define what "good" looks like before measuring. p99 latency < 200ms is an SLI',
+      'Cardinality: high-cardinality labels (user_id) explode metrics storage — use traces for that instead',
+    ],
+    code: `// Structured logging with trace correlation (Pino)
+import pino from 'pino';
+const log = pino({ level: 'info' });
+
+app.use((req, res, next) => {
+  const traceId = req.headers['x-trace-id'] ?? crypto.randomUUID();
+  req.log = log.child({ traceId, path: req.path, method: req.method });
+  const start = Date.now();
+  res.on('finish', () => {
+    req.log.info({ status: res.statusCode, durationMs: Date.now() - start }, 'request');
+  });
+  next();
+});
+
+// Prometheus histogram (RED method)
+import { Histogram, register } from 'prom-client';
+const httpDuration = new Histogram({
+  name: 'http_request_duration_seconds',
+  help: 'HTTP request latency',
+  labelNames: ['method', 'route', 'status'],
+  buckets: [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5],
+});
+
+// OpenTelemetry trace span
+import { trace } from '@opentelemetry/api';
+const tracer = trace.getTracer('order-service');
+async function processOrder(id: string) {
+  const span = tracer.startSpan('processOrder');
+  span.setAttribute('order.id', id);
+  try {
+    const result = await db.orders.findUnique({ where: { id } });
+    span.setAttribute('order.status', result?.status ?? 'not_found');
+    return result;
+  } catch (e) {
+    span.recordException(e as Error);
+    span.setStatus({ code: 2 }); // ERROR
+    throw e;
+  } finally {
+    span.end();
+  }
+}`,
+    codeLang: 'typescript',
+    summary: 'Start with structured logs and the RED method — that alone catches 80% of production issues. Add distributed tracing when debugging cross-service latency becomes a regular pain point. Always include a trace_id in every log and propagate it across service boundaries via HTTP headers.',
+  },
+
+  // ── OOP ─────────────────────────────────────────────────────────────────
+
+  classes: {
+    overview: `Classes are blueprints for objects — they define state (fields) and behavior (methods). In OOP, everything is modeled as an object with identity, state, and behavior. Understanding classes deeply means understanding memory layout, constructor chaining, and the difference between class-level and instance-level members.\n\nIn TypeScript/JavaScript, classes are syntactic sugar over prototype-based inheritance. Under the hood, methods live on the prototype chain — one copy shared across all instances.`,
+    keyPoints: [
+      'Constructor: initializes instance state; called once at object creation',
+      'Static members: belong to the class, not instances — shared across all objects',
+      'Access modifiers: public (default), private (# in JS, enforced at runtime), protected (subclasses only)',
+      'Getters/setters: computed properties with validation logic, accessed like fields',
+      'this keyword: refers to the current instance — lost in callbacks unless bound or using arrow functions',
+      'new keyword: allocates memory, sets prototype, calls constructor, returns the new object',
+      'instanceof: checks prototype chain — use for runtime type narrowing',
+    ],
+    code: `class BankAccount {
+  readonly #id: string;
+  #balance: number;
+  static #totalAccounts = 0;
+
+  constructor(initialDeposit: number) {
+    if (initialDeposit < 0) throw new Error('Negative deposit');
+    this.#id = crypto.randomUUID();
+    this.#balance = initialDeposit;
+    BankAccount.#totalAccounts++;
+  }
+
+  get balance(): number { return this.#balance; }
+  get id(): string { return this.#id; }
+
+  deposit(amount: number): void {
+    if (amount <= 0) throw new Error('Amount must be positive');
+    this.#balance += amount;
+  }
+
+  withdraw(amount: number): boolean {
+    if (amount > this.#balance) return false;
+    this.#balance -= amount;
+    return true;
+  }
+
+  static get totalAccounts(): number { return BankAccount.#totalAccounts; }
+
+  toString(): string {
+    return \`Account[\${this.#id.slice(0, 8)}]: $\${this.#balance.toFixed(2)}\`;
+  }
+}
+
+const acc = new BankAccount(1000);
+acc.deposit(500);
+acc.withdraw(200);
+console.log(acc.balance);           // 1300
+console.log(BankAccount.totalAccounts); // 1
+console.log(acc instanceof BankAccount); // true`,
+    codeLang: 'typescript',
+    summary: 'Classes encapsulate state and behavior, making code self-documenting and maintainable. Prefer private fields (#) over TypeScript\'s private keyword for true runtime enforcement. Favor readonly for fields that should never change after construction, and use static members sparingly — they are essentially global state.',
+  },
+
+  inheritance: {
+    overview: `Inheritance allows a subclass to reuse and extend a superclass's implementation. It models "is-a" relationships and enables polymorphism. However, inheritance is one of the most misused tools in OOP — deep hierarchies create fragile coupling that makes code hard to change.\n\nThe canonical advice is "favor composition over inheritance" — but inheritance is right when there is a genuine is-a relationship and you want subclasses to participate in the superclass's interface.`,
+    keyPoints: [
+      'extends keyword creates a subclass that inherits all public/protected members',
+      'super(): must be called in subclass constructor before accessing this',
+      'Method overriding: subclass re-implements a superclass method — resolved at runtime (polymorphism)',
+      'super.method(): call the parent\'s implementation from within an override',
+      'Abstract classes: cannot be instantiated, define a contract subclasses must implement',
+      'Fragile base class problem: changing a superclass can silently break subclasses',
+      'Liskov Substitution Principle: subclasses must be usable wherever the superclass is expected',
+    ],
+    code: `abstract class Shape {
+  abstract area(): number;
+  abstract perimeter(): number;
+
+  // Template method — shared algorithm, steps overridden
+  describe(): string {
+    return \`\${this.constructor.name}: area=\${this.area().toFixed(2)}, perimeter=\${this.perimeter().toFixed(2)}\`;
+  }
+}
+
+class Circle extends Shape {
+  constructor(private readonly radius: number) {
+    super();
+    if (radius <= 0) throw new Error('Radius must be positive');
+  }
+  area(): number { return Math.PI * this.radius ** 2; }
+  perimeter(): number { return 2 * Math.PI * this.radius; }
+}
+
+class Rectangle extends Shape {
+  constructor(private readonly w: number, private readonly h: number) {
+    super();
+  }
+  area(): number { return this.w * this.h; }
+  perimeter(): number { return 2 * (this.w + this.h); }
+}
+
+// Polymorphism — same interface, different behavior
+const shapes: Shape[] = [new Circle(5), new Rectangle(4, 6)];
+shapes.forEach(s => console.log(s.describe()));
+// Circle: area=78.54, perimeter=31.42
+// Rectangle: area=24.00, perimeter=20.00`,
+    codeLang: 'typescript',
+    summary: 'Use inheritance for genuine is-a relationships where subclasses extend (not restrict) the parent\'s contract. Abstract classes are ideal as framework base classes where you want to enforce an interface but share some implementation. Watch out for inheritance hierarchies deeper than 2-3 levels — that\'s a signal to refactor toward composition.',
+  },
+
+  structural: {
+    overview: `Structural patterns deal with object composition — how classes and objects are combined to form larger, flexible structures. They solve the problem of making incompatible interfaces work together, adding responsibilities to objects without subclassing, and hiding complex subsystems.\n\nThe three most interview-critical structural patterns are Adapter, Decorator, and Facade. You encounter them constantly in real codebases — often without realizing it.`,
+    keyPoints: [
+      'Adapter: converts one interface to another — makes incompatible types work together (think React\'s useState wrapping browser APIs)',
+      'Decorator: adds behavior to an object dynamically without changing its class — wraps the original',
+      'Facade: provides a simplified interface to a complex subsystem — reduces coupling',
+      'Proxy: controls access to an object — used for lazy init, caching, access control, logging',
+      'Composite: treats individual objects and compositions uniformly — tree structures (DOM, file systems)',
+      'Bridge: separates abstraction from implementation — both can vary independently',
+      'Flyweight: share common state across many objects to save memory (e.g., character objects in a text editor)',
+    ],
+    code: `// Adapter — legacy logger to new interface
+interface Logger { log(level: string, msg: string): void; }
+class LegacyLogger { write(msg: string): void { console.log(\`[LOG] \${msg}\`); } }
+
+class LoggerAdapter implements Logger {
+  constructor(private legacy: LegacyLogger) {}
+  log(level: string, msg: string): void {
+    this.legacy.write(\`[\${level.toUpperCase()}] \${msg}\`);
+  }
+}
+
+// Decorator — add retry behavior without modifying the original
+interface DataService { fetch(id: string): Promise<string>; }
+
+class RetryDecorator implements DataService {
+  constructor(private inner: DataService, private maxRetries = 3) {}
+
+  async fetch(id: string): Promise<string> {
+    for (let attempt = 1; attempt <= this.maxRetries; attempt++) {
+      try {
+        return await this.inner.fetch(id);
+      } catch (e) {
+        if (attempt === this.maxRetries) throw e;
+        await new Promise(r => setTimeout(r, attempt * 200));
+      }
+    }
+    throw new Error('unreachable');
+  }
+}
+
+// Facade — hide subsystem complexity
+class PaymentFacade {
+  constructor(
+    private fraud: FraudDetection,
+    private gateway: PaymentGateway,
+    private ledger: AccountingLedger,
+    private notify: NotificationService
+  ) {}
+
+  async charge(userId: string, amount: number): Promise<void> {
+    await this.fraud.check(userId, amount);
+    const txn = await this.gateway.charge(userId, amount);
+    await this.ledger.record(txn);
+    await this.notify.send(userId, \`Charged $\${amount}\`);
+  }
+}`,
+    codeLang: 'typescript',
+    summary: 'Adapter is for legacy integration. Decorator is for adding cross-cutting concerns (logging, retry, caching) without inheritance. Facade is for reducing coupling to complex subsystems — it\'s the pattern behind most SDK "client" classes. In production TypeScript, decorators and proxies appear constantly in Express middleware, TypeORM, and NestJS.',
+  },
+
+  srp: {
+    overview: `The Single Responsibility Principle (SRP) states that a class should have only one reason to change — meaning it should only have one job. This is the most fundamental of the SOLID principles and the one most commonly violated.\n\n"Reason to change" is key. If a class changes when the business logic changes AND when the persistence layer changes AND when the UI format changes, it has too many responsibilities and will be a hotspot for bugs.`,
+    keyPoints: [
+      'A class should do one thing and do it well — high cohesion within, low coupling outside',
+      'Violation signs: "and" in class names (UserManagerAndValidator), methods that do unrelated things',
+      'Split by change axis: who (business role / stakeholder) causes each method to change?',
+      'SRP applies at every level: functions, classes, modules, services',
+      'Result: smaller classes that are easier to test, reason about, and reuse',
+      'Corollary: if adding a feature requires changing many unrelated classes, SRP is violated',
+    ],
+    code: `// ❌ Violates SRP — three reasons to change: user logic, email format, DB schema
+class User {
+  constructor(public name: string, public email: string) {}
+
+  validate(): boolean { return this.email.includes('@'); }
+
+  save(): void { db.query(\`INSERT INTO users VALUES ('\${this.name}', '\${this.email}')\`); }
+
+  sendWelcomeEmail(): void {
+    mailer.send(this.email, \`Welcome, \${this.name}! Use this code: WELCOME10\`);
+  }
+}
+
+// ✅ Each class has one reason to change
+class User {
+  constructor(public readonly name: string, public readonly email: string) {}
+}
+
+class UserValidator {
+  validate(user: User): boolean { return /^[^@]+@[^@]+\.[^@]+$/.test(user.email); }
+}
+
+class UserRepository {
+  async save(user: User): Promise<void> {
+    await db.query('INSERT INTO users (name, email) VALUES ($1, $2)', [user.name, user.email]);
+  }
+}
+
+class WelcomeEmailService {
+  async send(user: User): Promise<void> {
+    await mailer.send({
+      to: user.email,
+      subject: 'Welcome to EYF!',
+      body: \`Hi \${user.name}, you're in! Use code WELCOME10 for 20% off.\`,
+    });
+  }
+}`,
+    codeLang: 'typescript',
+    summary: 'SRP keeps classes focused and changes isolated. When a bug in email formatting can\'t possibly break your database logic, debugging becomes faster and regression risk drops. The practical test: can you describe this class\'s purpose without using "and"? If not, split it.',
+  },
+
+  // ── Networks ─────────────────────────────────────────────────────────────
+
+  http: {
+    overview: `HTTP is the application-layer protocol powering the web. Understanding its evolution from HTTP/1.1 → HTTP/2 → HTTP/3 and the mechanics of REST API design is critical for both web development and system design interviews.\n\nHTTP is stateless — each request carries all context. Sessions, auth tokens, and cookies are mechanisms layered on top to simulate state.`,
+    keyPoints: [
+      'HTTP/1.1: text-based, keep-alive connections, head-of-line blocking per connection, 6 connections per domain',
+      'HTTP/2: binary framing, multiplexing (multiple streams on 1 connection), header compression (HPACK), server push',
+      'HTTP/3: QUIC over UDP, eliminates TCP HOL blocking, 0-RTT reconnect, built-in TLS 1.3',
+      'Methods: GET (safe, idempotent), POST (not idempotent), PUT (idempotent replace), PATCH (partial update), DELETE (idempotent)',
+      'Status codes: 1xx informational, 2xx success, 3xx redirect, 4xx client error, 5xx server error',
+      'Headers: Content-Type, Accept, Authorization, Cache-Control, ETag, If-None-Match, CORS headers',
+      'Caching: Cache-Control: max-age=3600; ETag for conditional GETs (304 Not Modified saves bandwidth)',
+    ],
+    code: `// HTTP/2 server push + conditional GET example (Node.js)
+import http2 from 'http2';
+
+// ETag-based caching
+app.get('/api/users/:id', async (req, res) => {
+  const user = await db.users.findById(req.params.id);
+  const etag = \`"\${user.updatedAt.getTime()}"\`;
+
+  if (req.headers['if-none-match'] === etag) {
+    return res.status(304).end();  // Not Modified — client uses cache
+  }
+
+  res.set({
+    'ETag': etag,
+    'Cache-Control': 'private, max-age=60',
+    'Vary': 'Accept-Encoding',
+  });
+  res.json(user);
+});
+
+// CORS preflight
+app.options('/api/*', (req, res) => {
+  res.set({
+    'Access-Control-Allow-Origin': 'https://app.example.com',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE',
+    'Access-Control-Allow-Headers': 'Authorization, Content-Type',
+    'Access-Control-Max-Age': '86400',  // cache preflight 1 day
+  });
+  res.status(204).end();
+});
+
+// HTTP status codes cheat sheet:
+// 200 OK, 201 Created, 204 No Content
+// 301 Moved Permanently, 302 Found (temp), 304 Not Modified
+// 400 Bad Request, 401 Unauthorized (no auth), 403 Forbidden (has auth, no permission)
+// 404 Not Found, 409 Conflict, 422 Unprocessable Entity, 429 Too Many Requests
+// 500 Internal Server Error, 502 Bad Gateway, 503 Service Unavailable, 504 Gateway Timeout`,
+    codeLang: 'typescript',
+    summary: 'HTTP/2 multiplexing eliminates the 6-connection-per-domain bottleneck of HTTP/1.1 and is the default for modern apps. Understand caching headers deeply — ETag + conditional GETs can eliminate most bandwidth and cut API response time for clients. In interviews, know the difference between 401 and 403, and when to use 409 vs 422.',
+  },
+
+  dns: {
+    overview: `DNS (Domain Name System) is the internet\'s distributed phonebook — it translates human-readable names like api.example.com into IP addresses. Understanding DNS is critical for debugging production incidents (propagation delays, TTL misconfiguration), designing global services, and security.\n\nDNS is hierarchical: root nameservers → TLD nameservers → authoritative nameservers. Caching at every layer makes it fast but means changes take time to propagate.`,
+    keyPoints: [
+      'Resolution flow: browser cache → OS cache → resolver (ISP/8.8.8.8) → root NS → TLD NS → authoritative NS',
+      'Record types: A (IPv4), AAAA (IPv6), CNAME (alias), MX (mail), TXT (verification/SPF/DKIM), NS, SOA',
+      'TTL (Time to Live): how long resolvers cache a record — lower TTL = faster changes but more queries',
+      'Recursive resolver: queries on your behalf; authoritative nameserver: has the actual answer',
+      'DNSSEC: signs DNS records to prevent cache poisoning (Kaminsky attack)',
+      'Anycast routing: same IP announced from multiple locations — nearest datacenter responds (used by CDNs)',
+      'DNS-based load balancing: multiple A records round-robined, or weighted routing via Route 53',
+    ],
+    code: `// DNS resolution simulation (iterative)
+async function resolveDomain(name: string): Promise<string> {
+  // 1. Check local cache
+  if (dnsCache.has(name)) {
+    const { ip, expiresAt } = dnsCache.get(name)!;
+    if (Date.now() < expiresAt) return ip;
+  }
+
+  // 2. Query recursive resolver (e.g. 8.8.8.8)
+  const response = await queryResolver('8.8.8.8', name, 'A');
+
+  // 3. Cache with TTL
+  dnsCache.set(name, { ip: response.ip, expiresAt: Date.now() + response.ttl * 1000 });
+  return response.ip;
+}
+
+// Common DNS record types
+const records = {
+  A:     { host: 'api.example.com', value: '203.0.113.10',        ttl: 300  },
+  CNAME: { host: 'www.example.com', value: 'api.example.com',     ttl: 3600 },
+  MX:    { host: 'example.com',     value: 'mail.google.com',     priority: 10 },
+  TXT:   { host: 'example.com',     value: 'v=spf1 include:_spf.google.com ~all' },
+  AAAA:  { host: 'api.example.com', value: '2001:db8::1',         ttl: 300  },
+};
+
+// Blue-green deployment with low TTL
+// 1. Lower TTL to 60s, wait for propagation (~24h × old TTL)
+// 2. Deploy new version
+// 3. Update A record to new IP
+// 4. Wait 60s for propagation
+// 5. Restore TTL to 300s`,
+    codeLang: 'typescript',
+    summary: 'DNS is deceptively simple in theory but has real production implications. Always lower TTL before a migration, not after — once you\'ve changed the record, the old TTL is already baked into resolvers\' caches. CNAME records cannot be set on apex domains (example.com); use ALIAS or ANAME records or A records directly.',
+  },
+
+  // ── DBMS ─────────────────────────────────────────────────────────────────
+
+  indexing: {
+    overview: `Database indexes are the single most important performance tool in a software engineer\'s arsenal. A missing index on a 100M-row table can turn a 50ms query into a 30-second full scan. Knowing when to add one — and when not to — separates engineers who write fast code from those who write slow systems.\n\nIndexes are B-trees by default in PostgreSQL and MySQL. They store a sorted copy of the indexed column(s) with pointers to the heap row, enabling O(log N) lookups instead of O(N) sequential scans.`,
+    keyPoints: [
+      'B-tree index: balanced tree, O(log N) point lookups and range queries — default for most cases',
+      'Hash index: O(1) equality lookups only — no range queries, no ordering, rarely used explicitly',
+      'Composite index: (a, b, c) — supports queries on (a), (a,b), (a,b,c) but NOT just (b) or (c)',
+      'Covering index (index-only scan): includes all columns a query needs — avoids heap fetch entirely',
+      'Partial index: WHERE condition in the index — smaller, faster for filtered queries',
+      'Write overhead: every INSERT/UPDATE/DELETE must update all indexes on the table',
+      'Index bloat: dead tuples inflate indexes; VACUUM in Postgres cleans up, REINDEX rebuilds',
+    ],
+    code: `-- Explaining a query plan
+EXPLAIN (ANALYZE, BUFFERS, FORMAT TEXT)
+SELECT u.name, o.total
+FROM users u
+JOIN orders o ON o.user_id = u.id
+WHERE u.country = 'IN'
+  AND o.created_at > NOW() - INTERVAL '7 days';
+
+-- Without index: Seq Scan + Hash Join = slow
+-- With index:    Index Scan + Nested Loop = fast
+
+-- Composite index (order matters: equality first, range last)
+CREATE INDEX idx_orders_user_created
+  ON orders (user_id, created_at DESC);
+
+-- Covering index (avoids heap fetch)
+CREATE INDEX idx_products_category_covering
+  ON products (category_id)
+  INCLUDE (name, price, stock);
+-- Query: SELECT name, price FROM products WHERE category_id = 5
+-- → Index Only Scan: zero heap fetches
+
+-- Partial index (only index active users)
+CREATE INDEX idx_users_active_email
+  ON users (email)
+  WHERE status = 'active';
+
+-- Identify missing indexes
+SELECT schemaname, tablename, seq_scan, idx_scan,
+       seq_scan - idx_scan AS diff
+FROM pg_stat_user_tables
+WHERE seq_scan > idx_scan
+ORDER BY diff DESC;`,
+    codeLang: 'typescript',
+    summary: 'Rule of thumb: add an index on any column that appears in a WHERE, JOIN ON, or ORDER BY clause for queries touching more than 1% of the table. For composite indexes, put equality conditions before range conditions. Covering indexes eliminate heap fetches and can make some queries 10-100× faster — but every index slows down writes.',
+  },
+
+  concurrency: {
+    overview: `Database concurrency control ensures that concurrent transactions produce results equivalent to some serial execution order, preventing anomalies like dirty reads, lost updates, and phantom reads. Modern databases use either locking or Multiversion Concurrency Control (MVCC) — PostgreSQL uses MVCC.\n\nMVCC gives readers a consistent snapshot without blocking writers. Readers never block writers; writers never block readers. Conflicts only occur between concurrent writers.`,
+    keyPoints: [
+      'Pessimistic locking: acquire lock before read — SELECT FOR UPDATE; prevents conflicts but reduces throughput',
+      'Optimistic locking: no lock on read, check at write time (version column) — better for low contention',
+      'MVCC: each transaction sees a snapshot at its start time; old versions kept in undo log until vacuumed',
+      'Deadlock: T1 holds A, wants B; T2 holds B, wants A — DB detects cycle and aborts one transaction',
+      'Two-Phase Locking (2PL): acquire all locks first, then release — ensures serializability',
+      'Isolation levels control what anomalies are visible (see isolation topic for details)',
+      'Advisory locks: application-level locks via pg_advisory_lock — for coordinating background workers',
+    ],
+    code: `-- Pessimistic locking: prevent double-booking
+BEGIN;
+SELECT * FROM seats WHERE id = 42 FOR UPDATE;
+-- other transactions block here until this tx commits/rollbacks
+UPDATE seats SET user_id = 123, booked = true WHERE id = 42;
+COMMIT;
+
+-- Optimistic locking with version column
+-- Schema: ALTER TABLE products ADD COLUMN version INT DEFAULT 0;
+async function decrementStock(productId: number, qty: number): Promise<void> {
+  let retries = 3;
+  while (retries-- > 0) {
+    const product = await db.oneOrNone(
+      'SELECT id, stock, version FROM products WHERE id = $1', [productId]
+    );
+    if (!product || product.stock < qty) throw new Error('Insufficient stock');
+
+    const updated = await db.result(
+      'UPDATE products SET stock = stock - $1, version = version + 1 WHERE id = $2 AND version = $3',
+      [qty, productId, product.version]
+    );
+
+    if (updated.rowCount === 1) return;  // success
+    // rowCount = 0 means concurrent update changed version — retry
+    await new Promise(r => setTimeout(r, Math.random() * 100));
+  }
+  throw new Error('Too many concurrent updates, please retry');
+}
+
+-- Detect deadlocks in Postgres
+SELECT pid, wait_event_type, wait_event, query
+FROM pg_stat_activity
+WHERE wait_event_type = 'Lock';`,
+    codeLang: 'typescript',
+    summary: 'Use SELECT FOR UPDATE when you must guarantee exclusive access (seat booking, inventory decrement). Use optimistic locking with a version column for high-read, low-write-conflict scenarios — it scales better and avoids lock contention. Always access tables in the same order across transactions to prevent deadlocks.',
+  },
+
+  // ── OOP (remaining SOLID) ────────────────────────────────────────────────
+
+  ocp: {
+    overview: `The Open/Closed Principle states that software entities should be open for extension but closed for modification. Once a class is written, tested, and deployed, you should be able to add new behavior without changing existing code — only by adding new code.\n\nThis is typically achieved through polymorphism, strategy pattern, or plugin architectures. The goal is to isolate stable code from volatile code.`,
+    keyPoints: [
+      'Open for extension: new behavior can be added (new subclass, new strategy, new plugin)',
+      'Closed for modification: existing, tested code is not changed when adding new features',
+      'Strategy pattern is the canonical OCP implementation — swap algorithms without changing context',
+      'OCP prevents "shotgun surgery" — needing to change 10 files every time a new type is added',
+      'If you have if/else or switch on a type enum, you\'re likely violating OCP',
+      'Trade-off: premature abstraction is worse than a small OCP violation — apply when you see the third variant',
+    ],
+    code: `// ❌ Violates OCP — adding new shape requires modifying this function
+function calculateArea(shape: { type: string; radius?: number; w?: number; h?: number }): number {
+  if (shape.type === 'circle') return Math.PI * shape.radius! ** 2;
+  if (shape.type === 'rectangle') return shape.w! * shape.h!;
+  // Adding triangle means modifying this file 👎
+  throw new Error('Unknown shape');
+}
+
+// ✅ OCP via polymorphism — add triangle by adding a new class, zero existing changes
+interface Shape { area(): number; }
+
+class Circle implements Shape {
+  constructor(private r: number) {}
+  area() { return Math.PI * this.r ** 2; }
+}
+
+class Rectangle implements Shape {
+  constructor(private w: number, private h: number) {}
+  area() { return this.w * this.h; }
+}
+
+class Triangle implements Shape {  // NEW — no existing code changed
+  constructor(private base: number, private height: number) {}
+  area() { return 0.5 * this.base * this.height; }
+}
+
+// Strategy pattern — OCP for algorithms
+interface SortStrategy { sort(arr: number[]): number[]; }
+class QuickSort implements SortStrategy { sort(a: number[]) { return [...a].sort((x,y)=>x-y); } }
+class MergeSort implements SortStrategy { sort(a: number[]) { /* merge sort impl */ return a; } }
+
+class Sorter {
+  constructor(private strategy: SortStrategy) {}
+  setStrategy(s: SortStrategy) { this.strategy = s; }
+  sort(arr: number[]) { return this.strategy.sort(arr); }
+}`,
+    codeLang: 'typescript',
+    summary: 'OCP pays off at scale — a billing system that calculates prices differently for 20 subscription types is maintainable via OCP; a 20-branch switch statement is not. The key sign you need OCP is when the same conditional appears in multiple places and grows with each new variant. Apply strategy or visitor patterns to close these extension points.',
+  },
+
+  lsp: {
+    overview: `Liskov Substitution Principle: if S is a subtype of T, then objects of type T may be replaced with objects of type S without altering the correctness of the program. Informally: subclasses must be usable wherever their superclass is expected.\n\nLSP violations manifest as instanceof checks in code that\'s supposed to work with the base type, or surprising exceptions thrown by subclasses that the base class contract didn\'t allow.`,
+    keyPoints: [
+      'Subclasses must honor the superclass\'s contract: preconditions, postconditions, and invariants',
+      'Cannot strengthen preconditions: if the base accepts any integer, subclass cannot require positive only',
+      'Cannot weaken postconditions: if base guarantees non-null return, subclass cannot return null',
+      'The Square/Rectangle problem: Square extends Rectangle but violates LSP (setting width changes height)',
+      'instanceof checks in polymorphic code = LSP smell — you shouldn\'t need to know the subtype',
+      'Interfaces over inheritance: if LSP is hard to satisfy, model as separate interfaces instead',
+    ],
+    code: `// Classic LSP violation: Square extends Rectangle
+class Rectangle {
+  constructor(protected w: number, protected h: number) {}
+  setWidth(w: number)  { this.w = w; }
+  setHeight(h: number) { this.h = h; }
+  area() { return this.w * this.h; }
+}
+
+class Square extends Rectangle {
+  setWidth(s: number)  { this.w = this.h = s; }  // keeps square invariant
+  setHeight(s: number) { this.w = this.h = s; }  // but violates Rectangle contract!
+}
+
+function doubleWidth(shape: Rectangle): void {
+  shape.setWidth(shape['w'] * 2);
+  // Expected: area doubles. For Rectangle: ✅  For Square: ❌ area quadruples
+}
+
+// ✅ Fix: don't inherit — use separate types with a shared interface
+interface Shape { area(): number; }
+class Rectangle implements Shape {
+  constructor(private w: number, private h: number) {}
+  area() { return this.w * this.h; }
+  withWidth(w: number) { return new Rectangle(w, this.h); }
+}
+class Square implements Shape {
+  constructor(private side: number) {}
+  area() { return this.side ** 2; }
+  withSide(s: number) { return new Square(s); }
+}
+
+// ✅ LSP-safe — every Bird can move, but not every Bird can fly
+interface Movable { move(dx: number, dy: number): void; }
+interface Flyable extends Movable { fly(altitude: number): void; }
+class Penguin implements Movable { move(dx: number, dy: number) { /* waddle */ } }
+class Eagle implements Flyable {
+  move(dx: number, dy: number) { /* walk */ }
+  fly(altitude: number) { /* soar */ }
+}`,
+    codeLang: 'typescript',
+    summary: 'LSP prevents the classic "it works in theory but explodes at runtime" bug. The practical test: write a test using only the base class interface and run it against both the parent and child. If any assertion fails on the child, LSP is violated. Use interfaces to model capability rather than inheritance to force shared implementation.',
+  },
+
+  // ── System Design Case Studies ────────────────────────────────────────────
+
+  'design-url': {
+    overview: `Designing a URL shortener (like bit.ly) is the canonical introductory system design question. It tests your ability to estimate scale, choose a key generation strategy, design a data model, and handle redirects efficiently with caching.\n\nThe core challenge is: generate a short, unique key for each long URL, store the mapping, and redirect billions of requests per day with sub-10ms latency.`,
+    keyPoints: [
+      'Scale estimation: 100M URLs/day write, 10B redirects/day read (100:1 read:write ratio)',
+      'Key generation: Base62 encode (a-zA-Z0-9) a counter or hash — 7 chars = 62^7 ≈ 3.5 trillion unique keys',
+      'Counter vs hash: auto-increment counter is predictable (sequential enumeration attack); MD5 truncated causes collisions',
+      'Preferred: pre-generate keys in a Key Generation Service (KGS) and store in a key pool',
+      'Data model: {short_id: string, long_url: string, created_by: string, expires_at: date, click_count: int}',
+      'Redirect: 301 (permanent, cached by browser) vs 302 (temporary, hits server each time for analytics)',
+      'Caching: Cache 20% of hot URLs in Redis (80% of traffic) — cache the short→long mapping',
+    ],
+    code: `// Key Generation Service (KGS) approach
+class KeyGenerationService {
+  private readonly keyLength = 7;
+  private readonly alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+
+  generateKey(): string {
+    // In practice: pre-generate in batches, store in DB, mark as used atomically
+    return Array.from({ length: this.keyLength }, () =>
+      this.alphabet[Math.floor(Math.random() * this.alphabet.length)]
+    ).join('');
+  }
+
+  // Better: base62-encode a distributed counter (Snowflake ID)
+  encodeBase62(num: bigint): string {
+    if (num === 0n) return 'a';
+    let result = '';
+    while (num > 0n) {
+      result = this.alphabet[Number(num % 62n)] + result;
+      num = num / 62n;
+    }
+    return result.padStart(7, 'a');
+  }
+}
+
+// Redirect handler with Redis cache
+async function redirect(shortId: string, res: Response): Promise<void> {
+  // 1. Check cache (sub-ms)
+  const cached = await redis.get(\`url:\${shortId}\`);
+  if (cached) {
+    await redis.incr(\`clicks:\${shortId}\`);  // async analytics
+    return res.redirect(302, cached);
+  }
+
+  // 2. DB fallback
+  const record = await db.urls.findUnique({ where: { shortId } });
+  if (!record || (record.expiresAt && record.expiresAt < new Date())) {
+    return res.status(404).json({ error: 'URL not found or expired' });
+  }
+
+  // 3. Cache for 1 hour
+  await redis.setex(\`url:\${shortId}\`, 3600, record.longUrl);
+  res.redirect(302, record.longUrl);
+}`,
+    codeLang: 'typescript',
+    summary: 'Use 302 redirects (not 301) if you need click analytics — browsers cache 301s and never hit your server again. Cache the hot 20% of URLs in Redis to handle the 80% of traffic. Use a Key Generation Service with pre-generated keys to avoid collision-detection complexity. Partition the URL table by short_id hash for horizontal scaling.',
+  },
+
+  'design-twitter': {
+    overview: `Designing Twitter\'s news feed is one of the most comprehensive system design questions — it covers data modeling, fan-out strategies, caching, real-time delivery, and the fundamental tension between write-time and read-time work.\n\nThe core problem: when UserA posts a tweet, how do UserA\'s 50 million followers see it in their feeds with low latency? This is the fan-out problem.`,
+    keyPoints: [
+      'Fan-out on write (push): tweet is written to every follower\'s feed cache on post — fast reads, slow/impossible for celebrities',
+      'Fan-out on read (pull): build feed at read time by fetching tweets from followed accounts — slow reads, works for any follower count',
+      'Hybrid: fan-out on write for normal users, fan-out on read for celebrity accounts (>1M followers)',
+      'Data model: tweets table, users table, follows table (follower_id, followee_id, created_at)',
+      'Timeline cache: Redis sorted set per user, score = tweet timestamp, store tweet IDs (not full tweets)',
+      'Home timeline: Redis ZREVRANGE uid:timeline 0 100 → fetch tweets by ID from tweets cache',
+      'Real-time: WebSocket or Server-Sent Events push new tweets to active client connections',
+    ],
+    code: `// Simplified fan-out on write service
+async function postTweet(userId: string, text: string): Promise<Tweet> {
+  const tweet = await db.tweets.create({
+    data: { authorId: userId, text, createdAt: new Date() }
+  });
+
+  // Async fan-out via message queue
+  await queue.publish('tweet-created', {
+    tweetId: tweet.id,
+    authorId: userId,
+    timestamp: tweet.createdAt.getTime(),
+  });
+
+  return tweet;
+}
+
+// Fan-out worker (processes queue messages)
+async function fanOutWorker(msg: { tweetId: string; authorId: string; timestamp: number }) {
+  // Check if author is a celebrity (>1M followers) — skip fan-out on write
+  const followerCount = await redis.get(\`followers:count:\${msg.authorId}\`);
+  if (Number(followerCount) > 1_000_000) return; // fan-out on read for celebrities
+
+  // Get followers in batches (author may have 100k followers)
+  const followers = await db.follows.findMany({
+    where: { followeeId: msg.authorId },
+    select: { followerId: true },
+  });
+
+  // Write tweet to each follower's timeline (Redis sorted set)
+  const pipeline = redis.pipeline();
+  for (const { followerId } of followers) {
+    pipeline.zadd(
+      \`timeline:\${followerId}\`,
+      msg.timestamp,
+      msg.tweetId
+    );
+    pipeline.zremrangebyrank(\`timeline:\${followerId}\`, 0, -1001); // keep 1000 most recent
+  }
+  await pipeline.exec();
+}
+
+// Read home timeline
+async function getTimeline(userId: string, page = 0): Promise<Tweet[]> {
+  const tweetIds = await redis.zrevrange(\`timeline:\${userId}\`, page * 20, (page + 1) * 20 - 1);
+  if (tweetIds.length === 0) return [];
+
+  const tweets = await Promise.all(
+    tweetIds.map(id => redis.get(\`tweet:\${id}\`).then(t => t ? JSON.parse(t) : db.tweets.findUnique({ where: { id } })))
+  );
+  return tweets.filter(Boolean) as Tweet[];
+}`,
+    codeLang: 'typescript',
+    summary: 'Twitter\'s architecture is the canonical example of hybrid fan-out. Normal users get fan-out on write (O(followers) on post, O(1) on read). Celebrities use fan-out on read (their tweet is fetched and merged into the timeline at read time). The timeline is always served from Redis — the DB is only a durability layer. In interviews, always call out the celebrity problem and propose the hybrid solution.',
+  },
 };
 
 const DEFAULT_CONTENT: TopicContent = {
