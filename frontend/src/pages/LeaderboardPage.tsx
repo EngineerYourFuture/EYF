@@ -20,6 +20,28 @@ interface LeaderboardData {
   currentUserRank: LeaderboardEntry | null;
 }
 
+const STATIC_LEADERBOARD: LeaderboardData = {
+  period: 'alltime',
+  entries: [
+    { rank: 1, userId: 'u1', name: 'Arjun Kumar',    xp: 14820, streak: 47, isCurrentUser: false },
+    { rank: 2, userId: 'u2', name: 'Priya Sharma',   xp: 13290, streak: 32, isCurrentUser: false },
+    { rank: 3, userId: 'u3', name: 'Rohit Verma',    xp: 11750, streak: 28, isCurrentUser: false },
+    { rank: 4, userId: 'u4', name: 'Sneha Patel',    xp: 10400, streak: 21, isCurrentUser: false },
+    { rank: 5, userId: 'u5', name: 'Vikram Das',     xp:  9870, streak: 19, isCurrentUser: false },
+    { rank: 6, userId: 'u6', name: 'Kavya Reddy',    xp:  8930, streak: 15, isCurrentUser: false },
+    { rank: 7, userId: 'u7', name: 'Ankit Joshi',    xp:  8210, streak: 14, isCurrentUser: false },
+    { rank: 8, userId: 'u8', name: 'Divya Nair',     xp:  7650, streak: 12, isCurrentUser: false },
+    { rank: 9, userId: 'u9', name: 'Rahul Mehta',    xp:  7100, streak:  9, isCurrentUser: false },
+    { rank: 10, userId: 'u10', name: 'Isha Gupta',   xp:  6540, streak:  7, isCurrentUser: false },
+    { rank: 11, userId: 'u11', name: 'Kiran Rao',    xp:  5980, streak:  6, isCurrentUser: false },
+    { rank: 12, userId: 'u12', name: 'Meera Iyer',   xp:  5410, streak:  5, isCurrentUser: false },
+    { rank: 13, userId: 'u13', name: 'Siddharth B',  xp:  4920, streak:  4, isCurrentUser: false },
+    { rank: 14, userId: 'u14', name: 'Tanvi Shah',   xp:  4310, streak:  3, isCurrentUser: false },
+    { rank: 15, userId: 'u15', name: 'Aditya Singh', xp:  3870, streak:  2, isCurrentUser: false },
+  ],
+  currentUserRank: null,
+};
+
 const RANK_BADGE: Record<number, { bg: string; text: string; icon: string }> = {
   1: { bg: 'bg-yellow-500/20 border border-yellow-500/40', text: 'text-yellow-400', icon: '🥇' },
   2: { bg: 'bg-zinc-400/10 border border-zinc-400/30', text: 'text-zinc-300', icon: '🥈' },
@@ -86,11 +108,15 @@ export function LeaderboardPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!session?.accessToken) return;
+    if (!session?.accessToken) {
+      setData(STATIC_LEADERBOARD);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     apiRequest<LeaderboardData>(`/leaderboard?period=${period}`, { token: session.accessToken })
       .then(setData)
-      .catch(() => {})
+      .catch(() => { setData(STATIC_LEADERBOARD); })
       .finally(() => setLoading(false));
   }, [session?.accessToken, period]);
 

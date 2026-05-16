@@ -41,6 +41,103 @@ const TOPIC_TAGS = [
   'Two Pointers', 'Sliding Window', 'Heap', 'Trie', 'Segment Tree',
 ];
 
+const STATIC_PROBLEMS: Problem[] = [
+  // Arrays
+  { id: 'two-sum', number: 1, title: 'Two Sum', difficulty: 'easy', category: 'Arrays', tags: ['Arrays', 'Hashing'], acceptanceRate: 49, xpReward: 30 },
+  { id: 'best-time-stock', number: 121, title: 'Best Time to Buy and Sell Stock', difficulty: 'easy', category: 'Arrays', tags: ['Arrays', 'Greedy'], acceptanceRate: 54, xpReward: 30 },
+  { id: 'contains-duplicate', number: 217, title: 'Contains Duplicate', difficulty: 'easy', category: 'Arrays', tags: ['Arrays', 'Hashing'], acceptanceRate: 61, xpReward: 30 },
+  { id: 'product-except-self', number: 238, title: 'Product of Array Except Self', difficulty: 'medium', category: 'Arrays', tags: ['Arrays'], acceptanceRate: 64, xpReward: 60 },
+  { id: 'maximum-subarray', number: 53, title: 'Maximum Subarray (Kadane\'s)', difficulty: 'medium', category: 'Arrays', tags: ['Arrays', 'Dynamic Programming'], acceptanceRate: 50, xpReward: 60 },
+  { id: 'max-product-subarray', number: 152, title: 'Maximum Product Subarray', difficulty: 'medium', category: 'Arrays', tags: ['Arrays', 'Dynamic Programming'], acceptanceRate: 35, xpReward: 60 },
+  { id: 'find-min-rotated', number: 153, title: 'Find Minimum in Rotated Sorted Array', difficulty: 'medium', category: 'Binary Search', tags: ['Arrays', 'Binary Search'], acceptanceRate: 48, xpReward: 60 },
+  { id: 'search-rotated', number: 33, title: 'Search in Rotated Sorted Array', difficulty: 'medium', category: 'Binary Search', tags: ['Arrays', 'Binary Search'], acceptanceRate: 39, xpReward: 60 },
+  { id: 'three-sum', number: 15, title: '3Sum', difficulty: 'medium', category: 'Arrays', tags: ['Arrays', 'Two Pointers'], acceptanceRate: 32, xpReward: 60 },
+  { id: 'container-water', number: 11, title: 'Container With Most Water', difficulty: 'medium', category: 'Arrays', tags: ['Arrays', 'Two Pointers', 'Greedy'], acceptanceRate: 54, xpReward: 60 },
+  { id: 'trapping-rain', number: 42, title: 'Trapping Rain Water', difficulty: 'hard', category: 'Arrays', tags: ['Arrays', 'Two Pointers', 'Stack'], acceptanceRate: 60, xpReward: 100 },
+  // Strings
+  { id: 'valid-anagram', number: 242, title: 'Valid Anagram', difficulty: 'easy', category: 'Strings', tags: ['Strings', 'Hashing'], acceptanceRate: 63, xpReward: 30 },
+  { id: 'valid-palindrome', number: 125, title: 'Valid Palindrome', difficulty: 'easy', category: 'Strings', tags: ['Strings', 'Two Pointers'], acceptanceRate: 47, xpReward: 30 },
+  { id: 'group-anagrams', number: 49, title: 'Group Anagrams', difficulty: 'medium', category: 'Strings', tags: ['Strings', 'Hashing'], acceptanceRate: 67, xpReward: 60 },
+  { id: 'longest-substring', number: 3, title: 'Longest Substring Without Repeating Characters', difficulty: 'medium', category: 'Sliding Window', tags: ['Strings', 'Sliding Window', 'Hashing'], acceptanceRate: 34, xpReward: 60 },
+  { id: 'longest-repeating', number: 424, title: 'Longest Repeating Character Replacement', difficulty: 'medium', category: 'Sliding Window', tags: ['Strings', 'Sliding Window'], acceptanceRate: 53, xpReward: 60 },
+  { id: 'min-window-substring', number: 76, title: 'Minimum Window Substring', difficulty: 'hard', category: 'Sliding Window', tags: ['Strings', 'Sliding Window', 'Hashing'], acceptanceRate: 41, xpReward: 100 },
+  { id: 'valid-parentheses', number: 20, title: 'Valid Parentheses', difficulty: 'easy', category: 'Stack', tags: ['Stack', 'Strings'], acceptanceRate: 40, xpReward: 30 },
+  { id: 'encode-decode', number: 271, title: 'Encode and Decode Strings', difficulty: 'medium', category: 'Strings', tags: ['Strings'], acceptanceRate: 39, xpReward: 60 },
+  // Linked List
+  { id: 'reverse-linked-list', number: 206, title: 'Reverse a Linked List', difficulty: 'easy', category: 'Linked List', tags: ['Linked List', 'Recursion'], acceptanceRate: 74, xpReward: 30 },
+  { id: 'merge-two-lists', number: 21, title: 'Merge Two Sorted Lists', difficulty: 'easy', category: 'Linked List', tags: ['Linked List', 'Recursion'], acceptanceRate: 64, xpReward: 30 },
+  { id: 'linked-list-cycle', number: 141, title: 'Linked List Cycle', difficulty: 'easy', category: 'Linked List', tags: ['Linked List', 'Two Pointers'], acceptanceRate: 48, xpReward: 30 },
+  { id: 'reorder-list', number: 143, title: 'Reorder List', difficulty: 'medium', category: 'Linked List', tags: ['Linked List', 'Two Pointers', 'Recursion'], acceptanceRate: 57, xpReward: 60 },
+  { id: 'remove-nth-node', number: 19, title: 'Remove Nth Node From End of List', difficulty: 'medium', category: 'Linked List', tags: ['Linked List', 'Two Pointers'], acceptanceRate: 40, xpReward: 60 },
+  { id: 'merge-k-lists', number: 23, title: 'Merge K Sorted Lists', difficulty: 'hard', category: 'Linked List', tags: ['Linked List', 'Heap', 'Merge Sort'], acceptanceRate: 50, xpReward: 100 },
+  // Trees
+  { id: 'invert-tree', number: 226, title: 'Invert Binary Tree', difficulty: 'easy', category: 'Trees', tags: ['Trees', 'Recursion', 'Binary Search'], acceptanceRate: 76, xpReward: 30 },
+  { id: 'max-depth-tree', number: 104, title: 'Maximum Depth of Binary Tree', difficulty: 'easy', category: 'Trees', tags: ['Trees', 'Recursion'], acceptanceRate: 74, xpReward: 30 },
+  { id: 'same-tree', number: 100, title: 'Same Tree', difficulty: 'easy', category: 'Trees', tags: ['Trees', 'Recursion'], acceptanceRate: 60, xpReward: 30 },
+  { id: 'subtree-of-tree', number: 572, title: 'Subtree of Another Tree', difficulty: 'easy', category: 'Trees', tags: ['Trees', 'Recursion'], acceptanceRate: 46, xpReward: 30 },
+  { id: 'lca-bst', number: 235, title: 'Lowest Common Ancestor of BST', difficulty: 'medium', category: 'Trees', tags: ['Trees', 'Binary Search'], acceptanceRate: 64, xpReward: 60 },
+  { id: 'level-order', number: 102, title: 'Binary Tree Level Order Traversal', difficulty: 'medium', category: 'Trees', tags: ['Trees', 'Graphs'], acceptanceRate: 66, xpReward: 60 },
+  { id: 'right-side-view', number: 199, title: 'Binary Tree Right Side View', difficulty: 'medium', category: 'Trees', tags: ['Trees', 'Graphs'], acceptanceRate: 62, xpReward: 60 },
+  { id: 'count-good-nodes', number: 1448, title: 'Count Good Nodes in Binary Tree', difficulty: 'medium', category: 'Trees', tags: ['Trees', 'Recursion'], acceptanceRate: 73, xpReward: 60 },
+  { id: 'validate-bst', number: 98, title: 'Validate Binary Search Tree', difficulty: 'medium', category: 'Trees', tags: ['Trees', 'Recursion'], acceptanceRate: 32, xpReward: 60 },
+  { id: 'kth-smallest-bst', number: 230, title: 'Kth Smallest Element in BST', difficulty: 'medium', category: 'Trees', tags: ['Trees', 'Binary Search'], acceptanceRate: 71, xpReward: 60 },
+  { id: 'binary-tree-diam', number: 543, title: 'Diameter of Binary Tree', difficulty: 'easy', category: 'Trees', tags: ['Trees', 'Recursion'], acceptanceRate: 58, xpReward: 30 },
+  { id: 'max-path-sum', number: 124, title: 'Binary Tree Maximum Path Sum', difficulty: 'hard', category: 'Trees', tags: ['Trees', 'Dynamic Programming'], acceptanceRate: 39, xpReward: 100 },
+  { id: 'serialize-tree', number: 297, title: 'Serialize and Deserialize Binary Tree', difficulty: 'hard', category: 'Trees', tags: ['Trees', 'Recursion'], acceptanceRate: 56, xpReward: 100 },
+  // Graphs
+  { id: 'num-islands', number: 200, title: 'Number of Islands', difficulty: 'medium', category: 'Graphs', tags: ['Graphs', 'Recursion'], acceptanceRate: 57, xpReward: 60 },
+  { id: 'max-area-island', number: 695, title: 'Max Area of Island', difficulty: 'medium', category: 'Graphs', tags: ['Graphs', 'Recursion'], acceptanceRate: 71, xpReward: 60 },
+  { id: 'clone-graph', number: 133, title: 'Clone Graph', difficulty: 'medium', category: 'Graphs', tags: ['Graphs', 'Recursion'], acceptanceRate: 53, xpReward: 60 },
+  { id: 'walls-gates', number: 286, title: 'Walls and Gates', difficulty: 'medium', category: 'Graphs', tags: ['Graphs'], acceptanceRate: 59, xpReward: 60 },
+  { id: 'rotting-oranges', number: 994, title: 'Rotting Oranges', difficulty: 'medium', category: 'Graphs', tags: ['Graphs'], acceptanceRate: 53, xpReward: 60 },
+  { id: 'pacific-atlantic', number: 417, title: 'Pacific Atlantic Water Flow', difficulty: 'medium', category: 'Graphs', tags: ['Graphs', 'Recursion'], acceptanceRate: 54, xpReward: 60 },
+  { id: 'course-schedule', number: 207, title: 'Course Schedule', difficulty: 'medium', category: 'Graphs', tags: ['Graphs', 'Sorting'], acceptanceRate: 45, xpReward: 60 },
+  { id: 'course-schedule-ii', number: 210, title: 'Course Schedule II', difficulty: 'medium', category: 'Graphs', tags: ['Graphs', 'Sorting'], acceptanceRate: 48, xpReward: 60 },
+  { id: 'word-ladder', number: 127, title: 'Word Ladder', difficulty: 'hard', category: 'Graphs', tags: ['Graphs'], acceptanceRate: 38, xpReward: 100 },
+  { id: 'alien-dict', number: 269, title: 'Alien Dictionary', difficulty: 'hard', category: 'Graphs', tags: ['Graphs', 'Sorting'], acceptanceRate: 33, xpReward: 100 },
+  // Dynamic Programming
+  { id: 'climb-stairs', number: 70, title: 'Climbing Stairs', difficulty: 'easy', category: 'Dynamic Programming', tags: ['Dynamic Programming', 'Recursion'], acceptanceRate: 52, xpReward: 30 },
+  { id: 'coin-change', number: 322, title: 'Coin Change', difficulty: 'medium', category: 'Dynamic Programming', tags: ['Dynamic Programming', 'Recursion'], acceptanceRate: 42, xpReward: 60 },
+  { id: 'longest-inc-subseq', number: 300, title: 'Longest Increasing Subsequence', difficulty: 'medium', category: 'Dynamic Programming', tags: ['Dynamic Programming', 'Binary Search'], acceptanceRate: 54, xpReward: 60 },
+  { id: 'unique-paths', number: 62, title: 'Unique Paths', difficulty: 'medium', category: 'Dynamic Programming', tags: ['Dynamic Programming', 'Math'], acceptanceRate: 64, xpReward: 60 },
+  { id: 'jump-game', number: 55, title: 'Jump Game', difficulty: 'medium', category: 'Greedy', tags: ['Arrays', 'Greedy', 'Dynamic Programming'], acceptanceRate: 38, xpReward: 60 },
+  { id: 'word-break', number: 139, title: 'Word Break', difficulty: 'medium', category: 'Dynamic Programming', tags: ['Dynamic Programming', 'Trie'], acceptanceRate: 45, xpReward: 60 },
+  { id: 'combination-sum', number: 39, title: 'Combination Sum', difficulty: 'medium', category: 'Recursion', tags: ['Recursion'], acceptanceRate: 70, xpReward: 60 },
+  { id: 'house-robber', number: 198, title: 'House Robber', difficulty: 'medium', category: 'Dynamic Programming', tags: ['Dynamic Programming', 'Recursion'], acceptanceRate: 50, xpReward: 60 },
+  { id: 'house-robber-ii', number: 213, title: 'House Robber II', difficulty: 'medium', category: 'Dynamic Programming', tags: ['Dynamic Programming', 'Recursion'], acceptanceRate: 41, xpReward: 60 },
+  { id: 'decode-ways', number: 91, title: 'Decode Ways', difficulty: 'medium', category: 'Dynamic Programming', tags: ['Dynamic Programming', 'Recursion'], acceptanceRate: 33, xpReward: 60 },
+  { id: 'edit-distance', number: 72, title: 'Edit Distance', difficulty: 'hard', category: 'Dynamic Programming', tags: ['Dynamic Programming', 'Strings'], acceptanceRate: 55, xpReward: 100 },
+  { id: 'burst-balloons', number: 312, title: 'Burst Balloons', difficulty: 'hard', category: 'Dynamic Programming', tags: ['Dynamic Programming', 'Recursion'], acceptanceRate: 58, xpReward: 100 },
+  // Heap
+  { id: 'kth-largest', number: 215, title: 'Kth Largest Element in Array', difficulty: 'medium', category: 'Sorting', tags: ['Arrays', 'Sorting', 'Heap'], acceptanceRate: 65, xpReward: 60 },
+  { id: 'top-k-frequent', number: 347, title: 'Top K Frequent Elements', difficulty: 'medium', category: 'Hashing', tags: ['Arrays', 'Hashing', 'Heap', 'Sorting'], acceptanceRate: 65, xpReward: 60 },
+  { id: 'find-median-stream', number: 295, title: 'Find Median from Data Stream', difficulty: 'hard', category: 'Heap', tags: ['Heap', 'Sorting'], acceptanceRate: 51, xpReward: 100 },
+  // Trie
+  { id: 'implement-trie', number: 208, title: 'Implement Trie (Prefix Tree)', difficulty: 'medium', category: 'Trie', tags: ['Trie', 'Strings'], acceptanceRate: 63, xpReward: 60 },
+  { id: 'word-search-ii', number: 212, title: 'Word Search II', difficulty: 'hard', category: 'Trie', tags: ['Trie', 'Recursion', 'Graphs'], acceptanceRate: 37, xpReward: 100 },
+  // Stack/Queue
+  { id: 'min-stack', number: 155, title: 'Min Stack', difficulty: 'medium', category: 'Stack', tags: ['Stack'], acceptanceRate: 53, xpReward: 30 },
+  { id: 'daily-temperatures', number: 739, title: 'Daily Temperatures', difficulty: 'medium', category: 'Stack', tags: ['Stack', 'Arrays', 'Greedy'], acceptanceRate: 67, xpReward: 60 },
+  { id: 'car-fleet', number: 853, title: 'Car Fleet', difficulty: 'medium', category: 'Stack', tags: ['Stack', 'Arrays', 'Sorting', 'Greedy'], acceptanceRate: 49, xpReward: 60 },
+  { id: 'largest-rect-hist', number: 84, title: 'Largest Rectangle in Histogram', difficulty: 'hard', category: 'Stack', tags: ['Stack', 'Arrays'], acceptanceRate: 44, xpReward: 100 },
+  // Binary Search
+  { id: 'binary-search', number: 704, title: 'Binary Search', difficulty: 'easy', category: 'Binary Search', tags: ['Arrays', 'Binary Search'], acceptanceRate: 55, xpReward: 30 },
+  { id: 'search-2d-matrix', number: 74, title: 'Search a 2D Matrix', difficulty: 'medium', category: 'Binary Search', tags: ['Arrays', 'Binary Search'], acceptanceRate: 49, xpReward: 60 },
+  { id: 'time-based-kv', number: 981, title: 'Time Based Key-Value Store', difficulty: 'medium', category: 'Binary Search', tags: ['Binary Search', 'Hashing'], acceptanceRate: 53, xpReward: 60 },
+  { id: 'median-two-arrays', number: 4, title: 'Median of Two Sorted Arrays', difficulty: 'hard', category: 'Binary Search', tags: ['Arrays', 'Binary Search'], acceptanceRate: 36, xpReward: 100 },
+  // Backtracking
+  { id: 'permutations', number: 46, title: 'Permutations', difficulty: 'medium', category: 'Recursion', tags: ['Recursion'], acceptanceRate: 75, xpReward: 60 },
+  { id: 'subsets', number: 78, title: 'Subsets', difficulty: 'medium', category: 'Recursion', tags: ['Recursion', 'Sorting'], acceptanceRate: 76, xpReward: 60 },
+  { id: 'letter-combinations', number: 17, title: 'Letter Combinations of Phone Number', difficulty: 'medium', category: 'Recursion', tags: ['Recursion', 'Strings'], acceptanceRate: 57, xpReward: 60 },
+  { id: 'word-search', number: 79, title: 'Word Search', difficulty: 'medium', category: 'Recursion', tags: ['Recursion', 'Graphs'], acceptanceRate: 41, xpReward: 60 },
+  { id: 'n-queens', number: 51, title: 'N-Queens', difficulty: 'hard', category: 'Recursion', tags: ['Recursion'], acceptanceRate: 66, xpReward: 100 },
+  // Greedy / Intervals
+  { id: 'meeting-rooms', number: 252, title: 'Meeting Rooms', difficulty: 'easy', category: 'Sorting', tags: ['Arrays', 'Sorting'], acceptanceRate: 57, xpReward: 30 },
+  { id: 'merge-intervals', number: 56, title: 'Merge Intervals', difficulty: 'medium', category: 'Sorting', tags: ['Arrays', 'Sorting'], acceptanceRate: 46, xpReward: 60 },
+  { id: 'non-overlapping-intervals', number: 435, title: 'Non-overlapping Intervals', difficulty: 'medium', category: 'Greedy', tags: ['Arrays', 'Sorting', 'Greedy'], acceptanceRate: 51, xpReward: 60 },
+  { id: 'min-intervals', number: 1851, title: 'Minimum Interval to Include Each Query', difficulty: 'hard', category: 'Heap', tags: ['Arrays', 'Sorting', 'Heap', 'Binary Search'], acceptanceRate: 55, xpReward: 100 },
+];
+
 const CATEGORY_META: Record<string, { icon: string; color: string }> = {
   'Arrays':            { icon: 'grid_on',          color: 'text-blue-400' },
   'Strings':           { icon: 'text_fields',       color: 'text-purple-400' },
@@ -70,7 +167,11 @@ export function ProblemsPage() {
   const [stats, setStats] = useState<ProblemsResponse['stats'] | null>(null);
 
   const fetchProblems = useCallback(async () => {
-    if (!session?.accessToken) return;
+    if (!session?.accessToken) {
+      setProblems(STATIC_PROBLEMS);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     try {
       const params = new URLSearchParams();
@@ -81,7 +182,7 @@ export function ProblemsPage() {
       setProblems(d.problems ?? []);
       if (d.stats) setStats(d.stats);
     } catch {
-      setProblems([]);
+      setProblems(STATIC_PROBLEMS);
     } finally {
       setLoading(false);
     }
