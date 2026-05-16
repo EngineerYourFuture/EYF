@@ -18,7 +18,7 @@ export const RequireAuth = ({ zone, allowedRoles, children }: RequireAuthProps) 
     return <Navigate to={session.zone === "authority" ? "/authority/queue" : "/app/home"} replace />;
   }
   if (allowedRoles && !allowedRoles.includes(session.role)) {
-    return <Navigate to="/authority/queue" replace />;
+    return <Navigate to={zone === "authority" ? "/authority/queue" : "/app/home"} replace />;
   }
   return children;
 };

@@ -28,7 +28,7 @@ router.get("/summary", requireAuth("public"), async (req: AuthRequest, res: Resp
   if (!user) { res.status(404).json({ error: { code: "NOT_FOUND", message: "User not found." } }); return; }
 
   const totalXp = xp?.totalXp ?? 0;
-  const level = xpService.levelFromXp(totalXp);
+  const { level } = xpService.levelFromXp(totalXp);
 
   res.json({
     user: { plan: user.plan, email: user.email, name: user.name },
@@ -46,7 +46,7 @@ router.get("/summary", requireAuth("public"), async (req: AuthRequest, res: Resp
   });
 });
 
-router.get("/modules-status", requireAuth("public"), async (req: AuthRequest, res: Response): Promise<void> => {
+router.get("/status", requireAuth("public"), async (req: AuthRequest, res: Response): Promise<void> => {
   const userId = req.auth!.sub;
 
   const [progress, oopProgress, secProgress, ctfSolved, sdAttempts, pathsEnrolled, careerProfile] = await Promise.all([

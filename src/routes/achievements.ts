@@ -20,7 +20,7 @@ router.get("/", requireAuth("public"), async (req: AuthRequest, res: Response): 
 
   const earnedMap = new Map(earned.map((e) => [e.achievementId, e.earnedAt]));
   const totalXp = xpRecord?.totalXp ?? 0;
-  const level = xpService.levelFromXp(totalXp);
+  const { level } = xpService.levelFromXp(totalXp);
 
   res.json({
     level,

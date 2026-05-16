@@ -158,12 +158,12 @@ export function LandingPage() {
             >
               Start for Free
             </Link>
-            <Link
-              to="#curriculum"
+            <a
+              href="#curriculum"
               className="w-full sm:w-auto border border-white/15 hover:border-white/30 text-zinc-300 hover:text-white rounded-full px-8 py-4 text-sm font-bold uppercase tracking-widest transition-all hover:bg-white/5 text-center"
             >
               Explore Curriculum
-            </Link>
+            </a>
           </div>
         </div>
       </section>
@@ -477,7 +477,7 @@ export function LandingPage() {
             <span className="text-zinc-600 text-xs uppercase tracking-widest">Engineer Your Future</span>
           </div>
           <div className="flex items-center gap-6 text-zinc-600 text-xs">
-            <Link to="/#pricing" className="hover:text-zinc-400 transition-colors">Pricing</Link>
+            <a href="#pricing" className="hover:text-zinc-400 transition-colors">Pricing</a>
             <Link to="/login" className="hover:text-zinc-400 transition-colors">Sign In</Link>
             <span>© {new Date().getFullYear()} EYF Platform</span>
           </div>

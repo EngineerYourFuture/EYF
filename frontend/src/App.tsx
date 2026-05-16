@@ -144,7 +144,7 @@ export default function App() {
         element={<RequireAuth zone="public"><OOPPage /></RequireAuth>}
       />
       <Route
-        path="/app/security"
+        path="/app/cybersecurity"
         element={<RequireAuth zone="public"><CybersecurityPage /></RequireAuth>}
       />
       <Route

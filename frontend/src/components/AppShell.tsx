@@ -29,7 +29,7 @@ const NAV_GROUPS: NavGroup[] = [
       { path: '/app/problems', label: 'DSA Problems', icon: 'code' },
       { path: '/app/subjects', label: 'Core Subjects', icon: 'auto_stories' },
       { path: '/app/oop', label: 'OOP & Patterns', icon: 'account_tree' },
-      { path: '/app/security', label: 'Cybersecurity', icon: 'shield' },
+      { path: '/app/cybersecurity', label: 'Cybersecurity', icon: 'shield' },
       { path: '/app/system-design', label: 'System Design', icon: 'architecture' },
       { path: '/app/visualizer', label: 'Visualizer', icon: 'visibility' },
     ],
