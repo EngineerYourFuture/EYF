@@ -1719,6 +1719,768 @@ function solve(input) {
 }`,
   codeLang: 'typescript',
   summary: 'Mastery of this topic requires practice and application. Review the key points, implement examples from scratch, and attempt related practice problems to solidify your understanding.',
+
+  // ── SOLID: ISP & DIP ─────────────────────────────────────────────────────
+
+  isp: {
+    overview: `Interface Segregation Principle: clients should not be forced to depend on interfaces they do not use. A "fat" interface that forces classes to implement irrelevant methods is a design smell — split it into smaller, role-specific interfaces.\n\nISP is the antidote to "God interfaces." When a class is forced to stub out methods it doesn't need, it signals that the interface mixes multiple responsibilities. Thin, focused interfaces lead to more cohesive implementations and easier testing.`,
+    keyPoints: [
+      'A class implementing an interface should use all methods — if not, the interface is too broad',
+      'Split fat interfaces by client/role: IReadable, IWritable, ISeekable instead of IFile',
+      'Closely related to SRP: if one class causes interface changes that break unrelated implementations, ISP is violated',
+      '"Role interfaces" (Martin Fowler): define interfaces from the caller\'s perspective, not the implementor\'s',
+      'In TypeScript/Java: a class can implement multiple small interfaces, satisfying many contracts at once',
+      'ISP violation symptom: implementing methods with throw new UnsupportedOperationError()',
+    ],
+    code: `// ❌ Fat interface — all machines must implement print, scan, fax
+interface Machine {
+  print(doc: Document): void;
+  scan(doc: Document): void;
+  fax(doc: Document): void;
+}
+
+class OldPrinter implements Machine {
+  print(doc: Document) { /* works */ }
+  scan(doc: Document) { throw new Error('Not supported'); }  // ❌ ISP violation
+  fax(doc: Document)  { throw new Error('Not supported'); }  // ❌ ISP violation
+}
+
+// ✅ Segregated interfaces — each client only depends on what it needs
+interface Printable { print(doc: Document): void; }
+interface Scannable  { scan(doc: Document): void; }
+interface Faxable    { fax(doc: Document): void; }
+
+class SimplePrinter implements Printable {
+  print(doc: Document) { /* works, no stubs */ }
+}
+
+class MultiFunctionDevice implements Printable, Scannable, Faxable {
+  print(doc: Document) { /* ... */ }
+  scan(doc: Document)  { /* ... */ }
+  fax(doc: Document)   { /* ... */ }
+}
+
+// Dependency: only request what you actually use
+function printReport(p: Printable, doc: Document) {
+  p.print(doc);  // OldPrinter can be injected here ✅
+}`,
+    codeLang: 'typescript',
+    summary: 'ISP keeps interfaces lean and purposeful. Split interfaces when different clients need different subsets of behavior — usually aligned with the "roles" an object plays. Combined with DIP, ISP makes systems loosely coupled and easy to test with mocks.',
+  },
+
+  dip: {
+    overview: `Dependency Inversion Principle: high-level modules should not depend on low-level modules — both should depend on abstractions. Furthermore, abstractions should not depend on details; details should depend on abstractions.\n\nDIP is the mechanism that makes ISP and OCP practical. By injecting dependencies through interfaces, you can swap implementations (real DB, in-memory, mock) without changing the caller. This is the foundation of Dependency Injection (DI) frameworks like Spring and Nest.js.`,
+    keyPoints: [
+      'High-level policy (business logic) should not import low-level implementation (SQL, HTTP client) directly',
+      'Define a repository/service interface; inject it — never instantiate concrete classes inside business logic',
+      '"Inversion of Control" (IoC): ownership of object creation moves to the framework / composition root',
+      'Dependency Injection patterns: constructor injection (preferred), setter injection, method injection',
+      'DIP enables testability: inject a mock repository in tests, real one in production',
+      'Violation sign: `new ConcreteClass()` inside a service — it's now tightly coupled to that implementation',
+    ],
+    code: `// ❌ High-level UserService directly depends on low-level MySQLUserRepo
+class UserService {
+  private repo = new MySQLUserRepo();  // ← tight coupling, untestable
+
+  getUser(id: string) { return this.repo.findById(id); }
+}
+
+// ✅ Define an abstraction
+interface UserRepository {
+  findById(id: string): Promise<User | null>;
+  save(user: User): Promise<void>;
+}
+
+// Low-level detail depends on the abstraction
+class PostgresUserRepo implements UserRepository {
+  async findById(id: string) { /* SELECT ... */ }
+  async save(user: User)     { /* INSERT ... */ }
+}
+
+class InMemoryUserRepo implements UserRepository {
+  private store = new Map<string, User>();
+  async findById(id: string) { return this.store.get(id) ?? null; }
+  async save(user: User)     { this.store.set(user.id, user); }
+}
+
+// High-level module depends on abstraction (injected from outside)
+class UserService {
+  constructor(private repo: UserRepository) {}  // ← DIP ✅
+
+  async promoteToAdmin(id: string) {
+    const user = await this.repo.findById(id);
+    if (!user) throw new Error('Not found');
+    user.role = 'admin';
+    await this.repo.save(user);
+  }
+}
+
+// Composition root (e.g., main.ts or DI container)
+const service = new UserService(new PostgresUserRepo());
+// Tests: new UserService(new InMemoryUserRepo())`,
+    codeLang: 'typescript',
+    summary: 'DIP is what makes code testable, swappable, and maintainable at scale. The rule of thumb: if you write `new X()` inside a service, ask "do I need this to be swappable?" — if yes, inject the interface instead. Modern frameworks (NestJS, Spring, .NET) automate this with DI containers.',
+  },
+
+  // ── OOP Fundamentals ─────────────────────────────────────────────────────
+
+  polymorphism: {
+    overview: `Polymorphism ("many forms") allows objects of different types to be treated through a common interface. The same method call can produce different behavior depending on the runtime type of the object. This is the mechanism that makes "open for extension, closed for modification" possible in practice.\n\nTwo main kinds: runtime (dynamic dispatch via method overriding) and compile-time (overloading, generics). In OOP interviews, runtime polymorphism is the default meaning.`,
+    keyPoints: [
+      'Runtime polymorphism: virtual method dispatch — subclass method is called even through a base type reference',
+      'Compile-time polymorphism: method overloading (same name, different signature) and generics',
+      'Liskov Substitution Principle is the correctness requirement for polymorphism to work safely',
+      'vtable (virtual dispatch table): how C++/JVM implement virtual calls at O(1) cost',
+      'Duck typing (Python/JS): polymorphism without inheritance — if it quacks like a duck...',
+      'Anti-pattern: instanceof chains instead of polymorphism — tells you the abstraction is wrong',
+    ],
+    code: `// Runtime polymorphism via overriding
+abstract class Shape {
+  abstract area(): number;
+  describe() { return \`Area = \${this.area().toFixed(2)}\`; }
+}
+
+class Circle extends Shape {
+  constructor(private r: number) { super(); }
+  area() { return Math.PI * this.r ** 2; }
+}
+
+class Rectangle extends Shape {
+  constructor(private w: number, private h: number) { super(); }
+  area() { return this.w * this.h; }
+}
+
+class Triangle extends Shape {
+  constructor(private b: number, private ht: number) { super(); }
+  area() { return 0.5 * this.b * this.ht; }
+}
+
+// Polymorphic usage — no if/switch needed when you add new shapes
+const shapes: Shape[] = [new Circle(5), new Rectangle(4, 6), new Triangle(3, 8)];
+shapes.forEach(s => console.log(s.describe()));
+// Area = 78.54
+// Area = 24.00
+// Area = 12.00
+
+// ❌ Anti-pattern: losing polymorphism with instanceof
+function totalArea(shapes: Shape[]): number {
+  return shapes.reduce((sum, s) => {
+    if (s instanceof Circle)    return sum + Math.PI * (s as any).r ** 2;
+    if (s instanceof Rectangle) return sum + (s as any).w * (s as any).h;
+    return sum; // breaks when Triangle is added
+  }, 0);
+}
+
+// ✅ Polymorphic version — Open/Closed
+const totalArea2 = (shapes: Shape[]) => shapes.reduce((s, sh) => s + sh.area(), 0);`,
+    codeLang: 'typescript',
+    summary: 'Polymorphism is the core of extensible OOP design. Use it to eliminate if/switch ladders that switch on type — each new type should just add a subclass, not modify existing branches. Runtime polymorphism through method overriding is the most powerful form, enabling plugin architectures and the Strategy pattern.',
+  },
+
+  abstraction: {
+    overview: `Abstraction hides implementation details behind a stable interface, exposing only what the caller needs to know. It reduces cognitive load by letting you think at the right level — you call \`db.save(user)\` without caring about SQL, connection pools, or retry logic.\n\nEncapsulation is the mechanism (bundling data + behavior, hiding internals with access modifiers); abstraction is the design goal (reducing complexity). The two work together: encapsulate to achieve abstraction.`,
+    keyPoints: [
+      'Abstract classes: partially implemented, define the template for subclasses (Template Method pattern)',
+      'Interfaces: pure abstraction — only method signatures, no state',
+      'Access modifiers (private/protected/public) enforce encapsulation boundaries',
+      'Law of Demeter: only talk to your immediate collaborators, not their internals (a.b.c.doSomething() is a smell)',
+      'Leaky abstraction: when implementation details bleed through the interface — a sign of poor design',
+      'Abstraction levels: keep them consistent — don\'t mix high-level business operations with low-level I/O in the same method',
+    ],
+    code: `// ✅ BankAccount: abstraction hides balance mutation rules
+class BankAccount {
+  private balance: number;
+  private transactions: { type: string; amount: number; date: Date }[] = [];
+
+  constructor(initialBalance: number) {
+    if (initialBalance < 0) throw new Error('Initial balance cannot be negative');
+    this.balance = initialBalance;
+  }
+
+  deposit(amount: number): void {
+    if (amount <= 0) throw new Error('Deposit must be positive');
+    this.balance += amount;
+    this.transactions.push({ type: 'deposit', amount, date: new Date() });
+  }
+
+  withdraw(amount: number): void {
+    if (amount > this.balance) throw new Error('Insufficient funds');
+    this.balance -= amount;
+    this.transactions.push({ type: 'withdrawal', amount, date: new Date() });
+  }
+
+  getBalance(): number { return this.balance; }
+  getStatement(): typeof this.transactions { return [...this.transactions]; }
+  // balance field is private — callers cannot mutate it directly ✅
+}
+
+// Abstract class with Template Method pattern
+abstract class DataExporter {
+  // Template method — defines algorithm skeleton
+  export(data: unknown[]): string {
+    const processed = this.transform(data);
+    const formatted = this.format(processed);
+    return this.addHeader() + formatted;
+  }
+
+  protected abstract transform(data: unknown[]): unknown[];
+  protected abstract format(data: unknown[]): string;
+  protected addHeader(): string { return ''; }
+}
+
+class CsvExporter extends DataExporter {
+  protected transform(data: unknown[]) { return data; }
+  protected format(data: unknown[]) { return data.map(r => Object.values(r as object).join(',')).join('\\n'); }
+  protected addHeader() { return 'col1,col2,col3\\n'; }
+}`,
+    codeLang: 'typescript',
+    summary: 'Abstraction lets you manage complexity by working at the right level of detail. Good abstractions are stable — callers rarely need to change when implementations evolve. When designing a class, ask: "what does the caller actually need?" — expose only that, and hide everything else behind private boundaries.',
+  },
+
+  interfaces: {
+    overview: `Interfaces define contracts: a set of method signatures that a class promises to implement. Unlike abstract classes, interfaces carry no implementation and no state — they are pure behavioral specifications. A class can implement multiple interfaces (avoiding the diamond problem of multiple inheritance).\n\nThe key interview question: "When do you use an interface vs an abstract class?" — interface when you want capability/role (Serializable, Comparable); abstract class when you want partial implementation + template behavior.`,
+    keyPoints: [
+      'Interface = contract; abstract class = partial implementation + contract',
+      'A class can implement many interfaces but extend only one abstract class (Java/C#)',
+      'TypeScript: structural typing — an object satisfies an interface if it has the required shape (no explicit implements needed)',
+      'Marker interfaces (Serializable in Java): convey intent with no methods — now prefer annotations/decorators',
+      'Interface default methods (Java 8+): add behavior to interfaces without breaking existing implementations',
+      'Design tip: depend on interfaces, not concrete classes — enables mocking and substitution (DIP)',
+    ],
+    code: `// Interfaces define roles — a class can play multiple roles
+interface Serializable {
+  serialize(): string;
+  deserialize(data: string): this;
+}
+
+interface Printable {
+  print(): void;
+}
+
+interface Comparable<T> {
+  compareTo(other: T): number;  // -1 | 0 | 1
+}
+
+class Product implements Serializable, Printable, Comparable<Product> {
+  constructor(public name: string, public price: number) {}
+
+  serialize(): string { return JSON.stringify({ name: this.name, price: this.price }); }
+  deserialize(data: string): this {
+    const obj = JSON.parse(data);
+    return Object.assign(Object.create(Object.getPrototypeOf(this)), obj);
+  }
+  print(): void { console.log(\`\${this.name}: $\${this.price}\`); }
+  compareTo(other: Product): number {
+    return this.price < other.price ? -1 : this.price > other.price ? 1 : 0;
+  }
+}
+
+// Interface vs Abstract Class
+abstract class Animal {
+  abstract makeSound(): void;
+  breathe() { console.log('breathing'); }  // shared implementation
+}
+
+interface Flyable { fly(altitude: number): void; }
+interface Swimmable { swim(depth: number): void; }
+
+class Duck extends Animal implements Flyable, Swimmable {
+  makeSound() { console.log('Quack'); }
+  fly(altitude: number) { console.log(\`Flying at \${altitude}m\`); }
+  swim(depth: number)   { console.log(\`Swimming at \${depth}m\`); }
+}`,
+    codeLang: 'typescript',
+    summary: 'Interfaces are the primary tool for loose coupling. Prefer interfaces over concrete types in method signatures — it makes code testable (inject mocks) and extensible (swap implementations without changing callers). Abstract classes are appropriate when related types share significant common code.',
+  },
+
+  composition: {
+    overview: `"Favor composition over inheritance" is one of the most repeated principles in software design. Inheritance models an "is-a" relationship; composition models a "has-a" relationship. Inheritance couples subclasses tightly to parent implementation; composition allows behavior to be swapped at runtime.\n\nThe problem with deep inheritance hierarchies: fragile base class problem, inability to change superclass without affecting all subclasses, and the diamond problem. Composition solves all of these by delegating behavior to collaborating objects.`,
+    keyPoints: [
+      'Inheritance: "is-a" — a Dog IS-A Animal. Composition: "has-a" — a Car HAS-A Engine',
+      'Fragile base class: changing a method in the parent can break subclasses in unexpected ways',
+      'Mixin / trait pattern: compose behaviors from multiple sources without multiple inheritance',
+      'Strategy pattern is composition in action: inject algorithm objects instead of inheriting them',
+      'Go language has no inheritance at all — everything is composition + interfaces, proving it works at scale',
+      'Rule of thumb: prefer composition when behavior needs to vary at runtime, or when you\'d need more than 2 levels of inheritance',
+    ],
+    code: `// ❌ Deep inheritance — breaks when requirements change
+class Vehicle { move() {} }
+class LandVehicle extends Vehicle { driveOnRoad() {} }
+class Car extends LandVehicle { openTrunk() {} }
+class FlyingCar extends Car { /* inherits driveOnRoad AND needs fly — awkward! */ }
+
+// ✅ Composition — behaviors as injectable strategies
+interface Engine { start(): void; stop(): void; thrust(): number; }
+interface NavigationSystem { getRoute(dest: string): string[]; }
+interface CargoBay { load(item: string): void; unload(): string[]; }
+
+class ElectricEngine implements Engine {
+  start() { console.log('Silently starting'); }
+  stop()  { console.log('Stopping'); }
+  thrust() { return 400; }
+}
+
+class JetEngine implements Engine {
+  start() { console.log('Roaring to life'); }
+  stop()  { console.log('Powering down'); }
+  thrust() { return 12000; }
+}
+
+// Vehicle composed from parts — swap engines at runtime!
+class Vehicle {
+  constructor(
+    private engine: Engine,
+    private nav: NavigationSystem,
+    private cargo?: CargoBay,
+  ) {}
+
+  go(dest: string) {
+    this.engine.start();
+    const route = this.nav.getRoute(dest);
+    console.log(\`Route: \${route.join(' → ')}, thrust: \${this.engine.thrust()}N\`);
+  }
+}
+
+// Swap engine without changing Vehicle
+const electricCar = new Vehicle(new ElectricEngine(), new GPSNav());
+const jetSled     = new Vehicle(new JetEngine(), new GPSNav(), new StandardCargo());`,
+    codeLang: 'typescript',
+    summary: 'Composition creates systems that are easier to change because behaviors are pluggable, not baked in through class hierarchies. The classic "Strategy pattern" is composition: inject the algorithm you want. When you find yourself asking "should I inherit or compose?" — try composition first. You can always restructure later.',
+  },
+
+  // ── OS: Key missing topics ────────────────────────────────────────────────
+
+  race: {
+    overview: `A race condition occurs when the outcome of a program depends on the non-deterministic timing or ordering of concurrent operations. The classic example: two threads read-increment-write a shared counter — each increments by 1, but if they interleave, only one increment takes effect.\n\nThe critical section is the code region accessing shared state that must be executed atomically. Mutual exclusion (mutex) ensures only one thread is in the critical section at a time. But mutual exclusion itself can cause deadlocks if not managed carefully.`,
+    keyPoints: [
+      'Race condition: non-deterministic behavior from unsynchronized access to shared mutable state',
+      'Critical section: the code block that must not run concurrently — protect with a mutex/lock',
+      'Mutex (mutual exclusion): only one thread holds the lock at a time — others block',
+      'Semaphore: generalized mutex allowing N concurrent accesses (binary semaphore = mutex)',
+      'Deadlock: T1 holds L1 waiting for L2; T2 holds L2 waiting for L1 — both stuck forever',
+      'Deadlock conditions (all must hold): mutual exclusion, hold and wait, no preemption, circular wait',
+      'Prevention: lock ordering (always acquire locks in the same order), timeout, tryLock, lock-free data structures',
+      'Livelock: threads are active but making no progress (keep responding to each other without advancing)',
+    ],
+    code: `// ❌ Race condition: lost update
+let counter = 0;
+// Thread 1: read(0), compute 1, write(1)
+// Thread 2: read(0), compute 1, write(1)  ← both see 0, final = 1, not 2
+
+// ✅ Mutex in C (conceptually)
+/*
+pthread_mutex_t lock;
+pthread_mutex_lock(&lock);
+counter++;                  // critical section
+pthread_mutex_unlock(&lock);
+*/
+
+// ✅ TypeScript — simulating with async/await and a simple mutex
+class Mutex {
+  private queue: (() => void)[] = [];
+  private locked = false;
+
+  async acquire(): Promise<() => void> {
+    return new Promise((resolve) => {
+      const tryLock = () => {
+        if (!this.locked) {
+          this.locked = true;
+          resolve(() => {  // release function
+            this.locked = false;
+            this.queue.shift()?.();
+          });
+        } else {
+          this.queue.push(tryLock);
+        }
+      };
+      tryLock();
+    });
+  }
+}
+
+const mutex = new Mutex();
+let sharedCounter = 0;
+
+async function increment() {
+  const release = await mutex.acquire();
+  try {
+    const val = sharedCounter;
+    await new Promise(r => setTimeout(r, 1)); // simulate work
+    sharedCounter = val + 1;  // safe — only one thread here
+  } finally {
+    release();
+  }
+}
+
+// Deadlock avoidance: always acquire locks in the same fixed order
+// Thread 1: lock(A) then lock(B)
+// Thread 2: lock(A) then lock(B) — ✅ no circular wait`,
+    codeLang: 'typescript',
+    summary: 'Race conditions are among the hardest bugs to find because they are non-deterministic and often disappear under a debugger. Design around them: minimize shared mutable state, use lock-free structures where possible, and when you must lock, maintain a strict lock ordering. Tools like ThreadSanitizer (tsan) catch races automatically.',
+  },
+
+  containers: {
+    overview: `Containers (Docker) and container orchestration (Kubernetes) have transformed how software is deployed. A container packages an application with its exact runtime dependencies into an isolated, reproducible unit. Unlike VMs, containers share the host OS kernel — they use Linux namespaces (process isolation) and cgroups (resource limits) for lightweight isolation.\n\nKubernetes (K8s) orchestrates containers at scale: scheduling them across a cluster, managing health, scaling horizontally, rolling out updates without downtime, and service discovery.`,
+    keyPoints: [
+      'Container = process with isolated namespaces (PID, net, mount, UTS, IPC) + cgroup resource limits',
+      'Image vs container: image is the immutable blueprint (layered filesystem); container is a running instance',
+      'Dockerfile: FROM → RUN → COPY → EXPOSE → CMD — each RUN creates a layer (cache invalidation matters)',
+      'Docker networking: bridge (default), host, overlay (multi-host); containers communicate via container name DNS',
+      'Kubernetes objects: Pod (1+ containers), Deployment (desired state), Service (stable VIP), Ingress (HTTP routing)',
+      'K8s control plane: API server, etcd (state store), scheduler, controller manager',
+      'Rolling update: K8s replaces pods one by one — zero-downtime with readiness probes',
+      'Sidecar pattern: inject observability/security proxy (Envoy) alongside app container in same pod',
+    ],
+    code: `# Minimal production Dockerfile (Node.js)
+FROM node:20-alpine AS build
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --only=production
+
+FROM node:20-alpine AS runtime
+WORKDIR /app
+COPY --from=build /app/node_modules ./node_modules
+COPY . .
+EXPOSE 3000
+USER node  # never run as root in production
+CMD ["node", "dist/index.js"]
+
+---
+# Kubernetes Deployment + Service
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-server
+spec:
+  replicas: 3
+  selector:
+    matchLabels: { app: api-server }
+  strategy:
+    type: RollingUpdate
+    rollingUpdate: { maxSurge: 1, maxUnavailable: 0 }
+  template:
+    metadata:
+      labels: { app: api-server }
+    spec:
+      containers:
+      - name: api
+        image: myregistry/api:v2.1.0
+        ports: [{ containerPort: 3000 }]
+        resources:
+          requests: { memory: "128Mi", cpu: "100m" }
+          limits:   { memory: "256Mi", cpu: "500m" }
+        readinessProbe:
+          httpGet: { path: /health, port: 3000 }
+          initialDelaySeconds: 5
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-service
+spec:
+  selector: { app: api-server }
+  ports: [{ port: 80, targetPort: 3000 }]
+  type: ClusterIP`,
+    codeLang: 'yaml',
+    summary: 'Containers standardize the "works on my machine" problem. For interviews: understand the image/container distinction, why containers are lighter than VMs (shared kernel), and the basic K8s primitives (Pod, Deployment, Service). In system design, mention horizontal pod autoscaling (HPA) for traffic spikes.',
+  },
+
+  // ── Networks: TLS & WebSockets ────────────────────────────────────────────
+
+  tls: {
+    overview: `TLS (Transport Layer Security) 1.3 is the protocol that secures HTTPS. It provides confidentiality (encryption), integrity (MAC), and authentication (certificates). TLS sits between the transport layer (TCP) and the application layer (HTTP).\n\nTLS 1.3 dramatically simplified the handshake — from 2 round trips (TLS 1.2) to 1 round trip (and 0-RTT for resumed sessions). It also removed weak cipher suites (RC4, 3DES, RSA key exchange) and mandated forward secrecy via Ephemeral Diffie-Hellman.`,
+    keyPoints: [
+      'TLS 1.3 handshake: 1-RTT (ClientHello + key share → ServerHello + cert + Finished → client Finished)',
+      'Forward secrecy: session keys are ephemeral — compromising the server private key cannot decrypt past sessions',
+      'ECDHE (Elliptic Curve Diffie-Hellman Ephemeral): key agreement without transmitting the secret',
+      'Certificate chain: leaf cert → intermediate CA → root CA — browser trusts root CAs in its trust store',
+      'SNI (Server Name Indication): allows multiple domains on one IP — sent in ClientHello (unencrypted in 1.2, encrypted in 1.3 via ECH)',
+      'HSTS (HTTP Strict Transport Security): tells browsers to always use HTTPS for this domain',
+      'OCSP Stapling: server staples a signed proof that its cert isn\'t revoked, avoiding extra round trips',
+      'mTLS (mutual TLS): both client and server authenticate with certs — used in service meshes (Istio)',
+    ],
+    code: `# TLS 1.3 Handshake (simplified)
+Client                              Server
+  |                                   |
+  |-- ClientHello ------------------>|
+  |   (supported ciphers, key_share, |
+  |    session ticket for 0-RTT)     |
+  |                                   |
+  |<-- ServerHello ------------------|
+  |    (chosen cipher, key_share)    |
+  |<-- {EncryptedExtensions}---------|
+  |<-- {Certificate}----------------|
+  |<-- {CertificateVerify}----------|
+  |<-- {Finished}-------------------|  ← server auth complete
+  |                                   |
+  |-- {Finished} ------------------->|  ← application data can start
+  |-- {Application Data} ----------->|
+
+# Key: {} = encrypted with derived handshake keys
+# Elliptic Curve: both sides generate ephemeral key pairs
+#   client_private × server_public == server_private × client_public (ECDH)
+#   shared secret derived → symmetric keys for bulk encryption (AES-GCM)
+
+# Verifying a certificate chain (OpenSSL)
+openssl s_client -connect example.com:443 -showcerts
+openssl verify -CAfile /etc/ssl/certs/ca-certificates.crt server.crt
+
+# Generate self-signed cert for dev
+openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365 -nodes`,
+    codeLang: 'bash',
+    summary: 'TLS 1.3 is now the standard — know the 1-RTT handshake, why forward secrecy matters (past traffic can\'t be decrypted if private key is stolen), and how certificates chain to root CAs. For system design, mention TLS termination at the load balancer (then plain HTTP inside the cluster) or mTLS between services for zero-trust networks.',
+  },
+
+  websockets: {
+    overview: `WebSockets provide a persistent, full-duplex communication channel over a single TCP connection. Unlike HTTP's request-response model, either side can send messages at any time after the connection is established. This makes WebSockets ideal for real-time apps: chat, live dashboards, collaborative editors, and multiplayer games.\n\nThe WebSocket handshake starts as an HTTP Upgrade request, then "upgrades" the TCP connection to the WebSocket protocol — no new TCP connection needed.`,
+    keyPoints: [
+      'Handshake: HTTP GET with Upgrade: websocket and Sec-WebSocket-Key → 101 Switching Protocols',
+      'Full-duplex: server can push messages without client polling — eliminates HTTP long-polling overhead',
+      'Framing: messages split into frames (opcode, mask bit, payload length, masking key, payload data)',
+      'Clients must mask frames; servers must not — prevents cache poisoning on proxies',
+      'Heartbeat: send ping/pong frames to detect stale connections (proxies close idle connections after ~60s)',
+      'Scaling WebSockets: sticky sessions OR use a pub/sub backplane (Redis pub/sub) so any server can push to any client',
+      'When to use: real-time, low-latency, bidirectional. Prefer SSE (Server-Sent Events) for server-to-client only',
+      'Socket.IO: WebSocket library with fallback to long-polling, rooms, namespaces — abstracts the raw protocol',
+    ],
+    code: `// WebSocket server (Node.js — ws library)
+import WebSocket, { WebSocketServer } from 'ws';
+import { createServer } from 'http';
+
+const server = createServer();
+const wss = new WebSocketServer({ server });
+
+// In-memory room map for broadcasting
+const rooms = new Map<string, Set<WebSocket>>();
+
+wss.on('connection', (ws, req) => {
+  const room = new URL(req.url!, 'http://x').searchParams.get('room') ?? 'general';
+  if (!rooms.has(room)) rooms.set(room, new Set());
+  rooms.get(room)!.add(ws);
+
+  console.log(\`Client joined room: \${room}\`);
+
+  ws.on('message', (data) => {
+    const msg = JSON.stringify({ text: data.toString(), ts: Date.now() });
+    // Broadcast to all clients in the same room
+    rooms.get(room)?.forEach(client => {
+      if (client !== ws && client.readyState === WebSocket.OPEN) {
+        client.send(msg);
+      }
+    });
+  });
+
+  // Heartbeat
+  const ping = setInterval(() => ws.ping(), 30_000);
+
+  ws.on('pong', () => { /* connection still alive */ });
+  ws.on('close', () => {
+    clearInterval(ping);
+    rooms.get(room)?.delete(ws);
+  });
+});
+
+server.listen(8080);
+
+// Client-side
+const ws = new WebSocket('wss://api.example.com/ws?room=general');
+ws.onopen    = () => ws.send('Hello, world!');
+ws.onmessage = (e) => console.log('Received:', e.data);
+ws.onclose   = () => console.log('Disconnected');`,
+    codeLang: 'typescript',
+    summary: 'WebSockets are the right tool for bidirectional real-time communication. The key system design consideration is horizontal scaling — connections are stateful and tied to a server process. Use Redis pub/sub or Kafka to fan out messages across multiple WebSocket servers, so clients connected to different servers still receive broadcasts.',
+  },
+
+  // ── System Design Case Studies ────────────────────────────────────────────
+
+  'design-youtube': {
+    overview: `YouTube serves 500 hours of video uploaded per minute and 1 billion hours watched per day. The core challenges are: efficient video storage and transcoding (one upload → 10+ quality variants), globally fast delivery via CDN, and scaling metadata queries.\n\nThis question tests your understanding of object storage, video encoding pipelines, CDN architecture, and the difference between hot (popular) and cold (archival) content storage tiers.`,
+    keyPoints: [
+      'Scale: 500h video/min uploaded, 1B hours/day watched, 2B monthly active users',
+      'Transcoding pipeline: upload → raw storage → transcoding workers → output variants (360p/720p/1080p/4K) → CDN',
+      'Adaptive Bitrate Streaming (ABR): HLS/DASH splits video into 2–10s segments; player picks quality based on bandwidth',
+      'Storage: raw video in object store (S3-equivalent); metadata (title, views, likes) in relational DB + Elasticsearch for search',
+      'CDN strategy: popular videos cached at edge PoPs; cache miss fetches from origin object store',
+      'Thumbnails: generated from video frames at transcoding time, stored as static objects in CDN',
+      'View count: approximate with Redis HyperLogLog + periodic flush to DB (exact counts don\'t need to be exact)',
+      'Recommendation engine: separate ML pipeline; precomputed per-user feed stored in feed cache',
+    ],
+    code: `// High-level architecture flow
+
+// 1. Upload API
+POST /upload → returns { uploadId, presignedUrl }
+// Client uploads directly to object store (S3) — server not in the data path
+
+// 2. Upload completion triggers transcoding job
+S3 event → SQS queue → Transcoding Service (GPU fleet)
+  ├── Extract audio track
+  ├── Generate thumbnails (frame at 5%, 25%, 50%)
+  └── Transcode to: 360p | 720p | 1080p | 4K (if source quality allows)
+      └── Output: HLS playlist (.m3u8) + segments (.ts files) → CDN origin
+
+// 3. Metadata service
+interface VideoMetadata {
+  videoId: string;
+  uploaderId: string;
+  title: string;
+  description: string;
+  duration: number;
+  status: 'processing' | 'ready' | 'failed';
+  manifestUrl: string;   // HLS .m3u8 URL
+  thumbnails: string[];  // CDN URLs
+  viewCount: number;
+  likeCount: number;
+  createdAt: Date;
+}
+
+// 4. HLS playlist structure (what the CDN serves)
+// video123/master.m3u8
+#EXTM3U
+#EXT-X-STREAM-INF:BANDWIDTH=800000,RESOLUTION=1280x720
+720p/playlist.m3u8
+#EXT-X-STREAM-INF:BANDWIDTH=200000,RESOLUTION=640x360
+360p/playlist.m3u8
+
+// video123/720p/playlist.m3u8
+#EXT-X-TARGETDURATION=6
+#EXTINF:6.0, seg001.ts
+#EXTINF:6.0, seg002.ts
+...
+
+// 5. View counting (Redis approximate)
+// On each view event:
+redis.pfadd(\`views:\${videoId}:\${date}\`, userId);
+// Flush hourly: redis.pfcount() → DB increment`,
+    codeLang: 'typescript',
+    summary: 'YouTube\'s architecture separates the write path (upload + transcoding) from the read path (CDN delivery). The key insight is that video bytes never go through your API servers — clients upload directly to object storage via presigned URLs, and viewers stream from CDN edge nodes. The API only handles metadata, auth, and signaling.',
+  },
+
+  'design-notification': {
+    overview: `A notification system delivers messages to users across multiple channels: push (iOS/Android), email, SMS, and in-app. At scale (Facebook sends billions of notifications/day), the system must handle fan-out to millions of followers, respect user preferences, deduplicate, prioritize, and gracefully handle delivery failures.\n\nThe core design challenge is fan-out at write vs read time, and delivering to heterogeneous channels reliably with at-least-once semantics.`,
+    keyPoints: [
+      'Channels: push (APNS/FCM), email (SES/SendGrid), SMS (Twilio), in-app (WebSocket or SSE)',
+      'Fan-out problem: one event (new post by celebrity) → millions of notifications — must be async',
+      'Priority tiers: critical (OTP, security alerts) vs normal (likes, follows) — different queues & SLAs',
+      'User preferences: store per-user channel preferences (email for marketing only, push for all, no SMS) in DB + cache',
+      'Deduplication: store notification ID in Redis with TTL — idempotent delivery prevents duplicates on retry',
+      'Retry with exponential backoff: APNS/FCM errors are transient; dead-letter queue for permanently undeliverable',
+      'Rate limiting: don\'t send more than N notifications per user per hour to avoid notification fatigue',
+      'Device token management: APNS/FCM return "invalid token" → remove from DB immediately',
+    ],
+    code: `// Notification System — Architecture
+
+// Event producer publishes to Kafka topic
+interface NotificationEvent {
+  type: 'NEW_FOLLOWER' | 'LIKE' | 'COMMENT' | 'SYSTEM_ALERT' | 'OTP';
+  priority: 'CRITICAL' | 'HIGH' | 'NORMAL' | 'LOW';
+  recipientId: string;
+  senderId?: string;
+  payload: Record<string, unknown>;
+  idempotencyKey: string;  // deduplicate retries
+}
+
+// Notification Service — consumes from Kafka
+class NotificationWorker {
+  async process(event: NotificationEvent) {
+    // 1. Check deduplication
+    const alreadySent = await redis.set(
+      \`notif:dedup:\${event.idempotencyKey}\`,
+      '1', 'NX', 'EX', 86400  // 24h TTL
+    );
+    if (!alreadySent) return;  // already delivered
+
+    // 2. Load user preferences
+    const prefs = await userPrefsCache.get(event.recipientId);
+    if (prefs.doNotDisturb && event.priority !== 'CRITICAL') return;
+
+    // 3. Fan out to enabled channels
+    const promises: Promise<void>[] = [];
+    if (prefs.push && prefs.deviceTokens.length) {
+      promises.push(this.sendPush(prefs.deviceTokens, event));
+    }
+    if (prefs.email && event.type !== 'OTP') {
+      promises.push(this.sendEmail(prefs.email, event));
+    }
+    if (prefs.sms && event.priority === 'CRITICAL') {
+      promises.push(this.sendSMS(prefs.phone, event));
+    }
+    await Promise.allSettled(promises);  // don't fail all if one channel fails
+  }
+
+  private async sendPush(tokens: string[], event: NotificationEvent) {
+    const res = await fcm.sendMulticast({ tokens, notification: { ... } });
+    // Clean up invalid tokens
+    res.responses.forEach((r, i) => {
+      if (r.error?.code === 'messaging/registration-token-not-registered') {
+        deviceTokenRepo.remove(tokens[i]);
+      }
+    });
+  }
+}
+
+// In-app notifications: store in DB, push via WebSocket
+// When user connects: fetch unread count from DB
+// New events: push via ws.send({ type: 'NOTIFICATION', ... })`,
+    codeLang: 'typescript',
+    summary: 'The notification system interview tests async architecture, fan-out strategies, and multi-channel delivery. Key insights: use Kafka for durable async delivery, separate queues for priority tiers, deduplicate with Redis to handle retries, and store user preferences in a cached read-optimized store. Always discuss rate limiting to prevent notification fatigue.',
+  },
+
+  // ── DBMS: Missing topics ──────────────────────────────────────────────────
+
+  nosql: {
+    overview: `NoSQL databases emerged to handle use cases that relational databases handle poorly: massive scale, flexible/schema-less data, and specific access patterns. "NoSQL" covers four very different data models: document, key-value, wide-column, and graph — each optimized for different workloads.\n\nThe decision between SQL and NoSQL is not about scale — modern Postgres scales to 10s of TBs. It's about data model fit, consistency requirements, and access patterns.`,
+    keyPoints: [
+      'Document stores (MongoDB, CouchDB): store JSON-like documents; good for catalogs, user profiles, CMS',
+      'Key-value stores (Redis, DynamoDB): O(1) get/put; good for sessions, caches, leaderboards, rate limiting',
+      'Wide-column stores (Cassandra, HBase): rows with dynamic columns; good for time-series, IoT, analytics at petabyte scale',
+      'Graph databases (Neo4j, Amazon Neptune): native graph traversal; good for social networks, fraud detection, knowledge graphs',
+      'Cassandra write path: write to commit log + memtable → flush to SSTable (LSM tree) — optimized for write-heavy workloads',
+      'MongoDB: BSON documents, flexible schema, supports ACID within a document and multi-doc transactions since 4.0',
+      'DynamoDB: fully managed key-value + document; partition key determines the shard; secondary indexes for alternate access patterns',
+      'When to choose NoSQL: schema evolution speed, horizontal write scalability, or access patterns that map poorly to joins',
+    ],
+    code: `// MongoDB — flexible document model
+// User document with embedded addresses (no join needed)
+{
+  "_id": ObjectId("..."),
+  "name": "Arjun Kumar",
+  "email": "arjun@example.com",
+  "addresses": [
+    { "type": "home", "city": "Bengaluru", "pincode": "560001" },
+    { "type": "work", "city": "Hyderabad", "pincode": "500081" }
+  ],
+  "tags": ["premium", "active"],
+  "createdAt": ISODate("2024-01-15T...")
+}
+
+// Query: find premium users in Bengaluru (with index on tags + addresses.city)
+db.users.find({
+  tags: "premium",
+  "addresses.city": "Bengaluru"
+}).limit(10);
+
+// Cassandra — wide-column, designed for read patterns
+// Table partitioned by user_id, clustered by timestamp (time-series)
+CREATE TABLE user_events (
+  user_id  UUID,
+  ts       TIMESTAMP,
+  event    TEXT,
+  payload  TEXT,
+  PRIMARY KEY (user_id, ts)   -- partition key = user_id
+) WITH CLUSTERING ORDER BY (ts DESC);
+
+-- Efficient: fetch all events for a user (single partition)
+SELECT * FROM user_events WHERE user_id = ? LIMIT 100;
+
+// Redis — key-value with rich data structures
+await redis.zadd('leaderboard', score, userId);    // Sorted Set
+await redis.zrevrange('leaderboard', 0, 9);         // Top 10
+await redis.hset(\`session:\${id}\`, 'userId', uid); // Hash
+await redis.expire(\`session:\${id}\`, 3600);         // TTL`,
+    codeLang: 'typescript',
+    summary: 'NoSQL is not a silver bullet — it trades relational flexibility (ad-hoc queries, joins) for specific optimizations. MongoDB wins on flexible schema; Cassandra wins on write throughput; Redis wins on latency; Neo4j wins on traversal queries. The real question is: what are your access patterns, and which data model fits them best?',
+  },
+
 };
 
 /* ------------------------------------------------------------------ */
