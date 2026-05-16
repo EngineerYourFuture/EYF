@@ -42,6 +42,7 @@ import { MockInterviewPage } from './pages/MockInterviewPage';
 import { CheatSheetsPage } from './pages/CheatSheetsPage';
 import { FlashcardsPage } from './pages/FlashcardsPage';
 import { StudyPlanPage } from './pages/StudyPlanPage';
+import { InterviewTrackerPage } from './pages/InterviewTrackerPage';
 
 export default function App() {
   return (
@@ -196,6 +197,10 @@ export default function App() {
       <Route
         path="/app/study-plan"
         element={<RequireAuth zone="public"><StudyPlanPage /></RequireAuth>}
+      />
+      <Route
+        path="/app/tracker"
+        element={<RequireAuth zone="public"><InterviewTrackerPage /></RequireAuth>}
       />
       <Route
         path="/app/*"

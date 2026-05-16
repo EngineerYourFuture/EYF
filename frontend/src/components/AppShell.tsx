@@ -42,6 +42,7 @@ const NAV_GROUPS: NavGroup[] = [
       { path: '/app/mentorship', label: 'Mentorship',    icon: 'groups' },
       { path: '/app/experts',       label: 'Expert Network', icon: 'workspace_premium' },
       { path: '/app/mock-interview', label: 'Mock Interview',  icon: 'record_voice_over' },
+      { path: '/app/tracker',        label: 'Interview Tracker', icon: 'track_changes' },
     ],
   },
   {

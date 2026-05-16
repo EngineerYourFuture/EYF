@@ -41,6 +41,7 @@ const MODULE_CONFIG: Record<string, { icon: string; title: string; path: string;
   cheatsheets:      { icon: 'quick_reference_all', title: 'Cheat Sheets',  path: '/app/cheatsheets',    color: 'text-cyan-400',   bg: 'bg-cyan-500/10' },
   flashcards:       { icon: 'style',               title: 'Flashcards',    path: '/app/flashcards',     color: 'text-violet-400', bg: 'bg-violet-500/10' },
   'study-plan':     { icon: 'calendar_month',      title: 'Study Plan',    path: '/app/study-plan',     color: 'text-indigo-400', bg: 'bg-indigo-500/10' },
+  tracker:          { icon: 'track_changes',        title: 'Job Tracker',   path: '/app/tracker',        color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
 };
 
 const DIFF_COLOR: Record<string, string> = {
