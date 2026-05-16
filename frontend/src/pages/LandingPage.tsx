@@ -55,6 +55,8 @@ const MODULES = [
   { icon: 'forum',            color: 'from-indigo-600/20 to-indigo-600/5', border: 'border-indigo-500/20', accent: 'text-indigo-400', title: 'Community',           desc: 'Threaded discussions, curated answers, and peer code reviews across all modules.' },
   { icon: 'description',      color: 'from-lime-600/20 to-lime-600/5',     border: 'border-lime-500/20',   accent: 'text-lime-400',   title: 'Resume Builder',      desc: 'ATS-optimised templates, live preview, PDF export, and AI-assisted bullet points.' },
   { icon: 'quick_reference_all', color: 'from-cyan-600/20 to-cyan-600/5',  border: 'border-cyan-500/20',   accent: 'text-cyan-400',   title: 'Cheat Sheets',        desc: 'Algorithm patterns, Big-O tables, System Design frameworks, and OWASP — all in one place.' },
+  { icon: 'style',             color: 'from-violet-600/20 to-violet-600/5', border: 'border-violet-500/20', accent: 'text-violet-400', title: 'Flashcards',          desc: 'SM-2 spaced repetition across 7 decks — OS, DBMS, Networks, DSA, System Design, Security, OOP.' },
+  { icon: 'calendar_month',    color: 'from-indigo-600/20 to-indigo-600/5', border: 'border-indigo-500/20', accent: 'text-indigo-400', title: 'Study Plan Generator',desc: 'Enter your target company and interview date — get a personalized day-by-day prep roadmap.' },
 ];
 
 const PLANS = [
