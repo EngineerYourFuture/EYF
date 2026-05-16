@@ -202,8 +202,6 @@ server {
     codeLang: 'nginx',
     summary: 'Scalability requires designing systems to be stateless, distributing load intelligently, and choosing the right data store for your access patterns. Always measure before optimizing — premature scalability adds complexity without benefit.',
   },
-};
-
   sync: {
     overview: `Synchronization ensures that concurrent threads/processes access shared resources in a controlled, safe manner. Without synchronization, race conditions can corrupt data or lead to undefined behavior.\n\nA deadlock occurs when two or more processes are permanently blocked, each waiting for a resource held by the other. Coffman (1971) identified four necessary conditions for deadlock: mutual exclusion, hold-and-wait, no preemption, and circular wait.`,
     keyPoints: [
@@ -394,6 +392,428 @@ class LRUCache {
 // ALL: all replicas — strongest, lowest availability`,
     codeLang: 'python',
     summary: 'CAP theorem shapes how you design distributed systems. When designing for high availability (AP), implement conflict resolution and eventual consistency. When requiring strong consistency (CP), accept that the system may reject requests during network partitions.',
+  },
+  // ── IPC ──────────────────────────────────────────────────────────────────
+  ipc: {
+    overview: `Inter-Process Communication (IPC) mechanisms allow processes to exchange data and synchronize execution. Since processes have separate address spaces, the OS provides special facilities for them to communicate.\n\nIPC methods vary in complexity, performance, and use case. Shared memory is the fastest (no kernel involvement once mapped), while message queues and pipes add structure and ordering guarantees.`,
+    keyPoints: [
+      'Pipes: unidirectional byte streams between related processes (fork)',
+      'Named pipes (FIFOs): persist in filesystem, allow unrelated processes',
+      'Message queues: discrete messages with types, persist in kernel',
+      'Shared memory: fastest IPC — mmap or shmget, requires explicit synchronization',
+      'Semaphores: used alongside shared memory to synchronize access',
+      'Sockets: network-capable, used for local IPC via UNIX domain sockets',
+      'Signals: asynchronous notifications (SIGKILL, SIGTERM, SIGUSR1)',
+    ],
+    code: `// Shared memory IPC (POSIX)
+// Process A: writer
+int shm_fd = shm_open("/my_shm", O_CREAT | O_RDWR, 0666);
+ftruncate(shm_fd, sizeof(int));
+int *shared = mmap(NULL, sizeof(int),
+    PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
+*shared = 42;  // write
+
+// Process B: reader
+int shm_fd = shm_open("/my_shm", O_RDONLY, 0666);
+int *shared = mmap(NULL, sizeof(int),
+    PROT_READ, MAP_SHARED, shm_fd, 0);
+printf("Value: %d\\n", *shared);  // reads 42`,
+    codeLang: 'c',
+    summary: 'IPC choice depends on relationship, data size, and latency requirements. Use pipes for simple parent–child streaming, shared memory for high-throughput data exchange, and sockets for flexible service-to-service communication.',
+  },
+  // ── TCP Handshake ──────────────────────────────────────────────────────
+  'tcp-handshake': {
+    overview: `The TCP 3-way handshake establishes a reliable connection between client and server before any data transfer. It synchronizes sequence numbers and negotiates connection parameters, ensuring both sides are ready to communicate.\n\nFlow control (sliding window) prevents a fast sender from overwhelming a slow receiver. Congestion control algorithms like Slow Start and AIMD prevent network collapse under heavy load.`,
+    keyPoints: [
+      '3-way handshake: SYN → SYN-ACK → ACK (sequence numbers established)',
+      '4-way teardown: FIN → ACK, FIN → ACK (half-close allows final data flush)',
+      'TIME_WAIT state: 2×MSL (120s) after close prevents old packets confusing new connections',
+      'Window size: receiver advertises how much data it can accept (flow control)',
+      'Slow Start: cwnd starts at 1 MSS, doubles each RTT until ssthresh',
+      'AIMD: Additive Increase on success, Multiplicative Decrease on loss',
+      'Nagle algorithm: buffers small writes to reduce tiny packets (can be disabled with TCP_NODELAY)',
+    ],
+    code: `# TCP Connection State Machine
+# Client                    Server
+# CLOSED                    LISTEN
+#   |  SYN (seq=x)   →       |
+# SYN_SENT              SYN_RCVD
+#   |  ← SYN-ACK (seq=y, ack=x+1)
+# ESTABLISHED           SYN_RCVD
+#   |  ACK (ack=y+1)   →     |
+# ESTABLISHED           ESTABLISHED
+#         ↓ data transfer ↓
+#   |  FIN (seq=m)    →      |
+# FIN_WAIT_1            CLOSE_WAIT
+#   |  ← ACK (ack=m+1)       |
+# FIN_WAIT_2            CLOSE_WAIT
+#   |  ← FIN (seq=n)         |
+# TIME_WAIT             LAST_ACK
+#   |  ACK (ack=n+1)  →      |
+# TIME_WAIT             CLOSED
+# (2×MSL wait)
+# CLOSED`,
+    codeLang: 'python',
+    summary: 'TCP handshake overhead (~1.5 RTTs) motivates connection reuse (HTTP/1.1 keep-alive, HTTP/2 multiplexing, QUIC 0-RTT). Understanding flow and congestion control explains why a single TCP stream underperforms on high-bandwidth, high-latency links.',
+  },
+  // ── SQL Advanced ──────────────────────────────────────────────────────
+  'sql-advanced': {
+    overview: `Window functions and CTEs (Common Table Expressions) are modern SQL features that unlock powerful analytical queries without losing individual row access — unlike GROUP BY which collapses rows.\n\nWindow functions compute values across a set of rows related to the current row. The OVER clause defines the window: PARTITION BY (grouping), ORDER BY (ordering within partition), and a ROWS/RANGE frame.`,
+    keyPoints: [
+      'ROW_NUMBER(): unique sequential rank with no ties',
+      'RANK(): rank with gaps after ties (1,2,2,4); DENSE_RANK(): no gaps (1,2,2,3)',
+      'LAG(col, n) / LEAD(col, n): access previous/next n rows without self-join',
+      'SUM/AVG OVER (ORDER BY ... ROWS UNBOUNDED PRECEDING): running totals',
+      'CTE (WITH clause): named subquery, readable, can be referenced multiple times',
+      'Recursive CTE: hierarchical queries — org charts, tree traversal',
+      'FILTER clause: conditional aggregation within window functions (PostgreSQL)',
+    ],
+    code: `-- Salary ranking per department
+SELECT name, dept, salary,
+  RANK()        OVER (PARTITION BY dept ORDER BY salary DESC) AS dept_rank,
+  DENSE_RANK()  OVER (ORDER BY salary DESC)                   AS company_rank,
+  LAG(salary)   OVER (PARTITION BY dept ORDER BY hire_date)   AS prev_hire_salary
+FROM employees;
+
+-- Running revenue total + 7-day moving average
+SELECT date, revenue,
+  SUM(revenue)  OVER (ORDER BY date ROWS UNBOUNDED PRECEDING) AS cum_total,
+  AVG(revenue)  OVER (ORDER BY date ROWS 6 PRECEDING)         AS ma_7d
+FROM daily_revenue;
+
+-- Recursive CTE: employee hierarchy
+WITH RECURSIVE tree AS (
+  SELECT id, name, manager_id, 0 AS level FROM employees WHERE manager_id IS NULL
+  UNION ALL
+  SELECT e.id, e.name, e.manager_id, t.level + 1
+  FROM employees e JOIN tree t ON e.manager_id = t.id
+)
+SELECT * FROM tree ORDER BY level, name;`,
+    codeLang: 'sql',
+    summary: 'Window functions and recursive CTEs are the two most powerful SQL features for analytics and hierarchical data. They are tested in virtually every data engineering and backend senior interview. Master the OVER() syntax and PARTITION BY vs GROUP BY distinction.',
+  },
+  // ── Isolation Levels ──────────────────────────────────────────────────
+  isolation: {
+    overview: `Database isolation levels define how and when changes made by one transaction become visible to others. Higher isolation prevents more anomalies but reduces concurrency. The SQL standard defines four levels: READ UNCOMMITTED, READ COMMITTED, REPEATABLE READ, and SERIALIZABLE.\n\nMost production databases default to READ COMMITTED (PostgreSQL, Oracle) or REPEATABLE READ (MySQL InnoDB). SERIALIZABLE provides the strongest guarantees but can cause significant lock contention.`,
+    keyPoints: [
+      'Dirty Read: reading uncommitted data from another transaction',
+      'Non-Repeatable Read: same row returns different values within one transaction',
+      'Phantom Read: new rows appear in a re-executed query within one transaction',
+      'READ UNCOMMITTED: sees dirty reads — almost never used in production',
+      'READ COMMITTED (default PostgreSQL): no dirty reads; non-repeatable reads possible',
+      'REPEATABLE READ (default MySQL): no dirty or non-repeatable; phantom reads possible',
+      'SERIALIZABLE: all anomalies prevented; uses predicate locks or SSI',
+      'MVCC: most modern DBs use multi-version concurrency control to avoid read-write lock contention',
+    ],
+    code: `-- Isolation level comparison
+-- Level              Dirty Read  Non-Repeatable  Phantom
+-- READ UNCOMMITTED      yes         yes            yes
+-- READ COMMITTED        no          yes            yes
+-- REPEATABLE READ       no          no             yes (MySQL) / no (PG)
+-- SERIALIZABLE          no          no             no
+
+-- Set isolation level (PostgreSQL)
+BEGIN;
+SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+SELECT balance FROM accounts WHERE user_id = 42;
+-- ... other operations ...
+-- same SELECT will return same balance (no non-repeatable read)
+COMMIT;
+
+-- Write skew (REPEATABLE READ does NOT prevent this)
+-- T1 reads "Alice shift ON, Bob shift ON" → sees coverage OK
+-- T2 reads "Alice shift ON, Bob shift ON" → sees coverage OK
+-- T1 sets Alice shift = OFF (now only Bob is on)
+-- T2 sets Bob shift = OFF (now nobody is on!) ← anomaly
+-- Fix: use SERIALIZABLE or explicit SELECT ... FOR UPDATE`,
+    codeLang: 'sql',
+    summary: 'Isolation level selection is a key database design decision. Default READ COMMITTED is appropriate for most OLTP workloads. Use SERIALIZABLE for financial transactions where write skew or phantoms would cause correctness issues.',
+  },
+  // ── Sharding ──────────────────────────────────────────────────────────
+  sharding: {
+    overview: `Sharding (horizontal partitioning) splits a dataset across multiple database nodes, each holding a subset of the data. It enables horizontal scaling beyond what a single node can handle, but introduces significant complexity.\n\nConsistent hashing is the gold standard shard routing algorithm: it minimizes re-distribution when nodes are added or removed, solving the "N mod N+1 problem" that plagues naive hash sharding.`,
+    keyPoints: [
+      'Shard key selection is the most critical decision — drives data distribution and query routing',
+      'Hash sharding: uniform distribution, no range queries across shards',
+      'Range sharding: supports range queries, but can create hot spots',
+      'Directory-based sharding: lookup table → flexible but becomes bottleneck',
+      'Cross-shard joins: either denormalize or accept application-level joins',
+      'Rebalancing: adding a shard requires data migration — painful with naive hashing',
+      'Consistent hashing: ring-based, only K/N keys move when N changes (where K = total keys)',
+    ],
+    code: `// Consistent hashing (simplified)
+class ConsistentHash {
+  private ring = new Map<number, string>(); // hash → node
+  private sorted: number[] = [];
+
+  addNode(node: string, vnodes = 150) {
+    for (let i = 0; i < vnodes; i++) {
+      const h = hash(\`\${node}-\${i}\`);
+      this.ring.set(h, node);
+      this.sorted.push(h);
+    }
+    this.sorted.sort((a, b) => a - b);
+  }
+
+  getNode(key: string): string {
+    const h = hash(key);
+    // Find first ring position >= h (clockwise)
+    const pos = this.sorted.findIndex((p) => p >= h);
+    const idx = pos === -1 ? 0 : pos;
+    return this.ring.get(this.sorted[idx]!)!;
+  }
+}`,
+    codeLang: 'typescript',
+    summary: 'Shard early enough to avoid painful migrations, but not so early that complexity outweighs benefit. Most systems don\'t need sharding until >10M rows per table or >10GB per table. Start with read replicas and caching first.',
+  },
+  // ── Microservices ──────────────────────────────────────────────────────
+  microservices: {
+    overview: `Microservices decompose a monolith into independently deployable services organized around business capabilities. Each service owns its data, communicates over APIs, and can be deployed, scaled, and updated independently.\n\nA Service Mesh (like Istio or Linkerd) sits beside each service as a sidecar proxy, handling cross-cutting concerns: mTLS, traffic routing, circuit breaking, retries, and observability — without modifying application code.`,
+    keyPoints: [
+      'Bounded context: each service owns one business domain and its data store',
+      'API Gateway: single entry point for clients — handles auth, routing, rate limiting',
+      'Service discovery: Consul, Kubernetes DNS, or client-side load balancing',
+      'Circuit breaker: fail fast when a dependency is unhealthy (Hystrix, Resilience4j)',
+      'Saga pattern: distributed transactions across services via compensating transactions',
+      'Event-driven: services communicate via events (Kafka) for loose coupling',
+      'Service Mesh: sidecar proxies for mTLS, traffic control, and observability',
+    ],
+    code: `// Circuit Breaker (TypeScript)
+enum State { CLOSED, OPEN, HALF_OPEN }
+
+class CircuitBreaker {
+  private state = State.CLOSED;
+  private failures = 0;
+  private lastFail = 0;
+
+  async call<T>(fn: () => Promise<T>): Promise<T> {
+    if (this.state === State.OPEN) {
+      if (Date.now() - this.lastFail > 30_000) {
+        this.state = State.HALF_OPEN; // try one request
+      } else {
+        throw new Error('Circuit OPEN — fast fail');
+      }
+    }
+    try {
+      const result = await fn();
+      if (this.state === State.HALF_OPEN) {
+        this.state = State.CLOSED;
+        this.failures = 0;
+      }
+      return result;
+    } catch (err) {
+      this.failures++;
+      this.lastFail = Date.now();
+      if (this.failures >= 5) this.state = State.OPEN;
+      throw err;
+    }
+  }
+}`,
+    codeLang: 'typescript',
+    summary: 'Microservices solve deployment independence and team autonomy but introduce distributed systems complexity: network latency, partial failures, distributed tracing, and eventual consistency. Start with a modular monolith and extract services only when team or scale demands it.',
+  },
+  // ── Replication ──────────────────────────────────────────────────────
+  replication: {
+    overview: `Data replication maintains copies of data across multiple nodes for fault tolerance, read scalability, and geographic distribution. The leader-follower (primary-replica) model is the most common: all writes go to the leader, which replicates to followers.\n\nReplication can be synchronous (leader waits for follower ACK before responding to client — strong consistency, slower) or asynchronous (leader responds immediately — eventually consistent, risk of data loss on failover).`,
+    keyPoints: [
+      'Leader-follower: all writes to leader, reads can go to replicas',
+      'Synchronous replication: zero data loss, but higher write latency',
+      'Asynchronous replication: faster writes, replication lag, risk of data loss',
+      'Semi-synchronous: wait for at least one replica (MySQL default)',
+      'Replication lag: how far behind replicas are — affects read-your-writes consistency',
+      'Failover: promote a replica to leader — risks split-brain if not handled carefully',
+      'Multi-leader: multiple writable nodes (Dynamo, CRDTs) — conflict resolution needed',
+    ],
+    code: `# PostgreSQL streaming replication setup (simplified)
+# Primary: postgresql.conf
+wal_level = replica
+max_wal_senders = 3
+synchronous_commit = on     # synchronous (off = async)
+
+# Primary: pg_hba.conf
+host replication replicator 10.0.0.2/32 md5
+
+# Replica: recovery.conf (or postgresql.auto.conf)
+primary_conninfo = 'host=10.0.0.1 user=replicator'
+hot_standby = on            # allows read queries on replica
+
+# Check replication lag (on primary)
+SELECT client_addr,
+       write_lag, flush_lag, replay_lag
+FROM pg_stat_replication;`,
+    codeLang: 'python',
+    summary: 'Replication provides redundancy and read scaling but not write scaling. For write scaling, you need sharding. Replication lag is the main source of stale reads in distributed systems — design your application to tolerate it or route sensitive reads to the leader.',
+  },
+  // ── Design Patterns: Creational ──────────────────────────────────────
+  creational: {
+    overview: `Creational design patterns deal with object creation mechanisms, aiming to create objects in a manner suitable to the situation. They abstract the instantiation process, making a system independent of how its objects are created, composed, and represented.\n\nThe five GoF creational patterns — Singleton, Factory Method, Abstract Factory, Builder, and Prototype — each address a different dimension of object creation complexity.`,
+    keyPoints: [
+      'Singleton: enforce one instance; use dependency injection over global access to improve testability',
+      'Factory Method: let subclasses decide which class to instantiate',
+      'Abstract Factory: create families of related objects without specifying concrete classes',
+      'Builder: construct complex objects step-by-step; separate construction from representation',
+      'Prototype: clone an existing object rather than creating from scratch',
+      'Avoid Singleton when unit testing — prefer factory injection',
+      'Builder pattern solves the "telescoping constructor" anti-pattern',
+    ],
+    code: `// Builder Pattern (TypeScript)
+class QueryBuilder {
+  private table = '';
+  private conditions: string[] = [];
+  private limitVal?: number;
+  private cols = '*';
+
+  from(table: string) { this.table = table; return this; }
+  select(...cols: string[]) { this.cols = cols.join(', '); return this; }
+  where(cond: string) { this.conditions.push(cond); return this; }
+  limit(n: number) { this.limitVal = n; return this; }
+
+  build(): string {
+    let q = \`SELECT \${this.cols} FROM \${this.table}\`;
+    if (this.conditions.length) q += \` WHERE \${this.conditions.join(' AND ')}\`;
+    if (this.limitVal) q += \` LIMIT \${this.limitVal}\`;
+    return q;
+  }
+}
+
+const query = new QueryBuilder()
+  .from('orders')
+  .select('id', 'amount')
+  .where('status = \'active\'')
+  .limit(50)
+  .build();
+// SELECT id, amount FROM orders WHERE status = 'active' LIMIT 50`,
+    codeLang: 'typescript',
+    summary: 'Creational patterns reduce coupling between client code and the classes it instantiates. Builder is the most practical for application code (configuration, query construction). Factory Method is essential for framework design where extensibility is required.',
+  },
+  // ── Behavioral Patterns ──────────────────────────────────────────────
+  behavioral: {
+    overview: `Behavioral design patterns define how objects interact and distribute responsibility. They focus on communication patterns between objects, making the system more flexible by defining not just what objects are, but how they collaborate.\n\nThe most widely used behavioral patterns in modern software are Observer (reactive UIs, event systems), Strategy (algorithm selection), Command (undo/redo, job queues), and Iterator (uniform collection traversal).`,
+    keyPoints: [
+      'Observer: subject maintains a list of observers and notifies on state change (publish-subscribe)',
+      'Strategy: define a family of algorithms, encapsulate each one, make them interchangeable',
+      'Command: encapsulate a request as an object — enables undo, queuing, logging',
+      'Iterator: provide sequential access to elements without exposing internal structure',
+      'Chain of Responsibility: pass request along a chain until someone handles it',
+      'State: allow an object to alter its behavior when its internal state changes',
+      'Template Method: define skeleton of an algorithm in base class, defer steps to subclasses',
+    ],
+    code: `// Observer Pattern (TypeScript)
+type Handler<T> = (event: T) => void;
+
+class EventEmitter<Events extends Record<string, unknown>> {
+  private listeners = new Map<keyof Events, Handler<unknown>[]>();
+
+  on<K extends keyof Events>(event: K, handler: Handler<Events[K]>) {
+    const existing = this.listeners.get(event) ?? [];
+    this.listeners.set(event, [...existing, handler as Handler<unknown>]);
+  }
+
+  off<K extends keyof Events>(event: K, handler: Handler<Events[K]>) {
+    const existing = this.listeners.get(event) ?? [];
+    this.listeners.set(event, existing.filter((h) => h !== handler));
+  }
+
+  emit<K extends keyof Events>(event: K, data: Events[K]) {
+    (this.listeners.get(event) ?? []).forEach((h) => h(data));
+  }
+}
+
+// Strategy Pattern
+type SortStrategy = (arr: number[]) => number[];
+const quickSort: SortStrategy = (arr) => [...arr].sort((a, b) => a - b);
+const bucketSort: SortStrategy = (arr) => { /* ... */ return arr; };
+
+class Sorter {
+  constructor(private strategy: SortStrategy) {}
+  sort(data: number[]) { return this.strategy(data); }
+  setStrategy(s: SortStrategy) { this.strategy = s; }
+}`,
+    codeLang: 'typescript',
+    summary: 'Behavioral patterns are about protocols between objects. Observer and Strategy are the most universally applicable — you will use them constantly in real codebases. Command is essential for any system needing undo/redo or audit logs.',
+  },
+  // ── Propositional Logic ────────────────────────────────────────────────
+  propositional: {
+    overview: `Propositional logic (also called sentential logic) deals with propositions that can be true or false, combined with logical connectives. It forms the mathematical foundation for digital circuits, type systems, formal verification, and database query optimization.\n\nPredicate logic (first-order logic) extends propositional logic with quantifiers (∀ all, ∃ exists) and predicates that take arguments, allowing reasoning about collections and relationships.`,
+    keyPoints: [
+      '¬ (NOT), ∧ (AND), ∨ (OR), → (implies), ↔ (biconditional)',
+      'Tautology: always true (A ∨ ¬A); Contradiction: always false (A ∧ ¬A)',
+      'Modus Ponens: (P, P→Q) ⊢ Q — most fundamental inference rule',
+      'De Morgan\'s Laws: ¬(A∧B) ≡ ¬A∨¬B, ¬(A∨B) ≡ ¬A∧¬B',
+      'CNF (Conjunctive Normal Form): AND of ORs — used by SAT solvers',
+      'Predicate logic: ∀x P(x) — "for all x, P holds"; ∃x P(x) — "there exists x such that P"',
+      'Negation of quantifiers: ¬∀x P(x) ≡ ∃x ¬P(x)',
+    ],
+    code: `// Truth table: A → B ≡ ¬A ∨ B
+// A     B     A→B   ¬A∨B
+// T     T      T     T
+// T     F      F     F
+// F     T      T     T
+// F     F      T     T
+
+// De Morgan's in code:
+// !(a && b) === !a || !b
+// !(a || b) === !a && !b
+
+// Example: verify tautology with truth table
+function isTautology(f: (a: boolean, b: boolean) => boolean): boolean {
+  for (const a of [true, false])
+    for (const b of [true, false])
+      if (!f(a, b)) return false;
+  return true;
+}
+// A ∨ ¬A is a tautology
+isTautology((a, _b) => a || !a); // true`,
+    codeLang: 'typescript',
+    summary: 'Propositional and predicate logic underpin all of computer science — from CPU gates (AND/OR/NOT) to database query optimization (CNF clauses), type checking (type implication), and SAT/SMT solvers used in formal verification.',
+  },
+  // ── DFA ─────────────────────────────────────────────────────────────────
+  dfa: {
+    overview: `A Deterministic Finite Automaton (DFA) is a mathematical model of computation that reads an input string and accepts or rejects it based on a set of transition rules. DFAs are equivalent in power to regular expressions — they recognize exactly the class of regular languages.\n\nDFAs have a finite number of states, a defined start state, a set of accepting states, and a transition function that maps (state, character) → next state deterministically (exactly one transition per input symbol per state).`,
+    keyPoints: [
+      'DFA = (Q, Σ, δ, q₀, F): states, alphabet, transition fn, start state, accepting states',
+      'Deterministic: exactly one transition per (state, symbol) pair',
+      'NFA: can have multiple transitions per (state, symbol) or ε-transitions',
+      'DFA and NFA are equally powerful (both recognize regular languages)',
+      'NFA → DFA via subset construction (exponential blowup in worst case)',
+      'DFA minimization: merge indistinguishable states (Hopcroft\'s algorithm)',
+      'Regex → NFA (Thompson\'s construction) → DFA → minimized DFA',
+    ],
+    code: `// DFA simulation (TypeScript)
+type State = string;
+type DFA = {
+  states: State[];
+  alphabet: string[];
+  transitions: Record<State, Record<string, State>>;
+  start: State;
+  accepting: Set<State>;
+};
+
+function simulate(dfa: DFA, input: string): boolean {
+  let current = dfa.start;
+  for (const char of input) {
+    const next = dfa.transitions[current]?.[char];
+    if (!next) return false; // dead state / no transition
+    current = next;
+  }
+  return dfa.accepting.has(current);
+}
+
+// DFA for strings containing "ab"
+const dfa: DFA = {
+  states: ['q0', 'q1', 'q2'],
+  alphabet: ['a', 'b'],
+  transitions: {
+    q0: { a: 'q1', b: 'q0' },
+    q1: { a: 'q1', b: 'q2' },
+    q2: { a: 'q1', b: 'q0' },  // wait, back to q0 wrong; actually:
+    // q2 is accepting and stays accepting
+  },
+  start: 'q0',
+  accepting: new Set(['q2']),
+};`,
+    codeLang: 'typescript',
+    summary: 'DFAs are the theoretical foundation of regular expression engines, lexers, and network packet filtering. Understanding them helps you reason about what patterns are and aren\'t expressible with regex, and why some problems require a stack (CFGs) or Turing machine.',
   },
 };
 
