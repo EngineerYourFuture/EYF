@@ -54,6 +54,7 @@ const MODULES = [
   { icon: 'emoji_events',     color: 'from-yellow-600/20 to-yellow-600/5', border: 'border-yellow-500/20', accent: 'text-yellow-400', title: 'Achievements & XP',   desc: '25+ badges, weekly leaderboard, streaks, and levels. Make learning addictive.' },
   { icon: 'forum',            color: 'from-indigo-600/20 to-indigo-600/5', border: 'border-indigo-500/20', accent: 'text-indigo-400', title: 'Community',           desc: 'Threaded discussions, curated answers, and peer code reviews across all modules.' },
   { icon: 'description',      color: 'from-lime-600/20 to-lime-600/5',     border: 'border-lime-500/20',   accent: 'text-lime-400',   title: 'Resume Builder',      desc: 'ATS-optimised templates, live preview, PDF export, and AI-assisted bullet points.' },
+  { icon: 'quick_reference_all', color: 'from-cyan-600/20 to-cyan-600/5',  border: 'border-cyan-500/20',   accent: 'text-cyan-400',   title: 'Cheat Sheets',        desc: 'Algorithm patterns, Big-O tables, System Design frameworks, and OWASP — all in one place.' },
 ];
 
 const PLANS = [
