@@ -643,11 +643,11 @@ export function HomePage() {
         <section className="mb-8 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
           {[
             { label: 'Solve Problem',    icon: 'code',                path: '/app/problems',       color: 'text-blue-400',   bg: 'bg-blue-500/10',   border: 'border-blue-500/20' },
-            { label: 'Study Pattern',    icon: 'account_tree',        path: '/app/oop',            color: 'text-purple-400', bg: 'bg-purple-500/10', border: 'border-purple-500/20' },
-            { label: 'CTF Challenge',    icon: 'flag',                path: '/app/cybersecurity',  color: 'text-red-400',    bg: 'bg-red-500/10',    border: 'border-red-500/20' },
+            { label: 'Pattern Quiz',     icon: 'quiz',                path: '/app/pattern-quiz',   color: 'text-indigo-400', bg: 'bg-indigo-500/10', border: 'border-indigo-500/20' },
             { label: 'System Design',    icon: 'architecture',        path: '/app/system-design',  color: 'text-cyan-400',   bg: 'bg-cyan-500/10',   border: 'border-cyan-500/20' },
             { label: 'Mock Interview',   icon: 'record_voice_over',   path: '/app/mock-interview', color: 'text-orange-400', bg: 'bg-orange-500/10', border: 'border-orange-500/20' },
-            { label: 'Core Subjects',    icon: 'auto_stories',        path: '/app/subjects',       color: 'text-green-400',  bg: 'bg-green-500/10',  border: 'border-green-500/20' },
+            { label: 'My Roadmap',       icon: 'map',                 path: '/app/roadmap',        color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20' },
+            { label: 'My Progress',      icon: 'insights',            path: '/app/progress',       color: 'text-blue-300',   bg: 'bg-blue-400/10',   border: 'border-blue-400/20' },
           ].map((a) => (
             <Link key={a.path} to={a.path}>
               <div className={`${a.bg} border ${a.border} rounded-2xl p-4 flex flex-col items-center gap-2 text-center hover:scale-[1.02] transition-all cursor-pointer group`}>

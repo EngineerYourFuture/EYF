@@ -228,7 +228,7 @@ export function AppShell({ children }: { readonly children: ReactNode }) {
         </div>
 
         {/* User card */}
-        <div className="mx-4 mb-6 bg-[#252525] rounded-2xl p-4 border border-white/5">
+        <Link to="/app/progress" className="block mx-4 mb-6 bg-[#252525] rounded-2xl p-4 border border-white/5 hover:border-zinc-600 transition-colors cursor-pointer">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-10 h-10 rounded-xl bg-[#E82127] flex items-center justify-center text-white font-black text-sm flex-shrink-0">
               {initials}
@@ -259,7 +259,7 @@ export function AppShell({ children }: { readonly children: ReactNode }) {
               />
             </div>
           </div>
-        </div>
+        </Link>
 
         {/* Nav */}
         <nav className="flex-1 space-y-4 overflow-y-auto px-4">
