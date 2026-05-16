@@ -32,6 +32,7 @@ const NAV_GROUPS: NavGroup[] = [
       { path: '/app/cheatsheets',   label: 'Cheat Sheets',   icon: 'quick_reference_all' },
       { path: '/app/flashcards',    label: 'Flashcards',     icon: 'style' },
       { path: '/app/pattern-quiz',  label: 'Pattern Quiz',   icon: 'quiz' },
+      { path: '/app/roadmap',       label: 'Roadmap',        icon: 'map' },
       { path: '/app/study-plan',    label: 'Study Plan',     icon: 'calendar_month' },
     ],
   },

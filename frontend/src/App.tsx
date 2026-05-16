@@ -45,6 +45,7 @@ import { StudyPlanPage } from './pages/StudyPlanPage';
 import { InterviewTrackerPage } from './pages/InterviewTrackerPage';
 import { DailyChallengePage } from './pages/DailyChallengePage';
 import { PatternQuizPage } from './pages/PatternQuizPage';
+import { RoadmapPage } from './pages/RoadmapPage';
 
 export default function App() {
   return (
@@ -211,6 +212,10 @@ export default function App() {
       <Route
         path="/app/pattern-quiz"
         element={<RequireAuth zone="public"><PatternQuizPage /></RequireAuth>}
+      />
+      <Route
+        path="/app/roadmap"
+        element={<RequireAuth zone="public"><RoadmapPage /></RequireAuth>}
       />
       <Route
         path="/app/*"
