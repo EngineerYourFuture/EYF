@@ -4,7 +4,9 @@ import { Icon } from './Icon';
 import { EYFMark, EYFLogo } from './EYFLogo';
 import { clearSession, getSession } from '../lib/session';
 import { SearchModal } from './SearchModal';
+import { NotificationsPanel, type Notification } from './NotificationsPanel';
 import { useUser } from '../contexts/UserContext';
+import { apiRequest } from '../lib/api';
 
 interface NavItem { path: string; label: string; icon: string }
 interface NavGroup { label: string; items: NavItem[] }
@@ -62,8 +64,34 @@ export function AppShell({ children }: { readonly children: ReactNode }) {
   const session   = getSession();
   const { summary, displayName, plan } = useUser();
 
-  const [sidebarOpen, setSidebarOpen]   = useState(false);
-  const [searchOpen,  setSearchOpen]    = useState(false);
+  const [sidebarOpen,    setSidebarOpen]    = useState(false);
+  const [searchOpen,     setSearchOpen]     = useState(false);
+  const [notifOpen,      setNotifOpen]      = useState(false);
+  const [notifications,  setNotifications]  = useState<Notification[]>([]);
+
+  useEffect(() => {
+    if (!session?.accessToken) return;
+    apiRequest<{ notifications: Notification[] }>('/notifications', { token: session.accessToken })
+      .then((d) => { if (d.notifications) setNotifications(d.notifications); })
+      .catch(() => {});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session?.accessToken]);
+
+  const unreadCount = notifications.filter((n) => !n.read).length;
+
+  const markAllRead = useCallback(() => {
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    if (session?.accessToken) {
+      apiRequest('/notifications/read-all', { token: session.accessToken, method: 'POST', body: {} }).catch(() => {});
+    }
+  }, [session?.accessToken]);
+
+  const markRead = useCallback((id: string) => {
+    setNotifications((prev) => prev.map((n) => n.id === id ? { ...n, read: true } : n));
+    if (session?.accessToken) {
+      apiRequest(`/notifications/${id}/read`, { token: session.accessToken, method: 'POST', body: {} }).catch(() => {});
+    }
+  }, [session?.accessToken]);
 
   const level     = summary?.level ?? 0;
   const xp        = summary?.xp ?? 0;
@@ -270,6 +298,28 @@ export function AppShell({ children }: { readonly children: ReactNode }) {
 
         {/* Right icons */}
         <div className="flex items-center gap-2 ml-auto">
+          {/* Notifications bell */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setNotifOpen((o) => !o)}
+              className="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-zinc-400 hover:text-white transition-colors relative"
+              aria-label="Notifications"
+            >
+              <Icon name="notifications" size={20} />
+              {unreadCount > 0 && (
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-primary-container rounded-full border-2 border-surface" />
+              )}
+            </button>
+            {notifOpen && (
+              <NotificationsPanel
+                notifications={notifications}
+                onClose={() => setNotifOpen(false)}
+                onMarkAllRead={markAllRead}
+                onMarkRead={markRead}
+              />
+            )}
+          </div>
           <Link to="/app/profile">
             <button className="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-zinc-400 hover:text-white transition-colors">
               <Icon name="settings" size={20} />
