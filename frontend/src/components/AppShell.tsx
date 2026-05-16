@@ -30,6 +30,7 @@ const NAV_GROUPS: NavGroup[] = [
       { path: '/app/visualizer',    label: 'Visualizer',     icon: 'visibility' },
       { path: '/app/cheatsheets',   label: 'Cheat Sheets',   icon: 'quick_reference_all' },
       { path: '/app/flashcards',    label: 'Flashcards',     icon: 'style' },
+      { path: '/app/study-plan',    label: 'Study Plan',     icon: 'calendar_month' },
     ],
   },
   {
