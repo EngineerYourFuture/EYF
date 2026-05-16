@@ -44,6 +44,7 @@ import { FlashcardsPage } from './pages/FlashcardsPage';
 import { StudyPlanPage } from './pages/StudyPlanPage';
 import { InterviewTrackerPage } from './pages/InterviewTrackerPage';
 import { DailyChallengePage } from './pages/DailyChallengePage';
+import { PatternQuizPage } from './pages/PatternQuizPage';
 
 export default function App() {
   return (
@@ -206,6 +207,10 @@ export default function App() {
       <Route
         path="/app/daily"
         element={<RequireAuth zone="public"><DailyChallengePage /></RequireAuth>}
+      />
+      <Route
+        path="/app/pattern-quiz"
+        element={<RequireAuth zone="public"><PatternQuizPage /></RequireAuth>}
       />
       <Route
         path="/app/*"
