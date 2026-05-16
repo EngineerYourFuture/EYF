@@ -318,6 +318,44 @@ export function HomePage() {
           </div>
         </section>
 
+        {/* ── Today's Focus ── */}
+        <section className="mb-8 bg-gradient-to-r from-[#1a1010] to-[#161616] border border-[#E82127]/15 rounded-2xl p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 bg-[#E82127]/10 rounded-xl flex items-center justify-center">
+                <Icon name="target" size={18} className="text-[#E82127]" />
+              </div>
+              <div>
+                <h2 className="font-black text-sm text-white">Today's Focus</h2>
+                <p className="text-[10px] text-zinc-600 font-medium mt-0.5">Recommended for you</p>
+              </div>
+            </div>
+            <Link to="/app/career" className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 hover:text-[#E82127] transition-colors">
+              Customize →
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {[
+              { icon: 'code', label: 'DSA Practice', desc: 'Solve 1 medium problem', path: '/app/problems', color: 'text-blue-400', bg: 'bg-blue-500/10', xp: '+60 XP' },
+              { icon: 'auto_stories', label: 'Core Subjects', desc: 'Complete 1 topic', path: '/app/subjects', color: 'text-green-400', bg: 'bg-green-500/10', xp: '+15 XP' },
+              { icon: 'record_voice_over', label: 'Mock Interview', desc: 'Practice 4 questions', path: '/app/mock-interview', color: 'text-orange-400', bg: 'bg-orange-500/10', xp: '+50 XP' },
+            ].map((task) => (
+              <Link key={task.path} to={task.path}>
+                <div className="flex items-center gap-3 bg-[#1e1e1e]/60 rounded-xl px-4 py-3 hover:bg-[#252525] transition-all group">
+                  <div className={`w-8 h-8 ${task.bg} rounded-lg flex items-center justify-center flex-shrink-0`}>
+                    <Icon name={task.icon} size={16} className={task.color} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-white text-xs font-bold truncate">{task.label}</p>
+                    <p className="text-zinc-600 text-[10px]">{task.desc}</p>
+                  </div>
+                  <span className="text-[10px] font-bold text-primary-container/70 flex-shrink-0">{task.xp}</span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+
         {/* ── Activity heatmap ── */}
         <section className="mb-8 bg-[#161616] border border-white/5 rounded-2xl p-6">
           <div className="flex items-center justify-between mb-5">
@@ -334,12 +372,14 @@ export function HomePage() {
         </section>
 
         {/* ── Quick actions ── */}
-        <section className="mb-8 grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <section className="mb-8 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
           {[
-            { label: 'Solve a Problem',  icon: 'code',         path: '/app/problems',       color: 'text-blue-400',   bg: 'bg-blue-500/10',   border: 'border-blue-500/20' },
-            { label: 'Study a Pattern',  icon: 'account_tree', path: '/app/oop',            color: 'text-purple-400', bg: 'bg-purple-500/10', border: 'border-purple-500/20' },
-            { label: 'CTF Challenge',    icon: 'flag',         path: '/app/cybersecurity',  color: 'text-red-400',    bg: 'bg-red-500/10',    border: 'border-red-500/20' },
-            { label: 'System Design',    icon: 'architecture', path: '/app/system-design',  color: 'text-cyan-400',   bg: 'bg-cyan-500/10',   border: 'border-cyan-500/20' },
+            { label: 'Solve Problem',    icon: 'code',                path: '/app/problems',       color: 'text-blue-400',   bg: 'bg-blue-500/10',   border: 'border-blue-500/20' },
+            { label: 'Study Pattern',    icon: 'account_tree',        path: '/app/oop',            color: 'text-purple-400', bg: 'bg-purple-500/10', border: 'border-purple-500/20' },
+            { label: 'CTF Challenge',    icon: 'flag',                path: '/app/cybersecurity',  color: 'text-red-400',    bg: 'bg-red-500/10',    border: 'border-red-500/20' },
+            { label: 'System Design',    icon: 'architecture',        path: '/app/system-design',  color: 'text-cyan-400',   bg: 'bg-cyan-500/10',   border: 'border-cyan-500/20' },
+            { label: 'Mock Interview',   icon: 'record_voice_over',   path: '/app/mock-interview', color: 'text-orange-400', bg: 'bg-orange-500/10', border: 'border-orange-500/20' },
+            { label: 'Core Subjects',    icon: 'auto_stories',        path: '/app/subjects',       color: 'text-green-400',  bg: 'bg-green-500/10',  border: 'border-green-500/20' },
           ].map((a) => (
             <Link key={a.path} to={a.path}>
               <div className={`${a.bg} border ${a.border} rounded-2xl p-4 flex flex-col items-center gap-2 text-center hover:scale-[1.02] transition-all cursor-pointer group`}>
