@@ -33,6 +33,7 @@ const ALL_ITEMS: SearchResult[] = [
   { title: 'Daily Challenge',   subtitle: 'One DSA/SD/behavioral problem per day — build a streak', icon: 'today', path: '/app/daily', color: 'text-[#E82127]' },
   { title: 'Pattern Quiz',      subtitle: 'Test your algorithm pattern recognition instinct', icon: 'quiz', path: '/app/pattern-quiz', color: 'text-indigo-400' },
   { title: 'Interview Roadmap', subtitle: 'Week-by-week structured plan for campus, FAANG, or backend roles', icon: 'map', path: '/app/roadmap', color: 'text-emerald-400' },
+  { title: 'My Progress',       subtitle: 'XP chart, activity heatmap, subject completion, and rank', icon: 'insights', path: '/app/progress', color: 'text-blue-400' },
   { title: 'Study Plan',        subtitle: 'Personalized day-by-day interview prep schedule', icon: 'calendar_month', path: '/app/study-plan', color: 'text-indigo-400' },
   { title: 'Interview Tracker', subtitle: 'Log applications, track rounds, celebrate offers', icon: 'track_changes', path: '/app/tracker', color: 'text-emerald-400' },
   { title: 'Profile & Security',subtitle: 'Account settings & 2FA',      icon: 'manage_accounts',   path: '/app/profile',        color: 'text-zinc-400' },

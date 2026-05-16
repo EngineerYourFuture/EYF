@@ -46,6 +46,7 @@ import { InterviewTrackerPage } from './pages/InterviewTrackerPage';
 import { DailyChallengePage } from './pages/DailyChallengePage';
 import { PatternQuizPage } from './pages/PatternQuizPage';
 import { RoadmapPage } from './pages/RoadmapPage';
+import { ProgressPage } from './pages/ProgressPage';
 
 export default function App() {
   return (
@@ -216,6 +217,10 @@ export default function App() {
       <Route
         path="/app/roadmap"
         element={<RequireAuth zone="public"><RoadmapPage /></RequireAuth>}
+      />
+      <Route
+        path="/app/progress"
+        element={<RequireAuth zone="public"><ProgressPage /></RequireAuth>}
       />
       <Route
         path="/app/*"

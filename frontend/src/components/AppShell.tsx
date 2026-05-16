@@ -58,6 +58,7 @@ const NAV_GROUPS: NavGroup[] = [
   {
     label: 'Progress',
     items: [
+      { path: '/app/progress',     label: 'Progress',     icon: 'insights' },
       { path: '/app/achievements', label: 'Achievements', icon: 'emoji_events' },
     ],
   },
