@@ -196,6 +196,613 @@ drink = new MilkDecorator(drink);
 drink = new SyrupDecorator(drink);
 console.log(drink.description()); // Espresso, Milk, Syrup
 console.log(drink.cost());        // 3.75`,
+
+  'abstract-factory': `// Abstract Factory — families of related objects
+interface Button { render(): void }
+interface Checkbox { render(): void }
+
+interface UIFactory {
+  createButton(): Button;
+  createCheckbox(): Checkbox;
+}
+
+class MacButton implements Button { render() { console.log('Mac button'); } }
+class MacCheckbox implements Checkbox { render() { console.log('Mac checkbox'); } }
+
+class WinButton implements Button { render() { console.log('Win button'); } }
+class WinCheckbox implements Checkbox { render() { console.log('Win checkbox'); } }
+
+class MacFactory implements UIFactory {
+  createButton(): Button { return new MacButton(); }
+  createCheckbox(): Checkbox { return new MacCheckbox(); }
+}
+class WinFactory implements UIFactory {
+  createButton(): Button { return new WinButton(); }
+  createCheckbox(): Checkbox { return new WinCheckbox(); }
+}
+
+// Usage — swap entire UI family without touching client code
+function renderUI(factory: UIFactory) {
+  factory.createButton().render();
+  factory.createCheckbox().render();
+}
+renderUI(new MacFactory()); // Mac button / Mac checkbox
+renderUI(new WinFactory()); // Win button / Win checkbox`,
+
+  builder: `// Builder — step-by-step complex object construction
+class QueryBuilder {
+  private table = '';
+  private conditions: string[] = [];
+  private columns = '*';
+  private limitVal?: number;
+
+  from(table: string) { this.table = table; return this; }
+  select(...cols: string[]) { this.columns = cols.join(', '); return this; }
+  where(condition: string) { this.conditions.push(condition); return this; }
+  limit(n: number) { this.limitVal = n; return this; }
+
+  build(): string {
+    let sql = \`SELECT \${this.columns} FROM \${this.table}\`;
+    if (this.conditions.length) sql += \` WHERE \${this.conditions.join(' AND ')}\`;
+    if (this.limitVal) sql += \` LIMIT \${this.limitVal}\`;
+    return sql;
+  }
+}
+
+// Usage — fluent API, no telescoping constructors
+const query = new QueryBuilder()
+  .from('users')
+  .select('id', 'name', 'email')
+  .where('active = true')
+  .where('plan = "pro"')
+  .limit(10)
+  .build();
+console.log(query);
+// SELECT id, name, email FROM users WHERE active = true AND plan = "pro" LIMIT 10`,
+
+  prototype: `// Prototype — clone instead of construct
+interface Cloneable<T> { clone(): T }
+
+class UserProfile implements Cloneable<UserProfile> {
+  constructor(
+    public name: string,
+    public permissions: string[],
+    public settings: Record<string, unknown>
+  ) {}
+
+  clone(): UserProfile {
+    return new UserProfile(
+      this.name,
+      [...this.permissions],          // deep copy array
+      { ...this.settings }            // shallow copy settings
+    );
+  }
+}
+
+// Usage — clone a base template, then tweak
+const adminTemplate = new UserProfile('Admin', ['read', 'write', 'delete'], { theme: 'dark' });
+
+const alice = adminTemplate.clone();
+alice.name = 'Alice';
+alice.permissions.push('billing');
+
+console.log(adminTemplate.name);         // Admin (untouched)
+console.log(alice.permissions.length);   // 4`,
+
+  adapter: `// Adapter — bridge incompatible interfaces
+// Third-party library uses a different interface
+class LegacyPaymentGateway {
+  processPayment(amountCents: number, currency: string): boolean {
+    console.log(\`Legacy: paying \${amountCents} \${currency} cents\`);
+    return true;
+  }
+}
+
+// What our app expects
+interface PaymentProcessor {
+  pay(amount: number): Promise<boolean>;
+}
+
+// Adapter wraps legacy, exposes modern interface
+class PaymentAdapter implements PaymentProcessor {
+  constructor(private legacy: LegacyPaymentGateway, private currency = 'USD') {}
+
+  async pay(amount: number): Promise<boolean> {
+    const cents = Math.round(amount * 100);
+    return this.legacy.processPayment(cents, this.currency);
+  }
+}
+
+// Usage — our code never touches the legacy API directly
+const processor: PaymentProcessor = new PaymentAdapter(new LegacyPaymentGateway());
+await processor.pay(29.99); // Legacy: paying 2999 USD cents`,
+
+  bridge: `// Bridge — separate abstraction from implementation
+interface Renderer {
+  renderCircle(x: number, y: number, r: number): void;
+}
+
+class SVGRenderer implements Renderer {
+  renderCircle(x: number, y: number, r: number) {
+    console.log(\`<circle cx="\${x}" cy="\${y}" r="\${r}" />\`);
+  }
+}
+class CanvasRenderer implements Renderer {
+  renderCircle(x: number, y: number, r: number) {
+    console.log(\`ctx.arc(\${x}, \${y}, \${r}, 0, 2 * Math.PI)\`);
+  }
+}
+
+// Abstraction hierarchy is independent of renderer
+abstract class Shape {
+  constructor(protected renderer: Renderer) {}
+  abstract draw(): void;
+}
+
+class Circle extends Shape {
+  constructor(private x: number, private y: number, private r: number, renderer: Renderer) {
+    super(renderer);
+  }
+  draw() { this.renderer.renderCircle(this.x, this.y, this.r); }
+}
+
+// Swap renderer without changing Circle
+new Circle(50, 50, 20, new SVGRenderer()).draw();  // SVG output
+new Circle(50, 50, 20, new CanvasRenderer()).draw(); // Canvas output`,
+
+  composite: `// Composite — tree of uniform components
+interface FileSystemItem {
+  name: string;
+  size(): number;
+  print(indent?: string): void;
+}
+
+class File implements FileSystemItem {
+  constructor(public name: string, private _size: number) {}
+  size() { return this._size; }
+  print(indent = '') { console.log(\`\${indent}📄 \${this.name} (\${this._size}KB)\`); }
+}
+
+class Directory implements FileSystemItem {
+  private children: FileSystemItem[] = [];
+  constructor(public name: string) {}
+
+  add(item: FileSystemItem) { this.children.push(item); return this; }
+  size() { return this.children.reduce((sum, c) => sum + c.size(), 0); }
+  print(indent = '') {
+    console.log(\`\${indent}📁 \${this.name} (\${this.size()}KB)\`);
+    this.children.forEach((c) => c.print(indent + '  '));
+  }
+}
+
+// Usage — treat files and directories uniformly
+const root = new Directory('src')
+  .add(new File('index.ts', 2))
+  .add(new Directory('components')
+    .add(new File('Button.tsx', 5))
+    .add(new File('Modal.tsx', 8)));
+
+root.print(); // recursive tree output
+console.log(root.size()); // 15`,
+
+  facade: `// Facade — simple interface to a complex subsystem
+class Auth { validate(token: string) { return token === 'valid'; } }
+class Cache { get(key: string) { return null as unknown; } set(key: string, val: unknown) {} }
+class Database { query(sql: string) { return [{ id: 1 }]; } }
+class Logger { log(msg: string) { console.log('[LOG]', msg); } }
+
+// Facade hides the subsystem complexity
+class UserService {
+  private auth = new Auth();
+  private cache = new Cache();
+  private db = new Database();
+  private logger = new Logger();
+
+  getUser(token: string, userId: number) {
+    if (!this.auth.validate(token)) throw new Error('Unauthorized');
+
+    const cacheKey = \`user:\${userId}\`;
+    const cached = this.cache.get(cacheKey);
+    if (cached) return cached;
+
+    const rows = this.db.query(\`SELECT * FROM users WHERE id = \${userId}\`);
+    this.cache.set(cacheKey, rows[0]);
+    this.logger.log(\`User \${userId} fetched\`);
+    return rows[0];
+  }
+}
+
+// Caller only knows UserService — subsystem is hidden
+const svc = new UserService();
+const user = svc.getUser('valid', 1);`,
+
+  flyweight: `// Flyweight — share intrinsic state across many objects
+interface TreeType {
+  name: string; color: string; texture: string;
+  draw(x: number, y: number): void;
+}
+
+// Shared flyweight — heavy data
+class TreeTypeCache {
+  private static types = new Map<string, TreeType>();
+
+  static get(name: string, color: string, texture: string): TreeType {
+    const key = \`\${name}-\${color}-\${texture}\`;
+    if (!this.types.has(key)) {
+      this.types.set(key, {
+        name, color, texture,
+        draw(x, y) { console.log(\`Draw \${name} at (\${x},\${y})\`); }
+      });
+    }
+    return this.types.get(key)!;
+  }
+  static count() { return this.types.size; }
+}
+
+// Tree stores only extrinsic (unique) state
+class Tree {
+  constructor(private x: number, private y: number, private type: TreeType) {}
+  draw() { this.type.draw(this.x, this.y); }
+}
+
+// 1,000,000 trees — only 3 TreeType objects in memory
+const forest = Array.from({ length: 1_000_000 }, (_, i) =>
+  new Tree(i % 500, i % 300, TreeTypeCache.get('Pine', 'green', 'rough'))
+);
+console.log(TreeTypeCache.count()); // 1 — shared!`,
+
+  proxy: `// Proxy — controlled access to another object
+interface ImageLoader { display(): void }
+
+class RealImage implements ImageLoader {
+  constructor(private src: string) {
+    console.log(\`Loading heavy image: \${src}\`); // expensive
+  }
+  display() { console.log(\`Showing: \${this.src}\`); }
+}
+
+// Virtual proxy — defers loading until first access
+class LazyImage implements ImageLoader {
+  private real: RealImage | null = null;
+  constructor(private src: string) {}
+
+  display() {
+    if (!this.real) this.real = new RealImage(this.src); // load on demand
+    this.real.display();
+  }
+}
+
+// Caching proxy wrapping an expensive API call
+class CachedUserProxy {
+  private cache = new Map<number, unknown>();
+  async getUser(id: number) {
+    if (!this.cache.has(id)) {
+      const data = await fetch(\`/api/users/\${id}\`).then((r) => r.json());
+      this.cache.set(id, data);
+    }
+    return this.cache.get(id);
+  }
+}
+
+const img = new LazyImage('hero.jpg'); // not loaded yet
+img.display(); // loaded now`,
+
+  'chain-of-responsibility': `// Chain of Responsibility — pass request along handler chain
+interface Handler<T> {
+  setNext(handler: Handler<T>): Handler<T>;
+  handle(request: T): string | null;
+}
+
+abstract class BaseHandler<T> implements Handler<T> {
+  private nextHandler: Handler<T> | null = null;
+
+  setNext(handler: Handler<T>): Handler<T> {
+    this.nextHandler = handler;
+    return handler;
+  }
+
+  handle(request: T): string | null {
+    return this.nextHandler?.handle(request) ?? null;
+  }
+}
+
+class AuthMiddleware extends BaseHandler<Request> {
+  handle(req: Request) {
+    if (!req.headers.get('Authorization')) return '401 Unauthorized';
+    return super.handle(req);
+  }
+}
+class RateLimiter extends BaseHandler<Request> {
+  private hits = 0;
+  handle(req: Request) {
+    if (++this.hits > 100) return '429 Too Many Requests';
+    return super.handle(req);
+  }
+}
+class RouteHandler extends BaseHandler<Request> {
+  handle(_req: Request) { return '200 OK'; }
+}
+
+// Wire the chain
+const auth = new AuthMiddleware();
+auth.setNext(new RateLimiter()).setNext(new RouteHandler());`,
+
+  command: `// Command — encapsulate operations as objects
+interface Command { execute(): void; undo(): void; }
+
+class TextEditor {
+  private text = '';
+  insert(str: string) { this.text += str; }
+  delete(n: number) { this.text = this.text.slice(0, -n); }
+  getText() { return this.text; }
+}
+
+class InsertCommand implements Command {
+  constructor(private editor: TextEditor, private str: string) {}
+  execute() { this.editor.insert(this.str); }
+  undo() { this.editor.delete(this.str.length); }
+}
+
+class CommandHistory {
+  private stack: Command[] = [];
+
+  run(cmd: Command) { cmd.execute(); this.stack.push(cmd); }
+  undo() { this.stack.pop()?.undo(); }
+}
+
+// Usage
+const editor = new TextEditor();
+const history = new CommandHistory();
+
+history.run(new InsertCommand(editor, 'Hello'));
+history.run(new InsertCommand(editor, ' World'));
+console.log(editor.getText()); // Hello World
+
+history.undo();
+console.log(editor.getText()); // Hello`,
+
+  iterator: `// Iterator — sequential access without exposing internals
+class Range implements Iterable<number> {
+  constructor(private start: number, private end: number, private step = 1) {}
+
+  [Symbol.iterator](): Iterator<number> {
+    let current = this.start;
+    const { end, step } = this;
+    return {
+      next() {
+        if (current <= end) {
+          const value = current;
+          current += step;
+          return { value, done: false };
+        }
+        return { value: 0, done: true };
+      },
+    };
+  }
+}
+
+// Usage — range works in any iterable context
+for (const n of new Range(1, 10, 2)) {
+  console.log(n); // 1, 3, 5, 7, 9
+}
+
+const evens = [...new Range(0, 20, 2)]; // [0,2,4,...,20]
+
+// Tree in-order iterator
+function* inOrder(node: { val: number; left?: typeof node; right?: typeof node }): Generator<number> {
+  if (node.left) yield* inOrder(node.left);
+  yield node.val;
+  if (node.right) yield* inOrder(node.right);
+}`,
+
+  mediator: `// Mediator — centralize communication between components
+interface ChatMediator {
+  send(message: string, sender: User): void;
+  addUser(user: User): void;
+}
+
+class User {
+  constructor(public name: string, private mediator: ChatMediator) {
+    mediator.addUser(this);
+  }
+  send(message: string) { this.mediator.send(message, this); }
+  receive(message: string, from: User) {
+    console.log(\`[\${this.name}] received from \${from.name}: \${message}\`);
+  }
+}
+
+class ChatRoom implements ChatMediator {
+  private users: User[] = [];
+  addUser(user: User) { this.users.push(user); }
+  send(message: string, sender: User) {
+    this.users.filter((u) => u !== sender).forEach((u) => u.receive(message, sender));
+  }
+}
+
+// Users communicate through mediator, not directly
+const room = new ChatRoom();
+const alice = new User('Alice', room);
+const bob   = new User('Bob',   room);
+const carol = new User('Carol', room);
+
+alice.send('Hello everyone!');
+// [Bob] received from Alice: Hello everyone!
+// [Carol] received from Alice: Hello everyone!`,
+
+  memento: `// Memento — snapshot & restore object state
+class EditorMemento {
+  constructor(
+    public readonly content: string,
+    public readonly cursor: number,
+    public readonly timestamp = Date.now()
+  ) {}
+}
+
+class TextEditor {
+  private content = '';
+  private cursor = 0;
+
+  type(text: string) {
+    this.content = this.content.slice(0, this.cursor) + text + this.content.slice(this.cursor);
+    this.cursor += text.length;
+  }
+
+  save(): EditorMemento { return new EditorMemento(this.content, this.cursor); }
+
+  restore(m: EditorMemento) {
+    this.content = m.content;
+    this.cursor = m.cursor;
+  }
+
+  getContent() { return this.content; }
+}
+
+// Undo/redo stack
+const editor = new TextEditor();
+const history: EditorMemento[] = [];
+
+editor.type('Hello');
+history.push(editor.save());
+editor.type(' World');
+history.push(editor.save());
+editor.type('!!!');
+
+console.log(editor.getContent()); // Hello World!!!
+editor.restore(history[0]!);
+console.log(editor.getContent()); // Hello`,
+
+  state: `// State — behaviour changes with internal state
+interface TrafficLightState {
+  next(): TrafficLightState;
+  signal(): string;
+  duration(): number;
+}
+
+class Red implements TrafficLightState {
+  next() { return new Green(); }
+  signal() { return '🔴 STOP'; }
+  duration() { return 30; }
+}
+class Green implements TrafficLightState {
+  next() { return new Yellow(); }
+  signal() { return '🟢 GO'; }
+  duration() { return 25; }
+}
+class Yellow implements TrafficLightState {
+  next() { return new Red(); }
+  signal() { return '🟡 SLOW'; }
+  duration() { return 5; }
+}
+
+class TrafficLight {
+  private state: TrafficLightState = new Red();
+
+  tick() {
+    console.log(\`\${this.state.signal()} for \${this.state.duration()}s\`);
+    this.state = this.state.next();
+  }
+}
+
+const light = new TrafficLight();
+light.tick(); // 🔴 STOP for 30s
+light.tick(); // 🟢 GO for 25s
+light.tick(); // 🟡 SLOW for 5s`,
+
+  'template-method': `// Template Method — define algorithm skeleton, defer steps
+abstract class DataMigration {
+  // Template method — fixed algorithm skeleton
+  run() {
+    const data = this.extract();
+    const transformed = this.transform(data);
+    this.load(transformed);
+    this.cleanup();
+  }
+
+  protected abstract extract(): Record<string, unknown>[];
+  protected abstract transform(data: Record<string, unknown>[]): Record<string, unknown>[];
+
+  protected load(data: Record<string, unknown>[]) {
+    console.log(\`Loading \${data.length} records to DB\`);
+  }
+  protected cleanup() { console.log('Migration complete'); }
+}
+
+class UserMigration extends DataMigration {
+  protected extract() {
+    return [{ id: 1, full_name: 'Alice Smith', created: '2023-01-01' }];
+  }
+  protected transform(data: Record<string, unknown>[]) {
+    return data.map(({ full_name, ...rest }) => ({
+      ...rest,
+      firstName: (full_name as string).split(' ')[0],
+      lastName:  (full_name as string).split(' ')[1],
+    }));
+  }
+}
+
+new UserMigration().run();`,
+
+  visitor: `// Visitor — add operations without modifying element classes
+interface ASTNode { accept(visitor: ASTVisitor): void; }
+
+class NumberNode implements ASTNode {
+  constructor(public value: number) {}
+  accept(v: ASTVisitor) { v.visitNumber(this); }
+}
+class BinaryOpNode implements ASTNode {
+  constructor(public op: '+' | '*', public left: ASTNode, public right: ASTNode) {}
+  accept(v: ASTVisitor) { v.visitBinaryOp(this); }
+}
+
+interface ASTVisitor {
+  visitNumber(n: NumberNode): void;
+  visitBinaryOp(n: BinaryOpNode): void;
+}
+
+// Add a new operation (evaluator) without touching AST nodes
+class Evaluator implements ASTVisitor {
+  result = 0;
+  visitNumber(n: NumberNode) { this.result = n.value; }
+  visitBinaryOp(n: BinaryOpNode) {
+    const left = new Evaluator(); n.left.accept(left);
+    const right = new Evaluator(); n.right.accept(right);
+    this.result = n.op === '+' ? left.result + right.result : left.result * right.result;
+  }
+}
+
+// (3 + 4) * 2
+const ast = new BinaryOpNode('*', new BinaryOpNode('+', new NumberNode(3), new NumberNode(4)), new NumberNode(2));
+const ev = new Evaluator(); ast.accept(ev);
+console.log(ev.result); // 14`,
+
+  interpreter: `// Interpreter — grammar for a mini-language
+interface Expression { interpret(ctx: Record<string, number>): number; }
+
+class NumberExpr implements Expression {
+  constructor(private value: number) {}
+  interpret() { return this.value; }
+}
+class VariableExpr implements Expression {
+  constructor(private name: string) {}
+  interpret(ctx: Record<string, number>) { return ctx[this.name] ?? 0; }
+}
+class AddExpr implements Expression {
+  constructor(private left: Expression, private right: Expression) {}
+  interpret(ctx: Record<string, number>) { return this.left.interpret(ctx) + this.right.interpret(ctx); }
+}
+class MultiplyExpr implements Expression {
+  constructor(private left: Expression, private right: Expression) {}
+  interpret(ctx: Record<string, number>) { return this.left.interpret(ctx) * this.right.interpret(ctx); }
+}
+
+// Build AST for: (x + 5) * y
+const expr = new MultiplyExpr(
+  new AddExpr(new VariableExpr('x'), new NumberExpr(5)),
+  new VariableExpr('y')
+);
+
+const context = { x: 3, y: 4 };
+console.log(expr.interpret(context)); // (3+5)*4 = 32`,
 };
 
 const PATTERN_USE_CASES: Record<string, { when: string[]; avoid: string[]; realWorld: string[] }> = {
@@ -223,6 +830,96 @@ const PATTERN_USE_CASES: Record<string, { when: string[]; avoid: string[]; realW
     when: ['Adding behaviour without modifying original class', 'Combining features at runtime', 'Cross-cutting concerns (logging, caching, auth)'],
     avoid: ['When you need to inspect the decorator stack', 'Deeply nested decorators become hard to debug'],
     realWorld: ['NestJS @UseGuards(), @Interceptors()', 'Express middleware chain', 'TypeScript decorators (@Injectable)'],
+  },
+  'abstract-factory': {
+    when: ['Creating families of UI components (Mac, Win, Web)', 'Switching between multiple database drivers', 'Platform-independent code that must stay consistent'],
+    avoid: ['When products rarely change — adds unnecessary abstraction', 'When you only have one product family'],
+    realWorld: ['ORM dialect factories (MySQL vs Postgres)', 'Cross-platform UI kits', 'Dependency injection containers'],
+  },
+  builder: {
+    when: ['Objects with many optional parameters (telescoping constructor smell)', 'Step-by-step construction where order matters', 'Producing different representations from the same code'],
+    avoid: ['Simple objects — just use a constructor or object literal', 'When all fields are mandatory'],
+    realWorld: ['SQL/ORM query builders', 'HTTP request builders (Axios, fetch wrappers)', 'Document generators (PDF, HTML)'],
+  },
+  prototype: {
+    when: ['Cloning complex objects cheaper than constructing from scratch', 'Avoiding subclasses of an object creator', 'Template objects that get customized per use'],
+    avoid: ['When objects are cheap to construct', 'When deep clone semantics are ambiguous'],
+    realWorld: ['Redux state copying (spread operator)', 'Cell templates in spreadsheet apps', 'Game character presets'],
+  },
+  adapter: {
+    when: ['Integrating third-party libraries with incompatible interfaces', 'Making legacy code work with new systems', 'Wrapping external APIs behind a stable internal contract'],
+    avoid: ['When both interfaces can be changed — just align them directly', 'When the mismatch is too large to bridge cleanly'],
+    realWorld: ['Axios adapter for Fetch', 'Stripe SDK wrapped in a PaymentService interface', 'Legacy SOAP services behind REST adapters'],
+  },
+  bridge: {
+    when: ['Avoiding permanent binding between abstraction and implementation', 'Both abstraction and implementation should be extensible by subclassing', 'Sharing an implementation among multiple objects'],
+    avoid: ['Simple inheritance hierarchy — bridge adds complexity', 'When abstraction and implementation won\'t vary independently'],
+    realWorld: ['Cross-platform rendering (SVG vs Canvas vs WebGL)', 'Database abstraction layers', 'Log handlers (file, console, remote)'],
+  },
+  composite: {
+    when: ['Tree-like data structures (file system, DOM, menus)', 'Clients should treat leaf and composite objects uniformly', 'Recursive part-whole hierarchies'],
+    avoid: ['Flat list structures — no nesting needed', 'When operations differ significantly between leaf and composite'],
+    realWorld: ['React component tree', 'HTML DOM', 'File system (files + directories)', 'Org chart / menu hierarchy'],
+  },
+  facade: {
+    when: ['Providing a simple interface to a complex subsystem', 'Layering your subsystem — facade as entry point per layer', 'Reducing dependencies between clients and subsystem classes'],
+    avoid: ['God object anti-pattern — don\'t put everything in one facade', 'When clients genuinely need low-level access'],
+    realWorld: ['Service classes in MVC (UserService hiding db + cache + auth)', 'AWS SDK client classes', 'Third-party SDK wrappers'],
+  },
+  flyweight: {
+    when: ['Huge number of similar objects consuming too much memory', 'Objects share most of their state (intrinsic vs extrinsic)', 'Memory is a bottleneck in the application'],
+    avoid: ['When you don\'t have memory problems — premature optimization', 'When most state is unique per instance'],
+    realWorld: ['Character rendering in text editors (glyph cache)', 'Game particle systems', 'Icon libraries (shared SVG paths)'],
+  },
+  proxy: {
+    when: ['Lazy initialization of expensive objects', 'Access control / protection proxy', 'Caching proxy, logging proxy, remote proxy'],
+    avoid: ['When direct access is sufficient', 'When the indirection degrades performance unacceptably'],
+    realWorld: ['JavaScript Proxy object', 'ORM lazy loading relations', 'API rate-limiting middleware', 'Image lazy loading'],
+  },
+  'chain-of-responsibility': {
+    when: ['Multiple handlers may process a request in sequence', 'Handler set should be configurable at runtime', 'Decoupling sender from receiver'],
+    avoid: ['When exactly one handler must always process the request', 'Deep chains with no fallback cause silent failures'],
+    realWorld: ['Express/Koa/Fastify middleware pipeline', 'DOM event bubbling', 'Logging level hierarchy (ERROR > WARN > INFO)'],
+  },
+  command: {
+    when: ['Undo/redo functionality', 'Queueing, scheduling, or logging operations', 'Parameterizing UI actions (buttons, menus)'],
+    avoid: ['Simple one-shot operations — lambdas suffice', 'When undo is not needed and the object is heavyweight'],
+    realWorld: ['Text editor undo stacks', 'Redux actions', 'Job queues (BullMQ jobs)', 'GUI menu items'],
+  },
+  iterator: {
+    when: ['Providing a standard way to traverse a collection', 'Hiding the internal representation of an aggregate', 'Supporting multiple traversal strategies on the same collection'],
+    avoid: ['When the collection is a simple array — just use a for loop', 'When you need random access — iterators are sequential'],
+    realWorld: ['JavaScript Symbol.iterator / generators', 'Cursor-based DB result sets', 'Stream APIs (Node.js Readable)'],
+  },
+  mediator: {
+    when: ['Many-to-many component relationships that are hard to manage', 'Decoupling components so they only talk to a mediator', 'Chat rooms, air traffic control, UI dialog coordination'],
+    avoid: ['When only a few objects interact — direct references are simpler', 'God mediator that does too much becomes a bottleneck'],
+    realWorld: ['Redux store (components dispatch actions, not call each other)', 'EventBus in Vue/Angular', 'Chat room servers', 'Air traffic control systems'],
+  },
+  memento: {
+    when: ['Undo/redo that requires full state snapshots', 'Checkpointing long-running operations', 'Need to restore state without violating encapsulation'],
+    avoid: ['When state is large — snapshots are memory-expensive', 'When only simple fields change — diff-based undo is cheaper'],
+    realWorld: ['Text editor history', 'Git commits (snapshots of state)', 'Database transactions (SAVEPOINT / ROLLBACK)', 'Game save states'],
+  },
+  state: {
+    when: ['Object behavior depends on its current state', 'Replacing large if/switch blocks that check state', 'State transitions are complex and need to be explicit'],
+    avoid: ['When there are only two states — a boolean flag is fine', 'When state machine has very few transitions'],
+    realWorld: ['Traffic light systems', 'Order lifecycle (pending → paid → shipped → delivered)', 'WebSocket connection states', 'UI component lifecycle'],
+  },
+  'template-method': {
+    when: ['Multiple algorithms sharing the same skeleton', 'Avoiding code duplication in subclasses', 'Letting subclasses override specific steps without changing the structure'],
+    avoid: ['When the algorithm varies too much — strategy is more flexible', 'Liskov substitution must hold for all subclasses'],
+    realWorld: ['ETL pipelines (extract/transform/load skeleton)', 'JUnit test lifecycle (@Before, @After, test)', 'Express route handlers', 'Data serializers'],
+  },
+  visitor: {
+    when: ['Adding new operations to a stable class hierarchy without modifying it', 'Operations need to work across multiple unrelated classes', 'Accumulating state over a composite structure'],
+    avoid: ['When the class hierarchy changes frequently — visitor becomes fragile', 'When only one or two operations are needed'],
+    realWorld: ['AST traversal in compilers / Babel transforms', 'DOM tree walkers', 'Tax calculation across different product types', 'Report generators'],
+  },
+  interpreter: {
+    when: ['Implementing a simple language or grammar', 'Recurring problems expressible as a language (DSL)', 'SQL, RegEx, template engines, config languages'],
+    avoid: ['Complex grammars — use a proper parser generator (ANTLR, PEG.js)', 'Performance-critical paths — interpretation is slow vs compilation'],
+    realWorld: ['SQL query parsers', 'Regular expression engines', 'Template engines (Handlebars, Mustache)', 'Calculator and formula evaluators'],
   },
 };
 
@@ -277,20 +974,27 @@ function PatternPanel({ pattern, onClose, onComplete }: PatternPanelProps) {
           {tab === 'overview' && (
             <>
               <p className="text-zinc-300 text-sm leading-relaxed">{pattern.description}</p>
-              <div className="bg-zinc-900 rounded-xl p-4 space-y-2">
-                <p className="text-[10px] font-black uppercase tracking-widest text-zinc-600 mb-3">Key Characteristics</p>
-                {[
-                  'Encapsulates object creation',
-                  'Promotes loose coupling',
-                  'Follows Open/Closed Principle',
-                  'Enables runtime flexibility',
-                ].map((c) => (
-                  <div key={c} className="flex items-center gap-2 text-sm text-zinc-400">
-                    <Icon name="check_circle" size={14} className="text-green-400 flex-shrink-0" filled />
-                    {c}
+              {PATTERN_USE_CASES[pattern.patternKey] && (
+                <div className="bg-zinc-900 rounded-xl p-4 space-y-2">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-zinc-600 mb-3">Common Use Cases</p>
+                  {PATTERN_USE_CASES[pattern.patternKey]!.when.slice(0, 4).map((c) => (
+                    <div key={c} className="flex items-start gap-2 text-sm text-zinc-400">
+                      <Icon name="check_circle" size={14} className="text-green-400 flex-shrink-0 mt-0.5" filled />
+                      {c}
+                    </div>
+                  ))}
+                </div>
+              )}
+              {PATTERN_USE_CASES[pattern.patternKey] && (
+                <div className="bg-zinc-900 rounded-xl p-4 space-y-2">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-zinc-600 mb-3">Real-World Examples</p>
+                  <div className="flex flex-wrap gap-2">
+                    {PATTERN_USE_CASES[pattern.patternKey]!.realWorld.map((r) => (
+                      <span key={r} className="bg-blue-500/10 border border-blue-500/20 text-blue-300 text-xs px-3 py-1 rounded-full">{r}</span>
+                    ))}
                   </div>
-                ))}
-              </div>
+                </div>
+              )}
             </>
           )}
 
