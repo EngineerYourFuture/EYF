@@ -3,6 +3,7 @@ import { AppShell } from '../components/AppShell';
 import { Icon } from '../components/Icon';
 import { apiRequest } from '../lib/api';
 import { getSession } from '../lib/session';
+import { useUser } from '../contexts/UserContext';
 
 interface Post {
   id: string;
@@ -42,6 +43,7 @@ const STATIC_POSTS: Post[] = [
 
 export function CommunityPage() {
   const session = getSession();
+  const { fireXP } = useUser();
   const [posts, setPosts] = useState<Post[]>(STATIC_POSTS);
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [selected, setSelected] = useState<PostDetail | null>(null);
@@ -86,6 +88,7 @@ export function CommunityPage() {
       setPosts((prev) => [created, ...prev]);
       setNewPost({ title: '', body: '', category: 'general', tags: '' });
       setShowCompose(false);
+      fireXP(15, 'Post shared with the community!');
     } catch {
       // ignore
     } finally {
@@ -104,6 +107,7 @@ export function CommunityPage() {
       });
       setSelected((prev) => prev ? { ...prev, replies: [...prev.replies, reply], replyCount: prev.replyCount + 1 } : prev);
       setNewReply('');
+      fireXP(5, 'Reply posted!');
     } catch {
       // ignore
     } finally {

@@ -3,6 +3,7 @@ import { AppShell } from '../components/AppShell';
 import { Icon } from '../components/Icon';
 import { apiRequest } from '../lib/api';
 import { getSession } from '../lib/session';
+import { useUser } from '../contexts/UserContext';
 
 interface Expert {
   id: string;
@@ -43,6 +44,7 @@ function StarRating({ rating }: { readonly rating: number }) {
 
 export function ExpertsPage() {
   const session = getSession();
+  const { fireXP } = useUser();
   const [experts, setExperts] = useState<Expert[]>(STATIC_EXPERTS);
   const [selected, setSelected] = useState<ExpertDetail | null>(null);
   const [filterAvailable, setFilterAvailable] = useState(false);
@@ -147,7 +149,11 @@ export function ExpertsPage() {
               ))}
             </div>
             {selected.available ? (
-              <button className="bg-primary-container text-white font-bold py-3 px-8 rounded-full hover:brightness-110 transition-all flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => fireXP(30, 'Mentorship session booked!')}
+                className="bg-primary-container text-white font-bold py-3 px-8 rounded-full hover:brightness-110 transition-all flex items-center gap-2"
+              >
                 <Icon name="calendar_add_on" size={16} />Book a Session
               </button>
             ) : (
