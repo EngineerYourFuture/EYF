@@ -12,6 +12,89 @@ const ALGORITHMS = [
   'BFS', 'DFS', 'Dijkstra', 'Floyd Warshall',
 ];
 
+// ─── Client-side algorithm traces ────────────────────────────────────────────
+
+function parseIntArray(s: string): number[] {
+  try { return JSON.parse(s); } catch { return [64, 34, 25, 12, 22, 11, 90]; }
+}
+
+function bubbleSortTrace(arr: number[]): TraceStep[] {
+  const a = [...arr]; const steps: TraceStep[] = [];
+  steps.push({ step: 0, description: `Initial array: [${a.join(', ')}]`, state: { array: [...a] }, highlight: [] });
+  for (let i = 0; i < a.length - 1; i++) {
+    for (let j = 0; j < a.length - i - 1; j++) {
+      steps.push({ step: steps.length, description: `Compare a[${j}]=${a[j]} and a[${j+1}]=${a[j+1]}`, state: { array: [...a] }, highlight: [j, j+1] });
+      if (a[j]! > a[j+1]!) {
+        [a[j], a[j+1]] = [a[j+1]!, a[j]!];
+        steps.push({ step: steps.length, description: `Swap → [${a.join(', ')}]`, state: { array: [...a] }, highlight: [j, j+1] });
+      }
+    }
+    steps.push({ step: steps.length, description: `Pass ${i+1} done — a[${a.length-1-i}]=${a[a.length-1-i]} is in place`, state: { array: [...a] }, highlight: Array.from({length: i+1}, (_, k) => a.length-1-k) });
+  }
+  steps.push({ step: steps.length, description: `Sorted: [${a.join(', ')}]`, state: { array: [...a] }, highlight: a.map((_, i) => i) });
+  return steps;
+}
+
+function quickSortTrace(arr: number[]): TraceStep[] {
+  const a = [...arr]; const steps: TraceStep[] = [];
+  steps.push({ step: 0, description: `Initial: [${a.join(', ')}]`, state: { array: [...a] }, highlight: [] });
+  function partition(lo: number, hi: number) {
+    const pivot = a[hi]!;
+    steps.push({ step: steps.length, description: `Pivot = ${pivot} at index ${hi}`, state: { array: [...a] }, highlight: [hi] });
+    let i = lo - 1;
+    for (let j = lo; j < hi; j++) {
+      steps.push({ step: steps.length, description: `Compare a[${j}]=${a[j]} with pivot ${pivot}`, state: { array: [...a] }, highlight: [j, hi] });
+      if (a[j]! <= pivot) {
+        i++;
+        [a[i], a[j]] = [a[j]!, a[i]!];
+        if (i !== j) steps.push({ step: steps.length, description: `Swap a[${i}] and a[${j}] → [${a.join(', ')}]`, state: { array: [...a] }, highlight: [i, j] });
+      }
+    }
+    [a[i+1], a[hi]] = [a[hi]!, a[i+1]!];
+    steps.push({ step: steps.length, description: `Pivot ${pivot} placed at index ${i+1}`, state: { array: [...a] }, highlight: [i+1] });
+    return i + 1;
+  }
+  function qs(lo: number, hi: number) {
+    if (lo >= hi) return;
+    const pi = partition(lo, hi);
+    qs(lo, pi - 1);
+    qs(pi + 1, hi);
+  }
+  qs(0, a.length - 1);
+  steps.push({ step: steps.length, description: `Sorted: [${a.join(', ')}]`, state: { array: [...a] }, highlight: a.map((_, i) => i) });
+  return steps;
+}
+
+function binarySearchTrace(arr: number[], target: number): TraceStep[] {
+  const a = [...arr].sort((x, y) => x - y); const steps: TraceStep[] = [];
+  steps.push({ step: 0, description: `Sorted array: [${a.join(', ')}], searching for ${target}`, state: { array: [...a] }, highlight: [] });
+  let lo = 0, hi = a.length - 1;
+  while (lo <= hi) {
+    const mid = Math.floor((lo + hi) / 2);
+    steps.push({ step: steps.length, description: `left=${lo}, right=${hi}, mid=${mid}, a[mid]=${a[mid]}`, state: { array: [...a], lo, hi, mid }, highlight: [lo, mid, hi] });
+    if (a[mid] === target) {
+      steps.push({ step: steps.length, description: `Found ${target} at index ${mid}!`, state: { array: [...a], result: mid }, highlight: [mid] });
+      return steps;
+    } else if (a[mid]! < target) {
+      steps.push({ step: steps.length, description: `${a[mid]} < ${target} → search right half`, state: { array: [...a] }, highlight: [] });
+      lo = mid + 1;
+    } else {
+      steps.push({ step: steps.length, description: `${a[mid]} > ${target} → search left half`, state: { array: [...a] }, highlight: [] });
+      hi = mid - 1;
+    }
+  }
+  steps.push({ step: steps.length, description: `${target} not found in array`, state: { array: [...a] }, highlight: [] });
+  return steps;
+}
+
+function localTrace(algorithm: string, input: string): TraceStep[] | null {
+  const arr = parseIntArray(input);
+  if (algorithm === 'Bubble Sort') return bubbleSortTrace(arr);
+  if (algorithm === 'Quick Sort')  return quickSortTrace(arr);
+  if (algorithm === 'Binary Search') return binarySearchTrace(arr, arr[0]! + 1); // search for a number close to first
+  return null;
+}
+
 interface TraceStep {
   step: number;
   description: string;
@@ -86,11 +169,23 @@ export function VisualizerPage() {
   // ─── Trace ────────────────────────────────────────────────────────────────
 
   const trace = async () => {
-    if (!session?.accessToken) return;
     setTraceLoading(true);
     setTraceError(null);
     setSteps([]);
     setCurrentStep(0);
+    // Try local trace first (instant, no backend needed)
+    const local = localTrace(algorithm, code);
+    if (local) {
+      setSteps(local);
+      fireXP(10, `${algorithm} trace generated!`);
+      setTraceLoading(false);
+      return;
+    }
+    if (!session?.accessToken) {
+      setTraceError('Sign in to trace Dijkstra, BFS, DFS, and Floyd-Warshall via AI.');
+      setTraceLoading(false);
+      return;
+    }
     try {
       const res = await apiRequest<TraceResponse>('/visualizer/trace', {
         method: 'POST',
