@@ -78,6 +78,30 @@ const STATIC_MENTORS: Mentor[] = [
     bio: 'Security engineer with a bug bounty background. Helps engineers transition into security roles and CTF challenges.',
     rating: 4.7, sessionCount: 31, available: true, avatarColor: 'bg-green-500',
   },
+  {
+    id: 'm7', name: 'Priya Nair', role: 'SDE-III', company: 'Flipkart',
+    tags: ['DSA', 'Java', 'Microservices', 'FAANG Prep'],
+    bio: 'Senior engineer at Flipkart Infra. Cracked Google, Amazon, and Flipkart. Specializes in Java/microservices architecture and DSA coaching for freshers.',
+    rating: 4.8, sessionCount: 48, available: true, avatarColor: 'bg-indigo-500',
+  },
+  {
+    id: 'm8', name: 'Karan Mehta', role: 'ML Engineer', company: 'Swiggy',
+    tags: ['Machine Learning', 'Python', 'Deep Learning', 'NLP'],
+    bio: 'ML engineer at Swiggy working on demand forecasting and recommendation. Helps students break into ML/AI roles with solid fundamentals.',
+    rating: 4.6, sessionCount: 27, available: true, avatarColor: 'bg-pink-500',
+  },
+  {
+    id: 'm9', name: 'Divya Reddy', role: 'Engineering Manager', company: 'Atlassian',
+    tags: ['Leadership', 'Career Growth', 'EM Transition', 'System Design'],
+    bio: 'Engineering Manager with 8 years of experience. Guides engineers on IC-to-EM transitions, performance reviews, and navigating big tech culture.',
+    rating: 4.9, sessionCount: 73, available: false, featured: true, avatarColor: 'bg-teal-500',
+  },
+  {
+    id: 'm10', name: 'Rohan Joshi', role: 'SRE Lead', company: 'Uber',
+    tags: ['SRE', 'DevOps', 'Kubernetes', 'Reliability'],
+    bio: 'SRE lead at Uber managing reliability for payment systems. Teaches SRE fundamentals, Kubernetes, and building on-call runbooks for the SRE track.',
+    rating: 4.7, sessionCount: 36, available: true, avatarColor: 'bg-zinc-500',
+  },
 ];
 
 const STATIC_GROUPS: StudyGroup[] = [
@@ -87,6 +111,8 @@ const STATIC_GROUPS: StudyGroup[] = [
   { id: 'g4', name: 'Security Crew', topic: 'Cybersecurity & CTFs', icon: 'shield', color: 'text-red-400', memberCount: 9, maxMembers: 15, schedule: 'Fri 9 PM IST', joined: false, level: 'beginner' },
   { id: 'g5', name: 'CS Fundamentals', topic: 'Core CS (OS/DBMS/Networks)', icon: 'school', color: 'text-green-400', memberCount: 14, maxMembers: 20, schedule: 'Mon, Wed 7 PM IST', joined: false, level: 'beginner' },
   { id: 'g6', name: 'Placement Warriors', topic: 'Mock Interviews & Behavioral', icon: 'work', color: 'text-orange-400', memberCount: 11, maxMembers: 15, schedule: 'Daily 8 PM IST', joined: false, level: 'intermediate' },
+  { id: 'g7', name: 'ML Study Group', topic: 'Machine Learning & Deep Learning', icon: 'psychology', color: 'text-pink-400', memberCount: 7, maxMembers: 12, schedule: 'Wed & Sat 6 PM IST', joined: false, level: 'intermediate' },
+  { id: 'g8', name: 'SRE & DevOps Club', topic: 'Kubernetes, CI/CD, Reliability', icon: 'cloud', color: 'text-cyan-400', memberCount: 5, maxMembers: 10, schedule: 'Sun 5 PM IST', joined: false, level: 'advanced' },
 ];
 
 const SESSION_TYPES = [
