@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AppShell } from '../components/AppShell';
 import { Icon } from '../components/Icon';
-import { apiRequest } from '../lib/api';
+import { apiRequest, ApiError } from '../lib/api';
 import { getSession } from '../lib/session';
+import { useUser } from '../contexts/UserContext';
 
 interface SecurityLesson {
   id: string;
@@ -83,11 +84,37 @@ const DIFF_COLOR: Record<string, string> = {
 
 export function CybersecurityPage() {
   const session = getSession();
+  const { fireXP } = useUser();
   const [lessons, setLessons] = useState<SecurityLesson[]>(STATIC_LESSONS);
   const [ctf, setCTF] = useState<CTFChallenge[]>(STATIC_CTF);
   const [progress, setProgress] = useState<SecProgress | null>(null);
   const [activeTab, setActiveTab] = useState<'learn' | 'ctf' | 'certs'>('learn');
   const [activeCategory, setActiveCategory] = useState('all');
+  const [flagInput, setFlagInput] = useState<Record<string, string>>({});
+  const [flagError, setFlagError] = useState<Record<string, string>>({});
+  const [submittingFlag, setSubmittingFlag] = useState<string | null>(null);
+
+  const submitFlag = async (challenge: CTFChallenge) => {
+    const flag = flagInput[challenge.id]?.trim();
+    if (!flag || !session?.accessToken) return;
+    setSubmittingFlag(challenge.id);
+    setFlagError((prev) => ({ ...prev, [challenge.id]: '' }));
+    try {
+      await apiRequest(`/security-learn/ctf/${challenge.challengeKey}/submit`, {
+        method: 'POST',
+        body: { flag },
+        token: session.accessToken,
+      });
+      setCTF((prev) => prev.map((c) => c.id === challenge.id ? { ...c, solved: true } : c));
+      setFlagInput((prev) => ({ ...prev, [challenge.id]: '' }));
+      fireXP(challenge.points, `🚩 Flag captured: ${challenge.title}`);
+    } catch (err) {
+      const msg = err instanceof ApiError ? err.message : 'Incorrect flag. Try again!';
+      setFlagError((prev) => ({ ...prev, [challenge.id]: msg }));
+    } finally {
+      setSubmittingFlag(null);
+    }
+  };
 
   useEffect(() => {
     if (!session?.accessToken) return;
@@ -257,18 +284,44 @@ export function CybersecurityPage() {
                     </div>
                     <h3 className="text-base font-bold mb-2">{c.title}</h3>
                     <p className="text-xs text-on-surface-variant leading-relaxed mb-4 line-clamp-2">{c.description}</p>
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between mb-3">
                       <span className="text-yellow-400 font-bold text-sm">{c.points} pts</span>
-                      {c.solved ? (
-                        <span className="text-green-400 text-[10px] font-bold flex items-center gap-1"><Icon name="check_circle" size={12} filled /> Solved</span>
-                      ) : (
-                        <button className={`text-[10px] font-bold uppercase tracking-widest flex items-center gap-1 ${catMeta.color}`}>
-                          Attempt <Icon name="arrow_forward" size={12} />
-                        </button>
+                      {c.solved && (
+                        <span className="text-green-400 text-[10px] font-bold flex items-center gap-1">
+                          <Icon name="check_circle" size={12} filled /> Solved
+                        </span>
                       )}
                     </div>
-                    {c.attempts > 0 && !c.solved && (
-                      <p className="text-[10px] text-zinc-600 mt-2">{c.attempts} attempt{c.attempts > 1 ? 's' : ''}</p>
+                    {!c.solved && (
+                      <div className="space-y-2">
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={flagInput[c.id] ?? ''}
+                            onChange={(e) => setFlagInput((prev) => ({ ...prev, [c.id]: e.target.value }))}
+                            onKeyDown={(e) => { if (e.key === 'Enter') { void submitFlag(c); } }}
+                            placeholder="EYF{flag_here}"
+                            className="flex-1 bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-xs text-white font-mono placeholder:text-zinc-700 focus:outline-none focus:border-red-500/60 transition-colors"
+                          />
+                          <button
+                            onClick={() => void submitFlag(c)}
+                            disabled={submittingFlag === c.id || !flagInput[c.id]?.trim()}
+                            className={`px-3 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all flex-shrink-0 ${
+                              submittingFlag === c.id ? 'bg-zinc-700 text-zinc-500' : 'bg-red-600 text-white hover:bg-red-500 active:scale-95'
+                            }`}
+                          >
+                            {submittingFlag === c.id ? '…' : 'Submit'}
+                          </button>
+                        </div>
+                        {flagError[c.id] && (
+                          <p className="text-[10px] text-red-400 font-bold flex items-center gap-1">
+                            <Icon name="error_outline" size={11} /> {flagError[c.id]}
+                          </p>
+                        )}
+                        {c.attempts > 0 && (
+                          <p className="text-[10px] text-zinc-600">{c.attempts} attempt{c.attempts !== 1 ? 's' : ''}</p>
+                        )}
+                      </div>
                     )}
                   </div>
                 );
