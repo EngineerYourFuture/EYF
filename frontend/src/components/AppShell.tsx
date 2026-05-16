@@ -29,6 +29,7 @@ const NAV_GROUPS: NavGroup[] = [
       { path: '/app/system-design', label: 'System Design',  icon: 'architecture' },
       { path: '/app/visualizer',    label: 'Visualizer',     icon: 'visibility' },
       { path: '/app/cheatsheets',   label: 'Cheat Sheets',   icon: 'quick_reference_all' },
+      { path: '/app/flashcards',    label: 'Flashcards',     icon: 'style' },
     ],
   },
   {

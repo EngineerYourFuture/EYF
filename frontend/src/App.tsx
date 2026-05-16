@@ -40,6 +40,7 @@ import { LeaderboardPage } from './pages/LeaderboardPage';
 import { OnboardingPage } from './pages/OnboardingPage';
 import { MockInterviewPage } from './pages/MockInterviewPage';
 import { CheatSheetsPage } from './pages/CheatSheetsPage';
+import { FlashcardsPage } from './pages/FlashcardsPage';
 
 export default function App() {
   return (
@@ -186,6 +187,10 @@ export default function App() {
       <Route
         path="/app/cheatsheets"
         element={<RequireAuth zone="public"><CheatSheetsPage /></RequireAuth>}
+      />
+      <Route
+        path="/app/flashcards"
+        element={<RequireAuth zone="public"><FlashcardsPage /></RequireAuth>}
       />
       <Route
         path="/app/*"

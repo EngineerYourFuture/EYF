@@ -39,6 +39,7 @@ const MODULE_CONFIG: Record<string, { icon: string; title: string; path: string;
   community:        { icon: 'forum',              title: 'Community',     path: '/app/community',      color: 'text-indigo-400', bg: 'bg-indigo-500/10' },
   visualizer:       { icon: 'visibility',         title: 'Visualizer',    path: '/app/visualizer',     color: 'text-lime-400',   bg: 'bg-lime-500/10' },
   cheatsheets:      { icon: 'quick_reference_all', title: 'Cheat Sheets',  path: '/app/cheatsheets',    color: 'text-cyan-400',   bg: 'bg-cyan-500/10' },
+  flashcards:       { icon: 'style',               title: 'Flashcards',    path: '/app/flashcards',     color: 'text-violet-400', bg: 'bg-violet-500/10' },
 };
 
 const DIFF_COLOR: Record<string, string> = {
