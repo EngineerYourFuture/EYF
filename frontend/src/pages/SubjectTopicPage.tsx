@@ -3577,6 +3577,478 @@ setInterval(() => {
     summary: 'Real-time delivery is essential for modern UX. Rule: use SSE for server→client push (feeds, notifications); WebSockets for bidirectional (chat, collab); long polling as a fallback. The hardest part is scaling: each server holds WebSocket connections in memory, so fan-out via Redis Pub/Sub or Kafka coordinates across nodes. For 1M concurrent WebSocket connections, you need 100+ servers at 10K connections each.',
   },
 
+  // ─── Discrete Math / Theory ──────────────────────────────────────────────────
+
+  'graph-basics': {
+    overview: `Graphs are one of the most versatile data structures — used for social networks, road maps, dependency resolution, web page ranking, and circuit design. A graph G = (V, E) consists of a set of vertices (nodes) V and edges E connecting pairs of vertices.\n\n**Types**: Directed (edges have direction, like Twitter following) vs Undirected (edges go both ways, like Facebook friendship). Weighted (edges have costs) vs Unweighted. Cyclic vs Acyclic (DAG — Directed Acyclic Graph).\n\n**Representations**: Adjacency Matrix (V×V matrix, O(V²) space, O(1) edge lookup) vs Adjacency List (array of lists, O(V+E) space, better for sparse graphs — use in most interview problems).`,
+    keyPoints: [
+      'Degree of a vertex: number of edges incident to it (in-degree + out-degree for directed)',
+      'Adjacency list: preferred representation — O(V+E) space, O(degree(v)) neighbor traversal',
+      'BFS: level-by-level traversal using a queue — shortest path in unweighted graphs',
+      'DFS: depth-first using stack/recursion — cycle detection, topological sort, connected components',
+      'Topological sort: linear ordering of vertices in a DAG such that all edges go "forward"',
+      'Connected components: DFS/BFS from each unvisited node to find all components',
+      'Bipartite check: 2-colorable using BFS — used for matching problems',
+    ],
+    code: `// Graph represented as adjacency list
+class Graph {
+  constructor(directed = false) {
+    this.adj = new Map();
+    this.directed = directed;
+  }
+  addEdge(u, v, weight = 1) {
+    if (!this.adj.has(u)) this.adj.set(u, []);
+    if (!this.adj.has(v)) this.adj.set(v, []);
+    this.adj.get(u).push({ node: v, weight });
+    if (!this.directed) this.adj.get(v).push({ node: u, weight });
+  }
+  bfs(start) {
+    const visited = new Set([start]);
+    const queue = [start];
+    const order = [];
+    while (queue.length) {
+      const node = queue.shift();
+      order.push(node);
+      for (const { node: neighbor } of (this.adj.get(node) ?? [])) {
+        if (!visited.has(neighbor)) {
+          visited.add(neighbor);
+          queue.push(neighbor);
+        }
+      }
+    }
+    return order;
+  }
+  dfs(start, visited = new Set(), order = []) {
+    visited.add(start);
+    order.push(start);
+    for (const { node: neighbor } of (this.adj.get(start) ?? [])) {
+      if (!visited.has(neighbor)) this.dfs(neighbor, visited, order);
+    }
+    return order;
+  }
+}
+
+const g = new Graph(false);
+['A-B','A-C','B-D','C-D','D-E'].forEach(e => {
+  const [u, v] = e.split('-');
+  g.addEdge(u, v);
+});
+console.log('BFS:', g.bfs('A'));  // A B C D E (level order)
+console.log('DFS:', g.dfs('A'));  // A B D C E (depth-first)`,
+    codeLang: 'javascript',
+    summary: 'Graphs are everywhere in interviews — BFS for shortest path (unweighted), DFS for cycle detection and topological sort, Dijkstra for weighted shortest path. Represent as adjacency list (O(V+E)) not matrix (O(V²)) unless the graph is dense. The key to graph problems: identify the type (directed/undirected, weighted/unweighted, cyclic/acyclic), then select the right algorithm.',
+  },
+
+  sets: {
+    overview: `Set theory is the mathematical foundation of computer science. A set is an unordered collection of distinct elements. Set operations model database queries, access control, type systems, and formal language theory.\n\n**Basic operations**: Union (A ∪ B — elements in A or B), Intersection (A ∩ B — elements in both), Difference (A \\ B — in A but not B), Complement (everything not in A).\n\n**Relations**: A relation R on set A is a subset of A × A. Properties: reflexive (aRa), symmetric (aRb → bRa), transitive (aRb ∧ bRc → aRc). An equivalence relation has all three. A partial order is reflexive, antisymmetric, and transitive.\n\n**Cardinality**: |A ∪ B| = |A| + |B| - |A ∩ B| (inclusion-exclusion). For infinite sets: |ℕ| = |ℤ| = ℵ₀ (countably infinite); |ℝ| = 2^ℵ₀ (uncountably infinite — Cantor's diagonal argument).`,
+    keyPoints: [
+      'Power set P(A): set of all subsets; |P(A)| = 2^|A| — exponential (backtracking problems!)',
+      'Cartesian product A × B: set of all ordered pairs (a, b) where a ∈ A, b ∈ B',
+      'Inclusion-exclusion: |A ∪ B| = |A| + |B| - |A ∩ B| — generalizes to n sets',
+      'Equivalence classes: partition a set into disjoint, exhaustive subsets (Union-Find DSU)',
+      'Partial order: reflexive, antisymmetric, transitive — Hasse diagram visualization',
+      'Functions as relations: total function maps every element; injective (one-to-one), surjective (onto), bijective (both)',
+      'Countability: a set is countable if it can be put in 1-1 correspondence with ℕ',
+    ],
+    code: `// Set operations in JavaScript using built-in Set
+const A = new Set([1, 2, 3, 4, 5]);
+const B = new Set([3, 4, 5, 6, 7]);
+
+const union        = new Set([...A, ...B]);           // {1,2,3,4,5,6,7}
+const intersection = new Set([...A].filter(x => B.has(x))); // {3,4,5}
+const difference   = new Set([...A].filter(x => !B.has(x))); // {1,2}
+
+console.log('A ∪ B:', [...union]);
+console.log('A ∩ B:', [...intersection]);
+console.log('A \\ B:', [...difference]);
+
+// Power set (all subsets) — 2^n subsets
+function powerSet(arr) {
+  const result = [[]];
+  for (const el of arr) {
+    const newSubsets = result.map(subset => [...subset, el]);
+    result.push(...newSubsets);
+  }
+  return result;
+}
+console.log('Power set of {1,2,3}:', powerSet([1,2,3]).length, 'subsets'); // 8
+
+// Union-Find (Disjoint Set Union) — implements equivalence classes
+class DSU {
+  constructor(n) { this.parent = Array.from({length: n}, (_, i) => i); this.rank = new Array(n).fill(0); }
+  find(x) { return this.parent[x] === x ? x : (this.parent[x] = this.find(this.parent[x])); }
+  union(x, y) {
+    const [px, py] = [this.find(x), this.find(y)];
+    if (px === py) return false;
+    if (this.rank[px] < this.rank[py]) this.parent[px] = py;
+    else if (this.rank[px] > this.rank[py]) this.parent[py] = px;
+    else { this.parent[py] = px; this.rank[px]++; }
+    return true;
+  }
+}`,
+    codeLang: 'javascript',
+    summary: 'Set theory underpins computer science at every level: hash sets are O(1) set operations, DSU implements equivalence classes, power sets explain backtracking complexity (2^n), and inclusion-exclusion solves counting problems. In interviews: "how many elements in A or B but not both?" → inclusion-exclusion.',
+  },
+
+  proofs: {
+    overview: `Mathematical proofs are the rigorous foundation of computer science — correctness of algorithms, complexity lower bounds, and protocol security all rest on formal proof. For CS interviews, proof techniques appear in complexity analysis, inductive correctness arguments, and combinatorial reasoning.\n\n**Proof by induction**: prove a base case, then prove that if P(k) holds, P(k+1) holds. Strong induction: assume P(1)...P(k) all hold to prove P(k+1). Used to prove loop invariants, recursive algorithm correctness, and tree properties.\n\n**Proof by contradiction**: assume ¬P, derive a contradiction. Classic: √2 is irrational. In CS: there are more real numbers than programs (undecidability foundation).\n\n**Proof by construction**: demonstrate existence by building it. "A sorting algorithm exists that runs in O(n log n)" — prove by exhibiting merge sort.\n\n**Diagonalization**: Cantor's technique; used to prove the Halting Problem is undecidable.`,
+    keyPoints: [
+      'Induction: base case + inductive step (P(k) → P(k+1)). Strong induction: all P(1..k) → P(k+1)',
+      'Loop invariant: a property that holds before, during, and after each iteration — proves correctness',
+      'Contradiction: assume the opposite, derive impossible consequence (√2 irrational, infinitely many primes)',
+      'Contrapositive: P → Q is equivalent to ¬Q → ¬P (often easier to prove)',
+      'Pigeonhole principle: n+1 items in n containers → some container has ≥2',
+      'Diagonalization: build an object that differs from every element of a list (Cantor, Turing)',
+      'Asymptotic proofs: show f(n) = O(g(n)) by finding constants c, n₀ such that f(n) ≤ c·g(n) for n ≥ n₀',
+    ],
+    code: `// Proof by induction: sum(1..n) = n(n+1)/2
+// Base case: n=1: sum=1, formula=1·2/2=1 ✓
+// Inductive step: assume sum(1..k) = k(k+1)/2
+//   sum(1..k+1) = sum(1..k) + (k+1)
+//               = k(k+1)/2 + (k+1)
+//               = (k+1)(k/2 + 1)
+//               = (k+1)(k+2)/2  ✓
+
+// Verify computationally
+function sumTo(n) { return n * (n + 1) / 2; }
+function sumActual(n) {
+  let s = 0;
+  for (let i = 1; i <= n; i++) s += i;
+  return s;
+}
+
+for (let n = 1; n <= 10; n++) {
+  const formula = sumTo(n);
+  const actual = sumActual(n);
+  console.log(\`n=\${n}: formula=\${formula}, actual=\${actual}, match=\${formula === actual}\`);
+}
+
+// Pigeonhole principle example:
+// Among any 13 people, at least 2 share a birth month (12 months, 13 people)
+// Among any 367 people, at least 2 share a birthday (366 possible birthdays)
+
+// Big-O proof: is 2n² + 3n = O(n²)?
+// Need c, n₀ such that 2n² + 3n ≤ c·n² for all n ≥ n₀
+// 2n² + 3n ≤ 2n² + 3n² = 5n²  (for n ≥ 1, since 3n ≤ 3n²)
+// So c=5, n₀=1 works. Yes, 2n² + 3n = O(n²).`,
+    codeLang: 'javascript',
+    summary: 'Mathematical proofs are the language of algorithm analysis. Loop invariants prove correctness; asymptotic proofs bound complexity; induction appears in every recursive algorithm analysis. For interviews: know how to prove a loop invariant for binary search or merge sort, and how to derive O(n log n) for divide-and-conquer via the Master Theorem.',
+  },
+
+  pigeonhole: {
+    overview: `The Pigeonhole Principle: if n+1 objects are placed in n containers, at least one container must contain 2 or more objects. This deceptively simple idea has powerful consequences in CS, combinatorics, and cryptography.\n\n**Generalized version**: if N objects are placed in k containers, at least one container has ⌈N/k⌉ objects.\n\n**Applications in CS**:\n- **Hash collisions are unavoidable**: if you have more keys than hash values, collisions must exist\n- **Birthday paradox**: only 23 people needed for 50% chance of shared birthday — because √366 ≈ 23 (pigeonhole at the probabilistic level)\n- **Compression limits**: you can't compress all files — more files (n+1) than distinct n-bit strings\n- **Network routing**: with k paths and k+1 packets, at least one path carries 2 packets\n- **TCP sequence numbers**: finite sequence number space means wraparound is unavoidable`,
+    keyPoints: [
+      'Basic: n+1 objects, n containers → at least one container has ≥2 objects',
+      'Generalized: ⌈N/k⌉ objects guaranteed in some container',
+      'Birthday paradox: O(√N) random samples guarantee a collision in a space of size N',
+      'Hash collisions: unavoidable by pigeonhole — design for them, never assume they won\'t happen',
+      'Lossless compression: cannot compress every possible input (Kolmogorov complexity)',
+      'Infinite pigeonhole: any infinite sequence has a value appearing infinitely often',
+      'Ramsey theory: generalization — in any large enough structure, regularity must appear',
+    ],
+    code: `// Birthday paradox simulation
+function birthdayProbability(n) {
+  // Probability that in a group of n people, at least 2 share a birthday
+  let prob = 1;
+  for (let i = 0; i < n; i++) {
+    prob *= (365 - i) / 365;
+  }
+  return 1 - prob;
+}
+
+for (const n of [10, 23, 30, 50, 70]) {
+  console.log(\`\${n} people: \${(birthdayProbability(n) * 100).toFixed(1)}% chance of shared birthday\`);
+}
+// 10 people: 11.7%
+// 23 people: 50.7%  ← pigeonhole "tipping point"
+// 50 people: 97.0%
+// 70 people: 99.9%
+
+// Hash collision demo (pigeonhole in action)
+function naiveHash(str, buckets) {
+  let h = 0;
+  for (const ch of str) h = (h * 31 + ch.charCodeAt(0)) % buckets;
+  return h;
+}
+
+const words = ['apple','banana','cherry','date','elderberry','fig'];
+const buckets = 4;
+const map = {};
+for (const w of words) {
+  const h = naiveHash(w, buckets);
+  if (!map[h]) map[h] = [];
+  map[h].push(w);
+}
+console.log('Bucket collisions:', map);
+// With 6 words and 4 buckets: guaranteed ≥2 collisions by pigeonhole`,
+    codeLang: 'javascript',
+    summary: 'Pigeonhole is a proof technique disguised as common sense. Its power: it proves existence of collision/overlap without finding it. In interviews: "Can you guarantee a duplicate?" — think pigeonhole. The birthday paradox (O(√N) for collision) underlies hash table load factor design, UUID collision probability, and cryptographic hash security analysis.',
+  },
+
+  recurrence: {
+    overview: `Recurrence relations express the running time of recursive algorithms in terms of smaller subproblems. Solving them gives the closed-form Big-O complexity.\n\n**Substitution method**: guess a solution form, then prove by induction.\n\n**Recursion tree method**: draw the call tree, count work at each level, sum across all levels.\n\n**Master Theorem**: for divide-and-conquer T(n) = aT(n/b) + f(n):\n- Case 1: f(n) = O(n^(log_b a - ε)) → T(n) = Θ(n^(log_b a)) — subproblems dominate\n- Case 2: f(n) = Θ(n^(log_b a) log^k n) → T(n) = Θ(n^(log_b a) log^(k+1) n) — equal work\n- Case 3: f(n) = Ω(n^(log_b a + ε)) and regularity condition → T(n) = Θ(f(n)) — root dominates\n\nMost divide-and-conquer algorithms (merge sort, binary search, Strassen) fall into Case 2.`,
+    keyPoints: [
+      'T(n) = T(n-1) + O(1) → O(n) — linear recursion (factorial, list traversal)',
+      'T(n) = T(n-1) + O(n) → O(n²) — insertion sort, selection sort',
+      'T(n) = 2T(n/2) + O(n) → O(n log n) — merge sort [Master Case 2]',
+      'T(n) = T(n/2) + O(1) → O(log n) — binary search [Master Case 2]',
+      'T(n) = 2T(n/2) + O(1) → O(n) — tree traversal [Master Case 1]',
+      'T(n) = 8T(n/2) + O(n²) → O(n^(log₂ 8)) = O(n³) — naive matrix multiply [Master Case 1]',
+      'Strassen: T(n) = 7T(n/2) + O(n²) → O(n^(log₂ 7)) ≈ O(n^2.81) [Master Case 1]',
+    ],
+    code: `// Master Theorem examples
+// T(n) = aT(n/b) + n^c
+
+function masterTheoremCase(a, b, c) {
+  const logba = Math.log(a) / Math.log(b);
+  if (c < logba) return \`O(n^{log_\${b} \${a}}) = O(n^\${logba.toFixed(2)}) [Case 1: subproblems dominate]\`;
+  if (Math.abs(c - logba) < 0.001) return \`O(n^\${c} log n) [Case 2: equal work at all levels]\`;
+  return \`O(n^\${c}) [Case 3: root work dominates]\`;
+}
+
+console.log('Merge sort: T=2T(n/2)+n →',    masterTheoremCase(2, 2, 1)); // O(n log n) Case 2
+console.log('Binary search: T=T(n/2)+1 →',  masterTheoremCase(1, 2, 0)); // O(log n) Case 2
+console.log('Tree traversal: T=2T(n/2)+1 →', masterTheoremCase(2, 2, 0)); // O(n) Case 1
+
+// Fibonacci recurrence: T(n) = T(n-1) + T(n-2) + O(1) ≈ O(φ^n)
+// Without memoization — exponential!
+let calls = 0;
+function fibNaive(n) {
+  calls++;
+  if (n <= 1) return n;
+  return fibNaive(n - 1) + fibNaive(n - 2);
+}
+fibNaive(20);
+console.log(\`fibNaive(20): \${calls} calls (exponential)\`); // 21891 calls!
+
+calls = 0;
+const memo = {};
+function fibMemo(n) {
+  calls++;
+  if (n in memo) return memo[n];
+  if (n <= 1) return n;
+  return (memo[n] = fibMemo(n - 1) + fibMemo(n - 2));
+}
+fibMemo(20);
+console.log(\`fibMemo(20): \${calls} calls (linear)\`); // 39 calls`,
+    codeLang: 'javascript',
+    summary: 'Recurrence relations are how you analyze divide-and-conquer algorithms. Memorize the Master Theorem cases — they appear in every algorithms course and in FAANG interviews when asked "what is the complexity of merge sort and why?". The key insight: the critical parameter is log_b(a) vs the exponent of f(n). T(n) = 2T(n/2) + O(n) → O(n log n) is the most important recurrence in CS.',
+  },
+
+  counting: {
+    overview: `Combinatorics (counting) answers: "how many ways can something happen?" It's foundational for algorithm analysis (bounding the number of operations), probability (denominator of events), and complexity theory (proving exponential lower bounds).\n\n**Basic counting rules**:\n- **Sum rule**: if A and B are disjoint, |A ∪ B| = |A| + |B|\n- **Product rule**: if A and B are independent, |A × B| = |A| × |B|\n- **Complement**: count what you DON'T want, subtract from total\n\n**Permutations**: ordered arrangements. P(n,r) = n!/(n-r)! — arrange r items from n\n\n**Combinations**: unordered selections. C(n,r) = n!/(r!(n-r)!) = "n choose r"\n\n**Binomial theorem**: (x+y)^n = Σ C(n,k) x^k y^(n-k) — Pascal's triangle gives coefficients`,
+    keyPoints: [
+      'n! arrangements of n distinct items; (n-1)! for circular arrangements',
+      'C(n,r) = "n choose r" — selecting r from n without order; C(n,r) = C(n,n-r)',
+      'Multiplication principle: k₁ choices for step 1, k₂ for step 2, ... → k₁ × k₂ × ... total',
+      'Stars and bars: distributing n identical items into k distinct bins → C(n+k-1, k-1)',
+      'Inclusion-exclusion: |A₁ ∪ ... ∪ Aₙ| = Σ|Aᵢ| - Σ|Aᵢ ∩ Aⱼ| + ...',
+      'Pascal\'s identity: C(n,r) = C(n-1,r-1) + C(n-1,r) — choosing to include/exclude an element',
+      'Catalan numbers: C_n = C(2n,n)/(n+1) — counts valid bracket sequences, BST shapes, etc.',
+    ],
+    code: `// Combinatorics utilities
+function factorial(n) {
+  return n <= 1 ? 1 : n * factorial(n - 1);
+}
+
+function permutations(n, r) {
+  return factorial(n) / factorial(n - r);  // P(n,r)
+}
+
+function combinations(n, r) {
+  return factorial(n) / (factorial(r) * factorial(n - r));  // C(n,r)
+}
+
+// How many ways to:
+console.log('Arrange 3 from 5:', permutations(5, 3));  // 60
+console.log('Choose 3 from 5:', combinations(5, 3));   // 10
+console.log('All subsets of {1..5}:', 2**5);           // 32 = 2^n
+
+// Pascal's triangle (binomial coefficients)
+function pascal(rows) {
+  const triangle = [[1]];
+  for (let i = 1; i < rows; i++) {
+    const prev = triangle[i-1];
+    const row = [1];
+    for (let j = 1; j < i; j++) row.push(prev[j-1] + prev[j]);
+    row.push(1);
+    triangle.push(row);
+  }
+  return triangle;
+}
+pascal(6).forEach((row, i) => console.log(' '.repeat(5-i) + row.join('  ')));
+
+// Catalan numbers: C_n = C(2n,n) / (n+1)
+// C_0=1, C_1=1, C_2=2, C_3=5, C_4=14
+const catalan = n => combinations(2*n, n) / (n + 1);
+console.log('Catalan 0-5:', [0,1,2,3,4,5].map(catalan)); // [1,1,2,5,14,42]
+// C_n counts valid bracket sequences of length 2n`,
+    codeLang: 'javascript',
+    summary: 'Counting is the basis of probability and complexity. Key formulas: n! (permutations), C(n,r) (combinations), 2^n (subsets), C_n Catalan. In interviews: "in how many ways..." → identify whether order matters (permutation) or not (combination). Catalan numbers count surprising things: valid bracket sequences, BST shapes, paths below the diagonal.',
+  },
+
+  // ─── Compiler Design ─────────────────────────────────────────────────────────
+
+  lexer: {
+    overview: `Lexical analysis (scanning) is the first phase of compilation. The lexer reads source text character by character and groups them into tokens — the atomic units of the programming language.\n\n**Tokens**: keywords (if, while, return), identifiers (variable names), literals (42, "hello"), operators (+, ==), and punctuation ({ }, ;). Each token has a type and optionally a value.\n\n**Implementation**: lexers are typically implemented as DFAs (Deterministic Finite Automata) — one state machine per token type. In practice, tools like Flex/Lex generate lexers from regular expression specifications.\n\n**Lexer vs Parser**: the lexer handles the "word level" (what are the tokens?); the parser handles the "sentence level" (how do tokens form valid syntax?). This separation of concerns simplifies both components significantly.`,
+    keyPoints: [
+      'Token: (type, value, position) — e.g., (NUMBER, "42", line 3)',
+      'Lexeme: the actual source text that matches a token pattern (raw string)',
+      'Regular expressions define tokens; DFAs implement them efficiently',
+      'Maximal munch: always consume the longest possible token ("==" not "=" then "=")',
+      'Whitespace and comments: typically consumed and discarded (or attached as trivia)',
+      'Flex/Lex: lexer generators that take regex rules and produce C lexer code',
+      'Line/column tracking: essential for error messages; increment on \\n',
+    ],
+    code: `// Simple hand-written lexer for arithmetic expressions
+const TokenType = { NUMBER: 'NUMBER', PLUS: 'PLUS', MINUS: 'MINUS',
+  STAR: 'STAR', SLASH: 'SLASH', LPAREN: 'LPAREN', RPAREN: 'RPAREN', EOF: 'EOF' };
+
+function tokenize(input) {
+  const tokens = [];
+  let pos = 0;
+
+  while (pos < input.length) {
+    const ch = input[pos];
+
+    if (/\s/.test(ch)) { pos++; continue; } // skip whitespace
+
+    if (/\d/.test(ch)) {
+      let num = '';
+      while (pos < input.length && /\d/.test(input[pos])) num += input[pos++];
+      tokens.push({ type: TokenType.NUMBER, value: parseInt(num) });
+    } else if (ch === '+') { tokens.push({ type: TokenType.PLUS });  pos++; }
+    else if (ch === '-') { tokens.push({ type: TokenType.MINUS }); pos++; }
+    else if (ch === '*') { tokens.push({ type: TokenType.STAR });  pos++; }
+    else if (ch === '/') { tokens.push({ type: TokenType.SLASH }); pos++; }
+    else if (ch === '(') { tokens.push({ type: TokenType.LPAREN }); pos++; }
+    else if (ch === ')') { tokens.push({ type: TokenType.RPAREN }); pos++; }
+    else throw new Error(\`Unexpected character: '\${ch}' at pos \${pos}\`);
+  }
+  tokens.push({ type: TokenType.EOF });
+  return tokens;
+}
+
+console.log(tokenize('3 + (42 * 7)'));
+// [{NUMBER,3}, {PLUS}, {LPAREN}, {NUMBER,42}, {STAR}, {NUMBER,7}, {RPAREN}, {EOF}]`,
+    codeLang: 'javascript',
+    summary: 'Lexers are the first pipeline stage in compilers and interpreters. They tokenize source text using DFA-based pattern matching. In practice: hand-write a lexer for simple languages (JSON, calculator) or use Flex/ANTLR for full languages. Understanding lexing is essential for building DSLs, query languages, template engines, and any tool that processes structured text.',
+  },
+
+  parsing: {
+    overview: `Parsing (syntax analysis) is the second phase of compilation. The parser takes a token stream from the lexer and builds a parse tree (or AST — Abstract Syntax Tree) that represents the syntactic structure of the program.\n\n**Grammars**: context-free grammars (CFGs) formally describe language syntax. A CFG has productions: non-terminal → sequence of terminals and non-terminals. Example: expr → expr '+' term | term.\n\n**Recursive descent parsing**: a top-down technique where each non-terminal has a corresponding function. Easy to understand and implement by hand. Handles LL(k) grammars. Most real-world compilers (GCC, LLVM Clang, TypeScript) use hand-written recursive descent.\n\n**Bottom-up parsing (LR)**: shift-reduce parsing using a table. More powerful — handles a broader class of grammars. Generated by tools like yacc/bison. Used when grammar is complex and must handle left recursion.`,
+    keyPoints: [
+      'AST (Abstract Syntax Tree): tree representation of program structure, without irrelevant tokens',
+      'LL(k): Left-to-right, Leftmost derivation, k lookahead — top-down, recursive descent',
+      'LR(k): Left-to-right, Rightmost derivation reversed, k lookahead — bottom-up, shift-reduce',
+      'Ambiguous grammar: a string has 2+ parse trees — usually a bug (dangling else problem)',
+      'Left recursion: A → Aα causes infinite loop in recursive descent; must eliminate or use LR',
+      'FIRST(A): set of terminals that can begin strings derived from A',
+      'FOLLOW(A): set of terminals that can appear after A in any sentential form',
+    ],
+    code: `// Recursive descent parser for: expr → term (('+' | '-') term)*
+// term → factor (('*' | '/') factor)*
+// factor → NUMBER | '(' expr ')'
+
+function parse(tokens) {
+  let pos = 0;
+  const peek  = () => tokens[pos];
+  const eat   = (type) => { if (peek()?.type !== type) throw new Error(\`Expected \${type}\`); return tokens[pos++]; };
+
+  function factor() {
+    if (peek()?.type === 'NUMBER') return eat('NUMBER').value;
+    eat('LPAREN');
+    const val = expr();
+    eat('RPAREN');
+    return val;
+  }
+
+  function term() {
+    let val = factor();
+    while (peek()?.type === 'STAR' || peek()?.type === 'SLASH') {
+      const op = tokens[pos++].type;
+      const right = factor();
+      val = op === 'STAR' ? val * right : val / right;
+    }
+    return val;
+  }
+
+  function expr() {
+    let val = term();
+    while (peek()?.type === 'PLUS' || peek()?.type === 'MINUS') {
+      const op = tokens[pos++].type;
+      const right = term();
+      val = op === 'PLUS' ? val + right : val - right;
+    }
+    return val;
+  }
+
+  return expr();
+}
+
+// Together with the tokenizer from the lexer topic:
+// const result = parse(tokenize('3 + 4 * 2'));
+// Result: 11 (correct operator precedence via grammar structure)`,
+    codeLang: 'javascript',
+    summary: 'Parsers transform token streams into ASTs — the structured representation programs operate on. Recursive descent is clean and debuggable; LR parsers are more powerful but generated by tools. In practice: all modern language frontends (TypeScript, Rust, Go, Swift) use hand-written recursive descent. Understanding parsing helps you read language specs, build DSLs, and contribute to compilers.',
+  },
+
+  // ─── Architecture ─────────────────────────────────────────────────────────────
+
+  architecture: {
+    overview: `Software architecture is the high-level structure of a system — how components are organized, how they communicate, and what trade-offs are made for performance, maintainability, and scalability.\n\n**Monolith**: all components in one deployable unit. Simple to develop and test initially; harder to scale independently. Right choice for early-stage startups and small teams.\n\n**Microservices**: each service owns a single bounded context, deployed independently, communicates over network (REST, gRPC, message queues). Enables independent scaling, polyglot tech stacks, and team autonomy — but adds operational complexity (service discovery, distributed tracing, eventual consistency).\n\n**Hexagonal (Ports & Adapters)**: business logic in the center, infrastructure (DB, HTTP, queues) as adapters. Enables swapping infrastructure without changing business rules. Core of Domain-Driven Design (DDD).\n\n**Event-driven architecture**: services communicate via events (Kafka, EventBridge). Loose coupling, high scalability — but harder to trace causality and ensure ordering.`,
+    keyPoints: [
+      'Monolith → Microservices: don\'t start microservices; split when teams and scale require it',
+      'Bounded context: each service owns its own data model and database (no shared DB)',
+      'Hexagonal: separate domain logic from infrastructure; makes testing without a DB trivial',
+      'CQRS: separate read (query) and write (command) models for optimized scaling',
+      'Event sourcing: store events as source of truth; derive state by replaying',
+      'Strangler Fig: incrementally migrate monolith to microservices by routing traffic to new services',
+      'ADR (Architecture Decision Record): document significant architecture decisions and their rationale',
+    ],
+    code: `// Hexagonal architecture example: User domain
+
+// Domain layer — no dependencies on infrastructure
+class User {
+  constructor(id, email, name) {
+    if (!email.includes('@')) throw new Error('Invalid email');
+    this.id = id; this.email = email; this.name = name;
+    this.createdAt = new Date();
+  }
+  updateName(newName) {
+    if (!newName.trim()) throw new Error('Name cannot be empty');
+    this.name = newName.trim();
+  }
+}
+
+// Port (interface) — defined by domain
+// interface UserRepository { findById(id): User; save(user): void; }
+
+// Application service — orchestrates domain objects
+class UserService {
+  constructor(userRepo, emailService) {
+    this.userRepo = userRepo;
+    this.emailService = emailService;
+  }
+  async registerUser(id, email, name) {
+    const existing = await this.userRepo.findByEmail(email);
+    if (existing) throw new Error('Email already registered');
+    const user = new User(id, email, name);
+    await this.userRepo.save(user);
+    await this.emailService.sendWelcome(email, name);
+    return user;
+  }
+}
+
+// Adapter — implements port using infrastructure
+class PostgresUserRepo {
+  async findByEmail(email) { /* SQL query */ }
+  async save(user) { /* INSERT or UPDATE */ }
+}`,
+    codeLang: 'javascript',
+    summary: 'Architecture shapes the long-term health of a codebase. Monolith is often right to start. Hexagonal (ports & adapters) separates concerns elegantly — testable without infrastructure. Microservices shine when teams and traffic demand independent scaling, but add enormous operational complexity. In staff/principal interviews: articulate trade-offs, not just patterns.',
+  },
+
 };
 
 /* ------------------------------------------------------------------ */
