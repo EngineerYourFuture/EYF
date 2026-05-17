@@ -460,49 +460,71 @@ export function ProblemDetailPage() {
     setCode(LANG_STARTERS[lang]);
   };
 
-  // Local browser execution for JavaScript (no backend needed)
-  function runLocalJS(userCode: string, testCases: Problem['testCases']): RunResponse {
+  // Local browser execution via sandboxed iframe + postMessage (no new Function / eval in main thread)
+  function runLocalJS(userCode: string, testCases: Problem['testCases']): Promise<RunResponse> {
     const start = performance.now();
-    const logs: string[] = [];
-    const results: string[] = [];
+    const fnMatch = userCode.match(/function\s+(\w+)\s*\(/);
+    const fnName = fnMatch?.[1] ?? 'solution';
 
-    try {
-      // Capture console.log output
-      const wrappedConsole = { log: (...args: unknown[]) => logs.push(args.map(String).join(' ')) };
+    // Runner HTML evaluated inside a null-origin sandboxed iframe — isolated from cookies/storage
+    const runnerHtml = [
+      '<!doctype html><html><body><script>',
+      'window.addEventListener("message",function(e){',
+      '  if(!e.data||e.data.type!=="eyf-run")return;',
+      '  var results=[],logs=[];',
+      '  console.log=function(){logs.push(Array.prototype.slice.call(arguments).map(String).join(" "));};',
+      '  try{eval(e.data.code);parent.postMessage({type:"eyf-result",results:results,logs:logs},"*");}',
+      '  catch(err){parent.postMessage({type:"eyf-result",results:[],logs:logs,error:err.message},"*");}',
+      '});',
+      '<\/script></body></html>',
+    ].join('');
 
-      // Extract function name from code
-      const fnMatch = userCode.match(/function\s+(\w+)\s*\(/);
-      const fnName = fnMatch ? fnMatch[1] : 'solution';
+    const testCode = [
+      userCode,
+      `var __cases=${JSON.stringify(testCases)};`,
+      `for(var __i=0;__i<__cases.length;__i++){`,
+      `  var __tc=__cases[__i];`,
+      `  try{var __inp=JSON.parse(__tc.input);var __a=Array.isArray(__inp)?__inp:[__inp];`,
+      `  var __o=${fnName}.apply(null,__a);`,
+      `  results.push('Input: '+__tc.input+'\\nOutput: '+JSON.stringify(__o)+'\\nExpected: '+__tc.output);}`,
+      `  catch(e){results.push('Error: '+e.message);}`,
+      `}`,
+    ].join('\n');
 
-      // Build test harness
-      const testCode = `
-${userCode}
+    const blob = new Blob([runnerHtml], { type: 'text/html' });
+    const blobUrl = URL.createObjectURL(blob);
+    const iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    iframe.setAttribute('sandbox', 'allow-scripts');
 
-const __results = [];
-const __cases = ${JSON.stringify(testCases)};
-for (const tc of __cases) {
-  try {
-    const __input = JSON.parse(tc.input);
-    const __args = Array.isArray(__input) ? __input : [__input];
-    const __out = ${fnName}(...__args);
-    __results.push('Input: ' + tc.input + '\\nOutput: ' + JSON.stringify(__out) + '\\nExpected: ' + tc.output);
-  } catch(e) {
-    __results.push('Error: ' + e.message);
-  }
-}
-__results;
-      `;
+    return new Promise<RunResponse>((resolve) => {
+      let done = false;
+      const cleanup = () => {
+        if (done) return;
+        done = true;
+        window.removeEventListener('message', onMsg);
+        URL.revokeObjectURL(blobUrl);
+        if (document.body.contains(iframe)) document.body.removeChild(iframe);
+      };
 
-      // eslint-disable-next-line no-new-func
-      const fn = new Function('console', testCode); // NOSONAR — user's own submission code, sandbox context
-      const res: string[] = fn(wrappedConsole) as string[];
-      results.push(...res);
+      const onMsg = (e: MessageEvent<{ type: string; results: string[]; logs: string[]; error?: string }>) => {
+        if (e.data?.type !== 'eyf-result') return;
+        cleanup();
+        const { results, logs, error } = e.data;
+        if (error && results.length === 0) {
+          resolve({ runId: 'local', stdout: logs.map(l => `> ${l}`).join('\n'), stderr: error, exitCode: 1, runtimeMs: Math.round(performance.now() - start) });
+        } else {
+          const stdout = [...logs.map(l => `> ${l}`), ...results].join('\n\n');
+          resolve({ runId: 'local', stdout, stderr: '', exitCode: 0, runtimeMs: Math.round(performance.now() - start) });
+        }
+      };
 
-      const stdout = [...logs.map(l => `> ${l}`), ...results].join('\n\n');
-      return { runId: 'local', stdout, stderr: '', exitCode: 0, runtimeMs: Math.round(performance.now() - start) };
-    } catch (e: unknown) {
-      return { runId: 'local', stdout: '', stderr: String(e instanceof Error ? e.message : e), exitCode: 1, runtimeMs: Math.round(performance.now() - start) };
-    }
+      window.addEventListener('message', onMsg);
+      iframe.onload = () => iframe.contentWindow?.postMessage({ type: 'eyf-run', code: testCode }, '*');
+      setTimeout(() => { cleanup(); resolve({ runId: 'local', stdout: '', stderr: 'Execution timed out', exitCode: 1, runtimeMs: 5000 }); }, 5000);
+      iframe.src = blobUrl;
+      document.body.appendChild(iframe);
+    });
   }
 
   const onRun = async () => {
@@ -513,7 +535,7 @@ __results;
     // Try local execution first for JavaScript
     if (language === 'javascript' && problem?.testCases?.length) {
       await new Promise(r => setTimeout(r, 50)); // brief visual delay
-      const result = runLocalJS(code, problem.testCases);
+      const result = await runLocalJS(code, problem.testCases);
       setRunResult(result);
       setRunning(false);
       return;
