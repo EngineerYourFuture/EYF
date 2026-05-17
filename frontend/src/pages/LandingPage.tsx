@@ -511,6 +511,30 @@ export function LandingPage() {
                     feature: 'Code Playground (multi-language)',
                     eyf: true, lc: false, hr: true, gfg: false, cf: false,
                   },
+                  {
+                    feature: 'Real-World Challenges (debug, API, DB)',
+                    eyf: true, lc: false, hr: 'Partial', gfg: false, cf: false,
+                  },
+                  {
+                    feature: 'Study Squads (peer accountability)',
+                    eyf: true, lc: false, hr: false, gfg: false, cf: false,
+                  },
+                  {
+                    feature: 'Role-Based Learning Paths',
+                    eyf: true, lc: false, hr: 'Partial', gfg: false, cf: false,
+                  },
+                  {
+                    feature: 'India Service Co. OA Prep (TCS/Infosys)',
+                    eyf: true, lc: false, hr: false, gfg: 'Partial', cf: false,
+                  },
+                  {
+                    feature: 'AI Failure Diagnosis',
+                    eyf: true, lc: false, hr: false, gfg: false, cf: false,
+                  },
+                  {
+                    feature: 'Placement Readiness Score',
+                    eyf: true, lc: false, hr: false, gfg: false, cf: false,
+                  },
                 ].map((row, i) => {
                   const renderCell = (val: boolean | string) => {
                     if (val === true) return <span className="text-emerald-400 text-lg font-bold">✓</span>;
