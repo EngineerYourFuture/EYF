@@ -36,6 +36,7 @@ const ALL_ITEMS: SearchResult[] = [
   { title: 'My Progress',       subtitle: 'XP chart, activity heatmap, subject completion, and rank', icon: 'insights', path: '/app/progress', color: 'text-blue-400' },
   { title: 'Study Plan',        subtitle: 'Personalized day-by-day interview prep schedule', icon: 'calendar_month', path: '/app/study-plan', color: 'text-indigo-400' },
   { title: 'Interview Tracker',      subtitle: 'Log applications, track rounds, celebrate offers', icon: 'track_changes', path: '/app/tracker', color: 'text-emerald-400' },
+  { title: 'My Notes',              subtitle: 'Personal study notes saved locally — tag by subject, pin important ones', icon: 'sticky_note_2', path: '/app/notes', color: 'text-yellow-400' },
   { title: 'Code Playground',       subtitle: 'Write and run JS, TS, Python, Java, C++, SQL — JS/TS runs locally, no server needed', icon: 'play_circle', path: '/app/playground', color: 'text-emerald-400' },
   { title: 'Skill Assessments',     subtitle: 'Test your JS, Python, SQL, React, OS, System Design — earn grade badges and XP', icon: 'fact_check', path: '/app/assessments', color: 'text-teal-400' },
   { title: 'Company Prep',          subtitle: 'Google, Amazon, Meta, Microsoft — focus topics, top problems, CTC data, tips', icon: 'business', path: '/app/companies', color: 'text-blue-400' },

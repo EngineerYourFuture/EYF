@@ -65,6 +65,7 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { path: '/app/progress',     label: 'Progress',     icon: 'insights' },
       { path: '/app/achievements', label: 'Achievements', icon: 'emoji_events' },
+      { path: '/app/notes',        label: 'My Notes',     icon: 'sticky_note_2' },
     ],
   },
 ];
