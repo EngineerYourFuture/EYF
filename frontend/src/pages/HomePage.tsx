@@ -618,6 +618,25 @@ export function HomePage() {
           </div>
         </section>
 
+        {/* ── Placement Readiness CTA ── */}
+        <Link to="/app/readiness" className="block mb-8 group">
+          <div className="bg-gradient-to-r from-[#1a0a0a] via-[#180d0d] to-[#141414] border border-[#E82127]/25 rounded-2xl p-5 flex items-center gap-5 hover:border-[#E82127]/50 transition-all">
+            <div className="w-14 h-14 rounded-2xl bg-[#E82127]/10 border border-[#E82127]/20 flex items-center justify-center shrink-0">
+              <Icon name="speed" size={28} className="text-[#E82127]" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-0.5">
+                <span className="text-white font-bold text-sm">Check Your Placement Readiness Score</span>
+                <span className="text-[10px] font-bold text-[#E82127] bg-[#E82127]/10 px-2 py-0.5 rounded-full border border-[#E82127]/20 shrink-0">NEW</span>
+              </div>
+              <p className="text-xs text-zinc-500 leading-relaxed">
+                See your overall readiness %, skill gaps, and a personalised 7-day sprint to improve fast.
+              </p>
+            </div>
+            <Icon name="arrow_forward" className="text-zinc-600 group-hover:text-[#E82127] group-hover:translate-x-1 transition-all text-xl shrink-0" />
+          </div>
+        </Link>
+
         {/* ── Daily Challenge ── */}
         <DailyChallengeWidget />
 

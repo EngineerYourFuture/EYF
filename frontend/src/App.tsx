@@ -53,6 +53,7 @@ import { CompanyPrepPage } from './pages/CompanyPrepPage';
 import { SkillAssessmentPage } from './pages/SkillAssessmentPage';
 import { PlaygroundPage } from './pages/PlaygroundPage';
 import { NotesPage } from './pages/NotesPage';
+import { ReadinessPage } from './pages/ReadinessPage';
 
 export default function App() {
   return (
@@ -251,6 +252,10 @@ export default function App() {
       <Route
         path="/app/notes"
         element={<RequireAuth zone="public"><NotesPage /></RequireAuth>}
+      />
+      <Route
+        path="/app/readiness"
+        element={<RequireAuth zone="public"><ReadinessPage /></RequireAuth>}
       />
       <Route
         path="/app/*"
