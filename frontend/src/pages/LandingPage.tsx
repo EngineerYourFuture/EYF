@@ -413,6 +413,131 @@ export function LandingPage() {
         </div>
       </section>
 
+      {/* Competitor Comparison */}
+      <section className="py-20 px-6 border-t border-white/5">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 bg-[#E82127]/10 border border-[#E82127]/20 text-[#E82127] text-xs font-bold px-4 py-2 rounded-full mb-6">
+              ⚡ Why EYF beats the alternatives
+            </div>
+            <h2 className="text-4xl md:text-5xl font-black tracking-tighter mb-4">
+              One platform beats<br />paying for all of these
+            </h2>
+            <p className="text-zinc-400 text-lg">LeetCode, HackerRank, GeeksforGeeks, Codeforces, InterviewBit, Visualgo — EYF replaces them all, for free.</p>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-white/10">
+                  <th className="text-left pb-4 pr-4 text-zinc-500 font-normal w-56">Feature</th>
+                  <th className="pb-4 px-3 text-center">
+                    <div className="text-white font-black text-base">EYF</div>
+                    <div className="text-[10px] text-emerald-400 font-bold">FREE</div>
+                  </th>
+                  <th className="pb-4 px-3 text-center">
+                    <div className="text-zinc-400 font-semibold">LeetCode</div>
+                    <div className="text-[10px] text-red-400">$35/mo</div>
+                  </th>
+                  <th className="pb-4 px-3 text-center">
+                    <div className="text-zinc-400 font-semibold">HackerRank</div>
+                    <div className="text-[10px] text-zinc-500">Free/Paid</div>
+                  </th>
+                  <th className="pb-4 px-3 text-center">
+                    <div className="text-zinc-400 font-semibold">GFG</div>
+                    <div className="text-[10px] text-zinc-500">Free/Paid</div>
+                  </th>
+                  <th className="pb-4 px-3 text-center">
+                    <div className="text-zinc-400 font-semibold">Codeforces</div>
+                    <div className="text-[10px] text-zinc-500">Free</div>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  {
+                    feature: 'DSA Problems (company-tagged)',
+                    eyf: true, lc: 'Premium only', hr: 'Partial', gfg: 'Partial', cf: false,
+                  },
+                  {
+                    feature: 'System Design content',
+                    eyf: true, lc: 'Premium only', hr: false, gfg: 'Partial', cf: false,
+                  },
+                  {
+                    feature: 'Core Subjects (OS, DBMS, Networks)',
+                    eyf: true, lc: false, hr: false, gfg: true, cf: false,
+                  },
+                  {
+                    feature: 'OOP & Design Patterns',
+                    eyf: true, lc: false, hr: false, gfg: 'Partial', cf: false,
+                  },
+                  {
+                    feature: 'Cybersecurity / CTF',
+                    eyf: true, lc: false, hr: false, gfg: false, cf: false,
+                  },
+                  {
+                    feature: 'Algorithm Visualizer',
+                    eyf: true, lc: false, hr: false, gfg: false, cf: false,
+                  },
+                  {
+                    feature: 'Weekly Contests',
+                    eyf: true, lc: true, hr: true, gfg: 'Partial', cf: true,
+                  },
+                  {
+                    feature: 'Skill Assessments / Certifications',
+                    eyf: true, lc: false, hr: 'Paid', gfg: false, cf: false,
+                  },
+                  {
+                    feature: 'Interview Experiences',
+                    eyf: true, lc: false, hr: false, gfg: true, cf: false,
+                  },
+                  {
+                    feature: 'Company-Specific Prep',
+                    eyf: true, lc: 'Premium only', hr: false, gfg: 'Partial', cf: false,
+                  },
+                  {
+                    feature: 'Resume Builder',
+                    eyf: true, lc: false, hr: false, gfg: false, cf: false,
+                  },
+                  {
+                    feature: 'Mock Interviews',
+                    eyf: true, lc: false, hr: false, gfg: 'Paid', cf: false,
+                  },
+                  {
+                    feature: 'Progress Dashboard & Heatmap',
+                    eyf: true, lc: true, hr: true, gfg: false, cf: false,
+                  },
+                  {
+                    feature: 'Code Playground (multi-language)',
+                    eyf: true, lc: false, hr: true, gfg: false, cf: false,
+                  },
+                ].map((row, i) => {
+                  const renderCell = (val: boolean | string) => {
+                    if (val === true) return <span className="text-emerald-400 text-lg font-bold">✓</span>;
+                    if (val === false) return <span className="text-zinc-700 text-lg">✗</span>;
+                    return <span className="text-amber-400 text-xs font-semibold">{val}</span>;
+                  };
+                  return (
+                    <tr key={row.feature} className={`border-b border-white/5 ${i % 2 === 0 ? 'bg-white/[0.01]' : ''}`}>
+                      <td className="py-3 pr-4 text-zinc-400 text-xs">{row.feature}</td>
+                      <td className="py-3 px-3 text-center bg-emerald-500/5">{renderCell(row.eyf)}</td>
+                      <td className="py-3 px-3 text-center">{renderCell(row.lc)}</td>
+                      <td className="py-3 px-3 text-center">{renderCell(row.hr)}</td>
+                      <td className="py-3 px-3 text-center">{renderCell(row.gfg)}</td>
+                      <td className="py-3 px-3 text-center">{renderCell(row.cf)}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          <p className="text-center text-xs text-zinc-700 mt-6">
+            LeetCode Premium: $35/mo ($420/yr). EYF: Free tier + Pro from ₹299/mo. Data accurate as of 2026.
+          </p>
+        </div>
+      </section>
+
       {/* Pricing */}
       <section className="py-20 px-6" id="pricing">
         <div className="max-w-5xl mx-auto">
