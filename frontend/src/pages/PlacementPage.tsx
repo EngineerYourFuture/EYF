@@ -458,6 +458,165 @@ function CompanyPanel({ guide, onClose }: CompanyPanelProps) {
   );
 }
 
+interface ServiceCompany {
+  name: string;
+  logo: string;
+  color: string;
+  ctc: string;
+  tagline: string;
+  testPlatform: string;
+  sections: Array<{ name: string; questions: number; time: string; topics: string[] }>;
+  aptitudeTips: string[];
+  technicalTopics: string[];
+  hrQuestions: string[];
+  certifications?: string;
+}
+
+const SERVICE_COMPANIES: ServiceCompany[] = [
+  {
+    name: 'TCS',
+    logo: 'TCS',
+    color: 'from-blue-700 to-blue-500',
+    ctc: '₹3.5–4.5 LPA (freshers)',
+    tagline: 'Largest IT employer in India. iON platform. Mass hiring every year.',
+    testPlatform: 'TCS iON (National Qualifier Test)',
+    sections: [
+      { name: 'Verbal Ability', questions: 24, time: '30 min', topics: ['Reading comprehension', 'Sentence correction', 'Para jumbles', 'Fill in the blanks', 'Synonyms/Antonyms'] },
+      { name: 'Quantitative Aptitude', questions: 26, time: '40 min', topics: ['Number system', 'Percentages', 'Time & work', 'Profit & loss', 'Ratios', 'Age problems'] },
+      { name: 'Reasoning Ability', questions: 30, time: '50 min', topics: ['Logical deduction', 'Seating arrangement', 'Blood relations', 'Coding-decoding', 'Series completion'] },
+      { name: 'Programming Logic', questions: 10, time: '20 min', topics: ['Output prediction', 'Fill in blanks in code', 'Time complexity (basic)', 'Data structures (basic)', 'C/C++ syntax'] },
+      { name: 'Coding', questions: 1, time: '30 min', topics: ['Easy DSA (arrays, strings, basic math)', 'C / C++ / Java / Python allowed'] },
+    ],
+    aptitudeTips: [
+      'Accuracy over speed — TCS NQT has negative marking (-1/3 for wrong answers)',
+      'Verbal section: practice RC daily, 10 min — most candidates skip this and lose marks',
+      'Quant: master percentages, profit & loss, time & work — these are 50%+ of questions',
+      'Programming Logic: know output of basic C programs with pointers and arrays',
+      'Coding: one easy problem — solve it fully for max marks, partial scoring available',
+    ],
+    technicalTopics: ['C basics: pointers, arrays, structs', 'DBMS: SQL queries, normalization', 'OS: processes, scheduling', 'OOP concepts', 'Networking basics'],
+    hrQuestions: ['Why TCS?', 'Are you willing to relocate?', 'Tell me about yourself', 'What is your strength/weakness?', 'Where do you see yourself in 5 years?'],
+    certifications: 'TCS iON Digital Certification (Digital Assurance) boosts profile — free online',
+  },
+  {
+    name: 'Infosys',
+    logo: 'INFY',
+    color: 'from-indigo-600 to-purple-500',
+    ctc: '₹3.6–4.5 LPA (freshers) · ₹9–11 LPA (digital roles)',
+    tagline: 'InfyTQ certification is mandatory. Digital roles pay 2× more.',
+    testPlatform: 'InfyTQ + HackerEarth',
+    sections: [
+      { name: 'Quantitative Reasoning', questions: 10, time: '25 min', topics: ['Number theory', 'Ratio & proportion', 'Clocks & calendars', 'Probability', 'Data interpretation'] },
+      { name: 'Logical Reasoning', questions: 15, time: '25 min', topics: ['Critical reasoning', 'Visual puzzles', 'Statement-conclusion', 'Direction sense', 'Arrangements'] },
+      { name: 'Verbal Ability', questions: 20, time: '20 min', topics: ['Error identification', 'Sentence completion', 'Vocabulary', 'Reading comprehension'] },
+      { name: 'Pseudocode', questions: 5, time: '10 min', topics: ['Trace pseudocode output', 'Identify errors', 'Predict variable values after loops'] },
+      { name: 'Coding', questions: 2, time: '3 hours', topics: ['Easy-Medium DSA', 'Python/Java/C++ preferred', 'InfyTQ platform'] },
+    ],
+    aptitudeTips: [
+      'InfyTQ certification (free) is prioritized by Infosys — complete it before applying',
+      'Digital/Power Programmer roles require 2 coding problems solved at 100% — prepare harder',
+      'Pseudocode section: understand flowchart → code translation, not just syntax',
+      'Verbal is easy if you read English daily — do 1 RC comprehension passage per day',
+      'No negative marking in most Infosys tests — attempt all questions',
+    ],
+    technicalTopics: ['OOP in Java/Python', 'SQL: complex joins, subqueries', 'Data structures: arrays, linked lists, trees', 'DBMS: ER diagrams, normalization', 'Algorithms: sorting, searching'],
+    hrQuestions: ['Why Infosys?', 'Tell me about InfyTQ certification', 'Describe a project using OOP', 'Are you flexible with service agreements?', 'What do you know about Infosys?'],
+    certifications: 'InfyTQ Certification — complete all 3 modules (Programming Fundamentals, OOP, Web Dev). Mandatory for System Engineer role.',
+  },
+  {
+    name: 'Wipro',
+    logo: 'WIP',
+    color: 'from-purple-600 to-pink-500',
+    ctc: '₹3.5–4 LPA (freshers) · ₹6.5 LPA (NLTH)',
+    tagline: 'NLTH (National Level Talent Hunt) for higher package. Separate test.',
+    testPlatform: 'AMCAT / Mettl',
+    sections: [
+      { name: 'Quantitative Aptitude', questions: 16, time: '16 min', topics: ['LCM/GCD', 'Arithmetic progressions', 'Permutations & combinations', 'Probability', 'Mensuration'] },
+      { name: 'Verbal Ability', questions: 22, time: '18 min', topics: ['Grammar correction', 'Antonyms/Synonyms', 'Ordering sentences', 'Comprehension'] },
+      { name: 'Logical Reasoning', questions: 14, time: '14 min', topics: ['Syllogisms', 'Input-output', 'Coding patterns', 'Number series'] },
+      { name: 'Written Communication', questions: 1, time: '20 min', topics: ['Essay writing (150–200 words)', 'Grammar and clarity graded by AI'] },
+      { name: 'Coding', questions: 2, time: '60 min', topics: ['Easy-medium problems', 'Array manipulation, string operations', 'Time complexity matters'] },
+    ],
+    aptitudeTips: [
+      'Wipro uses AMCAT — practice previous AMCAT papers, patterns are repetitive',
+      'Time management is critical: 1 min/quant, 50s/verbal, 1 min/reasoning',
+      'Written Communication: structure matters — intro, body, conclusion. Check grammar.',
+      'NLTH (₹6.5 LPA): requires 2 medium coding problems + tougher aptitude cutoff',
+      'Technical Interview: core CS subjects (OS, DBMS, OOP) + one project explanation',
+    ],
+    technicalTopics: ['C/C++/Java fundamentals', 'DBMS: SQL, normalization', 'OS: memory management, scheduling', 'Computer networks basics', 'OOP concepts'],
+    hrQuestions: ['Tell me about yourself', 'Why software engineering?', 'Strengths and weaknesses', 'Comfortable with bond period?', 'Preferred location?'],
+  },
+  {
+    name: 'Accenture',
+    logo: 'ACC',
+    color: 'from-violet-600 to-indigo-500',
+    ctc: '₹4.5 LPA (ASE) · ₹8 LPA (Packaged App Dev)',
+    tagline: 'Cognitive Assessment is the differentiator. Soft skills matter as much as tech.',
+    testPlatform: 'Accenture Hiring Assessment (iMocha / Mettl)',
+    sections: [
+      { name: 'Cognitive & Technical Assessment', questions: 50, time: '60 min', topics: ['Quant aptitude', 'Logical reasoning', 'Abstract reasoning patterns', 'Attention to detail', 'Basic programming concepts'] },
+      { name: 'Communication Assessment', questions: 1, time: '30 min', topics: ['Spoken English (recorded)', 'Reading aloud passage', 'Describe a picture', 'Open-ended questions'] },
+      { name: 'Coding Test', questions: 2, time: '90 min', topics: ['Easy coding problems', 'Any language', 'Logic over optimization'] },
+    ],
+    aptitudeTips: [
+      'Cognitive Assessment: abstract reasoning (pattern matrices) is hard — practice online',
+      'Communication test: speak clearly, structured sentences. Fluency > accent.',
+      'Accenture values "learning agility" — show you pick up new tools fast in interviews',
+      'No bond period at Accenture (unlike TCS/Wipro) — good selling point',
+      'Packaged App Dev (PAD) role: higher package, requires SAP/Salesforce interest',
+    ],
+    technicalTopics: ['Programming basics: loops, arrays, functions', 'SQL: SELECT, JOIN, GROUP BY', 'OOP concepts', 'Cloud basics (Azure, AWS)', 'Agile methodology basics'],
+    hrQuestions: ['Why Accenture?', 'Tell me about your final year project', 'How do you handle ambiguity?', 'Describe a team leadership experience', 'What technologies excite you?'],
+  },
+  {
+    name: 'Deloitte',
+    logo: 'DEL',
+    color: 'from-green-600 to-teal-500',
+    ctc: '₹7–9 LPA (Analyst) · ₹12–18 LPA (Consultant/specialist)',
+    tagline: 'Big 4 consulting. Case interviews + tech for UST. Strong analytical focus.',
+    testPlatform: 'Deloitte Online Assessment (Aspiring Minds / proprietary)',
+    sections: [
+      { name: 'Aptitude Test', questions: 30, time: '45 min', topics: ['Data interpretation', 'Business math (percentages, ratios)', 'Logical deduction', 'Critical reasoning', 'Number series'] },
+      { name: 'Technical Assessment', questions: 20, time: '30 min', topics: ['SQL queries', 'Excel / data analysis concepts', 'Consulting frameworks (for BTA roles)', 'Cloud and digital transformation basics'] },
+      { name: 'Communication Test', questions: 1, time: '15 min', topics: ['Written English proficiency', 'Email writing scenario'] },
+    ],
+    aptitudeTips: [
+      'Data interpretation is 40%+ of Deloitte aptitude — master DI with bar graphs, pie charts',
+      'Business context math: interpret revenues, growth rates, market share — not just pure math',
+      'For UST (US Technology) roles: prepare SQL + Python basics + a cloud certification',
+      'Case interview (for consulting track): practice MECE frameworks, hypothesis-driven thinking',
+      'Deloitte highly values communication — answer HR questions in structured, concise English',
+    ],
+    technicalTopics: ['SQL: advanced queries, window functions', 'Python: pandas basics, data manipulation', 'Cloud: AWS/Azure fundamentals', 'Data analytics concepts', 'Consulting: MECE, issue trees'],
+    hrQuestions: ['Why Deloitte vs Big 4 competitors?', 'Tell me about a time you solved a business problem', 'How do you handle ambiguity?', 'Where do you want to specialize?', 'Describe your analytical approach'],
+    certifications: 'AWS Cloud Practitioner or Azure Fundamentals strongly recommended for UST roles.',
+  },
+  {
+    name: 'Cognizant',
+    logo: 'COG',
+    color: 'from-blue-500 to-cyan-500',
+    ctc: '₹4–4.5 LPA (Programmer Analyst Trainee)',
+    tagline: 'GenC & GenC Pro tracks. Coding test differentiates Pro (higher package).',
+    testPlatform: 'AMCAT / Cognizant proprietary',
+    sections: [
+      { name: 'Quantitative Aptitude', questions: 25, time: '35 min', topics: ['Arithmetic', 'Algebra', 'Geometry basics', 'Probability', 'Data sufficiency'] },
+      { name: 'Verbal Ability', questions: 25, time: '35 min', topics: ['Reading comprehension', 'Error spotting', 'Fill in the blanks', 'Sentence ordering'] },
+      { name: 'Logical Reasoning', questions: 25, time: '35 min', topics: ['Seating arrangement', 'Blood relations', 'Direction problems', 'Coding-decoding'] },
+      { name: 'Coding (GenC Pro)', questions: 2, time: '75 min', topics: ['Medium DSA', 'Data structures: trees, graphs', 'Sorting, searching algorithms', 'String manipulation'] },
+    ],
+    aptitudeTips: [
+      'GenC (standard) vs GenC Pro (higher salary) — the coding round decides which track',
+      'GenC Pro requires 2 complete working solutions — aim for both in 75 minutes',
+      'Sectional cutoffs exist — do not skip any section even if you\'re strong in coding',
+      'AMCAT scores are reusable across companies — keep your score above 450+',
+      'Technical interview: projects + 2-3 core CS questions (DBMS/OS/OOP)',
+    ],
+    technicalTopics: ['OOP: inheritance, polymorphism, encapsulation', 'Data structures: arrays, linked lists, stacks', 'SQL: joins, group by, having', 'DBMS: normalization', 'OS: process management'],
+    hrQuestions: ['Tell me about yourself', 'Why Cognizant?', 'Strengths and weaknesses', 'Describe your best project', 'Team experience and conflict resolution'],
+  },
+];
+
 const BEHAVIORAL_QUESTIONS: BehavioralQ[] = [
   { id: 'b1', question: 'Tell me about a time you dealt with a difficult team member.', category: 'Conflict Resolution' },
   { id: 'b2', question: 'Describe a project where you had to learn a new technology quickly.', category: 'Learning Agility' },
@@ -497,7 +656,8 @@ export function PlacementPage() {
   const [stats, setStats] = useState<PlacementStats>({ applicationsSubmitted: 0, interviewsScheduled: 0, offersReceived: 0, readinessScore: 0 });
   const [applications, setApplications] = useState<Application[]>([]);
   const [behaviorals, setBehaviorals] = useState<BehavioralQ[]>(BEHAVIORAL_QUESTIONS);
-  const [activeTab, setActiveTab] = useState<'tracks' | 'behavioral' | 'applications' | 'companies'>('tracks');
+  const [activeTab, setActiveTab] = useState<'tracks' | 'behavioral' | 'applications' | 'companies' | 'india'>('tracks');
+  const [selectedServiceCo, setSelectedServiceCo] = useState<ServiceCompany | null>(null);
   const [selectedCompany, setSelectedCompany] = useState<CompanyGuide | null>(null);
   const [selectedBQ, setSelectedBQ] = useState<BehavioralQ | null>(null);
   const [bqResponse, setBqResponse] = useState('');
@@ -635,6 +795,7 @@ export function PlacementPage() {
     { id: 'behavioral' as const, label: 'Behavioral', icon: 'record_voice_over' },
     { id: 'applications' as const, label: 'Applications', icon: 'work' },
     { id: 'companies' as const, label: 'Companies', icon: 'business' },
+    { id: 'india' as const, label: '🇮🇳 Service Co.', icon: 'flag' },
   ];
 
   if (selectedBQ) {
@@ -1139,6 +1300,167 @@ export function PlacementPage() {
                 </table>
               </div>
             </div>
+          </div>
+        )}
+
+        {activeTab === 'india' && (
+          <div>
+            <div className="mb-6 p-5 bg-amber-500/5 border border-amber-500/15 rounded-2xl">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-xl">🇮🇳</span>
+                <h2 className="font-black text-amber-400">India Service Company Placement Prep</h2>
+              </div>
+              <p className="text-sm text-zinc-400">TCS, Infosys, Wipro, Accenture hire 50,000+ freshers per year. The patterns are predictable — learn them and clear the OA on your first attempt.</p>
+            </div>
+
+            {selectedServiceCo ? (
+              <div>
+                <button onClick={() => setSelectedServiceCo(null)} className="flex items-center gap-2 text-zinc-500 hover:text-zinc-300 text-sm mb-5 transition-colors">
+                  <Icon name="arrow_back" size={16} /> Back to all companies
+                </button>
+                <div className={`p-5 bg-gradient-to-r ${selectedServiceCo.color} rounded-2xl mb-5`}>
+                  <div className="flex items-center justify-between flex-wrap gap-3">
+                    <div>
+                      <h2 className="text-2xl font-black text-white">{selectedServiceCo.name}</h2>
+                      <p className="text-white/70 text-sm mt-0.5">{selectedServiceCo.tagline}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-white/60 text-[10px] font-bold uppercase tracking-widest">Avg CTC (Fresher)</p>
+                      <p className="text-white font-black">{selectedServiceCo.ctc}</p>
+                    </div>
+                  </div>
+                  <div className="mt-3 px-3 py-2 bg-black/20 rounded-xl inline-block">
+                    <p className="text-[10px] font-bold text-white/60 uppercase tracking-widest">Test Platform</p>
+                    <p className="text-white font-bold text-sm">{selectedServiceCo.testPlatform}</p>
+                  </div>
+                </div>
+
+                {/* OA sections */}
+                <div className="mb-6">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-4">Online Assessment Sections</p>
+                  <div className="space-y-3">
+                    {selectedServiceCo.sections.map((section) => (
+                      <div key={section.name} className="bg-[#1a1a1a] rounded-xl p-4 border border-white/5">
+                        <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+                          <h3 className="font-bold text-white">{section.name}</h3>
+                          <div className="flex gap-3 text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
+                            <span>{section.questions} questions</span>
+                            <span>·</span>
+                            <span>{section.time}</span>
+                          </div>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {section.topics.map((t) => (
+                            <span key={t} className="px-2.5 py-1 bg-zinc-800 rounded-lg text-xs text-zinc-300">{t}</span>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
+                  {/* Aptitude tips */}
+                  <div className="bg-[#1a1a1a] rounded-xl p-5 border border-white/5">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-amber-400 mb-3 flex items-center gap-1.5">
+                      <Icon name="tips_and_updates" size={12} /> Prep Tips
+                    </p>
+                    <ul className="space-y-2">
+                      {selectedServiceCo.aptitudeTips.map((tip, i) => (
+                        <li key={i} className="flex items-start gap-2 text-sm text-zinc-400">
+                          <span className="text-amber-400 font-black flex-shrink-0 mt-0.5">{i + 1}.</span>
+                          {tip}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  {/* Technical topics */}
+                  <div className="bg-[#1a1a1a] rounded-xl p-5 border border-white/5">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-blue-400 mb-3 flex items-center gap-1.5">
+                      <Icon name="code" size={12} /> Technical Interview Topics
+                    </p>
+                    <ul className="space-y-2">
+                      {selectedServiceCo.technicalTopics.map((t) => (
+                        <li key={t} className="flex items-center gap-2 text-sm text-zinc-400">
+                          <Icon name="arrow_right" size={13} className="text-blue-400 flex-shrink-0" />
+                          {t}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+
+                {/* HR Questions */}
+                <div className="bg-[#1a1a1a] rounded-xl p-5 border border-white/5 mb-5">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-purple-400 mb-3 flex items-center gap-1.5">
+                    <Icon name="record_voice_over" size={12} /> Common HR Questions
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedServiceCo.hrQuestions.map((q) => (
+                      <span key={q} className="px-3 py-1.5 bg-purple-500/10 border border-purple-500/20 rounded-lg text-xs text-purple-300">{q}</span>
+                    ))}
+                  </div>
+                </div>
+
+                {selectedServiceCo.certifications && (
+                  <div className="bg-green-500/5 border border-green-500/15 rounded-xl p-4">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-green-400 mb-1 flex items-center gap-1.5">
+                      <Icon name="verified" size={12} /> Recommended Certifications
+                    </p>
+                    <p className="text-sm text-zinc-400">{selectedServiceCo.certifications}</p>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {SERVICE_COMPANIES.map((co) => (
+                    <button
+                      key={co.name}
+                      type="button"
+                      onClick={() => setSelectedServiceCo(co)}
+                      className="bg-[#1a1a1a] border border-white/5 rounded-2xl p-5 text-left hover:border-white/15 hover:bg-[#222] transition-all group"
+                    >
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${co.color} flex items-center justify-center text-white font-black text-xs shadow-lg`}>
+                          {co.logo}
+                        </div>
+                        <div>
+                          <h3 className="font-black text-white">{co.name}</h3>
+                          <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Service Company</p>
+                        </div>
+                      </div>
+                      <p className="text-xs text-zinc-500 mb-3 leading-relaxed">{co.tagline}</p>
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-bold text-green-400">{co.ctc}</span>
+                        <span className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest flex items-center gap-1 group-hover:text-zinc-400 transition-colors">
+                          {co.sections.length} sections <Icon name="arrow_forward" size={10} />
+                        </span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+
+                {/* Aptitude quick tips */}
+                <div className="mt-8 p-6 bg-[#1a1a1a] border border-white/5 rounded-2xl">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-4">Universal Service Company Tips</p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {[
+                      { icon: 'timer', color: 'text-blue-400', tip: 'Time management beats perfection — 60% accuracy with full attempt beats 80% accuracy with 30% skipped' },
+                      { icon: 'book', color: 'text-green-400', tip: 'Verbal is the most neglected section. 10 min of RC daily = top 20% automatically' },
+                      { icon: 'psychology', color: 'text-purple-400', tip: 'Aptitude patterns repeat year to year — use previous year papers for TCS/Wipro' },
+                      { icon: 'verified', color: 'text-amber-400', tip: 'Platform certifications (InfyTQ, TCS iON) act as pre-filters — complete them before applying' },
+                    ].map((item, i) => (
+                      <div key={i} className="flex items-start gap-3 bg-zinc-900/50 rounded-xl p-4">
+                        <Icon name={item.icon} size={18} className={`${item.color} flex-shrink-0 mt-0.5`} />
+                        <p className="text-sm text-zinc-400 leading-relaxed">{item.tip}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
