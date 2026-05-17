@@ -121,6 +121,25 @@ const STATIC_POSTS: Post[] = [
   { id: 'p15', title: 'Sliding window vs two pointers — they feel the same to me', body: 'I know they\'re technically different but when I see a new problem I can\'t tell which to reach for. Someone please give me a decision rule I can actually use in an interview.', category: 'dsa', tags: ['patterns', 'sliding-window', 'two-pointers'], upvotes: 93, pinned: false, createdAt: '2026-05-01T11:30:00Z', author: 'pattern_confused', replyCount: 38 },
 ];
 
+const SQUAD_FOCUS_META: Record<string, { icon: string; color: string }> = {
+  'DSA': { icon: 'code', color: 'text-blue-400' },
+  'System Design': { icon: 'architecture', color: 'text-cyan-400' },
+  'Interview Prep': { icon: 'route', color: 'text-green-400' },
+  'Placement': { icon: 'work', color: 'text-orange-400' },
+  'Backend': { icon: 'dns', color: 'text-purple-400' },
+  'Security': { icon: 'shield', color: 'text-red-400' },
+  'Frontend': { icon: 'web', color: 'text-blue-300' },
+  'GenAI': { icon: 'auto_awesome', color: 'text-amber-400' },
+};
+
+function timeAgo(d: string): string {
+  const diff = Date.now() - new Date(d).getTime();
+  const hours = Math.floor(diff / 3600000);
+  if (hours < 1) return 'just now';
+  if (hours < 24) return `${hours}h ago`;
+  return `${Math.floor(hours / 24)}d ago`;
+}
+
 export function CommunityPage() {
   const session = getSession();
   const { fireXP } = useUser();
@@ -252,17 +271,7 @@ export function CommunityPage() {
 
   const createSquad = () => {
     if (!newSquad.name || !newSquad.goal) return;
-    const focusMeta: Record<string, { icon: string; color: string }> = {
-      'DSA': { icon: 'code', color: 'text-blue-400' },
-      'System Design': { icon: 'architecture', color: 'text-cyan-400' },
-      'Interview Prep': { icon: 'route', color: 'text-green-400' },
-      'Placement': { icon: 'work', color: 'text-orange-400' },
-      'Backend': { icon: 'dns', color: 'text-purple-400' },
-      'Security': { icon: 'shield', color: 'text-red-400' },
-      'Frontend': { icon: 'web', color: 'text-blue-300' },
-      'GenAI': { icon: 'auto_awesome', color: 'text-amber-400' },
-    };
-    const meta = focusMeta[newSquad.focus] ?? focusMeta.DSA;
+    const meta = SQUAD_FOCUS_META[newSquad.focus] ?? SQUAD_FOCUS_META['DSA'];
     const squad: Squad = {
       id: `sq${Date.now()}`,
       name: newSquad.name,
@@ -291,13 +300,6 @@ export function CommunityPage() {
   };
 
   const filtered = activeCategory === 'all' ? posts : posts.filter((p) => p.category === activeCategory);
-  const timeAgo = (d: string) => {
-    const diff = Date.now() - new Date(d).getTime();
-    const hours = Math.floor(diff / 3600000);
-    if (hours < 1) return 'just now';
-    if (hours < 24) return `${hours}h ago`;
-    return `${Math.floor(hours / 24)}d ago`;
-  };
 
   if (selected) {
     const catMeta = CAT_META[selected.category] ?? CAT_META.general;
@@ -420,7 +422,7 @@ export function CommunityPage() {
             >
               <Icon name={v.icon} size={14} />
               {v.label}
-              {v.id === 'squads' && squads.filter((s) => s.joined).length > 0 && (
+              {v.id === 'squads' && squads.some((s) => s.joined) && (
                 <span className="bg-white/20 px-1.5 rounded-full text-[10px]">{squads.filter((s) => s.joined).length}</span>
               )}
             </button>
@@ -532,7 +534,7 @@ export function CommunityPage() {
             ) : (
               <div>
                 {/* My squads */}
-                {squads.filter((s) => s.joined).length > 0 && (
+                {squads.some((s) => s.joined) && (
                   <div className="mb-8">
                     <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-4">My Squads</p>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

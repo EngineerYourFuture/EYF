@@ -119,7 +119,7 @@ function groupByWeek(days: DailyActivity[]): DailyActivity[][] {
   const firstDay = new Date(days[0].date);
   const padDays = firstDay.getDay(); // 0-6
   const padded: (DailyActivity | null)[] = [
-    ...Array(padDays).fill(null),
+    ...new Array(padDays).fill(null),
     ...days,
   ];
   for (let i = 0; i < padded.length; i += 7) {
@@ -133,7 +133,7 @@ const MONTH_LABELS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct
 // ─── Stat card ────────────────────────────────────────────────────────────────
 
 function StatCard({ icon, label, value, sub, color }: {
-  icon: string; label: string; value: string | number; sub?: string; color: string;
+  readonly icon: string; readonly label: string; readonly value: string | number; readonly sub?: string; readonly color: string;
 }) {
   return (
     <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
@@ -151,7 +151,7 @@ function StatCard({ icon, label, value, sub, color }: {
 
 // ─── Mini bar chart ───────────────────────────────────────────────────────────
 
-function WeeklyXPChart({ days }: { days: DailyActivity[] }) {
+function WeeklyXPChart({ days }: { readonly days: DailyActivity[] }) {
   const last14 = days.slice(-14);
   const maxXP = Math.max(...last14.map(d => d.xp), 1);
 
@@ -159,11 +159,11 @@ function WeeklyXPChart({ days }: { days: DailyActivity[] }) {
     <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
       <p className="text-xs font-bold uppercase tracking-wider text-zinc-400 mb-4">XP — Last 14 Days</p>
       <div className="flex items-end gap-1 h-24">
-        {last14.map((day, i) => {
+        {last14.map((day, _i) => {
           const pct = (day.xp / maxXP) * 100;
           const label = new Date(day.date).toLocaleDateString('en', { weekday: 'short' });
           return (
-            <div key={i} className="flex-1 flex flex-col items-center gap-1 group relative">
+            <div key={day.date} className="flex-1 flex flex-col items-center gap-1 group relative">
               <div className="w-full flex flex-col justify-end" style={{ height: '80px' }}>
                 <div
                   className={`w-full rounded-sm transition-all duration-300 ${
@@ -188,7 +188,7 @@ function WeeklyXPChart({ days }: { days: DailyActivity[] }) {
 
 // ─── Activity heatmap ─────────────────────────────────────────────────────────
 
-function ActivityHeatmap({ days }: { days: DailyActivity[] }) {
+function ActivityHeatmap({ days }: { readonly days: DailyActivity[] }) {
   const weeks = groupByWeek(days);
 
   // Get month labels positioned by week index
@@ -218,7 +218,7 @@ function ActivityHeatmap({ days }: { days: DailyActivity[] }) {
         {weeks.map((_, wi) => {
           const marker = monthMarkers.find(m => m.weekIdx === wi);
           return (
-            <div key={wi} className="w-3 flex-shrink-0 text-[9px] text-zinc-600 text-center">
+            <div key={`month-${wi}`} className="w-3 flex-shrink-0 text-[9px] text-zinc-600 text-center">
               {marker ? marker.label[0] : ''}
             </div>
           );
@@ -229,20 +229,20 @@ function ActivityHeatmap({ days }: { days: DailyActivity[] }) {
         {/* Day labels */}
         <div className="flex flex-col gap-[2px] mr-1">
           {['S','M','T','W','T','F','S'].map((d, i) => (
-            <div key={i} className="h-3 w-4 text-[9px] text-zinc-600 flex items-center">{i % 2 === 1 ? d : ''}</div>
+            <div key={`day-label-${i}`} className="h-3 w-4 text-[9px] text-zinc-600 flex items-center">{i % 2 === 1 ? d : ''}</div>
           ))}
         </div>
 
         {/* Week columns */}
         {weeks.map((week, wi) => (
-          <div key={wi} className="flex flex-col gap-[2px]">
+          <div key={`week-${wi}`} className="flex flex-col gap-[2px]">
             {/* Pad to 7 cells */}
-            {Array(7).fill(null).map((_, di) => {
+            {new Array(7).fill(null).map((_, di) => {
               const day = week[di];
               const intensity = day ? xpToIntensity(day.xp) : 0;
               return (
                 <div
-                  key={di}
+                  key={`cell-${wi}-${di}`}
                   title={day ? `${day.date}: ${day.xp} XP, ${day.problems} problems` : ''}
                   className={`w-3 h-3 rounded-[2px] flex-shrink-0 ${INTENSITY_CLASSES[intensity]} transition-colors cursor-default`}
                 />
@@ -256,7 +256,7 @@ function ActivityHeatmap({ days }: { days: DailyActivity[] }) {
       <div className="flex items-center gap-2 mt-3 justify-end">
         <span className="text-[10px] text-zinc-600">Less</span>
         {INTENSITY_CLASSES.map((cls, i) => (
-          <div key={i} className={`w-3 h-3 rounded-[2px] ${cls}`} />
+          <div key={`legend-${i}`} className={`w-3 h-3 rounded-[2px] ${cls}`} />
         ))}
         <span className="text-[10px] text-zinc-600">More</span>
       </div>
@@ -266,12 +266,15 @@ function ActivityHeatmap({ days }: { days: DailyActivity[] }) {
 
 // ─── Subject progress bars ────────────────────────────────────────────────────
 
-function SubjectProgressPanel({ subjects }: { subjects: SubjectProgress[] }) {
+function SubjectProgressPanel({ subjects }: { readonly subjects: SubjectProgress[] }) {
   return (
     <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 space-y-4">
       <p className="text-xs font-bold uppercase tracking-wider text-zinc-400">Subject Completion</p>
       {subjects.map(s => {
         const pct = s.total > 0 ? Math.round((s.completed / s.total) * 100) : 0;
+        let barColor = 'bg-zinc-600';
+        if (pct >= 80) barColor = 'bg-green-500';
+        else if (pct >= 50) barColor = 'bg-blue-500';
         return (
           <Link key={s.id} to={`/app/subjects/${s.id}`} className="block group">
             <div className="flex items-center justify-between mb-1">
@@ -283,9 +286,7 @@ function SubjectProgressPanel({ subjects }: { subjects: SubjectProgress[] }) {
             </div>
             <div className="h-1.5 bg-zinc-800 rounded-full overflow-hidden">
               <div
-                className={`h-full rounded-full transition-all duration-500 ${
-                  pct >= 80 ? 'bg-green-500' : pct >= 50 ? 'bg-blue-500' : 'bg-zinc-600'
-                }`}
+                className={`h-full rounded-full transition-all duration-500 ${barColor}`}
                 style={{ width: `${pct}%` }}
               />
             </div>
@@ -298,7 +299,7 @@ function SubjectProgressPanel({ subjects }: { subjects: SubjectProgress[] }) {
 
 // ─── Rank card ────────────────────────────────────────────────────────────────
 
-function RankCard({ percentile, streak, longestStreak }: { percentile: number; streak: number; longestStreak: number }) {
+function RankCard({ percentile, streak, longestStreak }: { readonly percentile: number; readonly streak: number; readonly longestStreak: number }) {
   return (
     <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 space-y-4">
       <p className="text-xs font-bold uppercase tracking-wider text-zinc-400">Your Standing</p>
@@ -323,7 +324,7 @@ function RankCard({ percentile, streak, longestStreak }: { percentile: number; s
         to="/app/leaderboard"
         className="flex items-center justify-center gap-2 text-xs font-bold text-zinc-400 hover:text-white transition-colors pt-1"
       >
-        <span className="material-symbols-outlined text-sm">leaderboard</span>
+        <span className="material-symbols-outlined text-sm">leaderboard</span>{' '}
         View Full Leaderboard
       </Link>
     </div>
@@ -363,7 +364,7 @@ export function ProgressPage() {
             to="/app/achievements"
             className="flex items-center gap-2 text-sm text-zinc-400 hover:text-yellow-400 transition-colors"
           >
-            <span className="material-symbols-outlined text-lg">emoji_events</span>
+            <span className="material-symbols-outlined text-lg">emoji_events</span>{' '}
             Achievements
           </Link>
         </div>

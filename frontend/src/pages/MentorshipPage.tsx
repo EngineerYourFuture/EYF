@@ -161,7 +161,7 @@ export function MentorshipPage() {
   }, [session?.accessToken]);
 
   const allTags = ['all', ...Array.from(new Set(STATIC_MENTORS.flatMap((m) => m.tags)))];
-  const filteredMentors = filterTag === 'all' ? mentors : mentors.filter((m) => m.tags.some((t) => t === filterTag));
+  const filteredMentors = filterTag === 'all' ? mentors : mentors.filter((m) => m.tags.includes(filterTag));
 
   const handleBook = async () => {
     if (!bookingMentor || !sessionType || !session?.accessToken) return;
@@ -419,6 +419,11 @@ export function MentorshipPage() {
               {groups.map((g) => {
                 const badge = LEVEL_BADGE[g.level];
                 const full = g.memberCount >= g.maxMembers && !g.joined;
+                let groupBtnClass = 'bg-primary-container text-white hover:brightness-110';
+                if (g.joined) groupBtnClass = 'bg-green-500/10 text-green-400 border border-green-500/20';
+                else if (full) groupBtnClass = 'text-zinc-600 border border-zinc-800 cursor-not-allowed';
+                const groupBtnIcon = g.joined ? 'check_circle' : (full ? 'group_off' : 'group_add');
+                const groupBtnLabel = g.joined ? 'Joined · Leave' : (full ? 'Group Full' : 'Join Group');
                 return (
                   <div key={g.id} className={`bg-surface-container rounded-xl p-6 flex flex-col gap-4 transition-all ${g.joined ? 'border border-green-500/20' : ''}`}>
                     <div className="flex items-start justify-between">
@@ -457,16 +462,10 @@ export function MentorshipPage() {
                     <button
                       onClick={() => toggleGroup(g.id)}
                       disabled={full}
-                      className={`w-full py-2.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${
-                        g.joined
-                          ? 'bg-green-500/10 text-green-400 border border-green-500/20'
-                          : full
-                          ? 'text-zinc-600 border border-zinc-800 cursor-not-allowed'
-                          : 'bg-primary-container text-white hover:brightness-110'
-                      }`}
+                      className={`w-full py-2.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${groupBtnClass}`}
                     >
-                      <Icon name={g.joined ? 'check_circle' : full ? 'group_off' : 'group_add'} size={14} />
-                      {g.joined ? 'Joined · Leave' : full ? 'Group Full' : 'Join Group'}
+                      <Icon name={groupBtnIcon} size={14} />
+                      {groupBtnLabel}
                     </button>
                   </div>
                 );
@@ -559,8 +558,9 @@ export function MentorshipPage() {
 
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-xs font-bold text-zinc-400 mb-2">Your Bio *</label>
+                      <label htmlFor="mentor-bio" className="block text-xs font-bold text-zinc-400 mb-2">Your Bio *</label>
                       <textarea
+                        id="mentor-bio"
                         value={becomeForm.bio}
                         onChange={(e) => setBecomeForm((p) => ({ ...p, bio: e.target.value }))}
                         placeholder="Tell potential mentees about your background, experience, and what you're excited to help with..."
@@ -569,8 +569,9 @@ export function MentorshipPage() {
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-zinc-400 mb-2">Specializations * (comma-separated)</label>
+                      <label htmlFor="mentor-spec" className="block text-xs font-bold text-zinc-400 mb-2">Specializations * (comma-separated)</label>
                       <input
+                        id="mentor-spec"
                         type="text"
                         value={becomeForm.specializations}
                         onChange={(e) => setBecomeForm((p) => ({ ...p, specializations: e.target.value }))}
@@ -579,8 +580,9 @@ export function MentorshipPage() {
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-zinc-400 mb-2">Years of Experience</label>
+                      <label htmlFor="mentor-exp" className="block text-xs font-bold text-zinc-400 mb-2">Years of Experience</label>
                       <input
+                        id="mentor-exp"
                         type="number"
                         value={becomeForm.yearsExp}
                         onChange={(e) => setBecomeForm((p) => ({ ...p, yearsExp: e.target.value }))}
@@ -664,8 +666,9 @@ export function MentorshipPage() {
                 </div>
 
                 <div className="mb-6">
-                  <label className="block text-xs font-bold text-zinc-400 uppercase tracking-widest mb-2">What's your goal for this session?</label>
+                  <label htmlFor="session-goal" className="block text-xs font-bold text-zinc-400 uppercase tracking-widest mb-2">What's your goal for this session?</label>
                   <textarea
+                    id="session-goal"
                     value={sessionGoal}
                     onChange={(e) => setSessionGoal(e.target.value)}
                     placeholder="e.g. I want help with dynamic programming — I always get stuck on state transitions..."

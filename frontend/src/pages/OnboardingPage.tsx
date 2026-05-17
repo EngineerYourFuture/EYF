@@ -101,25 +101,31 @@ export function OnboardingPage() {
   const back = () => setStep((s) => Math.max(s - 1, 1));
 
   const toggleCompany = (company: string) => {
-    setData((d) => ({
-      ...d,
-      targetCompanies: d.targetCompanies.includes(company)
-        ? d.targetCompanies.filter((c) => c !== company)
-        : d.targetCompanies.length < 4
-        ? [...d.targetCompanies, company]
-        : d.targetCompanies,
-    }));
+    setData((d) => {
+      let targetCompanies: string[];
+      if (d.targetCompanies.includes(company)) {
+        targetCompanies = d.targetCompanies.filter((c) => c !== company);
+      } else if (d.targetCompanies.length < 4) {
+        targetCompanies = [...d.targetCompanies, company];
+      } else {
+        targetCompanies = d.targetCompanies;
+      }
+      return { ...d, targetCompanies };
+    });
   };
 
   const toggleFocus = (id: string) => {
-    setData((d) => ({
-      ...d,
-      focusAreas: d.focusAreas.includes(id)
-        ? d.focusAreas.filter((f) => f !== id)
-        : d.focusAreas.length < 4
-        ? [...d.focusAreas, id]
-        : d.focusAreas,
-    }));
+    setData((d) => {
+      let focusAreas: string[];
+      if (d.focusAreas.includes(id)) {
+        focusAreas = d.focusAreas.filter((f) => f !== id);
+      } else if (d.focusAreas.length < 4) {
+        focusAreas = [...d.focusAreas, id];
+      } else {
+        focusAreas = d.focusAreas;
+      }
+      return { ...d, focusAreas };
+    });
   };
 
   const finish = async () => {
@@ -203,8 +209,9 @@ export function OnboardingPage() {
             <p className="text-zinc-400 mb-10">Let's set up your profile. It takes 2 minutes and personalizes your entire experience.</p>
 
             <div className="text-left">
-              <label className="block text-xs font-bold text-zinc-400 uppercase tracking-widest mb-3">What should we call you?</label>
+              <label htmlFor="onboarding-name" className="block text-xs font-bold text-zinc-400 uppercase tracking-widest mb-3">What should we call you?</label>
               <input
+                id="onboarding-name"
                 type="text"
                 value={data.name}
                 onChange={(e) => setData((d) => ({ ...d, name: e.target.value }))}
@@ -276,22 +283,27 @@ export function OnboardingPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-zinc-400 uppercase tracking-widest mb-3">Years of experience</label>
+              <p className="block text-xs font-bold text-zinc-400 uppercase tracking-widest mb-3">Years of experience</p>
               <div className="flex gap-2">
-                {[0, 1, 2, 3, 5, 7, 10].map((yr) => (
-                  <button
-                    key={yr}
-                    type="button"
-                    onClick={() => setData((d) => ({ ...d, experienceYears: yr }))}
-                    className={`flex-1 py-2.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${
-                      data.experienceYears === yr
-                        ? 'bg-primary-container text-white'
-                        : 'bg-surface-container text-zinc-500 hover:text-zinc-200'
-                    }`}
-                  >
-                    {yr === 0 ? 'None' : yr === 10 ? '10+' : `${yr}yr`}
-                  </button>
-                ))}
+                {[0, 1, 2, 3, 5, 7, 10].map((yr) => {
+                  let yrLabel = `${yr}yr`;
+                  if (yr === 0) yrLabel = 'None';
+                  else if (yr === 10) yrLabel = '10+';
+                  return (
+                    <button
+                      key={yr}
+                      type="button"
+                      onClick={() => setData((d) => ({ ...d, experienceYears: yr }))}
+                      className={`flex-1 py-2.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${
+                        data.experienceYears === yr
+                          ? 'bg-primary-container text-white'
+                          : 'bg-surface-container text-zinc-500 hover:text-zinc-200'
+                      }`}
+                    >
+                      {yrLabel}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -307,18 +319,15 @@ export function OnboardingPage() {
             <div className="flex flex-wrap gap-2.5">
               {COMPANIES.map((c) => {
                 const selected = data.targetCompanies.includes(c);
+                let companyBtnClass = 'bg-surface-container border-zinc-800 text-zinc-400 hover:border-zinc-600 hover:text-zinc-200';
+                if (selected) companyBtnClass = 'bg-primary-container/10 border-primary-container/50 text-primary-container';
+                else if (data.targetCompanies.length >= 4) companyBtnClass = 'bg-surface-container border-zinc-800 text-zinc-600 cursor-not-allowed';
                 return (
                   <button
                     key={c}
                     type="button"
                     onClick={() => toggleCompany(c)}
-                    className={`px-5 py-2.5 rounded-full text-sm font-bold transition-all border ${
-                      selected
-                        ? 'bg-primary-container/10 border-primary-container/50 text-primary-container'
-                        : data.targetCompanies.length >= 4
-                        ? 'bg-surface-container border-zinc-800 text-zinc-600 cursor-not-allowed'
-                        : 'bg-surface-container border-zinc-800 text-zinc-400 hover:border-zinc-600 hover:text-zinc-200'
-                    }`}
+                    className={`px-5 py-2.5 rounded-full text-sm font-bold transition-all border ${companyBtnClass}`}
                   >
                     {selected && <Icon name="check" size={12} className="inline mr-1" />}
                     {c}
@@ -338,18 +347,15 @@ export function OnboardingPage() {
             <div className="grid grid-cols-2 gap-2 mb-8">
               {FOCUS_AREAS.map((f) => {
                 const selected = data.focusAreas.includes(f.id);
+                let focusBtnClass = 'bg-surface-container border-zinc-800 text-on-surface-variant hover:border-zinc-700';
+                if (selected) focusBtnClass = 'bg-primary-container/10 border-primary-container/50 text-primary-container';
+                else if (data.focusAreas.length >= 4) focusBtnClass = 'bg-surface-container border-zinc-800 text-zinc-600 cursor-not-allowed';
                 return (
                   <button
                     key={f.id}
                     type="button"
                     onClick={() => toggleFocus(f.id)}
-                    className={`flex items-center gap-3 p-4 rounded-xl text-left transition-all border ${
-                      selected
-                        ? 'bg-primary-container/10 border-primary-container/50 text-primary-container'
-                        : data.focusAreas.length >= 4
-                        ? 'bg-surface-container border-zinc-800 text-zinc-600 cursor-not-allowed'
-                        : 'bg-surface-container border-zinc-800 text-on-surface-variant hover:border-zinc-700'
-                    }`}
+                    className={`flex items-center gap-3 p-4 rounded-xl text-left transition-all border ${focusBtnClass}`}
                   >
                     <Icon name={f.icon} size={18} className={selected ? 'text-primary-container' : 'text-zinc-500'} />
                     <span className="text-sm font-bold">{f.label}</span>

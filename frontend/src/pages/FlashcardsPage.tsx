@@ -133,7 +133,7 @@ const ALL_CARDS: Flashcard[] = [
   // Behavioral Interview
   { id: 'beh-1', front: 'What is the STAR method for behavioral answers?', back: 'STAR = Situation, Task, Action, Result.\n\nS — Situation: set the context (brief, 1-2 sentences)\nT — Task: your specific responsibility\nA — Action: what YOU did (use "I" not "we"; be specific)\nR — Result: quantified outcome + what you learned\n\nExample trigger: "Tell me about a time you..."\n\nTips:\n• Spend 70% of time on A and R\n• Use numbers: "reduced latency by 40%"\n• Prepare 8-10 stories that cover: leadership, conflict, failure, technical achievement, ambiguity, prioritization', category: 'behavioral', difficulty: 'easy', tags: ['star', 'behavioral'] },
   { id: 'beh-2', front: 'How do you answer "Tell me about yourself"?', back: 'Structure: Present → Past → Future (2 minutes max)\n\nPresent: What you\'re doing now and why it matters\n"I\'m a backend engineer at FinTech Co, where I own our payments infrastructure handling ₹50Cr/day."\n\nPast: Relevant experience that led here\n"Before this, I built high-scale APIs at a Series B startup and interned at Walmart Labs."\n\nFuture: Why this role/company specifically\n"I\'m looking to work on distributed systems at Google scale, which is exactly what drew me to this role."\n\nDon\'t: read your CV, be vague, go over 2 min\nDo: rehearse it, make it a compelling story, end with why you\'re here', category: 'behavioral', difficulty: 'easy', tags: ['intro', 'behavioral'] },
-  { id: 'beh-3', front: 'How do you answer "What is your greatest weakness"?', back: 'The trap: fake humility ("I work too hard") or real red flags ("I miss deadlines").\n\nFormula: Name a real, non-critical weakness + show active improvement + show awareness\n\nExample:\n"Historically I\'ve struggled with saying no — I\'d take on too much and burn out. I started blocking \"deep work\" time in my calendar and using a task priority matrix. Last quarter I delivered 3 major projects without overtime, compared to the previous quarter where I worked weekends twice."\n\nGood weaknesses:\n• Difficulty delegating (improving by using task lists + check-ins)\n• Public speaking (improving by attending Toastmasters)\n• Over-engineering (improving by asking "what\'s the MVP")\n\nNever: "I have no weaknesses" or weaknesses essential to the job', category: 'behavioral', difficulty: 'medium', tags: ['weakness', 'behavioral'] },
+  { id: 'beh-3', front: 'How do you answer "What is your greatest weakness"?', back: 'The trap: fake humility ("I work too hard") or real red flags ("I miss deadlines").\n\nFormula: Name a real, non-critical weakness + show active improvement + show awareness\n\nExample:\n"Historically I\'ve struggled with saying no — I\'d take on too much and burn out. I started blocking "deep work" time in my calendar and using a task priority matrix. Last quarter I delivered 3 major projects without overtime, compared to the previous quarter where I worked weekends twice."\n\nGood weaknesses:\n• Difficulty delegating (improving by using task lists + check-ins)\n• Public speaking (improving by attending Toastmasters)\n• Over-engineering (improving by asking "what\'s the MVP")\n\nNever: "I have no weaknesses" or weaknesses essential to the job', category: 'behavioral', difficulty: 'medium', tags: ['weakness', 'behavioral'] },
   { id: 'beh-4', front: 'Amazon Leadership Principles — name the most tested ones', back: '14 Leadership Principles at Amazon (frequently asked):\n\n1. Customer Obsession — start with customer, work backwards\n2. Ownership — "That\'s not my job" never said here\n3. Invent and Simplify — find new ways, simplify existing\n4. Are Right, A Lot — good judgment, seek diverse perspectives\n5. Learn and Be Curious — always learning\n6. Hire and Develop the Best — raise the bar\n7. Insist on Highest Standards — never "good enough"\n8. Think Big — bold, audacious goals\n9. Bias for Action — calculated risk > analysis paralysis\n10. Frugality — do more with less\n11. Earn Trust — listen, be honest, speak candidly\n12. Dive Deep — understand the details\n13. Have Backbone; Disagree and Commit — challenge then commit\n14. Deliver Results — the scoreboard matters\n\nPrepare 2 STAR stories per LP. Amazon interviewers explicitly map answers to LPs.', category: 'behavioral', difficulty: 'medium', tags: ['amazon', 'leadership', 'behavioral'] },
   { id: 'beh-5', front: 'How do you prioritize competing tasks/deadlines?', back: 'Framework: ICE or Eisenhower Matrix\n\nICE = Impact × Confidence × Ease (score 1-10 each, multiply)\n\nEisenhower Matrix:\n• Urgent + Important: Do first\n• Important + Not Urgent: Schedule\n• Urgent + Not Important: Delegate\n• Not Urgent + Not Important: Eliminate\n\nSample answer:\n"When I have competing priorities, I first clarify the actual business impact of each — deadlines aren\'t always equal. I use a quick impact/effort matrix. I\'m also transparent with stakeholders early: \'I can deliver A by Thursday or B by Tuesday, which matters more to you?\' This avoids surprises and builds trust."\n\nRedflags: "I just work harder" or "I always hit every deadline" (not credible)', category: 'behavioral', difficulty: 'medium', tags: ['prioritization', 'behavioral'] },
   { id: 'beh-6', front: 'How do you handle a disagreement with a coworker?', back: 'What they\'re really asking: can you navigate conflict professionally without escalating unnecessarily?\n\nFormula:\n1. Try to understand their view first (ask questions, not arguments)\n2. Share your perspective with data, not opinion\n3. Identify the shared goal (you both want the product to succeed)\n4. Propose a structured way to resolve it (test both approaches, timebox, prototype)\n5. If stuck, escalate with options, not a complaint\n\nSample story trigger: "Tell me about a time you disagreed with a peer..."\n\nKey phrases:\n• "I asked them to walk me through their thinking..."\n• "I realized they had context I didn\'t..."\n• "We agreed to run a 1-week experiment..."\n• "Looking back, their approach had merit I hadn\'t appreciated"', category: 'behavioral', difficulty: 'medium', tags: ['conflict', 'behavioral'] },
@@ -161,7 +161,7 @@ const BUCKET_DAYS = [0, 1, 3, 7, 14, 30];
 // ─── Component ────────────────────────────────────────────────────────────────
 
 function getDueCards(cards: Flashcard[], progress: CardProgress[]): Flashcard[] {
-  const now = new Date().toISOString().split('T')[0]!;
+  const now = new Date().toISOString().split('T')[0];
   return cards.filter((c) => {
     const p = progress.find((pr) => pr.cardId === c.id);
     if (!p) return true; // new card = always due
@@ -170,16 +170,18 @@ function getDueCards(cards: Flashcard[], progress: CardProgress[]): Flashcard[] 
 }
 
 function getNextReview(confidence: ConfidenceLevel, currentBucket: number): { bucket: number; nextReview: string } {
-  let next = currentBucket;
-  if (confidence === 'again') next = 0;
-  else if (confidence === 'hard') next = Math.max(0, currentBucket - 1);
-  else if (confidence === 'good') next = Math.min(5, currentBucket + 1);
-  else next = Math.min(5, currentBucket + 2); // easy
+  const nextMap: Record<ConfidenceLevel, number> = {
+    again: 0,
+    hard:  Math.max(0, currentBucket - 1),
+    good:  Math.min(5, currentBucket + 1),
+    easy:  Math.min(5, currentBucket + 2),
+  };
+  const next = nextMap[confidence];
 
   const days = BUCKET_DAYS[next] ?? 0;
   const nextDate = new Date();
   nextDate.setDate(nextDate.getDate() + days);
-  return { bucket: next, nextReview: nextDate.toISOString().split('T')[0]! };
+  return { bucket: next, nextReview: nextDate.toISOString().split('T')[0] };
 }
 
 export function FlashcardsPage() {
@@ -233,15 +235,15 @@ export function FlashcardsPage() {
     updated.push({ cardId: card.id, bucket, nextReview, confidence });
     saveProgress(updated);
 
-    const xp = confidence === 'again' ? 2 : confidence === 'hard' ? 3 : confidence === 'good' ? 5 : 8;
+    const xpMap: Record<ConfidenceLevel, number> = { again: 2, hard: 3, good: 5, easy: 8 };
+    const xp = xpMap[confidence];
     setXpEarned((prev) => prev + xp);
     setSessionResults((prev) => [...prev, confidence]);
 
     if (currentIdx + 1 >= sessionCards.length) {
       // Session complete
-      const totalXp = sessionResults.reduce((sum, c) => {
-        return sum + (c === 'again' ? 2 : c === 'hard' ? 3 : c === 'good' ? 5 : 8);
-      }, xp);
+      const xpPerCard: Record<ConfidenceLevel, number> = { again: 2, hard: 3, good: 5, easy: 8 };
+      const totalXp = sessionResults.reduce((sum, c) => sum + xpPerCard[c], xp);
       fireXP(totalXp, `Flashcard session completed! (${sessionCards.length} cards)`);
       setSessionDone(true);
     } else {
@@ -261,7 +263,7 @@ export function FlashcardsPage() {
         deckWeakness.push({ deck, againCount, total: deckCards.length, pct: Math.round((againCount / deckCards.length) * 100) });
       }
     }
-    return deckWeakness.sort((a, b) => b.pct - a.pct).slice(0, 3);
+    return deckWeakness.toSorted((a, b) => b.pct - a.pct).slice(0, 3);
   };
 
   const getMistakeHistory = () => {
@@ -299,8 +301,8 @@ export function FlashcardsPage() {
         if (e.key === '4') handleConfidence('easy');
       }
     };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
+    globalThis.addEventListener('keydown', handler);
+    return () => globalThis.removeEventListener('keydown', handler);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentCard, flipped, currentIdx]);
 
@@ -480,7 +482,11 @@ export function FlashcardsPage() {
       <AppShell>
         <div className="pt-8 max-w-lg mx-auto text-center">
           <div className="bg-[#1a1a1a] border border-white/8 rounded-3xl p-10">
-            <div className="text-6xl mb-6">{good === sessionCards.length ? '🏆' : good > sessionCards.length / 2 ? '🎯' : '💪'}</div>
+            <div className="text-6xl mb-6">{(() => {
+              if (good === sessionCards.length) return '🏆';
+              if (good > sessionCards.length / 2) return '🎯';
+              return '💪';
+            })()}</div>
             <h2 className="text-3xl font-black text-white mb-2">Session Complete!</h2>
             <p className="text-zinc-400 text-sm mb-8">{sessionCards.length} cards reviewed</p>
 
@@ -565,14 +571,12 @@ export function FlashcardsPage() {
         </div>
 
         {/* Card */}
-        <div
-          role="button"
-          tabIndex={0}
-          className={`relative bg-[#1a1a1a] border rounded-3xl min-h-[280px] p-8 flex flex-col justify-between cursor-pointer transition-all duration-200 ${
+        <button
+          type="button"
+          className={`relative bg-[#1a1a1a] border rounded-3xl min-h-[280px] p-8 flex flex-col justify-between cursor-pointer transition-all duration-200 text-left w-full ${
             flipped ? 'border-white/20' : 'border-white/8 hover:border-white/15'
           }`}
           onClick={() => setFlipped((f) => !f)}
-          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setFlipped((f) => !f); }}
         >
           {/* Category tag */}
           <div className="flex items-center gap-2 mb-4">
@@ -590,15 +594,15 @@ export function FlashcardsPage() {
 
           {/* Content */}
           <div className="flex-1 flex flex-col justify-center">
-            {!flipped ? (
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 mb-3">Question</p>
-                <p className="text-white text-lg font-bold leading-relaxed">{currentCard.front}</p>
-              </div>
-            ) : (
+            {flipped ? (
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-3">Answer</p>
                 <p className="text-zinc-200 text-sm leading-relaxed whitespace-pre-line">{currentCard.back}</p>
+              </div>
+            ) : (
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 mb-3">Question</p>
+                <p className="text-white text-lg font-bold leading-relaxed">{currentCard.front}</p>
               </div>
             )}
           </div>
@@ -609,7 +613,7 @@ export function FlashcardsPage() {
             <span>{flipped ? 'Click to see question' : 'Click to reveal answer'}</span>
             <kbd className="bg-zinc-800/50 text-zinc-600 px-1.5 py-0.5 rounded text-[10px] font-mono ml-1">Space</kbd>
           </div>
-        </div>
+        </button>
 
         {/* Confidence buttons */}
         {flipped && (

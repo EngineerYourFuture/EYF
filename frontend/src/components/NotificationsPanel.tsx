@@ -32,10 +32,10 @@ const timeAgo = (d: string) => {
 };
 
 interface Props {
-  notifications: Notification[];
-  onClose: () => void;
-  onMarkAllRead: () => void;
-  onMarkRead: (id: string) => void;
+  readonly notifications: Notification[];
+  readonly onClose: () => void;
+  readonly onMarkAllRead: () => void;
+  readonly onMarkRead: (id: string) => void;
 }
 
 export function NotificationsPanel({ notifications, onClose, onMarkAllRead, onMarkRead }: Props) {
@@ -44,7 +44,7 @@ export function NotificationsPanel({ notifications, onClose, onMarkAllRead, onMa
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
+      if (panelRef.current && e.target instanceof Node && !panelRef.current.contains(e.target)) {
         onClose();
       }
     };

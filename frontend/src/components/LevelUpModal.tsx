@@ -40,8 +40,8 @@ export function LevelUpModal({ level, onClose }: Props) {
 
         {/* Stars */}
         <div className="absolute -top-4 left-1/2 -translate-x-1/2 flex gap-1">
-          {['✨','⭐','✨'].map((s, i) => (
-            <span key={i} className="text-xl animate-bounce" style={{ animationDelay: `${i * 150}ms` }}>{s}</span>
+          {(['✨','⭐','✨'] as const).map((s, i) => (
+            <span key={`star-${i}`} className="text-xl animate-bounce" style={{ animationDelay: `${i * 150}ms` }}>{s}</span>
           ))}
         </div>
 

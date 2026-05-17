@@ -48,8 +48,8 @@ function buildReadinessData(): SkillArea[] {
   const roadmapDone: string[]     = JSON.parse(localStorage.getItem('eyf.roadmap.done') ?? '[]');
   const assessScores: Record<string, number> = JSON.parse(localStorage.getItem('eyf.assessment.scores') ?? '{}');
   const trackerApps: unknown[]    = JSON.parse(localStorage.getItem('eyf.tracker.apps') ?? '[]');
-  const streakRaw                 = parseInt(localStorage.getItem('eyf.streak') ?? '0', 10);
-  const xpRaw                     = parseInt(localStorage.getItem('eyf.xp') ?? '0', 10);
+  const streakRaw                 = Number.parseInt(localStorage.getItem('eyf.streak') ?? '0', 10);
+  const xpRaw                     = Number.parseInt(localStorage.getItem('eyf.xp') ?? '0', 10);
 
   // Derive scores from real signals + realistic static defaults
   const dsaScore   = Math.min(100, Math.max(20, (roadmapDone.length * 4) + (xpRaw > 500 ? 20 : 0) + 15));
@@ -199,11 +199,14 @@ const TASK_TYPE_META = {
   review:   { icon: 'fact_check',         color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
 };
 
-function RadialScore({ score, size = 140 }: { score: number; size?: number }) {
+function RadialScore({ score, size = 140 }: { readonly score: number; readonly size?: number }) {
   const r = size * 0.38;
   const circ = 2 * Math.PI * r;
   const offset = circ - (score / 100) * circ;
-  const color = score >= 75 ? '#10b981' : score >= 55 ? '#f59e0b' : score >= 35 ? '#f97316' : '#ef4444';
+  let color = '#ef4444';
+  if (score >= 75) color = '#10b981';
+  else if (score >= 55) color = '#f59e0b';
+  else if (score >= 35) color = '#f97316';
 
   return (
     <div className="relative" style={{ width: size, height: size }}>
@@ -225,7 +228,7 @@ function RadialScore({ score, size = 140 }: { score: number; size?: number }) {
   );
 }
 
-function SkillBar({ area }: { area: SkillArea }) {
+function SkillBar({ area }: { readonly area: SkillArea }) {
   const meta = STATUS_META[area.status];
   const pct = Math.round((area.score / area.maxScore) * 100);
   const [expanded, setExpanded] = useState(false);
@@ -265,8 +268,8 @@ function SkillBar({ area }: { area: SkillArea }) {
       {expanded && (
         <div className="px-4 pb-4 space-y-3 border-t border-white/5 pt-3">
           <div className="space-y-2">
-            {area.insights.map((insight, i) => (
-              <div key={i} className="flex gap-2 text-xs text-zinc-400 leading-relaxed">
+            {area.insights.map((insight) => (
+              <div key={insight} className="flex gap-2 text-xs text-zinc-400 leading-relaxed">
                 <Icon name={area.status === 'strong' ? 'check_circle' : 'arrow_right'} className={`text-sm shrink-0 mt-0.5 ${meta.text}`} />
                 <span>{insight}</span>
               </div>
@@ -307,7 +310,7 @@ export function ReadinessPage() {
     setSprint(prev => {
       const next = [...prev];
       next[idx] = { ...next[idx], done: !next[idx].done };
-      const done = next.reduce((set: number[], t, i) => { if (t.done) set.push(i); return set; }, []);
+      const done = next.reduce((set: number[], t, i) => { if (t.done) { set.push(i); } return set; }, []);
       localStorage.setItem(sprintKey, JSON.stringify(done));
       return next;
     });
@@ -316,15 +319,20 @@ export function ReadinessPage() {
   const strong   = areas.filter(a => a.status === 'strong');
   const critical = areas.filter(a => a.status === 'critical' || a.status === 'weak');
 
-  const overallStatus = overall >= 75 ? 'Interview Ready'
-                      : overall >= 55 ? 'Getting There'
-                      : overall >= 35 ? 'Needs Work'
-                      : 'Getting Started';
+  let overallStatus = 'Getting Started';
+  if (overall >= 75) overallStatus = 'Interview Ready';
+  else if (overall >= 55) overallStatus = 'Getting There';
+  else if (overall >= 35) overallStatus = 'Needs Work';
 
-  const overallColor  = overall >= 75 ? 'text-emerald-400'
-                      : overall >= 55 ? 'text-amber-400'
-                      : overall >= 35 ? 'text-orange-400'
-                      : 'text-red-400';
+  let overallColor = 'text-red-400';
+  if (overall >= 75) overallColor = 'text-emerald-400';
+  else if (overall >= 55) overallColor = 'text-amber-400';
+  else if (overall >= 35) overallColor = 'text-orange-400';
+
+  let overallDesc = 'Strong profile. Target top companies and refine your narratives.';
+  if (overall < 40) overallDesc = 'You are in the early stages. Follow the 7-day sprint below to close critical gaps fast.';
+  else if (overall < 60) overallDesc = 'Good progress. Focus on your weakest 2 areas to unlock significant score gains.';
+  else if (overall < 75) overallDesc = 'You are close to interview-ready. Tighten system design and behavioral gaps.';
 
   const sprintDays = Array.from(new Set(sprint.map(t => t.day))).sort((a, b) => a - b);
   const dayTasks = sprint.filter(t => t.day === activeDay);
@@ -341,15 +349,7 @@ export function ReadinessPage() {
             <div className="flex-1 text-center md:text-left">
               <div className="text-xs text-zinc-600 uppercase tracking-widest mb-2">Placement Readiness</div>
               <h1 className={`text-3xl font-black mb-1 ${overallColor}`}>{overallStatus}</h1>
-              <p className="text-zinc-500 text-sm mb-4">
-                {overall < 40
-                  ? 'You are in the early stages. Follow the 7-day sprint below to close critical gaps fast.'
-                  : overall < 60
-                  ? 'Good progress. Focus on your weakest 2 areas to unlock significant score gains.'
-                  : overall < 75
-                  ? 'You are close to interview-ready. Tighten system design and behavioral gaps.'
-                  : 'Strong profile. Target top companies and refine your narratives.'}
-              </p>
+              <p className="text-zinc-500 text-sm mb-4">{overallDesc}</p>
 
               <div className="flex flex-wrap gap-3 justify-center md:justify-start">
                 {strong.length > 0 && (
@@ -440,12 +440,12 @@ export function ReadinessPage() {
 
           {/* Tasks for selected day */}
           <div className="space-y-2">
-            {dayTasks.map((task, i) => {
-              const globalIdx = sprint.findIndex(t => t === task);
+            {dayTasks.map((task, _i) => {
+              const globalIdx = sprint.indexOf(task);
               const m = TASK_TYPE_META[task.type];
               return (
                 <div
-                  key={i}
+                  key={`${task.day}-${task.title}`}
                   className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${
                     task.done
                       ? 'border-emerald-500/20 bg-emerald-500/5'

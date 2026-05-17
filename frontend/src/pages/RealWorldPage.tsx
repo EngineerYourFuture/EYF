@@ -337,7 +337,7 @@ for (let page = 1; page <= 3; page++) {
 
 // Simulated DB
 const ordersTable = Array.from({ length: 100 }, (_, i) => ({
-  id: \`order_\${i + 1\}\`,
+  id: \`order_\${i + 1}\`,
   userId: \`user_\${(i % 10) + 1}\`,
   total: (Math.random() * 500).toFixed(2),
   status: ['pending', 'shipped', 'delivered'][i % 3],
@@ -671,7 +671,7 @@ const DIFF_META: Record<Difficulty, { label: string; color: string }> = {
 
 // ─── Challenge Card ──────────────────────────────────────────────────────────
 
-function ChallengeCard({ c, onStart, solved }: { c: Challenge; onStart: () => void; solved: boolean }) {
+function ChallengeCard({ c, onStart, solved }: { readonly c: Challenge; readonly onStart: () => void; readonly solved: boolean }) {
   const t = TYPE_META[c.type];
   const d = DIFF_META[c.difficulty];
   return (
@@ -715,16 +715,13 @@ function ChallengeCard({ c, onStart, solved }: { c: Challenge; onStart: () => vo
 // ─── Solver View ──────────────────────────────────────────────────────────────
 
 function ChallengeSolver({ challenge, onBack, onSubmit }: {
-  challenge: Challenge;
-  onBack: () => void;
-  onSubmit: (code: string) => void;
+  readonly challenge: Challenge;
+  readonly onBack: () => void;
+  readonly onSubmit: (code: string) => void;
 }) {
   const [code,         setCode]         = useState(challenge.brokenCode);
   const [activeTab,    setActiveTab]    = useState<'code' | 'hints' | 'solution'>('code');
   const [results,      setResults]      = useState<{ pass: boolean; desc: string; hint: string }[] | null>(null);
-  const [showSolution, setShowSolution] = useState(false);
-  void showSolution;
-
   const handleCheck = useCallback(() => {
     const res = challenge.testCases.map(tc => ({
       pass: tc.check(code),
@@ -767,7 +764,7 @@ function ChallengeSolver({ challenge, onBack, onSubmit }: {
             {(['code', 'hints', 'solution'] as const).map(tab => (
               <button
                 key={tab}
-                onClick={() => { setActiveTab(tab); if (tab === 'solution') setShowSolution(true); }}
+                onClick={() => { setActiveTab(tab); }}
                 className={`flex-1 py-1.5 rounded-lg text-xs font-semibold capitalize transition-colors ${
                   activeTab === tab ? 'bg-white/10 text-white' : 'text-zinc-600 hover:text-zinc-400'
                 }`}
@@ -797,7 +794,7 @@ function ChallengeSolver({ challenge, onBack, onSubmit }: {
             {activeTab === 'hints' && (
               <div className="space-y-3">
                 {challenge.hints.map((h, i) => (
-                  <div key={i} className="flex gap-2">
+                  <div key={`hint-${i}`} className="flex gap-2">
                     <span className="text-amber-400 font-bold shrink-0">#{i + 1}</span>
                     <span className="text-zinc-400">{h}</span>
                   </div>
@@ -838,7 +835,7 @@ function ChallengeSolver({ challenge, onBack, onSubmit }: {
               </div>
               <div className="space-y-2">
                 {results.map((r, i) => (
-                  <div key={i} className="flex items-start gap-2 text-xs">
+                  <div key={`result-${i}`} className="flex items-start gap-2 text-xs">
                     <Icon name={r.pass ? 'check' : 'close'} className={`text-sm shrink-0 mt-0.5 ${r.pass ? 'text-emerald-400' : 'text-red-400'}`} />
                     <div>
                       <span className={r.pass ? 'text-zinc-400' : 'text-zinc-300'}>{r.desc}</span>
@@ -930,13 +927,14 @@ export function RealWorldPage() {
         <div className="flex gap-2 mb-6 flex-wrap">
           {FILTER_TYPES.map(type => {
             const meta = type === 'all' ? null : TYPE_META[type];
+            const activeClass = meta ? `${meta.bg} ${meta.border} ${meta.color}` : 'bg-white/10 border-white/20 text-white';
             return (
               <button
                 key={type}
                 onClick={() => setFilter(type)}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors border ${
                   filter === type
-                    ? (meta ? `${meta.bg} ${meta.border} ${meta.color}` : 'bg-white/10 border-white/20 text-white')
+                    ? activeClass
                     : 'border-white/5 text-zinc-600 hover:text-zinc-400 hover:border-white/10'
                 }`}
               >
@@ -964,8 +962,8 @@ export function RealWorldPage() {
           <h3 className="text-sm font-semibold text-white mb-2">Why Real-World Challenges?</h3>
           <p className="text-xs text-zinc-500 leading-relaxed">
             LeetCode teaches you to reverse a linked list. Your first job will ask you to fix a race condition,
-            design a database schema, or optimize a slow API. EYF trains both — because both matter for placement
-            <em> and</em> for performing well once you're hired.
+            design a database schema, or optimize a slow API. EYF trains both — because both matter for placement{' '}
+            <em>and</em> for performing well once you're hired.
           </p>
         </div>
       </div>

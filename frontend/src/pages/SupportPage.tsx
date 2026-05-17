@@ -227,7 +227,7 @@ export function SupportPage() {
               <form onSubmit={handleSubmit} className="space-y-5">
                 {/* Category */}
                 <div>
-                  <label className="block text-xs font-bold text-zinc-400 uppercase tracking-widest mb-3">Category</label>
+                  <p className="block text-xs font-bold text-zinc-400 uppercase tracking-widest mb-3">Category</p>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                     {CATEGORIES.map((cat) => (
                       <button
@@ -249,7 +249,7 @@ export function SupportPage() {
 
                 {/* Priority */}
                 <div>
-                  <label className="block text-xs font-bold text-zinc-400 uppercase tracking-widest mb-3">Priority</label>
+                  <p className="block text-xs font-bold text-zinc-400 uppercase tracking-widest mb-3">Priority</p>
                   <div className="flex gap-2">
                     {([
                       { id: 'low', label: 'Low', color: 'text-green-400 border-green-500/30 bg-green-500/5' },

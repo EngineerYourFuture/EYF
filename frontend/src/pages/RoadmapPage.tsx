@@ -505,6 +505,9 @@ export function RoadmapPage() {
   ).filter(k => completedTasks.has(k)).length;
 
   const progressPct = totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0;
+  let progressBarColor = 'bg-blue-500';
+  if (progressPct >= 80) progressBarColor = 'bg-green-500';
+  else if (progressPct >= 40) progressBarColor = 'bg-orange-500';
 
   function toggleTask(trackId: string, weekIdx: number, taskIdx: number, xp: number) {
     const key = `${trackId}-${weekIdx}-${taskIdx}`;
@@ -572,9 +575,7 @@ export function RoadmapPage() {
           </div>
           <div className="h-2 bg-zinc-800 rounded-full overflow-hidden">
             <div
-              className={`h-full rounded-full transition-all duration-700 ${
-                progressPct >= 80 ? 'bg-green-500' : progressPct >= 40 ? 'bg-orange-500' : 'bg-blue-500'
-              }`}
+              className={`h-full rounded-full transition-all duration-700 ${progressBarColor}`}
               style={{ width: `${progressPct}%` }}
             />
           </div>
@@ -653,7 +654,7 @@ export function RoadmapPage() {
 
                       return (
                         <div
-                          key={ti}
+                          key={`task-${wi}-${ti}`}
                           className={`flex items-start gap-3 p-3 rounded-lg border transition-all duration-150 ${
                             isDone
                               ? 'bg-green-500/5 border-green-500/20'
@@ -715,7 +716,7 @@ export function RoadmapPage() {
             to="/app/study-plan"
             className="inline-flex items-center gap-2 bg-[#E82127] hover:bg-red-600 text-white text-sm font-bold px-5 py-2.5 rounded-lg transition-colors"
           >
-            <span className="material-symbols-outlined text-base">calendar_month</span>
+            <span className="material-symbols-outlined text-base">calendar_month</span>{' '}
             Generate My Study Plan
           </Link>
         </div>

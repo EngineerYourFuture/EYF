@@ -85,6 +85,10 @@ export function LoginPage() {
     }
   };
 
+  let submitBtnLabel = 'Sign In';
+  if (loading) submitBtnLabel = 'Signing in...';
+  else if (require2FA) submitBtnLabel = 'Verify Code';
+
   return (
     <div className="dark bg-surface-dim text-on-surface min-h-screen overflow-hidden selection:bg-primary-container selection:text-white">
       {/* Brand header */}
@@ -216,7 +220,7 @@ export function LoginPage() {
                     disabled={loading}
                     className="w-full bg-primary-container text-white font-bold py-4 rounded-full text-lg shadow-lg shadow-red-900/20 active:scale-[0.98] transition-transform flex items-center justify-center gap-3 disabled:opacity-60"
                   >
-                    {loading ? 'Signing in...' : require2FA ? 'Verify Code' : 'Sign In'}
+                    {submitBtnLabel}
                     <Icon name="arrow_forward" size={20} />
                   </button>
                   {!require2FA && (

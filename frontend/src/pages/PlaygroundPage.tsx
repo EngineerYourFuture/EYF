@@ -432,7 +432,7 @@ for s, expected in test_cases:
 
 function SimpleEditor({
   code, onChange, language,
-}: { code: string; onChange: (code: string) => void; language: Language }) {
+}: { readonly code: string; readonly onChange: (code: string) => void; readonly language: Language }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -448,7 +448,7 @@ function SimpleEditor({
     }
   }, [code, onChange]);
 
-  void language;
+  language;
 
   return (
     <textarea

@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useRef, useState, useCallback, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useMemo, useRef, useState, useCallback, type ReactNode } from 'react';
 import { apiRequest } from '../lib/api';
 import { getSession } from '../lib/session';
 
@@ -73,8 +73,13 @@ export function UserProvider({ children }: { readonly children: ReactNode }) {
     setTimeout(() => dismissToast(id), 3500);
   }, [dismissToast]);
 
+  const ctxValue = useMemo(
+    () => ({ summary, displayName, plan, loading, refresh, toasts, dismissToast, fireXP }),
+    [summary, displayName, plan, loading, refresh, toasts, dismissToast, fireXP]
+  );
+
   return (
-    <UserContext.Provider value={{ summary, displayName, plan, loading, refresh, toasts, dismissToast, fireXP }}>
+    <UserContext.Provider value={ctxValue}>
       {children}
     </UserContext.Provider>
   );

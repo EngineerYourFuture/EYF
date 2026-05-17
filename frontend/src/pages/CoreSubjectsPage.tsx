@@ -373,15 +373,14 @@ export function CoreSubjectsPage() {
               </button>
             ))}
           </div>
-          <span className="text-xs text-zinc-500 font-bold ml-auto">{filtered.length} subject{filtered.length !== 1 ? 's' : ''}</span>
+          <span className="text-xs text-zinc-500 font-bold ml-auto">{filtered.length} subject{filtered.length === 1 ? '' : 's'}</span>
         </div>
 
         {/* Subject grid */}
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[...Array(6)].map((_, i) => (
-              // biome-ignore lint/suspicious/noArrayIndexKey: skeleton
-              <div key={i} className="h-64 bg-surface-container rounded-xl animate-pulse" />
+            {[...new Array(6)].map((_, i) => (
+              <div key={`skeleton-${i}`} className="h-64 bg-surface-container rounded-xl animate-pulse" />
             ))}
           </div>
         ) : (
@@ -392,15 +391,16 @@ export function CoreSubjectsPage() {
               const diffMeta = DIFFICULTY_META[sub.difficulty];
               const isCompleted = prog === 100;
               const isInProgress = prog > 0 && prog < 100;
+              let subBtnLabel = 'Start Learning';
+              if (isCompleted) subBtnLabel = 'Review';
+              else if (isInProgress) subBtnLabel = 'Continue';
 
               return (
-                <div
+                <button
                   key={sub.id}
-                  className="bg-surface-container rounded-xl p-6 hover:bg-surface-container-high transition-all group cursor-pointer flex flex-col"
+                  type="button"
+                  className="bg-surface-container rounded-xl p-6 hover:bg-surface-container-high transition-all group cursor-pointer flex flex-col text-left w-full"
                   onClick={() => goToSubject(sub)}
-                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') goToSubject(sub); }}
-                  role="button"
-                  tabIndex={0}
                 >
                   {/* Top row */}
                   <div className="flex justify-between items-start mb-5">
@@ -459,14 +459,10 @@ export function CoreSubjectsPage() {
                     </div>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={(e) => { e.stopPropagation(); goToSubject(sub); }}
-                    className="w-full py-2.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all bg-surface-container-high group-hover:bg-primary-container text-zinc-400 group-hover:text-white"
-                  >
-                    {isCompleted ? 'Review' : isInProgress ? 'Continue' : 'Start Learning'}
-                  </button>
-                </div>
+                  <div className="w-full py-2.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all bg-surface-container-high group-hover:bg-primary-container text-zinc-400 group-hover:text-white text-center">
+                    {subBtnLabel}
+                  </div>
+                </button>
               );
             })}
           </div>

@@ -90,7 +90,7 @@ const LEVEL_LABELS = ['', 'Beginner', 'Basic', 'Intermediate', 'Proficient', 'Ex
 const LEVEL_COLORS = ['text-zinc-600', 'text-red-400', 'text-orange-400', 'text-yellow-400', 'text-green-400', 'text-blue-400'];
 const LEVEL_BAR_COLORS = ['bg-zinc-700', 'bg-red-500', 'bg-orange-400', 'bg-yellow-400', 'bg-green-400', 'bg-blue-400'];
 
-function SkillBar({ skill, onRate }: { skill: Skill; onRate: (id: string, level: number) => void }) {
+function SkillBar({ skill, onRate }: { readonly skill: Skill; readonly onRate: (id: string, level: number) => void }) {
   const [hoveredLevel, setHoveredLevel] = useState(0);
   const displayLevel = hoveredLevel || skill.level;
 
@@ -136,6 +136,18 @@ function SkillBar({ skill, onRate }: { skill: Skill; onRate: (id: string, level:
   );
 }
 
+type SavedSkill = { skillId: string; level: number; source: string; endorsements: number };
+
+function mergeSkillsFromApi(categories: SkillCategory[], savedSkills: SavedSkill[]): SkillCategory[] {
+  return categories.map((cat) => ({
+    ...cat,
+    skills: cat.skills.map((s) => {
+      const saved = savedSkills.find((sk) => sk.skillId === s.id);
+      return saved ? { ...s, level: saved.level, source: saved.source as Skill['source'], endorsements: saved.endorsements } : s;
+    }),
+  }));
+}
+
 export function TechSkillsPage() {
   const session = getSession();
   const { fireXP } = useUser();
@@ -154,13 +166,7 @@ export function TechSkillsPage() {
     )
       .then((d) => {
         if (d.skills?.length) {
-          setCategories((prev) => prev.map((cat) => ({
-            ...cat,
-            skills: cat.skills.map((s) => {
-              const saved = d.skills.find((sk) => sk.skillId === s.id);
-              return saved ? { ...s, level: saved.level, source: saved.source as Skill['source'], endorsements: saved.endorsements } : s;
-            }),
-          })));
+          setCategories((prev) => mergeSkillsFromApi(prev, d.skills));
         }
       })
       .catch(() => {})
@@ -170,7 +176,7 @@ export function TechSkillsPage() {
   const handleRate = (skillId: string, level: number) => {
     setCategories((prev) => prev.map((cat) => ({
       ...cat,
-      skills: cat.skills.map((s) => s.id === skillId ? { ...s, level, source: 'self' as const } : s),
+      skills: cat.skills.map((s) => (s.id === skillId ? { ...s, level, source: 'self' as const } : s)),
     })));
   };
 

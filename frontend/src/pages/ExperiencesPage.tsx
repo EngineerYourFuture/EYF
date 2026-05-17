@@ -611,7 +611,7 @@ export function ExperiencesPage() {
           </select>
         </div>
 
-        <p className="text-xs text-zinc-600">{filtered.length} experience{filtered.length !== 1 ? 's' : ''} found</p>
+        <p className="text-xs text-zinc-600">{filtered.length} experience{filtered.length === 1 ? '' : 's'} found</p>
 
         {/* Experience cards */}
         <div className="space-y-3">
@@ -674,7 +674,7 @@ export function ExperiencesPage() {
                     <div className="space-y-4">
                       <p className="text-xs font-bold uppercase tracking-wider text-zinc-500">Interview Rounds</p>
                       {exp.rounds.map((round, ri) => (
-                        <div key={ri} className="bg-zinc-800/50 rounded-xl p-4 border border-zinc-700/50">
+                        <div key={`round-${ri}`} className="bg-zinc-800/50 rounded-xl p-4 border border-zinc-700/50">
                           <div className="flex items-center gap-2 mb-3">
                             <span className="material-symbols-outlined text-lg text-zinc-400">{ROUND_ICONS[round.type]}</span>
                             <span className="font-semibold text-zinc-200 text-sm">{round.label}</span>
@@ -685,7 +685,7 @@ export function ExperiencesPage() {
 
                           <div className="space-y-2 mb-3">
                             {round.questions.map((q, qi) => (
-                              <div key={qi} className="flex items-start gap-2">
+                              <div key={`q-${qi}`} className="flex items-start gap-2">
                                 <span className="text-zinc-600 text-xs mt-0.5 flex-shrink-0">Q{qi + 1}.</span>
                                 <p className="text-sm text-zinc-300">{q}</p>
                               </div>
@@ -706,7 +706,7 @@ export function ExperiencesPage() {
                       <p className="text-xs font-bold uppercase tracking-wider text-zinc-500 mb-3">Tips from this candidate</p>
                       <ul className="space-y-2">
                         {exp.tips.map((tip, ti) => (
-                          <li key={ti} className="flex items-start gap-2">
+                          <li key={`tip-${ti}`} className="flex items-start gap-2">
                             <span className="material-symbols-outlined text-yellow-400 text-base flex-shrink-0 mt-0.5">star</span>
                             <p className="text-sm text-zinc-300">{tip}</p>
                           </li>
@@ -725,7 +725,7 @@ export function ExperiencesPage() {
           <p className="text-zinc-300 font-semibold mb-1">Got an interview experience to share?</p>
           <p className="text-zinc-500 text-sm mb-4">Help the community — submit your experience and earn XP.</p>
           <button className="inline-flex items-center gap-2 bg-[#E82127] hover:bg-red-600 text-white text-sm font-bold px-5 py-2.5 rounded-lg transition-colors">
-            <span className="material-symbols-outlined text-base">add</span>
+            <span className="material-symbols-outlined text-base">add</span>{' '}
             Share Your Experience
           </button>
         </div>

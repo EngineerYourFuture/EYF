@@ -178,7 +178,7 @@ function DailyChallengeWidget() {
     { title: 'Design a Notification System', type: 'System Design', diff: 'hard' },
     { title: 'LRU Cache', type: 'DSA', diff: 'hard' },
   ];
-  const today = TITLES[day % TITLES.length]!;
+  const today = TITLES[day % TITLES.length];
   const DIFF_COLOR_MAP: Record<string, string> = { easy: 'text-green-400', medium: 'text-yellow-400', hard: 'text-red-400' };
 
   // Compute streak
@@ -233,7 +233,7 @@ function DailyChallengeWidget() {
 
 function DailyInsightWidget() {
   const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000);
-  const insight = ENGINEERING_INSIGHTS[dayOfYear % ENGINEERING_INSIGHTS.length]!;
+  const insight = ENGINEERING_INSIGHTS[dayOfYear % ENGINEERING_INSIGHTS.length];
   const [dismissed, setDismissed] = useState(() => {
     return localStorage.getItem('eyf.insightDay') === String(dayOfYear);
   });
@@ -313,7 +313,7 @@ function buildRecommendations(xp: number, streak: number, modules: ModItem[]): A
   }
 
   // Mock interview
-  const mockPct = progressOf('mock-interview' as string);
+  const mockPct = progressOf('mock-interview');
   if (mockPct === 0 && xp > 100) {
     recs.push({ icon: 'record_voice_over', color: 'text-orange-400', bg: 'bg-orange-500/10', title: 'Take a Mock Interview', reason: "You've built some XP — now test yourself under pressure.", path: '/app/mock-interview', xp: '+75 XP', priority: 5 });
   }
@@ -335,7 +335,7 @@ function buildRecommendations(xp: number, streak: number, modules: ModItem[]): A
     recs.push({ icon: 'work_history', color: 'text-orange-400', bg: 'bg-orange-500/10', title: 'Research target companies', reason: 'View interview processes, DSA focus, and insider tips.', path: '/app/placement', xp: '+10 XP', priority: 4 });
   }
 
-  return recs.sort((a, b) => b.priority - a.priority).slice(0, 3);
+  return recs.toSorted((a, b) => b.priority - a.priority).slice(0, 3);
 }
 
 function NextUpWidget({ xp, streak, modules }: { readonly xp: number; readonly streak: number; readonly modules: ModItem[] }) {
@@ -652,7 +652,7 @@ export function HomePage() {
             </div>
             <div className="flex items-center gap-2 bg-orange-500/10 border border-orange-500/20 rounded-full px-3 py-1.5">
               <span>🔥</span>
-              <span className="text-orange-400 font-black text-sm">{streak} day{streak !== 1 ? 's' : ''}</span>
+              <span className="text-orange-400 font-black text-sm">{streak} day{streak === 1 ? '' : 's'}</span>
             </div>
           </div>
           <ActivityHeatmap streak={streak} />
@@ -710,9 +710,10 @@ export function HomePage() {
           {moduleList.map((mod) => {
             const cfg = MODULE_CONFIG[mod.module];
             if (!cfg) return null;
-            const pct = typeof mod.progress === 'number'
-              ? (mod.progress > 1 ? Math.round(mod.progress) : Math.round(mod.progress * 100))
-              : 0;
+            let pct = 0;
+            if (typeof mod.progress === 'number') {
+              pct = mod.progress > 1 ? Math.round(mod.progress) : Math.round(mod.progress * 100);
+            }
             return (
               <Link key={mod.module} to={cfg.path}>
                 <div className="bg-[#161616] border border-white/5 rounded-2xl p-4 hover:bg-[#1e1e1e] hover:border-white/10 transition-all group cursor-pointer">
@@ -748,7 +749,7 @@ export function HomePage() {
               </div>
               <div className="space-y-2">
                 {['🥇 Top Engineer','🥈 Rising Star','🥉 Daily Solver'].map((t, i) => (
-                  <div key={i} className="flex items-center justify-between text-xs">
+                  <div key={t} className="flex items-center justify-between text-xs">
                     <span className="text-zinc-400">{t}</span>
                     <span className="text-zinc-600 font-mono">{[12450,9870,7230][i]?.toLocaleString()} XP</span>
                   </div>

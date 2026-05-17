@@ -235,8 +235,8 @@ function shuffle<T>(arr: T[]): T[] {
   for (let i = a.length - 1; i > 0; i--) {
     const buf = new Uint32Array(1);
     crypto.getRandomValues(buf);
-    const j = buf[0]! % (i + 1);
-    [a[i], a[j]] = [a[j]!, a[i]!];
+    const j = buf[0] % (i + 1);
+    [a[i], a[j]] = [a[j], a[i]];
   }
   return a;
 }
@@ -302,6 +302,12 @@ export function PatternQuizPage() {
   const q = questions[current];
   const progressPct = questions.length > 0 ? Math.round(((current + (answered ? 1 : 0)) / questions.length) * 100) : 0;
   const accuracy = answers.length > 0 ? Math.round((score / answers.length) * 100) : 0;
+  let resultEmoji = '💪';
+  if (accuracy >= 80) resultEmoji = '🏆';
+  else if (accuracy >= 60) resultEmoji = '🎯';
+  let resultMsg = 'Keep practicing! Pattern recognition builds with repetition.';
+  if (accuracy >= 80) resultMsg = 'Excellent! Your pattern recognition is interview-ready. 🔥';
+  else if (accuracy >= 60) resultMsg = 'Good progress! Review the patterns you missed below.';
 
   return (
     <AppShell>
@@ -324,15 +330,15 @@ export function PatternQuizPage() {
               </div>
 
               <p className="text-sm text-zinc-400 leading-relaxed mb-6 relative max-w-xl">
-                The hardest part of coding interviews isn't implementing the algorithm — it's recognizing
-                <em> which</em> pattern to use. This quiz trains your pattern-matching instinct with 20 real
+                The hardest part of coding interviews isn't implementing the algorithm — it's recognizing{' '}
+                <em>which</em> pattern to use. This quiz trains your pattern-matching instinct with 20 real
                 interview scenarios and explains the <em>why</em> behind each answer.
               </p>
 
               {/* Config */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6 relative">
                 <div>
-                  <label className="text-[10px] font-black uppercase tracking-widest text-zinc-600 block mb-2">Difficulty</label>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-zinc-600 block mb-2">Difficulty</p>
                   <div className="flex gap-1 bg-zinc-900 rounded-xl p-1">
                     {(['all', 'easy', 'medium', 'hard'] as const).map((d) => (
                       <button
@@ -349,7 +355,7 @@ export function PatternQuizPage() {
                 </div>
 
                 <div>
-                  <label className="text-[10px] font-black uppercase tracking-widest text-zinc-600 block mb-2">Questions</label>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-zinc-600 block mb-2">Questions</p>
                   <div className="flex gap-1 bg-zinc-900 rounded-xl p-1">
                     {[5, 10, 20].map((n) => (
                       <button
@@ -366,7 +372,7 @@ export function PatternQuizPage() {
                 </div>
 
                 <div>
-                  <label className="text-[10px] font-black uppercase tracking-widest text-zinc-600 block mb-2">Timer</label>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-zinc-600 block mb-2">Timer</p>
                   <button
                     onClick={() => setTimedMode(!timedMode)}
                     className={`w-full py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-widest border transition-all ${
@@ -461,7 +467,7 @@ export function PatternQuizPage() {
                       type="button"
                       onClick={() => handleSelect(option)}
                       disabled={answered}
-                      className={`w-full text-left px-5 py-4 rounded-xl border text-sm font-bold transition-all ${style} ${!answered ? 'cursor-pointer' : 'cursor-default'}`}
+                      className={`w-full text-left px-5 py-4 rounded-xl border text-sm font-bold transition-all ${style} ${answered ? 'cursor-default' : 'cursor-pointer'}`}
                     >
                       <span className={answered && option === q.correct ? 'text-green-400' : ''}>
                         {answered && option === q.correct && '✓ '}
@@ -508,7 +514,7 @@ export function PatternQuizPage() {
           <>
             <div className="bg-surface-container rounded-2xl p-8 mb-6 text-center">
               <div className="text-6xl mb-4">
-                {accuracy >= 80 ? '🏆' : accuracy >= 60 ? '🎯' : '💪'}
+                {resultEmoji}
               </div>
               <h2 className="text-3xl font-black tracking-tighter mb-1">
                 {score} / {questions.length}
@@ -534,9 +540,7 @@ export function PatternQuizPage() {
               </div>
 
               <p className="text-sm text-on-surface-variant max-w-sm mx-auto">
-                {accuracy >= 80 ? 'Excellent! Your pattern recognition is interview-ready. 🔥' :
-                 accuracy >= 60 ? 'Good progress! Review the patterns you missed below.' :
-                 'Keep practicing! Pattern recognition builds with repetition.'}
+                {resultMsg}
               </p>
             </div>
 

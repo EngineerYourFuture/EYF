@@ -89,8 +89,8 @@ export function SearchModal({ open, onClose }: Props) {
       if (e.key === 'Enter' && results[selected]) go(results[selected].path);
       if (e.key === 'Escape') onClose();
     };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
+    globalThis.addEventListener('keydown', handler);
+    return () => globalThis.removeEventListener('keydown', handler);
   }, [open, results, selected, go, onClose]);
 
   if (!open) return null;
@@ -150,7 +150,7 @@ export function SearchModal({ open, onClose }: Props) {
         {/* Footer */}
         <div className="flex items-center gap-4 px-5 py-3 border-t border-white/8">
           <span className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest">
-            {results.length} result{results.length !== 1 ? 's' : ''}
+            {results.length} result{results.length === 1 ? '' : 's'}
           </span>
           <div className="flex items-center gap-3 ml-auto text-[10px] text-zinc-700 font-mono">
             <span>↑↓ navigate</span>

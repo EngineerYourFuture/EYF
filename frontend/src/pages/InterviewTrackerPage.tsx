@@ -120,11 +120,12 @@ function StageBar({ status }: { readonly status: AppStatus }) {
         const meta = STATUS_META[s];
         const active = status === s;
         const done = !['rejected', 'withdrawn'].includes(status) && currentOrder > order;
+        let stageClass = 'bg-zinc-800';
+        if (done) stageClass = 'bg-green-400';
+        else if (active) stageClass = `${meta.bg.replace('/10', '/40')} ${meta.color}`;
         return (
           <div key={s} className="flex items-center gap-1 flex-1 min-w-0">
-            <div className={`h-1.5 rounded-full flex-1 transition-all ${
-              done ? 'bg-green-400' : active ? meta.bg.replace('/10', '/40') + ' ' + meta.color : 'bg-zinc-800'
-            }`} />
+            <div className={`h-1.5 rounded-full flex-1 transition-all ${stageClass}`} />
             {i < stages.length - 1 && <div className="w-1.5 h-1.5 rounded-full bg-zinc-800 flex-shrink-0" />}
           </div>
         );
@@ -149,7 +150,7 @@ export function InterviewTrackerPage() {
   const [showAdd, setShowAdd] = useState(false);
   const [showAddRound, setShowAddRound] = useState(false);
   const [form, setForm] = useState<typeof EMPTY_APP>({ ...EMPTY_APP });
-  const [roundForm, setRoundForm] = useState({ type: ROUND_TYPES[0]!, date: new Date().toISOString().slice(0, 10), result: 'pending' as Round['result'], difficulty: 'medium' as Difficulty, notes: '' });
+  const [roundForm, setRoundForm] = useState({ type: ROUND_TYPES[0], date: new Date().toISOString().slice(0, 10), result: 'pending' as Round['result'], difficulty: 'medium' as Difficulty, notes: '' });
   const [tab, setTab] = useState<'pipeline' | 'list'>('pipeline');
 
   const persist = (next: Application[]) => {
@@ -193,7 +194,7 @@ export function InterviewTrackerPage() {
     persist(next);
     setSelected(updatedApp);
     setShowAddRound(false);
-    setRoundForm({ type: ROUND_TYPES[0]!, date: new Date().toISOString().slice(0, 10), result: 'pending', difficulty: 'medium', notes: '' });
+    setRoundForm({ type: ROUND_TYPES[0], date: new Date().toISOString().slice(0, 10), result: 'pending', difficulty: 'medium', notes: '' });
     fireXP(10, 'Round logged!');
   };
 
@@ -205,7 +206,8 @@ export function InterviewTrackerPage() {
 
   const filtered = apps.filter((a) => {
     const matchStatus = filterStatus === 'all' || a.status === filterStatus;
-    const matchSearch = !search || a.company.toLowerCase().includes(search.toLowerCase()) || a.role.toLowerCase().includes(search.toLowerCase());
+    const lowerSearch = search.toLowerCase();
+    const matchSearch = search === '' || a.company.toLowerCase().includes(lowerSearch) || a.role.toLowerCase().includes(lowerSearch);
     return matchStatus && matchSearch;
   });
 
@@ -214,9 +216,21 @@ export function InterviewTrackerPage() {
   // Pipeline view
   const PIPELINE_COLS: AppStatus[] = ['applied', 'oa', 'phone', 'onsite', 'offer'];
 
-  const roundResultIcon = (r: Round['result']) => r === 'pass' ? 'check_circle' : r === 'fail' ? 'cancel' : 'schedule';
-  const roundResultColor = (r: Round['result']) => r === 'pass' ? 'text-green-400' : r === 'fail' ? 'text-red-400' : 'text-zinc-500';
-  const diffColor = (d: Difficulty) => d === 'easy' ? 'text-green-400 bg-green-500/10' : d === 'medium' ? 'text-yellow-400 bg-yellow-500/10' : 'text-red-400 bg-red-500/10';
+  const roundResultIcon = (r: Round['result']) => {
+    if (r === 'pass') return 'check_circle';
+    if (r === 'fail') return 'cancel';
+    return 'schedule';
+  };
+  const roundResultColor = (r: Round['result']) => {
+    if (r === 'pass') return 'text-green-400';
+    if (r === 'fail') return 'text-red-400';
+    return 'text-zinc-500';
+  };
+  const diffColor = (d: Difficulty) => {
+    if (d === 'easy') return 'text-green-400 bg-green-500/10';
+    if (d === 'medium') return 'text-yellow-400 bg-yellow-500/10';
+    return 'text-red-400 bg-red-500/10';
+  };
 
   // Detail view
   if (selected) {
@@ -302,20 +316,20 @@ export function InterviewTrackerPage() {
               <div className="mt-4 p-4 bg-[#1a1a1a] rounded-xl border border-[#E82127]/20 space-y-3">
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 block mb-1">Round Type</label>
-                    <select value={roundForm.type} onChange={(e) => setRoundForm((f) => ({ ...f, type: e.target.value }))}
+                    <label htmlFor="round-type" className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 block mb-1">Round Type</label>
+                    <select id="round-type" value={roundForm.type} onChange={(e) => setRoundForm((f) => ({ ...f, type: e.target.value }))}
                       className="w-full bg-[#111] border border-white/8 rounded-lg px-3 py-2 text-sm text-white focus:outline-none">
                       {ROUND_TYPES.map((t) => <option key={t}>{t}</option>)}
                     </select>
                   </div>
                   <div>
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 block mb-1">Date</label>
-                    <input type="date" value={roundForm.date} onChange={(e) => setRoundForm((f) => ({ ...f, date: e.target.value }))}
+                    <label htmlFor="round-date" className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 block mb-1">Date</label>
+                    <input id="round-date" type="date" value={roundForm.date} onChange={(e) => setRoundForm((f) => ({ ...f, date: e.target.value }))}
                       className="w-full bg-[#111] border border-white/8 rounded-lg px-3 py-2 text-sm text-white focus:outline-none" />
                   </div>
                   <div>
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 block mb-1">Result</label>
-                    <select value={roundForm.result} onChange={(e) => setRoundForm((f) => ({ ...f, result: e.target.value as Round['result'] }))}
+                    <label htmlFor="round-result" className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 block mb-1">Result</label>
+                    <select id="round-result" value={roundForm.result} onChange={(e) => setRoundForm((f) => ({ ...f, result: e.target.value as Round['result'] }))}
                       className="w-full bg-[#111] border border-white/8 rounded-lg px-3 py-2 text-sm text-white focus:outline-none">
                       <option value="pending">Pending</option>
                       <option value="pass">Pass</option>
@@ -323,8 +337,8 @@ export function InterviewTrackerPage() {
                     </select>
                   </div>
                   <div>
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 block mb-1">Difficulty</label>
-                    <select value={roundForm.difficulty} onChange={(e) => setRoundForm((f) => ({ ...f, difficulty: e.target.value as Difficulty }))}
+                    <label htmlFor="round-difficulty" className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 block mb-1">Difficulty</label>
+                    <select id="round-difficulty" value={roundForm.difficulty} onChange={(e) => setRoundForm((f) => ({ ...f, difficulty: e.target.value as Difficulty }))}
                       className="w-full bg-[#111] border border-white/8 rounded-lg px-3 py-2 text-sm text-white focus:outline-none">
                       <option value="easy">Easy</option>
                       <option value="medium">Medium</option>
@@ -333,8 +347,8 @@ export function InterviewTrackerPage() {
                   </div>
                 </div>
                 <div>
-                  <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 block mb-1">Notes</label>
-                  <textarea value={roundForm.notes} onChange={(e) => setRoundForm((f) => ({ ...f, notes: e.target.value }))}
+                  <label htmlFor="round-notes" className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 block mb-1">Notes</label>
+                  <textarea id="round-notes" value={roundForm.notes} onChange={(e) => setRoundForm((f) => ({ ...f, notes: e.target.value }))}
                     placeholder="Questions asked, how it went, what to improve..."
                     rows={3} className="w-full bg-[#111] border border-white/8 rounded-lg px-3 py-2 text-sm text-white focus:outline-none resize-none" />
                 </div>
@@ -410,29 +424,29 @@ export function InterviewTrackerPage() {
                 { label: 'Salary / CTC', key: 'salary', placeholder: '₹50-80 LPA' },
               ].map(({ label, key, placeholder }) => (
                 <div key={key}>
-                  <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 block mb-1">{label}</label>
-                  <input type="text" placeholder={placeholder}
+                  <label htmlFor={`app-${key}`} className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 block mb-1">{label}</label>
+                  <input id={`app-${key}`} type="text" placeholder={placeholder}
                     value={(form as unknown as Record<string, string>)[key] ?? ''}
                     onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
                     className="w-full bg-[#111] border border-white/8 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-zinc-700 focus:outline-none focus:border-[#E82127]/40" />
                 </div>
               ))}
               <div>
-                <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 block mb-1">Applied Date</label>
-                <input type="date" value={form.appliedDate} onChange={(e) => setForm((f) => ({ ...f, appliedDate: e.target.value }))}
+                <label htmlFor="app-applied-date" className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 block mb-1">Applied Date</label>
+                <input id="app-applied-date" type="date" value={form.appliedDate} onChange={(e) => setForm((f) => ({ ...f, appliedDate: e.target.value }))}
                   className="w-full bg-[#111] border border-white/8 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#E82127]/40" />
               </div>
               <div>
-                <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 block mb-1">Status</label>
-                <select value={form.status} onChange={(e) => setForm((f) => ({ ...f, status: e.target.value as AppStatus }))}
+                <label htmlFor="app-status" className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 block mb-1">Status</label>
+                <select id="app-status" value={form.status} onChange={(e) => setForm((f) => ({ ...f, status: e.target.value as AppStatus }))}
                   className="w-full bg-[#111] border border-white/8 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none">
                   {(Object.keys(STATUS_META) as AppStatus[]).map((s) => <option key={s} value={s}>{STATUS_META[s].label}</option>)}
                 </select>
               </div>
             </div>
             <div>
-              <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 block mb-1">Notes</label>
-              <textarea value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
+              <label htmlFor="app-notes" className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 block mb-1">Notes</label>
+              <textarea id="app-notes" value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
                 placeholder="Referral source, key contact, anything to remember..."
                 rows={2} className="w-full bg-[#111] border border-white/8 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-zinc-700 focus:outline-none resize-none" />
             </div>
@@ -473,7 +487,7 @@ export function InterviewTrackerPage() {
                       ? `${meta?.bg ?? 'bg-zinc-500/10'} ${meta?.color ?? 'text-zinc-300'} border-current/30`
                       : 'text-zinc-600 border-zinc-800 hover:text-zinc-400'
                   }`}>
-                  {s === 'all' ? 'All' : STATUS_META[s as AppStatus].label}
+                  {s === 'all' ? 'All' : STATUS_META[s].label}
                 </button>
               );
             })}

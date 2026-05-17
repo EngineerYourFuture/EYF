@@ -789,6 +789,14 @@ export function PlacementPage() {
     (stats.readinessScore || 25)
   ));
 
+  let readinessBarClass = 'bg-gradient-to-r from-primary-container to-red-400';
+  if (readiness >= 70) readinessBarClass = 'bg-gradient-to-r from-green-500 to-emerald-400';
+  else if (readiness >= 40) readinessBarClass = 'bg-gradient-to-r from-yellow-500 to-amber-400';
+
+  let readinessMsg = 'Interview-ready! Start applying confidently.';
+  if (readiness < 40) readinessMsg = "Keep practicing — you're building momentum!";
+  else if (readiness < 70) readinessMsg = 'Good progress — focus on weak areas.';
+
   const TABS = [
     { id: 'tracks' as const, label: 'Interview Tracks', icon: 'route' },
     { id: 'behavioral' as const, label: 'Behavioral', icon: 'record_voice_over' },
@@ -917,19 +925,11 @@ export function PlacementPage() {
               </div>
               <div className="h-2 bg-surface-container-highest rounded-full overflow-hidden mb-2">
                 <div
-                  className={`h-full rounded-full transition-all duration-700 ${
-                    readiness >= 70 ? 'bg-gradient-to-r from-green-500 to-emerald-400' :
-                    readiness >= 40 ? 'bg-gradient-to-r from-yellow-500 to-amber-400' :
-                    'bg-gradient-to-r from-primary-container to-red-400'
-                  }`}
+                  className={`h-full rounded-full transition-all duration-700 ${readinessBarClass}`}
                   style={{ width: `${readiness}%` }}
                 />
               </div>
-              <p className="text-xs text-zinc-500">
-                {readiness < 40 ? 'Keep practicing — you\'re building momentum!' :
-                 readiness < 70 ? 'Good progress — focus on weak areas.' :
-                 'Interview-ready! Start applying confidently.'}
-              </p>
+              <p className="text-xs text-zinc-500">{readinessMsg}</p>
             </div>
             <div className="mt-4 space-y-1">
               {[
@@ -1028,6 +1028,10 @@ export function PlacementPage() {
               const progress = tp?.progress ?? 0;
               const completed = tp?.completedTopics ?? 0;
               const total = tp?.totalTopics ?? 20;
+              let trackBarColor = 'bg-yellow-400';
+              if (t.id === 'sde') trackBarColor = 'bg-blue-400';
+              else if (t.id === 'ds') trackBarColor = 'bg-purple-400';
+              else if (t.id === 'sre') trackBarColor = 'bg-green-400';
               return (
                 <div key={t.id} className={`bg-surface-container rounded-2xl p-7 border ${t.border} hover:bg-surface-container-high transition-all group`}>
                   <div className="flex justify-between items-start mb-5">
@@ -1045,11 +1049,7 @@ export function PlacementPage() {
                     <span>Progress</span><span className={t.color}>{progress}%</span>
                   </div>
                   <div className="h-1.5 bg-surface-container-highest rounded-full overflow-hidden mb-5">
-                    <div className={`h-full rounded-full transition-all duration-700 ${
-                      t.id === 'sde' ? 'bg-blue-400' :
-                      t.id === 'ds' ? 'bg-purple-400' :
-                      t.id === 'sre' ? 'bg-green-400' : 'bg-yellow-400'
-                    }`} style={{ width: `${progress}%` }} />
+                    <div className={`h-full rounded-full transition-all duration-700 ${trackBarColor}`} style={{ width: `${progress}%` }} />
                   </div>
 
                   <button
@@ -1366,7 +1366,7 @@ export function PlacementPage() {
                     </p>
                     <ul className="space-y-2">
                       {selectedServiceCo.aptitudeTips.map((tip, i) => (
-                        <li key={i} className="flex items-start gap-2 text-sm text-zinc-400">
+                        <li key={`aptitude-tip-${i}`} className="flex items-start gap-2 text-sm text-zinc-400">
                           <span className="text-amber-400 font-black flex-shrink-0 mt-0.5">{i + 1}.</span>
                           {tip}
                         </li>
@@ -1451,7 +1451,7 @@ export function PlacementPage() {
                       { icon: 'psychology', color: 'text-purple-400', tip: 'Aptitude patterns repeat year to year — use previous year papers for TCS/Wipro' },
                       { icon: 'verified', color: 'text-amber-400', tip: 'Platform certifications (InfyTQ, TCS iON) act as pre-filters — complete them before applying' },
                     ].map((item, i) => (
-                      <div key={i} className="flex items-start gap-3 bg-zinc-900/50 rounded-xl p-4">
+                      <div key={`universal-tip-${i}`} className="flex items-start gap-3 bg-zinc-900/50 rounded-xl p-4">
                         <Icon name={item.icon} size={18} className={`${item.color} flex-shrink-0 mt-0.5`} />
                         <p className="text-sm text-zinc-400 leading-relaxed">{item.tip}</p>
                       </div>

@@ -250,7 +250,8 @@ export function ProblemsPage() {
       const params = new URLSearchParams();
       if (difficulty !== 'all') params.set('difficulty', difficulty);
       if (selectedTag !== 'all') params.set('tag', selectedTag);
-      const url = `/problems${params.toString() ? `?${params}` : ''}`;
+      const queryStr = params.toString();
+      const url = queryStr ? `/problems?${queryStr}` : '/problems';
       const d = await apiRequest<ProblemsResponse>(url, { token: session.accessToken });
       setProblems(d.problems ?? []);
       if (d.stats) setStats(d.stats);
@@ -270,10 +271,10 @@ export function ProblemsPage() {
 
   const handleTagClick = (tag: string) => {
     setSelectedTag(tag);
-    if (tag !== 'all') {
-      setSearchParams({ tag });
-    } else {
+    if (tag === 'all') {
       setSearchParams({});
+    } else {
+      setSearchParams({ tag });
     }
   };
 
@@ -452,7 +453,7 @@ export function ProblemsPage() {
           </div>
 
           <span className="text-xs text-zinc-500 font-bold ml-auto">
-            {filtered.length} problem{filtered.length !== 1 ? 's' : ''}
+            {filtered.length} problem{filtered.length === 1 ? '' : 's'}
           </span>
         </div>
 
@@ -471,9 +472,8 @@ export function ProblemsPage() {
         <div className="space-y-1.5">
           {loading && (
             <div className="space-y-1.5">
-              {[...Array(10)].map((_, i) => (
-                // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
-                <div key={i} className="h-14 bg-surface-container rounded-xl animate-pulse" />
+              {[...new Array(10)].map((_, i) => (
+                <div key={`skeleton-${i}`} className="h-14 bg-surface-container rounded-xl animate-pulse" />
               ))}
             </div>
           )}
@@ -486,7 +486,10 @@ export function ProblemsPage() {
             </div>
           )}
 
-          {!loading && filtered.map((p, i) => (
+          {!loading && filtered.map((p, i) => {
+            const DEFAULT_XP: Record<string, number> = { hard: 100, medium: 60 };
+            const xpReward = p.xpReward ?? (DEFAULT_XP[p.difficulty] ?? 30);
+            return (
             <Link key={p.id} to={`/app/problems/${p.id}`} className="block">
               <div className={`grid grid-cols-12 gap-4 rounded-xl px-6 py-4 hover:bg-surface-container-high transition-all cursor-pointer group items-center border ${
                 p.solved ? 'bg-surface-container border-green-500/10' : 'bg-surface-container border-transparent'
@@ -531,17 +534,18 @@ export function ProblemsPage() {
 
                 <div className="col-span-1 text-center">
                   <span className="text-xs font-bold text-zinc-500">
-                    {p.acceptanceRate != null ? `${Math.round(p.acceptanceRate)}%` : '—'}
+                    {p.acceptanceRate == null ? '—' : `${Math.round(p.acceptanceRate)}%`}
                   </span>
                 </div>
 
                 <div className="col-span-1 flex justify-center items-center gap-0.5">
-                  <span className="text-xs font-black text-primary-container">{p.xpReward ?? (p.difficulty === 'hard' ? 100 : p.difficulty === 'medium' ? 60 : 30)}</span>
+                  <span className="text-xs font-black text-primary-container">{xpReward}</span>
                   <Icon name="bolt" size={12} className="text-primary-container" filled />
                 </div>
               </div>
             </Link>
-          ))}
+            );
+          })}
         </div>
       </div>
     </AppShell>

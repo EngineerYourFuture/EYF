@@ -199,11 +199,14 @@ export function SubmissionPage() {
           <div className="flex flex-wrap gap-3 mb-6">
             <div className="flex items-center bg-surface-container p-1 rounded-full">
               <button onClick={() => setFilterVerdict('all')} className={`px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${filterVerdict === 'all' ? 'bg-surface-container-highest text-white' : 'text-zinc-500 hover:text-zinc-200'}`}>All</button>
-              {Object.entries(VERDICT_META).map(([key, meta]) => (
-                <button key={key} onClick={() => setFilterVerdict(key)} className={`px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${filterVerdict === key ? `${meta.bg} ${meta.color}` : 'text-zinc-500 hover:text-zinc-200'}`}>
-                  {meta.label}
-                </button>
-              ))}
+              {Object.entries(VERDICT_META).map(([key, meta]) => {
+                const activeClass = filterVerdict === key ? [meta.bg, meta.color].join(' ') : 'text-zinc-500 hover:text-zinc-200';
+                return (
+                  <button key={key} onClick={() => setFilterVerdict(key)} className={`px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${activeClass}`}>
+                    {meta.label}
+                  </button>
+                );
+              })}
             </div>
 
             {languages.length > 1 && (
@@ -217,7 +220,7 @@ export function SubmissionPage() {
               </div>
             )}
 
-            <span className="text-xs text-zinc-500 font-bold self-center ml-auto">{filtered.length} result{filtered.length !== 1 ? 's' : ''}</span>
+            <span className="text-xs text-zinc-500 font-bold self-center ml-auto">{filtered.length} result{filtered.length === 1 ? '' : 's'}</span>
           </div>
         )}
 
@@ -235,9 +238,8 @@ export function SubmissionPage() {
         {/* Content */}
         {loading && (
           <div className="space-y-2">
-            {[...Array(8)].map((_, i) => (
-              // biome-ignore lint/suspicious/noArrayIndexKey: skeleton
-              <div key={i} className="h-14 bg-surface-container rounded-xl animate-pulse" />
+            {[...new Array(8)].map((_, i) => (
+              <div key={`skeleton-${i}`} className="h-14 bg-surface-container rounded-xl animate-pulse" />
             ))}
           </div>
         )}

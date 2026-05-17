@@ -160,7 +160,7 @@ function addDays(base: Date, n: number): Date {
 }
 
 function formatDate(d: Date): string {
-  return d.toISOString().split('T')[0]!;
+  return d.toISOString().split('T')[0];
 }
 
 function formatDateLabel(d: Date): string {
@@ -169,9 +169,11 @@ function formatDateLabel(d: Date): string {
 
 function buildPlan(config: PlanConfig): WeekPlan[] {
   const weeks = weeksUntil(config.interviewDate);
-  const themes = weeks <= 4 ? WEEK_THEMES_4 : weeks <= 8 ? WEEK_THEMES_8 : WEEK_THEMES_12;
+  let themes = WEEK_THEMES_12;
+  if (weeks <= 4) themes = WEEK_THEMES_4;
+  else if (weeks <= 8) themes = WEEK_THEMES_8;
   const numWeeks = Math.min(weeks, themes.length);
-  const weights = COMPANY_DSA_WEIGHT[config.company] ?? COMPANY_DSA_WEIGHT['Other']!;
+  const weights = COMPANY_DSA_WEIGHT[config.company] ?? COMPANY_DSA_WEIGHT['Other'];
 
   const dsaPool = [...DSA_TOPICS];
   const sdPool = [...SD_TOPICS];
@@ -193,22 +195,24 @@ function buildPlan(config: PlanConfig): WeekPlan[] {
 
       // Always add a review task on Mon/Wed/Fri
       if (di === 0 || di === 2 || di === 4) {
-        tasks.push(REVIEW_TASKS[di === 4 ? 1 : 0]!);
+        tasks.push(REVIEW_TASKS[di === 4 ? 1 : 0]);
       }
 
       // Sunday = mock or rest
       if (di === 6) {
         if (isLastWeek || weekNum >= numWeeks - 1) {
-          tasks.push(MOCK_TASKS[2]!);
+          tasks.push(MOCK_TASKS[2]);
         } else if (weekNum > 2) {
-          tasks.push(MOCK_TASKS[di % 2 === 0 ? 0 : 1]!);
+          tasks.push(MOCK_TASKS[di % 2 === 0 ? 0 : 1]);
         }
         return { date: formatDate(date), label: dayLabel, tasks };
       }
 
       // Determine focus for the day
       const dsaWeight = weights.dsa;
-      const sdWeight = isLastWeek ? 0 : isSdWeek ? weights.sd + 15 : weights.sd - 10;
+      let sdWeight = weights.sd - 10;
+      if (isLastWeek) sdWeight = 0;
+      else if (isSdWeek) sdWeight = weights.sd + 15;
       const behWeight = isLastWeek ? 50 : weights.beh;
       const total = dsaWeight + sdWeight + behWeight;
       const rand = (di * 7 + wi * 3) % total;
@@ -216,22 +220,22 @@ function buildPlan(config: PlanConfig): WeekPlan[] {
       if (isLastWeek) {
         // Last week = alternating mock + behavioral
         if (di % 3 === 0 && behIdx < behPool.length) {
-          tasks.push(behPool[behIdx++ % behPool.length]!);
+          tasks.push(behPool[behIdx++ % behPool.length]);
         } else {
-          tasks.push(MOCK_TASKS[di % 2]!);
+          tasks.push(MOCK_TASKS[di % 2]);
         }
       } else if (rand < dsaWeight && dsaIdx < dsaPool.length * 2) {
-        tasks.push(dsaPool[dsaIdx++ % dsaPool.length]!);
+        tasks.push(dsaPool[dsaIdx++ % dsaPool.length]);
         // Add OOP every 3 days
         if (di % 3 === 2 && oopIdx < oopPool.length) {
-          tasks.push(oopPool[oopIdx++ % oopPool.length]!);
+          tasks.push(oopPool[oopIdx++ % oopPool.length]);
         }
       } else if (rand < dsaWeight + sdWeight && sdIdx < sdPool.length * 2) {
-        tasks.push(sdPool[sdIdx++ % sdPool.length]!);
+        tasks.push(sdPool[sdIdx++ % sdPool.length]);
       } else if (behIdx < behPool.length * 2) {
-        tasks.push(behPool[behIdx++ % behPool.length]!);
+        tasks.push(behPool[behIdx++ % behPool.length]);
       } else {
-        tasks.push(dsaPool[dsaIdx++ % dsaPool.length]!);
+        tasks.push(dsaPool[dsaIdx++ % dsaPool.length]);
       }
 
       return { date: formatDate(date), label: dayLabel, tasks };
@@ -338,8 +342,9 @@ export function StudyPlanPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             {/* Company */}
             <div>
-              <label className="text-[10px] font-black uppercase tracking-widest text-zinc-600 block mb-2">Target Company</label>
+              <label htmlFor="sp-company" className="text-[10px] font-black uppercase tracking-widest text-zinc-600 block mb-2">Target Company</label>
               <select
+                id="sp-company"
                 value={config.company}
                 onChange={(e) => setConfig((p) => ({ ...p, company: e.target.value }))}
                 className="w-full bg-zinc-900 border border-white/8 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-indigo-500/50 cursor-pointer"
@@ -350,8 +355,9 @@ export function StudyPlanPage() {
 
             {/* Role */}
             <div>
-              <label className="text-[10px] font-black uppercase tracking-widest text-zinc-600 block mb-2">Role</label>
+              <label htmlFor="sp-role" className="text-[10px] font-black uppercase tracking-widest text-zinc-600 block mb-2">Role</label>
               <select
+                id="sp-role"
                 value={config.role}
                 onChange={(e) => setConfig((p) => ({ ...p, role: e.target.value as PlanConfig['role'] }))}
                 className="w-full bg-zinc-900 border border-white/8 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-indigo-500/50 cursor-pointer"
@@ -365,8 +371,9 @@ export function StudyPlanPage() {
 
             {/* Level */}
             <div>
-              <label className="text-[10px] font-black uppercase tracking-widest text-zinc-600 block mb-2">Level</label>
+              <label htmlFor="sp-level" className="text-[10px] font-black uppercase tracking-widest text-zinc-600 block mb-2">Level</label>
               <select
+                id="sp-level"
                 value={config.level}
                 onChange={(e) => setConfig((p) => ({ ...p, level: e.target.value as PlanConfig['level'] }))}
                 className="w-full bg-zinc-900 border border-white/8 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-indigo-500/50 cursor-pointer"
@@ -379,8 +386,9 @@ export function StudyPlanPage() {
 
             {/* Date */}
             <div>
-              <label className="text-[10px] font-black uppercase tracking-widest text-zinc-600 block mb-2">Interview Date</label>
+              <label htmlFor="sp-date" className="text-[10px] font-black uppercase tracking-widest text-zinc-600 block mb-2">Interview Date</label>
               <input
+                id="sp-date"
                 type="date"
                 min={minDateStr}
                 max={maxDateStr}
@@ -389,14 +397,14 @@ export function StudyPlanPage() {
                 className="w-full bg-zinc-900 border border-white/8 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-indigo-500/50 cursor-pointer"
               />
               {weeksLeft !== null && (
-                <p className="text-[10px] text-indigo-400 mt-1 font-bold">{weeksLeft} week{weeksLeft !== 1 ? 's' : ''} to go</p>
+                <p className="text-[10px] text-indigo-400 mt-1 font-bold">{weeksLeft} week{weeksLeft === 1 ? '' : 's'} to go</p>
               )}
             </div>
           </div>
 
           <button
             onClick={generate}
-            disabled={!config.interviewDate}
+            disabled={config.interviewDate === ''}
             className="bg-[#E82127] disabled:opacity-40 disabled:cursor-not-allowed text-white font-black uppercase tracking-widest text-xs py-4 px-8 rounded-full hover:brightness-110 transition-all active:scale-95 shadow-lg shadow-red-900/30 flex items-center gap-2"
           >
             <Icon name="auto_awesome" size={16} />

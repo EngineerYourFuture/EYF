@@ -132,8 +132,8 @@ export function AppShell({ children }: { readonly children: ReactNode }) {
       if (e.key === '?' && !isInput) { e.preventDefault(); setShortcutsOpen((o) => !o); }
       if (e.key === 'Escape') { setSidebarOpen(false); setSearchOpen(false); setShortcutsOpen(false); }
     };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
+    globalThis.addEventListener('keydown', handler);
+    return () => globalThis.removeEventListener('keydown', handler);
   }, []);
 
   const logout = useCallback(() => {

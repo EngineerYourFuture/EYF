@@ -24,8 +24,8 @@ function bubbleSortTrace(arr: number[]): TraceStep[] {
   for (let i = 0; i < a.length - 1; i++) {
     for (let j = 0; j < a.length - i - 1; j++) {
       steps.push({ step: steps.length, description: `Compare a[${j}]=${a[j]} and a[${j+1}]=${a[j+1]}`, state: { array: [...a] }, highlight: [j, j+1] });
-      if (a[j]! > a[j+1]!) {
-        [a[j], a[j+1]] = [a[j+1]!, a[j]!];
+      if (a[j] > a[j+1]) {
+        [a[j], a[j+1]] = [a[j+1], a[j]];
         steps.push({ step: steps.length, description: `Swap → [${a.join(', ')}]`, state: { array: [...a] }, highlight: [j, j+1] });
       }
     }
@@ -39,18 +39,18 @@ function quickSortTrace(arr: number[]): TraceStep[] {
   const a = [...arr]; const steps: TraceStep[] = [];
   steps.push({ step: 0, description: `Initial: [${a.join(', ')}]`, state: { array: [...a] }, highlight: [] });
   function partition(lo: number, hi: number) {
-    const pivot = a[hi]!;
+    const pivot = a[hi];
     steps.push({ step: steps.length, description: `Pivot = ${pivot} at index ${hi}`, state: { array: [...a] }, highlight: [hi] });
     let i = lo - 1;
     for (let j = lo; j < hi; j++) {
       steps.push({ step: steps.length, description: `Compare a[${j}]=${a[j]} with pivot ${pivot}`, state: { array: [...a] }, highlight: [j, hi] });
-      if (a[j]! <= pivot) {
+      if (a[j] <= pivot) {
         i++;
-        [a[i], a[j]] = [a[j]!, a[i]!];
+        [a[i], a[j]] = [a[j], a[i]];
         if (i !== j) steps.push({ step: steps.length, description: `Swap a[${i}] and a[${j}] → [${a.join(', ')}]`, state: { array: [...a] }, highlight: [i, j] });
       }
     }
-    [a[i+1], a[hi]] = [a[hi]!, a[i+1]!];
+    [a[i+1], a[hi]] = [a[hi], a[i+1]];
     steps.push({ step: steps.length, description: `Pivot ${pivot} placed at index ${i+1}`, state: { array: [...a] }, highlight: [i+1] });
     return i + 1;
   }
@@ -75,7 +75,7 @@ function binarySearchTrace(arr: number[], target: number): TraceStep[] {
     if (a[mid] === target) {
       steps.push({ step: steps.length, description: `Found ${target} at index ${mid}!`, state: { array: [...a], result: mid }, highlight: [mid] });
       return steps;
-    } else if (a[mid]! < target) {
+    } else if (a[mid] < target) {
       steps.push({ step: steps.length, description: `${a[mid]} < ${target} → search right half`, state: { array: [...a] }, highlight: [] });
       lo = mid + 1;
     } else {
@@ -91,7 +91,7 @@ function localTrace(algorithm: string, input: string): TraceStep[] | null {
   const arr = parseIntArray(input);
   if (algorithm === 'Bubble Sort') return bubbleSortTrace(arr);
   if (algorithm === 'Quick Sort')  return quickSortTrace(arr);
-  if (algorithm === 'Binary Search') return binarySearchTrace(arr, arr[0]! + 1); // search for a number close to first
+  if (algorithm === 'Binary Search') return binarySearchTrace(arr, arr[0] + 1); // search for a number close to first
   return null;
 }
 

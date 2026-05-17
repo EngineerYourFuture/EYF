@@ -319,7 +319,7 @@ export function CybersecurityPage() {
                           </p>
                         )}
                         {c.attempts > 0 && (
-                          <p className="text-[10px] text-zinc-600">{c.attempts} attempt{c.attempts !== 1 ? 's' : ''}</p>
+                          <p className="text-[10px] text-zinc-600">{c.attempts} attempt{c.attempts === 1 ? '' : 's'}</p>
                         )}
                       </div>
                     )}

@@ -372,7 +372,7 @@ const DIFF_META = {
   hard:   { label: 'Hard',   cls: 'text-red-400     border-red-400/20     bg-red-400/10' },
 };
 
-function DifficultyStars({ n }: { n: number }) {
+function DifficultyStars({ n }: { readonly n: number }) {
   return (
     <div className="flex gap-0.5">
       {[1, 2, 3, 4, 5].map((i) => (
@@ -385,9 +385,9 @@ function DifficultyStars({ n }: { n: number }) {
 // ─── Company Card ────────────────────────────────────────────────────────────
 
 function CompanyCard({ company, selected, onSelect }: {
-  company: CompanyData;
-  selected: boolean;
-  onSelect: () => void;
+  readonly company: CompanyData;
+  readonly selected: boolean;
+  readonly onSelect: () => void;
 }) {
   return (
     <button
@@ -414,7 +414,7 @@ function CompanyCard({ company, selected, onSelect }: {
 
 // ─── Detail Panel ─────────────────────────────────────────────────────────────
 
-function CompanyDetail({ company }: { company: CompanyData }) {
+function CompanyDetail({ company }: { readonly company: CompanyData }) {
   const [tab, setTab] = useState<'overview' | 'problems' | 'tips'>('overview');
 
   return (
@@ -462,17 +462,21 @@ function CompanyDetail({ company }: { company: CompanyData }) {
 
       {/* Tabs */}
       <div className="flex gap-1 bg-[#181818] rounded-xl p-1 border border-white/5">
-        {(['overview', 'problems', 'tips'] as const).map((t) => (
-          <button
-            key={t}
-            onClick={() => setTab(t)}
-            className={`flex-1 py-2 rounded-lg text-xs font-semibold capitalize transition-colors ${
-              tab === t ? 'bg-white/10 text-white' : 'text-zinc-500 hover:text-zinc-300'
-            }`}
-          >
-            {t === 'overview' ? 'Focus Topics' : t === 'problems' ? 'Top Problems' : 'Tips'}
-          </button>
-        ))}
+        {(['overview', 'problems', 'tips'] as const).map((t) => {
+          const TAB_LABELS: Record<string, string> = { overview: 'Focus Topics', problems: 'Top Problems', tips: 'Tips' };
+          const tabLabel = TAB_LABELS[t];
+          return (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              className={`flex-1 py-2 rounded-lg text-xs font-semibold capitalize transition-colors ${
+                tab === t ? 'bg-white/10 text-white' : 'text-zinc-500 hover:text-zinc-300'
+              }`}
+            >
+              {tabLabel}
+            </button>
+          );
+        })}
       </div>
 
       {/* Tab Content */}
@@ -530,7 +534,7 @@ function CompanyDetail({ company }: { company: CompanyData }) {
       {tab === 'tips' && (
         <div className="space-y-3">
           {company.tips.map((tip, i) => (
-            <div key={i} className="flex gap-3 p-4 bg-[#1a1a1a] rounded-xl border border-white/5">
+            <div key={`tip-${i}`} className="flex gap-3 p-4 bg-[#1a1a1a] rounded-xl border border-white/5">
               <Icon name="lightbulb" className="text-amber-400 text-lg shrink-0 mt-0.5" />
               <p className="text-sm text-zinc-300 leading-relaxed">{tip}</p>
             </div>
@@ -554,7 +558,7 @@ export function CompanyPrepPage() {
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-white mb-1">Company-Specific Prep</h1>
           <p className="text-sm text-zinc-500">
-            Tailored prep for top companies — focus topics, most-asked problems, interview rounds, tips, and CTC data.
+            Tailored prep for top companies — focus topics, most-asked problems, interview rounds, tips, and CTC data.{' '}
             <span className="ml-2 text-[10px] font-bold text-[#E82127] bg-[#E82127]/10 px-2 py-0.5 rounded-full border border-[#E82127]/20">
               FREE · Company-filtered problems are ₹2500/mo on LeetCode
             </span>

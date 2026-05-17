@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { AppShell } from '../components/AppShell';
 import { Icon } from '../components/Icon';
 import { apiRequest } from '../lib/api';
@@ -82,7 +82,7 @@ const TESTIMONIALS = [
   { name: 'Rohan S.', role: 'Backend Engineer at Razorpay', avatar: 'R', text: 'Coming from a non-CS background, the OOP patterns module was incredibly structured. The Pro plan is worth every rupee.', plan: 'Pro' },
 ];
 
-function FeatureValue({ value }: { value: boolean | string }) {
+function FeatureValue({ value }: { readonly value: boolean | string }) {
   if (value === true) return <Icon name="check_circle" size={18} className="text-green-400 mx-auto" filled />;
   if (value === false) return <Icon name="remove" size={18} className="text-zinc-700 mx-auto" />;
   return <span className="text-xs font-bold text-on-surface">{value}</span>;
@@ -115,7 +115,8 @@ export function BillingPage() {
         token: session.accessToken,
         body: { plan: planId, billing },
       });
-      setSuccessMsg(`Successfully ${planId === 'free' ? 'downgraded to Free' : `upgraded to ${planId.charAt(0).toUpperCase() + planId.slice(1)}`}!`);
+      const planLabel = planId === 'free' ? 'downgraded to Free' : `upgraded to ${planId.charAt(0).toUpperCase() + planId.slice(1)}`;
+      setSuccessMsg(`Successfully ${planLabel}!`);
       refresh();
     } catch {
       setErrorMsg('Failed to change plan. Please try again or contact support.');
@@ -162,7 +163,7 @@ export function BillingPage() {
                 billing === 'annual' ? 'bg-surface-container-highest text-white' : 'text-zinc-500 hover:text-zinc-200'
               }`}
             >
-              Annual
+              Annual{' '}
               <span className="bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full text-[9px] font-black">SAVE 25%</span>
             </button>
           </div>
@@ -190,16 +191,23 @@ export function BillingPage() {
             const price = getPrice(plan);
             const savings = getSavings(plan);
 
+            let cardClass = 'bg-surface-container border border-zinc-800 hover:border-zinc-700';
+            if (isPopular) cardClass = 'bg-primary-container/10 border-2 border-primary-container shadow-[0_0_40px_rgba(232,33,39,0.12)]';
+            else if (isCurrent) cardClass = 'bg-surface-container border-2 border-zinc-700';
+
+            let btnClass = 'bg-surface-container-high text-on-surface hover:bg-primary-container hover:text-white border border-zinc-700';
+            if (isCurrent) btnClass = 'bg-surface-container-highest text-zinc-600 cursor-default';
+            else if (isPopular) btnClass = 'bg-primary-container text-white hover:brightness-110 shadow-lg shadow-red-900/20';
+
+            let btnLabel: ReactNode = `Get ${plan.name}`;
+            if (loadingPlan === plan.id) btnLabel = <><Icon name="hourglass_empty" size={14} />Processing...</>;
+            else if (isCurrent) btnLabel = 'Current Plan';
+            else if (plan.monthlyPrice === 0) btnLabel = 'Downgrade to Free';
+
             return (
               <div
                 key={plan.id}
-                className={`relative rounded-2xl p-8 flex flex-col transition-all ${
-                  isPopular
-                    ? 'bg-primary-container/10 border-2 border-primary-container shadow-[0_0_40px_rgba(232,33,39,0.12)]'
-                    : isCurrent
-                    ? 'bg-surface-container border-2 border-zinc-700'
-                    : 'bg-surface-container border border-zinc-800 hover:border-zinc-700'
-                }`}
+                className={`relative rounded-2xl p-8 flex flex-col transition-all ${cardClass}`}
               >
                 {/* Badge */}
                 {plan.tag && (
@@ -249,23 +257,9 @@ export function BillingPage() {
                 <button
                   disabled={isCurrent || loadingPlan === plan.id}
                   onClick={() => handleUpgrade(plan.id)}
-                  className={`w-full py-3.5 rounded-full font-bold text-[11px] uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2 ${
-                    isCurrent
-                      ? 'bg-surface-container-highest text-zinc-600 cursor-default'
-                      : isPopular
-                      ? 'bg-primary-container text-white hover:brightness-110 shadow-lg shadow-red-900/20'
-                      : 'bg-surface-container-high text-on-surface hover:bg-primary-container hover:text-white border border-zinc-700'
-                  }`}
+                  className={`w-full py-3.5 rounded-full font-bold text-[11px] uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2 ${btnClass}`}
                 >
-                  {loadingPlan === plan.id ? (
-                    <><Icon name="hourglass_empty" size={14} />Processing...</>
-                  ) : isCurrent ? (
-                    'Current Plan'
-                  ) : plan.monthlyPrice === 0 ? (
-                    'Downgrade to Free'
-                  ) : (
-                    `Get ${plan.name}`
-                  )}
+                  {btnLabel}
                 </button>
               </div>
             );

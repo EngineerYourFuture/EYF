@@ -162,6 +162,9 @@ export function SecurityPage() {
   const xp    = summary?.xp ?? 0;
   const level = summary?.level ?? 0;
   const LEVEL_NAMES = ['Newcomer','Learner','Explorer','Builder','Practitioner','Engineer','Senior','Lead','Architect','Expert','Legend'];
+  let planLabel = 'Free';
+  if (plan === 'elite') planLabel = '⭐ Elite';
+  else if (plan === 'pro') planLabel = '✦ Pro';
 
   return (
     <AppShell>
@@ -182,7 +185,7 @@ export function SecurityPage() {
               <p className="text-zinc-500 text-xs">{session?.email}</p>
               <div className="flex items-center gap-3 mt-1.5 flex-wrap">
                 <span className="bg-[#E82127]/10 text-[#E82127] text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full">
-                  {plan === 'elite' ? '⭐ Elite' : plan === 'pro' ? '✦ Pro' : 'Free'}
+                  {planLabel}
                 </span>
                 <span className="text-zinc-600 text-[10px] font-bold">Lv.{level} {LEVEL_NAMES[level]}</span>
                 <span className="text-zinc-600 text-[10px] font-bold">{xp.toLocaleString()} XP</span>

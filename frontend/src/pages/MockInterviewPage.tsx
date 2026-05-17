@@ -114,10 +114,10 @@ export function MockInterviewPage() {
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
-    if (!timerActive) { if (timerRef.current) clearInterval(timerRef.current); return; }
+    if (!timerActive) { if (timerRef.current) { clearInterval(timerRef.current); } return; }
     timerRef.current = setInterval(() => {
       setTimeLeft((t) => {
-        if (t <= 1) { clearInterval(timerRef.current!); setTimerActive(false); return 0; }
+        if (t <= 1) { if (timerRef.current) { clearInterval(timerRef.current); } setTimerActive(false); return 0; }
         return t - 1;
       });
     }, 1000);
@@ -169,7 +169,8 @@ export function MockInterviewPage() {
         }).catch(() => {});
       }
       const answered = Object.values(answers).filter((a) => a.trim().length > 20).length;
-      const xp = Math.round(answered * (selectedType === 'system_design' ? 20 : selectedType === 'dsa' ? 15 : 10));
+      const XP_PER_ANSWER: Record<string, number> = { system_design: 20, dsa: 15 };
+      const xp = Math.round(answered * (XP_PER_ANSWER[selectedType] ?? 10));
       fireXP(xp, `Mock ${TYPE_META[selectedType].label} interview complete!`);
     } finally {
       setSubmitting(false);
@@ -179,7 +180,11 @@ export function MockInterviewPage() {
   const currentQ = questions[qIdx];
   const answeredCount = Object.values(answers).filter((a) => a.trim().length > 20).length;
   const timerPct = totalTime > 0 ? (timeLeft / totalTime) * 100 : 0;
-  const timerColor = timerPct > 50 ? 'text-green-400' : timerPct > 25 ? 'text-yellow-400' : 'text-red-400';
+  let timerColor = 'text-red-400';
+  let timerBarColor = 'bg-red-400';
+  if (timerPct > 50) { timerColor = 'text-green-400'; timerBarColor = 'bg-green-400'; }
+  else if (timerPct > 25) { timerColor = 'text-yellow-400'; timerBarColor = 'bg-yellow-400'; }
+  const XP_PER_ANS: Record<string, number> = { system_design: 20, dsa: 15 };
 
   if (phase === 'select') {
     return (
@@ -306,7 +311,7 @@ export function MockInterviewPage() {
               </div>
               <div className="border-l border-zinc-800 pl-8">
                 <p className="text-2xl font-black text-primary-container">
-                  +{Math.round(answeredCount * (selectedType === 'system_design' ? 20 : selectedType === 'dsa' ? 15 : 10))}
+                  +{Math.round(answeredCount * (XP_PER_ANS[selectedType] ?? 10))}
                 </p>
                 <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">XP Earned</p>
               </div>
@@ -380,6 +385,14 @@ export function MockInterviewPage() {
   // Active interview
   if (!currentQ) return null;
 
+  const ANSWER_LABEL: Record<string, string> = { behavioral: 'Your Answer (STAR format)', dsa: 'Your Approach & Solution' };
+  const answerLabel = ANSWER_LABEL[currentQ.type] ?? 'Your Design';
+  const DSA_PLACEHOLDER = 'Approach:\n1. ...\n\nTime complexity: O(?)\nSpace complexity: O(?)\n\nCode:\n```\n\n```';
+  const SD_PLACEHOLDER = 'Requirements:\n- Functional: ...\n- Non-functional: ...\n\nCapacity estimation: ...\n\nHigh-level design: ...\n\nDatabase: ...\n\nAPI design: ...\n\nScalability: ...';
+  const BEHAV_PLACEHOLDER = 'Situation: ...\n\nTask: ...\n\nAction: ...\n\nResult: ...';
+  const PLACEHOLDER_MAP: Record<string, string> = { behavioral: BEHAV_PLACEHOLDER, dsa: DSA_PLACEHOLDER };
+  const answerPlaceholder = PLACEHOLDER_MAP[currentQ.type] ?? SD_PLACEHOLDER;
+
   return (
     <AppShell>
       <div className="pt-8 max-w-4xl mx-auto">
@@ -409,7 +422,7 @@ export function MockInterviewPage() {
           {/* Timer bar */}
           <div className="h-1 bg-surface-container-highest rounded-full overflow-hidden">
             <div
-              className={`h-full rounded-full transition-all duration-1000 ${timerPct > 50 ? 'bg-green-400' : timerPct > 25 ? 'bg-yellow-400' : 'bg-red-400'}`}
+              className={`h-full rounded-full transition-all duration-1000 ${timerBarColor}`}
               style={{ width: `${timerPct}%` }}
             />
           </div>
@@ -456,20 +469,14 @@ export function MockInterviewPage() {
         <div className="bg-surface-container rounded-2xl overflow-hidden mb-5">
           <div className="flex items-center justify-between px-5 py-3 border-b border-zinc-800">
             <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">
-              {currentQ.type === 'behavioral' ? 'Your Answer (STAR format)' : currentQ.type === 'dsa' ? 'Your Approach & Solution' : 'Your Design'}
+              {answerLabel}
             </p>
             <span className="text-[10px] text-zinc-600">{(answers[currentQ.id] ?? '').length} chars</span>
           </div>
           <textarea
             value={answers[currentQ.id] ?? ''}
             onChange={(e) => setAnswers((prev) => ({ ...prev, [currentQ.id]: e.target.value }))}
-            placeholder={
-              currentQ.type === 'behavioral'
-                ? 'Situation: ...\n\nTask: ...\n\nAction: ...\n\nResult: ...'
-                : currentQ.type === 'dsa'
-                ? 'Approach:\n1. ...\n\nTime complexity: O(?)\nSpace complexity: O(?)\n\nCode:\n```\n\n```'
-                : 'Requirements:\n- Functional: ...\n- Non-functional: ...\n\nCapacity estimation: ...\n\nHigh-level design: ...\n\nDatabase: ...\n\nAPI design: ...\n\nScalability: ...'
-            }
+            placeholder={answerPlaceholder}
             rows={14}
             className="w-full bg-transparent p-5 text-sm text-on-surface focus:outline-none resize-none font-mono leading-relaxed"
           />

@@ -5,7 +5,7 @@ interface Props {
   readonly onClose: () => void;
 }
 
-const MILESTONES = [7, 14, 30, 60, 100, 200, 365];
+const MILESTONES = new Set([7, 14, 30, 60, 100, 200, 365]);
 
 export function StreakToast({ streak, onClose }: Props) {
   const [visible, setVisible] = useState(false);
@@ -17,7 +17,7 @@ export function StreakToast({ streak, onClose }: Props) {
     return () => { cancelAnimationFrame(enter); clearTimeout(exit); clearTimeout(remove); };
   }, [onClose]);
 
-  const isMilestone = MILESTONES.includes(streak);
+  const isMilestone = MILESTONES.has(streak);
 
   return (
     <div

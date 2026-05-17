@@ -977,7 +977,7 @@ function PatternPanel({ pattern, onClose, onComplete }: PatternPanelProps) {
               {PATTERN_USE_CASES[pattern.patternKey] && (
                 <div className="bg-zinc-900 rounded-xl p-4 space-y-2">
                   <p className="text-[10px] font-black uppercase tracking-widest text-zinc-600 mb-3">Common Use Cases</p>
-                  {PATTERN_USE_CASES[pattern.patternKey]!.when.slice(0, 4).map((c) => (
+                  {PATTERN_USE_CASES[pattern.patternKey].when.slice(0, 4).map((c) => (
                     <div key={c} className="flex items-start gap-2 text-sm text-zinc-400">
                       <Icon name="check_circle" size={14} className="text-green-400 flex-shrink-0 mt-0.5" filled />
                       {c}
@@ -989,7 +989,7 @@ function PatternPanel({ pattern, onClose, onComplete }: PatternPanelProps) {
                 <div className="bg-zinc-900 rounded-xl p-4 space-y-2">
                   <p className="text-[10px] font-black uppercase tracking-widest text-zinc-600 mb-3">Real-World Examples</p>
                   <div className="flex flex-wrap gap-2">
-                    {PATTERN_USE_CASES[pattern.patternKey]!.realWorld.map((r) => (
+                    {PATTERN_USE_CASES[pattern.patternKey].realWorld.map((r) => (
                       <span key={r} className="bg-blue-500/10 border border-blue-500/20 text-blue-300 text-xs px-3 py-1 rounded-full">{r}</span>
                     ))}
                   </div>

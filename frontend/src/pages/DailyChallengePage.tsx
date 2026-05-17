@@ -684,7 +684,7 @@ class LRUCache {
 
 // Fill up to 31 entries with cycling challenges
 while (CHALLENGES.length < 31) {
-  CHALLENGES.push(CHALLENGES[CHALLENGES.length % 20]!);
+  CHALLENGES.push(CHALLENGES[CHALLENGES.length % 20]);
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -706,7 +706,7 @@ const DIFF_STYLE: Record<string, string> = {
 
 function todayChallenge(): DailyChallenge {
   const day = new Date().getDate() - 1; // 0-indexed
-  return CHALLENGES[day % CHALLENGES.length]!;
+  return CHALLENGES[day % CHALLENGES.length];
 }
 
 function todayKey(): string {
@@ -841,8 +841,9 @@ export function DailyChallengePage() {
           {/* Answer area */}
           {!submitted && (
             <div className="px-6 pb-6">
-              <label className="text-[10px] font-black uppercase tracking-widest text-zinc-600 block mb-2">Your Answer / Approach</label>
+              <label htmlFor="daily-answer" className="text-[10px] font-black uppercase tracking-widest text-zinc-600 block mb-2">Your Answer / Approach</label>
               <textarea
+                id="daily-answer"
                 value={answer}
                 onChange={(e) => setAnswer(e.target.value)}
                 placeholder="Write your solution, approach, or key insights here..."
@@ -919,7 +920,7 @@ export function DailyChallengePage() {
               d.setDate(d.getDate() - daysAgo);
               const key = `eyf.daily.${d.toISOString().split('T')[0]}`;
               const done = localStorage.getItem(key) === 'done';
-              const dayChallenge = CHALLENGES[(d.getDate() - 1) % CHALLENGES.length]!;
+              const dayChallenge = CHALLENGES[(d.getDate() - 1) % CHALLENGES.length];
               const m = TYPE_META[dayChallenge.type];
               return (
                 <div key={daysAgo} className={`flex items-center gap-4 p-3 rounded-xl ${done ? 'bg-green-500/5 border border-green-500/10' : 'bg-surface-container-high'}`}>

@@ -380,17 +380,17 @@ export function CareerPathPage() {
                 <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1">Avg CTC</p>
                 <p className="text-sm font-bold text-white">{role.avgCTC}</p>
               </div>
-              {savedRole !== selectedRole ? (
+              {savedRole === selectedRole ? (
+                <div className="mt-4 w-full py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest text-center text-green-400 bg-green-500/10 border border-green-500/20">
+                  ✓ Your current track
+                </div>
+              ) : (
                 <button
                   onClick={saveRole}
                   className={`mt-4 w-full py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all ${role.bg} ${role.color} border ${role.border} hover:brightness-125`}
                 >
                   Set as My Track
                 </button>
-              ) : (
-                <div className="mt-4 w-full py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest text-center text-green-400 bg-green-500/10 border border-green-500/20">
-                  ✓ Your current track
-                </div>
               )}
             </div>
 

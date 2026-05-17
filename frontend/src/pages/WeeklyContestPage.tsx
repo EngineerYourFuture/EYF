@@ -153,7 +153,7 @@ const STATUS_META: Record<ContestStatus, { label: string; dot: string; ring: str
 
 // ─── Sub-components ──────────────────────────────────────────────────────────
 
-function LiveTimer({ endTime }: { endTime: Date }) {
+function LiveTimer({ endTime }: { readonly endTime: Date }) {
   const [remaining, setRemaining] = useState(endTime.getTime() - Date.now());
 
   useEffect(() => {
@@ -180,7 +180,7 @@ function LiveTimer({ endTime }: { endTime: Date }) {
   );
 }
 
-function ProblemRow({ prob, isLive }: { prob: ContestProblem; isLive: boolean }) {
+function ProblemRow({ prob, isLive }: { readonly prob: ContestProblem; readonly isLive: boolean }) {
   const dc = DIFF_COLORS[prob.difficulty];
   const pct = diffPct(prob.solvers, prob.totalParticipants);
 
@@ -214,9 +214,9 @@ function ContestCard({
   onRegister,
   registered,
 }: {
-  contest: Contest;
-  onRegister: (id: string) => void;
-  registered: boolean;
+  readonly contest: Contest;
+  readonly onRegister: (id: string) => void;
+  readonly registered: boolean;
 }) {
   const [expanded, setExpanded] = useState(contest.status === 'live');
   const meta = STATUS_META[contest.status];
@@ -225,12 +225,10 @@ function ContestCard({
   return (
     <div className={`bg-[#1a1a1a] rounded-2xl border ${meta.ring} overflow-hidden`}>
       {/* Header */}
-      <div
-        className="flex items-start gap-4 p-5 cursor-pointer hover:bg-white/[0.02] transition-colors"
+      <button
+        type="button"
+        className="w-full flex items-start gap-4 p-5 cursor-pointer hover:bg-white/[0.02] transition-colors text-left"
         onClick={() => setExpanded((v) => !v)}
-        role="button"
-        tabIndex={0}
-        onKeyDown={(e) => e.key === 'Enter' && setExpanded((v) => !v)}
       >
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
@@ -258,7 +256,7 @@ function ContestCard({
           )}
           <Icon name={expanded ? 'expand_less' : 'expand_more'} className="text-zinc-600 text-xl" />
         </div>
-      </div>
+      </button>
 
       {/* CTA for live/upcoming */}
       {contest.status !== 'ended' && (
@@ -337,7 +335,7 @@ function ContestCard({
   );
 }
 
-function UpcomingCountdown({ target }: { target: Date }) {
+function UpcomingCountdown({ target }: { readonly target: Date }) {
   const [ms, setMs] = useState(target.getTime() - Date.now());
   useEffect(() => {
     const id = setInterval(() => setMs(target.getTime() - Date.now()), 1000);
@@ -357,7 +355,7 @@ function UpcomingCountdown({ target }: { target: Date }) {
 
 // ─── Stats Banner ─────────────────────────────────────────────────────────────
 
-function StatBadge({ icon, label, value }: { icon: string; label: string; value: string }) {
+function StatBadge({ icon, label, value }: { readonly icon: string; readonly label: string; readonly value: string }) {
   return (
     <div className="flex items-center gap-3 bg-[#1a1a1a] rounded-2xl border border-white/5 px-5 py-4">
       <Icon name={icon} className="text-2xl text-zinc-500" />
@@ -403,7 +401,7 @@ export function WeeklyContestPage() {
           <div>
             <h1 className="text-2xl font-bold text-white mb-1">Weekly Contests</h1>
             <p className="text-sm text-zinc-500">
-              90-minute timed contests every Sunday — 4 problems, global leaderboard, XP rewards.
+              90-minute timed contests every Sunday — 4 problems, global leaderboard, XP rewards.{' '}
               <span className="ml-2 text-[10px] font-bold text-[#E82127] bg-[#E82127]/10 px-2 py-0.5 rounded-full border border-[#E82127]/20">
                 FREE · No paywall
               </span>
