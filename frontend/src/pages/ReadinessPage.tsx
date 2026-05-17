@@ -326,7 +326,7 @@ export function ReadinessPage() {
                       : overall >= 35 ? 'text-orange-400'
                       : 'text-red-400';
 
-  const sprintDays = Array.from(new Set(sprint.map(t => t.day))).sort();
+  const sprintDays = Array.from(new Set(sprint.map(t => t.day))).sort((a, b) => a - b);
   const dayTasks = sprint.filter(t => t.day === activeDay);
   const sprintPct = sprint.length ? Math.round((sprint.filter(t => t.done).length / sprint.length) * 100) : 0;
 

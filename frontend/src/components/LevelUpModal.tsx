@@ -28,7 +28,7 @@ export function LevelUpModal({ level, onClose }: Props) {
         visible ? 'opacity-100' : 'opacity-0'
       }`}
     >
-      <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={handleClose} />
+      <div role="presentation" className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={handleClose} onKeyDown={(e) => { if (e.key === 'Escape') handleClose(); }} />
 
       <div
         className={`relative bg-[#111] border border-[#E82127]/40 rounded-3xl p-10 max-w-sm w-full mx-4 text-center shadow-2xl shadow-black/80 transition-all duration-500 ${

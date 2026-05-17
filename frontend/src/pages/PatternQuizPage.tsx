@@ -233,7 +233,9 @@ const DIFF_STYLE: Record<string, string> = {
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
+    const buf = new Uint32Array(1);
+    crypto.getRandomValues(buf);
+    const j = buf[0]! % (i + 1);
     [a[i], a[j]] = [a[j]!, a[i]!];
   }
   return a;
@@ -389,7 +391,7 @@ export function PatternQuizPage() {
             <div className="bg-surface-container rounded-2xl p-6">
               <p className="text-[10px] font-black uppercase tracking-widest text-zinc-600 mb-4">Patterns Covered</p>
               <div className="flex flex-wrap gap-2">
-                {Array.from(new Set(ALL_QUESTIONS.flatMap(q => q.tags))).sort().map((tag) => (
+                {Array.from(new Set(ALL_QUESTIONS.flatMap(q => q.tags))).sort((a, b) => a.localeCompare(b)).map((tag) => (
                   <span key={tag} className="px-3 py-1.5 bg-zinc-800 rounded-full text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
                     {tag}
                   </span>

@@ -73,9 +73,10 @@ function ActivityHeatmap({ streak }: { readonly streak: number }) {
   // Simulate activity — in production this comes from the API
   const cells = Array.from({ length: days }, (_, i) => {
     const daysAgo = days - 1 - i;
-    if (daysAgo < streak) return Math.floor(Math.random() * 3) + 1;
-    if (daysAgo < streak + 7) return Math.random() > 0.6 ? 1 : 0;
-    return Math.random() > 0.8 ? 1 : 0;
+    const h = ((i * 2654435761) >>> 0) % 100;
+    if (daysAgo < streak) return (h % 3) + 1;
+    if (daysAgo < streak + 7) return h > 60 ? 1 : 0;
+    return h > 80 ? 1 : 0;
   });
 
   const intensity = (v: number) => {

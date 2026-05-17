@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { shuffle } from '../lib/random';
 import { AppShell } from '../components/AppShell';
 import { Icon } from '../components/Icon';
 import { useUser } from '../contexts/UserContext';
@@ -204,7 +205,7 @@ export function FlashcardsPage() {
     const deckCards = ALL_CARDS.filter((c) => c.category === deckId);
     const due = getDueCards(deckCards, progress);
     // Shuffle
-    const shuffled = [...due].sort(() => Math.random() - 0.5).slice(0, 20);
+    const shuffled = shuffle(due).slice(0, 20);
     if (shuffled.length === 0) {
       setSelectedDeck(deckId);
       setSessionCards([]);
@@ -565,10 +566,13 @@ export function FlashcardsPage() {
 
         {/* Card */}
         <div
+          role="button"
+          tabIndex={0}
           className={`relative bg-[#1a1a1a] border rounded-3xl min-h-[280px] p-8 flex flex-col justify-between cursor-pointer transition-all duration-200 ${
             flipped ? 'border-white/20' : 'border-white/8 hover:border-white/15'
           }`}
           onClick={() => setFlipped((f) => !f)}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setFlipped((f) => !f); }}
         >
           {/* Category tag */}
           <div className="flex items-center gap-2 mb-4">

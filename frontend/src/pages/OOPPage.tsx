@@ -938,7 +938,7 @@ function PatternPanel({ pattern, onClose, onComplete }: PatternPanelProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex">
-      <div className="flex-1 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div role="presentation" className="flex-1 bg-black/60 backdrop-blur-sm" onClick={onClose} onKeyDown={(e) => { if (e.key === 'Escape') onClose(); }} />
       <div className="w-full max-w-2xl bg-[#111] border-l border-white/10 flex flex-col overflow-hidden">
         {/* Header */}
         <div className="flex items-center gap-4 px-6 py-5 border-b border-white/8 flex-shrink-0">

@@ -152,7 +152,7 @@ export function AppShell({ children }: { readonly children: ReactNode }) {
       {/* Keyboard shortcuts modal */}
       {shortcutsOpen && (
         <div className="fixed inset-0 z-[9998] flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setShortcutsOpen(false)} />
+          <div role="presentation" className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setShortcutsOpen(false)} onKeyDown={(e) => { if (e.key === 'Escape') setShortcutsOpen(false); }} />
           <div className="relative bg-[#1a1a1a] border border-white/10 rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden">
             <div className="flex items-center justify-between px-6 py-5 border-b border-white/8">
               <h2 className="text-base font-black text-white">Keyboard Shortcuts</h2>

@@ -256,7 +256,7 @@ function runLocalJS(code: string): { stdout: string; stderr: string; runtime: nu
 
   try {
     // eslint-disable-next-line no-new-func
-    new Function(code)();
+    new Function(code)(); // NOSONAR — intentional code playground; user runs their own code
   } catch (e) {
     errors.push(e instanceof Error ? `${e.name}: ${e.message}` : String(e));
   } finally {

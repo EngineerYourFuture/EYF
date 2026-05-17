@@ -508,7 +508,7 @@ const EXPERIENCES: Experience[] = [
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const COMPANIES = [...new Set(EXPERIENCES.map(e => e.company))].sort();
+const COMPANIES = [...new Set(EXPERIENCES.map(e => e.company))].sort((a, b) => a.localeCompare(b));
 const OUTCOMES: Record<Experience['outcome'], { label: string; color: string; icon: string }> = {
   offer:     { label: 'Offer',    color: 'text-green-400 bg-green-500/10 border-green-500/20',   icon: 'check_circle' },
   rejected:  { label: 'Rejected', color: 'text-red-400 bg-red-500/10 border-red-500/20',          icon: 'cancel' },

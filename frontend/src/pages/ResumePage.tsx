@@ -36,7 +36,7 @@ function computeATS(data: ResumeData): { score: number; tips: ATSTip[] } {
   const hasName = data.name.trim().length > 2;
   tips.push({ ok: hasName, label: 'Full name present', tip: 'Add your full name to the top of the resume.' });
 
-  const hasEmail = /\S+@\S+\.\S+/.test(data.email);
+  const hasEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email);
   tips.push({ ok: hasEmail, label: 'Professional email', tip: 'Include a professional email address.' });
 
   const hasPhone = data.phone.trim().length >= 7;
@@ -49,7 +49,7 @@ function computeATS(data: ResumeData): { score: number; tips: ATSTip[] } {
   tips.push({ ok: hasExp, label: 'Work experience with bullets', tip: 'Add at least one role with meaningful bullet points.' });
 
   const hasQuantified = data.experience.some((e) =>
-    e.bullets.some((b) => /\d+(%|x|\+|ms|s|k|m|billion|million|thousand)/i.test(b))
+    e.bullets.some((b) => /\d+[%x+]|\d+\s*(ms|billion|million|thousand|[smk])\b/i.test(b))
   );
   tips.push({ ok: hasQuantified, label: 'Quantified achievements', tip: 'Use numbers: "Improved latency by 40%" beats "Improved performance".' });
 

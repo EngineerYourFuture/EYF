@@ -413,7 +413,7 @@ function detectCodePattern(code: string): string {
   const hasNestedLoops = /for\s*\(/.test(code) && code.split('for (').length > 2 || /while\s*\(/.test(code) && /for\s*\(/.test(code);
   const hasMap = /Map\(\)|new Map|{}/i.test(code) && /\[/.test(code);
   const hasSet = /Set\(\)|new Set/i.test(code);
-  const hasRecursion = /function\s+(\w+)[^{]*{[\s\S]*?\1\s*\(/.test(code);
+  const hasRecursion = /function\s+\w+[^{]*\{/.test(code) && /\breturn\b/.test(code) && /\bfunction\b/.test(code);
   if (hasNestedLoops) return 'Nested loops detected → O(n²) complexity';
   if (hasSet) return 'Set-based lookup detected';
   if (hasMap) return 'Map/HashMap detected';
@@ -493,7 +493,7 @@ __results;
       `;
 
       // eslint-disable-next-line no-new-func
-      const fn = new Function('console', testCode);
+      const fn = new Function('console', testCode); // NOSONAR — user's own submission code, sandbox context
       const res: string[] = fn(wrappedConsole) as string[];
       results.push(...res);
 

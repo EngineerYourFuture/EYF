@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { shuffle } from '../lib/random';
 import { AppShell } from '../components/AppShell';
 import { Icon } from '../components/Icon';
 import { apiRequest } from '../lib/api';
@@ -124,7 +125,7 @@ export function MockInterviewPage() {
   }, [timerActive]);
 
   function startInterview() {
-    const qs = [...ALL_QUESTIONS[selectedType]].sort(() => Math.random() - 0.5).slice(0, selectedType === 'mixed' ? 5 : 4);
+    const qs = shuffle(ALL_QUESTIONS[selectedType]).slice(0, selectedType === 'mixed' ? 5 : 4);
     setQuestions(qs);
     setQIdx(0);
     setAnswers({});

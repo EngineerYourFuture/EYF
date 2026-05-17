@@ -43,6 +43,10 @@ interface StatsData {
 
 // ─── Static fallback ──────────────────────────────────────────────────────────
 
+function fakeDet(seed: number, max: number): number {
+  return ((seed * 1664525 + 1013904223) >>> 0) % max;
+}
+
 function generateFakeDailyActivity(): DailyActivity[] {
   const days: DailyActivity[] = [];
   const today = new Date();
@@ -50,14 +54,13 @@ function generateFakeDailyActivity(): DailyActivity[] {
     const d = new Date(today);
     d.setDate(d.getDate() - i);
     const dateStr = d.toISOString().split('T')[0];
-    // Simulate sparse activity with occasional hot streaks
-    const rand = Math.random();
-    const active = rand > 0.55;
+    const seed = i * 31337;
+    const active = fakeDet(seed, 100) > 55;
     days.push({
       date: dateStr,
-      xp: active ? Math.floor(Math.random() * 150 + 20) : 0,
-      problems: active ? Math.floor(Math.random() * 4) : 0,
-      topics: active ? Math.floor(Math.random() * 2) : 0,
+      xp: active ? fakeDet(seed + 1, 150) + 20 : 0,
+      problems: active ? fakeDet(seed + 2, 4) : 0,
+      topics: active ? fakeDet(seed + 3, 2) : 0,
     });
   }
   return days;

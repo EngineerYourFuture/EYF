@@ -131,7 +131,7 @@ function formatRelative(iso: string): string {
 }
 
 function genId() {
-  return Math.random().toString(36).slice(2) + Date.now().toString(36);
+  return crypto.randomUUID().replace(/-/g, '').slice(0, 12) + Date.now().toString(36);
 }
 
 function colorOf(id: string) {
@@ -273,8 +273,11 @@ function NoteCard({
 
   return (
     <div
+      role="button"
+      tabIndex={0}
       className={`relative rounded-2xl border ${c.cls} p-4 flex flex-col gap-3 hover:border-white/20 transition-all cursor-pointer group`}
       onClick={onEdit}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onEdit(); }}
     >
       {/* Pin indicator */}
       {note.pinned && (
@@ -300,8 +303,10 @@ function NoteCard({
       <div className="flex items-center justify-between mt-auto pt-2 border-t border-white/5">
         <span className="text-[10px] text-zinc-700">{formatRelative(note.updatedAt)}</span>
         <div
+          role="presentation"
           className="relative"
           onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => e.stopPropagation()}
         >
           <button
             onClick={() => setMenuOpen((v) => !v)}
