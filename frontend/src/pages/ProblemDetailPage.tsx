@@ -460,25 +460,13 @@ export function ProblemDetailPage() {
     setCode(LANG_STARTERS[lang]);
   };
 
-  // Local browser execution via sandboxed iframe + postMessage (no new Function / eval in main thread)
+  // Local browser execution via sandboxed iframe + postMessage (no dynamic code in main thread)
   function runLocalJS(userCode: string, testCases: Problem['testCases']): Promise<RunResponse> {
     const start = performance.now();
     const fnMatch = userCode.match(/function\s+(\w+)\s*\(/);
     const fnName = fnMatch?.[1] ?? 'solution';
 
-    // Runner HTML evaluated inside a null-origin sandboxed iframe — isolated from cookies/storage
-    const runnerHtml = [
-      '<!doctype html><html><body><script>',
-      'window.addEventListener("message",function(e){',
-      '  if(!e.data||e.data.type!=="eyf-run")return;',
-      '  var results=[],logs=[];',
-      '  console.log=function(){logs.push(Array.prototype.slice.call(arguments).map(String).join(" "));};',
-      '  try{eval(e.data.code);parent.postMessage({type:"eyf-result",results:results,logs:logs},"*");}',
-      '  catch(err){parent.postMessage({type:"eyf-result",results:[],logs:logs,error:err.message},"*");}',
-      '});',
-      '<\/script></body></html>',
-    ].join('');
-
+    // Code runs in /sandbox.html — a null-origin sandboxed iframe with no cookie/storage access
     const testCode = [
       userCode,
       `var __cases=${JSON.stringify(testCases)};`,
@@ -491,8 +479,6 @@ export function ProblemDetailPage() {
       `}`,
     ].join('\n');
 
-    const blob = new Blob([runnerHtml], { type: 'text/html' });
-    const blobUrl = URL.createObjectURL(blob);
     const iframe = document.createElement('iframe');
     iframe.style.display = 'none';
     iframe.setAttribute('sandbox', 'allow-scripts');
@@ -503,7 +489,6 @@ export function ProblemDetailPage() {
         if (done) return;
         done = true;
         window.removeEventListener('message', onMsg);
-        URL.revokeObjectURL(blobUrl);
         if (document.body.contains(iframe)) document.body.removeChild(iframe);
       };
 
@@ -522,7 +507,7 @@ export function ProblemDetailPage() {
       window.addEventListener('message', onMsg);
       iframe.onload = () => iframe.contentWindow?.postMessage({ type: 'eyf-run', code: testCode }, '*');
       setTimeout(() => { cleanup(); resolve({ runId: 'local', stdout: '', stderr: 'Execution timed out', exitCode: 1, runtimeMs: 5000 }); }, 5000);
-      iframe.src = blobUrl;
+      iframe.src = '/sandbox.html';
       document.body.appendChild(iframe);
     });
   }
