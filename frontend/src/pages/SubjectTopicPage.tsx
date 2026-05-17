@@ -4726,6 +4726,702 @@ class PostgresUserRepo {
     summary: 'Architecture shapes the long-term health of a codebase. Monolith is often right to start. Hexagonal (ports & adapters) separates concerns elegantly — testable without infrastructure. Microservices shine when teams and traffic demand independent scaling, but add enormous operational complexity. In staff/principal interviews: articulate trade-offs, not just patterns.',
   },
 
+  // ── OS: Page Replacement ────────────────────────────────────────────
+  'page-replace': {
+    overview: `When physical memory is full and a page fault occurs, the OS must evict a page to make room. The page replacement algorithm determines which victim page to swap out, directly affecting the page fault rate and overall performance.\n\n**FIFO**: Evict the oldest loaded page. Simple but suffers Belady's anomaly — more frames can cause more faults.\n\n**LRU (Least Recently Used)**: Evict the page that hasn't been accessed longest. Near-optimal in practice but expensive to implement (needs hardware counters or clock approximation).\n\n**Clock (Second-Chance)**: Circular buffer of pages; each has a reference bit. On eviction, pages with R=1 get a second chance (R reset to 0), pages with R=0 are evicted. Linux uses a variant called CLOCK-Pro.\n\n**Optimal (OPT/Belady's)**: Evict the page that will be used farthest in the future. Impossible in practice (requires future knowledge), but used as a benchmark.`,
+    keyPoints: [
+      'Page fault: referenced page not in physical memory → OS loads it from disk',
+      'Dirty page: must be written to swap before eviction (clean pages can be discarded)',
+      'Belady\'s anomaly: FIFO can have MORE faults with MORE frames — LRU does not',
+      'LRU approximation: reference bits in hardware, clock algorithm in software',
+      'Thrashing: too many page faults → CPU busy swapping, not computing',
+      'Working set model: keep the active working set in memory to prevent thrashing',
+      'Linux uses: active/inactive LRU lists + reference bit sampling',
+    ],
+    code: `// Clock algorithm (second-chance) simulation
+class ClockReplacer {
+  frames: Array<{ page: number; ref: boolean }> = [];
+  hand = 0;
+  capacity: number;
+
+  constructor(capacity: number) { this.capacity = capacity; }
+
+  access(page: number): boolean { // returns true if page fault
+    const idx = this.frames.findIndex(f => f.page === page);
+    if (idx !== -1) { this.frames[idx].ref = true; return false; } // hit
+
+    // Page fault — find victim
+    while (this.frames[this.hand]?.ref) {
+      this.frames[this.hand].ref = false; // second chance
+      this.hand = (this.hand + 1) % this.capacity;
+    }
+    this.frames[this.hand] = { page, ref: true };
+    this.hand = (this.hand + 1) % this.capacity;
+    return true; // page fault
+  }
+}
+
+const r = new ClockReplacer(3);
+[1,2,3,4,1,5].forEach(p =>
+  console.log(\`page \${p}: \${r.access(p) ? 'FAULT' : 'hit'}\`)
+);`,
+    codeLang: 'typescript',
+    summary: 'Page replacement is the key mechanism behind virtual memory. LRU is optimal in practice; the Clock algorithm is its hardware-efficient approximation used in real OSes. Know Belady\'s anomaly (FIFO only), understand dirty vs clean pages, and be able to trace a Clock algorithm by hand — common in GATE and OS interviews.',
+  },
+
+  // ── Networks: TCP/UDP ───────────────────────────────────────────────
+  'tcp-udp': {
+    overview: `TCP and UDP are the two dominant transport-layer protocols, each designed for different trade-offs between reliability and speed.\n\n**TCP (Transmission Control Protocol)**: Connection-oriented, reliable, ordered delivery. Uses a 3-way handshake, sequence numbers, acknowledgments, flow control (receive window), and congestion control (CWND). Adds ~20-byte header overhead + RTT latency. Used for HTTP, SSH, email, file transfer.\n\n**UDP (User Datagram Protocol)**: Connectionless, unreliable, no ordering guarantee. Just a 8-byte header (src port, dst port, length, checksum). Extremely low overhead. Used for DNS, DHCP, video streaming, gaming, VoIP, and as the base for QUIC/HTTP3.\n\n**When UDP wins**: when you need low latency, can tolerate loss (audio/video), or implement reliability at application layer (QUIC). DNS uses UDP because queries fit in one packet and retrying is cheap.`,
+    keyPoints: [
+      'TCP header: 20 bytes. Seq#, ack#, flags (SYN/ACK/FIN/RST), window size',
+      'UDP header: 8 bytes. Src port, dst port, length, checksum only',
+      'TCP 3-way handshake: SYN → SYN-ACK → ACK (1.5 RTT before data)',
+      'TCP flow control: receiver advertises window size to prevent buffer overflow',
+      'TCP congestion control: slow start → AIMD → fast retransmit/recovery',
+      'UDP use cases: DNS (1 packet), DHCP, streaming, gaming, QUIC',
+      'TCP head-of-line blocking: one lost packet blocks all subsequent data in the stream',
+    ],
+    code: `// TCP vs UDP in Node.js
+import net from 'net';
+import dgram from 'dgram';
+
+// TCP server — reliable, ordered
+const tcpServer = net.createServer(socket => {
+  socket.on('data', data => {
+    console.log('TCP received:', data.toString());
+    socket.write('ACK: ' + data); // guaranteed delivery
+  });
+}).listen(3000);
+
+// UDP server — fire and forget
+const udpServer = dgram.createSocket('udp4');
+udpServer.on('message', (msg, rinfo) => {
+  console.log(\`UDP from \${rinfo.address}:\${rinfo.port}: \${msg}\`);
+  // no ACK sent — application decides if retransmit needed
+});
+udpServer.bind(3001);
+
+// UDP client — low latency game update
+const udpClient = dgram.createSocket('udp4');
+setInterval(() => {
+  const position = Buffer.from(JSON.stringify({ x: 10, y: 20, t: Date.now() }));
+  udpClient.send(position, 3001, 'localhost'); // no connection needed
+}, 50); // 20 updates/sec`,
+    codeLang: 'typescript',
+    summary: 'TCP vs UDP is a reliability vs latency trade-off. TCP guarantees ordered delivery but adds RTT overhead and head-of-line blocking. UDP is a thin wrapper over IP — applications that need selective reliability (QUIC, game engines, WebRTC) build it themselves. Know when each is appropriate and be able to articulate why HTTP/3 moved from TCP to QUIC (UDP-based).',
+  },
+
+  // ── Networks: TCP Handshake ─────────────────────────────────────────
+  'tcp-handshake': {
+    overview: `The TCP 3-way handshake establishes a reliable connection before data transfer. It synchronizes sequence numbers between client and server, which are used to detect loss and reorder out-of-order segments.\n\n**Step 1 — SYN**: Client sends SYN with a random initial sequence number (ISN) x. State: SYN_SENT.\n**Step 2 — SYN-ACK**: Server replies with SYN (ISN y) + ACK (x+1). State: SYN_RCVD.\n**Step 3 — ACK**: Client sends ACK (y+1). State: ESTABLISHED on both sides.\n\n**Connection teardown** (4-way): FIN → ACK → FIN → ACK. The TIME_WAIT state (2×MSL, typically 60s) ensures delayed packets don't corrupt a new connection.\n\n**SYN flood attack**: Attacker sends many SYNs without completing the handshake, exhausting the server's SYN backlog. Mitigated with SYN cookies (embed state in ISN instead of allocating memory).`,
+    keyPoints: [
+      '3-way: SYN(x) → SYN-ACK(y, x+1) → ACK(y+1) — 1.5 RTT cost',
+      'ISN (Initial Sequence Number) is random to prevent TCP hijacking attacks',
+      '4-way teardown: FIN → ACK → FIN → ACK (can collapse to 3 if simultaneous close)',
+      'TIME_WAIT: 2×MSL (~60s) to absorb delayed duplicates from old connection',
+      'SYN backlog: kernel queue for half-open connections; SYN flood fills it',
+      'SYN cookies: encode connection state in ISN — eliminates backlog allocation',
+      'TFO (TCP Fast Open): send data in SYN to reduce handshake cost on repeat connections',
+    ],
+    code: `# Observe TCP handshake with tcpdump (run as root)
+# tcpdump -i lo -n 'tcp and port 8080' -S
+
+# Output shows:
+# 12:00:00 client > server: Flags [S],  seq 100        (SYN)
+# 12:00:00 server > client: Flags [S.], seq 500 ack 101 (SYN-ACK)
+# 12:00:00 client > server: Flags [.],  seq 101 ack 501 (ACK)
+# 12:00:00 client > server: Flags [P.], seq 101:201     (HTTP GET — data)
+
+# TIME_WAIT states on your machine:
+# ss -tan | grep TIME-WAIT | wc -l
+
+# SYN cookies enabled (Linux):
+# cat /proc/sys/net/ipv4/tcp_syncookies   # 1 = enabled
+
+# TCP state machine in Node.js simulation:
+const states = {
+  CLOSED: 'CLOSED', LISTEN: 'LISTEN',
+  SYN_SENT: 'SYN_SENT', SYN_RCVD: 'SYN_RCVD',
+  ESTABLISHED: 'ESTABLISHED', FIN_WAIT_1: 'FIN_WAIT_1',
+  FIN_WAIT_2: 'FIN_WAIT_2', TIME_WAIT: 'TIME_WAIT',
+  CLOSE_WAIT: 'CLOSE_WAIT', LAST_ACK: 'LAST_ACK',
+};
+// Client path: CLOSED → SYN_SENT → ESTABLISHED → FIN_WAIT_1 → FIN_WAIT_2 → TIME_WAIT → CLOSED
+// Server path: CLOSED → LISTEN → SYN_RCVD → ESTABLISHED → CLOSE_WAIT → LAST_ACK → CLOSED`,
+    codeLang: 'bash',
+    summary: 'The TCP 3-way handshake (SYN→SYN-ACK→ACK) costs 1.5 RTT before first byte of data. Understand why ISNs are random (security), why TIME_WAIT exists (delayed duplicates), and how SYN cookies defend against SYN flood. TLS 1.3 and QUIC amortize or eliminate these costs — know the comparison for senior-level network interviews.',
+  },
+
+  // ── Networks: CDN ───────────────────────────────────────────────────
+  cdn: {
+    overview: `A Content Delivery Network (CDN) is a geographically distributed network of edge servers that cache and serve content close to users, reducing latency and origin server load.\n\n**How it works**: DNS returns the IP of the nearest edge PoP (Point of Presence). The edge checks its cache: if HIT, serve directly; if MISS, fetch from origin, cache it, then serve. Cache keys are typically URL + Vary headers (Accept-Encoding, Accept-Language).\n\n**CDN benefits**: reduced latency (physical proximity), reduced origin load, DDoS absorption, TLS termination at edge, automatic compression, image optimization, and global availability even if origin is down (stale-while-revalidate).\n\n**Cache control**: Origin sets \`Cache-Control: max-age=N, s-maxage=N\` to control CDN TTL. \`Surrogate-Key\` / cache tags enable purging groups of assets instantly.`,
+    keyPoints: [
+      'Anycast DNS routes users to nearest PoP — no application-level routing needed',
+      'Cache HIT ratio: higher = better; aim for 90%+ on static assets',
+      'Cache-Control: s-maxage overrides max-age for CDN (while browser respects max-age)',
+      'Stale-while-revalidate: serve stale content immediately, refresh in background',
+      'Cache invalidation: URL versioning (hash in filename) vs cache purge API',
+      'CDN for dynamic content: edge compute (Cloudflare Workers, Vercel Edge) for API',
+      'Multi-CDN: route traffic across providers for redundancy and cost optimization',
+    ],
+    code: `// Cache-Control strategy for different asset types
+// Static JS/CSS (content-hashed filename):
+// Cache-Control: public, max-age=31536000, immutable
+// → CDN and browser cache forever; new deploy = new URL
+
+// HTML pages:
+// Cache-Control: public, max-age=0, s-maxage=60, stale-while-revalidate=3600
+// → CDN caches 60s; stale served up to 1hr while refreshing in background
+
+// API responses:
+// Cache-Control: private, no-store
+// → CDN must not cache; browser doesn't cache
+
+// Next.js ISR sets headers automatically:
+export const revalidate = 60; // CDN caches page for 60s, then re-generates
+
+// Vercel CDN example: purge on deploy
+// Every new Vercel deployment automatically purges CDN cache for changed files.
+
+// Cloudflare cache tag purge:
+fetch('https://api.cloudflare.com/client/v4/zones/ZONE/purge_cache', {
+  method: 'POST',
+  headers: { Authorization: 'Bearer TOKEN', 'Content-Type': 'application/json' },
+  body: JSON.stringify({ tags: ['product-123'] }),
+});`,
+    codeLang: 'typescript',
+    summary: 'CDN is the first layer of scaling for any web app. Static assets with content-hashed URLs get permanent cache; HTML gets short TTL + stale-while-revalidate; APIs stay private. Always discuss cache invalidation strategy — URL versioning beats purge APIs for simplicity. In system design: put CDN in front of load balancer, handle cache bypass for authenticated content.',
+  },
+
+  // ── System Design: Load Balancing ──────────────────────────────────
+  'load-bal': {
+    overview: `A load balancer distributes incoming requests across a pool of backend servers to maximize availability and throughput while preventing any single server from being overwhelmed.\n\n**Layer 4 (Transport)**: Routes based on IP + port. Fast, no inspection of payload. Used for raw TCP/UDP traffic (e.g., AWS NLB).\n\n**Layer 7 (Application)**: Reads HTTP headers, cookies, and paths. Enables path-based routing, sticky sessions, header injection, and SSL termination. Used for most web apps (Nginx, HAProxy, AWS ALB).\n\n**Algorithms**: Round Robin (equal distribution), Least Connections (smart under variable request duration), IP Hash (sticky routing, consistent), Weighted Round Robin (heterogeneous servers), Random.\n\n**Health checks**: Active (periodic HTTP probe) and passive (circuit breaker on error rate). Unhealthy backends are removed from rotation.`,
+    keyPoints: [
+      'L4 vs L7: L4 is faster (no payload inspection); L7 enables content-based routing',
+      'Round Robin: simple, works when requests are uniform duration',
+      'Least Connections: best for long-lived connections or variable processing time',
+      'Sticky sessions: same client → same server (via cookie or IP hash) — breaks horizontal scale',
+      'SSL termination at LB: backend speaks plain HTTP, reduces server CPU',
+      'Active health check: periodic GET /health; passive: track 5xx rate',
+      'Global load balancing: GeoDNS or Anycast routes users to nearest datacenter',
+    ],
+    code: `// Least-connections load balancer (simplified)
+interface Backend { url: string; connections: number; healthy: boolean; }
+
+class LoadBalancer {
+  backends: Backend[];
+
+  constructor(urls: string[]) {
+    this.backends = urls.map(url => ({ url, connections: 0, healthy: true }));
+  }
+
+  pick(): Backend | null {
+    const healthy = this.backends.filter(b => b.healthy);
+    if (!healthy.length) return null;
+    return healthy.reduce((a, b) => a.connections <= b.connections ? a : b);
+  }
+
+  async forward(req: Request): Promise<Response> {
+    const backend = this.pick();
+    if (!backend) throw new Error('No healthy backends');
+    backend.connections++;
+    try {
+      return await fetch(backend.url + new URL(req.url).pathname, req);
+    } finally {
+      backend.connections--;
+    }
+  }
+
+  // Health check loop
+  startHealthChecks(intervalMs = 5000) {
+    setInterval(async () => {
+      await Promise.all(this.backends.map(async b => {
+        try {
+          const r = await fetch(b.url + '/health', { signal: AbortSignal.timeout(2000) });
+          b.healthy = r.ok;
+        } catch { b.healthy = false; }
+      }));
+    }, intervalMs);
+  }
+}`,
+    codeLang: 'typescript',
+    summary: 'Load balancers are the entry point to every scaled web service. L7 LBs (Nginx, ALB) are the default for HTTP — they enable SSL termination, path routing, and health checks. Least connections beats round robin for APIs with variable latency. Never use sticky sessions if you can avoid it — it breaks scaling and complicates deploys. In interviews: always mention health checks and the trade-offs of session affinity.',
+  },
+
+  // ── System Design: Rate Limiting ────────────────────────────────────
+  'rate-limiting': {
+    overview: `Rate limiting controls how many requests a client can make in a given time window, protecting services from abuse, DoS attacks, and resource exhaustion.\n\n**Token Bucket**: Tokens accumulate at a fixed rate (up to a max burst capacity). Each request consumes one token. Allows burst traffic naturally. Used by most APIs (Twitter, Stripe).\n\n**Leaky Bucket**: Requests enter a queue; processed at a fixed rate. Smooths bursts completely — outbound rate is constant. Used for traffic shaping.\n\n**Fixed Window**: Count requests per minute/hour window. Simple but vulnerable to boundary spikes (2× rate at window boundary).\n\n**Sliding Window Log**: Track timestamps of each request; count in last N seconds. Accurate but memory-intensive.\n\n**Sliding Window Counter**: Weighted average of current + previous window counts. Approximates sliding log with O(1) memory.`,
+    keyPoints: [
+      'Token bucket: burst-friendly (tokens accumulate); most common for APIs',
+      'Leaky bucket: constant output rate; used for traffic shaping/QoS',
+      'Fixed window: fast but double-spend at boundary — easy to exploit',
+      'Sliding window log: precise but O(requests) memory per client',
+      'Redis INCR + EXPIRE: simplest distributed rate limiter (fixed window)',
+      'Lua script in Redis: atomic check-and-increment for sliding window',
+      'Rate limit headers: X-RateLimit-Limit, X-RateLimit-Remaining, Retry-After',
+    ],
+    code: `// Token bucket rate limiter with Redis
+import Redis from 'ioredis';
+const redis = new Redis();
+
+async function tokenBucketAllow(
+  clientId: string,
+  capacity: number,   // max tokens (burst)
+  refillRate: number  // tokens per second
+): Promise<boolean> {
+  const key = \`rl:tb:\${clientId}\`;
+  const now = Date.now() / 1000;
+
+  // Lua script — atomic read-modify-write
+  const script = \`
+    local tokens = tonumber(redis.call('HGET', KEYS[1], 'tokens') or ARGV[1])
+    local last   = tonumber(redis.call('HGET', KEYS[1], 'last')   or ARGV[3])
+    local refill = (tonumber(ARGV[3]) - last) * tonumber(ARGV[2])
+    tokens = math.min(tonumber(ARGV[1]), tokens + refill)
+    if tokens >= 1 then
+      redis.call('HMSET', KEYS[1], 'tokens', tokens - 1, 'last', ARGV[3])
+      redis.call('EXPIRE', KEYS[1], 3600)
+      return 1
+    end
+    return 0
+  \`;
+
+  const result = await redis.eval(
+    script, 1, key,
+    capacity.toString(), refillRate.toString(), now.toString()
+  );
+  return result === 1;
+}
+
+// Express middleware
+app.use(async (req, res, next) => {
+  const clientId = req.ip ?? 'anonymous';
+  const allowed = await tokenBucketAllow(clientId, 100, 10); // 100 burst, 10/sec
+  if (!allowed) {
+    res.setHeader('Retry-After', '1');
+    return res.status(429).json({ error: 'Rate limit exceeded' });
+  }
+  next();
+});`,
+    codeLang: 'typescript',
+    summary: 'Rate limiting is a first-class concern for any public API. Token bucket (burst-friendly) is the standard for REST APIs; leaky bucket for traffic shaping. Always implement in Redis with Lua for atomicity. Return standard headers (X-RateLimit-*, Retry-After). In system design, discuss: per-user vs per-IP, distributed rate limiting across nodes, and graceful degradation.',
+  },
+
+  // ── System Design: API Design ───────────────────────────────────────
+  'api-design': {
+    overview: `Good API design is the difference between an API that developers love and one they abandon. REST, GraphQL, and gRPC are the three dominant paradigms, each with distinct trade-offs.\n\n**REST**: Resources as nouns, HTTP verbs as actions. Stateless, cacheable, widely understood. Best for CRUD-heavy services. Versioning via URL (/v1/) or headers.\n\n**GraphQL**: Single endpoint, client specifies exact fields needed. Eliminates over-fetching and under-fetching. Excellent for mobile (bandwidth) and complex UIs. N+1 query problem requires DataLoader.\n\n**gRPC**: Binary protocol (Protocol Buffers), strongly typed, streaming support, HTTP/2. Best for internal service-to-service communication — 5–10× faster than REST for the same payload.\n\n**Design principles**: use nouns not verbs, return consistent error shapes, paginate collections, version from day one, document with OpenAPI.`,
+    keyPoints: [
+      'REST: GET/POST/PUT/PATCH/DELETE + status codes (200/201/204/400/401/403/404/429/500)',
+      'Idempotency: GET, PUT, DELETE are idempotent; POST is not',
+      'Pagination: cursor-based (opaque token) beats offset for large/changing datasets',
+      'Error response: { error: { code, message, details } } — consistent shape',
+      'Versioning: URL (/v1/) for breaking changes; header for content negotiation',
+      'Rate limiting headers: X-RateLimit-Limit, X-RateLimit-Remaining, Retry-After',
+      'gRPC: bidirectional streaming; proto schema = contract; not browser-friendly without grpc-web',
+    ],
+    code: `// Well-designed REST API — Express + Zod
+import { z } from 'zod';
+
+const CreatePostSchema = z.object({
+  title: z.string().min(1).max(200),
+  body: z.string().min(1),
+  tags: z.array(z.string()).max(5).optional(),
+});
+
+// POST /v1/posts — create
+router.post('/v1/posts', authenticate, async (req, res) => {
+  const parsed = CreatePostSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({
+      error: { code: 'VALIDATION_ERROR', message: 'Invalid request', details: parsed.error.flatten() }
+    });
+  }
+  const post = await db.posts.create({ data: { ...parsed.data, authorId: req.user.id } });
+  res.status(201).json({ data: post });
+});
+
+// GET /v1/posts?cursor=abc&limit=20 — cursor pagination
+router.get('/v1/posts', async (req, res) => {
+  const { cursor, limit = '20' } = req.query as Record<string, string>;
+  const take = Math.min(parseInt(limit), 100); // cap at 100
+  const posts = await db.posts.findMany({
+    take: take + 1, // fetch one extra to detect hasMore
+    ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
+    orderBy: { createdAt: 'desc' },
+  });
+  const hasMore = posts.length > take;
+  const items = hasMore ? posts.slice(0, take) : posts;
+  res.json({
+    data: items,
+    pagination: { hasMore, nextCursor: hasMore ? items[items.length - 1].id : null }
+  });
+});`,
+    codeLang: 'typescript',
+    summary: 'API design is the contract between services. REST is the default for external APIs — stateless, cacheable, verb-noun semantics. Use cursor pagination (not offset) for any collection that grows. Always validate at the boundary with a schema library (Zod, Joi). GraphQL shines for flexible querying; gRPC for internal microservices with high throughput. Document everything with OpenAPI from day one.',
+  },
+
+  // ── System Design: DB Design ────────────────────────────────────────
+  'db-design': {
+    overview: `Database design for large-scale systems requires careful thought about access patterns, consistency requirements, and scaling strategy before choosing a database and schema.\n\n**Access pattern first**: Don't design the schema and then query it — identify the queries first, then design around them. NoSQL forces this discipline; SQL lets you cheat initially but eventually punishes you.\n\n**Relational vs Document vs Wide-column**: SQL for ACID transactions and complex joins; MongoDB for flexible documents; Cassandra for write-heavy time-series with known partition keys; Redis for caching and session.\n\n**Schema design principles**: Normalize first, denormalize intentionally for performance. Avoid nullable columns on hot paths. Use UUID or snowflake IDs for distributed systems (avoid auto-increment across shards). Every table should have created_at, updated_at.`,
+    keyPoints: [
+      'Start with access patterns: list all queries before schema, not after',
+      'UUID vs auto-increment: UUID for distributed/sharded; auto-increment for single DB',
+      'Composite indexes: order matters — equality columns first, then range columns',
+      'Soft deletes: deleted_at IS NULL — lets you restore data and simplifies auditing',
+      'created_at + updated_at: on every table — essential for debugging and audit trails',
+      'Enums: define at DB level for referential integrity or use lookup table',
+      'Denormalization: store computed/aggregated data when read >> write',
+    ],
+    code: `-- Schema for a social app: users, posts, follows, likes
+-- Access patterns: user feed, post likes count, follow suggestions
+
+CREATE TABLE users (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  username    TEXT NOT NULL UNIQUE,
+  email       TEXT NOT NULL UNIQUE,
+  bio         TEXT,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE posts (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  author_id   UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  body        TEXT NOT NULL,
+  likes_count INT  NOT NULL DEFAULT 0,   -- denormalized for performance
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  deleted_at  TIMESTAMPTZ                 -- soft delete
+);
+
+-- Compound index: author's posts sorted by time (feed query)
+CREATE INDEX idx_posts_author_created ON posts(author_id, created_at DESC)
+  WHERE deleted_at IS NULL;
+
+CREATE TABLE follows (
+  follower_id UUID NOT NULL REFERENCES users(id),
+  followee_id UUID NOT NULL REFERENCES users(id),
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (follower_id, followee_id)    -- composite PK = unique constraint + index
+);
+
+CREATE TABLE likes (
+  post_id    UUID NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
+  user_id    UUID NOT NULL REFERENCES users(id),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (post_id, user_id)
+);
+
+-- Keep likes_count in sync via trigger
+CREATE FUNCTION update_likes_count() RETURNS TRIGGER AS $$
+BEGIN
+  IF TG_OP = 'INSERT' THEN
+    UPDATE posts SET likes_count = likes_count + 1 WHERE id = NEW.post_id;
+  ELSIF TG_OP = 'DELETE' THEN
+    UPDATE posts SET likes_count = likes_count - 1 WHERE id = OLD.post_id;
+  END IF;
+  RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER likes_count_trigger
+AFTER INSERT OR DELETE ON likes
+FOR EACH ROW EXECUTE FUNCTION update_likes_count();`,
+    codeLang: 'sql',
+    summary: 'Good DB design starts with queries, not tables. Identify every read and write access pattern first, then build indexes to support them. Denormalize counts and aggregates eagerly (maintained by triggers or application) to avoid expensive COUNT(*) on hot paths. Use composite PKs for junction tables. Soft deletes and created_at/updated_at on every table are non-negotiable for production systems.',
+  },
+
+  // ── System Design: Design URL Shortener ────────────────────────────
+  'design-url': {
+    overview: `URL shortening (bit.ly, TinyURL) is the "Hello World" of system design interviews. It tests encoding, database design, caching, and scaling fundamentals.\n\n**Core functions**: given a long URL, return a short code (6-7 chars); given a short code, redirect to the original URL with 301/302.\n\n**Encoding**: Use base62 (a-z, A-Z, 0-9) → 62^7 ≈ 3.5 trillion URLs. Never expose sequential IDs (enumerable). Options: hash (MD5/SHA-256 → take first 7 chars, collision-handle), counter (distributed counter + base62), random (check DB uniqueness).\n\n**Read vs Write**: 100:1 read-heavy ratio. Cache hot URLs in Redis (90% hit rate for top 20% URLs). Use 301 (permanent, browser caches) vs 302 (temporary, every redirect hits your service — better for analytics).`,
+    keyPoints: [
+      'Base62 encoding: 62^7 = 3.5T unique URLs — sufficient for years',
+      '301 vs 302: 301 = browser caches redirect (no analytics); 302 = every hit tracked',
+      'Counter + base62: globally unique without collisions; needs distributed counter (Zookeeper, Redis)',
+      'MD5 hash approach: take first 7 chars; check DB for collision; retry with offset',
+      'Cache: Redis with TTL; cache the 20% of URLs that get 80% of traffic',
+      'DB choice: Cassandra or DynamoDB for write-heavy, globally distributed shortening',
+      'Custom aliases: allow user-specified codes (check uniqueness, reserve namespace)',
+    ],
+    code: `// URL shortener core — counter + base62 approach
+const BASE62 = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+
+function toBase62(num: number): string {
+  let result = '';
+  while (num > 0) {
+    result = BASE62[num % 62] + result;
+    num = Math.floor(num / 62);
+  }
+  return result.padStart(7, 'a'); // always 7 chars
+}
+
+// Redis counter for unique IDs (globally distributed via Redis Cluster)
+async function shorten(longUrl: string): Promise<string> {
+  // Check if already shortened
+  const cached = await redis.get(\`url:long:\${longUrl}\`);
+  if (cached) return cached;
+
+  const id = await redis.incr('url:counter'); // atomic increment
+  const shortCode = toBase62(id);
+
+  // Persist to DB (async, non-blocking for the response)
+  await Promise.all([
+    db.urls.create({ data: { shortCode, longUrl, createdAt: new Date() } }),
+    redis.set(\`url:short:\${shortCode}\`, longUrl, 'EX', 86400 * 30), // 30d cache
+    redis.set(\`url:long:\${longUrl}\`, shortCode, 'EX', 86400 * 30),
+  ]);
+
+  return shortCode;
+}
+
+async function resolve(shortCode: string): Promise<string | null> {
+  // Cache-first lookup
+  const cached = await redis.get(\`url:short:\${shortCode}\`);
+  if (cached) return cached;
+
+  const record = await db.urls.findUnique({ where: { shortCode } });
+  if (!record) return null;
+
+  await redis.set(\`url:short:\${shortCode}\`, record.longUrl, 'EX', 86400 * 30);
+  return record.longUrl;
+}
+
+// Express route — 302 for analytics tracking
+app.get('/:code', async (req, res) => {
+  const longUrl = await resolve(req.params.code);
+  if (!longUrl) return res.status(404).json({ error: 'Not found' });
+  await analytics.track({ shortCode: req.params.code, ip: req.ip, ua: req.headers['user-agent'] });
+  res.redirect(302, longUrl);
+});`,
+    codeLang: 'typescript',
+    summary: 'URL shortener is the best system design warm-up. Counter + base62 avoids collisions cleanly. Use 302 for analytics (every redirect hits your service), 301 for pure CDN offload. Cache hot links in Redis — 20% of links get 80% of traffic. Scale reads with Redis + replica DB reads. In interviews: always discuss 301 vs 302 trade-off, collision handling, and what happens when Redis counter node fails.',
+  },
+
+  // ── System Design: Design YouTube ──────────────────────────────────
+  'design-youtube': {
+    overview: `YouTube-scale video platforms are among the most complex distributed systems. The key insight is that video is fundamentally different from other content: it's large (GB-scale), requires transcoding, and access patterns are extremely skewed (top 0.1% of videos get 50%+ of traffic).\n\n**Upload pipeline**: Client uploads to Object Storage (S3) → triggers async transcoding job (FFmpeg) → output multiple quality levels (360p, 720p, 1080p, 4K) + thumbnail → metadata written to DB → CDN pre-seeded for viral content.\n\n**Playback**: Adaptive Bitrate Streaming (HLS/DASH) — player selects quality based on available bandwidth. Segments are ~6s chunks served from CDN edge. First segment loads in <2s target.\n\n**Feed and recommendations**: Pre-computed (offline ML job) stored per-user; real-time signals (watch time, likes) refresh recommendations. Like/view counts use eventual consistency — exact counts don't matter within minutes.`,
+    keyPoints: [
+      'Object storage for video blobs; relational DB for metadata (title, views, comments)',
+      'Transcoding: async job queue (SQS/Kafka); FFmpeg to multiple resolutions + codecs',
+      'HLS: M3U8 playlist + .ts segments; DASH: MPD manifest + MP4 segments',
+      'CDN is critical: 95%+ of video bytes served from edge, never from origin',
+      'View count: Redis INCR per video, batch flush to DB every 30s (eventual consistency)',
+      'Deduplication: fingerprint uploads (perceptual hash) to detect re-uploads',
+      'Comment system: denormalized tree or closure table for nested comments at scale',
+    ],
+    code: `// Video upload pipeline (simplified)
+// 1. Client requests pre-signed S3 URL
+app.post('/api/videos/upload-url', authenticate, async (req, res) => {
+  const videoId = crypto.randomUUID();
+  const key = \`raw/\${videoId}/original\`;
+  const uploadUrl = await s3.getSignedUrlPromise('putObject', {
+    Bucket: 'eyf-videos-raw', Key: key, Expires: 3600,
+    ContentType: req.body.contentType,
+  });
+  // Create DB record in PENDING state
+  await db.videos.create({
+    data: { id: videoId, title: req.body.title, authorId: req.user.id, status: 'PENDING' }
+  });
+  res.json({ videoId, uploadUrl });
+});
+
+// 2. S3 triggers Lambda on object create → enqueue transcoding job
+// Lambda sends to SQS: { videoId, s3Key, bucket }
+
+// 3. Transcoding worker (runs on EC2/ECS)
+async function transcodeVideo(job: TranscodeJob) {
+  const { videoId, s3Key } = job;
+  const resolutions = ['360p', '720p', '1080p'];
+
+  await Promise.all(resolutions.map(async res => {
+    await ffmpeg(s3Key)
+      .output(\`s3://eyf-videos-cdn/\${videoId}/\${res}.m3u8\`)
+      .outputOptions(['-hls_time 6', '-hls_playlist_type vod', \`-vf scale=...\`])
+      .run();
+  }));
+
+  // Generate master HLS playlist referencing all resolutions
+  await s3.putObject({ Key: \`\${videoId}/master.m3u8\`, Body: generateMasterPlaylist(videoId, resolutions) });
+  await db.videos.update({ where: { id: videoId }, data: { status: 'READY' } });
+}
+
+// 4. Playback — serve HLS from CDN
+// <video> src = "https://cdn.eyf.in/{videoId}/master.m3u8"
+// Browser player (hls.js) selects quality segment automatically`,
+    codeLang: 'typescript',
+    summary: 'YouTube-scale video requires treating video as a pipeline problem, not a file problem: upload → transcode → CDN → adaptive playback. The transcoding job queue is the most failure-prone step — make it idempotent and retriable. View counts use Redis + batch flush (exact counts are not needed in real time). CDN is non-negotiable — serving video from origin does not scale. In interviews: draw the upload pipeline explicitly, then the read path.',
+  },
+
+  // ── System Design: Design Uber ──────────────────────────────────────
+  'design-uber': {
+    overview: `Ride-sharing systems like Uber are the canonical example of real-time matching, geo-spatial indexing, and strong consistency under pressure.\n\n**Core problem**: match a rider request to the nearest available driver in <1s. This requires: live driver location updates (WebSocket/MQTT, every 4s), geo-spatial indexing (S2 geometry, H3, or Redis GEOARADIUSBYMEMBER), and a matching service that claims drivers atomically.\n\n**Driver location**: Drivers publish location every 4s over WebSocket. Stored in Redis (ephemeral, expires in 30s if no heartbeat). Not in a relational DB — too slow for high-frequency writes.\n\n**Matching**: Rider app sends request → matching service queries Redis for drivers within 5km radius → ranks by ETA (calls routing service) → claims the top driver atomically (Redis SET NX) → notifies driver via push.`,
+    keyPoints: [
+      'Location updates: WebSocket (persistent) or MQTT; every 4s; stored in Redis GEOADD',
+      'Geo index: Redis GEORADIUS / H3 hexagons / S2 cells — all work at Uber scale',
+      'Matching atomicity: Redis SET NX to claim driver — prevents two riders matching same driver',
+      'Supply-demand imbalance: surge pricing calculated per geo cell (H3 resolution 7)',
+      'Trip state machine: REQUESTED → ACCEPTED → ARRIVING → IN_PROGRESS → COMPLETED',
+      'ETA calculation: routing service (OSRM, Google Maps API) with real-time traffic',
+      'Payments: idempotent charge (idempotency key = trip_id) to prevent double-charge',
+    ],
+    code: `// Driver location service — Redis geo index
+import Redis from 'ioredis';
+const redis = new Redis();
+
+// Driver sends location update every 4 seconds via WebSocket
+wss.on('connection', (ws, req) => {
+  const driverId = authenticateDriver(req);
+
+  ws.on('message', async (data) => {
+    const { lat, lng } = JSON.parse(data.toString());
+
+    // Update geo index + set expiry (driver goes offline if no heartbeat in 30s)
+    await redis.geoadd('drivers:online', lng, lat, driverId);
+    await redis.set(\`driver:\${driverId}:online\`, '1', 'EX', 30);
+  });
+
+  ws.on('close', () => redis.zrem('drivers:online', driverId));
+});
+
+// Matching service
+async function matchRider(riderId: string, lat: number, lng: number): Promise<string | null> {
+  // Find drivers within 5km, sorted by distance
+  const nearby = await redis.georadius(
+    'drivers:online', lng, lat, 5, 'km',
+    'ASC', 'COUNT', 10, 'WITHDIST'
+  ) as Array<[string, string]>;
+
+  for (const [driverId] of nearby) {
+    // Atomic claim: only one rider can claim a driver
+    const claimed = await redis.set(
+      \`driver:\${driverId}:claimed\`, riderId,
+      'NX', 'EX', 30 // expires if driver doesn't accept in 30s
+    );
+    if (claimed === 'OK') {
+      await notifyDriver(driverId, { riderId, lat, lng });
+      return driverId;
+    }
+    // Driver already claimed — try next
+  }
+  return null; // no driver available
+}`,
+    codeLang: 'typescript',
+    summary: 'Uber\'s core challenge is real-time geo-matching with strong atomicity. Drivers\' locations live in Redis (GEOADD/GEORADIUS) — not SQL, too slow. Matching uses SET NX to claim atomically. Trip state machine must be durable (relational DB) even if location state is ephemeral. In interviews: always draw the WebSocket connection → Redis geo → matching → push notification flow. Discuss surge pricing as a separate demand-sensing service using H3 cells.',
+  },
+
+  // ── System Design: DB Design (Pattern Selection) ─────────────────────
+  'pattern-selection': {
+    overview: `Knowing design patterns is table stakes; knowing WHEN to apply each one is the skill that separates junior from senior engineers.\n\n**When to reach for a pattern**: You have a specific problem that the pattern was invented to solve — not because it sounds sophisticated. Over-engineering with patterns is as harmful as not using them.\n\n**Category quick-reference**:\n- **Creational**: object construction is complex or must be decoupled → Factory, Builder, Singleton\n- **Structural**: compose existing objects without changing them → Adapter, Decorator, Facade\n- **Behavioral**: communication and responsibility between objects → Strategy, Observer, Command\n\n**Anti-patterns**: Singleton misuse (global mutable state — prefer dependency injection), over-use of Abstract Factory (adds layers before you need them), pattern-first design (should be problem-first).`,
+    keyPoints: [
+      'Strategy: swap algorithms at runtime — replaces switch/if chains (payment methods, sort orders)',
+      'Observer/Event Emitter: one-to-many notification without tight coupling — UI events, domain events',
+      'Decorator: add behavior without subclassing — middleware chains, Python @decorators',
+      'Factory Method: decouple creation from use — useful when subclass determines concrete type',
+      'Command: encapsulate action as object — undo/redo, job queues, audit logs',
+      'Adapter: make incompatible interfaces work together — wrapping third-party SDKs',
+      'Facade: simplify a complex subsystem — one entry point for a module',
+    ],
+    code: `// Strategy: pluggable discount calculation
+interface DiscountStrategy {
+  calculate(price: number): number;
+}
+class StudentDiscount implements DiscountStrategy {
+  calculate(price: number) { return price * 0.8; } // 20% off
+}
+class BulkDiscount implements DiscountStrategy {
+  calculate(price: number) { return price > 1000 ? price * 0.9 : price; }
+}
+
+class Cart {
+  constructor(private strategy: DiscountStrategy) {}
+  checkout(price: number) { return this.strategy.calculate(price); }
+  setStrategy(s: DiscountStrategy) { this.strategy = s; }
+}
+
+// Observer: decouple order placed from downstream effects
+class EventBus {
+  private handlers = new Map<string, Array<(data: unknown) => void>>();
+  on(event: string, handler: (data: unknown) => void) {
+    this.handlers.set(event, [...(this.handlers.get(event) ?? []), handler]);
+  }
+  emit(event: string, data: unknown) {
+    this.handlers.get(event)?.forEach(h => h(data));
+  }
+}
+const bus = new EventBus();
+bus.on('order.placed', d => sendEmail(d));     // loosely coupled
+bus.on('order.placed', d => updateInventory(d));
+bus.on('order.placed', d => notifyWarehouse(d));
+
+// Command: undo/redo
+interface Command { execute(): void; undo(): void; }
+class MoveCommand implements Command {
+  constructor(private doc: Doc, private from: number, private to: number) {}
+  execute() { this.doc.moveCursor(this.to); }
+  undo()    { this.doc.moveCursor(this.from); }
+}
+const history: Command[] = [];
+function run(cmd: Command) { cmd.execute(); history.push(cmd); }
+function undoLast() { history.pop()?.undo(); }`,
+    codeLang: 'typescript',
+    summary: 'Pattern selection is about matching problem shape to solution shape. Strategy replaces conditionals when behavior varies. Observer decouples event producers from consumers. Command makes actions first-class objects (enabling undo/redo and job queues). Decorator adds behavior at runtime without subclassing. In interviews: always name the pattern AND state the problem it solves before writing code.',
+  },
+
+  // ── DBMS: SQL Advanced ──────────────────────────────────────────────
+  'sql-advanced': {
+    overview: `Advanced SQL moves beyond basic SELECT/JOIN to window functions, CTEs, query optimization, and analytical queries — the skills that separate mid-level from senior backend engineers.\n\n**Window functions**: Perform calculations across a set of rows related to the current row WITHOUT collapsing results (unlike GROUP BY). Functions: ROW_NUMBER, RANK, DENSE_RANK, LAG, LEAD, NTILE, SUM/AVG/COUNT OVER.\n\n**CTEs (Common Table Expressions)**: Named temporary result sets with WITH clause. Improves readability for complex queries. Recursive CTEs traverse hierarchies (org charts, file systems).\n\n**Lateral joins**: Execute a subquery for each row of the left table (like a correlated for-loop). Used to get top-N per group efficiently.\n\n**EXPLAIN ANALYZE**: Every query optimization starts here — look for Seq Scan on large tables, high row estimates vs actuals, nested loop vs hash join.`,
+    keyPoints: [
+      'PARTITION BY: defines the window; ORDER BY within OVER: defines ordering within window',
+      'ROW_NUMBER() vs RANK() vs DENSE_RANK(): ties handled differently',
+      'LAG/LEAD: access previous/next row — month-over-month calculations',
+      'Recursive CTE: WITH RECURSIVE — ancestor queries, bill of materials, tree traversal',
+      'LATERAL: apply a subquery per row — top-N per group without correlated subquery performance penalty',
+      'EXPLAIN ANALYZE: Seq Scan = missing index; high rows estimate vs actual = stale statistics',
+      'Materialized CTE: WITH ... AS MATERIALIZED forces single evaluation (PostgreSQL 12+)',
+    ],
+    code: `-- Window functions: sales leaderboard with running totals
+SELECT
+  salesperson,
+  month,
+  revenue,
+  ROW_NUMBER()  OVER (PARTITION BY month ORDER BY revenue DESC) AS rank_in_month,
+  SUM(revenue)  OVER (PARTITION BY salesperson ORDER BY month
+                      ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS cumulative_revenue,
+  LAG(revenue, 1, 0) OVER (PARTITION BY salesperson ORDER BY month) AS prev_month,
+  revenue - LAG(revenue, 1, 0) OVER (PARTITION BY salesperson ORDER BY month) AS mom_delta
+FROM sales;
+
+-- Recursive CTE: org chart (find all reports under a manager)
+WITH RECURSIVE reports AS (
+  SELECT id, name, manager_id, 0 AS depth
+  FROM employees WHERE id = 42          -- starting manager
+
+  UNION ALL
+
+  SELECT e.id, e.name, e.manager_id, r.depth + 1
+  FROM employees e
+  JOIN reports r ON e.manager_id = r.id -- recurse
+  WHERE r.depth < 10                    -- safety limit
+)
+SELECT * FROM reports ORDER BY depth, name;
+
+-- LATERAL: top 3 posts per user (efficient top-N per group)
+SELECT u.id, u.name, p.title, p.likes
+FROM users u
+CROSS JOIN LATERAL (
+  SELECT title, likes FROM posts
+  WHERE author_id = u.id
+  ORDER BY likes DESC
+  LIMIT 3
+) p;
+
+-- EXPLAIN ANALYZE: diagnose slow query
+EXPLAIN (ANALYZE, BUFFERS, FORMAT TEXT)
+SELECT * FROM orders WHERE customer_id = 123 AND status = 'PENDING';
+-- Look for: "Seq Scan" → add index; "Rows Removed by Filter" → index selectivity issue`,
+    codeLang: 'sql',
+    summary: 'Window functions are the most powerful SQL feature for analytics — they compute across related rows without collapsing the result set. Master PARTITION BY + ORDER BY + frame clause. Recursive CTEs handle any hierarchical data. LATERAL is the correct tool for top-N per group. Every performance investigation starts with EXPLAIN ANALYZE — never optimize SQL you haven\'t profiled.',
+  },
+
 };
 
 /* ------------------------------------------------------------------ */
