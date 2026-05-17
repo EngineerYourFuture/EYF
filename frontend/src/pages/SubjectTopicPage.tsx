@@ -2783,6 +2783,800 @@ function onLoss(tcp: TCPSender, signal: 'timeout' | 'triple_dup_ack'): void {
     summary: 'TCP congestion control is elegant distributed coordination: all senders collectively probe the network\'s capacity without central coordination. BBR is worth knowing for interviews — it\'s why YouTube streams smoothly on congested networks. For system design: large file transfers benefit from tuning TCP buffer sizes (net.core.rmem_max) and TCP BBR.',
   },
 
+  // ─── Networking ─────────────────────────────────────────────────────────────
+
+  routing: {
+    overview: `Routing is the process of selecting paths for network traffic. Routers use routing tables — built by routing protocols — to forward packets hop-by-hop toward their destination.\n\n**Interior Gateway Protocols (IGP)** operate within an autonomous system (AS). OSPF (Open Shortest Path First) uses link-state advertisements to build a complete network topology map, then runs Dijkstra's algorithm to compute shortest paths. RIP (Routing Information Protocol) is distance-vector based — routers share their distance tables with neighbors and converge slowly.\n\n**Exterior Gateway Protocols (EGP)** connect autonomous systems. BGP (Border Gateway Protocol) is the backbone of the internet — ISPs and large networks use it to advertise reachable prefixes. BGP selects routes based on policy attributes (AS path, local preference, MED) not just shortest path.`,
+    keyPoints: [
+      'Static routing: manually configured, no overhead, poor scalability',
+      'OSPF: link-state, Dijkstra-based, fast convergence, used in enterprise/ISP',
+      'BGP: path-vector, internet backbone, policy-driven, slow convergence',
+      'Routing table: destination → next hop + metric + interface',
+      'ECMP (Equal-Cost Multi-Path): load balance across multiple equal-cost routes',
+      'CIDR & longest prefix match: /24 beats /16 for the same destination',
+      'ARP (Address Resolution Protocol): maps IP → MAC within a subnet',
+    ],
+    code: `# Inspect routing table (Linux)
+ip route show
+
+# Example routing table
+# default via 192.168.1.1 dev eth0       ← default gateway
+# 10.0.0.0/8 via 10.1.0.1 dev eth1      ← static corporate route
+# 192.168.1.0/24 dev eth0 proto kernel   ← directly connected
+
+# Traceroute: see each hop to destination
+traceroute 8.8.8.8
+
+# BGP path selection (simplified):
+# 1. Highest LOCAL_PREF (prefer internal routes)
+# 2. Shortest AS_PATH (fewer ASes traversed)
+# 3. Lowest MED (multi-exit discriminator)
+# 4. Lowest router-id (tiebreaker)`,
+    codeLang: 'bash',
+    summary: 'Routing is how the internet works at scale. OSPF is the workhorse inside data centers and ISPs; BGP is what connects them. For system design: CDNs use BGP anycast to route users to the nearest PoP. Subnet design (CIDR) and VPC routing are critical for cloud architecture interviews.',
+  },
+
+  ip: {
+    overview: `The Internet Protocol (IP) is the network layer protocol responsible for addressing and routing packets across networks. IPv4 uses 32-bit addresses (4.3B addresses); IPv6 uses 128-bit addresses (340 undecillion).\n\n**IP Packet structure**: version, header length, TTL (decremented at each hop, dropped at 0), source IP, destination IP, payload. The TTL field prevents infinite loops.\n\n**Subnetting**: IP addresses are split into a network portion and host portion using a subnet mask. CIDR notation (e.g., 192.168.1.0/24) specifies how many bits are the network. This enables hierarchical routing and efficient address allocation.\n\n**NAT (Network Address Translation)**: allows multiple private IPs (10.x, 172.16.x, 192.168.x) to share one public IP. A NAT table maps (private IP, port) ↔ (public IP, port). Every home router does this.`,
+    keyPoints: [
+      'IPv4: 32-bit, dotted decimal, ~4.3B addresses (exhausted, hence NAT/IPv6)',
+      'IPv6: 128-bit, colon-hex, stateless address autoconfiguration (SLAAC)',
+      'Subnetting: /24 = 256 addresses, /16 = 65536, /8 = 16M',
+      'Private ranges: 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16',
+      'TTL: prevents loops; traceroute exploits TTL=1,2,3... to trace hops',
+      'Fragmentation: MTU (1500 bytes Ethernet) — large packets are split, reassembled at dest',
+      'ICMP: control messages (ping = echo request/reply, unreachable, TTL exceeded)',
+    ],
+    code: `# Key IP commands
+ip addr show                     # view IP addresses
+ip route add 10.0.0.0/8 via 192.168.1.1  # add route
+ping -c 4 8.8.8.8               # ICMP echo
+traceroute 1.1.1.1              # hop-by-hop trace
+
+# Subnet math (Python)
+import ipaddress
+net = ipaddress.IPv4Network('192.168.1.0/24')
+print(net.network_address)   # 192.168.1.0
+print(net.broadcast_address) # 192.168.1.255
+print(net.num_addresses)     # 256
+print(list(net.hosts())[:3]) # .1 .2 .3 (first 3 usable)
+
+# IPv6 example
+ip6 = ipaddress.IPv6Address('2001:db8::1')
+print(ip6.compressed)  # 2001:db8::1`,
+    codeLang: 'python',
+    summary: 'IP is the universal language of the internet. Subnetting, CIDR, and NAT are must-knows for cloud/infrastructure roles. In system design: private VPC subnets, security group rules, and load balancer placement all require IP addressing knowledge. IPv6 adoption is accelerating — AWS dual-stack and IPv6-only subnets are production realities.',
+  },
+
+  wifi: {
+    overview: `Wi-Fi (IEEE 802.11) is the dominant wireless LAN standard. It operates in the 2.4 GHz and 5 GHz radio bands (Wi-Fi 6E also uses 6 GHz). The fundamental challenge of wireless is the shared medium — all devices in range hear each other's signals.\n\n**CSMA/CA (Carrier Sense Multiple Access / Collision Avoidance)**: Unlike Ethernet's CSMA/CD (collision detection), Wi-Fi uses collision avoidance because wireless devices can't detect collisions while transmitting. Before sending, a device listens (carrier sense), waits for the channel to be idle, then waits a random backoff time, then transmits.\n\n**Wi-Fi generations**: 802.11n (Wi-Fi 4) = MIMO, 300 Mbps. 802.11ac (Wi-Fi 5) = MU-MIMO, 1 Gbps. 802.11ax (Wi-Fi 6) = OFDMA, 9.6 Gbps, better in dense environments. Wi-Fi 6E adds 6 GHz channels for less congestion.`,
+    keyPoints: [
+      'SSID: network name; BSSID: AP MAC address; BSS: Basic Service Set',
+      '2.4 GHz: longer range, more interference (microwaves, Bluetooth); 3 non-overlapping channels',
+      '5 GHz: shorter range, faster speeds, 23+ non-overlapping channels',
+      'CSMA/CA + RTS/CTS for hidden node problem',
+      'WPA3 is current security standard (WPA2 has KRACK vulnerability)',
+      'OFDMA (Wi-Fi 6): multiple clients served simultaneously per channel',
+      'BSS coloring (Wi-Fi 6): spatial reuse — ignore transmissions from other networks',
+    ],
+    code: `# Wi-Fi channel planning (2.4 GHz)
+# Only channels 1, 6, 11 are non-overlapping
+# Channel 1:  2412 MHz
+# Channel 6:  2437 MHz
+# Channel 11: 2462 MHz
+
+# Security protocols
+# WEP   → broken (RC4 key reuse), never use
+# WPA   → TKIP, deprecated
+# WPA2  → AES-CCMP, good; KRACK attack exists
+# WPA3  → SAE (Dragonfly), forward secrecy, required since 2020
+
+# Signal strength to quality mapping
+# -30 dBm: Excellent (max signal)
+# -67 dBm: Good (minimum for streaming)
+# -70 dBm: Okay (web browsing)
+# -80 dBm: Poor (basic connectivity)
+# -90 dBm: Unusable
+
+# WPA3 SAE handshake (simplified)
+# 1. Both sides compute a shared secret from password + MAC addresses
+# 2. Exchange commit messages (with anti-timing protections)
+# 3. Confirm exchange — no password transmitted`,
+    codeLang: 'bash',
+    summary: 'Wi-Fi is essential networking knowledge for mobile and IoT roles. Key interview topics: CSMA/CA collision avoidance, WPA3 security, channel planning to reduce interference, and Wi-Fi 6 OFDMA for dense deployments. Data centers use wired Ethernet (25G/100G) — Wi-Fi is for client access.',
+  },
+
+  firewall: {
+    overview: `A firewall controls network traffic based on rules — permitting or denying packets based on source/destination IP, port, protocol, and connection state. Firewalls are the primary perimeter defense in network security.\n\n**Packet filtering firewalls** inspect each packet independently (Layer 3/4). They're fast but stateless — can't track TCP connections.\n\n**Stateful firewalls** track connection state (SYN → ESTABLISHED → FIN). They can detect out-of-state packets (e.g., a TCP RST with no matching connection = suspicious).\n\n**Application-layer firewalls (WAF)** operate at Layer 7 — they parse HTTP, detect SQL injection, XSS, and can block based on request content. AWS WAF, Cloudflare WAF are cloud WAF examples.\n\n**iptables** (Linux) is the canonical packet filter. nftables replaces it in modern kernels. Cloud equivalents: AWS Security Groups (stateful) and Network ACLs (stateless).`,
+    keyPoints: [
+      'Stateless: filter by IP/port/protocol; stateful: track connection state',
+      'Default deny: block everything, allow only what is needed (allowlist approach)',
+      'DMZ (Demilitarized Zone): isolated subnet for public-facing servers',
+      'WAF: protects against OWASP Top 10 at Layer 7',
+      'iptables chains: INPUT, OUTPUT, FORWARD — each packet traverses relevant chains',
+      'Security Group (AWS): stateful, per-instance firewall rules',
+      'Network ACL (AWS): stateless, subnet-level, rules evaluated in order',
+    ],
+    code: `# iptables basics (Linux firewall)
+# Allow established/related traffic (stateful)
+iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+
+# Allow SSH from specific IP
+iptables -A INPUT -s 203.0.113.10 -p tcp --dport 22 -j ACCEPT
+
+# Allow HTTP/HTTPS from anywhere
+iptables -A INPUT -p tcp --dport 80 -j ACCEPT
+iptables -A INPUT -p tcp --dport 443 -j ACCEPT
+
+# Default deny everything else
+iptables -P INPUT DROP
+iptables -P FORWARD DROP
+
+# Allow all outbound
+iptables -P OUTPUT ACCEPT
+
+# View rules
+iptables -L -v -n --line-numbers`,
+    codeLang: 'bash',
+    summary: 'Firewalls are the backbone of network security. Stateful firewalls track connection context; WAFs protect web apps at Layer 7. In cloud architecture: Security Groups (stateful, per-instance) and NACLs (stateless, subnet-level) serve different roles. Zero-trust networks supplement perimeter firewalls with per-request authentication.',
+  },
+
+  'net-sec': {
+    overview: `Network security protects data in transit and infrastructure from attack. The core threat model: untrusted networks (internet), partially-trusted networks (corporate LAN), and trusted enclaves (VPCs, internal services).\n\n**TLS** (Transport Layer Security) is the primary cryptographic protocol for securing network communication. It provides confidentiality (encryption), integrity (MAC), and authentication (certificates). HTTPS = HTTP over TLS.\n\n**Common attacks**: Man-in-the-middle (MITM) intercepts traffic between client and server. DNS spoofing poisons DNS caches to redirect traffic. ARP poisoning sends false ARP replies to redirect traffic on a LAN. DDoS floods a target with traffic to exhaust resources.\n\n**Defense in depth**: multiple security layers so no single failure is catastrophic. Combine firewalls, IDS/IPS, encryption, authentication, logging, and monitoring.`,
+    keyPoints: [
+      'Defense in depth: firewall + IDS/IPS + encryption + auth + monitoring',
+      'Zero Trust: never trust, always verify — even internal traffic',
+      'VPN: creates encrypted tunnel over untrusted network (IPsec, WireGuard, OpenVPN)',
+      'IDS vs IPS: IDS detects anomalies; IPS can block malicious traffic inline',
+      'Certificate pinning: reject any cert not matching a known fingerprint',
+      'HSTS: forces HTTPS for a domain, prevents SSL stripping attacks',
+      'DNSSEC: authenticates DNS responses to prevent spoofing',
+    ],
+    code: `# Check TLS certificate details
+openssl s_client -connect example.com:443 -servername example.com < /dev/null 2>/dev/null | \\
+  openssl x509 -text -noout | grep -E "Subject:|Issuer:|Not After"
+
+# Scan for open ports (nmap)
+nmap -sV -p 80,443,22,3306 target.example.com
+
+# Test HSTS header
+curl -I https://example.com | grep strict
+
+# WireGuard VPN config (server)
+[Interface]
+Address = 10.0.0.1/24
+PrivateKey = <server_private_key>
+ListenPort = 51820
+
+[Peer]
+PublicKey = <client_public_key>
+AllowedIPs = 10.0.0.2/32  # only route client IP`,
+    codeLang: 'bash',
+    summary: 'Network security is multi-layered. TLS secures transport; firewalls control access; IDS/IPS detect intrusions; VPNs encrypt remote access. Zero Trust (verify every request, assume breach) is the modern paradigm replacing perimeter-only security. For interviews: know TLS handshake, certificate chain of trust, and common attack vectors.',
+  },
+
+  // ─── DBMS ─────────────────────────────────────────────────────────────────
+
+  er: {
+    overview: `Entity-Relationship (ER) diagrams model a database's conceptual schema — what data exists and how entities relate, before deciding on tables and columns.\n\n**Entities** are things with independent existence (User, Order, Product). **Attributes** describe entities (User has name, email, createdAt). **Relationships** link entities — a User *places* many Orders.\n\n**Cardinality** defines the multiplicity of a relationship:\n- One-to-One (1:1): Person ↔ Passport\n- One-to-Many (1:N): Customer → Orders\n- Many-to-Many (M:N): Students ↔ Courses (needs a junction table: Enrollment)\n\n**Weak entities** depend on a strong entity for their identity (OrderItem depends on Order).\n\n**Normalization** follows from ER: redundancy in your ER diagram signals a normalization problem. Many-to-many relationships always produce three tables: two entity tables + one junction table.`,
+    keyPoints: [
+      'Entity: noun with independent existence and a primary key',
+      'Weak entity: identified by its relationship with a strong entity + partial key',
+      'Attributes: simple, composite (address = street + city), multivalued (phone numbers)',
+      '1:1 → can merge into one table or use FK; 1:N → FK on the "many" side; M:N → junction table',
+      'Participation: total (every entity must participate) vs partial',
+      'ER → Relational: each entity → table; M:N → junction table; 1:N → FK on child',
+      'Extended ER: generalization (supertype/subtype), specialization, aggregation',
+    ],
+    code: `-- ER → SQL example: Blog (User, Post, Tag — M:N)
+-- User (1) → Post (N): user_id FK on posts
+-- Post (M) ↔ Tag (N): junction table post_tags
+
+CREATE TABLE users (
+  id         SERIAL PRIMARY KEY,
+  email      TEXT UNIQUE NOT NULL,
+  name       TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE TABLE posts (
+  id         SERIAL PRIMARY KEY,
+  user_id    INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  title      TEXT NOT NULL,
+  body       TEXT,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE TABLE tags (
+  id   SERIAL PRIMARY KEY,
+  name TEXT UNIQUE NOT NULL
+);
+
+-- M:N junction table
+CREATE TABLE post_tags (
+  post_id INT REFERENCES posts(id) ON DELETE CASCADE,
+  tag_id  INT REFERENCES tags(id)  ON DELETE CASCADE,
+  PRIMARY KEY (post_id, tag_id)
+);`,
+    codeLang: 'sql',
+    summary: 'ER modeling is the first step in database design — get the entities and relationships right before writing SQL. M:N relationships always need a junction table. Weak entities inherit identity from their parent. In interviews: draw ER diagrams for e-commerce (User, Product, Order, OrderItem) or social networks (User, Post, Comment, Like) to demonstrate schema design skill.',
+  },
+
+  'db-design': {
+    overview: `Database design is the process of translating business requirements into a schema that is correct, efficient, and maintainable. It spans three levels:\n\n1. **Conceptual**: ER diagram — what entities and relationships exist\n2. **Logical**: relational schema — tables, columns, types, constraints, keys\n3. **Physical**: indexes, partitioning, storage engines, denormalization for query performance\n\n**Principles**: Normalize to 3NF to eliminate redundancy (no update anomalies). Denormalize selectively when reads are bottlenecked and consistency can be managed. Always define proper constraints (NOT NULL, UNIQUE, FK, CHECK) — your DB is the last line of defense against bad data.\n\n**Common patterns**: Soft deletes (deleted_at column), audit logs (created_at, updated_at, created_by), polymorphic associations (careful: breaks FK integrity), event sourcing (append-only events as the source of truth).`,
+    keyPoints: [
+      'Functional dependency: X → Y means Y is determined by X (basis for normalization)',
+      '1NF: atomic values, no repeating groups; 2NF: no partial dependency on composite PK; 3NF: no transitive dependency',
+      'Surrogate vs natural keys: surrogate (auto-increment/UUID) is usually better for FKs',
+      'ON DELETE CASCADE vs RESTRICT: choose based on domain (cascade for ownership, restrict for references)',
+      'Soft delete: set deleted_at instead of DELETE to preserve history and audit trail',
+      'Audit columns: created_at, updated_at (auto-updated via trigger or ORM), created_by',
+      'Schema migrations: additive changes are safe; removals/renames require multi-step deploys',
+    ],
+    code: `-- Good database design patterns
+
+-- Timestamps + soft delete
+CREATE TABLE products (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  sku         TEXT UNIQUE NOT NULL,
+  name        TEXT NOT NULL,
+  price_cents INT NOT NULL CHECK (price_cents >= 0),
+  created_at  TIMESTAMPTZ DEFAULT now(),
+  updated_at  TIMESTAMPTZ DEFAULT now(),
+  deleted_at  TIMESTAMPTZ  -- NULL = active, non-NULL = soft deleted
+);
+
+-- Auto-update updated_at via trigger
+CREATE OR REPLACE FUNCTION update_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = now();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER products_updated_at
+  BEFORE UPDATE ON products
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+-- Filter soft-deleted rows
+CREATE VIEW active_products AS
+  SELECT * FROM products WHERE deleted_at IS NULL;`,
+    codeLang: 'sql',
+    summary: 'Database design is about making the right trade-offs: normalize for consistency, denormalize for read performance, add constraints for correctness, soft-delete for auditability. In system design interviews, always define your schema before talking about indexes or caching — a well-designed schema eliminates whole classes of bugs.',
+  },
+
+  'distributed-db': {
+    overview: `Distributed databases spread data across multiple nodes to achieve horizontal scalability, fault tolerance, and geographic distribution. The CAP theorem (you can have at most 2 of Consistency, Availability, Partition tolerance) defines the fundamental trade-offs.\n\n**Replication** (data on multiple nodes) improves read throughput and fault tolerance. **Sharding** (data split across nodes) improves write throughput. Most production systems use both.\n\n**Consensus algorithms** (Raft, Paxos) ensure distributed nodes agree on a single value — critical for leader election and replication. Raft is more understandable and widely adopted (etcd, CockroachDB, TiDB).\n\n**Distributed transactions** are hard: two-phase commit (2PC) provides atomicity across nodes but is blocking — if the coordinator fails, participants are stuck. Google Spanner uses TrueTime (GPS + atomic clocks) to order transactions globally. CockroachDB implements serializable isolation using Raft + MVCC.`,
+    keyPoints: [
+      'CAP: at partition, choose CP (reject writes to maintain consistency) or AP (serve stale data)',
+      'PACELC: extends CAP — even without partition, trade latency vs consistency',
+      'Raft: leader-based consensus, leader elected by majority vote, logs replicated before commit',
+      '2PC: prepare phase (all vote yes/no) + commit phase (all commit or abort)',
+      'SAGA pattern: distributed transactions via compensating transactions (no 2PC)',
+      'CRDTs: conflict-free replicated data types — merge without coordination (counters, sets)',
+      'Google Spanner: globally distributed, serializable, uses TrueTime for external consistency',
+    ],
+    code: `// Saga pattern (compensation-based distributed transaction)
+// Order service coordinates: charge card → create order → reserve inventory
+// If inventory reservation fails → compensate by refunding card + deleting order
+
+class OrderSaga {
+  async execute(orderData: OrderData) {
+    let chargeId: string | null = null;
+    let orderId: string | null = null;
+
+    try {
+      // Step 1: charge customer
+      chargeId = await paymentService.charge(orderData.customerId, orderData.total);
+
+      // Step 2: create order record
+      orderId = await orderService.create({ ...orderData, chargeId });
+
+      // Step 3: reserve inventory
+      await inventoryService.reserve(orderData.items, orderId);
+
+      return { success: true, orderId };
+    } catch (err) {
+      // Compensate in reverse order
+      if (orderId)  await orderService.cancel(orderId);
+      if (chargeId) await paymentService.refund(chargeId);
+      throw err;
+    }
+  }
+}`,
+    codeLang: 'typescript',
+    summary: 'Distributed databases are the backbone of large-scale systems. Key concepts: CAP trade-offs (CP vs AP), Raft consensus for leader election, sharding strategies (range vs hash), and SAGA for distributed transactions. For interviews: know why 2PC is dangerous (blocking), why Raft beats Paxos in practice (understandability), and when to use eventual consistency vs strong consistency.',
+  },
+
+  // ─── OS / Systems ─────────────────────────────────────────────────────────
+
+  'fs-intro': {
+    overview: `A file system organizes data on storage devices into a hierarchical structure of files and directories. It abstracts raw disk blocks into named, typed data accessible by path.\n\n**Key abstractions**:\n- **File**: a named sequence of bytes with metadata (permissions, timestamps, size, type)\n- **Directory**: a file that maps names → inodes\n- **Inode**: a data structure storing file metadata and pointers to data blocks\n- **Block**: the minimum unit of disk I/O (typically 4 KB)\n\n**VFS (Virtual File System)**: Linux's abstraction layer allowing multiple file system types (ext4, XFS, Btrfs, tmpfs) to coexist behind a single system call interface. When you call open(), the kernel dispatches to the correct FS driver via VFS.\n\nCommon Linux file systems: ext4 (mature, journaling, default on many distros), XFS (high performance, large files), Btrfs (snapshots, checksums, RAID), tmpfs (in-memory, cleared on reboot).`,
+    keyPoints: [
+      'Inode: stores metadata (permissions, size, timestamps, owner, data block pointers) — NOT the filename',
+      'Filename lives in directory; directory entry maps name → inode number',
+      'Hard link: multiple directory entries pointing to same inode; soft link: file containing a path',
+      'Block allocation strategies: contiguous (fast, fragmentation), linked list, indexed (inode with block pointers)',
+      'Free space management: bitmap (1 bit per block) or free list',
+      'Mount: attach a file system to a directory in the VFS tree',
+      'File descriptor: process-level handle to an open file; kernel tracks file table per process',
+    ],
+    code: `# Exploring the file system (Linux)
+
+# View inode info
+stat /etc/passwd
+# Inode: 123456   Links: 1   Size: 2847
+# Access: -rw-r--r--  Uid: 0   Gid: 0
+
+# View inode number
+ls -i /etc/passwd   # 123456 /etc/passwd
+
+# Show disk usage per filesystem
+df -h
+
+# Show inode usage (can run out before disk space!)
+df -i
+
+# Find which process has a file open
+lsof /var/log/syslog
+
+# Hard link: same inode, different names
+ln original.txt hardlink.txt
+ls -i original.txt hardlink.txt  # same inode number
+
+# Soft link: a pointer file
+ln -s /usr/bin/python3 /usr/local/bin/python`,
+    codeLang: 'bash',
+    summary: 'File systems bridge the gap between raw storage and the files programmers use. Inodes are the key data structure — they hold metadata and point to data blocks; filenames live in directories. Understanding inodes matters for hard vs soft links, file recovery, and why you can run out of inodes before disk space. VFS enables Linux\'s "everything is a file" philosophy.',
+  },
+
+  inodes: {
+    overview: `An inode (index node) is the core data structure of Unix file systems. Every file and directory has exactly one inode, which stores all metadata except the filename.\n\n**Inode contents**: file type (regular, directory, symlink, device), permissions (rwxrwxrwx), owner (UID/GID), timestamps (atime/mtime/ctime), file size, link count, and crucially — **block pointers** pointing to where the file's data lives on disk.\n\n**Block pointer structure** (ext4 uses extents, older systems used direct/indirect blocks):\n- Direct block pointers: fast access to the first ~48 KB\n- Single indirect: pointer to block of pointers (~4 MB)\n- Double indirect: pointer → block of pointers → data (~4 GB)\n- Triple indirect: for huge files\n\nExt4 replaced this with **extents** — a contiguous range (start block, length) — much more efficient for large files and sequential I/O.`,
+    keyPoints: [
+      'Inode stores everything about a file EXCEPT its name',
+      'Link count: number of hard links. File is deleted when link count hits 0 AND no open FDs',
+      'Inode number is unique per filesystem; not unique across filesystems (why hard links can\'t cross mounts)',
+      'Timestamps: atime (last access), mtime (last content modification), ctime (last inode change)',
+      'ext4 extents: (start_block, length) — efficient for large files; avoids fragmentation',
+      'Directory entry: { filename: "foo.txt", inode: 42 } — simple mapping',
+      'Deleting a file: remove directory entry + decrement link count; data freed when count = 0 and no FD',
+    ],
+    code: `# Inspect inode details
+stat myfile.txt
+# File: myfile.txt
+# Size: 1234         Blocks: 8      IO Block: 4096  regular file
+# Device: 8,1        Inode: 7865432 Links: 1
+# Access: (0644/-rw-r--r--)  Uid: 1000   Gid: 1000
+# Access: 2025-01-10 09:00
+# Modify: 2025-01-09 18:30   (content changed)
+# Change: 2025-01-09 18:30   (inode changed: chmod, chown, link)
+
+# Inode usage — can exhaust before disk space
+df -i /
+# Filesystem       Inodes  IUsed   IFree IUse%
+# /dev/sda1      6553600  412830  6140770    6%
+
+# What happens on delete
+rm myfile.txt
+# 1. Remove "myfile.txt" → inode_num from directory
+# 2. Decrement inode link count
+# 3. If link_count == 0 AND no open FDs: mark blocks as free`,
+    codeLang: 'bash',
+    summary: 'Inodes are how Unix file systems track files. The separation of inode (metadata + block pointers) from directory entries (name → inode) enables hard links, atomic renames, and the "delete open file" pattern (file data persists until last FD is closed). Running out of inodes (even with free disk space) is a real production failure mode on systems with many small files.',
+  },
+
+  'page-replace': {
+    overview: `When physical memory is full and a new page is needed, the OS must evict an existing page — it selects a victim using a page replacement algorithm. The goal: minimize page faults (evict pages least likely to be needed soon).\n\n**Optimal (Bélády)**: Evict the page that will be used furthest in the future. Optimal but impossible in practice (requires future knowledge). Used as a benchmark.\n\n**FIFO**: Evict the oldest loaded page. Simple but suffers from Bélády's anomaly — more frames can cause more page faults.\n\n**LRU (Least Recently Used)**: Evict the page not used for the longest time. Good approximation of optimal. Expensive to implement exactly (need to track access order). Hardware TLB and reference bits enable clock approximations.\n\n**Clock (Second Chance)**: Circular list of pages with a reference bit. On access, set bit=1. When evicting, scan: if bit=1, clear it and move on; if bit=0, evict. O(1) amortized, much more practical than exact LRU.`,
+    keyPoints: [
+      'Page fault: page not in RAM → OS loads it from disk (slow — microseconds vs nanoseconds)',
+      'Thrashing: working set > RAM → constant page faults, near-zero useful work',
+      'Optimal: provably best, impossible online; use to measure algorithm quality',
+      'FIFO: Bélády\'s anomaly — more frames → more faults (counterintuitive!)',
+      'LRU: excellent, costly; approximated by Clock/Second-Chance using reference bits',
+      'Working Set: set of pages actively used by a process; should fit in RAM',
+      'Dirty page: modified in RAM, not yet written back — must write to swap before evicting',
+    ],
+    code: `// LRU Cache — exact LRU (O(1) get/put via HashMap + doubly-linked list)
+class LRUCache {
+  private capacity: number;
+  private map: Map<number, { key: number; val: number; prev: any; next: any }>;
+  private head: any; // dummy head (most recent)
+  private tail: any; // dummy tail (least recent)
+
+  constructor(capacity: number) {
+    this.capacity = capacity;
+    this.map = new Map();
+    this.head = {}; this.tail = {};
+    this.head.next = this.tail;
+    this.tail.prev = this.head;
+  }
+
+  get(key: number): number {
+    if (!this.map.has(key)) return -1;
+    const node = this.map.get(key)!;
+    this.remove(node);
+    this.addFront(node);  // mark as most recently used
+    return node.val;
+  }
+
+  put(key: number, val: number): void {
+    if (this.map.has(key)) this.remove(this.map.get(key)!);
+    const node = { key, val, prev: null, next: null };
+    this.addFront(node);
+    this.map.set(key, node);
+    if (this.map.size > this.capacity) {
+      const lru = this.tail.prev;
+      this.remove(lru);
+      this.map.delete(lru.key);
+    }
+  }
+
+  private remove(node: any) {
+    node.prev.next = node.next;
+    node.next.prev = node.prev;
+  }
+  private addFront(node: any) {
+    node.next = this.head.next;
+    node.prev = this.head;
+    this.head.next.prev = node;
+    this.head.next = node;
+  }
+}`,
+    codeLang: 'typescript',
+    summary: 'Page replacement algorithms are foundational OS theory and a classic LeetCode problem (LRU Cache is a top-50 interview question). Know the trade-offs: Optimal is perfect but impossible; LRU is best in practice; Clock approximates LRU with O(1) overhead. Thrashing happens when working set exceeds physical RAM — cured by adding RAM or reducing multiprogramming degree.',
+  },
+
+  thrashing: {
+    overview: `Thrashing occurs when a system spends more time handling page faults than executing useful work. It happens when the combined working sets of all running processes exceed available physical memory.\n\n**Working Set Model**: the working set W(t, Δ) is the set of pages a process referenced in the past Δ time units. If Σ|W(process)| > total frames, thrashing is inevitable.\n\n**Signs of thrashing**: CPU utilization drops (processes are always waiting for I/O), disk I/O spikes, and system feels sluggish or frozen. The OS scheduler may see many blocked processes and try to run more — making thrashing worse.\n\n**Remedies**:\n1. **Reduce multiprogramming** — swap out a process entirely (long-term scheduling)\n2. **Add RAM** — most effective in production\n3. **Increase swap space** — buys time but doesn't fix thrashing (swap access is slow)\n4. **Working set size estimation** — admit only processes whose working sets fit in RAM`,
+    keyPoints: [
+      'Thrashing: page fault rate so high that useful CPU work approaches zero',
+      'Cause: sum of working sets > physical RAM; each process evicts another\'s pages',
+      'CPU utilization curve: rises then plummets as multiprogramming degree increases past threshold',
+      'Working set: pages used in recent Δ time; Δ too small → understimates; too large → overestimates',
+      'PFF (Page Fault Frequency) algorithm: adjust frames allocated to process based on fault rate',
+      'Linux OOM killer: when truly out of memory, kills processes by heuristic score',
+      'Production fix: monitor /proc/vmstat for pgmajfault — sustained > 100/s indicates thrashing',
+    ],
+    code: `# Diagnosing thrashing on Linux
+# Check page fault rates
+vmstat 1 10
+# procs  memory      swap    io     system  cpu
+# r  b   swpd  free  buff  cache   si  so  bi  bo
+# 8  7  2048000 12288 512 8192  4096 3072 5000 4000 ...
+#         ↑ large si/so (swap in/out) = thrashing!
+
+# Check major page faults per process
+cat /proc/$(pgrep java)/status | grep VmRSS
+ps -o pid,comm,min_flt,maj_flt -p $(pgrep java)
+#   PID COMMAND   MINFLT   MAJFLT
+# 12345 java    5234123    82934  ← 82934 major (disk) faults!
+
+# OOM killer log
+dmesg | grep "Out of memory"
+dmesg | grep "Killed process"
+
+# Force OOM killer (testing)
+# /proc/sys/vm/panic_on_oom = 0 (default: kill process)
+# /proc/$pid/oom_adj: adjust oom score (-17 to +15)`,
+    codeLang: 'bash',
+    summary: 'Thrashing is the ultimate memory bottleneck — the system looks busy (high I/O) but does no useful work. In production, catch it early with vmstat monitoring (si/so columns). The fix is almost always adding RAM or reducing the number of concurrent processes. For interviews: connect thrashing to the working set model and contrast with normal paging.',
+  },
+
+  'security-os': {
+    overview: `Operating system security provides the foundation for all application security. The OS controls access to hardware, memory, files, and network — all higher-level security depends on the OS being trustworthy.\n\n**Protection rings**: hardware-enforced privilege levels. Ring 0 (kernel mode) has full hardware access. Ring 3 (user mode) is restricted — a process can't directly access hardware or other processes' memory. System calls are the controlled gateway from user space to kernel space.\n\n**Access control**: DAC (Discretionary Access Control) — owners set permissions (Unix rwxrwxrwx). MAC (Mandatory Access Control) — system policy enforces access regardless of owner (SELinux, AppArmor). RBAC (Role-Based Access Control) — permissions attached to roles, users get roles.\n\n**Memory protection**: virtual address spaces isolate processes. ASLR (Address Space Layout Randomization) randomizes base addresses to defeat ROP attacks. Stack canaries detect stack buffer overflows.`,
+    keyPoints: [
+      'Least privilege: processes run with minimum required permissions',
+      'ASLR: randomize stack/heap/library addresses — mitigates return-oriented programming',
+      'Stack canary: random value between local vars and return address — overflow detection',
+      'NX/DEP: mark data pages non-executable — prevents shellcode execution on stack/heap',
+      'SELinux/AppArmor: MAC systems confining processes to allowed syscalls and file paths',
+      'Setuid binaries: run as file owner (root) — attack surface, minimize carefully',
+      'seccomp: filter which syscalls a process can make (used by Docker, Chrome sandbox)',
+    ],
+    code: `# Check ASLR status
+cat /proc/sys/kernel/randomize_va_space
+# 0 = disabled, 1 = partial, 2 = full (default)
+
+# seccomp — restrict syscalls (used in sandboxing)
+# Docker default seccomp profile blocks ~44 syscalls
+# Example: block ptrace (prevents process injection)
+docker run --security-opt seccomp=/etc/docker/seccomp.json myapp
+
+# Check if binary has security mitigations
+checksec --file=/usr/bin/bash
+# RELRO    STACK CANARY   NX       PIE      RPATH
+# Full     Canary found   NX enabled  PIE enabled  No RPATH
+
+# SELinux status and mode
+getenforce        # Enforcing / Permissive / Disabled
+sestatus          # detailed status
+ls -Z /etc/passwd # view SELinux context: system_u:object_r:passwd_file_t:s0
+
+# File capabilities (fine-grained root without full setuid)
+getcap /usr/bin/ping  # cap_net_raw+ep  (ping needs raw sockets)`,
+    codeLang: 'bash',
+    summary: 'OS security is the bedrock of system security. Protection rings enforce privilege separation; ASLR+NX+stack canaries harden against memory exploits; SELinux/AppArmor enforce MAC policies beyond Unix permissions. For interviews in security/infra roles: know the difference between DAC (Unix permissions) and MAC (SELinux), and why seccomp is critical for container security.',
+  },
+
+  // ─── System Design ────────────────────────────────────────────────────────
+
+  'design-search': {
+    overview: `Designing a web search engine (Google-scale) is a canonical system design question that covers crawling, indexing, ranking, and serving.\n\n**Web Crawler**: fetches pages from the web. Politeness policy (robots.txt, rate limiting per domain), URL deduplication (Bloom filter), and distributed crawling across many nodes. Seeds → frontier queue → fetch → parse → extract links → re-queue.\n\n**Indexer**: processes crawled pages to build an inverted index. Tokenization → stemming → stop word removal → TF-IDF calculation. The inverted index maps term → [list of (docID, positions, frequency)].\n\n**Ranking**: PageRank (link graph authority) + BM25 (text relevance) + hundreds of signals (freshness, clickthrough, page speed). Modern engines use learning-to-rank ML models.\n\n**Query serving**: user query → tokenize → lookup inverted index per term → intersect posting lists → rank top-K → return. Must handle billions of queries per day at <200ms.`,
+    keyPoints: [
+      'Inverted index: term → sorted list of (docID, tf, positions) — core of all search',
+      'TF-IDF: term frequency × inverse document frequency — basic relevance score',
+      'PageRank: iterative algorithm; pages linked by authoritative pages rank higher',
+      'Crawl frontier: priority queue; balance breadth (fresh content) vs depth (link graph)',
+      'Bloom filter: space-efficient set membership for URL deduplication in crawler',
+      'Sharding the index: by term (term partitioning) or by document (document partitioning)',
+      'Query latency: <200ms for 99th percentile — caching frequent queries, pre-computed top-K',
+    ],
+    code: `// Simplified inverted index (in-memory)
+interface PostingList {
+  docId: number;
+  tf: number;         // term frequency in this doc
+  positions: number[]; // word positions (for phrase queries)
+}
+
+class InvertedIndex {
+  private index = new Map<string, PostingList[]>();
+  private docStore = new Map<number, { url: string; text: string }>();
+  private nextId = 0;
+
+  addDocument(url: string, text: string) {
+    const docId = this.nextId++;
+    this.docStore.set(docId, { url, text });
+    const tokens = this.tokenize(text);
+    const termPositions = new Map<string, number[]>();
+    tokens.forEach((tok, pos) => {
+      if (!termPositions.has(tok)) termPositions.set(tok, []);
+      termPositions.get(tok)!.push(pos);
+    });
+    termPositions.forEach((positions, term) => {
+      if (!this.index.has(term)) this.index.set(term, []);
+      this.index.get(term)!.push({ docId, tf: positions.length, positions });
+    });
+  }
+
+  search(query: string): number[] {
+    const terms = this.tokenize(query);
+    // Intersect posting lists for AND semantics
+    const lists = terms.map(t => this.index.get(t) ?? []);
+    return this.intersect(lists).map(p => p.docId);
+  }
+
+  private tokenize(text: string) {
+    return text.toLowerCase().split(/\W+/).filter(Boolean);
+  }
+  private intersect(lists: PostingList[][]): PostingList[] { /* merge */ return []; }
+}`,
+    codeLang: 'typescript',
+    summary: 'Search engine design tests your knowledge of distributed systems at the largest scale. Key concepts: inverted index for fast term lookup, PageRank for authority, TF-IDF/BM25 for relevance, and sharding for scalability. Elasticsearch and Apache Lucene implement these concepts — knowing the underlying theory makes you a stronger engineer when tuning search relevance or diagnosing slow queries.',
+  },
+
+  'design-uber': {
+    overview: `Designing a ride-sharing platform (Uber/Lyft) involves real-time location tracking, matching, dispatch, pricing, and maps — all at massive scale.\n\n**Core flows**:\n1. Driver sends GPS location every 4 seconds → Location Service stores in-memory (Redis geospatial)\n2. Rider requests trip → Matching Service finds nearby drivers within N km using geospatial query\n3. Best driver dispatched → real-time notification via WebSocket or push notification\n4. Trip starts → route tracking, ETA calculation via Maps API\n5. Trip ends → payment processing, rating\n\n**Key challenges**:\n- **Geospatial matching**: find drivers within radius efficiently — use geohash or QuadTree\n- **Real-time updates**: WebSockets or SSE for live map position\n- **Supply-demand pricing**: surge pricing model during high demand\n- **ETA accuracy**: routing engine (Dijkstra/A* on road graph), real-time traffic data`,
+    keyPoints: [
+      'Geohash: encode lat/lng as base-32 string — nearby points share prefix; queryable in Redis',
+      'QuadTree: recursively subdivide 2D space — efficient range queries, adaptive resolution',
+      'Location update: driver pushes GPS every 4s → stored in Redis with TTL; stale if no update',
+      'Matching: query geospatial index for drivers in radius, rank by ETA + rating + acceptance rate',
+      'WebSocket: bidirectional persistent connection for real-time rider/driver position sync',
+      'Surge pricing: demand/supply ratio per geohash area → dynamic multiplier',
+      'Trip state machine: requested → accepted → driver_arriving → in_progress → completed',
+    ],
+    code: `// Geospatial driver location with Redis
+// GEOADD: store driver location; GEORADIUS: find nearby
+
+// Store driver location (called every 4 seconds)
+async function updateDriverLocation(
+  driverId: string, lat: number, lng: number
+): Promise<void> {
+  // Redis Geo commands: O(log N) storage and query
+  await redis.geoadd('active_drivers', lng, lat, driverId);
+  await redis.expire(\`driver:\${driverId}:location\`, 30); // 30s TTL
+}
+
+// Find drivers within 5km of rider
+async function findNearbyDrivers(
+  riderLat: number, riderLng: number, radiusKm: number
+): Promise<DriverCandidate[]> {
+  const results = await redis.georadius(
+    'active_drivers', riderLng, riderLat, radiusKm, 'km',
+    'WITHCOORD', 'WITHDIST', 'COUNT', 10, 'ASC'
+  );
+  return results.map(([driverId, dist, [lng, lat]]) => ({
+    driverId,
+    distanceKm: parseFloat(dist),
+    location: { lat: parseFloat(lat), lng: parseFloat(lng) },
+  }));
+}
+
+// Dispatch: pick best driver, create trip, notify via WebSocket
+async function dispatch(riderId: string, riderLocation: LatLng) {
+  const drivers = await findNearbyDrivers(riderLocation.lat, riderLocation.lng, 5);
+  const best = drivers[0]; // already sorted by distance
+  await tripService.create({ riderId, driverId: best.driverId });
+  await notificationService.push(best.driverId, { type: 'TRIP_REQUEST', riderId });
+}`,
+    codeLang: 'typescript',
+    summary: 'Uber is a top system design interview question. Key components: Redis geospatial for O(log N) driver lookup, WebSockets for real-time updates, geohash for surge pricing zones, and a trip state machine for reliability. Scale: 5M+ trips/day requires horizontal sharding of the location service and dedicated matching microservices per city/region.',
+  },
+
+  'load-bal': {
+    overview: `A load balancer distributes incoming traffic across multiple backend servers, providing horizontal scalability and fault tolerance. Without a load balancer, a single server is a bottleneck and single point of failure.\n\n**Layer 4 (L4) load balancers** operate at TCP/UDP level — route connections based on IP and port without inspecting content. Fast, low overhead. Examples: AWS NLB, HAProxy TCP mode.\n\n**Layer 7 (L7) load balancers** operate at HTTP level — can route based on URL path, headers, cookies, and body. Enable advanced routing (canary releases, A/B testing, sticky sessions). Examples: AWS ALB, Nginx, Envoy.\n\n**Algorithms**: Round Robin (simple rotation), Weighted Round Robin (allocate more traffic to powerful servers), Least Connections (route to server with fewest active connections — best for long-lived connections), IP Hash (same client always hits same server — useful for stateful apps without sticky sessions).`,
+    keyPoints: [
+      'L4 vs L7: L4 is faster (TCP only), L7 is smarter (HTTP-aware routing)',
+      'Health checks: LB pings backends; removes unhealthy nodes automatically',
+      'Sticky sessions / session affinity: route same client to same server (via cookie or IP hash)',
+      'SSL termination: LB decrypts HTTPS, forwards HTTP to backends (offloads CPU from backends)',
+      'Connection draining: allow in-flight requests to finish before removing a server from rotation',
+      'Active-passive HA: standby LB takes over on primary failure; active-active: both serve traffic',
+      'Global load balancing: DNS-based routing (Route 53 latency routing, anycast BGP for CDN)',
+    ],
+    code: `# Nginx as L7 load balancer with health checks
+upstream backend_pool {
+  least_conn;  # route to server with least connections
+
+  server backend1.internal:8080 weight=3;  # 3x traffic
+  server backend2.internal:8080 weight=1;
+  server backend3.internal:8080 backup;   # only used if others fail
+
+  keepalive 32;  # persistent connections to backends
+}
+
+server {
+  listen 443 ssl;
+  ssl_certificate     /etc/ssl/cert.pem;
+  ssl_certificate_key /etc/ssl/key.pem;
+
+  location /api/ {
+    proxy_pass http://backend_pool;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+
+    # Health check (Nginx Plus / OpenResty)
+    # health_check interval=5s fails=3 passes=2;
+  }
+
+  # Route /admin to separate backend
+  location /admin/ {
+    proxy_pass http://admin_backend;
+  }
+}`,
+    codeLang: 'bash',
+    summary: 'Load balancers are the entry point of every production system. L4 for raw TCP performance (game servers, databases), L7 for HTTP-aware routing (canary, path-based). Key interview topics: the difference between L4 and L7, sticky sessions (and why they\'re a smell), SSL termination, health checks, and connection draining for zero-downtime deploys.',
+  },
+
+  'cdn': {
+    overview: `A Content Delivery Network (CDN) is a globally distributed network of edge servers that caches content close to users, reducing latency and origin server load.\n\n**How it works**: User DNS query returns the IP of the nearest CDN edge node (via anycast routing or DNS-based geo-steering). The edge node checks its cache; on hit, it serves directly. On miss (cache miss), it fetches from the origin, caches the response, and serves it.\n\n**Cache control**: CDN respects HTTP headers — Cache-Control: max-age=86400 means cache for 24h. s-maxage overrides for shared caches. Vary: Accept-Encoding means cache separate copies per encoding. Surrogate-Control is CDN-specific and stripped before reaching the client.\n\n**Use cases**: static assets (JS, CSS, images — cache for months with fingerprinted URLs), API responses (short TTL), video streaming (HLS segments chunked for efficient delivery), DDoS mitigation (absorb volumetric attacks at edge).`,
+    keyPoints: [
+      'Edge PoP (Point of Presence): CDN node in a city; more PoPs = lower latency globally',
+      'Cache hit ratio: percentage of requests served from cache — higher is better (less origin load)',
+      'TTL strategy: static assets → long TTL + URL fingerprinting; API → short TTL or no-cache',
+      'Cache invalidation: purge by URL/tag; instant purge (Cloudflare) vs TTL expiry',
+      'Origin shield: CDN node between edge nodes and origin — reduces origin load 10-100x',
+      'CDN for APIs: cache GET responses; never cache POST/PUT. Vary on Authorization if user-specific',
+      'Anycast: same IP announced from multiple PoPs — BGP routes to nearest; transparent failover',
+    ],
+    code: `// Setting optimal cache headers for CDN
+
+// Static assets (long-lived, fingerprinted URL)
+// e.g., /assets/app.3f4a2b1c.js
+res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+// max-age=1 year; immutable = browser never revalidates
+
+// HTML page (short TTL, always revalidate)
+res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
+res.setHeader('ETag', computeETag(html));
+
+// API response (cache at CDN for 60s, private in browser)
+res.setHeader('Cache-Control', 'public, s-maxage=60, max-age=0');
+res.setHeader('Surrogate-Control', 'max-age=60');
+
+// User-specific: never cache at CDN
+res.setHeader('Cache-Control', 'private, no-store');
+
+// Cloudflare cache purge API
+// POST https://api.cloudflare.com/client/v4/zones/{zone_id}/purge_cache
+// Body: { "files": ["https://example.com/api/products"] }`,
+    codeLang: 'typescript',
+    summary: 'CDNs are mandatory in production for any global app. Key insight: cache as much as possible at the edge, with the right TTL. URL fingerprinting enables infinite TTL for static assets. Cloudflare, Fastly, and AWS CloudFront all support purge APIs for cache invalidation. In system design interviews, always mention CDN for static assets, origin shield for high-traffic APIs, and anycast for DDoS mitigation.',
+  },
+
+  storage: {
+    overview: `Storage systems are categorized by access patterns, latency, durability, and cost. Choosing the right storage for each type of data is a critical system design skill.\n\n**Hierarchy by speed** (fastest to slowest, cheapest to most expensive per GB):\n- CPU registers & L1/L2/L3 cache: ns latency\n- DRAM (RAM): ~100ns, volatile, expensive\n- NVMe SSD: ~100µs, persistent, fast\n- SATA SSD: ~500µs\n- HDD: ~10ms (mechanical seek), cheap per GB\n- Network storage (NFS, EBS): adds network latency\n- Object storage (S3): ~10-100ms, infinite scale, cheap\n- Tape: archive, very slow access, very cheap\n\n**Block vs File vs Object**:\n- Block: raw device (EBS, iSCSI) — OS formats it, databases love it\n- File: NFS, SMB — shared directories, easy for apps\n- Object: S3, GCS — HTTP API, scale to exabytes, best for unstructured data`,
+    keyPoints: [
+      'Block storage: raw volumes, formatted by OS, lowest latency, used by databases (EBS, NVMe)',
+      'File storage: NFS/SMB share, familiar filesystem interface, good for shared content',
+      'Object storage: S3 API, flat namespace, infinite scale, great for blobs/backups/media',
+      'RAID 0: striping (speed, no redundancy); RAID 1: mirroring (redundancy); RAID 5: striping + parity',
+      'Ephemeral vs persistent: EC2 instance store is fast but lost on stop; EBS persists',
+      'Replication factor: 3 copies in HDFS/Ceph; S3 stores 11 nines durability across 3 AZs',
+      'Tiering: hot data → SSD; warm → HDD; cold → Glacier/tape — automated lifecycle policies',
+    ],
+    code: `# AWS storage decision tree
+
+# Hot, structured data with complex queries → RDS / Aurora (managed PostgreSQL/MySQL)
+# Key-value lookups at scale → DynamoDB (single-digit ms, auto-scaling)
+# Session store / cache → ElastiCache Redis
+# Files for EC2 (shared) → EFS (NFS-backed, auto-scales)
+# Files for EC2 (dedicated, fast) → EBS gp3 (NVMe SSD, ~3000 IOPS default)
+# Unstructured data, backups, media → S3
+# Data warehouse / analytics → Redshift / Athena (query S3 directly)
+# Archive (access once a year) → S3 Glacier Deep Archive ($0.00099/GB/month)
+
+# S3 storage classes by cost and retrieval
+# Standard:            $0.023/GB   — ms retrieval
+# Standard-IA:         $0.0125/GB  — ms retrieval, min 30 days
+# One Zone-IA:         $0.01/GB    — ms, single AZ
+# Glacier Instant:     $0.004/GB   — ms retrieval
+# Glacier Flexible:    $0.0036/GB  — minutes to hours
+# Glacier Deep Archive:$0.00099/GB — 12 hours retrieval`,
+    codeLang: 'bash',
+    summary: 'Storage selection drives system cost, performance, and architecture. Rule of thumb: object storage (S3) for unstructured data at scale, block storage (EBS/NVMe) for databases, file storage (EFS/NFS) for shared access, Redis/Memcached for hot caching. In interviews, always consider durability requirements and cost when recommending a storage solution.',
+  },
+
+  realtime: {
+    overview: `Real-time systems deliver data to clients immediately as events occur, rather than requiring clients to poll. The choice of technology depends on communication pattern, scale, and whether the connection needs to be bidirectional.\n\n**Server-Sent Events (SSE)**: unidirectional push from server to client over HTTP. Client subscribes once; server streams events. Automatic reconnection, event IDs for resume-from-failure. Simple to implement, works through HTTP/2 load balancers. Ideal for: live feeds, notifications, progress bars.\n\n**WebSockets**: full-duplex persistent connection after HTTP upgrade handshake. Both client and server can send at any time. Ideal for: chat, collaborative editing, multiplayer games, live dashboards.\n\n**Long polling**: client sends request, server holds it open until data is available, then responds — client immediately re-polls. Simpler than WebSockets, works everywhere. Higher overhead per message.\n\n**WebRTC**: peer-to-peer audio/video/data with NAT traversal (STUN/TURN). Used by video calling, screen sharing.`,
+    keyPoints: [
+      'SSE: HTTP/1.1 chunked encoding, EventSource API, unidirectional, auto-reconnect',
+      'WebSocket: ws:// or wss://, after HTTP 101 Upgrade, bidirectional, lower overhead per message',
+      'Long polling: works everywhere, simpler, higher latency (~100ms extra per message)',
+      'Fan-out: Redis Pub/Sub or Kafka to push events to all connected WebSocket servers',
+      'Presence: track connected users with heartbeat (periodic ping); clean up on disconnect',
+      'Back-pressure: if client consumes too slowly, buffer or drop messages (depends on use case)',
+      'Scaling WebSockets: sticky sessions so client stays on same server, or use Redis for state',
+    ],
+    code: `// WebSocket server (Node.js) with Redis fan-out
+import { WebSocketServer } from 'ws';
+import { createClient } from 'redis';
+
+const wss = new WebSocketServer({ port: 8080 });
+const subscriber = createClient();
+await subscriber.connect();
+
+// Map: userId → Set of WebSocket connections (one user, multiple tabs)
+const connections = new Map<string, Set<WebSocket>>();
+
+wss.on('connection', (ws, req) => {
+  const userId = getUserIdFromRequest(req);
+  if (!connections.has(userId)) connections.set(userId, new Set());
+  connections.get(userId)!.add(ws);
+
+  ws.on('close', () => {
+    connections.get(userId)?.delete(ws);
+    if (connections.get(userId)?.size === 0) connections.delete(userId);
+  });
+
+  // Heartbeat to detect stale connections
+  ws.isAlive = true;
+  ws.on('pong', () => { ws.isAlive = true; });
+});
+
+// Redis subscriber: receive events from any service, fan out to clients
+await subscriber.subscribe('user_events', (message) => {
+  const event = JSON.parse(message); // { userId, type, data }
+  const userConns = connections.get(event.userId);
+  userConns?.forEach(ws => {
+    if (ws.readyState === WebSocket.OPEN) ws.send(message);
+  });
+});
+
+// Heartbeat interval
+setInterval(() => {
+  wss.clients.forEach((ws: any) => {
+    if (!ws.isAlive) return ws.terminate();
+    ws.isAlive = false;
+    ws.ping();
+  });
+}, 30000);`,
+    codeLang: 'typescript',
+    summary: 'Real-time delivery is essential for modern UX. Rule: use SSE for server→client push (feeds, notifications); WebSockets for bidirectional (chat, collab); long polling as a fallback. The hardest part is scaling: each server holds WebSocket connections in memory, so fan-out via Redis Pub/Sub or Kafka coordinates across nodes. For 1M concurrent WebSocket connections, you need 100+ servers at 10K connections each.',
+  },
+
 };
 
 /* ------------------------------------------------------------------ */
