@@ -40,6 +40,7 @@ const ALL_ITEMS: SearchResult[] = [
   { title: 'My Notes',              subtitle: 'Personal study notes saved locally — tag by subject, pin important ones', icon: 'sticky_note_2', path: '/app/notes', color: 'text-yellow-400' },
   { title: 'Code Playground',       subtitle: 'Write and run JS, TS, Python, Java, C++, SQL — JS/TS runs locally, no server needed', icon: 'play_circle', path: '/app/playground', color: 'text-emerald-400' },
   { title: 'Skill Assessments',     subtitle: 'Test your JS, Python, SQL, React, OS, System Design — earn grade badges and XP', icon: 'fact_check', path: '/app/assessments', color: 'text-teal-400' },
+  { title: 'Real-World Challenges', subtitle: 'Debug broken code, fix APIs, design schemas — skills that matter in your first job', icon: 'build', path: '/app/real-world', color: 'text-orange-400' },
   { title: 'Company Prep',          subtitle: 'Google, Amazon, Meta, Microsoft — focus topics, top problems, CTC data, tips', icon: 'business', path: '/app/companies', color: 'text-blue-400' },
   { title: 'Weekly Contests',        subtitle: '90-min timed contests every Sunday — 4 problems, global leaderboard, free', icon: 'emoji_events', path: '/app/contests', color: 'text-red-400' },
   { title: 'Interview Experiences', subtitle: 'Real reports from engineers — questions asked, tips, outcomes', icon: 'article', path: '/app/experiences', color: 'text-amber-400' },

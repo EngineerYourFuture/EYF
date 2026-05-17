@@ -54,6 +54,7 @@ import { SkillAssessmentPage } from './pages/SkillAssessmentPage';
 import { PlaygroundPage } from './pages/PlaygroundPage';
 import { NotesPage } from './pages/NotesPage';
 import { ReadinessPage } from './pages/ReadinessPage';
+import { RealWorldPage } from './pages/RealWorldPage';
 
 export default function App() {
   return (
@@ -256,6 +257,10 @@ export default function App() {
       <Route
         path="/app/readiness"
         element={<RequireAuth zone="public"><ReadinessPage /></RequireAuth>}
+      />
+      <Route
+        path="/app/real-world"
+        element={<RequireAuth zone="public"><RealWorldPage /></RequireAuth>}
       />
       <Route
         path="/app/*"
