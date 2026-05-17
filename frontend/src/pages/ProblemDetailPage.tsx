@@ -213,6 +213,214 @@ const diffColor = (d: string) => {
 type PanelTab = 'description' | 'hints' | 'submissions';
 type OutputTab = 'output' | 'verdict';
 
+interface Diagnosis {
+  patternNeeded: string;
+  complexity: string;
+  commonMistakes: string[];
+  edgeCasesMissed: string[];
+  recommendedProblems: Array<{ title: string; slug: string }>;
+  tip: string;
+}
+
+const PROBLEM_DIAGNOSES: Record<string, Diagnosis> = {
+  'two-sum': {
+    patternNeeded: 'HashMap — store complement lookups',
+    complexity: 'O(n) time, O(n) space',
+    commonMistakes: [
+      'Using nested loops: O(n²) brute force passes small tests but TLEs on 10,000 elements',
+      'Using the same index twice — check (target - num) exists AND its index ≠ current index',
+      'Comparing values instead of storing indices',
+    ],
+    edgeCasesMissed: [
+      'Duplicate values: [3, 3] with target 6 — the answer is [0, 1], not an error',
+      'Negative numbers: [-1, -2, -3], target = -5 → [1, 2]',
+    ],
+    recommendedProblems: [
+      { title: 'Longest Substring Without Repeating Characters', slug: 'longest-substring' },
+      { title: 'Number of Islands', slug: 'num-islands' },
+    ],
+    tip: 'Iterate once. For each num, check if (target − num) is in your map. If yes, return. If no, store num → index.',
+  },
+  'valid-parentheses': {
+    patternNeeded: 'Stack — LIFO matching for bracket pairs',
+    complexity: 'O(n) time, O(n) space',
+    commonMistakes: [
+      'Not checking if stack is empty before popping — causes runtime error on input like "]"',
+      'Returning true before checking that the stack is empty at the end',
+      'Handling only one bracket type, missing {} or []',
+    ],
+    edgeCasesMissed: [
+      'Empty string "" → valid (return true)',
+      'Only closing brackets: ")))" → false, must not pop from empty stack',
+      'Mixed: "([)]" → false even though counts match',
+    ],
+    recommendedProblems: [
+      { title: 'Reverse a Linked List', slug: 'reverse-linked-list' },
+      { title: 'Coin Change', slug: 'coin-change' },
+    ],
+    tip: 'Push open brackets. On close brackets, peek the stack — if it matches, pop. If stack is non-empty at the end, return false.',
+  },
+  'maximum-subarray': {
+    patternNeeded: "Kadane's Algorithm — greedy, track running max",
+    complexity: 'O(n) time, O(1) space',
+    commonMistakes: [
+      'Initializing maxSum = 0 — fails on all-negative arrays like [-3, -1, -2]',
+      'Using divide-and-conquer (correct but O(n log n) — unnecessary)',
+      'Not resetting currentSum correctly — should be max(num, currentSum + num)',
+    ],
+    edgeCasesMissed: [
+      'All negative: [-2, -3, -1] → answer is -1 (single element), not 0',
+      'Single element: [5] → 5',
+    ],
+    recommendedProblems: [
+      { title: 'Climbing Stairs', slug: 'climb-stairs' },
+      { title: 'Coin Change', slug: 'coin-change' },
+    ],
+    tip: 'currentSum = max(nums[i], currentSum + nums[i]). maxSum = max(maxSum, currentSum). Initialize both to nums[0], not 0.',
+  },
+  'climb-stairs': {
+    patternNeeded: 'Dynamic Programming (Fibonacci pattern)',
+    complexity: 'O(n) time, O(1) space with space optimization',
+    commonMistakes: [
+      'Naive recursion without memoization: O(2^n) — TLE for n > 40',
+      'Off-by-one in base cases — ways(0) = 1 (empty path), ways(1) = 1, ways(2) = 2',
+      'Storing full dp array when only last two values needed',
+    ],
+    edgeCasesMissed: [
+      'n = 1: only 1 way (single step)',
+      'n = 45 (maximum): must not TLE — use iterative DP, not recursion',
+    ],
+    recommendedProblems: [
+      { title: 'Coin Change', slug: 'coin-change' },
+      { title: 'Maximum Subarray', slug: 'maximum-subarray' },
+    ],
+    tip: 'dp[i] = dp[i-1] + dp[i-2]. Space-optimize by keeping only prev and curr — no array needed.',
+  },
+  'num-islands': {
+    patternNeeded: 'DFS / BFS flood-fill on a grid',
+    complexity: 'O(m × n) time, O(m × n) space (recursion stack)',
+    commonMistakes: [
+      "Not marking cells as visited before recursing — causes infinite loops on connected land",
+      "Forgetting to check grid boundaries before accessing grid[r][c]",
+      'Counting cells instead of connected components — each DFS call = 1 island',
+    ],
+    edgeCasesMissed: [
+      'Single cell grid: [["1"]] → 1, [["0"]] → 0',
+      'All water → 0',
+      'Grid with islands connected diagonally (diagonals do NOT count as connected)',
+    ],
+    recommendedProblems: [
+      { title: 'Two Sum', slug: 'two-sum' },
+      { title: 'Longest Substring Without Repeating Characters', slug: 'longest-substring' },
+    ],
+    tip: 'When you find a "1", increment count, then DFS in 4 directions, marking each visited cell "0" (or "visited") so you never recount.',
+  },
+  'coin-change': {
+    patternNeeded: 'Dynamic Programming — bottom-up tabulation',
+    complexity: 'O(amount × coins) time, O(amount) space',
+    commonMistakes: [
+      'Using greedy (largest coin first): fails on [1,5,11], amount=15 — greedy gives 5 coins, DP gives 3',
+      'Initializing dp with 0 instead of Infinity — gives wrong minimum',
+      'Not handling the case where amount is unreachable (should return -1)',
+    ],
+    edgeCasesMissed: [
+      'amount = 0 → return 0 (zero coins needed)',
+      'Coins larger than amount: [5, 10], amount = 3 → -1',
+      'dp initialization: dp[0] = 0, dp[1..amount] = Infinity',
+    ],
+    recommendedProblems: [
+      { title: 'Climbing Stairs', slug: 'climb-stairs' },
+      { title: 'Maximum Subarray', slug: 'maximum-subarray' },
+    ],
+    tip: 'dp[i] = min(dp[i], dp[i - coin] + 1) for each coin ≤ i. Return dp[amount] === Infinity ? -1 : dp[amount].',
+  },
+  'reverse-linked-list': {
+    patternNeeded: 'Three-pointer iterative traversal (prev, curr, next)',
+    complexity: 'O(n) time, O(1) space',
+    commonMistakes: [
+      'Losing the next pointer before reassigning curr.next — always save next = curr.next first',
+      'Returning curr instead of prev at the end (curr is null when loop ends)',
+      'Using extra space (array/stack) when O(1) is expected',
+    ],
+    edgeCasesMissed: [
+      'Empty list (head = null) → return null',
+      'Single node → return the same node unchanged',
+    ],
+    recommendedProblems: [
+      { title: 'Valid Parentheses', slug: 'valid-parentheses' },
+      { title: 'Binary Search', slug: 'binary-search' },
+    ],
+    tip: 'prev = null, curr = head. Loop: save next = curr.next, set curr.next = prev, advance prev = curr, curr = next. Return prev.',
+  },
+  'binary-search': {
+    patternNeeded: 'Binary search with left/right pointer convergence',
+    complexity: 'O(log n) time, O(1) space',
+    commonMistakes: [
+      'Infinite loop: not updating left or right when mid matches neither condition',
+      'Integer overflow: use left + (right - left) / 2, not (left + right) / 2',
+      'Off-by-one: use left <= right (not <) so single-element arrays are checked',
+    ],
+    edgeCasesMissed: [
+      'Target not in array → must return -1, not 0 or undefined',
+      'Single element: [5], target = 5 → 0; target = 3 → -1',
+    ],
+    recommendedProblems: [
+      { title: 'Maximum Subarray', slug: 'maximum-subarray' },
+      { title: 'Longest Substring Without Repeating Characters', slug: 'longest-substring' },
+    ],
+    tip: 'while (left <= right). mid = left + Math.floor((right - left) / 2). If nums[mid] === target return mid. If < target, left = mid + 1. Else right = mid - 1.',
+  },
+  'longest-substring': {
+    patternNeeded: 'Sliding window with a Set for O(1) duplicate detection',
+    complexity: 'O(n) time, O(min(n, alphabet)) space',
+    commonMistakes: [
+      'O(n²) or O(n³) brute force: checking every substring — TLE on 50,000 characters',
+      'Not shrinking the window correctly: must remove left character before advancing left pointer',
+      'Using an array instead of Set/Map — O(n) lookup per step',
+    ],
+    edgeCasesMissed: [
+      'Empty string → 0',
+      'All same characters: "aaaa" → 1',
+      'All unique: "abcde" → 5',
+    ],
+    recommendedProblems: [
+      { title: 'Two Sum', slug: 'two-sum' },
+      { title: 'Number of Islands', slug: 'num-islands' },
+    ],
+    tip: 'left = 0, right = 0. Expand right. If s[right] is in Set, shrink from left (delete s[left++]) until no duplicate. maxLen = max(maxLen, right - left + 1).',
+  },
+  'invert-tree': {
+    patternNeeded: 'Recursive post-order traversal (or BFS level-order)',
+    complexity: 'O(n) time, O(h) space where h = tree height',
+    commonMistakes: [
+      'Swapping before recursing — you can recurse first or swap first, both work, but mixing the order on left/right causes issues',
+      'Not handling null nodes as the base case — always check if (root === null) return null',
+      'Returning the wrong node (returning original instead of swapped root)',
+    ],
+    edgeCasesMissed: [
+      'Empty tree (root = null) → return null',
+      'Single node → return the same node (no children to swap)',
+    ],
+    recommendedProblems: [
+      { title: 'Climbing Stairs', slug: 'climb-stairs' },
+      { title: 'Number of Islands', slug: 'num-islands' },
+    ],
+    tip: 'if (!root) return null. const left = invertTree(root.left); const right = invertTree(root.right); root.left = right; root.right = left; return root.',
+  },
+};
+
+function detectCodePattern(code: string): string {
+  const hasNestedLoops = /for\s*\(/.test(code) && code.split('for (').length > 2 || /while\s*\(/.test(code) && /for\s*\(/.test(code);
+  const hasMap = /Map\(\)|new Map|{}/i.test(code) && /\[/.test(code);
+  const hasSet = /Set\(\)|new Set/i.test(code);
+  const hasRecursion = /function\s+(\w+)[^{]*{[\s\S]*?\1\s*\(/.test(code);
+  if (hasNestedLoops) return 'Nested loops detected → O(n²) complexity';
+  if (hasSet) return 'Set-based lookup detected';
+  if (hasMap) return 'Map/HashMap detected';
+  if (hasRecursion) return 'Recursive approach detected';
+  return 'Linear scan detected';
+}
+
 export function ProblemDetailPage() {
   const { id } = useParams<{ id: string }>();
   const session = getSession();
@@ -251,11 +459,71 @@ export function ProblemDetailPage() {
     setCode(LANG_STARTERS[lang]);
   };
 
+  // Local browser execution for JavaScript (no backend needed)
+  function runLocalJS(userCode: string, testCases: Problem['testCases']): RunResponse {
+    const start = performance.now();
+    const logs: string[] = [];
+    const results: string[] = [];
+
+    try {
+      // Capture console.log output
+      const wrappedConsole = { log: (...args: unknown[]) => logs.push(args.map(String).join(' ')) };
+
+      // Extract function name from code
+      const fnMatch = userCode.match(/function\s+(\w+)\s*\(/);
+      const fnName = fnMatch ? fnMatch[1] : 'solution';
+
+      // Build test harness
+      const testCode = `
+${userCode}
+
+const __results = [];
+const __cases = ${JSON.stringify(testCases)};
+for (const tc of __cases) {
+  try {
+    const __input = JSON.parse(tc.input);
+    const __args = Array.isArray(__input) ? __input : [__input];
+    const __out = ${fnName}(...__args);
+    __results.push('Input: ' + tc.input + '\\nOutput: ' + JSON.stringify(__out) + '\\nExpected: ' + tc.output);
+  } catch(e) {
+    __results.push('Error: ' + e.message);
+  }
+}
+__results;
+      `;
+
+      // eslint-disable-next-line no-new-func
+      const fn = new Function('console', testCode);
+      const res: string[] = fn(wrappedConsole) as string[];
+      results.push(...res);
+
+      const stdout = [...logs.map(l => `> ${l}`), ...results].join('\n\n');
+      return { runId: 'local', stdout, stderr: '', exitCode: 0, runtimeMs: Math.round(performance.now() - start) };
+    } catch (e: unknown) {
+      return { runId: 'local', stdout: '', stderr: String(e instanceof Error ? e.message : e), exitCode: 1, runtimeMs: Math.round(performance.now() - start) };
+    }
+  }
+
   const onRun = async () => {
-    if (!id || !session?.accessToken) return;
     setRunning(true);
     setRunResult(null);
     setOutputTab('output');
+
+    // Try local execution first for JavaScript
+    if (language === 'javascript' && problem?.testCases?.length) {
+      await new Promise(r => setTimeout(r, 50)); // brief visual delay
+      const result = runLocalJS(code, problem.testCases);
+      setRunResult(result);
+      setRunning(false);
+      return;
+    }
+
+    // Fall back to backend for other languages
+    if (!id || !session?.accessToken) {
+      setRunResult({ runId: '', stdout: '', stderr: 'Sign in to run non-JavaScript code on our servers.', exitCode: 1, runtimeMs: 0 });
+      setRunning(false);
+      return;
+    }
     try {
       const result = await apiRequest<RunResponse>(`/problems/${id}/run`, {
         method: 'POST',
@@ -299,6 +567,12 @@ export function ProblemDetailPage() {
     wrong_answer: 'text-red-400',
     error: 'text-yellow-400',
   };
+
+  const [showDiagnosis, setShowDiagnosis] = useState(false);
+
+  const diagnosis = id ? PROBLEM_DIAGNOSES[id] : null;
+  const failedVerdict = submitResult && submitResult.verdict !== 'accepted';
+  const detectedPattern = failedVerdict ? detectCodePattern(code) : null;
 
   return (
     <div className="dark min-h-screen bg-[#0e0e0e] text-on-surface flex flex-col" style={{ fontFamily: 'Inter, sans-serif' }}>
@@ -484,7 +758,7 @@ export function ProblemDetailPage() {
 
           {/* Output panel */}
           {(runResult || submitResult) && (
-            <div className="h-48 border-t border-white/5 bg-[#0e0e0e] flex flex-col shrink-0">
+            <div className={`border-t border-white/5 bg-[#0e0e0e] flex flex-col shrink-0 ${showDiagnosis && failedVerdict ? 'h-auto max-h-[70vh]' : 'h-48'}`}>
               <div className="flex gap-0 border-b border-white/5 shrink-0">
                 {(['output', 'verdict'] as OutputTab[]).map((t) => (
                   <button
@@ -495,6 +769,15 @@ export function ProblemDetailPage() {
                     {t}
                   </button>
                 ))}
+                {failedVerdict && diagnosis && (
+                  <button
+                    onClick={() => { setOutputTab('verdict'); setShowDiagnosis((d) => !d); }}
+                    className={`ml-auto mr-3 flex items-center gap-1.5 px-3 py-1 my-1 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${showDiagnosis ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'bg-amber-500/10 text-amber-500 border border-amber-500/20 hover:bg-amber-500/20'}`}
+                  >
+                    <Icon name="psychology" size={13} />
+                    {showDiagnosis ? 'Hide' : 'Why did it fail?'}
+                  </button>
+                )}
               </div>
               <div className="flex-1 overflow-y-auto p-4 font-mono text-sm">
                 {outputTab === 'output' && runResult && (
@@ -505,8 +788,8 @@ export function ProblemDetailPage() {
                   </div>
                 )}
                 {outputTab === 'verdict' && submitResult && (
-                  <div>
-                    <div className={`text-lg font-black uppercase tracking-wide mb-2 ${verdictColors[submitResult.verdict] ?? 'text-zinc-400'}`}>
+                  <div className="font-sans">
+                    <div className={`text-lg font-black uppercase tracking-wide mb-1 ${verdictColors[submitResult.verdict] ?? 'text-zinc-400'}`}>
                       {submitResult.verdict.replace('_', ' ')}
                     </div>
                     <div className="text-zinc-400 text-xs mb-3">
@@ -514,7 +797,7 @@ export function ProblemDetailPage() {
                       {submitResult.runtimeMs ? ` · ${submitResult.runtimeMs}ms` : ''}
                       {submitResult.memoryKb ? ` · ${Math.round(submitResult.memoryKb / 1024 * 10) / 10}MB` : ''}
                     </div>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-2 mb-3">
                       {submitResult.testResults.map((tr) => (
                         <span
                           key={tr.testCase}
@@ -524,6 +807,98 @@ export function ProblemDetailPage() {
                         </span>
                       ))}
                     </div>
+
+                    {/* AI Failure Diagnosis */}
+                    {failedVerdict && diagnosis && showDiagnosis && (
+                      <div className="mt-3 border border-amber-500/20 rounded-xl overflow-hidden">
+                        <div className="bg-amber-500/10 px-4 py-3 flex items-center gap-2 border-b border-amber-500/15">
+                          <Icon name="psychology" size={16} className="text-amber-400" />
+                          <span className="text-amber-400 font-black text-xs uppercase tracking-widest">EYF Failure Diagnosis</span>
+                        </div>
+                        <div className="p-4 space-y-4 bg-[#111]">
+
+                          {/* What was detected */}
+                          {detectedPattern && (
+                            <div className="flex items-start gap-3">
+                              <div className="w-7 h-7 rounded-lg bg-zinc-800 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                <Icon name="search" size={14} className="text-zinc-400" />
+                              </div>
+                              <div>
+                                <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 mb-0.5">Pattern Detected in Your Code</p>
+                                <p className="text-zinc-300 text-sm">{detectedPattern}</p>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Correct approach */}
+                          <div className="flex items-start gap-3">
+                            <div className="w-7 h-7 rounded-lg bg-green-500/15 flex items-center justify-center flex-shrink-0 mt-0.5">
+                              <Icon name="check_circle" size={14} className="text-green-400" />
+                            </div>
+                            <div>
+                              <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 mb-0.5">Correct Pattern</p>
+                              <p className="text-green-400 text-sm font-bold">{diagnosis.patternNeeded}</p>
+                              <p className="text-zinc-500 text-xs mt-0.5">{diagnosis.complexity}</p>
+                            </div>
+                          </div>
+
+                          {/* Common mistakes */}
+                          <div>
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 mb-2 flex items-center gap-1.5">
+                              <Icon name="warning" size={12} className="text-red-400" />
+                              Common Mistakes on This Problem
+                            </p>
+                            <ul className="space-y-1.5">
+                              {diagnosis.commonMistakes.map((m, i) => (
+                                <li key={i} className="flex items-start gap-2 text-sm text-zinc-400">
+                                  <span className="text-red-500 mt-0.5 flex-shrink-0">✗</span>
+                                  {m}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+
+                          {/* Edge cases */}
+                          <div>
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 mb-2 flex items-center gap-1.5">
+                              <Icon name="bug_report" size={12} className="text-yellow-400" />
+                              Edge Cases to Check
+                            </p>
+                            <ul className="space-y-1.5">
+                              {diagnosis.edgeCasesMissed.map((e, i) => (
+                                <li key={i} className="flex items-start gap-2 text-sm text-zinc-400">
+                                  <span className="text-yellow-500 mt-0.5 flex-shrink-0">!</span>
+                                  {e}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+
+                          {/* Tip */}
+                          <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3">
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-blue-400 mb-1">Key Insight</p>
+                            <p className="text-blue-300 text-sm">{diagnosis.tip}</p>
+                          </div>
+
+                          {/* Recommended next problems */}
+                          <div>
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 mb-2">Practice This Pattern</p>
+                            <div className="flex flex-wrap gap-2">
+                              {diagnosis.recommendedProblems.map((p) => (
+                                <Link
+                                  key={p.slug}
+                                  to={`/app/problems/${p.slug}`}
+                                  className="px-3 py-1.5 bg-[#1a1a1a] border border-white/10 rounded-lg text-xs text-zinc-300 hover:text-white hover:border-white/20 transition-all font-medium"
+                                >
+                                  {p.title} →
+                                </Link>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
                     {submitResult.verdict === 'accepted' && (
                       <Link to="/app/problems" className="inline-flex items-center gap-1.5 mt-4 text-[#e82127] text-[11px] font-bold uppercase tracking-widest hover:underline">
                         Next Problem <Icon name="arrow_forward" size={14} />
