@@ -1,375 +1,557 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AppShell } from '../components/AppShell';
 import { Icon } from '../components/Icon';
-import { apiRequest } from '../lib/api';
-import { getSession } from '../lib/session';
 import { useUser } from '../contexts/UserContext';
 
-interface CareerProfile {
-  track: string;
-  currentRole?: string;
-  targetRole?: string;
-  experienceYears: number;
-  currentCompany?: string;
-  skills: string[];
-  interests: string[];
-}
+type RoleKey = 'frontend' | 'backend' | 'fullstack' | 'genai' | 'data' | 'devops';
 
-interface LearningPath {
-  id: string;
-  slug: string;
+interface Month {
   title: string;
-  description: string;
-  targetTrack: string;
-  targetRole?: string;
-  estimatedWeeks: number;
-  planAccess: string;
-  enrolled: boolean;
-  progress: number;
+  weeks: string;
+  focus: string[];
+  resources: Array<{ label: string; path: string }>;
 }
 
-const TRACKS = [
+interface RoleTrack {
+  key: RoleKey;
+  title: string;
+  icon: string;
+  color: string;
+  bg: string;
+  border: string;
+  tagline: string;
+  avgCTC: string;
+  hiringCompanies: string[];
+  coreSkills: string[];
+  interviewTopics: string[];
+  projects: string[];
+  months: Month[];
+  indiaContext: string;
+}
+
+const ROLE_TRACKS: RoleTrack[] = [
   {
-    key: 'student',
-    title: 'Student',
-    icon: 'school',
+    key: 'frontend',
+    title: 'Frontend Engineer',
+    icon: 'web',
     color: 'text-blue-400',
     bg: 'bg-blue-500/10',
     border: 'border-blue-500/30',
-    desc: 'Pursuing a degree or transitioning from non-tech. Build fundamentals to land your first role.',
-    focus: ['DSA Fundamentals', 'Core CS (OS/DBMS/CN)', 'OOP & Design', 'Resume Building', 'Placement Prep'],
-    timeline: '3-6 months to first job',
+    tagline: 'Build the interfaces millions interact with',
+    avgCTC: '₹8–30 LPA (India) · $90k–$180k (US)',
+    hiringCompanies: ['Swiggy', 'Meesho', 'Razorpay', 'Atlassian', 'Flipkart', 'Google', 'Microsoft', 'Adobe'],
+    coreSkills: ['HTML/CSS/JS', 'React', 'TypeScript', 'Performance Optimization', 'Accessibility', 'Testing'],
+    interviewTopics: ['Event loop & closures', 'Virtual DOM & reconciliation', 'Browser APIs', 'CSS specificity', 'Debounce/Throttle', 'Web Vitals'],
+    projects: ['Personal portfolio with animations', 'E-commerce product page (React)', 'Real-time dashboard with WebSocket'],
+    indiaContext: 'High demand in product companies (Swiggy, Meesho, Razorpay, Groww). Service companies (TCS, Infosys) also hire Frontend devs — expect Angular/jQuery questions.',
+    months: [
+      {
+        title: 'HTML, CSS, and Vanilla JS',
+        weeks: 'Weeks 1–4',
+        focus: ['Semantic HTML, accessibility (ARIA)', 'Flexbox, Grid, responsive design', 'DOM manipulation, events', 'Fetch API, Promises, async/await', 'Git & GitHub basics'],
+        resources: [
+          { label: 'Core Subjects → Networks', path: '/app/subjects/cn' },
+          { label: 'Cheat Sheets', path: '/app/cheatsheets' },
+        ],
+      },
+      {
+        title: 'React, TypeScript, and State',
+        weeks: 'Weeks 5–8',
+        focus: ['React 19: hooks, context, refs', 'TypeScript fundamentals', 'State management (Zustand/Redux Toolkit)', 'React Router v7', 'REST API integration', 'Jest + React Testing Library'],
+        resources: [
+          { label: 'Playground → React examples', path: '/app/playground' },
+          { label: 'Skill Assessment: React', path: '/app/assessments' },
+        ],
+      },
+      {
+        title: 'Performance, Interviews, and Projects',
+        weeks: 'Weeks 9–12',
+        focus: ['Core Web Vitals, Lighthouse', 'Code splitting, lazy loading', 'DSA (arrays, strings, hashmaps)', 'System Design: CDN, caching, BFF', 'Mock frontend interviews', 'Build + deploy portfolio project'],
+        resources: [
+          { label: 'DSA Problems', path: '/app/problems' },
+          { label: 'System Design', path: '/app/system-design' },
+          { label: 'Mock Interview', path: '/app/mock-interview' },
+        ],
+      },
+    ],
   },
   {
-    key: 'professional',
-    title: 'Working Professional',
-    icon: 'work',
+    key: 'backend',
+    title: 'Backend Engineer',
+    icon: 'dns',
     color: 'text-green-400',
     bg: 'bg-green-500/10',
     border: 'border-green-500/30',
-    desc: 'Currently employed and targeting senior/principal roles or FAANG-level companies.',
-    focus: ['System Design', 'Advanced Algorithms', 'OOP Architecture', 'Cybersecurity', 'Tech Leadership'],
-    timeline: '2-4 months to level up',
+    tagline: 'Build the servers, APIs, and data pipelines',
+    avgCTC: '₹10–35 LPA (India) · $100k–$200k (US)',
+    hiringCompanies: ['Zepto', 'PhonePe', 'Paytm', 'Infosys', 'TCS', 'Amazon', 'Uber', 'Stripe'],
+    coreSkills: ['Node.js / Python / Java', 'REST & GraphQL APIs', 'PostgreSQL / MongoDB', 'Redis caching', 'Message queues', 'Docker'],
+    interviewTopics: ['Database indexing', 'N+1 problem', 'Rate limiting', 'Authentication (JWT/OAuth)', 'Caching strategies', 'SQL query optimization'],
+    projects: ['REST API with auth & rate limiting', 'Real-time chat with WebSocket', 'Event-driven order system with queues'],
+    indiaContext: 'Backend roles dominate India hiring. TCS, Infosys, Wipro hire 50k+ backend devs/year. Product companies (Zepto, PhonePe) pay 3–5× more and ask harder system design.',
+    months: [
+      {
+        title: 'APIs, Databases, and Data Modeling',
+        weeks: 'Weeks 1–4',
+        focus: ['HTTP fundamentals, REST design', 'SQL: joins, indexes, transactions', 'ORMs (Prisma / SQLAlchemy)', 'Authentication: JWT, sessions, OAuth2', 'Environment variables & secrets management'],
+        resources: [
+          { label: 'Core Subjects → DBMS', path: '/app/subjects/dbms' },
+          { label: 'Skill Assessment: SQL', path: '/app/assessments' },
+        ],
+      },
+      {
+        title: 'Scale, Caching, and Queues',
+        weeks: 'Weeks 5–8',
+        focus: ['Redis: caching, pub/sub, distributed locks', 'Message queues (RabbitMQ / Kafka basics)', 'API rate limiting & throttling', 'Error handling & observability (logs/metrics)', 'Docker & containerization'],
+        resources: [
+          { label: 'Real-World Challenges → Rate Limiter', path: '/app/real-world' },
+          { label: 'System Design', path: '/app/system-design' },
+        ],
+      },
+      {
+        title: 'DSA, System Design, and Interviews',
+        weeks: 'Weeks 9–12',
+        focus: ['DSA: trees, graphs, DP, sorting', 'System design: URL shortener, WhatsApp, Uber', 'OOP & design patterns', 'Cybersecurity: OWASP Top 10', 'Mock backend interviews', 'Portfolio API project'],
+        resources: [
+          { label: 'DSA Problems', path: '/app/problems' },
+          { label: 'OOP & Patterns', path: '/app/oop' },
+          { label: 'Cybersecurity', path: '/app/cybersecurity' },
+        ],
+      },
+    ],
   },
   {
-    key: 'expert',
-    title: 'Industry Expert',
-    icon: 'workspace_premium',
-    color: 'text-yellow-400',
-    bg: 'bg-yellow-500/10',
-    border: 'border-yellow-500/30',
-    desc: 'Senior/principal engineer or tech lead. Deepen expertise, mentor others, and stay ahead of the curve.',
-    focus: ['Architecture & Trade-offs', 'Security Engineering', 'Mentorship', 'Technical Writing', 'Open Source'],
-    timeline: 'Continuous growth',
+    key: 'fullstack',
+    title: 'Fullstack Engineer',
+    icon: 'layers',
+    color: 'text-purple-400',
+    bg: 'bg-purple-500/10',
+    border: 'border-purple-500/30',
+    tagline: 'Own the complete product — frontend to database',
+    avgCTC: '₹12–40 LPA (India) · $110k–$220k (US)',
+    hiringCompanies: ['Razorpay', 'Freshworks', 'Postman', 'Atlassian', 'Notion', 'Linear', 'Vercel', 'GitHub'],
+    coreSkills: ['React + TypeScript', 'Node.js / Next.js', 'PostgreSQL', 'API design', 'CI/CD', 'Testing'],
+    interviewTopics: ['SPA vs SSR vs SSG', 'Database schema design', 'Authentication flow', 'State management trade-offs', 'React performance', 'API security'],
+    projects: ['SaaS starter (auth, billing, dashboard)', 'Real-time collaborative app', 'Full-stack e-commerce (Next.js)'],
+    indiaContext: 'Highly valued at startups and product companies. Freshworks, Razorpay, Postman prefer fullstack engineers who can ship end-to-end. Most common role at Series A/B startups.',
+    months: [
+      {
+        title: 'Frontend Foundation + Backend Basics',
+        weeks: 'Weeks 1–5',
+        focus: ['React + TypeScript (hooks, router)', 'Node.js + Express REST API', 'PostgreSQL schema design', 'JWT auth end-to-end', 'Environment setup & Git workflow'],
+        resources: [
+          { label: 'Core Subjects → DBMS', path: '/app/subjects/dbms' },
+          { label: 'Playground', path: '/app/playground' },
+        ],
+      },
+      {
+        title: 'Integration, Testing, and DevOps',
+        weeks: 'Weeks 6–9',
+        focus: ['Frontend ↔ Backend API integration', 'React Testing Library + Supertest', 'Docker Compose (app + DB)', 'GitHub Actions CI/CD pipeline', 'Error boundaries & observability'],
+        resources: [
+          { label: 'Real-World Challenges', path: '/app/real-world' },
+          { label: 'System Design', path: '/app/system-design' },
+        ],
+      },
+      {
+        title: 'Scale, DSA, and Interview Prep',
+        weeks: 'Weeks 10–14',
+        focus: ['Redis caching + CDN', 'DSA: medium-hard problems', 'System design interviews', 'OOP patterns in practice', 'Full-stack project: Ship to production', 'Mock fullstack interview × 3'],
+        resources: [
+          { label: 'DSA Problems', path: '/app/problems' },
+          { label: 'Mock Interview', path: '/app/mock-interview' },
+          { label: 'OOP & Patterns', path: '/app/oop' },
+        ],
+      },
+    ],
+  },
+  {
+    key: 'genai',
+    title: 'GenAI Engineer',
+    icon: 'auto_awesome',
+    color: 'text-amber-400',
+    bg: 'bg-amber-500/10',
+    border: 'border-amber-500/30',
+    tagline: 'Build with LLMs, RAG, and agentic systems',
+    avgCTC: '₹18–60 LPA (India) · $150k–$300k (US)',
+    hiringCompanies: ['Anthropic', 'OpenAI', 'Sarvam AI', 'Krutrim', 'Microsoft', 'Google DeepMind', 'Fractal', 'MuSigma'],
+    coreSkills: ['Python', 'LLM APIs (Claude/GPT)', 'RAG + vector databases', 'LangChain / LlamaIndex', 'Prompt engineering', 'Fine-tuning basics'],
+    interviewTopics: ['Transformer architecture', 'RAG vs fine-tuning', 'Prompt injection attacks', 'Hallucination mitigation', 'Agent loops', 'Embedding distance metrics'],
+    projects: ['RAG-powered knowledge base', 'AI coding assistant (Claude API)', 'Multi-agent document analysis pipeline'],
+    indiaContext: 'Explosive growth in 2024–2026. Sarvam AI, Krutrim, and Bhashini are building India-first LLMs. US companies pay 2–4× base + equity. Strong Python + ML math required.',
+    months: [
+      {
+        title: 'Python, APIs, and LLM Basics',
+        weeks: 'Weeks 1–4',
+        focus: ['Python: list comp, generators, async', 'REST API calls with httpx', 'Claude / OpenAI API: completions, tools', 'Prompt engineering: zero-shot, few-shot, CoT', 'Structured output: JSON mode, tool use'],
+        resources: [
+          { label: 'Playground → Python examples', path: '/app/playground' },
+          { label: 'Skill Assessment: Python', path: '/app/assessments' },
+        ],
+      },
+      {
+        title: 'RAG, Embeddings, and Vector DBs',
+        weeks: 'Weeks 5–8',
+        focus: ['Text embeddings & cosine similarity', 'Vector databases (Pinecone / Chroma / pgvector)', 'Chunking strategies for documents', 'Retrieval-augmented generation pipeline', 'Evaluation: faithfulness, relevance, groundedness'],
+        resources: [
+          { label: 'Core Subjects → DBMS', path: '/app/subjects/dbms' },
+          { label: 'System Design', path: '/app/system-design' },
+        ],
+      },
+      {
+        title: 'Agents, Safety, and Production',
+        weeks: 'Weeks 9–13',
+        focus: ['Agent loops: tool use, self-reflection', 'MCP servers & function calling', 'Prompt injection & jailbreak defenses', 'LLM observability (Langfuse/Braintrust)', 'Ship: deploy RAG app with auth + rate limiting', 'GenAI interview prep'],
+        resources: [
+          { label: 'Cybersecurity', path: '/app/cybersecurity' },
+          { label: 'Real-World Challenges', path: '/app/real-world' },
+          { label: 'Mock Interview', path: '/app/mock-interview' },
+        ],
+      },
+    ],
+  },
+  {
+    key: 'data',
+    title: 'Data Analyst / Data Engineer',
+    icon: 'bar_chart',
+    color: 'text-cyan-400',
+    bg: 'bg-cyan-500/10',
+    border: 'border-cyan-500/30',
+    tagline: 'Turn raw data into business decisions',
+    avgCTC: '₹7–25 LPA (India) · $80k–$160k (US)',
+    hiringCompanies: ['Walmart', 'Amazon', 'Juspay', 'CRED', 'Dunzo', 'Deloitte', 'EY', 'McKinsey'],
+    coreSkills: ['SQL (advanced)', 'Python (pandas, numpy)', 'ETL / data pipelines', 'Tableau / Looker', 'Statistics', 'dbt / Airflow'],
+    interviewTopics: ['Window functions', 'Query optimization', 'Data modeling (star schema)', 'A/B test analysis', 'Pandas operations', 'Business metric design'],
+    projects: ['Sales funnel analysis dashboard', 'ETL pipeline with dbt + Airflow', 'A/B test significance calculator'],
+    indiaContext: 'High demand in consulting (Deloitte, EY), e-commerce (Flipkart, Meesho), and fintech (CRED, Juspay). SQL fluency is the #1 filter. Analytics engineering (dbt) is the fastest-growing specialization.',
+    months: [
+      {
+        title: 'SQL and Data Fundamentals',
+        weeks: 'Weeks 1–4',
+        focus: ['SQL: SELECT, JOINs, GROUP BY', 'Window functions: RANK, LEAD, LAG, PARTITION', 'Query optimization: EXPLAIN, indexes', 'Data modeling: star/snowflake schemas', 'Statistics: mean, median, std dev, correlation'],
+        resources: [
+          { label: 'Core Subjects → DBMS', path: '/app/subjects/dbms' },
+          { label: 'Skill Assessment: SQL', path: '/app/assessments' },
+          { label: 'Playground → SQL', path: '/app/playground' },
+        ],
+      },
+      {
+        title: 'Python, pandas, and ETL',
+        weeks: 'Weeks 5–8',
+        focus: ['pandas: groupby, merge, pivot, apply', 'matplotlib + seaborn visualization', 'Data cleaning: nulls, duplicates, type casting', 'ETL pipeline design', 'dbt basics: models, tests, documentation'],
+        resources: [
+          { label: 'Playground → Python examples', path: '/app/playground' },
+          { label: 'Skill Assessment: Python', path: '/app/assessments' },
+        ],
+      },
+      {
+        title: 'Business Analysis and Interview Prep',
+        weeks: 'Weeks 9–12',
+        focus: ['A/B testing: p-value, power, significance', 'Metric design: DAU, retention, LTV, CAC', 'Case studies: product sense + data stories', 'Dashboard in Looker / Tableau / Metabase', 'Mock data analyst interviews', 'Capstone: full end-to-end analysis project'],
+        resources: [
+          { label: 'Real-World Challenges', path: '/app/real-world' },
+          { label: 'Mock Interview', path: '/app/mock-interview' },
+        ],
+      },
+    ],
+  },
+  {
+    key: 'devops',
+    title: 'DevOps / SRE',
+    icon: 'cloud',
+    color: 'text-orange-400',
+    bg: 'bg-orange-500/10',
+    border: 'border-orange-500/30',
+    tagline: 'Ship fast, stay reliable, scale infinitely',
+    avgCTC: '₹12–40 LPA (India) · $120k–$220k (US)',
+    hiringCompanies: ['Cloudflare', 'Hetzner', 'Razorpay', 'Ola', 'HDFC Bank', 'Infosys', 'Google SRE', 'Datadog'],
+    coreSkills: ['Linux / Bash', 'Docker + Kubernetes', 'CI/CD (GitHub Actions)', 'Terraform (IaC)', 'Prometheus + Grafana', 'Incident response'],
+    interviewTopics: ['Container orchestration', 'SLOs / SLAs / error budgets', 'Blue-green vs canary deploys', 'Distributed tracing', 'On-call & incident management', 'Networking: TCP, DNS, load balancers'],
+    projects: ['Kubernetes deployment with auto-scaling', 'Full CI/CD pipeline from scratch', 'Monitoring stack: Prometheus + Grafana + alerts'],
+    indiaContext: 'Cloud adoption is accelerating across Indian banks, telcos, and unicorns. AWS/GCP certified DevOps engineers earn 40–60% more. SRE at Google/Meta is one of the highest-paid engineering roles in India offices.',
+    months: [
+      {
+        title: 'Linux, Networking, and Containers',
+        weeks: 'Weeks 1–4',
+        focus: ['Linux: file system, processes, permissions', 'Bash scripting: loops, functions, pipes', 'Networking: TCP/IP, DNS, HTTP, load balancers', 'Docker: images, containers, compose', 'Dockerfile best practices & layer caching'],
+        resources: [
+          { label: 'Core Subjects → OS', path: '/app/subjects/os' },
+          { label: 'Core Subjects → Networks', path: '/app/subjects/cn' },
+          { label: 'Cybersecurity', path: '/app/cybersecurity' },
+        ],
+      },
+      {
+        title: 'Kubernetes, CI/CD, and IaC',
+        weeks: 'Weeks 5–8',
+        focus: ['Kubernetes: pods, deployments, services, ingress', 'Helm charts for app packaging', 'GitHub Actions: build, test, deploy pipelines', 'Terraform: provision AWS/GCP infra as code', 'Secrets management: Vault / AWS Secrets Manager'],
+        resources: [
+          { label: 'System Design', path: '/app/system-design' },
+          { label: 'Real-World Challenges', path: '/app/real-world' },
+        ],
+      },
+      {
+        title: 'Observability, SRE, and Interview',
+        weeks: 'Weeks 9–12',
+        focus: ['Prometheus + Grafana metrics & alerts', 'Distributed tracing with OpenTelemetry', 'SLOs, error budgets, blameless postmortems', 'Incident management: on-call rotations, runbooks', 'Mock SRE/DevOps interviews', 'Capstone: full production-grade deploy'],
+        resources: [
+          { label: 'Mock Interview', path: '/app/mock-interview' },
+          { label: 'System Design → CDN, Load Balancing', path: '/app/system-design' },
+        ],
+      },
+    ],
   },
 ];
 
-const STATIC_PATHS: LearningPath[] = [
-  { id: '1', slug: 'student-first-job', title: 'Student → First Dev Job', description: 'From CS basics to landing your first software engineering role. Covers DSA, OOP, system design fundamentals, and resume building.', targetTrack: 'student', targetRole: 'Junior Software Engineer', estimatedWeeks: 16, planAccess: 'free', enrolled: false, progress: 0 },
-  { id: '2', slug: 'student-faang-prep', title: 'Student FAANG Prep', description: 'Intense preparation for FAANG/MAANG interviews. Advanced DSA, system design, behavioral prep, and mock interview practice.', targetTrack: 'student', targetRole: 'Software Engineer (FAANG)', estimatedWeeks: 24, planAccess: 'pro', enrolled: false, progress: 0 },
-  { id: '3', slug: 'professional-senior-track', title: 'Mid → Senior Engineer', description: 'Transition from mid-level to senior engineering. System design, technical leadership, mentoring, and architecture decision-making.', targetTrack: 'professional', targetRole: 'Senior Software Engineer', estimatedWeeks: 12, planAccess: 'free', enrolled: false, progress: 0 },
-  { id: '4', slug: 'professional-security-track', title: 'Dev → Security Engineer', description: 'Transition from software development to security engineering. OWASP, penetration testing, secure SDLC, and cloud security.', targetTrack: 'professional', targetRole: 'Security Engineer', estimatedWeeks: 20, planAccess: 'pro', enrolled: false, progress: 0 },
-  { id: '5', slug: 'expert-architect', title: 'Senior → Principal/Architect', description: 'From senior engineer to principal architect. Large-scale system design, org-level technical vision, and cross-team leadership.', targetTrack: 'expert', targetRole: 'Principal Engineer / Architect', estimatedWeeks: 16, planAccess: 'elite', enrolled: false, progress: 0 },
-  { id: '6', slug: 'expert-mentor', title: 'Expert Mentor Track', description: 'Become an EYF mentor. Structured coaching methodology, feedback techniques, and how to guide engineers at different stages.', targetTrack: 'expert', targetRole: 'Engineering Mentor', estimatedWeeks: 8, planAccess: 'elite', enrolled: false, progress: 0 },
-];
-
-const POPULAR_ROLES = [
-  { role: 'Frontend Engineer', skills: ['React', 'TypeScript', 'CSS', 'Performance', 'Accessibility'], track: 'student' },
-  { role: 'Backend Engineer', skills: ['Node.js/Python/Java', 'Databases', 'APIs', 'Caching', 'Messaging'], track: 'student' },
-  { role: 'Full Stack Engineer', skills: ['Frontend + Backend', 'DevOps Basics', 'System Design', 'Testing'], track: 'student' },
-  { role: 'Security Engineer', skills: ['AppSec', 'Network Security', 'Crypto', 'Compliance', 'Threat Modeling'], track: 'professional' },
-  { role: 'SRE / DevOps', skills: ['Kubernetes', 'Observability', 'CI/CD', 'Incident Response', 'SLOs'], track: 'professional' },
-  { role: 'ML Engineer', skills: ['Python', 'ML Fundamentals', 'MLOps', 'Data Engineering', 'Model Deployment'], track: 'professional' },
-];
-
-const PLAN_COLOR: Record<string, string> = {
-  free: 'text-green-400 bg-green-500/10',
-  pro: 'text-yellow-400 bg-yellow-500/10',
-  elite: 'text-purple-400 bg-purple-500/10',
-};
-
 export function CareerPathPage() {
-  const session = getSession();
   const { fireXP } = useUser();
-  const [profile, setProfile] = useState<CareerProfile | null>(null);
-  const [paths, setPaths] = useState<LearningPath[]>(STATIC_PATHS);
-  const [activeTrack, setActiveTrack] = useState('all');
-  const [editMode, setEditMode] = useState(false);
-  const [form, setForm] = useState<Partial<CareerProfile>>({});
-  const [saving, setSaving] = useState(false);
+  const [selectedRole, setSelectedRole] = useState<RoleKey>('backend');
+  const [savedRole, setSavedRole] = useState<RoleKey | null>(() => {
+    const stored = localStorage.getItem('eyf.career.role');
+    return stored as RoleKey | null;
+  });
+  const [activeMonth, setActiveMonth] = useState(0);
 
-  useEffect(() => {
-    if (!session?.accessToken) return;
-    apiRequest<{ profile: CareerProfile | null }>('/career/profile', { token: session.accessToken })
-      .then((d) => { if (d.profile) { setProfile(d.profile); setActiveTrack(d.profile.track); } })
-      .catch(() => {});
-    apiRequest<{ paths: LearningPath[] }>('/career/paths', { token: session.accessToken })
-      .then((d) => { if (d.paths.length > 0) setPaths(d.paths); })
-      .catch(() => {});
-  }, [session?.accessToken]);
+  const role = ROLE_TRACKS.find((r) => r.key === selectedRole)!;
 
-  const saveProfile = async () => {
-    if (!session?.accessToken) return;
-    setSaving(true);
-    try {
-      const resp = await apiRequest<{ profile: CareerProfile }>('/career/profile', {
-        token: session.accessToken,
-        method: 'PUT',
-        body: form,
-      });
-      setProfile(resp.profile);
-      setEditMode(false);
-    } catch {
-      // ignore
-    } finally {
-      setSaving(false);
-    }
+  const saveRole = () => {
+    localStorage.setItem('eyf.career.role', selectedRole);
+    setSavedRole(selectedRole);
+    fireXP(15, 'Career track selected!');
   };
-
-  const enroll = async (slug: string) => {
-    if (!session?.accessToken) return;
-    try {
-      await apiRequest(`/career/paths/${slug}/enroll`, { token: session.accessToken, method: 'POST', body: {} });
-      setPaths((prev) => prev.map((p) => p.slug === slug ? { ...p, enrolled: true } : p));
-      fireXP(20, 'Enrolled in learning path!');
-    } catch {
-      // ignore
-    }
-  };
-
-  const filteredPaths = activeTrack === 'all' ? paths : paths.filter((p) => p.targetTrack === activeTrack);
 
   return (
     <AppShell>
       <div className="pt-8 max-w-7xl mx-auto">
         {/* Hero */}
-        <div className="mb-10 p-10 bg-surface-container rounded-2xl relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-72 h-72 bg-green-500/5 blur-[80px] rounded-full -mr-20 -mt-20" />
-          <h1 className="text-4xl font-black tracking-tighter mb-2">Career Tracks</h1>
-          <p className="text-on-surface-variant max-w-lg">From student to industry expert — pick your track, follow a curated path, and reach your next milestone.</p>
+        <div className="mb-10">
+          <div className="flex items-start justify-between flex-wrap gap-4">
+            <div>
+              <h1 className="text-4xl font-black tracking-tighter mb-2">Career Tracks</h1>
+              <p className="text-zinc-400 max-w-lg">Pick your engineering role. Get a week-by-week curriculum, company targets, and direct links to every resource you need on EYF.</p>
+            </div>
+            {savedRole && (
+              <div className="flex items-center gap-2 px-4 py-2 bg-green-500/10 border border-green-500/20 rounded-xl">
+                <Icon name="check_circle" size={16} className="text-green-400" />
+                <span className="text-green-400 text-xs font-bold">Your track: {ROLE_TRACKS.find((r) => r.key === savedRole)?.title}</span>
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Track Selector */}
-        <section className="mb-12">
-          <h2 className="font-['Inter'] uppercase tracking-[0.3em] text-[10px] font-bold text-on-surface-variant/60 mb-6 ml-1">Choose Your Track</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {TRACKS.map((track) => {
-              const activeClass = activeTrack === track.key ? `${track.bg} ${track.border}` : 'bg-surface-container border-transparent hover:bg-surface-container-high';
-              const profileClass = profile?.track === track.key ? 'ring-1 ring-offset-0 ring-current/20' : '';
-              return (
-              <button
-                key={track.key}
-                type="button"
-                onClick={() => setActiveTrack(track.key)}
-                className={`w-full text-left rounded-2xl p-7 transition-all border ${activeClass} ${profileClass}`}
-              >
-                <div className="flex items-start justify-between mb-5">
-                  <div className={`w-12 h-12 ${track.bg} rounded-xl flex items-center justify-center`}>
-                    <Icon name={track.icon} className={track.color} size={24} />
-                  </div>
-                  {profile?.track === track.key && (
-                    <span className={`text-[10px] font-bold uppercase tracking-widest ${track.color} bg-current/10 px-2 py-0.5 rounded-full`}>Your Track</span>
-                  )}
-                </div>
-                <h3 className="text-xl font-bold mb-2">{track.title}</h3>
-                <p className="text-sm text-on-surface-variant mb-5 leading-relaxed">{track.desc}</p>
-                <div className="space-y-1.5">
-                  {track.focus.map((f) => (
-                    <div key={f} className="flex items-center gap-2 text-xs text-on-surface-variant">
-                      <Icon name="check" className={track.color} size={12} />
-                      {f}
-                    </div>
-                  ))}
-                </div>
-                <p className={`text-[10px] font-bold mt-5 ${track.color}`}>{track.timeline}</p>
-              </button>
-              );
-            })}
-          </div>
-        </section>
+        {/* Role selector */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-10">
+          {ROLE_TRACKS.map((r) => (
+            <button
+              key={r.key}
+              type="button"
+              onClick={() => { setSelectedRole(r.key); setActiveMonth(0); }}
+              className={`flex flex-col items-center gap-2 p-4 rounded-2xl border transition-all text-center ${
+                selectedRole === r.key
+                  ? `${r.bg} ${r.border}`
+                  : 'bg-[#1a1a1a] border-white/5 hover:bg-[#222] hover:border-white/10'
+              }`}
+            >
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${selectedRole === r.key ? r.bg : 'bg-zinc-800'}`}>
+                <Icon name={r.icon} size={20} className={selectedRole === r.key ? r.color : 'text-zinc-500'} />
+              </div>
+              <span className={`text-[11px] font-bold leading-tight ${selectedRole === r.key ? 'text-white' : 'text-zinc-500'}`}>{r.title}</span>
+              {savedRole === r.key && <span className="text-[9px] text-green-400 font-bold">★ Saved</span>}
+            </button>
+          ))}
+        </div>
 
-        {/* Career Profile */}
-        <section className="mb-12">
-          <div className="bg-surface-container rounded-2xl p-8">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="font-bold text-lg">Your Career Profile</h2>
-              <button onClick={() => { setEditMode(!editMode); setForm(profile ?? {}); }}
-                className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 hover:text-zinc-300 flex items-center gap-1 transition-colors">
-                <Icon name={editMode ? 'close' : 'edit'} size={14} />
-                {editMode ? 'Cancel' : 'Edit'}
-              </button>
-            </div>
-
-            {editMode && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {[
-                  { key: 'currentRole', label: 'Current Role', placeholder: 'e.g. Software Engineer II' },
-                  { key: 'targetRole', label: 'Target Role', placeholder: 'e.g. Senior Engineer at FAANG' },
-                  { key: 'currentCompany', label: 'Current Company', placeholder: 'e.g. Startup / University' },
-                  { key: 'linkedinUrl', label: 'LinkedIn URL', placeholder: 'https://linkedin.com/in/...' },
-                  { key: 'githubUrl', label: 'GitHub URL', placeholder: 'https://github.com/...' },
-                ].map(({ key, label, placeholder }) => (
-                  <div key={key}>
-                    <label className="block text-xs font-bold text-zinc-400 mb-1">{label}</label>
-                    <input
-                      type="text"
-                      value={(form as Record<string, string>)[key] ?? ''}
-                      onChange={(e) => setForm((prev) => ({ ...prev, [key]: e.target.value }))}
-                      placeholder={placeholder}
-                      className="w-full bg-surface-container-highest border border-outline-variant/20 rounded-lg px-4 py-2.5 text-sm text-on-surface focus:outline-none focus:border-primary-container/40"
-                    />
-                  </div>
-                ))}
-                <div>
-                  <label htmlFor="career-exp" className="block text-xs font-bold text-zinc-400 mb-1">Years of Experience</label>
-                  <input
-                    id="career-exp"
-                    type="number"
-                    value={form.experienceYears ?? 0}
-                    onChange={(e) => setForm((prev) => ({ ...prev, experienceYears: Number.parseInt(e.target.value, 10) }))}
-                    min={0} max={50}
-                    className="w-full bg-surface-container-highest border border-outline-variant/20 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-primary-container/40"
-                  />
+        {/* Role detail */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          {/* Left: role info */}
+          <div className="lg:col-span-1 space-y-4">
+            {/* Header card */}
+            <div className={`p-6 rounded-2xl border ${role.bg} ${role.border}`}>
+              <div className="flex items-center gap-3 mb-3">
+                <div className={`w-12 h-12 rounded-xl ${role.bg} flex items-center justify-center`}>
+                  <Icon name={role.icon} size={24} className={role.color} />
                 </div>
                 <div>
-                  <label htmlFor="career-track" className="block text-xs font-bold text-zinc-400 mb-1">Track</label>
-                  <select
-                    id="career-track"
-                    value={form.track ?? 'student'}
-                    onChange={(e) => setForm((prev) => ({ ...prev, track: e.target.value }))}
-                    className="w-full bg-surface-container-highest border border-outline-variant/20 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-primary-container/40"
-                  >
-                    <option value="student">Student</option>
-                    <option value="professional">Working Professional</option>
-                    <option value="expert">Industry Expert</option>
-                  </select>
-                </div>
-                <div className="md:col-span-2 flex justify-end">
-                  <button onClick={saveProfile} disabled={saving}
-                    className="bg-primary-container text-white font-bold py-2.5 px-6 rounded-full hover:brightness-110 transition-all disabled:opacity-40 flex items-center gap-2 text-sm">
-                    {saving ? <Icon name="hourglass_empty" size={14} /> : <Icon name="save" size={14} />}
-                    Save Profile
-                  </button>
+                  <h2 className="text-xl font-black">{role.title}</h2>
+                  <p className={`text-xs font-bold ${role.color}`}>{role.tagline}</p>
                 </div>
               </div>
-            )}
-            {!editMode && profile && (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {[
-                  { label: 'Track', value: profile.track },
-                  { label: 'Current Role', value: profile.currentRole || 'Not set' },
-                  { label: 'Target Role', value: profile.targetRole || 'Not set' },
-                  { label: 'Experience', value: `${profile.experienceYears} years` },
-                ].map(({ label, value }) => (
-                  <div key={label} className="bg-surface-container-high rounded-xl p-4">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-1">{label}</p>
-                    <p className="text-sm font-bold capitalize">{value}</p>
-                  </div>
-                ))}
+              <div className="mt-4 p-3 bg-black/20 rounded-xl">
+                <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1">Avg CTC</p>
+                <p className="text-sm font-bold text-white">{role.avgCTC}</p>
               </div>
-            )}
-            {!editMode && !profile && (
-              <div className="text-center py-8">
-                <Icon name="person_add" className="text-zinc-600 mb-3" size={32} />
-                <p className="text-sm text-on-surface-variant mb-4">Set up your career profile to get personalized recommendations.</p>
-                <button onClick={() => setEditMode(true)} className="bg-primary-container text-white font-bold py-2 px-6 rounded-full text-sm hover:brightness-110 transition-all">
-                  Set Up Profile
+              {savedRole !== selectedRole ? (
+                <button
+                  onClick={saveRole}
+                  className={`mt-4 w-full py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all ${role.bg} ${role.color} border ${role.border} hover:brightness-125`}
+                >
+                  Set as My Track
                 </button>
-              </div>
-            )}
-          </div>
-        </section>
+              ) : (
+                <div className="mt-4 w-full py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest text-center text-green-400 bg-green-500/10 border border-green-500/20">
+                  ✓ Your current track
+                </div>
+              )}
+            </div>
 
-        {/* Learning Paths */}
-        <section className="mb-12">
-          <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
-            <h2 className="font-['Inter'] uppercase tracking-[0.3em] text-[10px] font-bold text-on-surface-variant/60 ml-1">Learning Paths</h2>
-            <div className="flex gap-2">
-              {['all', 'student', 'professional', 'expert'].map((t) => (
-                <button key={t} onClick={() => setActiveTrack(t)}
-                  className={`px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all border ${
-                    activeTrack === t ? 'bg-primary-container/20 text-primary-container border-primary-container/30' : 'text-zinc-500 border-zinc-800/50 hover:text-zinc-300'
-                  }`}>{t}</button>
-              ))}
+            {/* Core skills */}
+            <div className="p-5 bg-[#1a1a1a] rounded-2xl border border-white/5">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-3">Core Skills</p>
+              <div className="flex flex-wrap gap-2">
+                {role.coreSkills.map((s) => (
+                  <span key={s} className="px-2.5 py-1 bg-zinc-800 rounded-lg text-xs text-zinc-300 font-medium">{s}</span>
+                ))}
+              </div>
+            </div>
+
+            {/* Interview topics */}
+            <div className="p-5 bg-[#1a1a1a] rounded-2xl border border-white/5">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-3">Interview Topics</p>
+              <ul className="space-y-1.5">
+                {role.interviewTopics.map((t) => (
+                  <li key={t} className="flex items-start gap-2 text-sm text-zinc-400">
+                    <Icon name="arrow_right" size={14} className={`${role.color} mt-0.5 flex-shrink-0`} />
+                    {t}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Companies hiring */}
+            <div className="p-5 bg-[#1a1a1a] rounded-2xl border border-white/5">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-3">Who's Hiring</p>
+              <div className="flex flex-wrap gap-2">
+                {role.hiringCompanies.map((c) => (
+                  <span key={c} className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${role.bg} ${role.color} border ${role.border}`}>{c}</span>
+                ))}
+              </div>
+            </div>
+
+            {/* Projects to build */}
+            <div className="p-5 bg-[#1a1a1a] rounded-2xl border border-white/5">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-3">Projects to Build</p>
+              <ul className="space-y-2">
+                {role.projects.map((p, i) => (
+                  <li key={p} className="flex items-start gap-2 text-sm text-zinc-400">
+                    <span className={`font-black text-xs ${role.color} mt-0.5 flex-shrink-0`}>{i + 1}.</span>
+                    {p}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* India context */}
+            <div className="p-5 bg-amber-500/5 rounded-2xl border border-amber-500/15">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-lg">🇮🇳</span>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-amber-400">India Placement Context</p>
+              </div>
+              <p className="text-sm text-zinc-400 leading-relaxed">{role.indiaContext}</p>
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {filteredPaths.map((path) => {
-              const locked = path.planAccess !== 'free';
-              const track = TRACKS.find((t) => t.key === path.targetTrack);
-              return (
-                <div key={path.id} className={`bg-surface-container rounded-2xl p-7 transition-all ${locked ? 'opacity-70' : 'hover:bg-surface-container-high'} ${path.enrolled ? 'border border-green-500/20' : ''}`}>
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center gap-2">
-                      {track && <Icon name={track.icon} className={track.color} size={18} />}
-                      <span className={`text-[10px] font-bold uppercase tracking-widest ${track?.color ?? 'text-zinc-400'}`}>{path.targetTrack}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {path.enrolled && <span className="text-[10px] font-bold text-green-400 bg-green-500/10 px-2 py-0.5 rounded-full">Enrolled</span>}
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${PLAN_COLOR[path.planAccess] ?? ''}`}>{path.planAccess}</span>
-                    </div>
-                  </div>
-                  <h3 className="text-lg font-bold mb-2">{path.title}</h3>
-                  <p className="text-sm text-on-surface-variant leading-relaxed mb-4">{path.description}</p>
-                  {path.targetRole && (
-                    <div className="flex items-center gap-2 text-xs text-zinc-400 mb-4">
-                      <Icon name="flag" size={12} />Target: {path.targetRole}
-                    </div>
-                  )}
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1 text-xs text-zinc-500">
-                      <Icon name="schedule" size={12} />~{path.estimatedWeeks} weeks
-                    </div>
-                    {path.enrolled && (
-                      <div className="flex items-center gap-3">
-                        <div className="flex-1 w-24 h-1 bg-surface-container-highest rounded-full overflow-hidden">
-                          <div className="h-full bg-green-400 rounded-full" style={{ width: `${path.progress * 100}%` }} />
-                        </div>
-                        <button className="text-[10px] font-bold uppercase tracking-widest text-green-400 flex items-center gap-1">
-                          Continue <Icon name="arrow_forward" size={10} />
-                        </button>
-                      </div>
-                    )}
-                    {!path.enrolled && locked && (
-                      <Link to="/plans" className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 hover:text-primary-container flex items-center gap-1">
-                        <Icon name="upgrade" size={12} />Upgrade
-                      </Link>
-                    )}
-                    {!path.enrolled && !locked && (
-                      <button onClick={() => enroll(path.slug)} className="text-[10px] font-bold uppercase tracking-widest text-primary-container hover:underline flex items-center gap-1">
-                        Enroll <Icon name="arrow_forward" size={12} />
-                      </button>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </section>
 
-        {/* Role Explorer */}
-        <section className="mb-10">
-          <h2 className="font-['Inter'] uppercase tracking-[0.3em] text-[10px] font-bold text-on-surface-variant/60 mb-5 ml-1">Explore Roles</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {POPULAR_ROLES.map((r) => {
-              const track = TRACKS.find((t) => t.key === r.track);
-              return (
-                <div key={r.role} className="bg-surface-container rounded-xl p-5 hover:bg-surface-container-high transition-colors">
-                  <div className="flex items-center gap-2 mb-3">
-                    {track && <Icon name={track.icon} className={track.color} size={14} />}
-                    <h3 className="text-sm font-bold">{r.role}</h3>
-                  </div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {r.skills.map((s) => (
-                      <span key={s} className="text-[10px] font-bold bg-surface-container-highest px-2 py-0.5 rounded-full text-zinc-400">{s}</span>
+          {/* Right: curriculum */}
+          <div className="lg:col-span-2">
+            <div className="bg-[#1a1a1a] rounded-2xl border border-white/5 overflow-hidden">
+              <div className="px-6 py-4 border-b border-white/5">
+                <h3 className="text-base font-black">Week-by-Week Curriculum</h3>
+                <p className="text-xs text-zinc-500 mt-0.5">Structured {role.months.length * 4}-week path from zero to interview-ready</p>
+              </div>
+
+              {/* Month tabs */}
+              <div className="flex border-b border-white/5">
+                {role.months.map((month, i) => (
+                  <button
+                    key={month.title}
+                    type="button"
+                    onClick={() => setActiveMonth(i)}
+                    className={`flex-1 px-4 py-3 text-[11px] font-bold uppercase tracking-widest transition-colors border-b-2 ${
+                      activeMonth === i ? `text-white border-current ${role.color}` : 'text-zinc-600 border-transparent hover:text-zinc-400'
+                    }`}
+                  >
+                    Month {i + 1}
+                  </button>
+                ))}
+              </div>
+
+              {/* Month content */}
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-1">
+                  <h4 className="text-lg font-black">{role.months[activeMonth].title}</h4>
+                  <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${role.bg} ${role.color}`}>{role.months[activeMonth].weeks}</span>
+                </div>
+                <p className="text-xs text-zinc-600 mb-6">Focus areas for {role.months[activeMonth].weeks.toLowerCase()}</p>
+
+                <ul className="space-y-3 mb-8">
+                  {role.months[activeMonth].focus.map((item, i) => (
+                    <li key={item} className="flex items-start gap-3">
+                      <div className={`w-6 h-6 rounded-full ${role.bg} flex items-center justify-center flex-shrink-0 mt-0.5`}>
+                        <span className={`text-[10px] font-black ${role.color}`}>{i + 1}</span>
+                      </div>
+                      <span className="text-sm text-zinc-300">{item}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                {/* Platform resources for this month */}
+                <div className="pt-5 border-t border-white/5">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 mb-3">Study on EYF This Month</p>
+                  <div className="flex flex-wrap gap-2">
+                    {role.months[activeMonth].resources.map((res) => (
+                      <Link
+                        key={res.path}
+                        to={res.path}
+                        className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-bold transition-all ${role.bg} ${role.color} ${role.border} hover:brightness-125`}
+                      >
+                        <Icon name="arrow_forward" size={12} />
+                        {res.label}
+                      </Link>
                     ))}
                   </div>
                 </div>
-              );
-            })}
+
+                {/* Navigation */}
+                <div className="flex justify-between mt-6">
+                  <button
+                    type="button"
+                    onClick={() => setActiveMonth((m) => Math.max(0, m - 1))}
+                    disabled={activeMonth === 0}
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-zinc-800 text-zinc-400 text-xs font-bold disabled:opacity-30 hover:bg-zinc-700 transition-colors"
+                  >
+                    <Icon name="chevron_left" size={14} /> Prev Month
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveMonth((m) => Math.min(role.months.length - 1, m + 1))}
+                    disabled={activeMonth === role.months.length - 1}
+                    className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold disabled:opacity-30 transition-all ${role.bg} ${role.color} border ${role.border} hover:brightness-125`}
+                  >
+                    Next Month <Icon name="chevron_right" size={14} />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Quick links to company prep */}
+            <div className="mt-4 p-5 bg-[#1a1a1a] rounded-2xl border border-white/5">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-3">Jump to Targeted Prep</p>
+              <div className="flex flex-wrap gap-3">
+                <Link to="/app/companies" className="flex items-center gap-1.5 px-3 py-2 bg-zinc-800 rounded-xl text-xs font-bold text-zinc-300 hover:text-white transition-colors">
+                  <Icon name="business" size={13} /> Company Prep
+                </Link>
+                <Link to="/app/readiness" className="flex items-center gap-1.5 px-3 py-2 bg-zinc-800 rounded-xl text-xs font-bold text-zinc-300 hover:text-white transition-colors">
+                  <Icon name="speed" size={13} /> Readiness Score
+                </Link>
+                <Link to="/app/roadmap" className="flex items-center gap-1.5 px-3 py-2 bg-zinc-800 rounded-xl text-xs font-bold text-zinc-300 hover:text-white transition-colors">
+                  <Icon name="map" size={13} /> Interview Roadmap
+                </Link>
+                <Link to="/app/mock-interview" className="flex items-center gap-1.5 px-3 py-2 bg-zinc-800 rounded-xl text-xs font-bold text-zinc-300 hover:text-white transition-colors">
+                  <Icon name="record_voice_over" size={13} /> Mock Interview
+                </Link>
+              </div>
+            </div>
           </div>
-        </section>
+        </div>
       </div>
     </AppShell>
   );
