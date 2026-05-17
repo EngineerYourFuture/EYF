@@ -22,10 +22,6 @@ interface SkillCategory {
   skills: Skill[];
 }
 
-const SKILL_ICON: Record<string, string> = {
-  Languages: 'code', Frameworks: 'layers', Databases: 'storage', Tools: 'build',
-  Cloud: 'cloud', Security: 'shield', Algorithms: 'psychology', 'System Design': 'architecture',
-};
 
 const DEFAULT_CATEGORIES: SkillCategory[] = [
   {

@@ -288,7 +288,7 @@ function SkillBar({ area }: { area: SkillArea }) {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export function ReadinessPage() {
-  const { summary } = useUser();
+  useUser();
   const [areas,  setAreas]  = useState<SkillArea[]>([]);
   const [sprint, setSprint] = useState<SprintTask[]>([]);
   const [overall, setOverall] = useState(0);

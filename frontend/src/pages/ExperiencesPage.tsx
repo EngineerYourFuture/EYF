@@ -1,6 +1,5 @@
 import { useState, useMemo } from 'react';
 import { AppShell } from '../components/AppShell';
-import { Icon } from '../components/Icon';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

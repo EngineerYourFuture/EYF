@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Icon } from './Icon';
 
@@ -101,12 +101,12 @@ export function NotificationsPanel({ notifications, onClose, onMarkAllRead, onMa
         ) : (
           notifications.map((n) => {
             const meta = TYPE_META[n.type];
-            const Wrapper = n.href ? Link : 'div';
+            const Wrapper = (n.href ? Link : 'div') as React.ElementType;
             const wrapperProps = n.href ? { to: n.href } : {};
             return (
               <Wrapper
                 key={n.id}
-                {...(wrapperProps as object)}
+                {...wrapperProps}
                 onClick={() => { onMarkRead(n.id); if (n.href) onClose(); }}
                 className={`flex items-start gap-3 px-5 py-4 border-b border-zinc-800/50 transition-colors cursor-pointer ${
                   n.read ? 'opacity-60 hover:opacity-80' : 'hover:bg-surface-container-low'

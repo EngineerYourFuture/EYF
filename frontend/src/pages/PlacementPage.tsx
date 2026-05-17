@@ -693,7 +693,6 @@ export function PlacementPage() {
       .catch(() => {});
   }, [session?.accessToken]);
 
-  const trackMeta = (id: string) => TRACKS.find((t) => t.id === id) ?? TRACKS[0];
 
   const saveBehavioral = async () => {
     if (!selectedBQ || !session?.accessToken || bqResponse.length < 10) return;

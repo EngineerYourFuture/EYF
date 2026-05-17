@@ -448,7 +448,7 @@ function SimpleEditor({
     }
   }, [code, onChange]);
 
-  const _ = language; // suppress unused warning
+  void language;
 
   return (
     <textarea

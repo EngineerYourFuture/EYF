@@ -1532,7 +1532,7 @@ function CodeBlock({ code }: { code: string }) {
   );
 }
 
-function CheatCard({ card, sheetColor }: { card: Card; sheetColor: string }) {
+function CheatCard({ card, sheetColor: _sheetColor }: { card: Card; sheetColor: string }) {
   const [expanded, setExpanded] = useState(false);
 
   return (

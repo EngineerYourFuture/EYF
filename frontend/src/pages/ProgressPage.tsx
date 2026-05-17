@@ -1,8 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { AppShell } from '../components/AppShell';
-import { Icon } from '../components/Icon';
-import { useUser } from '../contexts/UserContext';
 import { getSession } from '../lib/session';
 import { apiRequest } from '../lib/api';
 
@@ -332,14 +330,13 @@ function RankCard({ percentile, streak, longestStreak }: { percentile: number; s
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export function ProgressPage() {
-  const { user } = useUser();
   const session = getSession();
   const [stats, setStats] = useState<StatsData>(STATIC_STATS);
 
   useEffect(() => {
     if (!session) return;
     apiRequest('/progress/stats')
-      .then((data: StatsData) => setStats(data))
+      .then((data) => setStats(data as StatsData))
       .catch(() => { /* keep static */ });
   }, [session]);
 

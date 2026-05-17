@@ -379,7 +379,6 @@ export function HomePage() {
   const [daily, setDaily]           = useState<DailyChallenge | null>(null);
   const [levelUpFor, setLevelUpFor] = useState<number | null>(null);
   const [streakToast, setStreakToast] = useState(false);
-  const prevLevelRef                = useState<number>(0);
 
   useEffect(() => {
     if (!session?.accessToken) return;

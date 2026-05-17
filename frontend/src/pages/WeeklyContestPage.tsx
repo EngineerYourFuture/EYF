@@ -29,10 +29,6 @@ interface Contest {
   topScorers: { rank: number; name: string; score: number; time: string }[];
 }
 
-interface Registration {
-  contestId: string;
-  registered: boolean;
-}
 
 // ─── Static Data ─────────────────────────────────────────────────────────────
 

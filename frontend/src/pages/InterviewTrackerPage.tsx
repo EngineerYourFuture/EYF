@@ -201,7 +201,6 @@ export function InterviewTrackerPage() {
   const total = apps.length;
   const active = apps.filter((a) => !['rejected', 'withdrawn'].includes(a.status)).length;
   const offers = apps.filter((a) => a.status === 'offer').length;
-  const rejected = apps.filter((a) => a.status === 'rejected').length;
   const offerRate = total > 0 ? Math.round((offers / total) * 100) : 0;
 
   const filtered = apps.filter((a) => {
@@ -413,7 +412,7 @@ export function InterviewTrackerPage() {
                 <div key={key}>
                   <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 block mb-1">{label}</label>
                   <input type="text" placeholder={placeholder}
-                    value={(form as Record<string, string>)[key] ?? ''}
+                    value={(form as unknown as Record<string, string>)[key] ?? ''}
                     onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
                     className="w-full bg-[#111] border border-white/8 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-zinc-700 focus:outline-none focus:border-[#E82127]/40" />
                 </div>

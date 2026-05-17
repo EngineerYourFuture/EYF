@@ -1,7 +1,6 @@
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { AppShell } from '../components/AppShell';
-import { Icon } from '../components/Icon';
 import { useUser } from '../contexts/UserContext';
 
 // ─── Types ────────────────────────────────────────────────────────────────────

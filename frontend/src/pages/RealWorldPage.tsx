@@ -723,6 +723,7 @@ function ChallengeSolver({ challenge, onBack, onSubmit }: {
   const [activeTab,    setActiveTab]    = useState<'code' | 'hints' | 'solution'>('code');
   const [results,      setResults]      = useState<{ pass: boolean; desc: string; hint: string }[] | null>(null);
   const [showSolution, setShowSolution] = useState(false);
+  void showSolution;
 
   const handleCheck = useCallback(() => {
     const res = challenge.testCases.map(tc => ({
@@ -882,7 +883,7 @@ export function RealWorldPage() {
         <ChallengeSolver
           challenge={activeChallenge}
           onBack={() => setActiveChallenge(null)}
-          onSubmit={(code) => { handleSubmit(activeChallenge); }}
+          onSubmit={() => { handleSubmit(activeChallenge); }}
         />
       </AppShell>
     );
