@@ -36,7 +36,8 @@ function computeATS(data: ResumeData): { score: number; tips: ATSTip[] } {
   const hasName = data.name.trim().length > 2;
   tips.push({ ok: hasName, label: 'Full name present', tip: 'Add your full name to the top of the resume.' });
 
-  const hasEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email);
+  const atIdx = data.email.indexOf('@');
+  const hasEmail = atIdx > 0 && data.email.indexOf('.', atIdx) > atIdx + 1 && !data.email.includes(' ');
   tips.push({ ok: hasEmail, label: 'Professional email', tip: 'Include a professional email address.' });
 
   const hasPhone = data.phone.trim().length >= 7;
@@ -49,7 +50,13 @@ function computeATS(data: ResumeData): { score: number; tips: ATSTip[] } {
   tips.push({ ok: hasExp, label: 'Work experience with bullets', tip: 'Add at least one role with meaningful bullet points.' });
 
   const hasQuantified = data.experience.some((e) =>
-    e.bullets.some((b) => /\d+[%x+]|\d+\s*(ms|billion|million|thousand|[smk])\b/i.test(b))
+    e.bullets.some((b) => {
+      if (!/\d/.test(b)) return false;
+      const lower = b.toLowerCase();
+      return b.includes('%') || lower.includes('ms') || lower.includes('million')
+          || lower.includes('billion') || lower.includes('thousand')
+          || /\d\s*[xk+]/.test(lower);
+    })
   );
   tips.push({ ok: hasQuantified, label: 'Quantified achievements', tip: 'Use numbers: "Improved latency by 40%" beats "Improved performance".' });
 

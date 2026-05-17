@@ -413,7 +413,8 @@ function detectCodePattern(code: string): string {
   const hasNestedLoops = /for\s*\(/.test(code) && code.split('for (').length > 2 || /while\s*\(/.test(code) && /for\s*\(/.test(code);
   const hasMap = /Map\(\)|new Map|{}/i.test(code) && /\[/.test(code);
   const hasSet = /Set\(\)|new Set/i.test(code);
-  const hasRecursion = /function\s+\w+[^{]*\{/.test(code) && /\breturn\b/.test(code) && /\bfunction\b/.test(code);
+  const fnStart = code.indexOf('function ');
+  const hasRecursion = fnStart !== -1 && code.includes('return') && code.indexOf('function ', fnStart + 1) === -1;
   if (hasNestedLoops) return 'Nested loops detected → O(n²) complexity';
   if (hasSet) return 'Set-based lookup detected';
   if (hasMap) return 'Map/HashMap detected';
