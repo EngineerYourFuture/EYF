@@ -640,12 +640,14 @@ export function HomePage() {
         </section>
 
         {/* ── Quick actions ── */}
-        <section className="mb-8 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        <section className="mb-8 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
           {[
             { label: 'Solve Problem',    icon: 'code',                path: '/app/problems',       color: 'text-blue-400',   bg: 'bg-blue-500/10',   border: 'border-blue-500/20' },
             { label: 'Pattern Quiz',     icon: 'quiz',                path: '/app/pattern-quiz',   color: 'text-indigo-400', bg: 'bg-indigo-500/10', border: 'border-indigo-500/20' },
             { label: 'System Design',    icon: 'architecture',        path: '/app/system-design',  color: 'text-cyan-400',   bg: 'bg-cyan-500/10',   border: 'border-cyan-500/20' },
             { label: 'Mock Interview',   icon: 'record_voice_over',   path: '/app/mock-interview', color: 'text-orange-400', bg: 'bg-orange-500/10', border: 'border-orange-500/20' },
+            { label: 'Company Prep',     icon: 'business',            path: '/app/companies',      color: 'text-rose-400',   bg: 'bg-rose-500/10',   border: 'border-rose-500/20' },
+            { label: 'Weekly Contest',   icon: 'emoji_events',        path: '/app/contests',       color: 'text-amber-400',  bg: 'bg-amber-500/10',  border: 'border-amber-500/20' },
             { label: 'My Roadmap',       icon: 'map',                 path: '/app/roadmap',        color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20' },
             { label: 'My Progress',      icon: 'insights',            path: '/app/progress',       color: 'text-blue-300',   bg: 'bg-blue-400/10',   border: 'border-blue-400/20' },
           ].map((a) => (
