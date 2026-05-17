@@ -39,6 +39,7 @@ const NAV_GROUPS: NavGroup[] = [
   {
     label: 'Career',
     items: [
+      { path: '/app/companies',   label: 'Company Prep',   icon: 'business' },
       { path: '/app/placement',  label: 'Placement',     icon: 'work' },
       { path: '/app/resume',     label: 'Resume',        icon: 'description' },
       { path: '/app/skills',     label: 'Tech Skills',   icon: 'psychology' },

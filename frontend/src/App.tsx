@@ -49,6 +49,7 @@ import { RoadmapPage } from './pages/RoadmapPage';
 import { ProgressPage } from './pages/ProgressPage';
 import { ExperiencesPage } from './pages/ExperiencesPage';
 import { WeeklyContestPage } from './pages/WeeklyContestPage';
+import { CompanyPrepPage } from './pages/CompanyPrepPage';
 
 export default function App() {
   return (
@@ -231,6 +232,10 @@ export default function App() {
       <Route
         path="/app/contests"
         element={<RequireAuth zone="public"><WeeklyContestPage /></RequireAuth>}
+      />
+      <Route
+        path="/app/companies"
+        element={<RequireAuth zone="public"><CompanyPrepPage /></RequireAuth>}
       />
       <Route
         path="/app/*"
