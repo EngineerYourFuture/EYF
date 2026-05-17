@@ -481,7 +481,6 @@ export function ProblemDetailPage() {
 
     const iframe = document.createElement('iframe');
     iframe.style.display = 'none';
-    iframe.setAttribute('sandbox', 'allow-scripts');
 
     return new Promise<RunResponse>((resolve) => {
       let done = false;
@@ -505,7 +504,7 @@ export function ProblemDetailPage() {
       };
 
       window.addEventListener('message', onMsg);
-      iframe.onload = () => iframe.contentWindow?.postMessage({ type: 'eyf-run', code: testCode }, '*');
+      iframe.onload = () => iframe.contentWindow?.postMessage({ type: 'eyf-run', code: testCode }, window.location.origin);
       setTimeout(() => { cleanup(); resolve({ runId: 'local', stdout: '', stderr: 'Execution timed out', exitCode: 1, runtimeMs: 5000 }); }, 5000);
       iframe.src = '/sandbox.html';
       document.body.appendChild(iframe);

@@ -10,9 +10,9 @@ window.addEventListener('message', function (e) {
   };
   try {
     eval(e.data.code); // eslint-disable-line no-eval
-    parent.postMessage({ type: 'eyf-result', results: results, logs: logs }, '*');
+    parent.postMessage({ type: 'eyf-result', results: results, logs: logs }, e.origin);
   } catch (err) {
-    parent.postMessage({ type: 'eyf-result', results: [], logs: logs, error: err.message }, '*');
+    parent.postMessage({ type: 'eyf-result', results: [], logs: logs, error: err.message }, e.origin);
   }
 });
 </script>
