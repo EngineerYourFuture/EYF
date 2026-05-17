@@ -1698,6 +1698,683 @@ async function getTimeline(userId: string, page = 0): Promise<Tweet[]> {
     codeLang: 'typescript',
     summary: 'Twitter\'s architecture is the canonical example of hybrid fan-out. Normal users get fan-out on write (O(followers) on post, O(1) on read). Celebrities use fan-out on read (their tweet is fetched and merged into the timeline at read time). The timeline is always served from Redis — the DB is only a durability layer. In interviews, always call out the celebrity problem and propose the hybrid solution.',
   },
+
+  // ── Operating Systems ──────────────────────────────────────────────────────
+
+  processes: {
+    overview: `A process is a program in execution — an active entity with its own address space, resources, and state. The OS creates, schedules, and terminates processes via the Process Control Block (PCB), which stores everything needed to pause and resume execution.\n\n**Process states**: New → Ready → Running → Waiting/Blocked → Terminated. The scheduler moves processes between Ready and Running. I/O operations move a process to Blocked until the I/O completes.\n\n**Thread vs Process**: Threads are lightweight units of execution within a process that share the same address space, heap, and file descriptors. Creating a thread is ~10× faster than forking a process. Threads need synchronization (mutex, semaphore) because they share memory.\n\n**Process creation**: Unix uses fork() (copy-on-write clone) + exec() (replace image). Windows uses CreateProcess(). Modern runtimes use thread pools to amortize creation cost.`,
+    keyPoints: [
+      'PCB stores: PID, state, PC, registers, memory maps, I/O status, priority',
+      'Process states: New → Ready → Running → Blocked → Terminated',
+      'fork() creates a child with copy-on-write semantics — pages copied only on write',
+      'Thread shares: code, heap, globals, file descriptors. Owns: stack, registers, PC',
+      'Context switch: save PCB of running, restore PCB of next — pure overhead (~5µs)',
+      'Zombie process: exited but parent has not called wait() — PCB still in kernel',
+      'Orphan process: parent exits first; adopted by init (PID 1) which calls wait()',
+    ],
+    code: `// Process creation in Node.js
+const { fork, exec } = require('child_process');
+
+// Fork: creates a child Node.js process with IPC channel
+const child = fork('worker.js');
+child.on('message', (msg) => console.log('From child:', msg));
+child.send({ task: 'compute', n: 1000 });
+
+// Shell command execution
+const { promisify } = require('util');
+const execAsync = promisify(exec);
+const { stdout } = await execAsync('ls -la');
+console.log(stdout);
+
+// Worker threads (shared memory within same process)
+const { Worker, isMainThread, parentPort } = require('worker_threads');
+if (isMainThread) {
+  const worker = new Worker(__filename);
+  worker.on('message', (msg) => console.log('Thread result:', msg));
+} else {
+  parentPort.postMessage('Hello from thread!');
+}`,
+    codeLang: 'javascript',
+    summary: 'Processes own resources and provide isolation; threads share resources and provide concurrency within a process. For I/O-bound work: threads or async I/O. For CPU-bound work: multiple processes (bypasses GIL in Python). In interviews: know process states, PCB contents, and fork() semantics. Zombie vs orphan is a classic OS question.',
+  },
+
+  scheduling: {
+    overview: `CPU scheduling decides which process runs next when the CPU is free. The goal is to maximize CPU utilization, throughput, and fairness while minimizing turnaround time, waiting time, and response time.\n\n**Non-preemptive algorithms**: Once a process starts, it runs to completion or until it voluntarily yields.\n- **FCFS** (First Come First Served): simple queue, suffers convoy effect (short jobs behind long ones)\n- **SJF** (Shortest Job First): optimal average waiting time but requires knowing burst time\n\n**Preemptive algorithms**: OS can forcibly remove a process from CPU.\n- **SRTF** (Shortest Remaining Time First): preemptive SJF\n- **Round Robin**: each process gets a time quantum (10-100ms), then preempted to queue end\n- **Priority Scheduling**: highest priority runs; can starve low-priority (fix: aging)\n- **Multilevel Queue**: separate queues per priority, round robin within each`,
+    keyPoints: [
+      'Turnaround time = completion − arrival. Waiting time = turnaround − burst time',
+      'FCFS: simple but convoy effect — 1ms + 100ms + 1ms processes: short jobs wait 100ms',
+      'SJF: optimal for average waiting time but can starve long processes (aging fixes it)',
+      'Round Robin: good response time. Quantum too small → high context switch overhead',
+      'Preemptive priority: must handle priority inversion (low-priority holds lock high-priority needs)',
+      'Priority inversion solution: priority inheritance — temporarily boost low-priority to high',
+      'CFS (Linux): tracks virtual runtime, always picks the process with least vruntime',
+    ],
+    code: `// Simulate Round Robin scheduling
+function roundRobin(processes, quantum) {
+  // processes: [{id, arrival, burst}]
+  const queue = [];
+  const remaining = processes.map(p => ({ ...p, rem: p.burst, waited: 0, done: false }));
+  let time = 0, completed = 0;
+  const n = processes.length;
+
+  while (completed < n) {
+    // Add newly arrived processes to queue
+    remaining.forEach(p => {
+      if (!p.done && p.arrival <= time && !queue.includes(p)) queue.push(p);
+    });
+
+    if (queue.length === 0) { time++; continue; }
+
+    const proc = queue.shift();
+    const runTime = Math.min(quantum, proc.rem);
+    time += runTime;
+    proc.rem -= runTime;
+
+    // Add any processes that arrived during this quantum
+    remaining.forEach(p => {
+      if (!p.done && p.arrival <= time && p !== proc && !queue.includes(p)) queue.push(p);
+    });
+
+    if (proc.rem > 0) queue.push(proc);
+    else { proc.done = true; proc.turnaround = time - proc.arrival; completed++; }
+  }
+  return remaining;
+}`,
+    codeLang: 'javascript',
+    summary: 'Scheduling is a core tradeoff between throughput (SJF), fairness (Round Robin), and response time. Linux CFS uses red-black tree sorted by virtual runtime — always O(log n) picks the least-run process. For interviews: know FCFS convoy effect, SJF optimality, RR time quantum tradeoff, and priority inversion with priority inheritance solution.',
+  },
+
+  sync: {
+    overview: `Synchronization prevents race conditions when multiple processes/threads access shared resources concurrently. Without synchronization, concurrent reads/writes produce non-deterministic, incorrect results.\n\n**Critical section**: code that accesses shared resources. Must satisfy: mutual exclusion (only one thread at a time), progress (if no one is in CS, a waiting thread should enter), bounded waiting (a thread waits at most a bounded number of times).\n\n**Mutex (Mutual Exclusion Lock)**: binary lock owned by the acquiring thread. Only the owner can release it. Used to protect critical sections.\n\n**Semaphore**: integer counter. P()/wait() decrements; V()/signal() increments. Counting semaphore allows N threads simultaneously. Binary semaphore = mutex (but without ownership).\n\n**Deadlock**: four necessary conditions: mutual exclusion, hold and wait, no preemption, circular wait. Prevention removes one condition. Detection+recovery uses resource allocation graphs.`,
+    keyPoints: [
+      'Race condition: output depends on execution order — non-deterministic and incorrect',
+      'Mutex: only the locking thread can unlock. Semaphore: any thread can signal',
+      'Deadlock: all four Coffman conditions must hold simultaneously',
+      'Deadlock prevention: impose total ordering on resource acquisition (circular wait eliminated)',
+      'Banker\'s algorithm: deadlock avoidance — only grant if resulting state is safe',
+      'Spinlock: busy-waits (wastes CPU). Use when critical section is very short (<1µs)',
+      'Monitor: high-level synchronization with condition variables (Java synchronized)',
+    ],
+    code: `// Producer-Consumer using semaphores (simulated in JS)
+class Semaphore {
+  constructor(n) { this.count = n; this.queue = []; }
+  wait() {
+    return new Promise(resolve => {
+      if (this.count > 0) { this.count--; resolve(); }
+      else this.queue.push(resolve);
+    });
+  }
+  signal() {
+    if (this.queue.length > 0) this.queue.shift()();
+    else this.count++;
+  }
+}
+
+const BUFFER_SIZE = 5;
+const mutex    = new Semaphore(1);   // protect buffer
+const empty    = new Semaphore(BUFFER_SIZE); // empty slots
+const full     = new Semaphore(0);   // filled slots
+const buffer   = [];
+
+async function producer(item) {
+  await empty.wait();   // wait for empty slot
+  await mutex.wait();   // enter critical section
+  buffer.push(item);
+  console.log('Produced:', item, '| Buffer:', buffer.length);
+  mutex.signal();        // exit critical section
+  full.signal();         // signal item available
+}
+
+async function consumer() {
+  await full.wait();    // wait for item
+  await mutex.wait();
+  const item = buffer.shift();
+  console.log('Consumed:', item);
+  mutex.signal();
+  empty.signal();       // signal slot freed
+  return item;
+}`,
+    codeLang: 'javascript',
+    summary: 'Mutex enforces mutual exclusion with ownership — only the locker can unlock. Semaphore is a counter — any thread can signal. Use mutex for critical sections, semaphores for resource counting (producer-consumer). Deadlock requires all four Coffman conditions; prevent it by enforcing a total ordering on lock acquisition. In interviews: know the producer-consumer and dining philosophers problems.',
+  },
+
+  memory: {
+    overview: `Memory management is the OS subsystem responsible for allocating and tracking physical memory. Modern systems use virtual memory to provide each process an isolated address space larger than physical RAM.\n\n**Contiguous allocation**: early systems. Fixed partitioning wastes memory (internal fragmentation). Variable partitioning causes holes (external fragmentation).\n\n**Paging**: divide virtual address space into fixed-size pages (4KB typical). Physical RAM divided into frames. OS maintains a page table mapping pages → frames. Eliminates external fragmentation (no contiguous requirement), but internal fragmentation within the last page.\n\n**Segmentation**: divide program into logical segments (code, heap, stack). Variable sizes. Natural fit for programming model but causes external fragmentation.\n\n**Modern systems**: paging + optional segmentation (x86-64 uses paging only for most of the address space). Hardware MMU translates virtual → physical using page tables; TLB caches recent translations.`,
+    keyPoints: [
+      'Internal fragmentation: wasted space inside an allocated block (paging, fixed partitions)',
+      'External fragmentation: free space exists but not contiguous (segmentation, variable partitions)',
+      'Page table: virtual page number → physical frame number. Accessed on every memory reference',
+      'TLB (Translation Lookaside Buffer): hardware cache for page table. Hit: 1 cycle. Miss: 100+ cycles',
+      'TLB miss: walk page table in memory. Can be 2-level (x86 32-bit) or 4-level (x86-64)',
+      'Copy-on-Write (CoW): fork() shares pages until one process writes — then page is copied',
+      'Stack grows down, heap grows up. Stack overflow = exceeds stack size limit',
+    ],
+    code: `// Simulate a simple buddy allocator (power-of-2 blocks)
+class BuddyAllocator {
+  constructor(totalSize) {
+    this.totalSize = totalSize;
+    this.free = new Map(); // size -> list of free block start addresses
+    this.free.set(totalSize, [0]);
+  }
+
+  allocate(size) {
+    // Round up to nearest power of 2
+    let blockSize = 1;
+    while (blockSize < size) blockSize *= 2;
+
+    // Find smallest available block >= blockSize
+    let available = blockSize;
+    while (available <= this.totalSize) {
+      if (this.free.get(available)?.length > 0) break;
+      available *= 2;
+    }
+    if (available > this.totalSize) throw new Error('Out of memory');
+
+    // Split until we have the right size
+    while (available > blockSize) {
+      const addr = this.free.get(available).pop();
+      const half = available / 2;
+      if (!this.free.has(half)) this.free.set(half, []);
+      this.free.get(half).push(addr, addr + half); // two buddies
+      available = half;
+    }
+    return this.free.get(available).pop();
+  }
+}
+
+const allocator = new BuddyAllocator(256);
+console.log(allocator.allocate(30));  // gets 32-byte block at addr 0
+console.log(allocator.allocate(50));  // gets 64-byte block at addr 64`,
+    codeLang: 'javascript',
+    summary: 'Paging solves external fragmentation at the cost of internal fragmentation and TLB pressure. TLB hit rate must be > 99% for performance — achieved through spatial locality. For interviews: explain virtual address translation (VPN → PTE → PFN + offset), know TLB, and explain why CoW makes fork() fast. Buddy allocator is the classic interview-worthy allocator algorithm.',
+  },
+
+  paging: {
+    overview: `Paging is the dominant memory management scheme in modern OSes. It divides both virtual address space and physical memory into fixed-size units: **pages** (virtual) and **frames** (physical). The page table maps pages to frames, allowing non-contiguous physical allocation while giving each process a contiguous virtual address space.\n\n**Address translation**: A virtual address has two parts: Page Number (upper bits) → index into page table → Physical Frame Number. Physical Address = (Frame Number × Page Size) + Offset.\n\n**Multi-level page tables**: x86-64 uses 4-level paging (PML4 → PDPT → PD → PT). This avoids storing the full page table for sparse address spaces (each level is only allocated when needed).\n\n**TLB**: Hardware cache of recent virtual→physical translations. TLB hit: ~1 cycle. TLB miss: walk page table (~100 cycles). Context switch: flush TLB (or use Address Space IDs to avoid flushing).\n\n**Page fault**: accessing a page not in RAM. OS loads it from swap disk, updates page table, resumes process.`,
+    keyPoints: [
+      'Page size: typically 4KB (x86). Huge pages: 2MB or 1GB (reduce TLB pressure for large allocations)',
+      'Page table entry (PTE): frame number + protection bits (R/W/X) + present/dirty/accessed flags',
+      'TLB shootdown: when page table updated on one CPU, must invalidate TLB on all CPUs (costly)',
+      'Demand paging: pages loaded only when accessed (page fault), not at program start',
+      'Page fault handling: 1) check valid access, 2) find free frame, 3) load page from disk, 4) update PTE, 5) restart instruction',
+      'Shared memory: multiple page table entries point to same physical frame (copy-on-write, shared libs)',
+      'ASLR: randomize base addresses of stack, heap, code at load time → mitigates buffer overflow exploits',
+    ],
+    code: `// Simulate simple page table translation
+const PAGE_SIZE = 4096; // 4KB
+
+function virtualToPhysical(virtualAddr, pageTable) {
+  const pageNum = Math.floor(virtualAddr / PAGE_SIZE);
+  const offset = virtualAddr % PAGE_SIZE;
+
+  const pte = pageTable[pageNum];
+  if (!pte || !pte.present) throw new Error(\`Page fault: page \${pageNum} not in memory\`);
+  if (!pte.readable) throw new Error(\`Protection fault: page \${pageNum} not readable\`);
+
+  const physAddr = pte.frameNum * PAGE_SIZE + offset;
+  pte.accessed = true;
+  return physAddr;
+}
+
+// Simulate a simple page table
+const pageTable = {
+  0: { frameNum: 3, present: true, readable: true, writable: true, accessed: false, dirty: false },
+  1: { frameNum: 7, present: true, readable: true, writable: false, accessed: false, dirty: false },
+  2: { frameNum: 0, present: false }, // page not in RAM — causes page fault
+};
+
+console.log(virtualToPhysical(0, pageTable));      // frame 3 → 12288 + 0 = 12288
+console.log(virtualToPhysical(4096 + 100, pageTable)); // frame 7 → 28672 + 100
+try {
+  virtualToPhysical(8192, pageTable); // page fault!
+} catch (e) {
+  console.log(e.message);
+}`,
+    codeLang: 'javascript',
+    summary: 'Paging is the foundation of virtual memory. Virtual address = page number (upper bits) + offset (lower bits). Page number indexes the page table → physical frame number. TLB makes this O(1) with ~99.9% hit rate in practice. For interviews: draw the address translation, explain page faults, and know that context switches flush TLBs (or use ASIDs). 4-level paging in x86-64 makes huge sparse address spaces efficient.',
+  },
+
+  // ── DBMS Core ─────────────────────────────────────────────────────────────
+
+  acid: {
+    overview: `ACID is the set of properties that guarantee database transactions process reliably even in the presence of errors, power failures, or concurrent access.\n\n**Atomicity**: A transaction either commits entirely or rolls back entirely — no partial updates. Implemented via an undo log (MVCC) or rollback segment. If the server crashes mid-transaction, the undo log is replayed on restart.\n\n**Consistency**: A transaction moves the database from one valid state to another valid state. All defined rules (constraints, cascades, triggers) are satisfied. If a transaction would violate a constraint, it's aborted.\n\n**Isolation**: Concurrent transactions execute as if they were serial. Implemented via locks (pessimistic) or MVCC/versioning (optimistic). Isolation level controls what anomalies are permitted.\n\n**Durability**: Once a transaction commits, it survives crashes. Implemented via Write-Ahead Logging (WAL): every change is written to log on disk before being applied to data pages.`,
+    keyPoints: [
+      'Atomicity: all-or-nothing. Undo log records before-images for rollback',
+      'WAL: write-ahead logging — log record must be durable before data page is modified',
+      'MVCC (Multi-Version Concurrency Control): readers don\'t block writers — each sees consistent snapshot',
+      'Isolation anomalies: dirty read, non-repeatable read, phantom read, lost update',
+      'Durability: crash recovery replays WAL (redo log) to restore committed state',
+      'CAP theorem: in distributed DBs, ACID trades availability for consistency',
+      'BASE (NoSQL): Basically Available, Soft state, Eventually consistent — relaxes ACID for scale',
+    ],
+    code: `-- ACID in practice: bank transfer (atomicity critical)
+BEGIN TRANSACTION;
+
+-- Check balance
+SELECT balance FROM accounts WHERE id = 1 FOR UPDATE; -- pessimistic lock
+
+-- Deduct from sender (if balance >= amount)
+UPDATE accounts SET balance = balance - 500 WHERE id = 1;
+
+-- Add to receiver
+UPDATE accounts SET balance = balance + 500 WHERE id = 2;
+
+-- Both succeed → commit; if either fails → rollback automatically
+COMMIT;
+
+-- If server crashes after first UPDATE but before COMMIT:
+-- WAL rollback log undoes the first UPDATE on recovery
+-- Sender gets their money back: ATOMICITY maintained
+
+-- ISOLATION: another transaction reading account 1 mid-transfer
+-- READ COMMITTED: sees old balance (before our transaction commits)
+-- REPEATABLE READ: same result if reads account 1 twice in same txn
+-- SERIALIZABLE: full isolation — no phantom reads either`,
+    codeLang: 'sql',
+    summary: 'ACID is why you trust your bank balance after a crash. Atomicity uses undo logs for rollback. Durability uses WAL (redo logs) for crash recovery. Isolation controls what concurrent transactions see — most DBs default to READ COMMITTED or REPEATABLE READ, not SERIALIZABLE (too slow). In interviews: explain each letter with a concrete example and know the WAL mechanism for durability.',
+  },
+
+  normalization: {
+    overview: `Normalization is the process of structuring a relational database to reduce data redundancy and improve data integrity. Each normal form eliminates specific types of update/insert/delete anomalies.\n\n**1NF** (First Normal Form): Atomic values — no repeating groups or multi-valued attributes. Each cell contains a single value. Each row is unique (has a primary key).\n\n**2NF** (Second Normal Form): 1NF + no partial dependencies. Every non-key attribute depends on the entire primary key (not just part of it). Applies when the PK is composite.\n\n**3NF** (Third Normal Form): 2NF + no transitive dependencies. Non-key attribute A cannot depend on non-key attribute B. (PK → A → B is not allowed unless B also depends directly on PK).\n\n**BCNF** (Boyce-Codd Normal Form): Every determinant must be a candidate key. Stricter than 3NF. Removes anomalies 3NF misses.\n\n**Denormalization**: intentional redundancy for read performance (data warehouses, caches, materialized views).`,
+    keyPoints: [
+      '1NF: atomic values, no arrays/repeating groups, unique rows',
+      '2NF: no partial dependency — non-key attribute must depend on WHOLE composite PK',
+      '3NF: no transitive dependency — non-key cannot determine non-key',
+      'BCNF: every determinant is a candidate key — stronger than 3NF',
+      'Insertion anomaly: cannot insert data without unrelated data (1NF violation example)',
+      'Update anomaly: changing one fact requires updating many rows (redundancy)',
+      'Deletion anomaly: deleting one record accidentally deletes unrelated information',
+    ],
+    code: `-- Example: unnormalized table (1NF violation)
+-- StudentCourses: StudentID, StudentName, Courses (comma-separated)
+-- Courses is multi-valued → violates 1NF
+
+-- After 1NF:
+CREATE TABLE StudentCourses (
+  StudentID INT, CourseID INT, CourseName VARCHAR(100),
+  InstructorID INT, InstructorName VARCHAR(100),
+  PRIMARY KEY (StudentID, CourseID)
+);
+-- Still has 2NF violation: CourseName depends only on CourseID (not StudentID)
+-- And InstructorName depends on InstructorID (transitive via CourseID)
+
+-- After 2NF (remove partial dependencies):
+CREATE TABLE Students (StudentID INT PRIMARY KEY, StudentName VARCHAR(100));
+CREATE TABLE Enrollments (StudentID INT, CourseID INT, PRIMARY KEY(StudentID, CourseID));
+CREATE TABLE Courses (CourseID INT PRIMARY KEY, CourseName VARCHAR(100), InstructorID INT);
+
+-- After 3NF (remove transitive dependencies):
+CREATE TABLE Instructors (InstructorID INT PRIMARY KEY, InstructorName VARCHAR(100));
+-- Now Courses references Instructors → no transitive dependency
+
+-- Query is now a JOIN but updates are clean:
+UPDATE Instructors SET InstructorName = 'Dr. Smith' WHERE InstructorID = 5;
+-- Only 1 row updated (vs updating every StudentCourses row before normalization)`,
+    codeLang: 'sql',
+    summary: 'Normalization removes redundancy to prevent anomalies. Think of it as: 1NF = atomic, 2NF = no partial key dependency, 3NF = no transitive dependency. In practice, design to 3NF, then selectively denormalize for performance (read replicas, materialized views, Redis cache). BCNF is theoretically cleaner but can prevent some functional dependencies. Interview tip: know all three anomalies (insert/update/delete) and be able to spot 2NF vs 3NF violations.',
+  },
+
+  sql: {
+    overview: `SQL (Structured Query Language) is the standard language for relational databases. Understanding SQL deeply — beyond basic SELECT — is critical for backend engineering and data roles.\n\n**Execution order**: FROM → JOIN → WHERE → GROUP BY → HAVING → SELECT → ORDER BY → LIMIT. Knowing this helps debug unexpected results.\n\n**Joins**: INNER JOIN (matching rows only), LEFT JOIN (all left + matching right, NULLs for unmatched), FULL OUTER JOIN (all rows from both), CROSS JOIN (Cartesian product), SELF JOIN (table joined with itself).\n\n**Aggregation**: GROUP BY collapses rows into groups; aggregate functions (COUNT, SUM, AVG, MAX, MIN) compute per group. WHERE filters rows before grouping; HAVING filters groups after.\n\n**Subqueries**: correlated (references outer query — O(n²) risk) vs non-correlated (executes once). CTEs (WITH clause) improve readability and allow recursion.`,
+    keyPoints: [
+      'Execution order: FROM → JOIN → WHERE → GROUP BY → HAVING → SELECT → ORDER BY → LIMIT',
+      'WHERE filters rows before grouping; HAVING filters groups after aggregation',
+      'NULL: NULL ≠ NULL. Use IS NULL, IS NOT NULL. NULL in COUNT(*) is counted; COUNT(col) is not',
+      'DISTINCT removes duplicates: SELECT DISTINCT col FROM table',
+      'EXISTS vs IN: EXISTS short-circuits on first match (fast for large sets). IN evaluates entire subquery',
+      'Correlated subquery: references outer query — runs once per outer row (often slow)',
+      'CTE (WITH): temporary named result set — improves readability, allows recursion',
+    ],
+    code: `-- Common SQL patterns for interviews
+
+-- 1. Second highest salary
+SELECT MAX(salary) FROM employees WHERE salary < (SELECT MAX(salary) FROM employees);
+-- Better: DENSE_RANK()
+SELECT salary FROM (SELECT salary, DENSE_RANK() OVER (ORDER BY salary DESC) AS rnk FROM employees) t
+WHERE rnk = 2;
+
+-- 2. Find duplicates
+SELECT email, COUNT(*) FROM users GROUP BY email HAVING COUNT(*) > 1;
+
+-- 3. Running total (window function)
+SELECT name, salary,
+  SUM(salary) OVER (ORDER BY hire_date ROWS UNBOUNDED PRECEDING) AS running_total
+FROM employees;
+
+-- 4. Employees with salary above department average
+SELECT e.name, e.salary, e.dept_id
+FROM employees e
+WHERE e.salary > (SELECT AVG(salary) FROM employees WHERE dept_id = e.dept_id);
+-- Better with window:
+SELECT name, salary, dept_id,
+  AVG(salary) OVER (PARTITION BY dept_id) AS dept_avg
+FROM employees;
+
+-- 5. Delete duplicate rows, keep lowest ID
+DELETE FROM users WHERE id NOT IN (
+  SELECT MIN(id) FROM users GROUP BY email
+);`,
+    codeLang: 'sql',
+    summary: 'SQL mastery means knowing execution order, NULL semantics, and window functions. The most common interview questions: second-highest salary (DENSE_RANK), finding duplicates (GROUP BY + HAVING COUNT > 1), running totals (SUM OVER), and deleting duplicates. Window functions are the modern way to solve ranking and comparison-within-group problems — know PARTITION BY, ORDER BY, and framing (ROWS vs RANGE).',
+  },
+
+  indexing: {
+    overview: `Indexes are data structures that speed up data retrieval at the cost of storage and write overhead. Without an index, every query requires a full table scan — O(n). With a B-tree index, most queries become O(log n).\n\n**B-tree index**: balanced tree with high branching factor (hundreds of children per node). Leaf nodes store sorted key-value pairs linked together for efficient range scans. Supports equality and range queries.\n\n**Hash index**: O(1) exact match lookup but cannot support range queries (keys are unordered after hashing). Used in memory (Redis HSET, PostgreSQL hash indexes).\n\n**Composite index**: index on (A, B, C) is usable for prefix queries: (A), (A, B), (A, B, C) — but NOT for (B) or (C) alone (leftmost prefix rule).\n\n**Covering index**: index that contains all columns needed by a query — no need to access the main table. Massive performance win.\n\n**Index selectivity**: high-selectivity columns (few duplicates) benefit most from indexing. Indexing boolean columns rarely helps.`,
+    keyPoints: [
+      'B-tree index: O(log n) lookups, supports range queries and ORDER BY on indexed columns',
+      'Leftmost prefix rule: composite index (a, b, c) supports queries on a, (a,b), (a,b,c) — NOT b alone',
+      'Covering index: index includes all columns needed — avoids main table lookup ("index-only scan")',
+      'Partial index: index only rows matching a condition (e.g., WHERE deleted = false) — smaller, faster',
+      'Index selectivity: low-cardinality columns (male/female) → bad index. Unique columns → excellent index',
+      'Write overhead: every INSERT/UPDATE/DELETE must update all relevant indexes',
+      'EXPLAIN ANALYZE: shows query plan — look for Seq Scan (bad) vs Index Scan (good)',
+    ],
+    code: `-- Indexing best practices
+
+-- 1. Create index on foreign key (always — prevents full table scan on JOIN)
+CREATE INDEX idx_orders_user_id ON orders(user_id);
+
+-- 2. Composite index — order matters! (user_id, created_at) for user order history
+CREATE INDEX idx_orders_user_date ON orders(user_id, created_at DESC);
+-- This covers: WHERE user_id = ? and WHERE user_id = ? ORDER BY created_at DESC
+-- Does NOT help: WHERE created_at > ? (without user_id first)
+
+-- 3. Covering index — includes all columns for a query
+CREATE INDEX idx_orders_covering ON orders(user_id, created_at, status, total)
+  WHERE deleted_at IS NULL; -- partial index: exclude soft-deleted rows
+
+-- Query uses index-only scan (no table access):
+SELECT created_at, status, total FROM orders
+WHERE user_id = 42 AND deleted_at IS NULL ORDER BY created_at DESC LIMIT 20;
+
+-- 4. EXPLAIN ANALYZE to see the query plan
+EXPLAIN ANALYZE
+SELECT * FROM products WHERE category_id = 5 AND price < 100;
+-- Look for: "Index Scan using idx_products_category" vs "Seq Scan"
+
+-- 5. Find missing indexes (PostgreSQL)
+SELECT schemaname, tablename, attname, n_distinct, correlation
+FROM pg_stats WHERE tablename = 'orders';`,
+    codeLang: 'sql',
+    summary: 'Indexes trade write speed and storage for read speed. Always index foreign keys (prevents O(n) JOIN scans). Composite indexes follow the leftmost prefix rule — order matters. Covering indexes eliminate table access entirely. Use EXPLAIN ANALYZE to verify the planner is using your index. Avoid indexing low-cardinality columns (booleans, status with 3 values) — the optimizer will choose a seq scan anyway. For interviews: know B-tree structure, explain covering indexes, and demonstrate EXPLAIN output reading.',
+  },
+
+  // ── System Design Core ───────────────────────────────────────────────────
+
+  cap: {
+    overview: `The CAP theorem (Brewer, 2000) states that a distributed system can guarantee at most 2 of 3 properties simultaneously: Consistency, Availability, and Partition Tolerance.\n\n**Consistency (C)**: Every read receives the most recent write or an error. All nodes see the same data at the same time.\n\n**Availability (A)**: Every request gets a response (success or failure) — the system never returns an error or timeout.\n\n**Partition Tolerance (P)**: The system continues operating even when network partitions cause communication failures between nodes.\n\n**Why P is mandatory**: Network partitions always happen — network cables fail, switches crash, data centers lose connectivity. Any distributed system must handle partitions. So the real choice is **CP vs AP**:\n- **CP systems**: return an error during partitions rather than stale data (HBase, Zookeeper, etcd)\n- **AP systems**: return potentially stale data during partitions (Cassandra, DynamoDB, CouchDB)\n\n**PACELC** extends CAP: even without partitions, there's a latency vs consistency tradeoff.`,
+    keyPoints: [
+      'CAP: Consistency, Availability, Partition Tolerance — pick 2 (but P is always required)',
+      'CP: consistent reads during partitions, but may return errors (HBase, Zookeeper, etcd)',
+      'AP: always responds, but may return stale data (Cassandra, DynamoDB, DNS)',
+      'Eventual consistency: writes propagate eventually; reads may temporarily lag',
+      'Strong consistency: linearizability — reads always see the latest write (expensive)',
+      'PACELC: Partition → (CP/AP), Else (Latency/Consistency). Cassandra: PA/EL, HBase: PC/EC',
+      'Practical choice: financial systems → CP. Social feeds, DNS, CDN → AP',
+    ],
+    code: `// CAP trade-off example: distributed cache
+
+// CP approach: reject reads when can't confirm freshness
+class CPCache {
+  constructor(nodes) { this.nodes = nodes; this.quorum = Math.floor(nodes.length / 2) + 1; }
+
+  async read(key) {
+    // Read from quorum of nodes — return only if majority agrees
+    const responses = await Promise.all(
+      this.nodes.slice(0, this.quorum).map(n => n.get(key).catch(() => null))
+    );
+    const values = responses.filter(Boolean);
+    if (values.length < this.quorum) throw new Error('Quorum not reached — partition detected');
+    return values[0]; // strong consistency — rejects rather than returning stale
+  }
+}
+
+// AP approach: return best-effort data even during partitions
+class APCache {
+  constructor(nodes) { this.nodes = nodes; }
+
+  async read(key) {
+    // Try primary, fall back to any available replica
+    for (const node of this.nodes) {
+      try { return await node.get(key); } // may be stale but always responds
+      catch { continue; }
+    }
+    return null; // soft failure (null instead of error)
+  }
+}`,
+    codeLang: 'javascript',
+    summary: 'CAP is the foundational distributed systems tradeoff. Always choose P (you can\'t prevent network failures). Then choose CP (consistency, may reject requests during partitions) or AP (always responds, may be stale). Financial transactions need CP. DNS, CDNs, social feeds use AP. For interviews: know CP vs AP examples, explain eventual consistency, and mention PACELC as the more nuanced model (latency tradeoff even without partitions).',
+  },
+
+  caching: {
+    overview: `Caching is the primary technique for improving read performance in scalable systems. A cache stores recently-used or precomputed data in fast memory (RAM) to avoid expensive recomputation or database queries.\n\n**Cache patterns**:\n- **Cache-aside** (Lazy loading): application checks cache first; on miss, loads from DB and populates cache. Most common pattern.\n- **Write-through**: write to cache and DB simultaneously. Cache always consistent but higher write latency.\n- **Write-behind** (Write-back): write to cache only, async write to DB. Lower write latency but risk of data loss.\n- **Read-through**: cache sits in front of DB, automatically loads on miss.\n\n**Eviction policies**: LRU (Least Recently Used) — evict the item not accessed longest. LFU (Least Frequently Used). FIFO. TTL-based expiry.\n\n**Thundering herd**: cache miss on a popular key causes many simultaneous DB queries. Solution: mutex/lock on cache population, or probabilistic early expiration.`,
+    keyPoints: [
+      'Cache-aside: check cache → miss → load from DB → populate cache (most common pattern)',
+      'Write-through: write to cache + DB simultaneously → consistent but slower writes',
+      'Write-behind: write to cache, async flush to DB → fast writes but risk data loss on crash',
+      'TTL: Time-To-Live — cache entry automatically expires after N seconds',
+      'Cache stampede / thundering herd: many requests miss same key simultaneously → all hit DB',
+      'Thundering herd solutions: mutex (one requester populates), cache warming, jitter on TTL',
+      'Cache penetration: query for non-existent key → always misses → DB overload. Fix: cache null results or Bloom filter',
+    ],
+    code: `// Cache-aside pattern with Redis (simulated)
+class CacheAside {
+  constructor(cache, db, ttl = 300) {
+    this.cache = cache; // e.g., Redis
+    this.db = db;
+    this.ttl = ttl;
+    this.locks = new Map(); // thundering herd protection
+  }
+
+  async get(key) {
+    // 1. Check cache
+    const cached = await this.cache.get(key);
+    if (cached !== null) return JSON.parse(cached); // cache hit
+
+    // 2. Thundering herd protection: only one request populates cache
+    if (this.locks.has(key)) return this.locks.get(key);
+
+    const loadPromise = this._load(key);
+    this.locks.set(key, loadPromise);
+    try {
+      return await loadPromise;
+    } finally {
+      this.locks.delete(key);
+    }
+  }
+
+  async _load(key) {
+    // 3. Load from DB
+    const value = await this.db.find(key);
+
+    // 4. Populate cache (even null — prevents cache penetration)
+    await this.cache.set(key, JSON.stringify(value ?? '__null__'), 'EX', this.ttl);
+    return value;
+  }
+
+  async set(key, value) {
+    await this.db.save(key, value);        // write to DB first
+    await this.cache.del(key);             // invalidate cache (not update)
+    // Pattern: delete cache on write, repopulate on next read
+  }
+}`,
+    codeLang: 'javascript',
+    summary: 'Caching is often the highest-leverage optimization. Cache-aside is the default — app controls cache population and invalidation. LRU is the default eviction policy. The three hard problems: cache invalidation (when does cache go stale?), thundering herd (protect with mutex or probabilistic early refresh), and cache penetration (non-existent keys — cache null values). For interviews: always discuss cache invalidation strategy and thundering herd when proposing caching.',
+  },
+
+  scalability: {
+    overview: `Scalability is a system\'s ability to handle increasing load by adding resources. There are two fundamental approaches:\n\n**Vertical scaling (Scale Up)**: add more CPU, RAM, or storage to existing machines. Simple but has a hard physical limit and single point of failure. Expensive at the high end.\n\n**Horizontal scaling (Scale Out)**: add more machines. Requires stateless services (or distributed state), load balancing, and data partitioning. The foundation of cloud-native architecture.\n\n**Stateless services**: services that store no session state locally — any instance can handle any request. State is externalized to Redis/DB. Enables horizontal scaling.\n\n**Key scalability patterns**:\n- **Load balancing**: distribute requests across instances (Round Robin, Least Connections, Consistent Hashing)\n- **Database read replicas**: scale reads independently from writes\n- **Caching layer**: reduce DB load for repeated reads\n- **Message queues**: decouple producers from consumers, absorb traffic spikes\n- **CDN**: serve static assets from edge nodes close to users`,
+    keyPoints: [
+      'Vertical scaling: bigger machine. Simple but limited, expensive, single point of failure',
+      'Horizontal scaling: more machines. Requires stateless design and data partitioning',
+      'Stateless service: stores no local session — any instance handles any request',
+      'Session state externalization: JWT in client, or session in shared Redis',
+      'Read replicas: write to primary, read from replicas — scales reads 10-100×',
+      'Caching: 99% of reads often served from cache — reduces DB load dramatically',
+      'Queue-based load leveling: queue absorbs spikes, workers drain at sustainable rate',
+    ],
+    code: `// Stateless JWT auth (enables horizontal scaling)
+const jwt = require('jsonwebtoken');
+
+// Any server can verify this token — no shared session store needed
+function createToken(userId, role) {
+  return jwt.sign(
+    { userId, role, iat: Math.floor(Date.now() / 1000) },
+    process.env.JWT_SECRET,
+    { expiresIn: '24h' }
+  );
+}
+
+function verifyToken(token) {
+  // Self-contained — no database lookup required
+  return jwt.verify(token, process.env.JWT_SECRET);
+  // Any of 100 server instances can verify this
+}
+
+// Horizontal scaling checklist:
+// ✓ No local file writes (use S3/GCS)
+// ✓ No in-memory session (use Redis)
+// ✓ No sticky sessions required (load balancer can send to any instance)
+// ✓ Health check endpoint (GET /health → 200)
+// ✓ Graceful shutdown (drain in-flight requests on SIGTERM)
+// ✓ Environment-based config (no hardcoded IPs)`,
+    codeLang: 'javascript',
+    summary: 'Scalability starts with stateless services — externalize state to Redis or the database. Scale reads with replicas; scale writes with sharding or CQRS. Queue-based leveling (Kafka, RabbitMQ, SQS) absorbs traffic spikes without overloading downstream services. For interviews: always start system design answers by calculating scale requirements (requests/sec, data size, read/write ratio), then propose the appropriate scaling strategy.',
+  },
+
+  // ── Networks ─────────────────────────────────────────────────────────────
+
+  osi: {
+    overview: `The OSI (Open Systems Interconnection) model is a conceptual framework that standardizes network communication into 7 layers. Each layer serves the layer above and is served by the layer below, with well-defined interfaces between them.\n\n1. **Physical** (L1): bits on the wire — electrical signals, fiber optics, WiFi radio waves. Switches, hubs, cables.\n2. **Data Link** (L2): framing, MAC addressing, error detection (CRC). Ethernet, 802.11 WiFi. Operates within one network segment.\n3. **Network** (L3): logical addressing (IP), routing between networks. IP, ICMP, routing protocols (BGP, OSPF).\n4. **Transport** (L4): end-to-end communication, ports, reliability. TCP (reliable, ordered) and UDP (unreliable, fast).\n5. **Session** (L5): managing sessions and connections. TLS handshake negotiation fits here.\n6. **Presentation** (L6): data encoding, encryption, compression. TLS encryption, JPEG compression.\n7. **Application** (L7): user-facing protocols. HTTP, HTTPS, DNS, SMTP, FTP, WebSocket.\n\n**Mnemonic**: "Please Do Not Throw Sausage Pizza Away" (Physical, Data Link, Network, Transport, Session, Presentation, Application)`,
+    keyPoints: [
+      'L1 Physical: bits → signals. L2 Data Link: frames + MAC. L3 Network: packets + IP. L4 Transport: segments + ports',
+      'L4 TCP: reliable, ordered, flow control. UDP: unreliable, fast, no connection',
+      'L3 switches on IP addresses (routers). L2 switches on MAC addresses',
+      'L7 DNS resolves domain → IP (operates at Application layer but affects L3 routing)',
+      'TLS sits between L4 (Transport) and L7 (Application) — often called L6 (Presentation)',
+      'Firewalls: L3/L4 (packet filter on IP/port) or L7 (deep packet inspection)',
+      'Load balancers: L4 (TCP, fast) or L7 (HTTP, content-aware — can route by URL path)',
+    ],
+    code: `// Protocol stack demonstration: HTTP request over TCP
+// What happens when you fetch https://example.com/api/users
+
+// L7 Application: HTTP request
+const request = "GET /api/users HTTP/1.1\\r\\nHost: example.com\\r\\n\\r\\n";
+
+// L6 Presentation: TLS encrypts the request
+// const encrypted = TLS.encrypt(request, serverCert);
+
+// L5 Session: TLS session established in previous handshake
+
+// L4 Transport: TCP wraps in segment with source port, destination port 443, SEQ number
+// TCP Segment Header: SRC:54321 DEST:443 SEQ:1001 ACK:501 FLAGS:PSH|ACK
+
+// L3 Network: IP wraps with source IP, destination IP
+// IP Packet Header: SRC:192.168.1.100 DEST:93.184.216.34 TTL:64 PROTOCOL:TCP
+
+// L2 Data Link: Ethernet frame with MAC addresses
+// Frame: SRC_MAC:aa:bb:cc:dd:ee:ff DEST_MAC:00:11:22:33:44:55 TYPE:IPv4
+
+// L1 Physical: 010100110... electrical signals on copper or light on fiber
+
+// On arrival, the stack is unwrapped in reverse:
+// Physical → Data Link (check CRC) → Network (check IP) →
+// Transport (reassemble, check ports) → TLS decrypt → HTTP parse`,
+    codeLang: 'javascript',
+    summary: 'OSI is the conceptual framework; TCP/IP is the practical 4-layer implementation (Link, Internet, Transport, Application). Remember: L4 gives you ports (TCP/UDP) — load balancers can work at L4 (fast, no payload inspection) or L7 (content-aware, can route by URL). Firewalls operate at L3/L4 (packet filters) or L7 (WAF). For interviews: trace an HTTP request through all layers to show depth.',
+  },
+
+  http: {
+    overview: `HTTP (HyperText Transfer Protocol) is the foundation of web communication. Understanding HTTP deeply — beyond just GET/POST — is essential for backend engineering.\n\n**HTTP/1.1**: text-based, one request per connection (or pipelining with head-of-line blocking). Persistent connections (Connection: keep-alive) reduced TCP setup overhead.\n\n**HTTP/2**: binary framing, multiplexing (multiple concurrent streams over one TCP connection), header compression (HPACK), server push. Dramatically reduces latency.\n\n**HTTP/3**: built on QUIC (UDP-based). Eliminates TCP head-of-line blocking. Faster connection establishment (0-RTT). Native multiplexing at transport layer.\n\n**Status codes**: 2xx (success), 3xx (redirect), 4xx (client error), 5xx (server error). Critical ones: 200 OK, 201 Created, 204 No Content, 301/302 Redirect, 400 Bad Request, 401 Unauthorized, 403 Forbidden, 404 Not Found, 429 Too Many Requests, 500 Internal Server Error, 502 Bad Gateway, 503 Service Unavailable.\n\n**Headers**: Content-Type, Cache-Control, Authorization, CORS headers (Access-Control-*), ETag, Last-Modified.`,
+    keyPoints: [
+      'HTTP/1.1: head-of-line blocking (one request at a time per connection without pipelining)',
+      'HTTP/2: multiplexing — multiple requests over one TCP connection (eliminates HOL blocking at HTTP layer)',
+      'HTTP/3: QUIC over UDP — eliminates TCP HOL blocking, 0-RTT connection establishment',
+      'Idempotent: GET, PUT, DELETE — safe to retry. POST is not idempotent',
+      'Cache-Control: max-age=3600 (1 hour), no-cache (revalidate), no-store (never cache)',
+      'ETag: server fingerprint of resource. Client sends If-None-Match → 304 Not Modified if unchanged',
+      'CORS: browser enforces same-origin policy. Server must send Access-Control-Allow-Origin header',
+    ],
+    code: `// HTTP fundamentals: REST API with proper status codes and headers
+const express = require('express');
+const app = express();
+
+// GET: idempotent — safe to retry
+app.get('/users/:id', async (req, res) => {
+  const user = await db.findUser(req.params.id);
+  if (!user) return res.status(404).json({ error: 'User not found' });
+
+  // Conditional GET: avoid re-sending unchanged data
+  const etag = \`"\${user.updatedAt.getTime()}"\`;
+  res.set('ETag', etag);
+  res.set('Cache-Control', 'private, max-age=60');
+
+  if (req.headers['if-none-match'] === etag) return res.status(304).end();
+  return res.status(200).json(user);
+});
+
+// POST: not idempotent — creates new resource
+app.post('/users', async (req, res) => {
+  const user = await db.createUser(req.body);
+  return res.status(201).location(\`/users/\${user.id}\`).json(user);
+});
+
+// PUT: idempotent — replace entire resource
+app.put('/users/:id', async (req, res) => {
+  const user = await db.replaceUser(req.params.id, req.body);
+  return res.status(200).json(user);
+});
+
+// DELETE: idempotent
+app.delete('/users/:id', async (req, res) => {
+  await db.deleteUser(req.params.id);
+  return res.status(204).end(); // 204 No Content
+});`,
+    codeLang: 'javascript',
+    summary: 'HTTP is the protocol engineers interact with daily. HTTP/2 solves HOL blocking at the application layer; HTTP/3 (QUIC) solves it at the transport layer. Status codes encode meaning — use them correctly (201 for creates, 204 for deletes, 409 for conflicts). ETag + conditional GET enables efficient caching without stale data. For interviews: explain HTTP/1.1 vs 2 vs 3, idempotency (GET/PUT/DELETE = yes, POST = no), and caching headers.',
+  },
+
+  dns: {
+    overview: `DNS (Domain Name System) translates human-readable domain names (example.com) into IP addresses (93.184.216.34). It\'s a globally distributed, hierarchical, cached key-value store.\n\n**Resolution process**: Browser cache → OS cache → Recursive resolver (ISP/8.8.8.8) → Root name server → TLD name server (.com) → Authoritative name server → IP address.\n\n**Record types**:\n- **A**: domain → IPv4 (example.com → 93.184.216.34)\n- **AAAA**: domain → IPv6\n- **CNAME**: domain → another domain (alias)\n- **MX**: mail server records\n- **TXT**: arbitrary text (SPF, DKIM, domain verification)\n- **NS**: authoritative name server for a domain\n- **SOA**: start of authority — primary NS, refresh intervals\n\n**TTL (Time-To-Live)**: how long resolvers cache the record. Low TTL (60s) = fast propagation but more queries. High TTL (86400s) = less load but slow failover.\n\n**DNS-based load balancing**: multiple A records for same domain — resolver returns different IPs (round-robin DNS).`,
+    keyPoints: [
+      'Hierarchical: root (.) → TLD (.com) → domain (example.com) → subdomain (api.example.com)',
+      'Resolution: browser cache → OS cache → recursive resolver → root → TLD → authoritative NS',
+      'A record: domain → IPv4. CNAME: alias → canonical name. MX: mail servers',
+      'TTL: low = fast propagation but more DNS queries. High TTL = cached longer, slow failover',
+      'DNS propagation: when you change a record, old TTL must expire across all caches worldwide',
+      'DNS over HTTPS (DoH): encrypts DNS queries — prevents ISP snooping and manipulation',
+      'Negative caching: NXDOMAIN (non-existent domain) is also cached for the SOA negative TTL',
+    ],
+    code: `// DNS lookup demonstration using Node.js
+const dns = require('dns').promises;
+
+// A record lookup (domain → IPv4)
+const { address } = await dns.lookup('example.com');
+console.log('IPv4:', address); // 93.184.216.34
+
+// Full DNS resolution (shows all records)
+const addresses = await dns.resolve4('google.com');
+console.log('A records:', addresses); // multiple IPs for load balancing
+
+// MX records (mail servers)
+const mxRecords = await dns.resolveMx('gmail.com');
+console.log('MX:', mxRecords); // [{exchange: 'alt1.gmail-smtp-in.l.google.com', priority: 5}, ...]
+
+// TXT records (domain verification, SPF)
+const txtRecords = await dns.resolveTxt('github.com');
+console.log('TXT:', txtRecords.flat()); // SPF, DKIM, verification tokens
+
+// Reverse DNS (IP → domain)
+const hostname = await dns.reverse('8.8.8.8');
+console.log('PTR:', hostname); // ['dns.google']
+
+// Custom resolver (use Cloudflare instead of ISP DNS)
+const resolver = new dns.Resolver();
+resolver.setServers(['1.1.1.1', '8.8.8.8']);
+const result = await resolver.resolve4('cloudflare.com');`,
+    codeLang: 'javascript',
+    summary: 'DNS is the phone book of the internet — hierarchical, cached, eventually consistent. The resolution chain (browser → OS → recursive resolver → authoritative) takes ~100ms on first lookup; subsequent lookups hit caches. TTL controls cache lifetime — balance between freshness and resolver load. For system design: low TTL for failover flexibility, DNS-based load balancing for global routing. For security: DNS is a common attack vector (DNS poisoning, DDoS on resolvers).',
+  },
 };
 
 const DEFAULT_CONTENT: TopicContent = {
