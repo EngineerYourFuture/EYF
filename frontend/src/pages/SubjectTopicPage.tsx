@@ -2481,6 +2481,308 @@ await redis.expire(\`session:\${id}\`, 3600);         // TTL`,
     summary: 'NoSQL is not a silver bullet — it trades relational flexibility (ad-hoc queries, joins) for specific optimizations. MongoDB wins on flexible schema; Cassandra wins on write throughput; Redis wins on latency; Neo4j wins on traversal queries. The real question is: what are your access patterns, and which data model fits them best?',
   },
 
+  // ── OS: Memory Management ─────────────────────────────────────────────────
+
+  memory: {
+    overview: `Memory management is the OS mechanism for allocating, tracking, and freeing physical RAM among competing processes. Modern systems use virtual memory to give each process an isolated 4GB+ address space regardless of physical RAM size.\n\nThe OS maintains a page table mapping virtual pages to physical frames. When a process accesses a virtual address, the MMU translates it — if the page isn't in RAM (page fault), the OS loads it from disk.`,
+    keyPoints: [
+      'Physical memory divided into fixed-size frames; virtual memory into equal-size pages (typically 4KB)',
+      'Page table: per-process mapping of virtual page number → physical frame number',
+      'TLB (Translation Lookaside Buffer): hardware cache of recent virtual→physical translations — O(1) on hit',
+      'Page fault: accessing a page not in RAM → OS loads from swap, updates page table',
+      'Fragmentation: external (holes between allocations), internal (allocated more than needed)',
+      'Memory allocators: first-fit, best-fit, buddy system; malloc uses segregated free lists (glibc)',
+      'Stack vs heap: stack (LIFO, fast, fixed per-thread), heap (dynamic, needs explicit free/GC)',
+      'Garbage collection: mark-and-sweep, reference counting, generational GC (Java/Go)',
+    ],
+    code: `// Virtual address translation (simplified)
+// VA = virtual address, 32-bit, 4KB pages
+// Page size = 4096 = 2^12  →  12-bit offset
+// VPN = Virtual Page Number = VA >> 12
+// Offset = VA & 0xFFF
+
+function translateAddress(va: number, pageTable: Map<number, number>): number {
+  const vpn = va >>> 12;           // virtual page number
+  const offset = va & 0xFFF;       // byte offset within page
+  const frame = pageTable.get(vpn);
+  if (frame === undefined) throw new Error('Page fault! OS must load from disk');
+  return (frame << 12) | offset;   // physical address
+}
+
+// Example page table entries
+const pageTable = new Map([
+  [0, 3],   // virtual page 0 → physical frame 3
+  [1, 7],   // virtual page 1 → physical frame 7
+]);
+
+console.log(translateAddress(0x0042, pageTable));  // VPN=0, frame=3 → 0x3042
+console.log(translateAddress(0x1100, pageTable));  // VPN=1, frame=7 → 0x7100
+
+// TLB hit rate matters enormously:
+// Without TLB: every memory access = 2 memory reads (page table + data)
+// With TLB (99% hit rate): ~1 memory read on average`,
+    codeLang: 'typescript',
+    summary: 'Virtual memory is the key OS abstraction that makes process isolation, swapping, and memory-mapped files possible. In interviews: understand the page table walk, TLB\'s role in performance, and page fault handling. For system design: memory pressure causes swapping and cascading latency — always provision enough RAM for working set.',
+  },
+
+  virtual: {
+    overview: `Virtual memory allows the OS to present processes with more memory than physically exists by storing unused pages on disk (swap space). It also enables memory-mapped files, copy-on-write fork semantics, and shared libraries mapped into multiple process address spaces.\n\nDemand paging is the key mechanism: pages are only loaded into RAM when first accessed. This enables fast program startup even for large executables — only touched pages are loaded.`,
+    keyPoints: [
+      'Demand paging: load pages on first access (page fault), not at program startup',
+      'Swap space: disk partition (or file) used to store evicted pages; accessing swapped pages is ~10,000× slower than RAM',
+      'Copy-on-write (COW): fork() shares parent pages read-only; a write causes a private copy to be made — enables cheap fork()',
+      'Memory-mapped files (mmap): map a file into virtual address space; reads/writes become file I/O without syscalls',
+      'Working set: the set of pages a process actively uses; if working set > RAM → thrashing',
+      'Thrashing: CPU spends more time swapping than executing — fix by adding RAM or reducing multiprogramming degree',
+      'Shared libraries: one physical copy mapped into all process address spaces (dynamic linking, .so/.dll)',
+    ],
+    code: `// mmap: memory-mapped file access (Node.js equivalent via Buffer)
+// In C: void* ptr = mmap(NULL, size, PROT_READ, MAP_PRIVATE, fd, 0);
+
+// Conceptually — reading a 1GB file without loading it all:
+import { createReadStream } from 'fs';
+// mmap OS equivalent: the OS maps the file into virtual address space
+// Pages are loaded on demand as you access bytes — no explicit read() calls
+
+// Copy-on-write (COW) demonstrated conceptually
+/*
+Parent process forks:
+  virtual page A → physical frame 5 (shared, marked read-only)
+
+Child writes to page A:
+  1. Write fault → OS triggered
+  2. OS allocates new frame 9
+  3. Copies frame 5 → frame 9
+  4. Updates child's page table: A → frame 9 (now writable)
+  5. Parent's page table: A → frame 5 (unchanged)
+
+Cost: one page copy (4KB) only when written — not upfront
+This makes fork() O(1) instead of O(address space size)
+*/
+
+// Page replacement (when RAM is full, which page to evict?)
+// LRU (Least Recently Used): evict page not used for longest time
+// Approximate LRU: reference bits reset periodically (hardware)
+// Clock algorithm: circular scan, evict first page with reference bit 0
+
+// Thrashing example:
+// 4 processes, each needs 10 pages, only 30 page frames total
+// All 4 active → constant page faults → CPU utilization drops to < 10%`,
+    codeLang: 'typescript',
+    summary: 'Virtual memory\'s killer features are demand paging (only load what you use), COW fork (cheap process creation), and mmap (file I/O as memory access). In system design, the lesson is: keep your working set in RAM. When processes start swapping, latency degrades non-linearly and the system can thrash completely.',
+  },
+
+  // ── DBMS: Recovery & Query Optimization ───────────────────────────────────
+
+  recovery: {
+    overview: `Database recovery ensures that committed transactions survive crashes (durability) and incomplete transactions are rolled back (atomicity). The standard mechanism is Write-Ahead Logging (WAL): every change is written to a durable log before being applied to the data pages.\n\nCheckpointing periodically flushes dirty pages to disk, bounding how much log must be replayed on recovery. ARIES (Algorithm for Recovery and Isolation Exploiting Semantics) is the standard recovery algorithm used in most relational databases.`,
+    keyPoints: [
+      'WAL (Write-Ahead Logging): log record written to durable storage BEFORE data page is modified',
+      'Force/steal policy: force = flush page at commit (guarantees durability without WAL); steal = allow dirty pages to disk before commit',
+      'ARIES uses: no-force + steal → maximum flexibility; WAL provides durability',
+      'Log records: LSN (Log Sequence Number), transaction ID, page ID, before-image, after-image',
+      'Recovery phases: Analysis (find dirty pages + active transactions) → Redo (replay from last checkpoint) → Undo (rollback incomplete transactions)',
+      'Checkpoint: write all dirty page LSNs to log → reduces redo work on recovery',
+      'Idempotent redo: replaying a log record multiple times has same effect as once (critical for crash-safe recovery)',
+    ],
+    code: `// Write-Ahead Logging — conceptual flow
+interface LogRecord {
+  lsn: number;        // Log Sequence Number (monotonic)
+  txnId: string;
+  type: 'BEGIN' | 'UPDATE' | 'COMMIT' | 'ABORT' | 'CHECKPOINT';
+  pageId?: string;
+  before?: Buffer;    // pre-image (for undo)
+  after?: Buffer;     // post-image (for redo)
+  prevLSN?: number;   // previous log record for this transaction (undo chain)
+}
+
+// Transaction flow with WAL
+async function updateRecord(txn: Transaction, pageId: string, data: Buffer) {
+  const page = await bufferPool.getPage(pageId);
+
+  // 1. Write log record FIRST (WAL rule: log before data)
+  const lsn = await log.append({
+    txnId: txn.id,
+    type: 'UPDATE',
+    pageId,
+    before: page.currentData,  // for undo
+    after: data,                // for redo
+    prevLSN: txn.lastLSN,
+  });
+
+  // 2. Update page in buffer pool (NOT yet on disk)
+  page.data = data;
+  page.pageLSN = lsn;    // mark: log covers up to this LSN
+  txn.lastLSN = lsn;
+
+  // Page may flush to disk later (steal policy) — that's OK because
+  // the log record is already durable and can redo or undo the change
+}
+
+async function commit(txn: Transaction) {
+  // Write COMMIT log record and flush log to disk
+  await log.append({ txnId: txn.id, type: 'COMMIT' });
+  await log.flush();  // THIS guarantees durability — log is on disk
+  // Data pages can stay in buffer pool — will be flushed lazily
+}`,
+    codeLang: 'typescript',
+    summary: 'WAL is the core mechanism behind database durability. The ARIES protocol (no-force + steal + WAL) maximizes performance while guaranteeing ACID. In system design interviews, mention WAL when discussing how databases survive crashes — it\'s also the mechanism behind change data capture (CDC) and replication in systems like PostgreSQL.',
+  },
+
+  'query-opt': {
+    overview: `The query optimizer is arguably the most sophisticated component of a relational database. Given a SQL query, it generates multiple logically equivalent execution plans and chooses the one with the lowest estimated cost — measured in disk I/O and CPU operations.\n\nModern optimizers are cost-based: they maintain statistics (row counts, column cardinality, histograms) and model the cost of each operation. Understanding query plans helps you write queries that the optimizer can execute efficiently.`,
+    keyPoints: [
+      'Query parsing → logical plan (algebraic expression) → physical plan (with access methods) → execution',
+      'EXPLAIN / EXPLAIN ANALYZE: shows the chosen plan; ANALYZE actually runs the query and shows real vs estimated rows',
+      'Sequential scan vs index scan: seq scan is often faster for > 10-15% of table rows (fewer random I/Os)',
+      'Nested loop join: O(n×m) — good when inner table has index and outer table is small',
+      'Hash join: O(n+m) — best for large equijoins, builds hash table of smaller side',
+      'Merge join: O(n log n + m log m) — best for already-sorted inputs (exploit ORDER BY)',
+      'Statistics: optimizer uses pg_statistic / system catalogs — stale stats → bad plans → ANALYZE to refresh',
+      'Index selection: covering index eliminates heap reads; composite index order matches query predicates',
+    ],
+    code: `-- PostgreSQL EXPLAIN ANALYZE example
+EXPLAIN ANALYZE
+SELECT u.name, COUNT(o.id) AS order_count
+FROM users u
+JOIN orders o ON u.id = o.user_id
+WHERE u.country = 'India'
+  AND o.created_at > NOW() - INTERVAL '30 days'
+GROUP BY u.name
+ORDER BY order_count DESC
+LIMIT 10;
+
+-- Reading the output:
+-- "Seq Scan on users" + "rows=50000" + "actual rows=50000"  → stats accurate
+-- "Index Scan on orders" → good, using idx_orders_user_date
+-- "Hash Join" → building hash table on smaller side
+-- "Sort" → memory sort (< work_mem) or disk sort (worse)
+-- "cost=0.00..123.45" → estimated; "actual time=0.1..15.2ms" → real
+
+-- Optimization strategies:
+-- 1. Add composite index for common WHERE + ORDER BY
+CREATE INDEX idx_orders_user_created ON orders(user_id, created_at DESC);
+
+-- 2. Cover the query (avoid heap reads)
+CREATE INDEX idx_orders_covering
+  ON orders(user_id, created_at DESC)
+  INCLUDE (id);   -- PostgreSQL 11+ INCLUDE clause
+
+-- 3. Partial index for filtered queries
+CREATE INDEX idx_recent_orders ON orders(user_id)
+  WHERE created_at > '2024-01-01';   -- only index rows you query
+
+-- 4. Force/hint the planner (when optimizer is wrong)
+SET enable_seqscan = off;   -- PostgreSQL: force index use (debug only)
+-- Note: MySQL supports USE INDEX, FORCE INDEX hints
+
+-- Statistics freshness
+ANALYZE orders;             -- refresh statistics for one table
+-- Auto-ANALYZE runs when > 20% of rows changed (pg_autovacuum)`,
+    codeLang: 'sql',
+    summary: 'The query optimizer is doing machine-learning-before-ML to find the cheapest execution plan. As a developer: read EXPLAIN ANALYZE, look for seq scans on large tables, nested loops on large joins, and rows estimates that are wildly off actual. Fix with targeted indexes, fresh statistics, or query rewrites that align with how indexes are built.',
+  },
+
+  // ── Networks: QUIC & Congestion ───────────────────────────────────────────
+
+  quic: {
+    overview: `QUIC is a transport protocol built on UDP that underlies HTTP/3. It combines the best properties of TCP (reliability, ordering, flow control) and TLS (encryption) into a single protocol, eliminating the separate TCP and TLS handshakes. QUIC reduces connection establishment from 2+ RTTs (TCP + TLS) to 1 RTT, or even 0-RTT for returning clients.\n\nQuic\'s biggest innovation is multiplexing streams without head-of-line blocking. In HTTP/2 over TCP, a single lost packet blocks all streams; in QUIC each stream is independent at the transport layer.`,
+    keyPoints: [
+      'QUIC = reliability + encryption + multiplexing, all built into one UDP-based protocol',
+      'Connection: 1-RTT establishment (TLS 1.3 integrated); 0-RTT for session resumption',
+      'HTTP/3 over QUIC: eliminates TCP head-of-line blocking — one lost packet can\'t stall other streams',
+      'Connection migration: QUIC uses connection IDs (not 4-tuple) — survives IP/port changes (mobile roaming)',
+      'Forward Error Correction (FEC): some implementations add redundant packets to mask losses',
+      'Userspace: QUIC runs in application code, not kernel — faster iteration than TCP (which needs kernel patches)',
+      'Adoption: Google (all traffic), Cloudflare, Meta, YouTube all use QUIC/HTTP3',
+      'When not to use QUIC: UDP blocked by corporate firewalls; UDP is not QUIC\'s problem, fallback to TCP',
+    ],
+    code: `// HTTP/3 vs HTTP/2 — the HOL blocking problem
+// HTTP/2 over TCP:
+// Stream 1: GET /style.css  [frame 1] [frame 2] ← LOST [frame 4]
+// Stream 2: GET /app.js     ← blocked! TCP must retransmit frame 3
+//                               all streams stalled by single TCP loss
+
+// QUIC:
+// Stream 1: GET /style.css  [frame 1] [frame 2] ← LOST → retransmit
+// Stream 2: GET /app.js     [frame A] [frame B] [frame C] → ✅ delivered
+//           Stream 2 is NOT affected by stream 1's loss
+
+// QUIC connection establishment
+// TLS 1.2 + TCP: TCP SYN/SYNACK + TLS ClientHello/ServerHello/Finish = 2-3 RTT
+// TLS 1.3 + TCP: 1 RTT for TCP + 1 RTT for TLS = 2 RTT
+// QUIC (first connection): 1 RTT (TLS 1.3 integrated into QUIC handshake)
+// QUIC (0-RTT resume): 0 RTT — client sends data in first packet!
+//   (0-RTT has replay attack risk — use only for idempotent requests)
+
+// Connection ID (enables migration)
+// Traditional TCP: identified by (srcIP, srcPort, dstIP, dstPort)
+// Switch Wi-Fi → 4G? IP changes → TCP connection drops → reconnect needed
+// QUIC: identified by Connection ID (random, app-level)
+// Switch Wi-Fi → 4G? Same Connection ID → seamless handoff!
+
+// Checking HTTP/3 support:
+// curl --http3 https://example.com
+// Response: HTTP/3 200`,
+    codeLang: 'typescript',
+    summary: 'QUIC/HTTP3 is the future of web transport. The key advantages for system design: 1) faster connection setup (0-RTT), 2) no HOL blocking for multiplexed streams, 3) connection migration for mobile. The practical note: most major CDNs (Cloudflare, AWS CloudFront) support HTTP/3 transparently — enable it for free latency wins.',
+  },
+
+  congestion: {
+    overview: `TCP congestion control prevents any single sender from overwhelming the network. Without it, senders would transmit at line rate until routers drop packets, causing global congestion collapse.\n\nModern TCP uses Additive Increase Multiplicative Decrease (AIMD): slowly increase sending rate, back off sharply on loss. Different algorithms (Reno, CUBIC, BBR) vary in how aggressively they probe and how they interpret congestion signals.`,
+    keyPoints: [
+      'Congestion window (cwnd): sender\'s self-imposed limit on unacknowledged bytes in flight',
+      'Slow start: cwnd doubles every RTT until ssthresh — exponential growth, not slow at all',
+      'Congestion avoidance: after ssthresh, cwnd grows by 1 MSS per RTT — linear increase',
+      'Fast retransmit: 3 duplicate ACKs → retransmit without waiting for timeout',
+      'TCP Reno: on loss, ssthresh = cwnd/2, cwnd = ssthresh (AIMD)',
+      'TCP CUBIC (Linux default): cubic function for cwnd growth — faster recovery on high-bandwidth paths',
+      'BBR (Bottleneck Bandwidth and RTT): model-based, measures actual bandwidth and RTT — used by Google, YouTube',
+      'ECN (Explicit Congestion Notification): routers mark packets (not drop) to signal congestion — preserves throughput',
+    ],
+    code: `// TCP Congestion Control state machine (simplified)
+interface TCPSender {
+  cwnd: number;      // congestion window (bytes)
+  ssthresh: number;  // slow start threshold
+  state: 'slow_start' | 'congestion_avoidance' | 'fast_recovery';
+  mss: number;       // maximum segment size (typically 1460 bytes)
+}
+
+function onACK(tcp: TCPSender): void {
+  if (tcp.state === 'slow_start') {
+    tcp.cwnd += tcp.mss;             // double per RTT (exponential)
+    if (tcp.cwnd >= tcp.ssthresh) {
+      tcp.state = 'congestion_avoidance';
+    }
+  } else {
+    // Congestion avoidance: increase by 1 MSS per RTT
+    tcp.cwnd += (tcp.mss * tcp.mss) / tcp.cwnd;  // ≈ 1 MSS / RTT
+  }
+}
+
+function onLoss(tcp: TCPSender, signal: 'timeout' | 'triple_dup_ack'): void {
+  if (signal === 'timeout') {
+    // Severe congestion: reset to slow start
+    tcp.ssthresh = tcp.cwnd / 2;
+    tcp.cwnd = tcp.mss;              // restart from 1 MSS
+    tcp.state = 'slow_start';
+  } else {
+    // Triple duplicate ACK: fast retransmit + fast recovery
+    tcp.ssthresh = tcp.cwnd / 2;
+    tcp.cwnd = tcp.ssthresh;         // halve (AIMD multiplicative decrease)
+    tcp.state = 'congestion_avoidance';
+  }
+}
+
+// BBR approach (bandwidth-delay product model)
+// BBR tracks: maxBW (max bandwidth observed) + minRTT (min RTT observed)
+// Target cwnd = maxBW × minRTT (bandwidth-delay product)
+// No packet loss signals — uses ACK timing to infer network state
+// Result: 2-25× higher throughput on congested networks vs CUBIC`,
+    codeLang: 'typescript',
+    summary: 'TCP congestion control is elegant distributed coordination: all senders collectively probe the network\'s capacity without central coordination. BBR is worth knowing for interviews — it\'s why YouTube streams smoothly on congested networks. For system design: large file transfers benefit from tuning TCP buffer sizes (net.core.rmem_max) and TCP BBR.',
+  },
+
 };
 
 /* ------------------------------------------------------------------ */
