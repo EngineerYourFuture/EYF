@@ -667,8 +667,8 @@ export function HomePage() {
             { label: 'Mock Interview',   icon: 'record_voice_over',   path: '/app/mock-interview', color: 'text-orange-400', bg: 'bg-orange-500/10', border: 'border-orange-500/20' },
             { label: 'Company Prep',     icon: 'business',            path: '/app/companies',      color: 'text-rose-400',   bg: 'bg-rose-500/10',   border: 'border-rose-500/20' },
             { label: 'Weekly Contest',   icon: 'emoji_events',        path: '/app/contests',       color: 'text-amber-400',  bg: 'bg-amber-500/10',  border: 'border-amber-500/20' },
-            { label: 'My Roadmap',       icon: 'map',                 path: '/app/roadmap',        color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20' },
-            { label: 'My Progress',      icon: 'insights',            path: '/app/progress',       color: 'text-blue-300',   bg: 'bg-blue-400/10',   border: 'border-blue-400/20' },
+            { label: 'Real-World',       icon: 'build',               path: '/app/real-world',     color: 'text-orange-400', bg: 'bg-orange-500/10', border: 'border-orange-500/20' },
+            { label: 'Study Squads',     icon: 'groups',              path: '/app/community',      color: 'text-pink-400',   bg: 'bg-pink-500/10',   border: 'border-pink-500/20' },
           ].map((a) => (
             <Link key={a.path} to={a.path}>
               <div className={`${a.bg} border ${a.border} rounded-2xl p-4 flex flex-col items-center gap-2 text-center hover:scale-[1.02] transition-all cursor-pointer group`}>
@@ -692,7 +692,7 @@ export function HomePage() {
             </div>
             <div>
               <h3 className="font-bold text-sm text-white">Pick Your Career Track</h3>
-              <p className="text-xs text-zinc-500">Student · Working Professional · Industry Expert</p>
+              <p className="text-xs text-zinc-500">Frontend · Backend · Fullstack · GenAI · Data · DevOps</p>
             </div>
           </div>
           <Link to="/app/career">
