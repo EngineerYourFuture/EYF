@@ -250,6 +250,29 @@ export function FlashcardsPage() {
     }
   };
 
+  const getWeakTopics = () => {
+    const deckWeakness: Array<{ deck: typeof DECKS[0]; againCount: number; total: number; pct: number }> = [];
+    for (const deck of DECKS) {
+      const deckCards = ALL_CARDS.filter((c) => c.category === deck.id);
+      const againCount = progress.filter((p) =>
+        deckCards.some((c) => c.id === p.cardId) && p.confidence === 'again'
+      ).length;
+      if (againCount > 0) {
+        deckWeakness.push({ deck, againCount, total: deckCards.length, pct: Math.round((againCount / deckCards.length) * 100) });
+      }
+    }
+    return deckWeakness.sort((a, b) => b.pct - a.pct).slice(0, 3);
+  };
+
+  const getMistakeHistory = () => {
+    return progress
+      .filter((p) => p.confidence === 'again')
+      .map((p) => ALL_CARDS.find((c) => c.id === p.cardId))
+      .filter(Boolean)
+      .slice(-5)
+      .reverse() as Flashcard[];
+  };
+
   const getDeckStats = (deckId: string) => {
     const deckCards = ALL_CARDS.filter((c) => c.category === deckId);
     const due = getDueCards(deckCards, progress).length;
@@ -347,6 +370,75 @@ export function FlashcardsPage() {
               );
             })}
           </div>
+
+          {/* Revision Intelligence */}
+          {progress.length > 0 && (() => {
+            const weakTopics = getWeakTopics();
+            const mistakeHistory = getMistakeHistory();
+            const totalMastered = progress.filter((p) => p.bucket >= 4).length;
+            if (weakTopics.length === 0 && mistakeHistory.length === 0) return null;
+            return (
+              <div className="mt-8 bg-[#1a1a1a] border border-amber-500/15 rounded-2xl p-6">
+                <div className="flex items-center gap-2 mb-5">
+                  <Icon name="psychology" size={18} className="text-amber-400" />
+                  <h3 className="font-black text-white text-sm">Revision Intelligence</h3>
+                  <span className="ml-auto text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">
+                    {totalMastered} mastered
+                  </span>
+                </div>
+
+                {weakTopics.length > 0 && (
+                  <div className="mb-5">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-3">Weak Topics (by % of "Again" ratings)</p>
+                    <div className="space-y-2">
+                      {weakTopics.map(({ deck, againCount, total, pct }) => (
+                        <button
+                          key={deck.id}
+                          type="button"
+                          onClick={() => startDeck(deck.id)}
+                          className="w-full flex items-center gap-3 p-3 bg-zinc-900/50 rounded-xl hover:bg-zinc-900 transition-colors group"
+                        >
+                          <div className={`w-8 h-8 ${deck.bg} rounded-lg flex items-center justify-center flex-shrink-0`}>
+                            <Icon name={deck.icon} size={15} className={deck.color} />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between mb-1">
+                              <p className="text-sm font-bold text-zinc-300 truncate">{deck.title}</p>
+                              <span className="text-xs font-bold text-red-400 ml-2 flex-shrink-0">{againCount}/{total} again</span>
+                            </div>
+                            <div className="h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                              <div className="h-full bg-red-500/60 rounded-full" style={{ width: `${pct}%` }} />
+                            </div>
+                          </div>
+                          <Icon name="play_arrow" size={16} className="text-zinc-600 group-hover:text-white transition-colors flex-shrink-0" />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {mistakeHistory.length > 0 && (
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-3">Recent Mistakes (last "Again" cards)</p>
+                    <div className="space-y-2">
+                      {mistakeHistory.map((card) => {
+                        const deck = DECKS.find((d) => d.id === card.category);
+                        return (
+                          <div key={card.id} className="flex items-start gap-3 p-3 bg-red-500/5 border border-red-500/10 rounded-xl">
+                            <Icon name="close" size={14} className="text-red-400 flex-shrink-0 mt-0.5" />
+                            <div className="min-w-0">
+                              <p className="text-xs text-zinc-400 truncate">{card.front}</p>
+                              {deck && <p className={`text-[10px] font-bold mt-0.5 ${deck.color}`}>{deck.title}</p>}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
 
           {/* How it works */}
           <div className="mt-10 bg-[#1a1a1a] border border-white/8 rounded-2xl p-6">
