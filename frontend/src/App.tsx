@@ -47,6 +47,7 @@ import { DailyChallengePage } from './pages/DailyChallengePage';
 import { PatternQuizPage } from './pages/PatternQuizPage';
 import { RoadmapPage } from './pages/RoadmapPage';
 import { ProgressPage } from './pages/ProgressPage';
+import { ExperiencesPage } from './pages/ExperiencesPage';
 
 export default function App() {
   return (
@@ -221,6 +222,10 @@ export default function App() {
       <Route
         path="/app/progress"
         element={<RequireAuth zone="public"><ProgressPage /></RequireAuth>}
+      />
+      <Route
+        path="/app/experiences"
+        element={<RequireAuth zone="public"><ExperiencesPage /></RequireAuth>}
       />
       <Route
         path="/app/*"

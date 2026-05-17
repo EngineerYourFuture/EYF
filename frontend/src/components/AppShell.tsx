@@ -51,8 +51,9 @@ const NAV_GROUPS: NavGroup[] = [
   {
     label: 'Community',
     items: [
-      { path: '/app/community',   label: 'Community',   icon: 'forum' },
-      { path: '/app/leaderboard', label: 'Leaderboard', icon: 'leaderboard' },
+      { path: '/app/community',     label: 'Community',             icon: 'forum' },
+      { path: '/app/leaderboard',   label: 'Leaderboard',           icon: 'leaderboard' },
+      { path: '/app/experiences',   label: 'Interview Experiences',  icon: 'article' },
     ],
   },
   {
