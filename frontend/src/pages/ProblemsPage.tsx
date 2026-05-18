@@ -472,7 +472,7 @@ export function ProblemsPage() {
         <div className="space-y-1.5">
           {loading && (
             <div className="space-y-1.5">
-              {[...new Array(10)].map((_, i) => (
+              {new Array(10).fill(null).map((_, i) => (
                 <div key={`skeleton-${i}`} className="h-14 bg-surface-container rounded-xl animate-pulse" />
               ))}
             </div>

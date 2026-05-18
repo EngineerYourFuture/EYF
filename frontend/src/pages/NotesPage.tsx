@@ -131,7 +131,7 @@ function formatRelative(iso: string): string {
 }
 
 function genId() {
-  return crypto.randomUUID().replace(/-/g, '').slice(0, 12) + Date.now().toString(36);
+  return crypto.randomUUID().replaceAll('-', '').slice(0, 12) + Date.now().toString(36);
 }
 
 function colorOf(id: string) {
@@ -145,9 +145,9 @@ function NoteEditor({
   onSave,
   onClose,
 }: {
-  note: Partial<Note> | null;
-  onSave: (note: Note) => void;
-  onClose: () => void;
+  readonly note: Partial<Note> | null;
+  readonly onSave: (note: Note) => void;
+  readonly onClose: () => void;
 }) {
   const isNew = !note?.id;
   const [title,   setTitle]   = useState(note?.title   ?? '');
@@ -179,7 +179,7 @@ function NoteEditor({
   }, [handleSave, onClose]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onKeyDown={handleKeyDown}>
+    <div role="dialog" tabIndex={-1} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onKeyDown={handleKeyDown}>
       <div className="w-full max-w-2xl bg-[#1a1a1a] rounded-2xl border border-white/10 shadow-2xl flex flex-col max-h-[90vh]">
         {/* Header */}
         <div className="flex items-center gap-3 px-6 py-4 border-b border-white/5">
@@ -263,17 +263,16 @@ function NoteCard({
   onDelete,
   onTogglePin,
 }: {
-  note: Note;
-  onEdit: () => void;
-  onDelete: () => void;
-  onTogglePin: () => void;
+  readonly note: Note;
+  readonly onEdit: () => void;
+  readonly onDelete: () => void;
+  readonly onTogglePin: () => void;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const c = colorOf(note.color);
 
   return (
     <div
-      role="button"
       tabIndex={0}
       className={`relative rounded-2xl border ${c.cls} p-4 flex flex-col gap-3 hover:border-white/20 transition-all cursor-pointer group`}
       onClick={onEdit}
@@ -303,7 +302,7 @@ function NoteCard({
       <div className="flex items-center justify-between mt-auto pt-2 border-t border-white/5">
         <span className="text-[10px] text-zinc-700">{formatRelative(note.updatedAt)}</span>
         <div
-          role="presentation"
+          role="none"
           className="relative"
           onClick={(e) => e.stopPropagation()}
           onKeyDown={(e) => e.stopPropagation()}
@@ -393,8 +392,8 @@ export function NotesPage() {
           <div>
             <h1 className="text-2xl font-bold text-white mb-1">My Notes</h1>
             <p className="text-sm text-zinc-500">
-              Personal study notes saved locally in your browser.
-              <span className="ml-1 text-[10px] text-zinc-700">{notes.length} note{notes.length !== 1 ? 's' : ''}</span>
+              Personal study notes saved locally in your browser.{' '}
+              <span className="ml-1 text-[10px] text-zinc-700">{notes.length} note{notes.length === 1 ? '' : 's'}</span>
             </p>
           </div>
           <button

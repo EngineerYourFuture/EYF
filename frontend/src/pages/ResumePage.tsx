@@ -76,7 +76,7 @@ function computeATS(data: ResumeData): { score: number; tips: ATSTip[] } {
   return { score: Math.round((ok / tips.length) * 100), tips };
 }
 
-function PreviewMinimal({ data }: { data: ResumeData }) {
+function PreviewMinimal({ data }: { readonly data: ResumeData }) {
   return (
     <div className="bg-white text-black p-10 font-sans text-sm min-h-[800px]">
       <div className="border-b-2 border-black pb-4 mb-4">
@@ -160,7 +160,7 @@ function PreviewMinimal({ data }: { data: ResumeData }) {
   );
 }
 
-function PreviewModern({ data }: { data: ResumeData }) {
+function PreviewModern({ data }: { readonly data: ResumeData }) {
   return (
     <div className="bg-white text-black font-sans text-sm min-h-[800px] flex">
       {/* Left sidebar */}
@@ -359,8 +359,26 @@ export function ResumePage() {
     setSkillInput('');
   }
 
-  const atsColor = atsScore >= 80 ? 'text-green-400' : atsScore >= 50 ? 'text-yellow-400' : 'text-red-400';
-  const atsBg    = atsScore >= 80 ? 'bg-green-400'  : atsScore >= 50 ? 'bg-yellow-400'  : 'bg-red-400';
+  function updateExpBullet(expIdx: number, bulletIdx: number, value: string) {
+    const updated = [...data.experience];
+    const newBullets = [...updated[expIdx].bullets];
+    newBullets[bulletIdx] = value;
+    updated[expIdx] = { ...updated[expIdx], bullets: newBullets };
+    update('experience', updated);
+  }
+
+  function removeExpBullet(expIdx: number, bulletIdx: number) {
+    const updated = [...data.experience];
+    updated[expIdx] = { ...updated[expIdx], bullets: updated[expIdx].bullets.filter((_, k) => k !== bulletIdx) };
+    update('experience', updated);
+  }
+
+  let atsColor = 'text-red-400';
+  if (atsScore >= 80) atsColor = 'text-green-400';
+  else if (atsScore >= 50) atsColor = 'text-yellow-400';
+  let atsBg = 'bg-red-400';
+  if (atsScore >= 80) atsBg = 'bg-green-400';
+  else if (atsScore >= 50) atsBg = 'bg-yellow-400';
 
   const SECTIONS: { key: Section; label: string; icon: string }[] = [
     { key: 'personal',       label: 'Personal',       icon: 'person' },
@@ -370,6 +388,17 @@ export function ResumePage() {
     { key: 'projects',       label: 'Projects',       icon: 'code' },
     { key: 'certifications', label: 'Certs',          icon: 'verified' },
   ];
+
+  let atsBorderBg = 'border-red-500/40 bg-red-500/10';
+  if (atsScore >= 80) atsBorderBg = 'border-green-500/40 bg-green-500/10';
+  else if (atsScore >= 50) atsBorderBg = 'border-yellow-500/40 bg-yellow-500/10';
+  let atsBadge = `${atsColor} bg-red-400/10`;
+  if (atsScore >= 80) atsBadge = `${atsColor} bg-green-400/10`;
+  else if (atsScore >= 50) atsBadge = `${atsColor} bg-yellow-400/10`;
+
+  let saveLabel = 'Save';
+  if (saving) saveLabel = 'Saving…';
+  else if (saved) saveLabel = 'Saved!';
 
   return (
     <AppShell>
@@ -387,7 +416,7 @@ export function ResumePage() {
             <button
               type="button"
               onClick={() => setShowAts((v) => !v)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-full border font-bold text-sm transition-all ${atsScore >= 80 ? 'border-green-500/40 bg-green-500/10' : atsScore >= 50 ? 'border-yellow-500/40 bg-yellow-500/10' : 'border-red-500/40 bg-red-500/10'}`}
+              className={`flex items-center gap-2 px-4 py-2 rounded-full border font-bold text-sm transition-all ${atsBorderBg}`}
             >
               <div className={`w-2 h-2 rounded-full ${atsBg}`} />
               <span className={atsColor}>ATS Score: {atsScore}%</span>
@@ -401,7 +430,7 @@ export function ResumePage() {
               className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-surface-container text-zinc-300 font-bold text-sm hover:bg-surface-container-high transition-all disabled:opacity-60"
             >
               <Icon name={saved ? 'check' : 'save'} size={16} className={saved ? 'text-green-400' : ''} />
-              {saving ? 'Saving…' : saved ? 'Saved!' : 'Save'}
+              {saveLabel}
             </button>
             {/* Export */}
             <button
@@ -426,7 +455,7 @@ export function ResumePage() {
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
                 <span className="text-sm font-bold text-on-surface">ATS Checklist</span>
-                <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${atsScore >= 80 ? 'text-green-400 bg-green-400/10' : atsScore >= 50 ? 'text-yellow-400 bg-yellow-400/10' : 'text-red-400 bg-red-400/10'}`}>{atsScore}%</span>
+                <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${atsBadge}`}>{atsScore}%</span>
               </div>
               <div className="flex-1 mx-6 h-1.5 bg-surface-container-highest rounded-full overflow-hidden">
                 <div className={`h-full rounded-full transition-all duration-500 ${atsBg}`} style={{ width: `${atsScore}%` }} />
@@ -528,9 +557,10 @@ export function ResumePage() {
             {section === 'skills' && (
               <div className="bg-surface-container rounded-xl p-6 space-y-4">
                 <div>
-                  <label className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-zinc-500 block mb-2">Add Skills</label>
+                  <label htmlFor="resume-add-skill" className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-zinc-500 block mb-2">Add Skills</label>
                   <div className="flex gap-2">
                     <input
+                      id="resume-add-skill"
                       type="text"
                       value={skillInput}
                       placeholder="e.g. TypeScript, React, PostgreSQL"
@@ -663,32 +693,23 @@ export function ResumePage() {
                       ))}
                     </div>
                     <div>
-                      <label className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-zinc-500 block mb-1">
+                      <label htmlFor={`exp-bullet-${i}-0`} className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-zinc-500 block mb-1">
                         Impact Bullets — use numbers & results
                       </label>
                       {exp.bullets.map((bullet, j) => (
                         <div key={`bullet-${String(j)}`} className="flex gap-2 mb-2">
                           <span className="text-zinc-600 text-sm mt-2.5 flex-shrink-0">•</span>
                           <input
+                            id={`exp-bullet-${i}-${j}`}
                             type="text"
                             value={bullet}
                             placeholder={j === 0 ? 'Reduced API latency by 42% via Redis caching, saving $8k/month in infra costs.' : 'Add another impact bullet…'}
-                            onChange={(e) => {
-                              const updated = [...data.experience];
-                              const newBullets = [...updated[i].bullets];
-                              newBullets[j] = e.target.value;
-                              updated[i] = { ...updated[i], bullets: newBullets };
-                              update('experience', updated);
-                            }}
+                            onChange={(e) => updateExpBullet(i, j, e.target.value)}
                             className="flex-1 bg-surface-container-low rounded-xl px-4 py-2 text-on-surface text-sm border border-transparent focus:border-primary-container/40 focus:outline-none placeholder-zinc-700"
                           />
                           <button
                             type="button"
-                            onClick={() => {
-                              const updated = [...data.experience];
-                              updated[i] = { ...updated[i], bullets: updated[i].bullets.filter((_, k) => k !== j) };
-                              update('experience', updated);
-                            }}
+                            onClick={() => removeExpBullet(i, j)}
                             className="text-zinc-700 hover:text-red-400 transition-colors mt-1 flex-shrink-0"
                           >
                             <Icon name="remove" size={14} />

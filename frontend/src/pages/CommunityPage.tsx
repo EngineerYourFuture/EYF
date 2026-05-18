@@ -140,6 +140,19 @@ function timeAgo(d: string): string {
   return `${Math.floor(hours / 24)}d ago`;
 }
 
+function loadSquads(): Squad[] {
+  try {
+    const stored = localStorage.getItem('eyf.squads');
+    if (stored) return JSON.parse(stored) as Squad[];
+  } catch { /* ignore */ }
+  return STATIC_SQUADS;
+}
+
+function loadSquadDoneToday(): Set<string> {
+  try { return new Set(JSON.parse(localStorage.getItem('eyf.squad.done') ?? '[]') as string[]); }
+  catch { return new Set(); }
+}
+
 export function CommunityPage() {
   const session = getSession();
   const { fireXP } = useUser();
@@ -147,19 +160,11 @@ export function CommunityPage() {
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [selected, setSelected] = useState<PostDetail | null>(null);
   const [activeView, setActiveView] = useState<ViewMode>('community');
-  const [squads, setSquads] = useState<Squad[]>(() => {
-    try {
-      const stored = localStorage.getItem('eyf.squads');
-      if (stored) return JSON.parse(stored) as Squad[];
-    } catch { /* ignore */ }
-    return STATIC_SQUADS;
-  });
+  const [squads, setSquads] = useState<Squad[]>(loadSquads);
   const [selectedSquad, setSelectedSquad] = useState<Squad | null>(null);
   const [showCreateSquad, setShowCreateSquad] = useState(false);
   const [newSquad, setNewSquad] = useState({ name: '', focus: 'DSA', goal: '', cadence: 'Daily', description: '' });
-  const [squadDoneToday, setSquadDoneToday] = useState<Set<string>>(() => {
-    try { return new Set(JSON.parse(localStorage.getItem('eyf.squad.done') ?? '[]') as string[]); } catch { return new Set(); }
-  });
+  const [squadDoneToday, setSquadDoneToday] = useState<Set<string>>(loadSquadDoneToday);
   const [showCompose, setShowCompose] = useState(false);
   const [newPost, setNewPost] = useState({ title: '', body: '', category: 'general', tags: '' });
   const [newReply, setNewReply] = useState('');

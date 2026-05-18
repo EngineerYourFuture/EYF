@@ -300,7 +300,8 @@ export function PatternQuizPage() {
   };
 
   const q = questions[current];
-  const progressPct = questions.length > 0 ? Math.round(((current + (answered ? 1 : 0)) / questions.length) * 100) : 0;
+  const answeredOffset = answered ? 1 : 0;
+  const progressPct = questions.length > 0 ? Math.round(((current + answeredOffset) / questions.length) * 100) : 0;
   const accuracy = answers.length > 0 ? Math.round((score / answers.length) * 100) : 0;
   let resultEmoji = '💪';
   if (accuracy >= 80) resultEmoji = '🏆';

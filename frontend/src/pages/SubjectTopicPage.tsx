@@ -405,7 +405,7 @@ class LRUCache {
       'Sockets: network-capable, used for local IPC via UNIX domain sockets',
       'Signals: asynchronous notifications (SIGKILL, SIGTERM, SIGUSR1)',
     ],
-    code: `// Shared memory IPC (POSIX)
+    code: String.raw`// Shared memory IPC (POSIX)
 // Process A: writer
 int shm_fd = shm_open("/my_shm", O_CREAT | O_RDWR, 0666);
 ftruncate(shm_fd, sizeof(int));
@@ -417,7 +417,7 @@ int *shared = mmap(NULL, sizeof(int),
 int shm_fd = shm_open("/my_shm", O_RDONLY, 0666);
 int *shared = mmap(NULL, sizeof(int),
     PROT_READ, MAP_SHARED, shm_fd, 0);
-printf("Value: %d\\n", *shared);  // reads 42`,
+printf("Value: %d\n", *shared);  // reads 42`,
     codeLang: 'c',
     summary: 'IPC choice depends on relationship, data size, and latency requirements. Use pipes for simple parent–child streaming, shared memory for high-throughput data exchange, and sockets for flexible service-to-service communication.',
   },
@@ -679,7 +679,7 @@ class QueryBuilder {
 const query = new QueryBuilder()
   .from('orders')
   .select('id', 'amount')
-  .where('status = \'active\'')
+  .where("status = 'active'")
   .limit(50)
   .build();
 // SELECT id, amount FROM orders WHERE status = 'active' LIMIT 50`,
@@ -1229,7 +1229,7 @@ class PaymentFacade {
       'Result: smaller classes that are easier to test, reason about, and reuse',
       'Corollary: if adding a feature requires changing many unrelated classes, SRP is violated',
     ],
-    code: `// ❌ Violates SRP — three reasons to change: user logic, email format, DB schema
+    code: String.raw`// ❌ Violates SRP — three reasons to change: user logic, email format, DB schema
 class User {
   constructor(public name: string, public email: string) {}
 
@@ -1325,7 +1325,7 @@ app.options('/api/*', (req, res) => {
   },
 
   dns: {
-    overview: `DNS (Domain Name System) is the internet\'s distributed phonebook — it translates human-readable names like api.example.com into IP addresses. Understanding DNS is critical for debugging production incidents (propagation delays, TTL misconfiguration), designing global services, and security.\n\nDNS is hierarchical: root nameservers → TLD nameservers → authoritative nameservers. Caching at every layer makes it fast but means changes take time to propagate.`,
+    overview: `DNS (Domain Name System) is the internet's distributed phonebook — it translates human-readable names like api.example.com into IP addresses. Understanding DNS is critical for debugging production incidents (propagation delays, TTL misconfiguration), designing global services, and security.\n\nDNS is hierarchical: root nameservers → TLD nameservers → authoritative nameservers. Caching at every layer makes it fast but means changes take time to propagate.`,
     keyPoints: [
       'Resolution flow: browser cache → OS cache → resolver (ISP/8.8.8.8) → root NS → TLD NS → authoritative NS',
       'Record types: A (IPv4), AAAA (IPv6), CNAME (alias), MX (mail), TXT (verification/SPF/DKIM), NS, SOA',
@@ -1367,13 +1367,13 @@ const records = {
 // 4. Wait 60s for propagation
 // 5. Restore TTL to 300s`,
     codeLang: 'typescript',
-    summary: 'DNS is deceptively simple in theory but has real production implications. Always lower TTL before a migration, not after — once you\'ve changed the record, the old TTL is already baked into resolvers\' caches. CNAME records cannot be set on apex domains (example.com); use ALIAS or ANAME records or A records directly.',
+    summary: "DNS is deceptively simple in theory but has real production implications. Always lower TTL before a migration, not after — once you've changed the record, the old TTL is already baked into resolvers' caches. CNAME records cannot be set on apex domains (example.com); use ALIAS or ANAME records or A records directly.",
   },
 
   // ── DBMS ─────────────────────────────────────────────────────────────────
 
   indexing: {
-    overview: `Database indexes are the single most important performance tool in a software engineer\'s arsenal. A missing index on a 100M-row table can turn a 50ms query into a 30-second full scan. Knowing when to add one — and when not to — separates engineers who write fast code from those who write slow systems.\n\nIndexes are B-trees by default in PostgreSQL and MySQL. They store a sorted copy of the indexed column(s) with pointers to the heap row, enabling O(log N) lookups instead of O(N) sequential scans.`,
+    overview: `Database indexes are the single most important performance tool in a software engineer's arsenal. A missing index on a 100M-row table can turn a 50ms query into a 30-second full scan. Knowing when to add one — and when not to — separates engineers who write fast code from those who write slow systems.\n\nIndexes are B-trees by default in PostgreSQL and MySQL. They store a sorted copy of the indexed column(s) with pointers to the heap row, enabling O(log N) lookups instead of O(N) sequential scans.`,
     keyPoints: [
       'B-tree index: balanced tree, O(log N) point lookups and range queries — default for most cases',
       'Hash index: O(1) equality lookups only — no range queries, no ordering, rarely used explicitly',
@@ -1521,7 +1521,7 @@ class Sorter {
   },
 
   lsp: {
-    overview: `Liskov Substitution Principle: if S is a subtype of T, then objects of type T may be replaced with objects of type S without altering the correctness of the program. Informally: subclasses must be usable wherever their superclass is expected.\n\nLSP violations manifest as instanceof checks in code that\'s supposed to work with the base type, or surprising exceptions thrown by subclasses that the base class contract didn\'t allow.`,
+    overview: `Liskov Substitution Principle: if S is a subtype of T, then objects of type T may be replaced with objects of type S without altering the correctness of the program. Informally: subclasses must be usable wherever their superclass is expected.\n\nLSP violations manifest as instanceof checks in code that's supposed to work with the base type, or surprising exceptions thrown by subclasses that the base class contract didn't allow.`,
     keyPoints: [
       'Subclasses must honor the superclass\'s contract: preconditions, postconditions, and invariants',
       'Cannot strengthen preconditions: if the base accepts any integer, subclass cannot require positive only',
@@ -1634,7 +1634,7 @@ async function redirect(shortId: string, res: Response): Promise<void> {
   },
 
   'design-twitter': {
-    overview: `Designing Twitter\'s news feed is one of the most comprehensive system design questions — it covers data modeling, fan-out strategies, caching, real-time delivery, and the fundamental tension between write-time and read-time work.\n\nThe core problem: when UserA posts a tweet, how do UserA\'s 50 million followers see it in their feeds with low latency? This is the fan-out problem.`,
+    overview: `Designing Twitter's news feed is one of the most comprehensive system design questions — it covers data modeling, fan-out strategies, caching, real-time delivery, and the fundamental tension between write-time and read-time work.\n\nThe core problem: when UserA posts a tweet, how do UserA's 50 million followers see it in their feeds with low latency? This is the fan-out problem.`,
     keyPoints: [
       'Fan-out on write (push): tweet is written to every follower\'s feed cache on post — fast reads, slow/impossible for celebrities',
       'Fan-out on read (pull): build feed at read time by fetching tweets from followed accounts — slow reads, works for any follower count',
@@ -1866,7 +1866,7 @@ const totalArea2 = (shapes: Shape[]) => shapes.reduce((s, sh) => s + sh.area(), 
       'Leaky abstraction: when implementation details bleed through the interface — a sign of poor design',
       'Abstraction levels: keep them consistent — don\'t mix high-level business operations with low-level I/O in the same method',
     ],
-    code: `// ✅ BankAccount: abstraction hides balance mutation rules
+    code: String.raw`// ✅ BankAccount: abstraction hides balance mutation rules
 class BankAccount {
   private balance: number;
   private transactions: { type: string; amount: number; date: Date }[] = [];
@@ -1909,8 +1909,8 @@ abstract class DataExporter {
 
 class CsvExporter extends DataExporter {
   protected transform(data: unknown[]) { return data; }
-  protected format(data: unknown[]) { return data.map(r => Object.values(r as object).join(',')).join('\\n'); }
-  protected addHeader() { return 'col1,col2,col3\\n'; }
+  protected format(data: unknown[]) { return data.map(r => Object.values(r as object).join(',')).join('\n'); }
+  protected addHeader() { return 'col1,col2,col3\n'; }
 }`,
     codeLang: 'typescript',
     summary: 'Abstraction lets you manage complexity by working at the right level of detail. Good abstractions are stable — callers rarely need to change when implementations evolve. When designing a class, ask: "what does the caller actually need?" — expose only that, and hide everything else behind private boundaries.',
@@ -2665,7 +2665,7 @@ ANALYZE orders;             -- refresh statistics for one table
   // ── Networks: QUIC & Congestion ───────────────────────────────────────────
 
   quic: {
-    overview: `QUIC is a transport protocol built on UDP that underlies HTTP/3. It combines the best properties of TCP (reliability, ordering, flow control) and TLS (encryption) into a single protocol, eliminating the separate TCP and TLS handshakes. QUIC reduces connection establishment from 2+ RTTs (TCP + TLS) to 1 RTT, or even 0-RTT for returning clients.\n\nQuic\'s biggest innovation is multiplexing streams without head-of-line blocking. In HTTP/2 over TCP, a single lost packet blocks all streams; in QUIC each stream is independent at the transport layer.`,
+    overview: `QUIC is a transport protocol built on UDP that underlies HTTP/3. It combines the best properties of TCP (reliability, ordering, flow control) and TLS (encryption) into a single protocol, eliminating the separate TCP and TLS handshakes. QUIC reduces connection establishment from 2+ RTTs (TCP + TLS) to 1 RTT, or even 0-RTT for returning clients.\n\nQuic's biggest innovation is multiplexing streams without head-of-line blocking. In HTTP/2 over TCP, a single lost packet blocks all streams; in QUIC each stream is independent at the transport layer.`,
     keyPoints: [
       'QUIC = reliability + encryption + multiplexing, all built into one UDP-based protocol',
       'Connection: 1-RTT establishment (TLS 1.3 integrated); 0-RTT for session resumption',
@@ -2911,8 +2911,8 @@ iptables -L -v -n --line-numbers`,
       'HSTS: forces HTTPS for a domain, prevents SSL stripping attacks',
       'DNSSEC: authenticates DNS responses to prevent spoofing',
     ],
-    code: `# Check TLS certificate details
-openssl s_client -connect example.com:443 -servername example.com < /dev/null 2>/dev/null | \\
+    code: String.raw`# Check TLS certificate details
+openssl s_client -connect example.com:443 -servername example.com < /dev/null 2>/dev/null | \
   openssl x509 -text -noout | grep -E "Subject:|Issuer:|Not After"
 
 # Scan for open ports (nmap)
@@ -3291,7 +3291,7 @@ getcap /usr/bin/ping  # cap_net_raw+ep  (ping needs raw sockets)`,
       'Sharding the index: by term (term partitioning) or by document (document partitioning)',
       'Query latency: <200ms for 99th percentile — caching frequent queries, pre-computed top-K',
     ],
-    code: `// Simplified inverted index (in-memory)
+    code: String.raw`// Simplified inverted index (in-memory)
 interface PostingList {
   docId: number;
   tf: number;         // term frequency in this doc
@@ -3629,7 +3629,7 @@ console.log('DFS:', g.dfs('A'));  // A B D C E (depth-first)`,
       'Functions as relations: total function maps every element; injective (one-to-one), surjective (onto), bijective (both)',
       'Countability: a set is countable if it can be put in 1-1 correspondence with ℕ',
     ],
-    code: `// Set operations in JavaScript using built-in Set
+    code: String.raw`// Set operations in JavaScript using built-in Set
 const A = new Set([1, 2, 3, 4, 5]);
 const B = new Set([3, 4, 5, 6, 7]);
 
@@ -3639,7 +3639,7 @@ const difference   = new Set([...A].filter(x => !B.has(x))); // {1,2}
 
 console.log('A ∪ B:', [...union]);
 console.log('A ∩ B:', [...intersection]);
-console.log('A \\ B:', [...difference]);
+console.log('A \ B:', [...difference]);
 
 // Power set (all subsets) — 2^n subsets
 function powerSet(arr) {
@@ -3877,9 +3877,9 @@ console.log('Catalan 0-5:', [0,1,2,3,4,5].map(catalan)); // [1,1,2,5,14,42]
       'Maximal munch: always consume the longest possible token ("==" not "=" then "=")',
       'Whitespace and comments: typically consumed and discarded (or attached as trivia)',
       'Flex/Lex: lexer generators that take regex rules and produce C lexer code',
-      'Line/column tracking: essential for error messages; increment on \\n',
+      String.raw`Line/column tracking: essential for error messages; increment on \n`,
     ],
-    code: `// Simple hand-written lexer for arithmetic expressions
+    code: String.raw`// Simple hand-written lexer for arithmetic expressions
 const TokenType = { NUMBER: 'NUMBER', PLUS: 'PLUS', MINUS: 'MINUS',
   STAR: 'STAR', SLASH: 'SLASH', LPAREN: 'LPAREN', RPAREN: 'RPAREN', EOF: 'EOF' };
 

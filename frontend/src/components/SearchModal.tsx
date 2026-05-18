@@ -98,7 +98,7 @@ export function SearchModal({ open, onClose }: Props) {
   return (
     <div className="fixed inset-0 z-[9998] flex items-start justify-center pt-[15vh]">
       {/* Backdrop */}
-      <div role="presentation" className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} onKeyDown={(e) => { if (e.key === 'Escape') onClose(); }} />
+      <div role="none" className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} onKeyDown={(e) => { if (e.key === 'Escape') onClose(); }} />
 
       {/* Modal */}
       <div className="relative w-full max-w-2xl mx-4 bg-[#1a1a1a] border border-white/10 rounded-2xl shadow-2xl overflow-hidden">

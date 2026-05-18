@@ -215,10 +215,10 @@ function ActivityHeatmap({ days }: { readonly days: DailyActivity[] }) {
 
       {/* Month labels */}
       <div className="flex gap-[2px] mb-1 ml-6">
-        {weeks.map((_, wi) => {
+        {weeks.map((week, wi) => {
           const marker = monthMarkers.find(m => m.weekIdx === wi);
           return (
-            <div key={`month-${wi}`} className="w-3 flex-shrink-0 text-[9px] text-zinc-600 text-center">
+            <div key={week[0]?.date ?? `month-${wi}`} className="w-3 flex-shrink-0 text-[9px] text-zinc-600 text-center">
               {marker ? marker.label[0] : ''}
             </div>
           );
@@ -228,14 +228,14 @@ function ActivityHeatmap({ days }: { readonly days: DailyActivity[] }) {
       <div className="flex gap-[2px]">
         {/* Day labels */}
         <div className="flex flex-col gap-[2px] mr-1">
-          {['S','M','T','W','T','F','S'].map((d, i) => (
-            <div key={`day-label-${i}`} className="h-3 w-4 text-[9px] text-zinc-600 flex items-center">{i % 2 === 1 ? d : ''}</div>
+          {['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map((d, i) => (
+            <div key={d} className="h-3 w-4 text-[9px] text-zinc-600 flex items-center">{i % 2 === 1 ? d[0] : ''}</div>
           ))}
         </div>
 
         {/* Week columns */}
         {weeks.map((week, wi) => (
-          <div key={`week-${wi}`} className="flex flex-col gap-[2px]">
+          <div key={week[0]?.date ?? `week-${wi}`} className="flex flex-col gap-[2px]">
             {/* Pad to 7 cells */}
             {new Array(7).fill(null).map((_, di) => {
               const day = week[di];
@@ -255,8 +255,8 @@ function ActivityHeatmap({ days }: { readonly days: DailyActivity[] }) {
       {/* Legend */}
       <div className="flex items-center gap-2 mt-3 justify-end">
         <span className="text-[10px] text-zinc-600">Less</span>
-        {INTENSITY_CLASSES.map((cls, i) => (
-          <div key={`legend-${i}`} className={`w-3 h-3 rounded-[2px] ${cls}`} />
+        {INTENSITY_CLASSES.map((cls) => (
+          <div key={cls} className={`w-3 h-3 rounded-[2px] ${cls}`} />
         ))}
         <span className="text-[10px] text-zinc-600">More</span>
       </div>

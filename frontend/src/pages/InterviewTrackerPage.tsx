@@ -479,7 +479,7 @@ export function InterviewTrackerPage() {
 
           <div className="flex gap-2 flex-wrap">
             {(['all', ...Object.keys(STATUS_META)] as (AppStatus | 'all')[]).map((s) => {
-              const meta = s !== 'all' ? STATUS_META[s] : null;
+              const meta = s === 'all' ? null : STATUS_META[s];
               return (
                 <button key={s} onClick={() => setFilterStatus(s)}
                   className={`px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all border ${

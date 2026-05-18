@@ -431,7 +431,7 @@ for s, expected in test_cases:
 // ─── Textarea-based editor (no Monaco dependency here) ───────────────────────
 
 function SimpleEditor({
-  code, onChange, language,
+  code, onChange,
 }: { readonly code: string; readonly onChange: (code: string) => void; readonly language: Language }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -447,8 +447,6 @@ function SimpleEditor({
       }, 0);
     }
   }, [code, onChange]);
-
-  language;
 
   return (
     <textarea

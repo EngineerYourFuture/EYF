@@ -533,8 +533,8 @@ function CompanyDetail({ company }: { readonly company: CompanyData }) {
 
       {tab === 'tips' && (
         <div className="space-y-3">
-          {company.tips.map((tip, i) => (
-            <div key={`tip-${i}`} className="flex gap-3 p-4 bg-[#1a1a1a] rounded-xl border border-white/5">
+          {company.tips.map((tip) => (
+            <div key={tip} className="flex gap-3 p-4 bg-[#1a1a1a] rounded-xl border border-white/5">
               <Icon name="lightbulb" className="text-amber-400 text-lg shrink-0 mt-0.5" />
               <p className="text-sm text-zinc-300 leading-relaxed">{tip}</p>
             </div>

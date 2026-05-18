@@ -167,85 +167,97 @@ function formatDateLabel(d: Date): string {
   return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
 }
 
+interface DayBuildContext {
+  wi: number;
+  weekNum: number;
+  numWeeks: number;
+  isLastWeek: boolean;
+  isSdWeek: boolean;
+  weights: { dsa: number; sd: number; beh: number };
+  pools: { dsa: DayTask[]; sd: DayTask[]; beh: DayTask[]; oop: DayTask[] };
+  idx: { dsa: number; sd: number; beh: number; oop: number };
+  now: Date;
+}
+
+function addSundayTask(tasks: DayTask[], ctx: DayBuildContext): void {
+  const { isLastWeek, weekNum, numWeeks } = ctx;
+  if (isLastWeek || weekNum >= numWeeks - 1) {
+    tasks.push(MOCK_TASKS[2]);
+  } else if (weekNum > 2) {
+    tasks.push(MOCK_TASKS[1]);
+  }
+}
+
+function addMainTask(tasks: DayTask[], di: number, rand: number, dsaWeight: number, sdWeight: number, ctx: DayBuildContext): void {
+  const { isLastWeek, pools, idx } = ctx;
+  if (isLastWeek) {
+    if (di % 3 === 0 && idx.beh < pools.beh.length) {
+      tasks.push(pools.beh[idx.beh++ % pools.beh.length]);
+    } else {
+      tasks.push(MOCK_TASKS[di % 2]);
+    }
+  } else if (rand < dsaWeight && idx.dsa < pools.dsa.length * 2) {
+    tasks.push(pools.dsa[idx.dsa++ % pools.dsa.length]);
+    if (di % 3 === 2 && idx.oop < pools.oop.length) {
+      tasks.push(pools.oop[idx.oop++ % pools.oop.length]);
+    }
+  } else if (rand < dsaWeight + sdWeight && idx.sd < pools.sd.length * 2) {
+    tasks.push(pools.sd[idx.sd++ % pools.sd.length]);
+  } else if (idx.beh < pools.beh.length * 2) {
+    tasks.push(pools.beh[idx.beh++ % pools.beh.length]);
+  } else {
+    tasks.push(pools.dsa[idx.dsa++ % pools.dsa.length]);
+  }
+}
+
+function buildDay(di: number, ctx: DayBuildContext): { date: string; label: string; tasks: DayTask[] } {
+  const { wi, now, weights, isLastWeek, isSdWeek } = ctx;
+  const date = addDays(now, wi * 7 + di);
+  const tasks: DayTask[] = [];
+
+  if (di === 0 || di === 2 || di === 4) {
+    tasks.push(REVIEW_TASKS[di === 4 ? 1 : 0]);
+  }
+
+  if (di === 6) {
+    addSundayTask(tasks, ctx);
+    return { date: formatDate(date), label: formatDateLabel(date), tasks };
+  }
+
+  const dsaWeight = weights.dsa;
+  let sdWeight = weights.sd - 10;
+  if (isLastWeek) sdWeight = 0;
+  else if (isSdWeek) sdWeight = weights.sd + 15;
+  const behWeight = isLastWeek ? 50 : weights.beh;
+  const total = dsaWeight + sdWeight + behWeight;
+  const rand = (di * 7 + wi * 3) % total;
+
+  addMainTask(tasks, di, rand, dsaWeight, sdWeight, ctx);
+  return { date: formatDate(date), label: formatDateLabel(date), tasks };
+}
+
+function getThemes(weeks: number): string[] {
+  if (weeks <= 4) return WEEK_THEMES_4;
+  if (weeks <= 8) return WEEK_THEMES_8;
+  return WEEK_THEMES_12;
+}
+
 function buildPlan(config: PlanConfig): WeekPlan[] {
   const weeks = weeksUntil(config.interviewDate);
-  let themes = WEEK_THEMES_12;
-  if (weeks <= 4) themes = WEEK_THEMES_4;
-  else if (weeks <= 8) themes = WEEK_THEMES_8;
+  const themes = getThemes(weeks);
   const numWeeks = Math.min(weeks, themes.length);
   const weights = COMPANY_DSA_WEIGHT[config.company] ?? COMPANY_DSA_WEIGHT['Other'];
-
-  const dsaPool = [...DSA_TOPICS];
-  const sdPool = [...SD_TOPICS];
-  const behPool = [...BEH_TOPICS];
-  const oopPool = [...OOP_TOPICS];
-  let dsaIdx = 0, sdIdx = 0, behIdx = 0, oopIdx = 0;
-
+  const pools = { dsa: [...DSA_TOPICS], sd: [...SD_TOPICS], beh: [...BEH_TOPICS], oop: [...OOP_TOPICS] };
+  const idx = { dsa: 0, sd: 0, beh: 0, oop: 0 };
   const now = new Date();
 
   return Array.from({ length: numWeeks }, (_, wi) => {
     const weekNum = wi + 1;
     const isLastWeek = weekNum === numWeeks;
     const isSdWeek = weekNum > numWeeks * 0.5 && weekNum <= numWeeks * 0.8;
-
-    const days = Array.from({ length: 7 }, (__, di) => {
-      const date = addDays(now, wi * 7 + di);
-      const dayLabel = formatDateLabel(date);
-      const tasks: DayTask[] = [];
-
-      // Always add a review task on Mon/Wed/Fri
-      if (di === 0 || di === 2 || di === 4) {
-        tasks.push(REVIEW_TASKS[di === 4 ? 1 : 0]);
-      }
-
-      // Sunday = mock or rest
-      if (di === 6) {
-        if (isLastWeek || weekNum >= numWeeks - 1) {
-          tasks.push(MOCK_TASKS[2]);
-        } else if (weekNum > 2) {
-          tasks.push(MOCK_TASKS[di % 2 === 0 ? 0 : 1]);
-        }
-        return { date: formatDate(date), label: dayLabel, tasks };
-      }
-
-      // Determine focus for the day
-      const dsaWeight = weights.dsa;
-      let sdWeight = weights.sd - 10;
-      if (isLastWeek) sdWeight = 0;
-      else if (isSdWeek) sdWeight = weights.sd + 15;
-      const behWeight = isLastWeek ? 50 : weights.beh;
-      const total = dsaWeight + sdWeight + behWeight;
-      const rand = (di * 7 + wi * 3) % total;
-
-      if (isLastWeek) {
-        // Last week = alternating mock + behavioral
-        if (di % 3 === 0 && behIdx < behPool.length) {
-          tasks.push(behPool[behIdx++ % behPool.length]);
-        } else {
-          tasks.push(MOCK_TASKS[di % 2]);
-        }
-      } else if (rand < dsaWeight && dsaIdx < dsaPool.length * 2) {
-        tasks.push(dsaPool[dsaIdx++ % dsaPool.length]);
-        // Add OOP every 3 days
-        if (di % 3 === 2 && oopIdx < oopPool.length) {
-          tasks.push(oopPool[oopIdx++ % oopPool.length]);
-        }
-      } else if (rand < dsaWeight + sdWeight && sdIdx < sdPool.length * 2) {
-        tasks.push(sdPool[sdIdx++ % sdPool.length]);
-      } else if (behIdx < behPool.length * 2) {
-        tasks.push(behPool[behIdx++ % behPool.length]);
-      } else {
-        tasks.push(dsaPool[dsaIdx++ % dsaPool.length]);
-      }
-
-      return { date: formatDate(date), label: dayLabel, tasks };
-    });
-
-    return {
-      weekNum,
-      theme: themes[wi % themes.length] ?? `Week ${weekNum}`,
-      days,
-    };
+    const ctx: DayBuildContext = { wi, weekNum, numWeeks, isLastWeek, isSdWeek, weights, pools, idx, now };
+    const days = Array.from({ length: 7 }, (__, di) => buildDay(di, ctx));
+    return { weekNum, theme: themes[wi % themes.length] ?? `Week ${weekNum}`, days };
   });
 }
 

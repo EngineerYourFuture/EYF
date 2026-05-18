@@ -1273,7 +1273,7 @@ Client → Server : ACK (ack=y+1)
         title: 'WebSocket vs SSE vs Long Polling',
         tags: ['Real-time', 'WebSocket', 'SSE'],
         content: 'Choosing the right real-time transport is a common system design sub-question.',
-        code: `//            WebSocket          SSE              Long Polling
+        code: String.raw`//            WebSocket          SSE              Long Polling
 // Direction   bidirectional      server→client    server→client
 // Protocol    WS (over TCP)      HTTP/1.1+        HTTP
 // Overhead    low (binary frame) medium           high (new conn/req)
@@ -1289,7 +1289,7 @@ ws.send(JSON.stringify({ type: 'PING' }));
 // Server-Sent Events (SSE) — server push only
 const es = new EventSource('/api/stream');
 es.onmessage = (e) => console.log(e.data);
-// Server sends: "data: hello\\n\\n"
+// Server sends: "data: hello\n\n"
 
 // SSE response headers
 Content-Type: text/event-stream
@@ -1508,7 +1508,7 @@ docker network ls             # list networks`,
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-function CodeBlock({ code }: { code: string }) {
+function CodeBlock({ code }: { readonly code: string }) {
   const [copied, setCopied] = useState(false);
   const copy = () => {
     navigator.clipboard.writeText(code).catch(() => {});
@@ -1532,7 +1532,7 @@ function CodeBlock({ code }: { code: string }) {
   );
 }
 
-function CheatCard({ card, sheetColor: _sheetColor }: { card: Card; sheetColor: string }) {
+function CheatCard({ card, sheetColor: _sheetColor }: { readonly card: Card; readonly sheetColor: string }) {
   const [expanded, setExpanded] = useState(false);
 
   return (
@@ -1607,11 +1607,11 @@ function CheatCard({ card, sheetColor: _sheetColor }: { card: Card; sheetColor: 
 
 export function CheatSheetsPage() {
   const { fireXP } = useUser();
-  const [activeSheet, setActiveSheet] = useState(SHEETS[0]!.id);
+  const [activeSheet, setActiveSheet] = useState(SHEETS[0].id);
   const [search, setSearch] = useState('');
   const [xpFired, setXpFired] = useState(false);
 
-  const sheet = SHEETS.find((s) => s.id === activeSheet) ?? SHEETS[0]!;
+  const sheet = SHEETS.find((s) => s.id === activeSheet) ?? SHEETS[0];
 
   const filtered = sheet.cards.filter((c) => {
     if (!search.trim()) return true;

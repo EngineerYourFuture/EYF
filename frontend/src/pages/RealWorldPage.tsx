@@ -794,7 +794,7 @@ function ChallengeSolver({ challenge, onBack, onSubmit }: {
             {activeTab === 'hints' && (
               <div className="space-y-3">
                 {challenge.hints.map((h, i) => (
-                  <div key={`hint-${i}`} className="flex gap-2">
+                  <div key={h} className="flex gap-2">
                     <span className="text-amber-400 font-bold shrink-0">#{i + 1}</span>
                     <span className="text-zinc-400">{h}</span>
                   </div>
@@ -834,8 +834,8 @@ function ChallengeSolver({ challenge, onBack, onSubmit }: {
                 </span>
               </div>
               <div className="space-y-2">
-                {results.map((r, i) => (
-                  <div key={`result-${i}`} className="flex items-start gap-2 text-xs">
+                {results.map((r) => (
+                  <div key={r.desc} className="flex items-start gap-2 text-xs">
                     <Icon name={r.pass ? 'check' : 'close'} className={`text-sm shrink-0 mt-0.5 ${r.pass ? 'text-emerald-400' : 'text-red-400'}`} />
                     <div>
                       <span className={r.pass ? 'text-zinc-400' : 'text-zinc-300'}>{r.desc}</span>

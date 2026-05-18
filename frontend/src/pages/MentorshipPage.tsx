@@ -422,8 +422,12 @@ export function MentorshipPage() {
                 let groupBtnClass = 'bg-primary-container text-white hover:brightness-110';
                 if (g.joined) groupBtnClass = 'bg-green-500/10 text-green-400 border border-green-500/20';
                 else if (full) groupBtnClass = 'text-zinc-600 border border-zinc-800 cursor-not-allowed';
-                const groupBtnIcon = g.joined ? 'check_circle' : (full ? 'group_off' : 'group_add');
-                const groupBtnLabel = g.joined ? 'Joined · Leave' : (full ? 'Group Full' : 'Join Group');
+                let groupBtnIcon = 'group_add';
+                if (g.joined) groupBtnIcon = 'check_circle';
+                else if (full) groupBtnIcon = 'group_off';
+                let groupBtnLabel = 'Join Group';
+                if (g.joined) groupBtnLabel = 'Joined · Leave';
+                else if (full) groupBtnLabel = 'Group Full';
                 return (
                   <div key={g.id} className={`bg-surface-container rounded-xl p-6 flex flex-col gap-4 transition-all ${g.joined ? 'border border-green-500/20' : ''}`}>
                     <div className="flex items-start justify-between">

@@ -238,7 +238,7 @@ export function SubmissionPage() {
         {/* Content */}
         {loading && (
           <div className="space-y-2">
-            {[...new Array(8)].map((_, i) => (
+            {new Array(8).fill(null).map((_, i) => (
               <div key={`skeleton-${i}`} className="h-14 bg-surface-container rounded-xl animate-pulse" />
             ))}
           </div>

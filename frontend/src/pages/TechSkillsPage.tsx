@@ -174,10 +174,8 @@ export function TechSkillsPage() {
   }, [session?.accessToken]);
 
   const handleRate = (skillId: string, level: number) => {
-    setCategories((prev) => prev.map((cat) => ({
-      ...cat,
-      skills: cat.skills.map((s) => (s.id === skillId ? { ...s, level, source: 'self' as const } : s)),
-    })));
+    const updateSkill = (s: Skill) => (s.id === skillId ? { ...s, level, source: 'self' as const } : s);
+    setCategories((prev) => prev.map((cat) => ({ ...cat, skills: cat.skills.map(updateSkill) })));
   };
 
   const saveSkills = async () => {

@@ -786,11 +786,11 @@ function formatTime(sec: number): string {
 // ─── Components ───────────────────────────────────────────────────────────────
 
 function SkillCard({ skill, onStart, bestScore }: {
-  skill: Skill;
-  onStart: () => void;
-  bestScore?: number;
+  readonly skill: Skill;
+  readonly onStart: () => void;
+  readonly bestScore?: number;
 }) {
-  const grade = bestScore != null ? scoreToGrade(bestScore) : null;
+  const grade = bestScore == null ? null : scoreToGrade(bestScore);
 
   return (
     <div className={`bg-gradient-to-br ${skill.gradient} rounded-2xl border border-white/10 p-5 flex flex-col gap-4 hover:border-white/20 transition-all`}>
@@ -897,18 +897,20 @@ export function SkillAssessmentPage() {
     return Math.round((correct / selectedSkill.questions.length) * 100);
   }, [selectedSkill, answers]);
 
+  const saveNewBestScore = useCallback((skillId: string, score: number) => {
+    const prev = bestScores[skillId] ?? 0;
+    if (score <= prev) return;
+    const next = { ...bestScores, [skillId]: score };
+    setBestScores(next);
+    localStorage.setItem('eyf.assessment.scores', JSON.stringify(next));
+  }, [bestScores]);
+
   useEffect(() => {
-    if (state === 'result' && selectedSkill) {
-      const score = computeScore();
-      const grade = scoreToGrade(score);
-      const prev = bestScores[selectedSkill.id] ?? 0;
-      if (score > prev) {
-        const next = { ...bestScores, [selectedSkill.id]: score };
-        setBestScores(next);
-        localStorage.setItem('eyf.assessment.scores', JSON.stringify(next));
-      }
-      fireXP(grade.xp, `${selectedSkill.name} Assessment: ${grade.label}`);
-    }
+    if (state !== 'result' || !selectedSkill) return;
+    const score = computeScore();
+    const grade = scoreToGrade(score);
+    saveNewBestScore(selectedSkill.id, score);
+    fireXP(grade.xp, `${selectedSkill.name} Assessment: ${grade.label}`);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state]);
 
@@ -920,7 +922,7 @@ export function SkillAssessmentPage() {
           <div className="mb-8">
             <h1 className="text-2xl font-bold text-white mb-1">Skill Assessments</h1>
             <p className="text-sm text-zinc-500">
-              10-question timed tests with instant feedback. Earn a grade badge and XP.
+              10-question timed tests with instant feedback. Earn a grade badge and XP.{' '}
               <span className="ml-2 text-[10px] font-bold text-[#E82127] bg-[#E82127]/10 px-2 py-0.5 rounded-full border border-[#E82127]/20">
                 FREE · No subscription unlike HackerRank certifications
               </span>
@@ -946,7 +948,7 @@ export function SkillAssessmentPage() {
   if (state === 'quiz' && selectedSkill) {
     const q = selectedSkill.questions[questionIndex];
     const chosen = answers[questionIndex];
-    const pct = Math.round(((questionIndex + (chosen != null ? 1 : 0)) / selectedSkill.questions.length) * 100);
+    const pct = Math.round(((questionIndex + (chosen == null ? 0 : 1)) / selectedSkill.questions.length) * 100);
 
     return (
       <AppShell>
@@ -981,12 +983,12 @@ export function SkillAssessmentPage() {
               }
               return (
                 <button
-                  key={i}
+                  key={`opt-${i}`}
                   onClick={() => chosen == null && handleAnswer(i)}
                   disabled={chosen != null}
                   className={`w-full text-left p-4 rounded-xl border text-sm transition-all ${cls}`}
                 >
-                  <span className="font-medium text-zinc-500 mr-2">{String.fromCharCode(65 + i)}.</span>
+                  <span className="font-medium text-zinc-500 mr-2">{String.fromCodePoint(65 + i)}.</span>
                   {opt}
                 </button>
               );
@@ -1059,7 +1061,7 @@ export function SkillAssessmentPage() {
                         <p className="text-sm text-zinc-200 mb-1">{q.text}</p>
                         {!isCorrect && (
                           <>
-                            <p className="text-xs text-red-400 mb-0.5">Your answer: {answers[i] != null ? q.options[answers[i]!] : 'Unanswered'}</p>
+                            <p className="text-xs text-red-400 mb-0.5">Your answer: {answers[i] == null ? 'Unanswered' : q.options[answers[i]]}</p>
                             <p className="text-xs text-emerald-400 mb-1">Correct: {q.options[q.correct]}</p>
                           </>
                         )}

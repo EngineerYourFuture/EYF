@@ -414,12 +414,65 @@ function detectCodePattern(code: string): string {
   const hasMap = /Map\(\)|new Map|{}/i.test(code) && /\[/.test(code);
   const hasSet = /Set\(\)|new Set/i.test(code);
   const fnStart = code.indexOf('function ');
-  const hasRecursion = fnStart !== -1 && code.includes('return') && code.indexOf('function ', fnStart + 1) === -1;
+  const hasRecursion = code.includes('function ') && code.includes('return') && code.indexOf('function ', fnStart + 1) === -1;
   if (hasNestedLoops) return 'Nested loops detected → O(n²) complexity';
   if (hasSet) return 'Set-based lookup detected';
   if (hasMap) return 'Map/HashMap detected';
   if (hasRecursion) return 'Recursive approach detected';
   return 'Linear scan detected';
+}
+
+// Local browser execution via sandboxed iframe + postMessage (no dynamic code in main thread)
+function buildTestCode(userCode: string, testCases: Problem['testCases']): string {
+  const fnMatch = /function\s+(\w+)\s*\(/.exec(userCode);
+  const fnName = fnMatch?.[1] ?? 'solution';
+  return [
+    userCode,
+    `var __cases=${JSON.stringify(testCases)};`,
+    `for(var __i=0;__i<__cases.length;__i++){`,
+    `  var __tc=__cases[__i];`,
+    `  try{var __inp=JSON.parse(__tc.input);var __a=Array.isArray(__inp)?__inp:[__inp];`,
+    `  var __o=${fnName}.apply(null,__a);`,
+    String.raw`  results.push('Input: '+__tc.input+'\nOutput: '+JSON.stringify(__o)+'\nExpected: '+__tc.output);}`,
+    `  catch(e){results.push('Error: '+e.message);}`,
+    `}`,
+  ].join('\n');
+}
+
+function runLocalJS(userCode: string, testCases: Problem['testCases']): Promise<RunResponse> {
+  const start = performance.now();
+  const testCode = buildTestCode(userCode, testCases);
+  const iframe = document.createElement('iframe');
+  iframe.style.display = 'none';
+
+  return new Promise<RunResponse>((resolve) => {
+    let done = false;
+
+    const cleanup = (onMsg: (e: MessageEvent) => void) => {
+      if (done) return;
+      done = true;
+      globalThis.removeEventListener('message', onMsg);
+      if (document.body.contains(iframe)) iframe.remove();
+    };
+
+    const onMsg = (e: MessageEvent<{ type: string; results: string[]; logs: string[]; error?: string }>) => {
+      if (e.data?.type !== 'eyf-result') return;
+      cleanup(onMsg);
+      const { results, logs, error } = e.data;
+      const logLines = logs.map((l) => `> ${l}`);
+      if (error && results.length === 0) {
+        resolve({ runId: 'local', stdout: logLines.join('\n'), stderr: error, exitCode: 1, runtimeMs: Math.round(performance.now() - start) });
+      } else {
+        resolve({ runId: 'local', stdout: [...logLines, ...results].join('\n\n'), stderr: '', exitCode: 0, runtimeMs: Math.round(performance.now() - start) });
+      }
+    };
+
+    globalThis.addEventListener('message', onMsg);
+    iframe.onload = () => iframe.contentWindow?.postMessage({ type: 'eyf-run', code: testCode }, globalThis.location.origin);
+    setTimeout(() => { cleanup(onMsg); resolve({ runId: 'local', stdout: '', stderr: 'Execution timed out', exitCode: 1, runtimeMs: 5000 }); }, 5000);
+    iframe.src = '/sandbox.html';
+    document.body.appendChild(iframe);
+  });
 }
 
 export function ProblemDetailPage() {
@@ -459,57 +512,6 @@ export function ProblemDetailPage() {
     setLanguage(lang);
     setCode(LANG_STARTERS[lang]);
   };
-
-  // Local browser execution via sandboxed iframe + postMessage (no dynamic code in main thread)
-  function runLocalJS(userCode: string, testCases: Problem['testCases']): Promise<RunResponse> {
-    const start = performance.now();
-    const fnMatch = userCode.match(/function\s+(\w+)\s*\(/);
-    const fnName = fnMatch?.[1] ?? 'solution';
-
-    // Code runs in /sandbox.html — a null-origin sandboxed iframe with no cookie/storage access
-    const testCode = [
-      userCode,
-      `var __cases=${JSON.stringify(testCases)};`,
-      `for(var __i=0;__i<__cases.length;__i++){`,
-      `  var __tc=__cases[__i];`,
-      `  try{var __inp=JSON.parse(__tc.input);var __a=Array.isArray(__inp)?__inp:[__inp];`,
-      `  var __o=${fnName}.apply(null,__a);`,
-      `  results.push('Input: '+__tc.input+'\\nOutput: '+JSON.stringify(__o)+'\\nExpected: '+__tc.output);}`,
-      `  catch(e){results.push('Error: '+e.message);}`,
-      `}`,
-    ].join('\n');
-
-    const iframe = document.createElement('iframe');
-    iframe.style.display = 'none';
-
-    return new Promise<RunResponse>((resolve) => {
-      let done = false;
-      const cleanup = () => {
-        if (done) return;
-        done = true;
-        window.removeEventListener('message', onMsg);
-        if (document.body.contains(iframe)) document.body.removeChild(iframe);
-      };
-
-      const onMsg = (e: MessageEvent<{ type: string; results: string[]; logs: string[]; error?: string }>) => {
-        if (e.data?.type !== 'eyf-result') return;
-        cleanup();
-        const { results, logs, error } = e.data;
-        if (error && results.length === 0) {
-          resolve({ runId: 'local', stdout: logs.map(l => `> ${l}`).join('\n'), stderr: error, exitCode: 1, runtimeMs: Math.round(performance.now() - start) });
-        } else {
-          const stdout = [...logs.map(l => `> ${l}`), ...results].join('\n\n');
-          resolve({ runId: 'local', stdout, stderr: '', exitCode: 0, runtimeMs: Math.round(performance.now() - start) });
-        }
-      };
-
-      window.addEventListener('message', onMsg);
-      iframe.onload = () => iframe.contentWindow?.postMessage({ type: 'eyf-run', code: testCode }, window.location.origin);
-      setTimeout(() => { cleanup(); resolve({ runId: 'local', stdout: '', stderr: 'Execution timed out', exitCode: 1, runtimeMs: 5000 }); }, 5000);
-      iframe.src = '/sandbox.html';
-      document.body.appendChild(iframe);
-    });
-  }
 
   const onRun = async () => {
     setRunning(true);
@@ -558,7 +560,9 @@ export function ProblemDetailPage() {
       });
       setSubmitResult(result);
       if (result.verdict === 'accepted') {
-        const xpEarned = problem?.difficulty === 'hard' ? 100 : problem?.difficulty === 'medium' ? 60 : 30;
+        let xpEarned = 30;
+        if (problem?.difficulty === 'hard') xpEarned = 100;
+        else if (problem?.difficulty === 'medium') xpEarned = 60;
         fireXP(xpEarned, `${problem?.title ?? 'Problem'} solved!`);
         refresh();
       }
@@ -856,8 +860,8 @@ export function ProblemDetailPage() {
                               Common Mistakes on This Problem
                             </p>
                             <ul className="space-y-1.5">
-                              {diagnosis.commonMistakes.map((m, i) => (
-                                <li key={i} className="flex items-start gap-2 text-sm text-zinc-400">
+                              {diagnosis.commonMistakes.map((m) => (
+                                <li key={m} className="flex items-start gap-2 text-sm text-zinc-400">
                                   <span className="text-red-500 mt-0.5 flex-shrink-0">✗</span>
                                   {m}
                                 </li>
@@ -872,8 +876,8 @@ export function ProblemDetailPage() {
                               Edge Cases to Check
                             </p>
                             <ul className="space-y-1.5">
-                              {diagnosis.edgeCasesMissed.map((e, i) => (
-                                <li key={i} className="flex items-start gap-2 text-sm text-zinc-400">
+                              {diagnosis.edgeCasesMissed.map((e) => (
+                                <li key={e} className="flex items-start gap-2 text-sm text-zinc-400">
                                   <span className="text-yellow-500 mt-0.5 flex-shrink-0">!</span>
                                   {e}
                                 </li>

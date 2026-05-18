@@ -673,8 +673,8 @@ export function ExperiencesPage() {
                     {/* Rounds */}
                     <div className="space-y-4">
                       <p className="text-xs font-bold uppercase tracking-wider text-zinc-500">Interview Rounds</p>
-                      {exp.rounds.map((round, ri) => (
-                        <div key={`round-${ri}`} className="bg-zinc-800/50 rounded-xl p-4 border border-zinc-700/50">
+                      {exp.rounds.map((round) => (
+                        <div key={round.label} className="bg-zinc-800/50 rounded-xl p-4 border border-zinc-700/50">
                           <div className="flex items-center gap-2 mb-3">
                             <span className="material-symbols-outlined text-lg text-zinc-400">{ROUND_ICONS[round.type]}</span>
                             <span className="font-semibold text-zinc-200 text-sm">{round.label}</span>
@@ -685,7 +685,7 @@ export function ExperiencesPage() {
 
                           <div className="space-y-2 mb-3">
                             {round.questions.map((q, qi) => (
-                              <div key={`q-${qi}`} className="flex items-start gap-2">
+                              <div key={`${round.label}-q-${qi}`} className="flex items-start gap-2">
                                 <span className="text-zinc-600 text-xs mt-0.5 flex-shrink-0">Q{qi + 1}.</span>
                                 <p className="text-sm text-zinc-300">{q}</p>
                               </div>
@@ -705,8 +705,8 @@ export function ExperiencesPage() {
                     <div>
                       <p className="text-xs font-bold uppercase tracking-wider text-zinc-500 mb-3">Tips from this candidate</p>
                       <ul className="space-y-2">
-                        {exp.tips.map((tip, ti) => (
-                          <li key={`tip-${ti}`} className="flex items-start gap-2">
+                        {exp.tips.map((tip) => (
+                          <li key={tip} className="flex items-start gap-2">
                             <span className="material-symbols-outlined text-yellow-400 text-base flex-shrink-0 mt-0.5">star</span>
                             <p className="text-sm text-zinc-300">{tip}</p>
                           </li>

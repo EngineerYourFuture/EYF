@@ -309,7 +309,7 @@ function CompanyPanel({ guide, onClose }: CompanyPanelProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex">
-      <div role="presentation" className="flex-1 bg-black/60 backdrop-blur-sm" onClick={onClose} onKeyDown={(e) => { if (e.key === 'Escape') onClose(); }} />
+      <div role="none" className="flex-1 bg-black/60 backdrop-blur-sm" onClick={onClose} onKeyDown={(e) => { if (e.key === 'Escape') onClose(); }} />
       <div className="w-full max-w-2xl bg-[#111] border-l border-white/10 flex flex-col overflow-hidden">
         {/* Header */}
         <div className="flex items-center gap-4 px-6 py-5 border-b border-white/8 flex-shrink-0">
@@ -647,6 +647,68 @@ const DAILY_QUESTION = {
   category: 'Adaptability',
 };
 
+function getReadinessBarClass(readiness: number): string {
+  if (readiness >= 70) return 'bg-gradient-to-r from-green-500 to-emerald-400';
+  if (readiness >= 40) return 'bg-gradient-to-r from-yellow-500 to-amber-400';
+  return 'bg-gradient-to-r from-primary-container to-red-400';
+}
+
+function getReadinessMsg(readiness: number): string {
+  if (readiness < 40) return "Keep practicing — you're building momentum!";
+  if (readiness < 70) return 'Good progress — focus on weak areas.';
+  return 'Interview-ready! Start applying confidently.';
+}
+
+function renderDailyQuestionAction(
+  dailyAnswered: boolean,
+  showDailyInput: boolean,
+  dailyResponse: string,
+  setDailyResponse: (v: string) => void,
+  setShowDailyInput: (v: boolean) => void,
+  submitDailyAnswer: () => void,
+) {
+  if (dailyAnswered) {
+    return (
+      <div className="flex items-center gap-2 text-green-400 text-sm font-bold">
+        <Icon name="check_circle" size={18} filled />
+        Answered today · +25 XP earned
+      </div>
+    );
+  }
+  if (showDailyInput) {
+    return (
+      <div>
+        <textarea
+          value={dailyResponse}
+          onChange={(e) => setDailyResponse(e.target.value)}
+          placeholder="Write your answer using STAR format..."
+          rows={4}
+          className="w-full bg-surface-container-highest border border-outline-variant/20 rounded-xl p-3 text-sm text-on-surface focus:outline-none focus:border-primary-container/40 resize-none mb-3"
+        />
+        <div className="flex gap-2 justify-end">
+          <button onClick={() => setShowDailyInput(false)} className="text-sm text-zinc-500 hover:text-zinc-300 px-3 py-2 rounded-full">Cancel</button>
+          <button
+            onClick={submitDailyAnswer}
+            disabled={dailyResponse.length < 20}
+            className="bg-primary-container text-white font-bold py-2 px-5 rounded-full text-sm hover:brightness-110 disabled:opacity-40"
+          >
+            Submit · +25 XP
+          </button>
+        </div>
+      </div>
+    );
+  }
+  return (
+    <button
+      onClick={() => setShowDailyInput(true)}
+      className="bg-primary-container text-white font-bold py-2.5 px-6 rounded-full text-sm hover:brightness-110 transition-all flex items-center gap-2"
+    >
+      <Icon name="edit" size={14} />
+      Answer Today's Question
+    </button>
+  );
+}
+
 export function PlacementPage() {
   const navigate = useNavigate();
   const session = getSession();
@@ -789,13 +851,8 @@ export function PlacementPage() {
     (stats.readinessScore || 25)
   ));
 
-  let readinessBarClass = 'bg-gradient-to-r from-primary-container to-red-400';
-  if (readiness >= 70) readinessBarClass = 'bg-gradient-to-r from-green-500 to-emerald-400';
-  else if (readiness >= 40) readinessBarClass = 'bg-gradient-to-r from-yellow-500 to-amber-400';
-
-  let readinessMsg = 'Interview-ready! Start applying confidently.';
-  if (readiness < 40) readinessMsg = "Keep practicing — you're building momentum!";
-  else if (readiness < 70) readinessMsg = 'Good progress — focus on weak areas.';
+  const readinessBarClass = getReadinessBarClass(readiness);
+  const readinessMsg = getReadinessMsg(readiness);
 
   const TABS = [
     { id: 'tracks' as const, label: 'Interview Tracks', icon: 'route' },
@@ -965,40 +1022,7 @@ export function PlacementPage() {
               {DAILY_QUESTION.tip}
             </p>
 
-            {dailyAnswered ? (
-              <div className="flex items-center gap-2 text-green-400 text-sm font-bold">
-                <Icon name="check_circle" size={18} filled />
-                Answered today · +25 XP earned
-              </div>
-            ) : showDailyInput ? (
-              <div>
-                <textarea
-                  value={dailyResponse}
-                  onChange={(e) => setDailyResponse(e.target.value)}
-                  placeholder="Write your answer using STAR format..."
-                  rows={4}
-                  className="w-full bg-surface-container-highest border border-outline-variant/20 rounded-xl p-3 text-sm text-on-surface focus:outline-none focus:border-primary-container/40 resize-none mb-3"
-                />
-                <div className="flex gap-2 justify-end">
-                  <button onClick={() => setShowDailyInput(false)} className="text-sm text-zinc-500 hover:text-zinc-300 px-3 py-2 rounded-full">Cancel</button>
-                  <button
-                    onClick={submitDailyAnswer}
-                    disabled={dailyResponse.length < 20}
-                    className="bg-primary-container text-white font-bold py-2 px-5 rounded-full text-sm hover:brightness-110 disabled:opacity-40"
-                  >
-                    Submit · +25 XP
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <button
-                onClick={() => setShowDailyInput(true)}
-                className="bg-primary-container text-white font-bold py-2.5 px-6 rounded-full text-sm hover:brightness-110 transition-all flex items-center gap-2"
-              >
-                <Icon name="edit" size={14} />
-                Answer Today's Question
-              </button>
-            )}
+            {renderDailyQuestionAction(dailyAnswered, showDailyInput, dailyResponse, setDailyResponse, setShowDailyInput, submitDailyAnswer)}
           </div>
         </div>
 
@@ -1366,7 +1390,7 @@ export function PlacementPage() {
                     </p>
                     <ul className="space-y-2">
                       {selectedServiceCo.aptitudeTips.map((tip, i) => (
-                        <li key={`aptitude-tip-${i}`} className="flex items-start gap-2 text-sm text-zinc-400">
+                        <li key={tip} className="flex items-start gap-2 text-sm text-zinc-400">
                           <span className="text-amber-400 font-black flex-shrink-0 mt-0.5">{i + 1}.</span>
                           {tip}
                         </li>
@@ -1450,8 +1474,8 @@ export function PlacementPage() {
                       { icon: 'book', color: 'text-green-400', tip: 'Verbal is the most neglected section. 10 min of RC daily = top 20% automatically' },
                       { icon: 'psychology', color: 'text-purple-400', tip: 'Aptitude patterns repeat year to year — use previous year papers for TCS/Wipro' },
                       { icon: 'verified', color: 'text-amber-400', tip: 'Platform certifications (InfyTQ, TCS iON) act as pre-filters — complete them before applying' },
-                    ].map((item, i) => (
-                      <div key={`universal-tip-${i}`} className="flex items-start gap-3 bg-zinc-900/50 rounded-xl p-4">
+                    ].map((item) => (
+                      <div key={item.icon} className="flex items-start gap-3 bg-zinc-900/50 rounded-xl p-4">
                         <Icon name={item.icon} size={18} className={`${item.color} flex-shrink-0 mt-0.5`} />
                         <p className="text-sm text-zinc-400 leading-relaxed">{item.tip}</p>
                       </div>
