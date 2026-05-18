@@ -837,13 +837,13 @@ function calcScore(answers: (number | null)[], questions: Question[]): number {
 // ─── Sub-views (extracted to keep SkillAssessmentPage complexity low) ─────────
 
 interface QuizViewProps {
-  skill: Skill;
-  questionIndex: number;
-  answers: (number | null)[];
-  timeLeft: number;
-  showExplanation: boolean;
-  onAnswer: (idx: number) => void;
-  onNext: () => void;
+  readonly skill: Skill;
+  readonly questionIndex: number;
+  readonly answers: (number | null)[];
+  readonly timeLeft: number;
+  readonly showExplanation: boolean;
+  readonly onAnswer: (idx: number) => void;
+  readonly onNext: () => void;
 }
 
 function QuizView({ skill, questionIndex, answers, timeLeft, showExplanation, onAnswer, onNext }: QuizViewProps) {
@@ -914,12 +914,12 @@ function QuizView({ skill, questionIndex, answers, timeLeft, showExplanation, on
 }
 
 interface ResultViewProps {
-  skill: Skill;
-  answers: (number | null)[];
-  score: number;
-  grade: ReturnType<typeof scoreToGrade>;
-  onRetake: () => void;
-  onBack: () => void;
+  readonly skill: Skill;
+  readonly answers: (number | null)[];
+  readonly score: number;
+  readonly grade: ReturnType<typeof scoreToGrade>;
+  readonly onRetake: () => void;
+  readonly onBack: () => void;
 }
 
 function ResultView({ skill, answers, score, grade, onRetake, onBack }: ResultViewProps) {
@@ -943,6 +943,7 @@ function ResultView({ skill, answers, score, grade, onRetake, onBack }: ResultVi
           <div className="space-y-3">
             {skill.questions.map((q, i) => {
               const isCorrect = answers[i] === q.correct;
+              const userAns = answers[i];
               return (
                 <div key={q.id} className={`p-4 rounded-xl border ${isCorrect ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-red-500/5 border-red-500/20'}`}>
                   <div className="flex items-start gap-3">
@@ -954,7 +955,7 @@ function ResultView({ skill, answers, score, grade, onRetake, onBack }: ResultVi
                       <p className="text-sm text-zinc-200 mb-1">{q.text}</p>
                       {!isCorrect && (
                         <>
-                          <p className="text-xs text-red-400 mb-0.5">Your answer: {answers[i] == null ? 'Unanswered' : q.options[answers[i] as number]}</p>
+                          <p className="text-xs text-red-400 mb-0.5">Your answer: {userAns == null ? 'Unanswered' : q.options[userAns]}</p>
                           <p className="text-xs text-emerald-400 mb-1">Correct: {q.options[q.correct]}</p>
                         </>
                       )}

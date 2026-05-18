@@ -217,6 +217,326 @@ function applySquadMembership(squads: Squad[], id: string, join: boolean): Squad
   });
 }
 
+// ─── Sub-view components (extracted to reduce CommunityPage cognitive complexity) ─
+
+type NewSquad = { name: string; focus: string; goal: string; cadence: string; description: string };
+
+interface PostDetailViewProps {
+  readonly selected: PostDetail;
+  readonly newReply: string;
+  readonly setNewReply: (v: string) => void;
+  readonly posting: boolean;
+  readonly onVote: (id: string, v: 1 | -1) => void;
+  readonly onSubmitReply: () => void;
+  readonly onBack: () => void;
+}
+
+function PostDetailView({ selected, newReply, setNewReply, posting, onVote, onSubmitReply, onBack }: PostDetailViewProps) {
+  const catMeta = CAT_META[selected.category] ?? CAT_META.general;
+  return (
+    <AppShell>
+      <div className="pt-8 max-w-3xl mx-auto">
+        <button onClick={onBack} className="flex items-center gap-2 text-zinc-500 hover:text-zinc-300 text-sm mb-6 transition-colors">
+          <Icon name="arrow_back" size={16} />Back to community
+        </button>
+        <div className="bg-surface-container rounded-2xl p-8 mb-4">
+          {selected.pinned && (
+            <div className="flex items-center gap-1 text-[10px] font-bold text-yellow-400 mb-3">
+              <Icon name="push_pin" size={12} />Pinned
+            </div>
+          )}
+          <div className="flex items-center gap-2 mb-4">
+            <div className={`w-7 h-7 ${catMeta.bg} rounded-lg flex items-center justify-center`}>
+              <Icon name={catMeta.icon} className={catMeta.color} size={14} />
+            </div>
+            <span className={`text-[10px] font-bold uppercase tracking-widest ${catMeta.color}`}>{selected.category}</span>
+          </div>
+          <h1 className="text-2xl font-bold mb-3">{selected.title}</h1>
+          <p className="text-on-surface-variant leading-relaxed mb-6">{selected.body}</p>
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <div className="flex items-center gap-3 text-xs text-zinc-500">
+              <span className="font-bold text-zinc-400">{selected.author}</span>
+              <span>{timeAgo(selected.createdAt)}</span>
+              {selected.tags.map((t) => (
+                <span key={t} className="bg-surface-container-high px-2 py-0.5 rounded-full">{t}</span>
+              ))}
+            </div>
+            <div className="flex items-center gap-2">
+              <button onClick={() => onVote(selected.id, 1)} className="flex items-center gap-1 text-zinc-500 hover:text-green-400 transition-colors">
+                <Icon name="arrow_upward" size={16} />
+                <span className="text-sm font-bold">{selected.upvotes}</span>
+              </button>
+              <button onClick={() => onVote(selected.id, -1)} className="text-zinc-500 hover:text-red-400 transition-colors">
+                <Icon name="arrow_downward" size={16} />
+              </button>
+            </div>
+          </div>
+        </div>
+        <div className="space-y-3 mb-6">
+          {selected.replies.length === 0 ? (
+            <p className="text-sm text-zinc-500 text-center py-6">No replies yet. Be the first to respond.</p>
+          ) : (
+            selected.replies.map((r) => (
+              <div key={r.id} className="bg-surface-container rounded-xl p-5 ml-4 border-l-2 border-outline-variant/20">
+                <p className="text-sm text-on-surface leading-relaxed mb-3">{r.body}</p>
+                <div className="flex items-center justify-between">
+                  <div className="text-xs text-zinc-500">
+                    <span className="font-bold text-zinc-400 mr-2">{r.author}</span>{timeAgo(r.createdAt)}
+                  </div>
+                  <div className="flex items-center gap-1 text-zinc-500">
+                    <Icon name="arrow_upward" size={14} />
+                    <span className="text-xs">{r.upvotes}</span>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+        <div className="bg-surface-container rounded-xl p-5">
+          <h3 className="text-sm font-bold mb-3">Write a Reply</h3>
+          <textarea
+            value={newReply}
+            onChange={(e) => setNewReply(e.target.value)}
+            placeholder="Share your thoughts..."
+            rows={4}
+            className="w-full bg-surface-container-highest border border-outline-variant/20 rounded-lg p-3 text-sm focus:outline-none focus:border-primary-container/40 resize-none"
+          />
+          <div className="flex justify-end mt-3">
+            <button onClick={onSubmitReply} disabled={posting || !newReply}
+              className="bg-primary-container text-white font-bold py-2 px-5 rounded-full text-sm hover:brightness-110 transition-all disabled:opacity-40 flex items-center gap-2">
+              {posting ? <Icon name="hourglass_empty" size={14} /> : <Icon name="send" size={14} />}
+              Reply
+            </button>
+          </div>
+        </div>
+      </div>
+    </AppShell>
+  );
+}
+
+interface SquadsSectionProps {
+  readonly squads: Squad[];
+  readonly selectedSquad: Squad | null;
+  readonly setSelectedSquad: (s: Squad | null) => void;
+  readonly showCreateSquad: boolean;
+  readonly setShowCreateSquad: (v: boolean) => void;
+  readonly newSquad: NewSquad;
+  readonly setNewSquad: (updater: (prev: NewSquad) => NewSquad) => void;
+  readonly squadDoneToday: Set<string>;
+  readonly onLeave: (id: string) => void;
+  readonly onJoin: (id: string) => void;
+  readonly onMarkDone: (id: string) => void;
+  readonly onCreate: () => void;
+}
+
+function SquadsSection({ squads, selectedSquad, setSelectedSquad, showCreateSquad, setShowCreateSquad, newSquad, setNewSquad, squadDoneToday, onLeave, onJoin, onMarkDone, onCreate }: SquadsSectionProps) {
+  if (selectedSquad) {
+    return (
+      <div>
+        <button onClick={() => setSelectedSquad(null)} className="flex items-center gap-2 text-zinc-500 hover:text-zinc-300 text-sm mb-5 transition-colors">
+          <Icon name="arrow_back" size={16} /> All squads
+        </button>
+        <div className="p-6 bg-[#1a1a1a] border border-white/8 rounded-2xl mb-5">
+          <div className="flex items-start justify-between flex-wrap gap-4">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-2xl bg-zinc-800 flex items-center justify-center">
+                <Icon name={selectedSquad.focusIcon} size={26} className={selectedSquad.focusColor} />
+              </div>
+              <div>
+                <h2 className="text-xl font-black text-white">{selectedSquad.name}</h2>
+                <div className="flex items-center gap-3 mt-1">
+                  <span className={`text-[10px] font-bold ${selectedSquad.focusColor}`}>{selectedSquad.focus}</span>
+                  <span className="text-zinc-600 text-[10px]">·</span>
+                  <span className="text-zinc-500 text-[10px] font-bold">{selectedSquad.cadence}</span>
+                  <span className="text-zinc-600 text-[10px]">·</span>
+                  <span className="text-orange-400 text-[10px] font-black">🔥 {selectedSquad.streak}-day streak</span>
+                </div>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              {selectedSquad.joined ? (
+                <button onClick={() => onLeave(selectedSquad.id)} className="px-4 py-2 rounded-xl bg-zinc-800 text-zinc-400 text-xs font-bold hover:bg-zinc-700 transition-colors">
+                  Leave Squad
+                </button>
+              ) : (
+                <button onClick={() => onJoin(selectedSquad.id)} disabled={selectedSquad.members >= selectedSquad.maxMembers}
+                  className="px-4 py-2 rounded-xl bg-[#E82127] text-white text-xs font-bold hover:brightness-110 transition-all disabled:opacity-40">
+                  {selectedSquad.members >= selectedSquad.maxMembers ? 'Full' : 'Join Squad'}
+                </button>
+              )}
+            </div>
+          </div>
+          <p className="text-zinc-400 text-sm mt-4 leading-relaxed">{selectedSquad.description}</p>
+          <div className="mt-4 p-3 bg-zinc-900 rounded-xl">
+            <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1">Squad Goal</p>
+            <p className="text-white text-sm font-bold">{selectedSquad.goal}</p>
+          </div>
+        </div>
+        <div className={`p-5 rounded-2xl border mb-5 ${squadDoneToday.has(selectedSquad.id) ? 'bg-green-500/5 border-green-500/20' : 'bg-amber-500/5 border-amber-500/20'}`}>
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className={`text-[10px] font-bold uppercase tracking-widest mb-1 ${squadDoneToday.has(selectedSquad.id) ? 'text-green-400' : 'text-amber-400'}`}>
+                {squadDoneToday.has(selectedSquad.id) ? '✓ Completed Today' : "Today's Squad Task"}
+              </p>
+              <p className="text-white font-bold">{selectedSquad.todayTask}</p>
+            </div>
+            {!squadDoneToday.has(selectedSquad.id) && selectedSquad.joined && (
+              <button onClick={() => onMarkDone(selectedSquad.id)} className="flex-shrink-0 px-4 py-2 bg-amber-500 text-black font-black text-xs rounded-xl hover:brightness-110 transition-all">
+                Mark Done
+              </button>
+            )}
+          </div>
+        </div>
+        <div className="p-5 bg-[#1a1a1a] border border-white/5 rounded-2xl">
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Members ({selectedSquad.members}/{selectedSquad.maxMembers})</p>
+          </div>
+          <div className="space-y-3">
+            {selectedSquad.memberNames.map((name, i) => (
+              <div key={name} className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-[#E82127] flex items-center justify-center text-white font-black text-xs flex-shrink-0">
+                  {name[0].toUpperCase()}
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-bold text-zinc-300">{name}</p>
+                  <div className="flex gap-2 mt-0.5">
+                    <span className="text-[10px] text-zinc-600">🔥 {Math.max(0, selectedSquad.streak - i)} day streak</span>
+                  </div>
+                </div>
+                <span className={`w-2 h-2 rounded-full flex-shrink-0 ${i < 3 ? 'bg-green-400' : 'bg-zinc-700'}`} title={i < 3 ? 'Active today' : 'Not yet'} />
+              </div>
+            ))}
+            {selectedSquad.joined && (
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-black text-xs flex-shrink-0">Y</div>
+                <p className="text-sm font-bold text-blue-400">You</p>
+                <span className={`w-2 h-2 rounded-full flex-shrink-0 ml-auto ${squadDoneToday.has(selectedSquad.id) ? 'bg-green-400' : 'bg-zinc-700'}`} />
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      {squads.some((s) => s.joined) && (
+        <div className="mb-8">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-4">My Squads</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {squads.filter((s) => s.joined).map((squad) => (
+              <button key={squad.id} type="button" onClick={() => setSelectedSquad(squad)}
+                className="text-left bg-[#1a1a1a] border border-[#E82127]/20 rounded-2xl p-5 hover:border-[#E82127]/40 transition-all">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-xl bg-zinc-800 flex items-center justify-center">
+                    <Icon name={squad.focusIcon} size={18} className={squad.focusColor} />
+                  </div>
+                  <div>
+                    <p className="font-bold text-white text-sm">{squad.name}</p>
+                    <p className="text-[10px] text-zinc-500">{squad.focus} · {squad.cadence}</p>
+                  </div>
+                  <div className="ml-auto text-right">
+                    <p className="text-orange-400 font-black text-sm">🔥 {squad.streak}</p>
+                    <p className="text-[10px] text-zinc-600">streak</p>
+                  </div>
+                </div>
+                <div className={`px-3 py-2 rounded-lg text-xs font-medium mt-2 ${squadDoneToday.has(squad.id) ? 'bg-green-500/10 text-green-400' : 'bg-amber-500/10 text-amber-400'}`}>
+                  {squadDoneToday.has(squad.id) ? '✓ Task done today' : '📌 Task pending: ' + squad.todayTask.slice(0, 50) + '…'}
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+      <div className="flex items-center justify-between mb-4">
+        <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Discover Squads</p>
+        <button onClick={() => setShowCreateSquad(!showCreateSquad)}
+          className="flex items-center gap-1.5 px-4 py-2 bg-[#E82127] rounded-full text-xs font-bold text-white hover:brightness-110 transition-all">
+          <Icon name="add" size={14} /> Create Squad
+        </button>
+      </div>
+      {showCreateSquad && (
+        <div className="bg-[#1a1a1a] border border-[#E82127]/20 rounded-2xl p-5 mb-6">
+          <h3 className="font-bold text-white mb-4">Create a New Squad</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <input type="text" value={newSquad.name} onChange={(e) => setNewSquad((s) => ({ ...s, name: e.target.value }))}
+              placeholder="Squad name (e.g. DSA Daily Grinders)"
+              className="w-full bg-zinc-900 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-white/20" />
+            <select value={newSquad.focus} onChange={(e) => setNewSquad((s) => ({ ...s, focus: e.target.value }))}
+              className="bg-zinc-900 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none">
+              {['DSA', 'System Design', 'Interview Prep', 'Placement', 'Backend', 'Frontend', 'Security', 'GenAI'].map((f) => (
+                <option key={f} value={f}>{f}</option>
+              ))}
+            </select>
+            <input type="text" value={newSquad.goal} onChange={(e) => setNewSquad((s) => ({ ...s, goal: e.target.value }))}
+              placeholder="Daily/Weekly goal (e.g. 1 problem per day)"
+              className="md:col-span-2 w-full bg-zinc-900 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-white/20" />
+            <textarea value={newSquad.description} onChange={(e) => setNewSquad((s) => ({ ...s, description: e.target.value }))}
+              placeholder="What's your squad about? Who should join?" rows={2}
+              className="md:col-span-2 w-full bg-zinc-900 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-white/20 resize-none" />
+          </div>
+          <div className="flex justify-end gap-3 mt-4">
+            <button onClick={() => setShowCreateSquad(false)} className="text-sm text-zinc-500 hover:text-zinc-300 px-4 py-2 rounded-full transition-colors">Cancel</button>
+            <button onClick={onCreate} disabled={!newSquad.name || !newSquad.goal}
+              className="bg-[#E82127] text-white font-bold py-2 px-5 rounded-full text-sm hover:brightness-110 transition-all disabled:opacity-40">
+              Create Squad
+            </button>
+          </div>
+        </div>
+      )}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {squads.filter((s) => !s.joined).map((squad) => (
+          <div key={squad.id} className="bg-[#1a1a1a] border border-white/5 rounded-2xl p-5 hover:border-white/10 transition-all">
+            <div className="flex items-start gap-3 mb-3">
+              <div className="w-10 h-10 rounded-xl bg-zinc-800 flex items-center justify-center flex-shrink-0">
+                <Icon name={squad.focusIcon} size={18} className={squad.focusColor} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-bold text-white">{squad.name}</p>
+                <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                  <span className={`text-[10px] font-bold ${squad.focusColor}`}>{squad.focus}</span>
+                  <span className="text-zinc-600 text-[10px]">·</span>
+                  <span className="text-zinc-500 text-[10px]">{squad.cadence}</span>
+                  <span className="text-zinc-600 text-[10px]">·</span>
+                  <span className="text-orange-400 text-[10px] font-black">🔥 {squad.streak}-day streak</span>
+                </div>
+              </div>
+            </div>
+            <p className="text-xs text-zinc-500 leading-relaxed mb-3">{squad.description}</p>
+            <div className="flex flex-wrap gap-1.5 mb-4">
+              {squad.tags.map((t) => (
+                <span key={t} className="px-2 py-0.5 bg-zinc-800 rounded-full text-[10px] text-zinc-400">{t}</span>
+              ))}
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1 text-xs text-zinc-500">
+                <Icon name="people" size={13} />
+                {squad.members}/{squad.maxMembers} members
+                {squad.members >= squad.maxMembers && <span className="text-red-400 font-bold ml-1">(Full)</span>}
+              </div>
+              <button onClick={() => { onJoin(squad.id); setSelectedSquad({ ...squad, joined: true, members: squad.members + 1 }); }}
+                disabled={squad.members >= squad.maxMembers}
+                className="flex items-center gap-1.5 px-4 py-2 bg-[#E82127] text-white text-xs font-bold rounded-xl hover:brightness-110 transition-all disabled:opacity-40 disabled:cursor-not-allowed">
+                <Icon name="group_add" size={13} />
+                Join
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+      {squads.filter((s) => !s.joined).length === 0 && (
+        <div className="text-center py-10">
+          <Icon name="groups" className="text-zinc-700 mb-3" size={40} />
+          <p className="text-zinc-500">You've joined all available squads! Create a new one.</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Page ──────────────────────────────────────────────────────────────────────
+
 export function CommunityPage() {
   const session = getSession();
   const { fireXP } = useUser();
@@ -336,90 +656,16 @@ export function CommunityPage() {
   const filtered = activeCategory === 'all' ? posts : posts.filter((p) => p.category === activeCategory);
 
   if (selected) {
-    const catMeta = CAT_META[selected.category] ?? CAT_META.general;
     return (
-      <AppShell>
-        <div className="pt-8 max-w-3xl mx-auto">
-          <button onClick={() => setSelected(null)} className="flex items-center gap-2 text-zinc-500 hover:text-zinc-300 text-sm mb-6 transition-colors">
-            <Icon name="arrow_back" size={16} />Back to community
-          </button>
-
-          <div className="bg-surface-container rounded-2xl p-8 mb-4">
-            {selected.pinned && (
-              <div className="flex items-center gap-1 text-[10px] font-bold text-yellow-400 mb-3">
-                <Icon name="push_pin" size={12} />Pinned
-              </div>
-            )}
-            <div className="flex items-center gap-2 mb-4">
-              <div className={`w-7 h-7 ${catMeta.bg} rounded-lg flex items-center justify-center`}>
-                <Icon name={catMeta.icon} className={catMeta.color} size={14} />
-              </div>
-              <span className={`text-[10px] font-bold uppercase tracking-widest ${catMeta.color}`}>{selected.category}</span>
-            </div>
-            <h1 className="text-2xl font-bold mb-3">{selected.title}</h1>
-            <p className="text-on-surface-variant leading-relaxed mb-6">{selected.body}</p>
-            <div className="flex items-center justify-between flex-wrap gap-3">
-              <div className="flex items-center gap-3 text-xs text-zinc-500">
-                <span className="font-bold text-zinc-400">{selected.author}</span>
-                <span>{timeAgo(selected.createdAt)}</span>
-                {selected.tags.map((t) => (
-                  <span key={t} className="bg-surface-container-high px-2 py-0.5 rounded-full">{t}</span>
-                ))}
-              </div>
-              <div className="flex items-center gap-2">
-                <button onClick={() => vote(selected.id, 1)} className="flex items-center gap-1 text-zinc-500 hover:text-green-400 transition-colors">
-                  <Icon name="arrow_upward" size={16} />
-                  <span className="text-sm font-bold">{selected.upvotes}</span>
-                </button>
-                <button onClick={() => vote(selected.id, -1)} className="text-zinc-500 hover:text-red-400 transition-colors">
-                  <Icon name="arrow_downward" size={16} />
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Replies */}
-          <div className="space-y-3 mb-6">
-            {selected.replies.length === 0 ? (
-              <p className="text-sm text-zinc-500 text-center py-6">No replies yet. Be the first to respond.</p>
-            ) : (
-              selected.replies.map((r) => (
-                <div key={r.id} className="bg-surface-container rounded-xl p-5 ml-4 border-l-2 border-outline-variant/20">
-                  <p className="text-sm text-on-surface leading-relaxed mb-3">{r.body}</p>
-                  <div className="flex items-center justify-between">
-                    <div className="text-xs text-zinc-500">
-                      <span className="font-bold text-zinc-400 mr-2">{r.author}</span>{timeAgo(r.createdAt)}
-                    </div>
-                    <div className="flex items-center gap-1 text-zinc-500">
-                      <Icon name="arrow_upward" size={14} />
-                      <span className="text-xs">{r.upvotes}</span>
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-
-          {/* Reply composer */}
-          <div className="bg-surface-container rounded-xl p-5">
-            <h3 className="text-sm font-bold mb-3">Write a Reply</h3>
-            <textarea
-              value={newReply}
-              onChange={(e) => setNewReply(e.target.value)}
-              placeholder="Share your thoughts..."
-              rows={4}
-              className="w-full bg-surface-container-highest border border-outline-variant/20 rounded-lg p-3 text-sm focus:outline-none focus:border-primary-container/40 resize-none"
-            />
-            <div className="flex justify-end mt-3">
-              <button onClick={submitReply} disabled={posting || !newReply}
-                className="bg-primary-container text-white font-bold py-2 px-5 rounded-full text-sm hover:brightness-110 transition-all disabled:opacity-40 flex items-center gap-2">
-                {posting ? <Icon name="hourglass_empty" size={14} /> : <Icon name="send" size={14} />}
-                Reply
-              </button>
-            </div>
-          </div>
-        </div>
-      </AppShell>
+      <PostDetailView
+        selected={selected}
+        newReply={newReply}
+        setNewReply={setNewReply}
+        posting={posting}
+        onVote={vote}
+        onSubmitReply={submitReply}
+        onBack={() => setSelected(null)}
+      />
     );
   }
 
@@ -465,251 +711,20 @@ export function CommunityPage() {
 
         {/* Study Squads view */}
         {activeView === 'squads' && (
-          <div>
-            {selectedSquad ? (
-              <div>
-                <button onClick={() => setSelectedSquad(null)} className="flex items-center gap-2 text-zinc-500 hover:text-zinc-300 text-sm mb-5 transition-colors">
-                  <Icon name="arrow_back" size={16} /> All squads
-                </button>
-                {/* Squad detail header */}
-                <div className={`p-6 bg-[#1a1a1a] border border-white/8 rounded-2xl mb-5`}>
-                  <div className="flex items-start justify-between flex-wrap gap-4">
-                    <div className="flex items-center gap-4">
-                      <div className="w-14 h-14 rounded-2xl bg-zinc-800 flex items-center justify-center">
-                        <Icon name={selectedSquad.focusIcon} size={26} className={selectedSquad.focusColor} />
-                      </div>
-                      <div>
-                        <h2 className="text-xl font-black text-white">{selectedSquad.name}</h2>
-                        <div className="flex items-center gap-3 mt-1">
-                          <span className={`text-[10px] font-bold ${selectedSquad.focusColor}`}>{selectedSquad.focus}</span>
-                          <span className="text-zinc-600 text-[10px]">·</span>
-                          <span className="text-zinc-500 text-[10px] font-bold">{selectedSquad.cadence}</span>
-                          <span className="text-zinc-600 text-[10px]">·</span>
-                          <span className="text-orange-400 text-[10px] font-black">🔥 {selectedSquad.streak}-day streak</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex gap-2">
-                      {selectedSquad.joined ? (
-                        <button
-                          onClick={() => leaveSquad(selectedSquad.id)}
-                          className="px-4 py-2 rounded-xl bg-zinc-800 text-zinc-400 text-xs font-bold hover:bg-zinc-700 transition-colors"
-                        >
-                          Leave Squad
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => joinSquad(selectedSquad.id)}
-                          disabled={selectedSquad.members >= selectedSquad.maxMembers}
-                          className="px-4 py-2 rounded-xl bg-[#E82127] text-white text-xs font-bold hover:brightness-110 transition-all disabled:opacity-40"
-                        >
-                          {selectedSquad.members >= selectedSquad.maxMembers ? 'Full' : 'Join Squad'}
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                  <p className="text-zinc-400 text-sm mt-4 leading-relaxed">{selectedSquad.description}</p>
-                  <div className="mt-4 p-3 bg-zinc-900 rounded-xl">
-                    <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1">Squad Goal</p>
-                    <p className="text-white text-sm font-bold">{selectedSquad.goal}</p>
-                  </div>
-                </div>
-
-                {/* Today's task */}
-                <div className={`p-5 rounded-2xl border mb-5 ${squadDoneToday.has(selectedSquad.id) ? 'bg-green-500/5 border-green-500/20' : 'bg-amber-500/5 border-amber-500/20'}`}>
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <p className={`text-[10px] font-bold uppercase tracking-widest mb-1 ${squadDoneToday.has(selectedSquad.id) ? 'text-green-400' : 'text-amber-400'}`}>
-                        {squadDoneToday.has(selectedSquad.id) ? '✓ Completed Today' : "Today's Squad Task"}
-                      </p>
-                      <p className="text-white font-bold">{selectedSquad.todayTask}</p>
-                    </div>
-                    {!squadDoneToday.has(selectedSquad.id) && selectedSquad.joined && (
-                      <button
-                        onClick={() => markTodayDone(selectedSquad.id)}
-                        className="flex-shrink-0 px-4 py-2 bg-amber-500 text-black font-black text-xs rounded-xl hover:brightness-110 transition-all"
-                      >
-                        Mark Done
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                {/* Members */}
-                <div className="p-5 bg-[#1a1a1a] border border-white/5 rounded-2xl">
-                  <div className="flex items-center justify-between mb-4">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Members ({selectedSquad.members}/{selectedSquad.maxMembers})</p>
-                  </div>
-                  <div className="space-y-3">
-                    {selectedSquad.memberNames.map((name, i) => (
-                      <div key={name} className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-[#E82127] flex items-center justify-center text-white font-black text-xs flex-shrink-0">
-                          {name[0].toUpperCase()}
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-sm font-bold text-zinc-300">{name}</p>
-                          <div className="flex gap-2 mt-0.5">
-                            <span className="text-[10px] text-zinc-600">🔥 {Math.max(0, selectedSquad.streak - i)} day streak</span>
-                          </div>
-                        </div>
-                        <span className={`w-2 h-2 rounded-full flex-shrink-0 ${i < 3 ? 'bg-green-400' : 'bg-zinc-700'}`} title={i < 3 ? 'Active today' : 'Not yet'} />
-                      </div>
-                    ))}
-                    {selectedSquad.joined && (
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-black text-xs flex-shrink-0">Y</div>
-                        <p className="text-sm font-bold text-blue-400">You</p>
-                        <span className={`w-2 h-2 rounded-full flex-shrink-0 ml-auto ${squadDoneToday.has(selectedSquad.id) ? 'bg-green-400' : 'bg-zinc-700'}`} />
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div>
-                {/* My squads */}
-                {squads.some((s) => s.joined) && (
-                  <div className="mb-8">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-4">My Squads</p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {squads.filter((s) => s.joined).map((squad) => (
-                        <button
-                          key={squad.id}
-                          type="button"
-                          onClick={() => setSelectedSquad(squad)}
-                          className="text-left bg-[#1a1a1a] border border-[#E82127]/20 rounded-2xl p-5 hover:border-[#E82127]/40 transition-all"
-                        >
-                          <div className="flex items-center gap-3 mb-3">
-                            <div className="w-10 h-10 rounded-xl bg-zinc-800 flex items-center justify-center">
-                              <Icon name={squad.focusIcon} size={18} className={squad.focusColor} />
-                            </div>
-                            <div>
-                              <p className="font-bold text-white text-sm">{squad.name}</p>
-                              <p className="text-[10px] text-zinc-500">{squad.focus} · {squad.cadence}</p>
-                            </div>
-                            <div className="ml-auto text-right">
-                              <p className="text-orange-400 font-black text-sm">🔥 {squad.streak}</p>
-                              <p className="text-[10px] text-zinc-600">streak</p>
-                            </div>
-                          </div>
-                          <div className={`px-3 py-2 rounded-lg text-xs font-medium mt-2 ${squadDoneToday.has(squad.id) ? 'bg-green-500/10 text-green-400' : 'bg-amber-500/10 text-amber-400'}`}>
-                            {squadDoneToday.has(squad.id) ? '✓ Task done today' : "📌 Task pending: " + squad.todayTask.slice(0, 50) + '…'}
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* All squads + Create */}
-                <div className="flex items-center justify-between mb-4">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Discover Squads</p>
-                  <button
-                    onClick={() => setShowCreateSquad(!showCreateSquad)}
-                    className="flex items-center gap-1.5 px-4 py-2 bg-[#E82127] rounded-full text-xs font-bold text-white hover:brightness-110 transition-all"
-                  >
-                    <Icon name="add" size={14} /> Create Squad
-                  </button>
-                </div>
-
-                {/* Create squad form */}
-                {showCreateSquad && (
-                  <div className="bg-[#1a1a1a] border border-[#E82127]/20 rounded-2xl p-5 mb-6">
-                    <h3 className="font-bold text-white mb-4">Create a New Squad</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <input
-                        type="text"
-                        value={newSquad.name}
-                        onChange={(e) => setNewSquad((s) => ({ ...s, name: e.target.value }))}
-                        placeholder="Squad name (e.g. DSA Daily Grinders)"
-                        className="w-full bg-zinc-900 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-white/20"
-                      />
-                      <select
-                        value={newSquad.focus}
-                        onChange={(e) => setNewSquad((s) => ({ ...s, focus: e.target.value }))}
-                        className="bg-zinc-900 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none"
-                      >
-                        {['DSA', 'System Design', 'Interview Prep', 'Placement', 'Backend', 'Frontend', 'Security', 'GenAI'].map((f) => (
-                          <option key={f} value={f}>{f}</option>
-                        ))}
-                      </select>
-                      <input
-                        type="text"
-                        value={newSquad.goal}
-                        onChange={(e) => setNewSquad((s) => ({ ...s, goal: e.target.value }))}
-                        placeholder="Daily/Weekly goal (e.g. 1 problem per day)"
-                        className="md:col-span-2 w-full bg-zinc-900 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-white/20"
-                      />
-                      <textarea
-                        value={newSquad.description}
-                        onChange={(e) => setNewSquad((s) => ({ ...s, description: e.target.value }))}
-                        placeholder="What's your squad about? Who should join?"
-                        rows={2}
-                        className="md:col-span-2 w-full bg-zinc-900 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-white/20 resize-none"
-                      />
-                    </div>
-                    <div className="flex justify-end gap-3 mt-4">
-                      <button onClick={() => setShowCreateSquad(false)} className="text-sm text-zinc-500 hover:text-zinc-300 px-4 py-2 rounded-full transition-colors">Cancel</button>
-                      <button onClick={createSquad} disabled={!newSquad.name || !newSquad.goal}
-                        className="bg-[#E82127] text-white font-bold py-2 px-5 rounded-full text-sm hover:brightness-110 transition-all disabled:opacity-40">
-                        Create Squad
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {squads.filter((s) => !s.joined).map((squad) => (
-                    <div key={squad.id} className="bg-[#1a1a1a] border border-white/5 rounded-2xl p-5 hover:border-white/10 transition-all">
-                      <div className="flex items-start gap-3 mb-3">
-                        <div className="w-10 h-10 rounded-xl bg-zinc-800 flex items-center justify-center flex-shrink-0">
-                          <Icon name={squad.focusIcon} size={18} className={squad.focusColor} />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-bold text-white">{squad.name}</p>
-                          <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                            <span className={`text-[10px] font-bold ${squad.focusColor}`}>{squad.focus}</span>
-                            <span className="text-zinc-600 text-[10px]">·</span>
-                            <span className="text-zinc-500 text-[10px]">{squad.cadence}</span>
-                            <span className="text-zinc-600 text-[10px]">·</span>
-                            <span className="text-orange-400 text-[10px] font-black">🔥 {squad.streak}-day streak</span>
-                          </div>
-                        </div>
-                      </div>
-                      <p className="text-xs text-zinc-500 leading-relaxed mb-3">{squad.description}</p>
-                      <div className="flex flex-wrap gap-1.5 mb-4">
-                        {squad.tags.map((t) => (
-                          <span key={t} className="px-2 py-0.5 bg-zinc-800 rounded-full text-[10px] text-zinc-400">{t}</span>
-                        ))}
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-1 text-xs text-zinc-500">
-                          <Icon name="people" size={13} />
-                          {squad.members}/{squad.maxMembers} members
-                          {squad.members >= squad.maxMembers && <span className="text-red-400 font-bold ml-1">(Full)</span>}
-                        </div>
-                        <button
-                          onClick={() => { joinSquad(squad.id); setSelectedSquad({ ...squad, joined: true, members: squad.members + 1 }); }}
-                          disabled={squad.members >= squad.maxMembers}
-                          className="flex items-center gap-1.5 px-4 py-2 bg-[#E82127] text-white text-xs font-bold rounded-xl hover:brightness-110 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-                        >
-                          <Icon name="group_add" size={13} />
-                          Join
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {squads.filter((s) => !s.joined).length === 0 && (
-                  <div className="text-center py-10">
-                    <Icon name="groups" className="text-zinc-700 mb-3" size={40} />
-                    <p className="text-zinc-500">You've joined all available squads! Create a new one.</p>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
+          <SquadsSection
+            squads={squads}
+            selectedSquad={selectedSquad}
+            setSelectedSquad={setSelectedSquad}
+            showCreateSquad={showCreateSquad}
+            setShowCreateSquad={setShowCreateSquad}
+            newSquad={newSquad}
+            setNewSquad={setNewSquad}
+            squadDoneToday={squadDoneToday}
+            onLeave={leaveSquad}
+            onJoin={joinSquad}
+            onMarkDone={markTodayDone}
+            onCreate={createSquad}
+          />
         )}
 
         {/* Community view */}

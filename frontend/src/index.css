@@ -419,8 +419,8 @@ kbd {
    ───────────────────────────────────────────────────────────────────────────── */
 .streak-badge {
   display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px 3px 7px;
-  background: rgba(234,88,12,0.08); border: 1px solid rgba(234,88,12,0.15);
-  border-radius: 100px; color: #9A3412; background: #FFEDD5; border-color: #FED7AA; font-size: 12px; font-weight: 700; line-height: 1;
+  border-radius: 100px; color: #9A3412; background: #FFEDD5; border: 1px solid #FED7AA;
+  font-size: 12px; font-weight: 700; line-height: 1;
 }
 
 .module-card {
