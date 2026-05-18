@@ -174,7 +174,11 @@ function DailyChallengeLocal() {
 interface ModItem { module: string; progress: number; cta: string }
 function buildRecommendations(xp: number, streak: number, modules: ModItem[]) {
   const recs: Array<{ icon: string; hex: string; title: string; reason: string; path: string; xpLabel: string; priority: number }> = [];
-  const progressOf = (key: string) => { const m = modules.find((x) => x.module === key); return m ? (m.progress > 1 ? m.progress : Math.round(m.progress * 100)) : 0; };
+  const progressOf = (key: string) => {
+    const m = modules.find((x) => x.module === key);
+    if (!m) return 0;
+    return m.progress > 1 ? m.progress : Math.round(m.progress * 100);
+  };
 
   if (streak === 0) recs.push({ icon: 'local_fire_department', hex: '#F97316', title: 'Start your streak', reason: "You haven't solved anything yet today — start now!", path: '/app/problems', xpLabel: '+10 XP', priority: 10 });
   else if (streak < 3) recs.push({ icon: 'local_fire_department', hex: '#F97316', title: `Keep your ${streak}d streak alive`, reason: 'Solve one problem before midnight to extend it.', path: '/app/problems', xpLabel: '+25 XP', priority: 9 });
@@ -231,7 +235,12 @@ export function HomePage() {
   const defaultModules = Object.keys(MODULE_CONFIG).map((k) => ({ module: k, progress: 0, cta: 'Start' }));
   const moduleList = modules.length > 0 ? [...modules, ...defaultModules.filter((d) => !modules.some((m) => m.module === d.module))] : defaultModules;
 
-  const greeting = (() => { const h = new Date().getHours(); return h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening'; })();
+  const greeting = (() => {
+    const h = new Date().getHours();
+    if (h < 12) return 'Good morning';
+    if (h < 17) return 'Good afternoon';
+    return 'Good evening';
+  })();
 
   const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000);
   const insight = ENGINEERING_INSIGHTS[dayOfYear % ENGINEERING_INSIGHTS.length];
@@ -352,10 +361,8 @@ export function HomePage() {
         {/* ── Readiness CTA ─────────────────────────────────────────────── */}
         <motion.section {...stagger(2)} className="mb-6">
           <Link to="/app/readiness" className="block group">
-            <div className="rounded-2xl p-5 flex items-center gap-4 border transition-all duration-300"
-              style={{ background: 'rgba(232,25,44,0.04)', borderColor: 'rgba(232,25,44,0.15)' }}
-              onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(232,25,44,0.4)'; e.currentTarget.style.background = 'rgba(232,25,44,0.07)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(232,25,44,0.15)'; e.currentTarget.style.background = 'rgba(232,25,44,0.04)'; }}
+            <div className="rounded-2xl p-5 flex items-center gap-4 border border-[rgba(232,25,44,0.15)] transition-all duration-300 group-hover:border-[rgba(232,25,44,0.4)]"
+              style={{ background: 'rgba(232,25,44,0.04)' }}
             >
               <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(232,25,44,0.12)', border: '1px solid rgba(232,25,44,0.2)' }}>
                 <Icon name="speed" size={22} style={{ color: '#E8192C' }} />
@@ -491,7 +498,8 @@ export function HomePage() {
             {moduleList.map((mod, i) => {
               const cfg = MODULE_CONFIG[mod.module];
               if (!cfg) return null;
-              const pct = typeof mod.progress === 'number' ? (mod.progress > 1 ? Math.round(mod.progress) : Math.round(mod.progress * 100)) : 0;
+              const rawPct = mod.progress;
+              const pct = typeof rawPct === 'number' ? Math.round(rawPct > 1 ? rawPct : rawPct * 100) : 0;
               return (
                 <motion.div key={mod.module} whileHover={{ y: -4, transition: { duration: 0.25 } }} custom={i}>
                   <Link to={cfg.path}>

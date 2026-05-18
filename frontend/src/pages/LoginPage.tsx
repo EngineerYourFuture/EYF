@@ -206,7 +206,7 @@ export function LoginPage() {
                   <button type="submit" disabled={loading}
                     className="w-full py-3.5 rounded-xl font-bold text-sm text-white transition-all duration-200 hover:scale-[1.02] disabled:opacity-50 flex items-center justify-center gap-2"
                     style={{ background: '#E8192C', boxShadow: '0 4px 24px rgba(232,25,44,0.35)' }}>
-                    {loading ? 'Signing in…' : require2FA ? 'Verify code' : 'Sign in'}
+                    {loading ? 'Signing in…' : (require2FA ? 'Verify code' : 'Sign in')}
                     {!loading && <Icon name="arrow_forward" size={16} />}
                   </button>
 

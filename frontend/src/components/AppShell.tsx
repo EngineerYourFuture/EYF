@@ -162,7 +162,7 @@ export function AppShell({ children }: { readonly children: ReactNode }) {
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-[9998] flex items-center justify-center"
           >
-            <div role="none" className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setShortcutsOpen(false)} onKeyDown={(e) => { if (e.key === 'Escape') setShortcutsOpen(false); }} />
+            <button type="button" aria-label="Close shortcuts" className="absolute inset-0 bg-black/70 backdrop-blur-sm w-full cursor-default" onClick={() => setShortcutsOpen(false)} />
             <motion.div
               initial={{ scale: 0.9, y: 20 }}
               animate={{ scale: 1, y: 0 }}

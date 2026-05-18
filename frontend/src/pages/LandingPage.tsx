@@ -227,9 +227,9 @@ function HeroSection() {
           className="mt-16 flex flex-col sm:flex-row items-center justify-center gap-6 text-sm text-white/30"
         >
           <div className="flex -space-x-2">
-            {['#3B82F6', '#8B5CF6', '#E8192C', '#10B981', '#F59E0B'].map((c, i) => (
-              <div key={i} className="w-8 h-8 rounded-full border-2 border-[#080808] flex items-center justify-center text-xs font-bold text-white" style={{ background: c }}>
-                {['A', 'P', 'R', 'K', 'S'][i]}
+            {[{ c: '#3B82F6', l: 'A' }, { c: '#8B5CF6', l: 'P' }, { c: '#E8192C', l: 'R' }, { c: '#10B981', l: 'K' }, { c: '#F59E0B', l: 'S' }].map(({ c, l }) => (
+              <div key={c} className="w-8 h-8 rounded-full border-2 border-[#080808] flex items-center justify-center text-xs font-bold text-white" style={{ background: c }}>
+                {l}
               </div>
             ))}
           </div>
@@ -256,13 +256,13 @@ function HeroSection() {
 /* ── Marquee strip ────────────────────────────────────────────────────────── */
 
 function MarqueeStrip() {
-  const items = [...MARQUEE_ITEMS, ...MARQUEE_ITEMS];
+  const items = [...MARQUEE_ITEMS.map((x, i) => ({ label: x, key: `a${i}` })), ...MARQUEE_ITEMS.map((x, i) => ({ label: x, key: `b${i}` }))];
   return (
     <div className="py-6 border-y border-white/5 overflow-hidden bg-white/[0.015]">
       <div className="marquee-track">
-        {items.map((item, i) => (
-          <div key={i} className="flex items-center gap-6 px-8 whitespace-nowrap">
-            <span className="text-sm font-medium text-white/30 uppercase tracking-widest">{item}</span>
+        {items.map(({ label, key }) => (
+          <div key={key} className="flex items-center gap-6 px-8 whitespace-nowrap">
+            <span className="text-sm font-medium text-white/30 uppercase tracking-widest">{label}</span>
             <span className="text-[#E8192C] opacity-50">·</span>
           </div>
         ))}
@@ -393,8 +393,8 @@ function ShowcaseSection() {
             <div>{'}'}</div>
           </div>
           <div className="mt-4 flex gap-2">
-            {[3, 7, 1, 9, 2, 5].map((n, i) => (
-              <div key={i} className="flex-1 flex flex-col items-center gap-1">
+            {[3, 7, 1, 9, 2, 5].map((n) => (
+              <div key={n} className="flex-1 flex flex-col items-center gap-1">
                 <div
                   className="w-full rounded transition-all duration-500"
                   style={{ height: `${n * 8}px`, background: n === 5 ? '#E8192C' : 'rgba(59,130,246,0.4)' }}
@@ -520,8 +520,8 @@ function TestimonialsSection() {
               className="glass rounded-2xl p-7 border border-white/5 hover:border-white/10 transition-all duration-300 flex flex-col gap-5"
             >
               <div className="flex gap-1">
-                {[...Array(5)].map((_, j) => (
-                  <Icon key={j} name="star" className="text-sm icon-fill" style={{ color: '#FBBF24' }} />
+                {(['s1','s2','s3','s4','s5'] as const).map((k) => (
+                  <Icon key={k} name="star" className="text-sm icon-fill" style={{ color: '#FBBF24' }} />
                 ))}
               </div>
               <p className="text-white/60 text-sm leading-relaxed flex-1">"{quote}"</p>
@@ -683,7 +683,7 @@ function Footer() {
               <div key={title}>
                 <h4 className="font-semibold text-white/60 mb-3 text-xs uppercase tracking-widest">{title}</h4>
                 <ul className="space-y-2">
-                  {links.map((l) => <li key={l}><a href="#" className="text-white/25 hover:text-white/60 transition-colors duration-200">{l}</a></li>)}
+                  {links.map((l) => <li key={l}><span className="text-white/25 hover:text-white/60 transition-colors duration-200 cursor-pointer select-none">{l}</span></li>)}
                 </ul>
               </div>
             ))}
