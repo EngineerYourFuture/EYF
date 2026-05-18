@@ -12,64 +12,62 @@ import { StreakToast } from '../components/StreakToast';
 interface ModulesStatus { items: Array<{ module: string; progress: number; cta: string }> }
 interface DailyChallenge { id: string; slug: string; title: string; difficulty: 'easy'|'medium'|'hard'; category: string; xpReward: number; solved?: boolean }
 
-const LEVEL_NAMES = ['Newcomer','Learner','Explorer','Builder','Practitioner','Engineer','Senior','Lead','Architect','Expert','Legend'];
+const LEVEL_NAMES      = ['Newcomer','Learner','Explorer','Builder','Practitioner','Engineer','Senior','Lead','Architect','Expert','Legend'];
 const LEVEL_THRESHOLDS = [0,100,300,700,1500,3000,6000,12000,25000,50000,100000];
 
 const MODULE_CONFIG: Record<string, { icon: string; title: string; path: string; hex: string }> = {
-  dsa:               { icon: 'code',               title: 'DSA',           path: '/app/problems',       hex: '#3B82F6' },
-  'core-subjects':   { icon: 'terminal',           title: 'Core CS',       path: '/app/subjects',       hex: '#22C55E' },
-  oop:               { icon: 'account_tree',        title: 'OOP',           path: '/app/oop',            hex: '#8B5CF6' },
-  security:          { icon: 'shield',              title: 'Security',      path: '/app/cybersecurity',  hex: '#E8192C' },
-  'system-design':   { icon: 'architecture',        title: 'Sys Design',    path: '/app/system-design',  hex: '#06B6D4' },
-  placement:         { icon: 'work_history',         title: 'Placement',     path: '/app/placement',      hex: '#F97316' },
-  'resume-builder':  { icon: 'description',          title: 'Resume',        path: '/app/resume',         hex: '#EAB308' },
-  'tech-skills':     { icon: 'psychology',           title: 'Tech Skills',   path: '/app/skills',         hex: '#14B8A6' },
-  mentorship:        { icon: 'groups',               title: 'Mentorship',    path: '/app/mentorship',     hex: '#EC4899' },
-  experts:           { icon: 'workspace_premium',    title: 'Experts',       path: '/app/experts',        hex: '#F59E0B' },
-  community:         { icon: 'forum',                title: 'Community',     path: '/app/community',      hex: '#6366F1' },
-  visualizer:        { icon: 'visibility',           title: 'Visualizer',    path: '/app/visualizer',     hex: '#84CC16' },
-  cheatsheets:       { icon: 'quick_reference_all',  title: 'Cheat Sheets',  path: '/app/cheatsheets',    hex: '#0EA5E9' },
-  flashcards:        { icon: 'style',                title: 'Flashcards',    path: '/app/flashcards',     hex: '#A855F7' },
-  'study-plan':      { icon: 'calendar_month',        title: 'Study Plan',    path: '/app/study-plan',     hex: '#6366F1' },
-  tracker:           { icon: 'track_changes',          title: 'Job Tracker',   path: '/app/tracker',        hex: '#10B981' },
-};
-
-const DIFF_STYLE: Record<string, { text: string; bg: string }> = {
-  easy:   { text: '#22C55E', bg: 'rgba(34,197,94,0.12)' },
-  medium: { text: '#EAB308', bg: 'rgba(234,179,8,0.12)' },
-  hard:   { text: '#E8192C', bg: 'rgba(232,25,44,0.12)' },
+  dsa:              { icon: 'code',              title: 'DSA',           path: '/app/problems',       hex: '#3B82F6' },
+  'core-subjects':  { icon: 'terminal',          title: 'Core CS',       path: '/app/subjects',       hex: '#22C55E' },
+  oop:              { icon: 'account_tree',       title: 'OOP',           path: '/app/oop',            hex: '#8B5CF6' },
+  security:         { icon: 'shield',             title: 'Security',      path: '/app/cybersecurity',  hex: '#E8192C' },
+  'system-design':  { icon: 'architecture',       title: 'Sys Design',    path: '/app/system-design',  hex: '#06B6D4' },
+  placement:        { icon: 'work_history',        title: 'Placement',     path: '/app/placement',      hex: '#F97316' },
+  'resume-builder': { icon: 'description',         title: 'Resume',        path: '/app/resume',         hex: '#EAB308' },
+  'tech-skills':    { icon: 'psychology',          title: 'Tech Skills',   path: '/app/skills',         hex: '#14B8A6' },
+  mentorship:       { icon: 'groups',              title: 'Mentorship',    path: '/app/mentorship',     hex: '#EC4899' },
+  experts:          { icon: 'workspace_premium',   title: 'Experts',       path: '/app/experts',        hex: '#F59E0B' },
+  community:        { icon: 'forum',               title: 'Community',     path: '/app/community',      hex: '#6366F1' },
+  visualizer:       { icon: 'visibility',          title: 'Visualizer',    path: '/app/visualizer',     hex: '#84CC16' },
+  cheatsheets:      { icon: 'quick_reference_all', title: 'Cheat Sheets',  path: '/app/cheatsheets',    hex: '#0EA5E9' },
+  flashcards:       { icon: 'style',               title: 'Flashcards',    path: '/app/flashcards',     hex: '#A855F7' },
+  'study-plan':     { icon: 'calendar_month',       title: 'Study Plan',    path: '/app/study-plan',     hex: '#6366F1' },
+  tracker:          { icon: 'track_changes',         title: 'Job Tracker',   path: '/app/tracker',        hex: '#10B981' },
 };
 
 const ENGINEERING_INSIGHTS = [
   { tip: "Prefer composition over inheritance. Wrapping objects is more flexible than subclassing — you can swap behaviors at runtime without changing class hierarchies.", category: 'OOP', icon: 'account_tree', hex: '#8B5CF6' },
   { tip: "Never use SELECT * in production queries. Fetching unnecessary columns increases I/O, breaks covering indexes, and leaks schema changes to callers.", category: 'DBMS', icon: 'storage', hex: '#A78BFA' },
   { tip: "When interviewing at Amazon, every behavioral answer must map to at least one Leadership Principle. Name it explicitly — it signals pattern recognition.", category: 'Career', icon: 'work', hex: '#F97316' },
-  { tip: "In system design, state your assumptions out loud. Interviewers can't see your mental model — saying 'I'll assume 100M DAU and 10:1 read-write ratio' shows senior thinking.", category: 'System Design', icon: 'architecture', hex: '#06B6D4' },
-  { tip: "The sliding window pattern applies any time you need the 'best contiguous subarray'. The trigger words are: 'subarray/substring', 'at most K', 'contiguous'.", category: 'DSA', icon: 'code', hex: '#3B82F6' },
+  { tip: "In system design, state your assumptions out loud. Interviewers can't see your mental model — saying 'I'll assume 100M DAU' shows senior thinking.", category: 'System Design', icon: 'architecture', hex: '#06B6D4' },
+  { tip: "The sliding window pattern applies any time you need the 'best contiguous subarray'. Trigger words: 'subarray/substring', 'at most K', 'contiguous'.", category: 'DSA', icon: 'code', hex: '#3B82F6' },
   { tip: "Don't store raw passwords, ever. Use bcrypt (cost ≥ 12), Argon2id, or scrypt. MD5 and SHA-256 are NOT password hashing algorithms — they're too fast.", category: 'Security', icon: 'shield', hex: '#E8192C' },
-  { tip: "BFS gives shortest path in unweighted graphs. Dijkstra handles weighted (non-negative). Bellman-Ford handles negative edges. Floyd-Warshall handles all-pairs.", category: 'DSA', icon: 'code', hex: '#3B82F6' },
-  { tip: "Rate limiting algorithms: token bucket (bursty, smooth average), sliding window log (precise), fixed window counter (simple, edge-case spikes at boundaries).", category: 'System Design', icon: 'architecture', hex: '#06B6D4' },
-  { tip: "Page faults are expensive — each one is a trip to disk (microseconds → milliseconds). If active pages exceed RAM, performance collapses through thrashing.", category: 'OS', icon: 'terminal', hex: '#22C55E' },
-  { tip: "DP tip: if you see 'minimum/maximum', 'count number of ways', or 'is it possible to reach' — suspect DP. Start with recursion + memoization, then optimize to tabulation.", category: 'DSA', icon: 'code', hex: '#3B82F6' },
+  { tip: "BFS = shortest path (unweighted). Dijkstra = weighted (non-negative). Bellman-Ford = negative edges. Floyd-Warshall = all-pairs shortest paths.", category: 'DSA', icon: 'code', hex: '#3B82F6' },
+  { tip: "Rate limiting: token bucket (bursty, smooth average), sliding window log (precise), fixed window counter (simple, edge-case spikes at boundaries).", category: 'System Design', icon: 'architecture', hex: '#06B6D4' },
+  { tip: "Page faults are expensive — each is a trip to disk (µs → ms). If active pages exceed RAM, performance collapses through thrashing.", category: 'OS', icon: 'terminal', hex: '#22C55E' },
+  { tip: "DP heuristic: if you see 'minimum/maximum', 'count ways', or 'is it possible' — suspect DP. Start with recursion + memo, then optimize to tabulation.", category: 'DSA', icon: 'code', hex: '#3B82F6' },
 ];
 
-/* ── Helpers ──────────────────────────────────────────────────────────────── */
+/* ── Progress ring ────────────────────────────────────────────────────────── */
 
 function ProgressRing({ pct, hex }: { readonly pct: number; readonly hex: string }) {
-  const r = 17;
+  const r    = 17;
   const circ = 2 * Math.PI * r;
-  const offset = circ - (pct / 100) * circ;
+  const off  = circ - (pct / 100) * circ;
   return (
     <div className="relative w-10 h-10 flex-shrink-0">
       <svg className="w-full h-full -rotate-90" viewBox="0 0 40 40">
-        <circle cx="20" cy="20" r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="2.5" />
+        <circle cx="20" cy="20" r={r} fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="2.5" />
         <circle cx="20" cy="20" r={r} fill="none" stroke={hex} strokeWidth="2.5"
-          strokeDasharray={circ} strokeDashoffset={offset} strokeLinecap="round" />
+          strokeDasharray={circ} strokeDashoffset={off} strokeLinecap="round" />
       </svg>
-      <span className="absolute inset-0 flex items-center justify-center text-[9px] font-bold text-white/60">{pct}%</span>
+      <span className="absolute inset-0 flex items-center justify-center text-[9px] font-bold" style={{ color: 'rgba(255,255,255,0.5)' }}>
+        {pct}%
+      </span>
     </div>
   );
 }
+
+/* ── Activity heatmap ─────────────────────────────────────────────────────── */
 
 function ActivityHeatmap({ streak }: { readonly streak: number }) {
   const weeks = 12;
@@ -81,104 +79,97 @@ function ActivityHeatmap({ streak }: { readonly streak: number }) {
     if (daysAgo < streak + 7) return h > 60 ? 1 : 0;
     return h > 80 ? 1 : 0;
   });
-  const intensity = (v: number) => {
-    if (v === 0) return 'rgba(255,255,255,0.04)';
-    if (v === 1) return 'rgba(232,25,44,0.25)';
-    if (v === 2) return 'rgba(232,25,44,0.55)';
-    return '#E8192C';
-  };
+
   return (
     <div>
-      <div className="flex gap-1 overflow-x-auto">
+      <div className="flex gap-1 overflow-x-auto pb-1">
         {Array.from({ length: weeks }, (_, w) => (
           <div key={w} className="flex flex-col gap-1">
             {Array.from({ length: 7 }, (_, d) => {
-              const idx = w * 7 + d;
+              const v = cells[w * 7 + d] ?? 0;
               return (
-                <div
-                  key={d}
-                  className="w-3 h-3 rounded-sm transition-all duration-200 hover:scale-125"
-                  style={{ background: intensity(cells[idx] ?? 0) }}
-                />
+                <div key={d} className={`hm hm-${v}`} />
               );
             })}
           </div>
         ))}
       </div>
       <div className="flex items-center gap-1.5 mt-3 justify-end">
-        <span className="text-[9px] text-white/20">Less</span>
-        {[0,1,2,3].map((v) => (
-          <div key={v} className="w-2.5 h-2.5 rounded-sm" style={{ background: intensity(v) }} />
-        ))}
-        <span className="text-[9px] text-white/20">More</span>
+        <span className="text-[9px]" style={{ color: '#3F3F46' }}>Less</span>
+        {[0,1,2,3,4].map((v) => <div key={v} className={`hm hm-${v}`} />)}
+        <span className="text-[9px]" style={{ color: '#3F3F46' }}>More</span>
       </div>
     </div>
   );
 }
 
-function DailyChallengeLocal() {
+/* ── Today's daily challenge ──────────────────────────────────────────────── */
+
+function DailyChallengeCard() {
   const todayKey = `eyf.daily.${new Date().toISOString().split('T')[0]}`;
-  const done = localStorage.getItem(todayKey) === 'done';
-  const day = new Date().getDate() - 1;
-  const TITLES = [
-    { title: 'Two Sum', type: 'DSA', diff: 'easy' },
-    { title: 'Design a URL Shortener', type: 'System Design', diff: 'medium' },
-    { title: 'Valid Parentheses', type: 'DSA', diff: 'easy' },
-    { title: 'Maximum Subarray', type: 'DSA', diff: 'medium' },
-    { title: 'SQL Injection Defense', type: 'Security', diff: 'medium' },
-    { title: 'Design a Rate Limiter', type: 'System Design', diff: 'medium' },
-    { title: 'Number of Islands', type: 'DSA', diff: 'medium' },
-    { title: 'Coin Change', type: 'DSA', diff: 'medium' },
-    { title: 'LRU Cache', type: 'DSA', diff: 'hard' },
-    { title: 'Design a Notification System', type: 'System Design', diff: 'hard' },
+  const done     = localStorage.getItem(todayKey) === 'done';
+  const day      = new Date().getDate() - 1;
+  const POOL = [
+    { title: 'Two Sum',                    type: 'DSA',           diff: 'easy' as const },
+    { title: 'Design a URL Shortener',     type: 'System Design', diff: 'medium' as const },
+    { title: 'Valid Parentheses',          type: 'DSA',           diff: 'easy' as const },
+    { title: 'Maximum Subarray',           type: 'DSA',           diff: 'medium' as const },
+    { title: 'SQL Injection Defense',      type: 'Security',      diff: 'medium' as const },
+    { title: 'Design a Rate Limiter',      type: 'System Design', diff: 'medium' as const },
+    { title: 'Number of Islands',          type: 'DSA',           diff: 'medium' as const },
+    { title: 'Coin Change',                type: 'DSA',           diff: 'medium' as const },
+    { title: 'LRU Cache',                  type: 'DSA',           diff: 'hard' as const },
+    { title: 'Design Notification System', type: 'System Design', diff: 'hard' as const },
   ];
-  const today = TITLES[day % TITLES.length];
-  const ds = DIFF_STYLE[today.diff] ?? { text: '#999', bg: 'rgba(153,153,153,0.1)' };
+  const today   = POOL[day % POOL.length];
+  const diffColor: Record<string, string> = { easy: '#4ADE80', medium: '#FCD34D', hard: '#FCA5A5' };
+  const diffBg:    Record<string, string> = { easy: 'rgba(34,197,94,0.08)', medium: 'rgba(234,179,8,0.08)', hard: 'rgba(232,25,44,0.08)' };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
-      className="rounded-2xl p-5 relative overflow-hidden border"
-      style={{ background: 'rgba(232,25,44,0.06)', borderColor: 'rgba(232,25,44,0.2)' }}
-    >
-      <div className="absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl pointer-events-none" style={{ background: 'rgba(232,25,44,0.15)' }} />
-      <div className="relative">
-        <div className="flex items-center gap-2 mb-3">
-          <Icon name="today" size={14} className="text-[#E8192C]" />
-          <span className="text-[9px] font-bold uppercase tracking-widest text-[#E8192C]">Daily Challenge</span>
-          <span className="ml-auto text-[10px] font-bold" style={{ color: '#EAB308' }}>+50 XP</span>
-        </div>
-        <span className="inline-block text-[9px] font-bold px-2 py-0.5 rounded-full mb-2" style={{ color: ds.text, background: ds.bg }}>
-          {today.diff} · {today.type}
-        </span>
-        <h3 className="text-sm font-bold text-white mb-3 leading-snug">{today.title}</h3>
-        <Link to="/app/daily">
-          <button
-            type="button"
-            className="w-full py-2.5 rounded-xl text-xs font-bold transition-all duration-200 hover:scale-[1.02] flex items-center justify-center gap-2"
-            style={done
-              ? { background: 'rgba(34,197,94,0.1)', color: '#22C55E', border: '1px solid rgba(34,197,94,0.2)' }
-              : { background: '#E8192C', color: '#fff', boxShadow: '0 4px 20px rgba(232,25,44,0.3)' }
-            }
-          >
-            {done ? <><Icon name="check_circle" size={14} /> Completed!</> : <>Solve Now <Icon name="arrow_forward" size={14} /></>}
-          </button>
-        </Link>
+    <div className="stat-tile">
+      <div className="flex items-center gap-2 mb-4">
+        <span className="material-symbols-rounded text-base" style={{ color: '#E8192C' }}>today</span>
+        <span className="text-xs font-semibold" style={{ color: '#F4F4F5' }}>Daily Challenge</span>
+        <span className="ml-auto text-[10px] font-bold" style={{ color: '#EAB308' }}>+50 XP</span>
       </div>
-    </motion.div>
+      <div className="flex items-center gap-2 mb-3">
+        <span className="tag" style={{ background: diffBg[today.diff], color: diffColor[today.diff] }}>
+          {today.diff}
+        </span>
+        <span className="text-xs" style={{ color: '#52525B' }}>{today.type}</span>
+      </div>
+      <p className="text-sm font-semibold mb-4" style={{ color: '#F4F4F5' }}>{today.title}</p>
+      <Link to="/app/daily">
+        <button
+          type="button"
+          className="w-full py-2.5 rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-2"
+          style={done
+            ? { background: 'rgba(34,197,94,0.08)', color: '#4ADE80', border: '1px solid rgba(34,197,94,0.16)' }
+            : { background: '#E8192C', color: '#fff' }
+          }
+        >
+          {done
+            ? <><span className="material-symbols-rounded text-base">check_circle</span> Completed</>
+            : <>Solve now <span className="material-symbols-rounded text-base">arrow_forward</span></>
+          }
+        </button>
+      </Link>
+    </div>
   );
 }
 
-interface ModItem { module: string; progress: number; cta: string }
+/* ── Recommendations ──────────────────────────────────────────────────────── */
+
+type ModItem = { module: string; progress: number; cta: string };
+
 function buildRecommendations(xp: number, streak: number, modules: ModItem[]) {
-  const recs: Array<{ icon: string; hex: string; title: string; reason: string; path: string; xpLabel: string; priority: number }> = [];
   const progressOf = (key: string) => {
     const m = modules.find((x) => x.module === key);
     if (!m) return 0;
     return m.progress > 1 ? m.progress : Math.round(m.progress * 100);
   };
+
+  const recs: Array<{ icon: string; hex: string; title: string; reason: string; path: string; xpLabel: string; priority: number }> = [];
 
   if (streak === 0) recs.push({ icon: 'local_fire_department', hex: '#F97316', title: 'Start your streak', reason: "You haven't solved anything yet today — start now!", path: '/app/problems', xpLabel: '+10 XP', priority: 10 });
   else if (streak < 3) recs.push({ icon: 'local_fire_department', hex: '#F97316', title: `Keep your ${streak}d streak alive`, reason: 'Solve one problem before midnight to extend it.', path: '/app/problems', xpLabel: '+25 XP', priority: 9 });
@@ -192,30 +183,32 @@ function buildRecommendations(xp: number, streak: number, modules: ModItem[]) {
   return recs.toSorted((a, b) => b.priority - a.priority).slice(0, 3);
 }
 
-/* ── Main page ────────────────────────────────────────────────────────────── */
+/* ── Page ─────────────────────────────────────────────────────────────────── */
 
 export function HomePage() {
-  const session  = getSession();
+  const session = getSession();
   const { summary, displayName, refresh } = useUser();
   const [modules,     setModules]     = useState<ModulesStatus['items']>([]);
-  const [, setDaily]                  = useState<DailyChallenge | null>(null);
+  const [,            setDaily]       = useState<DailyChallenge | null>(null);
   const [levelUpFor,  setLevelUpFor]  = useState<number | null>(null);
   const [streakToast, setStreakToast] = useState(false);
 
   useEffect(() => {
     if (!session?.accessToken) return;
-    apiRequest<ModulesStatus>('/modules/status', { token: session.accessToken }).then((d) => setModules(d.items)).catch(() => {});
-    apiRequest<{ problems: DailyChallenge[] }>('/problems?limit=1&daily=true', { token: session.accessToken }).then((d) => { if (d.problems[0]) setDaily(d.problems[0]); }).catch(() => {});
+    apiRequest<ModulesStatus>('/modules/status', { token: session.accessToken })
+      .then((d) => setModules(d.items)).catch(() => {});
+    apiRequest<{ problems: DailyChallenge[] }>('/problems?limit=1&daily=true', { token: session.accessToken })
+      .then((d) => { if (d.problems[0]) setDaily(d.problems[0]); }).catch(() => {});
   }, [session?.accessToken]);
 
   useEffect(() => {
     if (!summary) return;
-    const storedLevel = Number(localStorage.getItem('eyf.lastLevel') ?? 0);
-    if (storedLevel > 0 && summary.level > storedLevel) setLevelUpFor(summary.level);
+    const stored = Number(localStorage.getItem('eyf.lastLevel') ?? 0);
+    if (stored > 0 && summary.level > stored) setLevelUpFor(summary.level);
     localStorage.setItem('eyf.lastLevel', String(summary.level));
     const today = new Date().toDateString();
-    const lastStreakDay = localStorage.getItem('eyf.lastStreakToastDay');
-    if ([7,14,30,60,100,200,365].includes(summary.streak) && lastStreakDay !== today) {
+    const lastDay = localStorage.getItem('eyf.lastStreakToastDay');
+    if ([7,14,30,60,100,200,365].includes(summary.streak) && lastDay !== today) {
       localStorage.setItem('eyf.lastStreakToastDay', today);
       setStreakToast(true);
     }
@@ -226,14 +219,18 @@ export function HomePage() {
   const streak    = summary?.streak ?? 0;
   const level     = summary?.level ?? 0;
   const levelName = LEVEL_NAMES[level] ?? 'Legend';
-  const achievementsEarned = summary?.achievementsEarned ?? 0;
-  const recentAchievements = summary?.recentAchievements ?? [];
+  const achievementsEarned  = summary?.achievementsEarned ?? 0;
+  const recentAchievements  = summary?.recentAchievements ?? [];
   const nextThreshold = LEVEL_THRESHOLDS[level + 1] ?? LEVEL_THRESHOLDS.at(-1)!;
   const currThreshold = LEVEL_THRESHOLDS[level] ?? 0;
-  const xpPct = nextThreshold > currThreshold ? Math.min(100, Math.round(((xp - currThreshold) / (nextThreshold - currThreshold)) * 100)) : 100;
+  const xpPct = nextThreshold > currThreshold
+    ? Math.min(100, Math.round(((xp - currThreshold) / (nextThreshold - currThreshold)) * 100))
+    : 100;
 
   const defaultModules = Object.keys(MODULE_CONFIG).map((k) => ({ module: k, progress: 0, cta: 'Start' }));
-  const moduleList = modules.length > 0 ? [...modules, ...defaultModules.filter((d) => !modules.some((m) => m.module === d.module))] : defaultModules;
+  const moduleList = modules.length > 0
+    ? [...modules, ...defaultModules.filter((d) => !modules.some((m) => m.module === d.module))]
+    : defaultModules;
 
   const greeting = (() => {
     const h = new Date().getHours();
@@ -243,259 +240,250 @@ export function HomePage() {
   })();
 
   const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000);
-  const insight = ENGINEERING_INSIGHTS[dayOfYear % ENGINEERING_INSIGHTS.length];
-  const [insightDismissed, setInsightDismissed] = useState(() => localStorage.getItem('eyf.insightDay') === String(dayOfYear));
+  const insight   = ENGINEERING_INSIGHTS[dayOfYear % ENGINEERING_INSIGHTS.length];
+  const [insightDismissed, setInsightDismissed] = useState(
+    () => localStorage.getItem('eyf.insightDay') === String(dayOfYear),
+  );
 
   const recs = buildRecommendations(xp, streak, moduleList);
 
-  const stagger = (i: number) => ({ initial: { opacity: 0, y: 24 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.55, delay: i * 0.07, ease: [0.16, 1, 0.3, 1] as [number,number,number,number] } });
+  const appear = (delay = 0) => ({
+    initial: { opacity: 0, y: 10 },
+    animate: { opacity: 1, y: 0 },
+    transition: { duration: 0.3, delay, ease: 'easeOut' as const },
+  });
 
   return (
     <AppShell>
-      {levelUpFor && <LevelUpModal level={levelUpFor} onClose={() => { setLevelUpFor(null); refresh(); }} />}
-      {streakToast && streak > 0 && <StreakToast streak={streak} onClose={() => setStreakToast(false)} />}
+      {levelUpFor && (
+        <LevelUpModal level={levelUpFor} onClose={() => { setLevelUpFor(null); refresh(); }} />
+      )}
+      {streakToast && streak > 0 && (
+        <StreakToast streak={streak} onClose={() => setStreakToast(false)} />
+      )}
 
-      <div className="pt-8 max-w-7xl mx-auto">
+      <div className="max-w-6xl mx-auto px-4 md:px-6 pt-8 pb-24">
 
-        {/* ── Hero welcome + stats ────────────────────────────────────────── */}
-        <motion.section {...stagger(0)} className="mb-6 grid grid-cols-1 xl:grid-cols-3 gap-4">
-
-          {/* Main welcome card */}
-          <div className="xl:col-span-2 relative rounded-2xl p-7 overflow-hidden border border-white/6"
-            style={{ background: 'rgba(255,255,255,0.02)', backdropFilter: 'blur(24px)' }}>
-            <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full blur-3xl pointer-events-none" style={{ background: 'rgba(232,25,44,0.1)' }} />
-            <div className="absolute bottom-0 left-0 w-48 h-48 rounded-full blur-3xl pointer-events-none" style={{ background: 'rgba(139,92,246,0.06)' }} />
-
-            <div className="relative">
-              <p className="text-white/30 text-sm font-medium mb-1">{greeting},</p>
-              <h1 className="text-[clamp(28px,4vw,40px)] font-black tracking-tight text-white mb-6">
-                {displayName || 'Engineer'} 👋
-              </h1>
-
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
-                {[
-                  { label: 'Total XP', value: xp.toLocaleString(), icon: 'bolt', color: '#E8192C' },
-                  { label: 'This Week', value: `+${weeklyXp.toLocaleString()}`, icon: 'trending_up', color: '#22C55E' },
-                  { label: 'Streak', value: `${streak}d ${streak >= 7 ? '🔥' : '⚡'}`, icon: null, color: '#F97316' },
-                  { label: 'Badges', value: String(achievementsEarned), icon: 'emoji_events', color: '#EAB308' },
-                ].map(({ label, value, icon, color }) => (
-                  <div key={label} className="space-y-1">
-                    <p className="text-[9px] font-bold uppercase tracking-widest text-white/25">{label}</p>
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-xl font-black" style={{ color }}>{value}</span>
-                      {icon && <Icon name={icon} size={16} style={{ color }} />}
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="space-y-2 max-w-sm">
-                <div className="flex justify-between text-[9px] font-bold text-white/25 uppercase tracking-widest">
-                  <span>Lv.{level} · {levelName}</span>
-                  <span>{xpPct}% to Lv.{level + 1}</span>
+        {/* ── Header ──────────────────────────────────────────────────────── */}
+        <motion.div {...appear(0)} className="mb-8">
+          <p className="text-sm mb-1" style={{ color: '#71717A' }}>{greeting},</p>
+          <div className="flex items-end justify-between">
+            <h1 className="text-2xl font-bold tracking-tight" style={{ color: '#F4F4F5', letterSpacing: '-0.025em' }}>
+              {displayName || 'Engineer'}
+            </h1>
+            <div className="flex items-center gap-2">
+              {streak > 0 && (
+                <div className="streak-badge">
+                  <span>🔥</span>
+                  <span>{streak}d streak</span>
                 </div>
-                <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${xpPct}%` }}
-                    transition={{ duration: 1.4, ease: [0.16, 1, 0.3, 1] }}
-                    className="h-full rounded-full"
-                    style={{ background: 'linear-gradient(90deg, #E8192C, #ff6b6b)' }}
-                  />
-                </div>
-                <p className="text-[9px] text-white/20">{(nextThreshold - xp).toLocaleString()} XP to {LEVEL_NAMES[level + 1] ?? 'Max'}</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Right column */}
-          <div className="flex flex-col gap-4">
-            <DailyChallengeLocal />
-
-            {/* Badges preview */}
-            <div className="rounded-2xl p-4 border border-white/6 flex-1" style={{ background: 'rgba(255,255,255,0.02)' }}>
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-[9px] font-bold uppercase tracking-widest text-white/25">Recent Badges</span>
-                <Link to="/app/achievements" className="text-[9px] font-bold text-[#E8192C] hover:underline">All {achievementsEarned} →</Link>
-              </div>
-              {recentAchievements.length > 0 ? (
-                <div className="flex gap-2 flex-wrap">
-                  {recentAchievements.map((a) => (
-                    <div key={a.key} title={a.name}
-                      className="w-10 h-10 rounded-xl flex items-center justify-center text-lg border border-white/8 hover:scale-110 transition-transform cursor-default"
-                      style={{ background: 'rgba(255,255,255,0.04)' }}>
-                      {a.icon}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-xs text-white/20">Earn badges by solving problems 🏆</p>
               )}
+              <Link to="/app/progress" className="btn btn-ghost btn-sm">
+                <span className="material-symbols-rounded text-sm">insights</span>
+                Progress
+              </Link>
             </div>
           </div>
-        </motion.section>
+        </motion.div>
 
-        {/* ── Daily insight ──────────────────────────────────────────────── */}
-        {!insightDismissed && (
-          <motion.section {...stagger(1)} className="mb-6">
-            <div className="rounded-2xl p-5 flex items-start gap-4 border relative overflow-hidden"
-              style={{ background: `${insight.hex}0d`, borderColor: `${insight.hex}25` }}>
-              <div className="absolute right-0 top-0 w-40 h-40 rounded-full blur-3xl pointer-events-none" style={{ background: `${insight.hex}15` }} />
-              <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${insight.hex}18`, border: `1px solid ${insight.hex}25` }}>
-                <Icon name={insight.icon} size={16} style={{ color: insight.hex }} />
-              </div>
-              <div className="flex-1 relative">
-                <div className="flex items-center gap-2 mb-1.5">
-                  <span className="text-[9px] font-bold uppercase tracking-widest" style={{ color: insight.hex }}>Engineering Insight</span>
-                  <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: `${insight.hex}18`, color: insight.hex }}>{insight.category}</span>
+        {/* ── Stat tiles ──────────────────────────────────────────────────── */}
+        <motion.div {...appear(0.05)} className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+          {[
+            { label: 'Total XP',   value: xp.toLocaleString(),         sub: `Lv.${level} · ${levelName}`,        color: '#E8192C' },
+            { label: 'This Week',  value: `+${weeklyXp.toLocaleString()}`,  sub: 'XP earned this week',          color: '#22C55E' },
+            { label: 'Streak',     value: `${streak} days`,            sub: streak >= 7 ? 'On fire! 🔥' : 'Keep going', color: '#F97316' },
+            { label: 'Badges',     value: String(achievementsEarned),  sub: 'earned so far',                     color: '#EAB308' },
+          ].map(({ label, value, sub, color }) => (
+            <div key={label} className="stat-tile">
+              <p className="field-label mb-2">{label}</p>
+              <p className="text-xl font-bold mb-0.5" style={{ color, letterSpacing: '-0.02em' }}>{value}</p>
+              <p className="text-xs" style={{ color: '#3F3F46' }}>{sub}</p>
+            </div>
+          ))}
+        </motion.div>
+
+        {/* XP level bar */}
+        <motion.div {...appear(0.07)} className="mb-8">
+          <div className="flex justify-between mb-1.5 text-xs" style={{ color: '#3F3F46' }}>
+            <span>Lv.{level} · {levelName}</span>
+            <span>{(nextThreshold - xp).toLocaleString()} XP to {LEVEL_NAMES[level + 1] ?? 'Legend'}</span>
+          </div>
+          <div className="progress-track">
+            <motion.div
+              className="progress-fill"
+              initial={{ width: 0 }}
+              animate={{ width: `${xpPct}%` }}
+              transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+            />
+          </div>
+        </motion.div>
+
+        {/* ── Main grid ───────────────────────────────────────────────────── */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          {/* Left: Today's focus */}
+          <div className="lg:col-span-2 space-y-4">
+
+            {/* Readiness CTA */}
+            <motion.div {...appear(0.1)}>
+              <Link to="/app/readiness">
+                <div
+                  className="flex items-center gap-4 p-4 rounded-xl cursor-pointer transition-colors group"
+                  style={{ background: '#111113', border: '1px solid rgba(232,25,44,0.15)' }}
+                  onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(232,25,44,0.3)'; }}
+                  onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(232,25,44,0.15)'; }}
+                >
+                  <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'rgba(232,25,44,0.1)' }}>
+                    <span className="material-symbols-rounded" style={{ color: '#E8192C' }}>speed</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold mb-0.5" style={{ color: '#F4F4F5' }}>Check Placement Readiness</p>
+                    <p className="text-xs" style={{ color: '#52525B' }}>See your readiness score, skill gaps, and 7-day improvement plan</p>
+                  </div>
+                  <span className="material-symbols-rounded text-base shrink-0 transition-colors" style={{ color: '#3F3F46' }}>arrow_forward</span>
                 </div>
-                <p className="text-white/60 text-sm leading-relaxed">{insight.tip}</p>
-              </div>
-              <button onClick={() => { setInsightDismissed(true); localStorage.setItem('eyf.insightDay', String(dayOfYear)); }} className="text-white/20 hover:text-white/50 transition-colors flex-shrink-0 relative">
-                <Icon name="close" size={14} />
-              </button>
-            </div>
-          </motion.section>
-        )}
+              </Link>
+            </motion.div>
 
-        {/* ── Readiness CTA ─────────────────────────────────────────────── */}
-        <motion.section {...stagger(2)} className="mb-6">
-          <Link to="/app/readiness" className="block group">
-            <div className="rounded-2xl p-5 flex items-center gap-4 border border-[rgba(232,25,44,0.15)] transition-all duration-300 group-hover:border-[rgba(232,25,44,0.4)]"
-              style={{ background: 'rgba(232,25,44,0.04)' }}
-            >
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(232,25,44,0.12)', border: '1px solid rgba(232,25,44,0.2)' }}>
-                <Icon name="speed" size={22} style={{ color: '#E8192C' }} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-0.5">
-                  <span className="text-white font-semibold text-sm">Placement Readiness Score</span>
-                  <span className="text-[9px] font-bold px-2 py-0.5 rounded-full" style={{ color: '#E8192C', background: 'rgba(232,25,44,0.12)', border: '1px solid rgba(232,25,44,0.2)' }}>Check Now</span>
-                </div>
-                <p className="text-xs text-white/35">See your overall readiness %, skill gaps, and a personalised 7-day sprint to improve fast.</p>
-              </div>
-              <Icon name="arrow_forward" size={18} className="text-white/20 group-hover:text-[#E8192C] group-hover:translate-x-1 transition-all flex-shrink-0" />
-            </div>
-          </Link>
-        </motion.section>
-
-        {/* ── What to study next ─────────────────────────────────────────── */}
-        {recs.length > 0 && (
-          <motion.section {...stagger(3)} className="mb-6">
-            <div className="flex items-center gap-2 mb-3">
-              <Icon name="auto_awesome" size={14} style={{ color: '#E8192C' }} />
-              <h2 className="text-[9px] font-bold uppercase tracking-widest text-white/25">What to Study Next</h2>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              {recs.map((rec, i) => (
-                <motion.div key={rec.path} whileHover={{ y: -4, transition: { duration: 0.25 } }}>
-                  <Link to={rec.path}>
-                    <div className="rounded-2xl p-4 border border-white/6 h-full flex flex-col gap-3 transition-colors duration-200 hover:border-white/12 cursor-pointer"
-                      style={{ background: 'rgba(255,255,255,0.02)' }}>
-                      <div className="flex items-center justify-between">
-                        <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: `${rec.hex}15`, border: `1px solid ${rec.hex}20` }}>
-                          <Icon name={rec.icon} size={16} style={{ color: rec.hex }} />
-                        </div>
-                        <span className="text-[10px] font-bold" style={{ color: '#22C55E' }}>{rec.xpLabel}</span>
+            {/* Study next */}
+            <motion.div {...appear(0.12)}>
+              <p className="field-label mb-3">Recommended next</p>
+              <div className="space-y-2">
+                {recs.map((rec) => (
+                  <Link key={rec.path} to={rec.path}>
+                    <div
+                      className="flex items-center gap-3 p-3.5 rounded-xl cursor-pointer transition-colors"
+                      style={{ background: '#111113', border: '1px solid rgba(255,255,255,0.06)' }}
+                      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.10)'; (e.currentTarget as HTMLElement).style.background = '#18181B'; }}
+                      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.06)'; (e.currentTarget as HTMLElement).style.background = '#111113'; }}
+                    >
+                      <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: `${rec.hex}12` }}>
+                        <span className="material-symbols-rounded text-sm" style={{ color: rec.hex }}>{rec.icon}</span>
                       </div>
-                      <div className="flex-1">
-                        <p className="text-white text-xs font-semibold mb-1">{rec.title}</p>
-                        <p className="text-white/30 text-[10px] leading-relaxed">{rec.reason}</p>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium mb-0.5" style={{ color: '#F4F4F5' }}>{rec.title}</p>
+                        <p className="text-xs truncate" style={{ color: '#52525B' }}>{rec.reason}</p>
                       </div>
-                      <div className="flex items-center gap-1 text-[10px] font-semibold" style={{ color: rec.hex }}>
-                        {i === 0 ? 'Start' : 'Continue'} <Icon name="arrow_forward" size={11} />
-                      </div>
+                      <span className="text-xs font-bold shrink-0" style={{ color: '#4ADE80' }}>{rec.xpLabel}</span>
                     </div>
                   </Link>
-                </motion.div>
-              ))}
-            </div>
-          </motion.section>
-        )}
-
-        {/* ── Today's focus ─────────────────────────────────────────────── */}
-        <motion.section {...stagger(4)} className="mb-6">
-          <div className="rounded-2xl p-5 border border-white/6" style={{ background: 'rgba(255,255,255,0.02)' }}>
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <Icon name="target" size={14} style={{ color: '#E8192C' }} />
-                <span className="text-xs font-semibold text-white">Today's Focus</span>
+                ))}
+                {recs.length === 0 && (
+                  <div className="card text-center py-8">
+                    <p className="text-sm" style={{ color: '#52525B' }}>Great work — keep exploring modules!</p>
+                  </div>
+                )}
               </div>
-              <Link to="/app/career" className="text-[9px] text-white/25 hover:text-white/50 transition-colors uppercase tracking-widest">Customize →</Link>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              {[
-                { icon: 'code', label: 'DSA Practice', desc: 'Solve 1 medium problem', path: '/app/problems', hex: '#3B82F6', xp: '+60 XP' },
-                { icon: 'auto_stories', label: 'Core Subjects', desc: 'Complete 1 topic', path: '/app/subjects', hex: '#22C55E', xp: '+15 XP' },
-                { icon: 'record_voice_over', label: 'Mock Interview', desc: 'Practice 4 questions', path: '/app/mock-interview', hex: '#F97316', xp: '+50 XP' },
-              ].map((task) => (
-                <Link key={task.path} to={task.path}>
-                  <div className="flex items-center gap-3 rounded-xl px-4 py-3 border border-white/4 hover:border-white/10 transition-all" style={{ background: 'rgba(255,255,255,0.02)' }}>
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: `${task.hex}18` }}>
-                      <Icon name={task.icon} size={15} style={{ color: task.hex }} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-white text-xs font-semibold truncate">{task.label}</p>
-                      <p className="text-white/25 text-[10px]">{task.desc}</p>
-                    </div>
-                    <span className="text-[10px] font-bold flex-shrink-0" style={{ color: '#22C55E' }}>{task.xp}</span>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </motion.section>
+            </motion.div>
 
-        {/* ── Quick actions ──────────────────────────────────────────────── */}
-        <motion.section {...stagger(5)} className="mb-6">
-          <div className="grid grid-cols-4 sm:grid-cols-8 gap-2">
-            {[
-              { label: 'Practice',   icon: 'code',             path: '/app/problems',       hex: '#3B82F6' },
-              { label: 'Quiz',       icon: 'quiz',             path: '/app/pattern-quiz',   hex: '#6366F1' },
-              { label: 'Design',     icon: 'architecture',     path: '/app/system-design',  hex: '#06B6D4' },
-              { label: 'Mock',       icon: 'record_voice_over',path: '/app/mock-interview', hex: '#F97316' },
-              { label: 'Companies',  icon: 'business',         path: '/app/companies',      hex: '#E8192C' },
-              { label: 'Contest',    icon: 'emoji_events',     path: '/app/contests',       hex: '#EAB308' },
-              { label: 'Real World', icon: 'build',            path: '/app/real-world',     hex: '#F97316' },
-              { label: 'Community',  icon: 'forum',            path: '/app/community',      hex: '#EC4899' },
-            ].map((a) => (
-              <motion.div key={a.path} whileHover={{ scale: 1.06, transition: { duration: 0.2 } }}>
-                <Link to={a.path}>
-                  <div className="rounded-2xl p-3 flex flex-col items-center gap-2 text-center border border-white/4 hover:border-white/10 transition-all cursor-pointer"
-                    style={{ background: `${a.hex}0a` }}>
-                    <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: `${a.hex}15` }}>
-                      <Icon name={a.icon} size={18} style={{ color: a.hex }} />
+            {/* Quick access */}
+            <motion.div {...appear(0.15)}>
+              <p className="field-label mb-3">Quick access</p>
+              <div className="grid grid-cols-4 gap-2">
+                {[
+                  { label: 'DSA',         icon: 'code',             path: '/app/problems',       hex: '#3B82F6' },
+                  { label: 'Design',      icon: 'architecture',     path: '/app/system-design',  hex: '#06B6D4' },
+                  { label: 'Companies',   icon: 'business',         path: '/app/companies',      hex: '#E8192C' },
+                  { label: 'Community',   icon: 'forum',            path: '/app/community',      hex: '#6366F1' },
+                  { label: 'Mock',        icon: 'record_voice_over',path: '/app/mock-interview', hex: '#F97316' },
+                  { label: 'Flashcards',  icon: 'style',            path: '/app/flashcards',     hex: '#A855F7' },
+                  { label: 'Notes',       icon: 'sticky_note_2',    path: '/app/notes',          hex: '#EAB308' },
+                  { label: 'Contest',     icon: 'emoji_events',     path: '/app/contests',       hex: '#22C55E' },
+                ].map((a) => (
+                  <Link key={a.path} to={a.path}>
+                    <div
+                      className="flex flex-col items-center gap-1.5 py-3 rounded-xl cursor-pointer transition-colors"
+                      style={{ background: '#111113', border: '1px solid rgba(255,255,255,0.06)' }}
+                      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = '#18181B'; }}
+                      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = '#111113'; }}
+                    >
+                      <span className="material-symbols-rounded text-lg" style={{ color: a.hex }}>{a.icon}</span>
+                      <span className="text-[9px] font-semibold" style={{ color: '#71717A' }}>{a.label}</span>
                     </div>
-                    <span className="text-[9px] font-semibold text-white/50 leading-tight">{a.label}</span>
+                  </Link>
+                ))}
+              </div>
+            </motion.div>
+          </div>
+
+          {/* Right: Daily + insight */}
+          <div className="space-y-4">
+            <motion.div {...appear(0.1)}>
+              <DailyChallengeCard />
+            </motion.div>
+
+            {/* Engineering insight */}
+            {!insightDismissed && (
+              <motion.div {...appear(0.13)}>
+                <div className="insight-card">
+                  <div className="flex items-start justify-between gap-2 mb-3">
+                    <div className="flex items-center gap-2">
+                      <span className="material-symbols-rounded text-sm" style={{ color: '#E8192C' }}>{insight.icon}</span>
+                      <span className="field-label mb-0">{insight.category}</span>
+                    </div>
+                    <button
+                      onClick={() => { setInsightDismissed(true); localStorage.setItem('eyf.insightDay', String(dayOfYear)); }}
+                      className="shrink-0 transition-colors"
+                      style={{ color: '#3F3F46' }}
+                      aria-label="Dismiss insight"
+                    >
+                      <span className="material-symbols-rounded text-sm">close</span>
+                    </button>
                   </div>
-                </Link>
+                  <p className="text-sm leading-relaxed" style={{ color: '#A1A1AA' }}>{insight.tip}</p>
+                </div>
               </motion.div>
-            ))}
-          </div>
-        </motion.section>
+            )}
 
-        {/* ── Activity heatmap ───────────────────────────────────────────── */}
-        <motion.section {...stagger(6)} className="mb-6">
-          <div className="rounded-2xl p-5 border border-white/6" style={{ background: 'rgba(255,255,255,0.02)' }}>
-            <div className="flex items-center justify-between mb-4">
+            {/* Recent badges */}
+            {recentAchievements.length > 0 && (
+              <motion.div {...appear(0.15)}>
+                <div className="card">
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="field-label mb-0">Recent badges</p>
+                    <Link to="/app/achievements" className="text-xs font-medium" style={{ color: '#E8192C' }}>
+                      All {achievementsEarned} →
+                    </Link>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {recentAchievements.map((a) => (
+                      <div
+                        key={a.key}
+                        title={a.name}
+                        className="w-10 h-10 rounded-xl flex items-center justify-center text-lg cursor-default transition-transform hover:scale-110"
+                        style={{ background: '#18181B', border: '1px solid rgba(255,255,255,0.06)' }}
+                      >
+                        {a.icon}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </div>
+        </div>
+
+        {/* ── Activity heatmap ────────────────────────────────────────────── */}
+        <motion.div {...appear(0.2)} className="mb-8">
+          <div className="card">
+            <div className="flex items-center justify-between mb-5">
               <div>
-                <h2 className="text-sm font-semibold text-white">Activity</h2>
-                <p className="text-[9px] text-white/25 mt-0.5">12-week history</p>
+                <p className="text-sm font-semibold mb-0.5" style={{ color: '#F4F4F5' }}>Activity</p>
+                <p className="text-xs" style={{ color: '#52525B' }}>12-week history</p>
               </div>
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-orange-500/20" style={{ background: 'rgba(249,115,22,0.08)' }}>
-                <span>🔥</span>
-                <span className="text-orange-400 font-bold text-xs">{streak}d streak</span>
-              </div>
+              <Link to="/app/progress" className="btn btn-ghost btn-sm">View full history</Link>
             </div>
             <ActivityHeatmap streak={streak} />
           </div>
-        </motion.section>
+        </motion.div>
 
-        {/* ── All modules grid ───────────────────────────────────────────── */}
-        <motion.section {...stagger(7)} className="mb-6">
-          <h2 className="text-[9px] font-bold uppercase tracking-widest text-white/20 mb-4">All Modules</h2>
+        {/* ── All modules ──────────────────────────────────────────────────── */}
+        <motion.div {...appear(0.22)}>
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-sm font-semibold" style={{ color: '#F4F4F5' }}>All modules</p>
+            <Link to="/app/career" className="btn btn-ghost btn-sm">Learning path →</Link>
+          </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
-            {moduleList.map((mod, i) => {
+            {moduleList.map((mod) => {
               const cfg = MODULE_CONFIG[mod.module];
               if (!cfg) return null;
               const rawPct = mod.progress;
@@ -504,68 +492,22 @@ export function HomePage() {
                 pct = rawPct > 1 ? Math.round(rawPct) : Math.round(rawPct * 100);
               }
               return (
-                <motion.div key={mod.module} whileHover={{ y: -4, transition: { duration: 0.25 } }} custom={i}>
-                  <Link to={cfg.path}>
-                    <div className="rounded-2xl p-4 border border-white/5 hover:border-white/12 transition-all cursor-pointer"
-                      style={{ background: 'rgba(255,255,255,0.02)' }}>
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: `${cfg.hex}15` }}>
-                          <Icon name={cfg.icon} size={17} style={{ color: cfg.hex }} />
-                        </div>
-                        <ProgressRing pct={pct} hex={cfg.hex} />
-                      </div>
-                      <p className="text-white text-xs font-semibold truncate">{cfg.title}</p>
-                      <p className="text-[10px] font-medium mt-0.5" style={{ color: cfg.hex }}>{mod.cta || 'Start'}</p>
+                <Link key={mod.module} to={cfg.path} className="module-card">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: `${cfg.hex}12` }}>
+                      <span className="material-symbols-rounded text-base" style={{ color: cfg.hex }}>{cfg.icon}</span>
                     </div>
-                  </Link>
-                </motion.div>
+                    <ProgressRing pct={pct} hex={cfg.hex} />
+                  </div>
+                  <p className="text-xs font-semibold truncate mb-0.5" style={{ color: '#F4F4F5' }}>{cfg.title}</p>
+                  <p className="text-[10px] font-medium" style={{ color: cfg.hex }}>
+                    {mod.cta || 'Start'}
+                  </p>
+                </Link>
               );
             })}
           </div>
-        </motion.section>
-
-        {/* ── Community + leaderboard ────────────────────────────────────── */}
-        <motion.section {...stagger(8)} className="mb-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {[
-              {
-                path: '/app/leaderboard', icon: 'leaderboard', hex: '#06B6D4',
-                title: 'Leaderboard', sub: 'See how you rank this week',
-                rows: ['🥇 Top Engineer', '🥈 Rising Star', '🥉 Daily Solver'],
-                values: ['12,450 XP', '9,870 XP', '7,230 XP'],
-              },
-              {
-                path: '/app/community', icon: 'forum', hex: '#6366F1',
-                title: 'Community', sub: 'Join the discussion',
-                rows: ['How to approach DP problems?', 'Best resources for OWASP?', 'Mock interview experience at Google'],
-                values: ['', '', ''],
-              },
-            ].map(({ path, icon, hex, title, sub, rows, values }) => (
-              <Link key={path} to={path}>
-                <div className="group rounded-2xl p-5 border border-white/5 hover:border-white/12 transition-all cursor-pointer" style={{ background: 'rgba(255,255,255,0.02)' }}>
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: `${hex}15` }}>
-                      <Icon name={icon} size={17} style={{ color: hex }} />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="text-sm font-semibold text-white">{title}</h3>
-                      <p className="text-[10px] text-white/25">{sub}</p>
-                    </div>
-                    <Icon name="arrow_forward" size={15} className="text-white/15 group-hover:text-white/50 group-hover:translate-x-1 transition-all" />
-                  </div>
-                  <div className="space-y-2">
-                    {rows.map((t, i) => (
-                      <div key={t} className="flex items-center justify-between text-xs">
-                        <span className="text-white/40 truncate">{t}</span>
-                        {values[i] && <span className="text-white/25 font-mono text-[10px] ml-2 flex-shrink-0">{values[i]}</span>}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </motion.section>
+        </motion.div>
 
       </div>
     </AppShell>
