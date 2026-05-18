@@ -782,7 +782,7 @@ function PricingSection() {
                   </span>
                   <span className="text-xs" style={{ color: plan.featured ? '#71717A' : '#A1A1AA' }}>/{plan.period}</span>
                 </div>
-                <p className="text-xs mb-6" style={{ color: plan.featured ? '#71717A' : '#71717A' }}>{plan.desc}</p>
+                <p className="text-xs mb-6" style={{ color: plan.featured ? '#A1A1AA' : '#71717A' }}>{plan.desc}</p>
                 <div className="h-px mb-6" style={{ background: plan.featured ? 'rgba(255,255,255,0.08)' : '#E4E4E7' }} />
                 <ul className="space-y-2.5 mb-8">
                   {plan.features.map((f) => (
