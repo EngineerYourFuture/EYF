@@ -226,7 +226,8 @@ router.post("/login", async (req: Request, res: Response): Promise<void> => {
   const ip = getIp(req);
   const device = getDevice(req);
   const { accessToken } = await createSession(user!.id, zone as Zone, user!.role as Role, user!.plan, ip, device, res);
-  await prisma.loginEvent.create({ data: { userId: user!.id, ip, device, riskScore: 20, outcome: "allowed" } });
+  // Fire-and-forget — don't let audit log failures block the login response
+  prisma.loginEvent.create({ data: { userId: user!.id, ip, device, riskScore: 20, outcome: "allowed" } }).catch(() => {});
   res.json({ user: { id: user!.id, email: user!.email, role: user!.role, plan: user!.plan }, accessToken });
 });
 
@@ -662,25 +663,32 @@ router.get("/google/callback", async (req: Request, res: Response): Promise<void
 
     const email = normalizeEmail(profile.email);
 
-    let user = await prisma.user.findFirst({
+    let existing = await prisma.user.findFirst({
       where: { OR: [{ googleId: profile.sub }, { email }] },
     });
 
-    if (!user) {
+    let isNewUser = false;
+    let user;
+    if (!existing) {
+      isNewUser = true;
       user = await prisma.user.create({
         data: {
           email,
-          name: profile.name,
           googleId: profile.sub,
           emailVerified: profile.email_verified,
           passwordHash: null,
+          security: { create: {} },
+          xp: { create: {} },
+          learningGoal: { create: { priorityModules: ["dsa", "core-subjects", "placement"] } },
         },
       });
-    } else if (!user.googleId) {
+    } else if (!existing.googleId) {
       user = await prisma.user.update({
-        where: { id: user.id },
+        where: { id: existing.id },
         data: { googleId: profile.sub, emailVerified: true },
       });
+    } else {
+      user = existing;
     }
 
     const { accessToken } = await createSession(
@@ -694,7 +702,7 @@ router.get("/google/callback", async (req: Request, res: Response): Promise<void
     );
 
     res.redirect(
-      `${frontendUrl}/auth/callback?token=${encodeURIComponent(accessToken)}&email=${encodeURIComponent(email)}`
+      `${frontendUrl}/auth/callback?token=${encodeURIComponent(accessToken)}&email=${encodeURIComponent(email)}&isNew=${isNewUser}`
     );
   } catch (err: unknown) {
     console.error("Google OAuth callback error:", err);
