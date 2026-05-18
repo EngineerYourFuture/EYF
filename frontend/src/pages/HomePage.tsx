@@ -7,6 +7,7 @@ import { getSession } from '../lib/session';
 import { useUser } from '../contexts/UserContext';
 import { LevelUpModal } from '../components/LevelUpModal';
 import { StreakToast } from '../components/StreakToast';
+import { XPLineChart, SkillsRadar, ReadinessGauge, ActivityBars } from '../components/Charts';
 
 interface ModulesStatus { items: Array<{ module: string; progress: number; cta: string }> }
 interface DailyChallenge { id: string; slug: string; title: string; difficulty: 'easy'|'medium'|'hard'; category: string; xpReward: number; solved?: boolean }
@@ -486,6 +487,17 @@ export function HomePage() {
               <Link to="/app/progress" className="btn btn-ghost btn-sm">View full history</Link>
             </div>
             <ActivityHeatmap streak={streak} />
+          </div>
+        </motion.div>
+
+        {/* ── Charts grid ─────────────────────────────────────────────────── */}
+        <motion.div {...appear(0.19)} className="mb-8">
+          <p className="text-sm font-semibold mb-4" style={{ color: 'var(--t1)' }}>Your progress at a glance</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+            <XPLineChart />
+            <SkillsRadar />
+            <ReadinessGauge value={xp > 0 ? Math.min(100, Math.round(xpPct * 0.7 + streak * 0.3)) : 0} />
+            <ActivityBars streak={streak} />
           </div>
         </motion.div>
 

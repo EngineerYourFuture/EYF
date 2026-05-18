@@ -12,10 +12,10 @@ function Reveal({ children, delay = 0, className = '' }: {
 }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      whileInView={{ opacity: 1, y: 0 }}
+      initial={{ opacity: 0, y: 24, scale: 0.97, filter: 'blur(6px)' }}
+      whileInView={{ opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }}
       viewport={{ once: true, margin: '-50px' }}
-      transition={{ duration: 0.5, delay, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: 0.65, delay, ease: [0.16, 1, 0.3, 1] }}
       className={className}
     >
       {children}
@@ -274,8 +274,51 @@ function LandingNav() {
 
 function HeroSection() {
   return (
-    <section className="pt-32 pb-0 text-center overflow-hidden">
-      <div className="land-container">
+    <section className="pt-32 pb-0 text-center overflow-hidden" style={{ position: 'relative' }}>
+      {/* Aurora background blobs */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'absolute', inset: 0, overflow: 'hidden',
+          pointerEvents: 'none', zIndex: 0,
+        }}
+      >
+        {/* Blob A — warm red, top-left drift */}
+        <div
+          className="aurora-blob-a"
+          style={{
+            position: 'absolute',
+            top: '-10%', left: '10%',
+            width: 700, height: 500,
+            background: 'radial-gradient(ellipse at center, rgba(232,25,44,0.13) 0%, transparent 70%)',
+            filter: 'blur(60px)',
+          }}
+        />
+        {/* Blob B — purple, top-right */}
+        <div
+          className="aurora-blob-b"
+          style={{
+            position: 'absolute',
+            top: '-5%', right: '-5%',
+            width: 600, height: 500,
+            background: 'radial-gradient(ellipse at center, rgba(124,58,237,0.10) 0%, transparent 70%)',
+            filter: 'blur(80px)',
+          }}
+        />
+        {/* Blob C — soft rose, center */}
+        <div
+          className="aurora-blob-c"
+          style={{
+            position: 'absolute',
+            top: '15%', left: '35%',
+            width: 500, height: 350,
+            background: 'radial-gradient(ellipse at center, rgba(232,25,44,0.07) 0%, transparent 70%)',
+            filter: 'blur(50px)',
+          }}
+        />
+      </div>
+
+      <div className="land-container" style={{ position: 'relative', zIndex: 1 }}>
 
         <motion.div
           initial={{ opacity: 0, y: 10 }}
