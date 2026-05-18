@@ -87,12 +87,12 @@ button   { cursor: pointer; font: inherit; }
   border: 1px solid var(--border); color: var(--t2);
   background: var(--bg-elevated); white-space: nowrap; line-height: 1.5;
 }
-.badge-red    { color: #C8151F;   background: rgba(232,25,44,0.07);   border-color: rgba(232,25,44,0.18); }
-.badge-green  { color: #16A34A;   background: rgba(22,163,74,0.07);   border-color: rgba(22,163,74,0.18); }
-.badge-blue   { color: #2563EB;   background: rgba(37,99,235,0.07);   border-color: rgba(37,99,235,0.18); }
-.badge-yellow { color: #CA8A04;   background: rgba(202,138,4,0.07);   border-color: rgba(202,138,4,0.18); }
-.badge-purple { color: #7C3AED;   background: rgba(124,58,237,0.07);  border-color: rgba(124,58,237,0.18); }
-.badge-orange { color: #EA580C;   background: rgba(234,88,12,0.07);   border-color: rgba(234,88,12,0.18); }
+.badge-red    { color: #991B1B;   background: rgba(239,68,68,0.07);    border-color: rgba(239,68,68,0.18); }
+.badge-green  { color: #166534;   background: rgba(22,163,74,0.07);    border-color: rgba(22,163,74,0.18); }
+.badge-blue   { color: #1E40AF;   background: rgba(37,99,235,0.07);    border-color: rgba(37,99,235,0.18); }
+.badge-yellow { color: #92400E;   background: rgba(202,138,4,0.07);    border-color: rgba(202,138,4,0.18); }
+.badge-purple { color: #5B21B6;   background: rgba(124,58,237,0.07);   border-color: rgba(124,58,237,0.18); }
+.badge-orange { color: #9A3412;   background: rgba(234,88,12,0.07);    border-color: rgba(234,88,12,0.18); }
 
 /* ─────────────────────────────────────────────────────────────────────────────
    BUTTONS
@@ -191,9 +191,9 @@ button   { cursor: pointer; font: inherit; }
   padding: 2px 8px; border-radius: 4px;
   font-size: 11px; font-weight: 700; letter-spacing: 0.03em; line-height: 1.5; text-transform: uppercase;
 }
-.tag-easy   { background: rgba(22,163,74,0.08);   color: #15803D; }
-.tag-medium { background: rgba(202,138,4,0.08);   color: #A16207; }
-.tag-hard   { background: rgba(220,38,38,0.08);   color: #B91C1C; }
+.tag-easy   { background: rgba(22,163,74,0.08);   color: #166534; }
+.tag-medium { background: rgba(202,138,4,0.08);   color: #78350F; }
+.tag-hard   { background: rgba(220,38,38,0.08);   color: #991B1B; }
 
 /* ─────────────────────────────────────────────────────────────────────────────
    AVATAR
@@ -373,7 +373,7 @@ kbd {
 .streak-badge {
   display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px 3px 7px;
   background: rgba(234,88,12,0.08); border: 1px solid rgba(234,88,12,0.15);
-  border-radius: 100px; color: #EA580C; font-size: 12px; font-weight: 700; line-height: 1;
+  border-radius: 100px; color: #9A3412; font-size: 12px; font-weight: 700; line-height: 1;
 }
 
 .module-card {

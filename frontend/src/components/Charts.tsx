@@ -37,8 +37,10 @@ export function XPLineChart({ weeklyHistory }: { readonly weeklyHistory?: number
     padL + (i / (data.length - 1)) * (W - padL - padR),
     padT + (1 - v / maxVal) * (H - padT - padB),
   ]);
+  const lastPt = pts.at(-1)!;
   const line  = smoothPath(pts);
-  const area  = `${line} L ${pts[pts.length-1][0]} ${H - padB} L ${pts[0][0]} ${H - padB} Z`;
+  const area  = `${line} L ${lastPt[0]} ${H - padB} L ${pts[0][0]} ${H - padB} Z`;
+
   return (
     <div className="chart-card">
       <div className="flex items-center justify-between mb-4">
@@ -47,7 +49,7 @@ export function XPLineChart({ weeklyHistory }: { readonly weeklyHistory?: number
           <p className="text-xs" style={{ color: 'var(--t3)' }}>Weekly earned XP</p>
         </div>
         <span className="text-xs font-bold px-2 py-1 rounded-full" style={{ background: 'var(--red-muted)', color: 'var(--red)' }}>
-          +{data[data.length - 1]}
+          +{data.at(-1) ?? 0}
         </span>
       </div>
       <svg ref={ref} viewBox={`0 0 ${W} ${H}`} className="w-full overflow-visible" style={{ height: 110 }}>
@@ -92,7 +94,7 @@ export function XPLineChart({ weeklyHistory }: { readonly weeklyHistory?: number
         {/* Dots */}
         {pts.map(([x, y], i) => (
           <motion.circle
-            key={i} cx={x} cy={y} r={hover === i ? 5 : 3}
+            key={labels[i]} cx={x} cy={y} r={hover === i ? 5 : 3}
             fill={hover === i ? '#E8192C' : '#fff'}
             stroke="#E8192C" strokeWidth="2"
             initial={{ scale: 0, opacity: 0 }}
@@ -135,8 +137,8 @@ export function XPLineChart({ weeklyHistory }: { readonly weeklyHistory?: number
           </text>
         ))}
 
-        {/* Y axis label */}
-        <text x={padL - 4} y={padT + (1 - 1) * (H - padT - padB) + 4} textAnchor="end" fontSize="8" fill="var(--t4)">
+        {/* Y axis label — top of chart */}
+        <text x={padL - 4} y={padT + 4} textAnchor="end" fontSize="8" fill="var(--t4)">
           {Math.round(maxVal / 100) * 100}
         </text>
       </svg>
@@ -155,12 +157,12 @@ export function SkillsRadar({ skills }: { readonly skills?: Skill[] }) {
   const inView = useInView(ref, { once: true, margin: '-40px' });
 
   const defaultSkills: Skill[] = [
-    { label: 'DSA',     value: 0.68, color: '#2563EB' },
-    { label: 'Design',  value: 0.41, color: '#0891B2' },
-    { label: 'OOP',     value: 0.55, color: '#7C3AED' },
-    { label: 'Core CS', value: 0.72, color: '#16A34A' },
-    { label: 'Security',value: 0.30, color: '#E8192C' },
-    { label: 'Career',  value: 0.45, color: '#EA580C' },
+    { label: 'DSA',      value: 0.68, color: '#2563EB' },
+    { label: 'Design',   value: 0.41, color: '#0891B2' },
+    { label: 'OOP',      value: 0.55, color: '#7C3AED' },
+    { label: 'Core CS',  value: 0.72, color: '#16A34A' },
+    { label: 'Security', value: 0.3,  color: '#E8192C' },
+    { label: 'Career',   value: 0.45, color: '#EA580C' },
   ];
   const data = skills ?? defaultSkills;
   const n = data.length;
@@ -193,9 +195,9 @@ export function SkillsRadar({ skills }: { readonly skills?: Skill[] }) {
         ))}
 
         {/* Axis lines */}
-        {data.map((_, i) => (
+        {data.map((s, i) => (
           <line
-            key={i}
+            key={s.label}
             x1={CX} y1={CY}
             x2={CX + R * Math.cos(angle(i))}
             y2={CY + R * Math.sin(angle(i))}
@@ -221,7 +223,7 @@ export function SkillsRadar({ skills }: { readonly skills?: Skill[] }) {
           const y = CY + R * s.value * Math.sin(a);
           return (
             <motion.circle
-              key={i} cx={x} cy={y} r={4}
+              key={s.label} cx={x} cy={y} r={4}
               fill={s.color} stroke="#fff" strokeWidth="1.5"
               initial={{ scale: 0, opacity: 0 }}
               animate={{ scale: inView ? 1 : 0, opacity: inView ? 1 : 0 }}
@@ -238,7 +240,7 @@ export function SkillsRadar({ skills }: { readonly skills?: Skill[] }) {
           const ly = CY + (R + 14) * Math.sin(a);
           return (
             <text
-              key={i} x={lx} y={ly + 3}
+              key={s.label} x={lx} y={ly + 3}
               textAnchor="middle" fontSize="8.5" fontWeight="600"
               fill="var(--t2)"
             >
@@ -263,6 +265,24 @@ export function SkillsRadar({ skills }: { readonly skills?: Skill[] }) {
    READINESS GAUGE
    ───────────────────────────────────────────────────────────────────────────── */
 
+function gaugeColor(pct: number): string {
+  if (pct >= 70) return '#16A34A';
+  if (pct >= 40) return '#EA580C';
+  return '#E8192C';
+}
+
+function gaugeBadgeBg(pct: number): string {
+  if (pct >= 70) return 'rgba(22,163,74,0.1)';
+  if (pct >= 40) return 'rgba(234,88,12,0.1)';
+  return 'rgba(232,25,44,0.1)';
+}
+
+function gaugeBadgeLabel(pct: number): string {
+  if (pct >= 70) return 'STRONG';
+  if (pct >= 40) return 'GROWING';
+  return 'NEEDS WORK';
+}
+
 export function ReadinessGauge({ value }: { readonly value: number }) {
   const ref = useRef<SVGSVGElement>(null);
   const inView = useInView(ref, { once: true, margin: '-40px' });
@@ -276,8 +296,7 @@ export function ReadinessGauge({ value }: { readonly value: number }) {
   // Rotation so arc starts at bottom-left (225° from 3 o'clock = 135° offset)
   const rotation = 135;
 
-  const color = pct >= 70 ? '#16A34A' : pct >= 40 ? '#EA580C' : '#E8192C';
-  const trackColor = 'var(--bg-elevated)';
+  const color = gaugeColor(pct);
 
   return (
     <div className="chart-card">
@@ -290,7 +309,7 @@ export function ReadinessGauge({ value }: { readonly value: number }) {
           {/* Track */}
           <circle
             cx={CX} cy={CY} r={R} fill="none"
-            stroke={trackColor} strokeWidth="10"
+            stroke="var(--bg-elevated)" strokeWidth="10"
             strokeDasharray={`${arc} ${circ}`}
             strokeLinecap="round"
           />
@@ -322,12 +341,10 @@ export function ReadinessGauge({ value }: { readonly value: number }) {
         <text x={CX - R - 8} y={CY + R * 0.38 + 8} textAnchor="middle" fontSize="8" fill="var(--t4)">0</text>
         <text x={CX + R + 8} y={CY + R * 0.38 + 8} textAnchor="middle" fontSize="8" fill="var(--t4)">100</text>
 
-        {/* Status badges */}
-        <rect x={CX - 28} y={CY + 38} width="56" height="16" rx="8"
-          fill={pct >= 70 ? 'rgba(22,163,74,0.1)' : pct >= 40 ? 'rgba(234,88,12,0.1)' : 'rgba(232,25,44,0.1)'} />
-        <text x={CX} y={CY + 50} textAnchor="middle" fontSize="8" fontWeight="700"
-          fill={pct >= 70 ? '#16A34A' : pct >= 40 ? '#EA580C' : '#E8192C'}>
-          {pct >= 70 ? 'STRONG' : pct >= 40 ? 'GROWING' : 'NEEDS WORK'}
+        {/* Status badge */}
+        <rect x={CX - 28} y={CY + 38} width="56" height="16" rx="8" fill={gaugeBadgeBg(pct)} />
+        <text x={CX} y={CY + 50} textAnchor="middle" fontSize="8" fontWeight="700" fill={color}>
+          {gaugeBadgeLabel(pct)}
         </text>
       </svg>
     </div>
@@ -338,6 +355,12 @@ export function ReadinessGauge({ value }: { readonly value: number }) {
    ACTIVITY BAR CHART (last 14 days)
    ───────────────────────────────────────────────────────────────────────────── */
 
+function barFill(isToday: boolean, hasActivity: boolean): string {
+  if (isToday) return '#E8192C';
+  if (hasActivity) return 'rgba(232,25,44,0.35)';
+  return 'var(--bg-elevated)';
+}
+
 export function ActivityBars({ streak }: { readonly streak: number }) {
   const ref = useRef<SVGSVGElement>(null);
   const inView = useInView(ref, { once: true, margin: '-40px' });
@@ -347,7 +370,6 @@ export function ActivityBars({ streak }: { readonly streak: number }) {
   const barW = (W - padL - padR) / days - 2;
   const innerH = H - padT - padB;
 
-  // Generate realistic activity from streak
   const data: number[] = Array.from({ length: days }, (_, i) => {
     const daysAgo = days - 1 - i;
     if (daysAgo === 0) return 45 + Math.floor(((i * 7919) % 100) * 0.3);
@@ -382,20 +404,19 @@ export function ActivityBars({ streak }: { readonly streak: number }) {
           const y = padT + innerH - barH;
           const isToday = i === days - 1;
           const hasActivity = v > 0;
+          const fill = barFill(isToday, hasActivity);
 
           return (
-            <g key={i}>
-              {/* Bar */}
+            <g key={dayLabels[i]}>
               <motion.rect
                 x={x} width={barW} rx={3}
                 y={inView ? y : padT + innerH}
                 height={inView ? barH : 0}
-                fill={isToday ? '#E8192C' : hasActivity ? 'rgba(232,25,44,0.35)' : 'var(--bg-elevated)'}
+                fill={fill}
                 initial={false}
                 animate={{ y: inView ? y : padT + innerH, height: inView ? barH : 0 }}
                 transition={{ duration: 0.7, delay: i * 0.04, ease: [0.16, 1, 0.3, 1] }}
               />
-              {/* Day label (every 2nd) */}
               {i % 2 === 0 && (
                 <text
                   x={x + barW / 2} y={H - 6}
