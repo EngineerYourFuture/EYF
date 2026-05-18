@@ -91,6 +91,7 @@ export function LoginPage() {
     }
   };
 
+  const submitLabel = require2FA ? 'Verify code' : 'Sign in';
   const inputClass = "w-full rounded-xl px-5 py-3.5 text-sm text-white placeholder:text-white/20 focus:outline-none focus:ring-1 transition-all duration-200 bg-white/4 border border-white/8 focus:border-white/20 focus:ring-white/10 focus:bg-white/6";
 
   return (
@@ -167,7 +168,16 @@ export function LoginPage() {
                   onSubmit={onLogin}
                   className="space-y-4"
                 >
-                  {!require2FA ? (
+                  {require2FA ? (
+                    <div>
+                      <label htmlFor="login-totp" className="block text-[9px] font-bold uppercase tracking-widest text-white/30 mb-1.5 px-1">Authenticator Code</label>
+                      <input id="login-totp" type="text" inputMode="numeric" maxLength={6} value={totpCode}
+                        onChange={(e) => setTotpCode(e.target.value.replace(/\D/g, ''))}
+                        className={`${inputClass} text-center tracking-[0.5em] text-xl font-black`}
+                        placeholder="000000" required autoFocus />
+                      <p className="text-[10px] text-white/25 mt-2 px-1">Enter the 6-digit code from your authenticator app.</p>
+                    </div>
+                  ) : (
                     <>
                       <div>
                         <label htmlFor="login-email" className="block text-[9px] font-bold uppercase tracking-widest text-white/30 mb-1.5 px-1">Email</label>
@@ -183,15 +193,6 @@ export function LoginPage() {
                           className={inputClass} placeholder="••••••••••" required />
                       </div>
                     </>
-                  ) : (
-                    <div>
-                      <label htmlFor="login-totp" className="block text-[9px] font-bold uppercase tracking-widest text-white/30 mb-1.5 px-1">Authenticator Code</label>
-                      <input id="login-totp" type="text" inputMode="numeric" maxLength={6} value={totpCode}
-                        onChange={(e) => setTotpCode(e.target.value.replace(/\D/g, ''))}
-                        className={`${inputClass} text-center tracking-[0.5em] text-xl font-black`}
-                        placeholder="000000" required autoFocus />
-                      <p className="text-[10px] text-white/25 mt-2 px-1">Enter the 6-digit code from your authenticator app.</p>
-                    </div>
                   )}
 
                   {error && (
@@ -206,11 +207,11 @@ export function LoginPage() {
                   <button type="submit" disabled={loading}
                     className="w-full py-3.5 rounded-xl font-bold text-sm text-white transition-all duration-200 hover:scale-[1.02] disabled:opacity-50 flex items-center justify-center gap-2"
                     style={{ background: '#E8192C', boxShadow: '0 4px 24px rgba(232,25,44,0.35)' }}>
-                    {loading ? 'Signing in…' : (require2FA ? 'Verify code' : 'Sign in')}
+                    {loading ? 'Signing in…' : submitLabel}
                     {!loading && <Icon name="arrow_forward" size={16} />}
                   </button>
 
-                  {!require2FA && (
+                  {require2FA ? null : (
                     <>
                       <div className="flex items-center gap-3 my-2">
                         <div className="flex-1 h-px bg-white/6" />

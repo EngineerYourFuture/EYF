@@ -153,6 +153,34 @@ function loadSquadDoneToday(): Set<string> {
   catch { return new Set(); }
 }
 
+function buildSquadObject(params: { name: string; focus: string; goal: string; cadence: string; description: string }): Squad {
+  const meta = SQUAD_FOCUS_META[params.focus] ?? SQUAD_FOCUS_META['DSA'];
+  return {
+    id: `sq${Date.now()}`,
+    name: params.name,
+    focus: params.focus,
+    focusIcon: meta.icon,
+    focusColor: meta.color,
+    members: 1,
+    maxMembers: 5,
+    goal: params.goal,
+    cadence: params.cadence,
+    streak: 0,
+    joined: true,
+    tags: [params.focus.toLowerCase().replace(' ', '-')],
+    description: params.description || `${params.name} — studying together`,
+    todayTask: params.goal,
+    memberNames: ['you'],
+  };
+}
+
+function applySquadMembership(squads: Squad[], id: string, join: boolean): Squad[] {
+  return squads.map((s) => {
+    if (s.id !== id) return s;
+    return { ...s, joined: join, members: join ? s.members + 1 : Math.max(0, s.members - 1) };
+  });
+}
+
 export function CommunityPage() {
   const session = getSession();
   const { fireXP } = useUser();
@@ -250,21 +278,21 @@ export function CommunityPage() {
 
   const joinSquad = (id: string) => {
     setSquads((prev) => {
-      const updated = prev.map((s) => s.id === id ? { ...s, joined: true, members: s.members + 1 } : s);
+      const updated = applySquadMembership(prev, id, true);
       localStorage.setItem('eyf.squads', JSON.stringify(updated));
       return updated;
     });
     fireXP(25, 'Joined a Study Squad!');
-    if (selectedSquad?.id === id) setSelectedSquad((s) => s ? { ...s, joined: true, members: s.members + 1 } : s);
+    setSelectedSquad((s) => (s?.id === id ? { ...s, joined: true, members: s.members + 1 } : s));
   };
 
   const leaveSquad = (id: string) => {
     setSquads((prev) => {
-      const updated = prev.map((s) => s.id === id ? { ...s, joined: false, members: Math.max(0, s.members - 1) } : s);
+      const updated = applySquadMembership(prev, id, false);
       localStorage.setItem('eyf.squads', JSON.stringify(updated));
       return updated;
     });
-    if (selectedSquad?.id === id) setSelectedSquad((s) => s ? { ...s, joined: false, members: Math.max(0, s.members - 1) } : s);
+    setSelectedSquad((s) => (s?.id === id ? { ...s, joined: false, members: Math.max(0, s.members - 1) } : s));
   };
 
   const markTodayDone = (id: string) => {
@@ -276,24 +304,7 @@ export function CommunityPage() {
 
   const createSquad = () => {
     if (!newSquad.name || !newSquad.goal) return;
-    const meta = SQUAD_FOCUS_META[newSquad.focus] ?? SQUAD_FOCUS_META['DSA'];
-    const squad: Squad = {
-      id: `sq${Date.now()}`,
-      name: newSquad.name,
-      focus: newSquad.focus,
-      focusIcon: meta.icon,
-      focusColor: meta.color,
-      members: 1,
-      maxMembers: 5,
-      goal: newSquad.goal,
-      cadence: newSquad.cadence,
-      streak: 0,
-      joined: true,
-      tags: [newSquad.focus.toLowerCase().replace(' ', '-')],
-      description: newSquad.description || `${newSquad.name} — studying together`,
-      todayTask: newSquad.goal,
-      memberNames: ['you'],
-    };
+    const squad = buildSquadObject(newSquad);
     setSquads((prev) => {
       const updated = [squad, ...prev];
       localStorage.setItem('eyf.squads', JSON.stringify(updated));

@@ -682,13 +682,13 @@ router.get("/google/callback", async (req: Request, res: Response): Promise<void
           learningGoal: { create: { priorityModules: ["dsa", "core-subjects", "placement"] } },
         },
       });
-    } else if (!existing.googleId) {
+    } else if (existing.googleId) {
+      user = existing;
+    } else {
       user = await prisma.user.update({
         where: { id: existing.id },
         data: { googleId: profile.sub, emailVerified: true },
       });
-    } else {
-      user = existing;
     }
 
     const { accessToken } = await createSession(

@@ -179,7 +179,7 @@ function NoteEditor({
   }, [handleSave, onClose]);
 
   return (
-    <div role="dialog" tabIndex={-1} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onKeyDown={handleKeyDown}>
+    <dialog open aria-modal="true" className="fixed inset-0 z-50 m-0 flex w-full h-full items-center justify-center p-4 bg-black/60 backdrop-blur-sm border-0" onKeyDown={handleKeyDown}>
       <div className="w-full max-w-2xl bg-[#1a1a1a] rounded-2xl border border-white/10 shadow-2xl flex flex-col max-h-[90vh]">
         {/* Header */}
         <div className="flex items-center gap-3 px-6 py-4 border-b border-white/5">
@@ -251,7 +251,7 @@ function NoteEditor({
           </div>
         </div>
       </div>
-    </div>
+    </dialog>
   );
 }
 
@@ -273,6 +273,7 @@ function NoteCard({
 
   return (
     <div
+      role="button"
       tabIndex={0}
       className={`relative rounded-2xl border ${c.cls} p-4 flex flex-col gap-3 hover:border-white/20 transition-all cursor-pointer group`}
       onClick={onEdit}
@@ -301,8 +302,7 @@ function NoteCard({
       {/* Footer */}
       <div className="flex items-center justify-between mt-auto pt-2 border-t border-white/5">
         <span className="text-[10px] text-zinc-700">{formatRelative(note.updatedAt)}</span>
-        <div
-          role="none"
+        <span
           className="relative"
           onClick={(e) => e.stopPropagation()}
           onKeyDown={(e) => e.stopPropagation()}
@@ -315,8 +315,8 @@ function NoteCard({
           </button>
           {menuOpen && (
             <div
+              role="menu"
               className="absolute right-0 bottom-6 w-36 bg-[#252525] border border-white/10 rounded-xl overflow-hidden shadow-xl z-20"
-              onBlur={() => setMenuOpen(false)}
             >
               <button
                 onClick={() => { onEdit(); setMenuOpen(false); }}
@@ -338,7 +338,7 @@ function NoteCard({
               </button>
             </div>
           )}
-        </div>
+        </span>
       </div>
     </div>
   );

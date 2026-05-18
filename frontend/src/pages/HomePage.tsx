@@ -198,7 +198,7 @@ export function HomePage() {
   const session  = getSession();
   const { summary, displayName, refresh } = useUser();
   const [modules,     setModules]     = useState<ModulesStatus['items']>([]);
-  const [_daily,      setDaily]       = useState<DailyChallenge | null>(null);
+  const [, setDaily]                  = useState<DailyChallenge | null>(null);
   const [levelUpFor,  setLevelUpFor]  = useState<number | null>(null);
   const [streakToast, setStreakToast] = useState(false);
 
@@ -499,7 +499,10 @@ export function HomePage() {
               const cfg = MODULE_CONFIG[mod.module];
               if (!cfg) return null;
               const rawPct = mod.progress;
-              const pct = typeof rawPct === 'number' ? Math.round(rawPct > 1 ? rawPct : rawPct * 100) : 0;
+              let pct = 0;
+              if (typeof rawPct === 'number') {
+                pct = rawPct > 1 ? Math.round(rawPct) : Math.round(rawPct * 100);
+              }
               return (
                 <motion.div key={mod.module} whileHover={{ y: -4, transition: { duration: 0.25 } }} custom={i}>
                   <Link to={cfg.path}>

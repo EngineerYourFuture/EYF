@@ -168,8 +168,8 @@ function HeroSection() {
           transition={{ duration: 0.6, ease: [0.34, 1.56, 0.64, 1] }}
           className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass border border-white/10 text-xs text-white/60 mb-8"
         >
-          <span className="w-1.5 h-1.5 rounded-full bg-[#E8192C] animate-pulse" />
-          Now with AI-powered adaptive learning
+          <span className="w-1.5 h-1.5 rounded-full bg-[#E8192C] animate-pulse" />{' '}
+          Now with AI-powered adaptive learning{' '}
           <span className="text-white/30">→</span>
         </motion.div>
 

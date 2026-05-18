@@ -432,7 +432,7 @@ for s, expected in test_cases:
 
 function SimpleEditor({
   code, onChange,
-}: { readonly code: string; readonly onChange: (code: string) => void; readonly language: Language }) {
+}: { readonly code: string; readonly onChange: (code: string) => void }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -625,7 +625,7 @@ export function PlaygroundPage() {
               </span>
             </div>
             <div className="flex-1 min-h-0 overflow-auto bg-[#141414]">
-              <SimpleEditor code={code} onChange={setCode} language={language} />
+              <SimpleEditor code={code} onChange={setCode} />
             </div>
           </div>
 

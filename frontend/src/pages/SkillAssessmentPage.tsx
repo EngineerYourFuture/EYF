@@ -822,6 +822,18 @@ function SkillCard({ skill, onStart, bestScore }: {
   );
 }
 
+function getOptionCls(optIdx: number, chosen: number | null, correct: number): string {
+  if (chosen == null) return 'bg-[#1a1a1a] border-white/5 text-zinc-300 hover:border-white/20 hover:bg-white/5 cursor-pointer';
+  if (optIdx === correct) return 'bg-emerald-500/10 border-emerald-500/40 text-emerald-300 cursor-default';
+  if (optIdx === chosen) return 'bg-red-500/10 border-red-500/40 text-red-300 cursor-default';
+  return 'bg-[#1a1a1a] border-white/5 text-zinc-600 cursor-default';
+}
+
+function calcScore(answers: (number | null)[], questions: Question[]): number {
+  const correct = answers.filter((a, i) => a === questions[i].correct).length;
+  return Math.round((correct / questions.length) * 100);
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export function SkillAssessmentPage() {
@@ -893,8 +905,7 @@ export function SkillAssessmentPage() {
   // Compute results
   const computeScore = useCallback(() => {
     if (!selectedSkill) return 0;
-    const correct = answers.filter((a, i) => a === selectedSkill.questions[i].correct).length;
-    return Math.round((correct / selectedSkill.questions.length) * 100);
+    return calcScore(answers, selectedSkill.questions);
   }, [selectedSkill, answers]);
 
   const saveNewBestScore = useCallback((skillId: string, score: number) => {
@@ -974,25 +985,17 @@ export function SkillAssessmentPage() {
 
           {/* Options */}
           <div className="space-y-3 mb-4">
-            {q.options.map((opt, i) => {
-              let cls = 'bg-[#1a1a1a] border-white/5 text-zinc-300 hover:border-white/20 hover:bg-white/5 cursor-pointer';
-              if (chosen != null) {
-                if (i === q.correct)  cls = 'bg-emerald-500/10 border-emerald-500/40 text-emerald-300 cursor-default';
-                else if (i === chosen) cls = 'bg-red-500/10 border-red-500/40 text-red-300 cursor-default';
-                else cls = 'bg-[#1a1a1a] border-white/5 text-zinc-600 cursor-default';
-              }
-              return (
+            {q.options.map((opt, optIdx) => (
                 <button
-                  key={`opt-${i}`}
-                  onClick={() => chosen == null && handleAnswer(i)}
+                  key={opt}
+                  onClick={() => chosen == null && handleAnswer(optIdx)}
                   disabled={chosen != null}
-                  className={`w-full text-left p-4 rounded-xl border text-sm transition-all ${cls}`}
+                  className={`w-full text-left p-4 rounded-xl border text-sm transition-all ${getOptionCls(optIdx, chosen, q.correct)}`}
                 >
-                  <span className="font-medium text-zinc-500 mr-2">{String.fromCodePoint(65 + i)}.</span>
+                  <span className="font-medium text-zinc-500 mr-2">{String.fromCodePoint(65 + optIdx)}.</span>
                   {opt}
                 </button>
-              );
-            })}
+            ))}
           </div>
 
           {/* Explanation */}
