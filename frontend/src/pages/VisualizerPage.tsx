@@ -284,7 +284,7 @@ export function VisualizerPage() {
   };
 
   const stageIndex = STAGES.findIndex((s) => s.key === currentStage);
-  const latestTurn = turns[turns.length - 1];
+  const latestTurn = turns.at(-1);
   const step = steps[currentStep];
 
   // ─── Render ───────────────────────────────────────────────────────────────

@@ -314,7 +314,7 @@ for (let page = 1; page <= 3; page++) {
 
   const page = POSTS.slice(startIdx, startIdx + limit);
   const hasMore = startIdx + limit < POSTS.length;
-  const lastPost = page[page.length - 1];
+  const lastPost = page.at(-1);
   const nextCursor = hasMore && lastPost ? btoa(lastPost.id) : null;
 
   return { data: page, nextCursor, hasMore };

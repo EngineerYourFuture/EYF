@@ -305,7 +305,6 @@ function NoteCard({
           role="none"
           className="relative"
           onClick={(e) => e.stopPropagation()}
-          onKeyDown={(e) => e.stopPropagation()}
         >
           <button
             onClick={() => setMenuOpen((v) => !v)}
