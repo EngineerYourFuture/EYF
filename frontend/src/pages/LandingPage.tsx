@@ -383,7 +383,7 @@ function ShowcaseSection() {
           <div className="space-y-1 text-white/50">
             <div><span className="text-[#8B5CF6]">function</span> <span className="text-[#3B82F6]">quickSort</span>(<span className="text-[#F59E0B]">arr</span>) {'{'}</div>
             <div className="pl-4"><span className="text-[#8B5CF6]">if</span> (arr.length &lt;= 1) <span className="text-[#8B5CF6]">return</span> arr;</div>
-            <div className="pl-4 text-[#22C55E]">// ← pivot selected</div>
+            <div className="pl-4 text-[#22C55E]">{'// ← pivot selected'}</div>
             <div className="pl-4"><span className="text-[#F59E0B]">const</span> pivot = arr[arr.length - 1];</div>
             <div className="pl-4"><span className="text-[#F59E0B]">const</span> left = [], right = [];</div>
             <div className="pl-4"><span className="text-[#8B5CF6]">for</span> (<span className="text-[#F59E0B]">const</span> el <span className="text-[#8B5CF6]">of</span> arr.slice(0, -1)) {'{'}</div>
