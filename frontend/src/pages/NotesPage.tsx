@@ -170,16 +170,17 @@ function NoteEditor({
     });
   }, [note, title, content, tag, color, onSave]);
 
-  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if ((e.metaKey || e.ctrlKey) && e.key === 's') {
-      e.preventDefault();
-      handleSave();
-    }
-    if (e.key === 'Escape') onClose();
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 's') { e.preventDefault(); handleSave(); }
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
   }, [handleSave, onClose]);
 
   return (
-    <dialog open aria-modal="true" className="fixed inset-0 z-50 m-0 flex w-full h-full items-center justify-center p-4 bg-black/60 backdrop-blur-sm border-0" onKeyDown={handleKeyDown}>
+    <dialog open aria-modal="true" className="fixed inset-0 z-50 m-0 flex w-full h-full items-center justify-center p-4 bg-black/60 backdrop-blur-sm border-0">
       <div className="w-full max-w-2xl bg-[#1a1a1a] rounded-2xl border border-white/10 shadow-2xl flex flex-col max-h-[90vh]">
         {/* Header */}
         <div className="flex items-center gap-3 px-6 py-4 border-b border-white/5">
@@ -272,12 +273,10 @@ function NoteCard({
   const c = colorOf(note.color);
 
   return (
-    <div
-      role="button"
-      tabIndex={0}
-      className={`relative rounded-2xl border ${c.cls} p-4 flex flex-col gap-3 hover:border-white/20 transition-all cursor-pointer group`}
+    <button
+      type="button"
+      className={`relative rounded-2xl border ${c.cls} p-4 flex flex-col gap-3 hover:border-white/20 transition-all cursor-pointer group w-full text-left`}
       onClick={onEdit}
-      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onEdit(); }}
     >
       {/* Pin indicator */}
       {note.pinned && (
@@ -302,7 +301,8 @@ function NoteCard({
       {/* Footer */}
       <div className="flex items-center justify-between mt-auto pt-2 border-t border-white/5">
         <span className="text-[10px] text-zinc-700">{formatRelative(note.updatedAt)}</span>
-        <span
+        <div
+          role="none"
           className="relative"
           onClick={(e) => e.stopPropagation()}
           onKeyDown={(e) => e.stopPropagation()}
@@ -338,9 +338,9 @@ function NoteCard({
               </button>
             </div>
           )}
-        </span>
+        </div>
       </div>
-    </div>
+    </button>
   );
 }
 

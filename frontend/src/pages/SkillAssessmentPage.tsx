@@ -834,6 +834,158 @@ function calcScore(answers: (number | null)[], questions: Question[]): number {
   return Math.round((correct / questions.length) * 100);
 }
 
+// ─── Sub-views (extracted to keep SkillAssessmentPage complexity low) ─────────
+
+interface QuizViewProps {
+  skill: Skill;
+  questionIndex: number;
+  answers: (number | null)[];
+  timeLeft: number;
+  showExplanation: boolean;
+  onAnswer: (idx: number) => void;
+  onNext: () => void;
+}
+
+function QuizView({ skill, questionIndex, answers, timeLeft, showExplanation, onAnswer, onNext }: QuizViewProps) {
+  const q = skill.questions[questionIndex];
+  const chosen = answers[questionIndex];
+  const pct = Math.round(((questionIndex + (chosen == null ? 0 : 1)) / skill.questions.length) * 100);
+
+  return (
+    <AppShell>
+      <div className="max-w-2xl mx-auto px-4 py-8">
+        <div className="flex items-center justify-between mb-4 gap-4">
+          <div className="flex-1 h-1.5 bg-white/10 rounded-full overflow-hidden">
+            <div className="h-full bg-[#E82127] rounded-full transition-all duration-300" style={{ width: `${pct}%` }} />
+          </div>
+          <span className={`text-sm font-mono font-bold tabular-nums shrink-0 ${timeLeft < 60 ? 'text-red-400' : 'text-zinc-400'}`}>
+            {formatTime(timeLeft)}
+          </span>
+        </div>
+
+        <div className="text-xs text-zinc-600 mb-6">
+          {questionIndex + 1} / {skill.questions.length} — {skill.name}
+        </div>
+
+        <div className="bg-[#1a1a1a] rounded-2xl border border-white/5 p-6 mb-4">
+          <p className="text-base text-zinc-100 leading-relaxed font-medium">{q.text}</p>
+        </div>
+
+        <div className="space-y-3 mb-4">
+          {q.options.map((opt, optIdx) => (
+            <button
+              key={opt}
+              onClick={() => chosen == null && onAnswer(optIdx)}
+              disabled={chosen != null}
+              className={`w-full text-left p-4 rounded-xl border text-sm transition-all ${getOptionCls(optIdx, chosen, q.correct)}`}
+            >
+              <span className="font-medium text-zinc-500 mr-2">{String.fromCodePoint(65 + optIdx)}.</span>
+              {opt}
+            </button>
+          ))}
+        </div>
+
+        {showExplanation && (
+          <div className={`p-4 rounded-xl border mb-4 ${chosen === q.correct ? 'bg-emerald-500/10 border-emerald-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
+            <div className="flex items-center gap-2 mb-2">
+              <Icon
+                name={chosen === q.correct ? 'check_circle' : 'cancel'}
+                className={`text-lg ${chosen === q.correct ? 'text-emerald-400' : 'text-red-400'}`}
+              />
+              <span className={`text-sm font-semibold ${chosen === q.correct ? 'text-emerald-400' : 'text-red-400'}`}>
+                {chosen === q.correct ? 'Correct!' : 'Incorrect'}
+              </span>
+            </div>
+            <p className="text-sm text-zinc-400 leading-relaxed">{q.explanation}</p>
+          </div>
+        )}
+
+        {chosen != null && (
+          <button
+            onClick={onNext}
+            className="w-full bg-[#E82127] hover:bg-red-600 text-white font-semibold py-3 rounded-xl transition-colors"
+          >
+            {questionIndex < skill.questions.length - 1 ? 'Next Question →' : 'See Results →'}
+          </button>
+        )}
+      </div>
+    </AppShell>
+  );
+}
+
+interface ResultViewProps {
+  skill: Skill;
+  answers: (number | null)[];
+  score: number;
+  grade: ReturnType<typeof scoreToGrade>;
+  onRetake: () => void;
+  onBack: () => void;
+}
+
+function ResultView({ skill, answers, score, grade, onRetake, onBack }: ResultViewProps) {
+  const correctCount = answers.filter((a, i) => a === skill.questions[i].correct).length;
+
+  return (
+    <AppShell>
+      <div className="max-w-2xl mx-auto px-4 py-8 space-y-6">
+        <div className={`bg-gradient-to-br ${skill.gradient} rounded-2xl border border-white/10 p-8 text-center`}>
+          <div className="text-5xl font-black text-white mb-2">{score}%</div>
+          <div className={`text-xl font-bold ${grade.color} mb-1`}>{grade.label}</div>
+          <div className="text-sm text-zinc-400">{correctCount} / {skill.questions.length} correct</div>
+          <div className="mt-4 inline-flex items-center gap-2 bg-amber-400/10 text-amber-400 text-sm font-semibold px-4 py-2 rounded-full border border-amber-400/20">
+            <Icon name="stars" className="text-lg" />
+            +{grade.xp} XP earned
+          </div>
+        </div>
+
+        <div>
+          <h2 className="text-sm font-semibold text-zinc-500 uppercase tracking-wider mb-3">Review</h2>
+          <div className="space-y-3">
+            {skill.questions.map((q, i) => {
+              const isCorrect = answers[i] === q.correct;
+              return (
+                <div key={q.id} className={`p-4 rounded-xl border ${isCorrect ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-red-500/5 border-red-500/20'}`}>
+                  <div className="flex items-start gap-3">
+                    <Icon
+                      name={isCorrect ? 'check_circle' : 'cancel'}
+                      className={`text-lg shrink-0 mt-0.5 ${isCorrect ? 'text-emerald-400' : 'text-red-400'}`}
+                    />
+                    <div className="min-w-0">
+                      <p className="text-sm text-zinc-200 mb-1">{q.text}</p>
+                      {!isCorrect && (
+                        <>
+                          <p className="text-xs text-red-400 mb-0.5">Your answer: {answers[i] == null ? 'Unanswered' : q.options[answers[i] as number]}</p>
+                          <p className="text-xs text-emerald-400 mb-1">Correct: {q.options[q.correct]}</p>
+                        </>
+                      )}
+                      <p className="text-xs text-zinc-500 leading-relaxed">{q.explanation}</p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="flex gap-3">
+          <button
+            onClick={onRetake}
+            className="flex-1 bg-white/5 hover:bg-white/10 text-zinc-300 border border-white/10 font-semibold py-3 rounded-xl transition-colors text-sm"
+          >
+            Retake Assessment
+          </button>
+          <button
+            onClick={onBack}
+            className="flex-1 bg-[#E82127] hover:bg-red-600 text-white font-semibold py-3 rounded-xl transition-colors text-sm"
+          >
+            All Assessments
+          </button>
+        </div>
+      </div>
+    </AppShell>
+  );
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export function SkillAssessmentPage() {
@@ -957,73 +1109,16 @@ export function SkillAssessmentPage() {
 
   // ── Quiz ──
   if (state === 'quiz' && selectedSkill) {
-    const q = selectedSkill.questions[questionIndex];
-    const chosen = answers[questionIndex];
-    const pct = Math.round(((questionIndex + (chosen == null ? 0 : 1)) / selectedSkill.questions.length) * 100);
-
     return (
-      <AppShell>
-        <div className="max-w-2xl mx-auto px-4 py-8">
-          {/* Progress bar + timer */}
-          <div className="flex items-center justify-between mb-4 gap-4">
-            <div className="flex-1 h-1.5 bg-white/10 rounded-full overflow-hidden">
-              <div className="h-full bg-[#E82127] rounded-full transition-all duration-300" style={{ width: `${pct}%` }} />
-            </div>
-            <span className={`text-sm font-mono font-bold tabular-nums shrink-0 ${timeLeft < 60 ? 'text-red-400' : 'text-zinc-400'}`}>
-              {formatTime(timeLeft)}
-            </span>
-          </div>
-
-          <div className="text-xs text-zinc-600 mb-6">
-            {questionIndex + 1} / {selectedSkill.questions.length} — {selectedSkill.name}
-          </div>
-
-          {/* Question */}
-          <div className="bg-[#1a1a1a] rounded-2xl border border-white/5 p-6 mb-4">
-            <p className="text-base text-zinc-100 leading-relaxed font-medium">{q.text}</p>
-          </div>
-
-          {/* Options */}
-          <div className="space-y-3 mb-4">
-            {q.options.map((opt, optIdx) => (
-                <button
-                  key={opt}
-                  onClick={() => chosen == null && handleAnswer(optIdx)}
-                  disabled={chosen != null}
-                  className={`w-full text-left p-4 rounded-xl border text-sm transition-all ${getOptionCls(optIdx, chosen, q.correct)}`}
-                >
-                  <span className="font-medium text-zinc-500 mr-2">{String.fromCodePoint(65 + optIdx)}.</span>
-                  {opt}
-                </button>
-            ))}
-          </div>
-
-          {/* Explanation */}
-          {showExplanation && (
-            <div className={`p-4 rounded-xl border mb-4 ${chosen === q.correct ? 'bg-emerald-500/10 border-emerald-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
-              <div className="flex items-center gap-2 mb-2">
-                <Icon
-                  name={chosen === q.correct ? 'check_circle' : 'cancel'}
-                  className={`text-lg ${chosen === q.correct ? 'text-emerald-400' : 'text-red-400'}`}
-                />
-                <span className={`text-sm font-semibold ${chosen === q.correct ? 'text-emerald-400' : 'text-red-400'}`}>
-                  {chosen === q.correct ? 'Correct!' : 'Incorrect'}
-                </span>
-              </div>
-              <p className="text-sm text-zinc-400 leading-relaxed">{q.explanation}</p>
-            </div>
-          )}
-
-          {chosen != null && (
-            <button
-              onClick={handleNext}
-              className="w-full bg-[#E82127] hover:bg-red-600 text-white font-semibold py-3 rounded-xl transition-colors"
-            >
-              {questionIndex < selectedSkill.questions.length - 1 ? 'Next Question →' : 'See Results →'}
-            </button>
-          )}
-        </div>
-      </AppShell>
+      <QuizView
+        skill={selectedSkill}
+        questionIndex={questionIndex}
+        answers={answers}
+        timeLeft={timeLeft}
+        showExplanation={showExplanation}
+        onAnswer={handleAnswer}
+        onNext={handleNext}
+      />
     );
   }
 
@@ -1031,68 +1126,15 @@ export function SkillAssessmentPage() {
   if (state === 'result' && selectedSkill) {
     const score = computeScore();
     const grade = scoreToGrade(score);
-    const correctCount = answers.filter((a, i) => a === selectedSkill.questions[i].correct).length;
-
     return (
-      <AppShell>
-        <div className="max-w-2xl mx-auto px-4 py-8 space-y-6">
-          {/* Score card */}
-          <div className={`bg-gradient-to-br ${selectedSkill.gradient} rounded-2xl border border-white/10 p-8 text-center`}>
-            <div className="text-5xl font-black text-white mb-2">{score}%</div>
-            <div className={`text-xl font-bold ${grade.color} mb-1`}>{grade.label}</div>
-            <div className="text-sm text-zinc-400">{correctCount} / {selectedSkill.questions.length} correct</div>
-            <div className="mt-4 inline-flex items-center gap-2 bg-amber-400/10 text-amber-400 text-sm font-semibold px-4 py-2 rounded-full border border-amber-400/20">
-              <Icon name="stars" className="text-lg" />
-              +{grade.xp} XP earned
-            </div>
-          </div>
-
-          {/* Question review */}
-          <div>
-            <h2 className="text-sm font-semibold text-zinc-500 uppercase tracking-wider mb-3">Review</h2>
-            <div className="space-y-3">
-              {selectedSkill.questions.map((q, i) => {
-                const isCorrect = answers[i] === q.correct;
-                return (
-                  <div key={q.id} className={`p-4 rounded-xl border ${isCorrect ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-red-500/5 border-red-500/20'}`}>
-                    <div className="flex items-start gap-3">
-                      <Icon
-                        name={isCorrect ? 'check_circle' : 'cancel'}
-                        className={`text-lg shrink-0 mt-0.5 ${isCorrect ? 'text-emerald-400' : 'text-red-400'}`}
-                      />
-                      <div className="min-w-0">
-                        <p className="text-sm text-zinc-200 mb-1">{q.text}</p>
-                        {!isCorrect && (
-                          <>
-                            <p className="text-xs text-red-400 mb-0.5">Your answer: {answers[i] == null ? 'Unanswered' : q.options[answers[i]]}</p>
-                            <p className="text-xs text-emerald-400 mb-1">Correct: {q.options[q.correct]}</p>
-                          </>
-                        )}
-                        <p className="text-xs text-zinc-500 leading-relaxed">{q.explanation}</p>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className="flex gap-3">
-            <button
-              onClick={() => startAssessment(selectedSkill)}
-              className="flex-1 bg-white/5 hover:bg-white/10 text-zinc-300 border border-white/10 font-semibold py-3 rounded-xl transition-colors text-sm"
-            >
-              Retake Assessment
-            </button>
-            <button
-              onClick={() => setState('catalog')}
-              className="flex-1 bg-[#E82127] hover:bg-red-600 text-white font-semibold py-3 rounded-xl transition-colors text-sm"
-            >
-              All Assessments
-            </button>
-          </div>
-        </div>
-      </AppShell>
+      <ResultView
+        skill={selectedSkill}
+        answers={answers}
+        score={score}
+        grade={grade}
+        onRetake={() => startAssessment(selectedSkill)}
+        onBack={() => setState('catalog')}
+      />
     );
   }
 

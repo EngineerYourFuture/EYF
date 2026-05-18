@@ -10,7 +10,6 @@ import { StreakToast } from '../components/StreakToast';
 import { XPLineChart, SkillsRadar, ReadinessGauge, ActivityBars } from '../components/Charts';
 
 interface ModulesStatus { items: Array<{ module: string; progress: number; cta: string }> }
-interface DailyChallenge { id: string; slug: string; title: string; difficulty: 'easy'|'medium'|'hard'; category: string; xpReward: number; solved?: boolean }
 
 const LEVEL_NAMES      = ['Newcomer','Learner','Explorer','Builder','Practitioner','Engineer','Senior','Lead','Architect','Expert','Legend'];
 const LEVEL_THRESHOLDS = [0,100,300,700,1500,3000,6000,12000,25000,50000,100000];
@@ -185,7 +184,6 @@ export function HomePage() {
   const session = getSession();
   const { summary, displayName, refresh } = useUser();
   const [modules,     setModules]     = useState<ModulesStatus['items']>([]);
-  const [,            setDaily]       = useState<DailyChallenge | null>(null);
   const [levelUpFor,  setLevelUpFor]  = useState<number | null>(null);
   const [streakToast, setStreakToast] = useState(false);
 
@@ -193,8 +191,6 @@ export function HomePage() {
     if (!session?.accessToken) return;
     apiRequest<ModulesStatus>('/modules/status', { token: session.accessToken })
       .then((d) => setModules(d.items)).catch(() => {});
-    apiRequest<{ problems: DailyChallenge[] }>('/problems?limit=1&daily=true', { token: session.accessToken })
-      .then((d) => { if (d.problems[0]) setDaily(d.problems[0]); }).catch(() => {});
   }, [session?.accessToken]);
 
   useEffect(() => {
@@ -279,7 +275,7 @@ export function HomePage() {
               )}
               <Link to="/app/progress" className="btn btn-secondary btn-sm">
                 <span className="material-symbols-rounded text-sm">insights</span>
-                Progress
+                {' '}Progress
               </Link>
             </div>
           </div>
@@ -331,14 +327,8 @@ export function HomePage() {
             <motion.div {...appear(0.08)}>
               <Link to="/app/readiness">
                 <div
-                  className="flex items-center gap-4 p-4 rounded-xl cursor-pointer transition-all"
-                  style={{
-                    background: 'var(--bg)',
-                    border: '1px solid var(--red-border)',
-                    boxShadow: 'var(--shadow-xs)',
-                  }}
-                  onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(232,25,44,0.3)'; (e.currentTarget as HTMLElement).style.boxShadow = 'var(--shadow-md)'; }}
-                  onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--red-border)'; (e.currentTarget as HTMLElement).style.boxShadow = 'var(--shadow-xs)'; }}
+                  className="flex items-center gap-4 p-4 rounded-xl cursor-pointer hover-card-red"
+                  style={{ background: 'var(--bg)' }}
                 >
                   <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'var(--red-muted)' }}>
                     <span className="material-symbols-rounded" style={{ color: 'var(--red)' }}>speed</span>
@@ -359,10 +349,8 @@ export function HomePage() {
                 {recs.map((rec) => (
                   <Link key={rec.path} to={rec.path}>
                     <div
-                      className="flex items-center gap-3 p-3.5 rounded-xl cursor-pointer transition-all"
-                      style={{ background: 'var(--bg)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-xs)' }}
-                      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border-hover)'; (e.currentTarget as HTMLElement).style.boxShadow = 'var(--shadow-md)'; }}
-                      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'; (e.currentTarget as HTMLElement).style.boxShadow = 'var(--shadow-xs)'; }}
+                      className="flex items-center gap-3 p-3.5 rounded-xl cursor-pointer hover-card-border"
+                      style={{ background: 'var(--bg)' }}
                     >
                       <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: `${rec.hex}12` }}>
                         <span className="material-symbols-rounded text-sm" style={{ color: rec.hex }}>{rec.icon}</span>
@@ -399,10 +387,8 @@ export function HomePage() {
                 ].map((a) => (
                   <Link key={a.path} to={a.path}>
                     <div
-                      className="flex flex-col items-center gap-1.5 py-3 rounded-xl cursor-pointer transition-all"
-                      style={{ background: 'var(--bg)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-xs)' }}
-                      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.boxShadow = 'var(--shadow-md)'; (e.currentTarget as HTMLElement).style.borderColor = 'var(--border-hover)'; }}
-                      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.boxShadow = 'var(--shadow-xs)'; (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'; }}
+                      className="flex flex-col items-center gap-1.5 py-3 rounded-xl cursor-pointer hover-card-border"
+                      style={{ background: 'var(--bg)' }}
                     >
                       <span className="material-symbols-rounded text-lg" style={{ color: a.hex }}>{a.icon}</span>
                       <span className="text-[10px] font-semibold" style={{ color: 'var(--t3)' }}>{a.label}</span>

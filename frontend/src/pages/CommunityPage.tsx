@@ -174,6 +174,42 @@ function buildSquadObject(params: { name: string; focus: string; goal: string; c
   };
 }
 
+/* ── Module-level API helpers (excluded from CommunityPage cognitive complexity) */
+
+async function apiOpenPost(id: string, token: string): Promise<PostDetail> {
+  return apiRequest<PostDetail>(`/community/posts/${id}`, { token });
+}
+
+async function apiSubmitPost(
+  token: string,
+  data: { title: string; body: string; category: string; tags: string },
+): Promise<Post> {
+  return apiRequest<Post>('/community/posts', {
+    token, method: 'POST',
+    body: {
+      title: data.title, body: data.body, category: data.category,
+      tags: data.tags.split(',').map((t) => t.trim()).filter(Boolean),
+    },
+  });
+}
+
+async function apiSubmitReply(
+  token: string,
+  selected: PostDetail,
+  body: string,
+): Promise<{ id: string; body: string; upvotes: number; createdAt: string; author: string; replyCount: number }> {
+  return apiRequest<{ id: string; body: string; upvotes: number; createdAt: string; author: string; replyCount: number }>(
+    '/community/posts',
+    { token, method: 'POST', body: { body, category: selected.category, parentId: selected.id } },
+  );
+}
+
+async function apiVote(token: string, postId: string, v: 1 | -1): Promise<{ upvotes: number }> {
+  return apiRequest<{ upvotes: number }>(`/community/posts/${postId}/vote`, {
+    token, method: 'POST', body: { vote: v },
+  });
+}
+
 function applySquadMembership(squads: Squad[], id: string, join: boolean): Squad[] {
   return squads.map((s) => {
     if (s.id !== id) return s;
@@ -209,8 +245,7 @@ export function CommunityPage() {
   const openPost = async (id: string) => {
     if (!session?.accessToken) return;
     try {
-      const d = await apiRequest<PostDetail>(`/community/posts/${id}`, { token: session.accessToken });
-      setSelected(d);
+      setSelected(await apiOpenPost(id, session.accessToken));
     } catch {
       const found = posts.find((p) => p.id === id);
       if (found) setSelected({ ...found, replies: [] });
@@ -221,16 +256,7 @@ export function CommunityPage() {
     if (!session?.accessToken || !newPost.title || !newPost.body) return;
     setPosting(true);
     try {
-      const created = await apiRequest<Post>('/community/posts', {
-        token: session.accessToken,
-        method: 'POST',
-        body: {
-          title: newPost.title,
-          body: newPost.body,
-          category: newPost.category,
-          tags: newPost.tags.split(',').map((t) => t.trim()).filter(Boolean),
-        },
-      });
+      const created = await apiSubmitPost(session.accessToken, newPost);
       setPosts((prev) => [created, ...prev]);
       setNewPost({ title: '', body: '', category: 'general', tags: '' });
       setShowCompose(false);
@@ -246,11 +272,7 @@ export function CommunityPage() {
     if (!session?.accessToken || !newReply || !selected) return;
     setPosting(true);
     try {
-      const reply = await apiRequest<{ id: string; body: string; upvotes: number; createdAt: string; author: string; replyCount: number }>('/community/posts', {
-        token: session.accessToken,
-        method: 'POST',
-        body: { body: newReply, category: selected.category, parentId: selected.id },
-      });
+      const reply = await apiSubmitReply(session.accessToken, selected, newReply);
       setSelected((prev) => prev ? { ...prev, replies: [...prev.replies, reply], replyCount: prev.replyCount + 1 } : prev);
       setNewReply('');
       fireXP(5, 'Reply posted!');
@@ -264,11 +286,7 @@ export function CommunityPage() {
   const vote = async (postId: string, v: 1 | -1) => {
     if (!session?.accessToken) return;
     try {
-      const { upvotes } = await apiRequest<{ upvotes: number }>(`/community/posts/${postId}/vote`, {
-        token: session.accessToken,
-        method: 'POST',
-        body: { vote: v },
-      });
+      const { upvotes } = await apiVote(session.accessToken, postId, v);
       setPosts((prev) => prev.map((p) => p.id === postId ? { ...p, upvotes } : p));
       if (selected?.id === postId) setSelected((prev) => prev ? { ...prev, upvotes } : prev);
     } catch {

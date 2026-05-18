@@ -331,7 +331,7 @@ function HeroSection() {
             style={{ background: 'rgba(232,25,44,0.07)', color: '#E8192C', border: '1px solid rgba(232,25,44,0.15)' }}
           >
             <span className="anim-pulse w-1.5 h-1.5 rounded-full" style={{ background: '#E8192C' }} />
-            Open beta · 12,000+ students enrolled
+            {' '}Open beta · 12,000+ students enrolled
           </span>
         </motion.div>
 
@@ -365,7 +365,7 @@ function HeroSection() {
           transition={{ duration: 0.4, delay: 0.2 }}
         >
           <Link to="/login?tab=register" className="btn btn-primary btn-xl">
-            Start for free
+            {'Start for free'}
             <span className="material-symbols-rounded text-base">arrow_forward</span>
           </Link>
           <a href="#curriculum" className="btn btn-secondary btn-xl">View curriculum</a>
@@ -667,7 +667,7 @@ function CurriculumSection() {
               </h2>
             </div>
             <Link to="/login?tab=register" className="btn btn-secondary hidden md:flex">
-              View all modules
+              {'View all modules'}
               <span className="material-symbols-rounded text-sm">arrow_forward</span>
             </Link>
           </div>
@@ -677,10 +677,7 @@ function CurriculumSection() {
           {modules.map((m, i) => (
             <Reveal key={m.label} delay={i * 0.04}>
               <div
-                className="flex items-start gap-4 p-4 rounded-xl group cursor-pointer"
-                style={{ background: '#FFFFFF', border: '1px solid #E4E4E7', transition: 'border-color 0.15s, box-shadow 0.15s' }}
-                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = '#D4D4D8'; (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 12px rgba(0,0,0,0.07)'; }}
-                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = '#E4E4E7'; (e.currentTarget as HTMLElement).style.boxShadow = 'none'; }}
+                className="flex items-start gap-4 p-4 rounded-xl group cursor-pointer hover-card-neutral"
               >
                 <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 mt-0.5" style={{ background: `${m.color}12` }}>
                   <span className="material-symbols-rounded text-lg" style={{ color: m.color }}>{m.icon}</span>
@@ -869,7 +866,7 @@ function CTASection() {
           </p>
           <div className="flex flex-wrap gap-3 justify-center">
             <Link to="/login?tab=register" className="btn btn-primary btn-xl">
-              Create free account
+              {'Create free account'}
               <span className="material-symbols-rounded text-base">arrow_forward</span>
             </Link>
             <Link
