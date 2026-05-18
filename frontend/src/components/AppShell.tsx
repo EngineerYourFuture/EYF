@@ -1,5 +1,6 @@
 import { type ReactNode, useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Icon } from './Icon';
 import { EYFMark, EYFLogo } from './EYFLogo';
 import { clearSession, getSession } from '../lib/session';
@@ -36,29 +37,29 @@ const NAV_GROUPS: NavGroup[] = [
       { path: '/app/assessments',   label: 'Skill Assessments', icon: 'fact_check' },
       { path: '/app/real-world',    label: 'Real-World',        icon: 'build' },
       { path: '/app/roadmap',       label: 'Roadmap',           icon: 'map' },
-      { path: '/app/study-plan',    label: 'Study Plan',     icon: 'calendar_month' },
+      { path: '/app/study-plan',    label: 'Study Plan',        icon: 'calendar_month' },
     ],
   },
   {
     label: 'Career',
     items: [
-      { path: '/app/companies',   label: 'Company Prep',   icon: 'business' },
-      { path: '/app/placement',  label: 'Placement',     icon: 'work' },
-      { path: '/app/resume',     label: 'Resume',        icon: 'description' },
-      { path: '/app/skills',     label: 'Tech Skills',   icon: 'psychology' },
-      { path: '/app/mentorship', label: 'Mentorship',    icon: 'groups' },
-      { path: '/app/experts',       label: 'Expert Network', icon: 'workspace_premium' },
-      { path: '/app/mock-interview', label: 'Mock Interview',  icon: 'record_voice_over' },
-      { path: '/app/tracker',        label: 'Interview Tracker', icon: 'track_changes' },
+      { path: '/app/companies',     label: 'Company Prep',      icon: 'business' },
+      { path: '/app/placement',     label: 'Placement',         icon: 'work' },
+      { path: '/app/resume',        label: 'Resume',            icon: 'description' },
+      { path: '/app/skills',        label: 'Tech Skills',       icon: 'psychology' },
+      { path: '/app/mentorship',    label: 'Mentorship',        icon: 'groups' },
+      { path: '/app/experts',       label: 'Expert Network',    icon: 'workspace_premium' },
+      { path: '/app/mock-interview',label: 'Mock Interview',    icon: 'record_voice_over' },
+      { path: '/app/tracker',       label: 'Interview Tracker', icon: 'track_changes' },
     ],
   },
   {
     label: 'Community',
     items: [
-      { path: '/app/community',     label: 'Community',             icon: 'forum' },
-      { path: '/app/leaderboard',   label: 'Leaderboard',           icon: 'leaderboard' },
-      { path: '/app/contests',      label: 'Weekly Contests',        icon: 'emoji_events' },
-      { path: '/app/experiences',   label: 'Interview Experiences',  icon: 'article' },
+      { path: '/app/community',   label: 'Community',            icon: 'forum' },
+      { path: '/app/leaderboard', label: 'Leaderboard',          icon: 'leaderboard' },
+      { path: '/app/contests',    label: 'Weekly Contests',      icon: 'emoji_events' },
+      { path: '/app/experiences', label: 'Interview Experiences', icon: 'article' },
     ],
   },
   {
@@ -86,6 +87,13 @@ export function AppShell({ children }: { readonly children: ReactNode }) {
   const [notifOpen,      setNotifOpen]      = useState(false);
   const [shortcutsOpen,  setShortcutsOpen]  = useState(false);
   const [notifications,  setNotifications]  = useState<Notification[]>([]);
+  const [scrolled,       setScrolled]       = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 10);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   useEffect(() => {
     if (!session?.accessToken) return;
@@ -120,10 +128,8 @@ export function AppShell({ children }: { readonly children: ReactNode }) {
   const levelName = LEVEL_NAMES[level] ?? 'Legend';
   const initials  = displayName ? displayName[0].toUpperCase() : (session?.email?.[0]?.toUpperCase() ?? '?');
 
-  // Close sidebar on route change
   useEffect(() => { setSidebarOpen(false); }, [location.pathname]);
 
-  // Keyboard shortcuts: Cmd+K → search, ? → shortcuts, Escape → close
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       const tag = (e.target as HTMLElement).tagName;
@@ -144,256 +150,316 @@ export function AppShell({ children }: { readonly children: ReactNode }) {
   const isPro = plan === 'pro' || plan === 'elite';
 
   return (
-    <div className="min-h-screen bg-surface text-on-surface dark">
-
-      {/* Search modal */}
+    <div className="min-h-screen bg-[#080808] text-white">
       <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
 
       {/* Keyboard shortcuts modal */}
-      {shortcutsOpen && (
-        <div className="fixed inset-0 z-[9998] flex items-center justify-center">
-          <div role="none" className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setShortcutsOpen(false)} onKeyDown={(e) => { if (e.key === 'Escape') setShortcutsOpen(false); }} />
-          <div className="relative bg-[#1a1a1a] border border-white/10 rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden">
-            <div className="flex items-center justify-between px-6 py-5 border-b border-white/8">
-              <h2 className="text-base font-black text-white">Keyboard Shortcuts</h2>
-              <button onClick={() => setShortcutsOpen(false)} className="w-7 h-7 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white transition-colors">
+      <AnimatePresence>
+        {shortcutsOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[9998] flex items-center justify-center"
+          >
+            <div role="none" className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setShortcutsOpen(false)} onKeyDown={(e) => { if (e.key === 'Escape') setShortcutsOpen(false); }} />
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+              className="relative glass-heavy border border-white/10 rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden"
+            >
+              <div className="flex items-center justify-between px-6 py-5 border-b border-white/8">
+                <h2 className="text-base font-bold text-white">Keyboard Shortcuts</h2>
+                <button onClick={() => setShortcutsOpen(false)} className="w-7 h-7 rounded-full glass flex items-center justify-center text-white/40 hover:text-white transition-colors">
+                  <Icon name="close" size={16} />
+                </button>
+              </div>
+              <div className="p-6 space-y-5">
+                {[
+                  { label: 'Navigation', items: [
+                    { keys: ['⌘', 'K'], desc: 'Open search' },
+                    { keys: ['?'], desc: 'Toggle shortcuts' },
+                    { keys: ['Esc'], desc: 'Close modal / panel' },
+                  ]},
+                  { label: 'Flashcards', items: [
+                    { keys: ['Space'], desc: 'Flip card' },
+                    { keys: ['1'], desc: 'Again (forgot)' },
+                    { keys: ['2'], desc: 'Hard' },
+                    { keys: ['3'], desc: 'Good' },
+                    { keys: ['4'], desc: 'Easy' },
+                  ]},
+                  { label: 'Editor', items: [
+                    { keys: ['↑', '↓'], desc: 'Navigate results' },
+                    { keys: ['↵'], desc: 'Open selected' },
+                    { keys: ['F11'], desc: 'Toggle fullscreen' },
+                  ]},
+                ].map((group) => (
+                  <div key={group.label}>
+                    <p className="text-[9px] font-black uppercase tracking-widest text-white/20 mb-3">{group.label}</p>
+                    <div className="space-y-2">
+                      {group.items.map((item) => (
+                        <div key={item.desc} className="flex items-center justify-between">
+                          <span className="text-sm text-white/50">{item.desc}</span>
+                          <div className="flex gap-1">
+                            {item.keys.map((k) => (
+                              <kbd key={k} className="px-2 py-1 glass rounded text-[11px] text-white/50 font-mono border border-white/10">{k}</kbd>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="px-6 pb-5 text-[10px] text-white/20 text-center">Press <kbd className="glass px-1.5 rounded font-mono text-white/30">?</kbd> anytime</div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Sidebar backdrop */}
+      <AnimatePresence>
+        {sidebarOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            aria-hidden="true"
+            className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Sidebar */}
+      <AnimatePresence>
+        {sidebarOpen && (
+          <motion.aside
+            initial={{ x: '-100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '-100%' }}
+            transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+            className="fixed left-0 top-0 h-screen w-72 z-50 flex flex-col border-r border-white/5"
+            style={{ background: 'rgba(10, 10, 10, 0.95)', backdropFilter: 'blur(40px)', WebkitBackdropFilter: 'blur(40px)' }}
+          >
+            {/* Ambient glow */}
+            <div className="absolute top-0 right-0 w-48 h-48 bg-[#E8192C]/8 rounded-full blur-3xl pointer-events-none" />
+
+            {/* Header */}
+            <div className="px-5 pt-6 pb-5 flex items-center justify-between border-b border-white/5">
+              <div className="flex items-center gap-3">
+                <EYFMark size={30} className="text-[#080808] flex-shrink-0" />
+                <div>
+                  <h1 className="text-sm font-black text-white tracking-tight">EYF</h1>
+                  <p className="text-[9px] font-semibold text-white/25 uppercase tracking-widest mt-0.5">Engineer Your Future</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setSidebarOpen(false)}
+                className="w-7 h-7 rounded-full glass border border-white/8 flex items-center justify-center text-white/40 hover:text-white transition-all"
+                aria-label="Close menu"
+              >
                 <Icon name="close" size={16} />
               </button>
             </div>
-            <div className="p-6 space-y-5">
-              {[
-                { label: 'Navigation', items: [
-                  { keys: ['⌘', 'K'], desc: 'Open search' },
-                  { keys: ['?'], desc: 'Toggle shortcuts' },
-                  { keys: ['Esc'], desc: 'Close modal / panel' },
-                ]},
-                { label: 'Flashcards', items: [
-                  { keys: ['Space'], desc: 'Flip card' },
-                  { keys: ['1'], desc: 'Again (forgot)' },
-                  { keys: ['2'], desc: 'Hard' },
-                  { keys: ['3'], desc: 'Good' },
-                  { keys: ['4'], desc: 'Easy' },
-                ]},
-                { label: 'Search & Editor', items: [
-                  { keys: ['↑', '↓'], desc: 'Navigate results' },
-                  { keys: ['↵'], desc: 'Open selected' },
-                  { keys: ['F11'], desc: 'Toggle code fullscreen' },
-                ]},
-              ].map((group) => (
-                <div key={group.label}>
-                  <p className="text-[9px] font-black uppercase tracking-widest text-zinc-600 mb-3">{group.label}</p>
-                  <div className="space-y-2">
-                    {group.items.map((item) => (
-                      <div key={item.desc} className="flex items-center justify-between">
-                        <span className="text-sm text-zinc-400">{item.desc}</span>
-                        <div className="flex gap-1">
-                          {item.keys.map((k) => (
-                            <kbd key={k} className="px-2 py-1 bg-zinc-800 rounded text-[11px] text-zinc-300 font-mono border border-zinc-700">{k}</kbd>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="px-6 pb-5 text-[10px] text-zinc-700 text-center">Press <kbd className="bg-zinc-800 px-1.5 rounded font-mono text-zinc-500">?</kbd> anytime to toggle this panel</div>
-          </div>
-        </div>
-      )}
 
-      {/* Sidebar backdrop */}
-      {sidebarOpen && (
-        <div
-          aria-hidden="true"
-          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-
-      {/* Sidebar */}
-      <aside
-        className={`fixed left-0 top-0 h-screen w-72 bg-[#1B1B1B] shadow-[40px_0_80px_-10px_rgba(0,0,0,0.6)] z-50 flex flex-col py-8 transition-transform duration-300 ease-in-out ${
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
-      >
-        {/* Header */}
-        <div className="px-6 mb-8 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <EYFMark size={34} className="text-[#0E0E0E] flex-shrink-0" />
-            <div>
-              <h1 className="text-sm font-black text-white leading-none">EYF PLATFORM</h1>
-              <p className="font-['Inter'] uppercase tracking-widest text-[9px] font-bold text-zinc-500 mt-0.5">Engineer Your Future</p>
-            </div>
-          </div>
-          <button
-            onClick={() => setSidebarOpen(false)}
-            className="w-8 h-8 rounded-full bg-surface-container-highest flex items-center justify-center text-zinc-400 hover:text-white hover:bg-[#E82127] transition-all"
-            aria-label="Close menu"
-          >
-            <Icon name="close" size={18} />
-          </button>
-        </div>
-
-        {/* User card */}
-        <Link to="/app/progress" className="block mx-4 mb-6 bg-[#252525] rounded-2xl p-4 border border-white/5 hover:border-zinc-600 transition-colors cursor-pointer">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-xl bg-[#E82127] flex items-center justify-center text-white font-black text-sm flex-shrink-0">
-              {initials}
-            </div>
-            <div className="min-w-0">
-              <p className="text-white font-bold text-sm truncate">{displayName || 'Engineer'}</p>
-              <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest truncate">
-                Lv.{level} · {levelName}
-              </p>
-            </div>
-            {streak > 0 && (
-              <div className="ml-auto flex items-center gap-1 flex-shrink-0">
-                <span className="text-orange-400 text-sm">🔥</span>
-                <span className="text-orange-400 text-xs font-black">{streak}</span>
-              </div>
-            )}
-          </div>
-          {/* XP bar */}
-          <div className="space-y-1">
-            <div className="flex justify-between text-[9px] font-bold text-zinc-600 uppercase tracking-widest">
-              <span>{xp.toLocaleString()} XP</span>
-              <span>{xpPct}% to Lv.{level + 1}</span>
-            </div>
-            <div className="h-1 bg-zinc-800 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-gradient-to-r from-[#E82127] to-red-400 rounded-full transition-all duration-700"
-                style={{ width: `${xpPct}%` }}
-              />
-            </div>
-          </div>
-        </Link>
-
-        {/* Nav */}
-        <nav className="flex-1 space-y-4 overflow-y-auto px-4">
-          {NAV_GROUPS.map((group) => (
-            <div key={group.label}>
-              <p className="font-['Inter'] uppercase tracking-[0.25em] text-[9px] font-bold text-zinc-600 px-2 mb-1.5">
-                {group.label}
-              </p>
-              <div className="space-y-0.5">
-                {group.items.map((item) => {
-                  const isActive = location.pathname === item.path || location.pathname.startsWith(item.path + '/');
-                  return (
-                    <Link
-                      key={item.path}
-                      to={item.path}
-                      className={`flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200 hover:translate-x-0.5 ${
-                        isActive
-                          ? 'bg-[#E82127] text-white shadow-lg shadow-red-900/20'
-                          : 'text-zinc-500 hover:text-zinc-200 hover:bg-[#353535]'
-                      }`}
-                    >
-                      <Icon name={item.icon} size={18} />
-                      <span className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold">{item.label}</span>
-                    </Link>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
-        </nav>
-
-        {/* Bottom section */}
-        <div className="px-4 mt-4 space-y-3">
-          {!isPro && (
+            {/* User card */}
             <Link
-              to="/plans"
-              className="block w-full bg-gradient-to-r from-[#E82127] to-red-500 text-white rounded-full py-3 px-6 font-['Inter'] uppercase tracking-widest text-[10px] font-black text-center shadow-lg shadow-red-900/20 hover:brightness-110 transition-all active:scale-95"
+              to="/app/progress"
+              className="mx-4 mt-4 mb-2 rounded-2xl p-4 border border-white/6 hover:border-white/12 transition-all duration-300 group block"
+              style={{ background: 'rgba(255,255,255,0.03)' }}
             >
-              ✦ Upgrade to Pro
+              <div className="flex items-center gap-3 mb-3">
+                <div className="relative w-10 h-10 rounded-xl bg-[#E8192C] flex items-center justify-center text-white font-black text-sm flex-shrink-0 shadow-lg shadow-red-500/20">
+                  {initials}
+                  <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-white/20 to-transparent" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-white font-semibold text-sm truncate">{displayName || 'Engineer'}</p>
+                  <p className="text-[9px] text-white/30 font-semibold uppercase tracking-widest mt-0.5">
+                    Lv.{level} · {levelName}
+                  </p>
+                </div>
+                {streak > 0 && (
+                  <div className="ml-auto flex items-center gap-1 flex-shrink-0 bg-orange-500/10 rounded-full px-2 py-0.5">
+                    <span className="text-sm">🔥</span>
+                    <span className="text-orange-400 text-xs font-black">{streak}</span>
+                  </div>
+                )}
+              </div>
+              <div className="space-y-1.5">
+                <div className="flex justify-between text-[9px] font-semibold text-white/25 uppercase tracking-widest">
+                  <span>{xp.toLocaleString()} XP</span>
+                  <span>{xpPct}%</span>
+                </div>
+                <div className="h-1 bg-white/5 rounded-full overflow-hidden">
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${xpPct}%` }}
+                    transition={{ duration: 1.2, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                    className="h-full rounded-full"
+                    style={{ background: 'linear-gradient(90deg, #E8192C, #ff6b6b)' }}
+                  />
+                </div>
+              </div>
             </Link>
-          )}
-          <div className="border-t border-zinc-800/50 pt-3 space-y-0.5">
-            <Link to="/app/support" className="flex items-center gap-3 text-zinc-500 hover:text-zinc-200 px-4 py-2 transition-all rounded-xl hover:bg-[#353535]">
-              <Icon name="help" size={16} />
-              <span className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold">Support</span>
-            </Link>
-            <Link to="/plans" className="flex items-center gap-3 text-zinc-500 hover:text-zinc-200 px-4 py-2 transition-all rounded-xl hover:bg-[#353535]">
-              <Icon name="payments" size={16} />
-              <span className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold">Billing</span>
-            </Link>
-            <button
-              onClick={logout}
-              className="flex items-center gap-3 text-zinc-500 hover:text-red-400 px-4 py-2 transition-all w-full text-left rounded-xl hover:bg-[#353535]"
-            >
-              <Icon name="logout" size={16} />
-              <span className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold">Logout</span>
-            </button>
-          </div>
-        </div>
-      </aside>
+
+            {/* Nav */}
+            <nav className="flex-1 overflow-y-auto px-3 py-2 space-y-3">
+              {NAV_GROUPS.map((group, gi) => (
+                <motion.div
+                  key={group.label}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.4, delay: gi * 0.05, ease: [0.16, 1, 0.3, 1] }}
+                >
+                  <p className="text-[9px] font-black uppercase tracking-[0.2em] text-white/20 px-3 mb-1.5">
+                    {group.label}
+                  </p>
+                  <div className="space-y-0.5">
+                    {group.items.map((item) => {
+                      const isActive = location.pathname === item.path || location.pathname.startsWith(item.path + '/');
+                      return (
+                        <Link
+                          key={item.path}
+                          to={item.path}
+                          className={`relative flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group/nav ${
+                            isActive
+                              ? 'text-white'
+                              : 'text-white/35 hover:text-white/70 hover:bg-white/4'
+                          }`}
+                          style={isActive ? { background: 'rgba(232, 25, 44, 0.12)' } : {}}
+                        >
+                          {isActive && (
+                            <motion.div
+                              layoutId="nav-active"
+                              className="nav-active-bar"
+                              transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+                            />
+                          )}
+                          <Icon
+                            name={item.icon}
+                            size={17}
+                            className={`flex-shrink-0 transition-colors ${isActive ? 'text-[#E8192C]' : ''}`}
+                          />
+                          <span className="text-[11px] font-semibold tracking-wide">{item.label}</span>
+                          {isActive && (
+                            <div className="ml-auto w-1.5 h-1.5 rounded-full bg-[#E8192C] animate-pulse" />
+                          )}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </motion.div>
+              ))}
+            </nav>
+
+            {/* Bottom */}
+            <div className="px-3 pb-6 pt-3 space-y-2 border-t border-white/5">
+              {!isPro && (
+                <Link
+                  to="/plans"
+                  className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-white text-xs font-bold transition-all duration-200 hover:scale-105"
+                  style={{ background: 'linear-gradient(135deg, #E8192C, #ff4444)', boxShadow: '0 4px 20px rgba(232,25,44,0.3)' }}
+                >
+                  <Icon name="workspace_premium" size={14} />
+                  Upgrade to Pro
+                </Link>
+              )}
+              <div className="flex gap-1">
+                <Link to="/app/support" className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-white/30 hover:text-white/60 hover:bg-white/4 transition-all text-[10px] font-semibold">
+                  <Icon name="help" size={14} /> Help
+                </Link>
+                <Link to="/plans" className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-white/30 hover:text-white/60 hover:bg-white/4 transition-all text-[10px] font-semibold">
+                  <Icon name="payments" size={14} /> Billing
+                </Link>
+                <button
+                  onClick={logout}
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-white/30 hover:text-red-400 hover:bg-red-500/8 transition-all text-[10px] font-semibold"
+                >
+                  <Icon name="logout" size={14} /> Exit
+                </button>
+              </div>
+            </div>
+          </motion.aside>
+        )}
+      </AnimatePresence>
 
       {/* Top header */}
-      <header className="fixed top-0 left-0 right-0 z-30 bg-[#131313]/80 backdrop-blur-xl h-16 px-4 md:px-6 flex items-center gap-3">
+      <header
+        className={`fixed top-0 left-0 right-0 z-30 h-14 px-4 md:px-6 flex items-center gap-3 transition-all duration-300 ${
+          scrolled ? 'border-b border-white/5' : ''
+        }`}
+        style={{
+          background: scrolled ? 'rgba(8,8,8,0.85)' : 'rgba(8,8,8,0.5)',
+          backdropFilter: 'blur(24px)',
+          WebkitBackdropFilter: 'blur(24px)',
+        }}
+      >
         <button
           onClick={() => setSidebarOpen(true)}
-          className="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-zinc-400 hover:text-white hover:bg-[#E82127] transition-all active:scale-95 flex-shrink-0"
+          className="w-9 h-9 rounded-xl glass border border-white/8 flex items-center justify-center text-white/50 hover:text-white hover:border-white/20 transition-all duration-200 flex-shrink-0"
           aria-label="Open menu"
         >
-          <Icon name="menu" size={20} />
+          <Icon name="menu" size={18} />
         </button>
 
-        {/* Logo */}
-        <div className="relative group/logo mr-1 flex-shrink-0">
-          <span className="text-lg font-black tracking-tighter text-white cursor-default select-none">EYF</span>
+        {/* Logo hover */}
+        <div className="relative group/logo flex-shrink-0">
+          <span className="text-base font-black tracking-tight text-white cursor-default select-none">EYF</span>
           <div className="absolute left-1/2 -translate-x-1/2 top-full mt-3 z-50 opacity-0 scale-90 pointer-events-none group-hover/logo:opacity-100 group-hover/logo:scale-100 transition-all duration-200 origin-top">
-            <div className="bg-[#0E0E0E] rounded-2xl shadow-2xl border border-white/10 p-4">
-              <EYFLogo animated size={160} />
+            <div className="rounded-2xl shadow-2xl border border-white/10 p-4" style={{ background: 'rgba(8,8,8,0.95)', backdropFilter: 'blur(40px)' }}>
+              <EYFLogo animated size={150} />
             </div>
           </div>
         </div>
 
-        {/* Search trigger */}
+        {/* Search */}
         <button
           type="button"
           onClick={() => setSearchOpen(true)}
-          className="flex-1 max-w-lg flex items-center gap-3 bg-surface-container-low rounded-full py-2.5 px-4 text-zinc-600 hover:text-zinc-400 hover:bg-surface-container transition-all text-sm text-left group"
+          className="flex-1 max-w-md flex items-center gap-3 rounded-xl py-2 px-4 text-white/30 hover:text-white/50 hover:border-white/15 transition-all text-sm text-left border border-white/6 hover:bg-white/3"
+          style={{ background: 'rgba(255,255,255,0.03)' }}
         >
-          <Icon name="search" size={18} className="flex-shrink-0" />
-          <span className="flex-1 text-sm">Search…</span>
-          <kbd className="hidden sm:flex items-center gap-1 text-[10px] bg-zinc-800 text-zinc-600 px-2 py-0.5 rounded font-mono group-hover:text-zinc-400 transition-colors">
-            ⌘K
-          </kbd>
+          <Icon name="search" size={16} className="flex-shrink-0" />
+          <span className="flex-1 text-sm">Search EYF…</span>
+          <kbd className="hidden sm:flex items-center text-[10px] glass px-2 py-0.5 rounded font-mono text-white/25 border border-white/8">⌘K</kbd>
         </button>
 
-        {/* Streak badge */}
-        {streak > 0 && (
-          <div className="hidden sm:flex items-center gap-1.5 bg-orange-500/10 border border-orange-500/20 rounded-full px-3 py-1.5 flex-shrink-0">
-            <span className="text-sm">🔥</span>
-            <span className="text-orange-400 font-black text-xs">{streak}d</span>
-          </div>
-        )}
-
-        {/* Right icons */}
+        {/* Right */}
         <div className="flex items-center gap-2 ml-auto">
-          {/* Keyboard shortcuts hint */}
+          {streak > 0 && (
+            <div className="hidden sm:flex items-center gap-1.5 rounded-full px-3 py-1.5 flex-shrink-0 border border-orange-500/20" style={{ background: 'rgba(249,115,22,0.08)' }}>
+              <span className="text-sm">🔥</span>
+              <span className="text-orange-400 font-black text-xs">{streak}d</span>
+            </div>
+          )}
+
           <button
             type="button"
             onClick={() => setShortcutsOpen(true)}
-            className="hidden md:flex w-8 h-8 rounded-full bg-surface-container-high items-center justify-center text-zinc-600 hover:text-zinc-300 transition-colors font-black text-xs"
-            aria-label="Keyboard shortcuts"
+            className="hidden md:flex w-8 h-8 rounded-lg glass border border-white/8 items-center justify-center text-white/30 hover:text-white/60 transition-colors font-black text-xs"
             title="Keyboard shortcuts (?)"
           >
             ?
           </button>
 
-          {/* Notifications bell */}
           <div className="relative">
             <button
               type="button"
               onClick={() => setNotifOpen((o) => !o)}
-              className="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-zinc-400 hover:text-white transition-colors relative"
-              aria-label="Notifications"
+              className="w-9 h-9 rounded-xl glass border border-white/8 flex items-center justify-center text-white/40 hover:text-white transition-all relative"
             >
-              <Icon name="notifications" size={20} />
+              <Icon name="notifications" size={18} />
               {unreadCount > 0 && (
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-primary-container rounded-full border-2 border-surface" />
+                <motion.span
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#E8192C] rounded-full border-2 border-[#080808]"
+                />
               )}
             </button>
             {notifOpen && (
@@ -405,45 +471,61 @@ export function AppShell({ children }: { readonly children: ReactNode }) {
               />
             )}
           </div>
+
           <Link to="/app/profile">
-            <button className="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-zinc-400 hover:text-white transition-colors">
-              <Icon name="settings" size={20} />
-            </button>
-          </Link>
-          <Link to="/app/profile">
-            <div className="w-10 h-10 rounded-full border-2 border-[#E82127]/40 bg-[#E82127] flex items-center justify-center text-white text-sm font-black cursor-pointer hover:brightness-110 transition-all">
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="w-9 h-9 rounded-xl bg-[#E8192C] flex items-center justify-center text-white text-sm font-black cursor-pointer shadow-lg shadow-red-500/20 relative overflow-hidden"
+            >
               {initials}
-            </div>
+              <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent" />
+            </motion.div>
           </Link>
         </div>
       </header>
 
       {/* Main */}
-      <main className="pt-16 min-h-screen px-4 md:px-10 pb-24 md:pb-8">
-        {children}
+      <main className="pt-14 min-h-screen px-4 md:px-8 pb-24 md:pb-8">
+        <motion.div
+          key={location.pathname}
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+        >
+          {children}
+        </motion.div>
       </main>
 
-      {/* Mobile bottom navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 z-30 md:hidden bg-[#131313]/95 backdrop-blur-xl border-t border-white/5 safe-area-pb">
+      {/* Mobile bottom nav */}
+      <nav className="fixed bottom-0 left-0 right-0 z-30 md:hidden border-t border-white/5" style={{ background: 'rgba(8,8,8,0.95)', backdropFilter: 'blur(24px)' }}>
         <div className="flex items-stretch h-16">
           {[
             { path: '/app/dashboard',  icon: 'home',         label: 'Home' },
             { path: '/app/problems',   icon: 'code',         label: 'Practice' },
             { path: '/app/subjects',   icon: 'auto_stories', label: 'Learn' },
             { path: '/app/community',  icon: 'forum',        label: 'Community' },
-            { path: '/app/profile',    icon: 'person',       label: 'Profile' },
+            { path: '/app/progress',   icon: 'insights',     label: 'Progress' },
           ].map((item) => {
             const isActive = location.pathname === item.path || location.pathname.startsWith(`${item.path}/`);
             return (
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex-1 flex flex-col items-center justify-center gap-0.5 transition-colors ${
-                  isActive ? 'text-[#E82127]' : 'text-zinc-600 hover:text-zinc-400'
+                className={`flex-1 flex flex-col items-center justify-center gap-0.5 transition-colors relative ${
+                  isActive ? 'text-[#E8192C]' : 'text-white/25 hover:text-white/50'
                 }`}
               >
-                <Icon name={item.icon} size={22} filled={isActive} />
-                <span className="text-[9px] font-bold uppercase tracking-widest">{item.label}</span>
+                {isActive && (
+                  <motion.div
+                    layoutId="mobile-nav-active"
+                    className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-[#E8192C] rounded-full"
+                    style={{ boxShadow: '0 0 8px rgba(232,25,44,0.8)' }}
+                    transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+                  />
+                )}
+                <Icon name={item.icon} size={20} />
+                <span className="text-[9px] font-semibold">{item.label}</span>
               </Link>
             );
           })}
