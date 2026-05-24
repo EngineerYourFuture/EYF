@@ -1,10 +1,17 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { AppShell } from '../components/AppShell';
 import { Icon } from '../components/Icon';
 import { apiRequest } from '../lib/api';
 import { getSession } from '../lib/session';
 import { useUser } from '../contexts/UserContext';
+
+const GLASS = {
+  background: 'rgba(10,10,10,0.7)',
+  border: '1px solid rgba(255,255,255,0.07)',
+  backdropFilter: 'blur(16px)',
+} as const;
 
 interface TrackProgress {
   id: string;
@@ -42,10 +49,10 @@ interface PlacementStats {
 }
 
 const TRACKS = [
-  { id: 'sde', title: 'SDE Track', company: 'FAANG', icon: 'code', color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/20' },
-  { id: 'ds', title: 'Data Science', company: 'MAANG', icon: 'data_object', color: 'text-purple-400', bg: 'bg-purple-500/10', border: 'border-purple-500/20' },
-  { id: 'sre', title: 'SRE / DevOps', company: 'Cloud', icon: 'cloud', color: 'text-green-400', bg: 'bg-green-500/10', border: 'border-green-500/20' },
-  { id: 'pm', title: 'Product Management', company: 'Startups', icon: 'lightbulb', color: 'text-yellow-400', bg: 'bg-yellow-500/10', border: 'border-yellow-500/20' },
+  { id: 'sde', title: 'SDE Track',          company: 'FAANG',    icon: 'code',        color: '#60a5fa', glow: 'rgba(96,165,250,0.15)'  },
+  { id: 'ds',  title: 'Data Science',        company: 'MAANG',    icon: 'data_object', color: '#c084fc', glow: 'rgba(192,132,252,0.15)' },
+  { id: 'sre', title: 'SRE / DevOps',        company: 'Cloud',    icon: 'cloud',       color: '#4ade80', glow: 'rgba(74,222,128,0.15)'  },
+  { id: 'pm',  title: 'Product Management',  company: 'Startups', icon: 'lightbulb',   color: '#facc15', glow: 'rgba(250,204,21,0.15)'  },
 ];
 
 interface CompanyGuide {
@@ -293,10 +300,10 @@ const COMPANIES: CompanyGuide[] = [
   },
 ];
 
-const DIFF_COLOR: Record<string, string> = {
-  'Medium':    'text-yellow-400 bg-yellow-500/10 border-yellow-500/20',
-  'Hard':      'text-orange-400 bg-orange-500/10 border-orange-500/20',
-  'Very Hard': 'text-red-400 bg-red-500/10 border-red-500/20',
+const DIFF_COLOR: Record<string, { color: string; bg: string; border: string }> = {
+  'Medium':    { color: '#facc15', bg: 'rgba(250,204,21,0.08)',   border: 'rgba(250,204,21,0.25)'   },
+  'Hard':      { color: '#fb923c', bg: 'rgba(251,146,60,0.08)',   border: 'rgba(251,146,60,0.25)'   },
+  'Very Hard': { color: '#f87171', bg: 'rgba(248,113,113,0.08)',  border: 'rgba(248,113,113,0.25)'  },
 };
 
 interface CompanyPanelProps {
@@ -306,81 +313,73 @@ interface CompanyPanelProps {
 
 function CompanyPanel({ guide, onClose }: CompanyPanelProps) {
   const [tab, setTab] = useState<'process' | 'dsa' | 'culture' | 'tips'>('process');
+  const diff = DIFF_COLOR[guide.difficulty] ?? DIFF_COLOR['Medium'];
 
   return (
-    <div className="fixed inset-0 z-50 flex">
-      <div role="none" className="flex-1 bg-black/60 backdrop-blur-sm" onClick={onClose} onKeyDown={(e) => { if (e.key === 'Escape') onClose(); }} />
-      <div className="w-full max-w-2xl bg-[#111] border-l border-white/10 flex flex-col overflow-hidden">
+    <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex' }}>
+      <div role="none" style={{ flex: 1, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)' }} onClick={onClose} onKeyDown={(e) => { if (e.key === 'Escape') onClose(); }} />
+      <div style={{ width: '100%', maxWidth: 640, background: '#0a0a0a', borderLeft: '1px solid rgba(255,255,255,0.08)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         {/* Header */}
-        <div className="flex items-center gap-4 px-6 py-5 border-b border-white/8 flex-shrink-0">
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '20px 24px', borderBottom: '1px solid rgba(255,255,255,0.07)', flexShrink: 0 }}>
           <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${guide.color} flex items-center justify-center text-white font-black text-xl shadow-lg`}>
             {guide.logo}
           </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-0.5">
-              <h2 className="text-lg font-black text-white">{guide.name}</h2>
-              <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border ${DIFF_COLOR[guide.difficulty]}`}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
+              <h2 style={{ fontSize: '1.125rem', fontWeight: 900, color: '#fff' }}>{guide.name}</h2>
+              <span style={{ fontSize: '0.5625rem', fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '3px 8px', borderRadius: 9999, color: diff.color, background: diff.bg, border: `1px solid ${diff.border}` }}>
                 {guide.difficulty}
               </span>
             </div>
-            <p className="text-zinc-500 text-xs truncate">{guide.tagline}</p>
+            <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.75rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{guide.tagline}</p>
           </div>
-          <button onClick={onClose} className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white transition-colors flex-shrink-0">
+          <button onClick={onClose} style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.4)', border: 'none', cursor: 'pointer', flexShrink: 0 }}>
             <Icon name="close" size={18} />
           </button>
         </div>
 
         {/* Stats strip */}
-        <div className="flex gap-6 px-6 py-3 border-b border-white/8 bg-zinc-900/50 flex-shrink-0">
-          <div>
-            <p className="text-[9px] font-black uppercase tracking-widest text-zinc-600">Interview Steps</p>
-            <p className="text-sm font-black text-white mt-0.5">{guide.process.length} rounds</p>
-          </div>
-          <div>
-            <p className="text-[9px] font-black uppercase tracking-widest text-zinc-600">Prep Time</p>
-            <p className="text-sm font-black text-white mt-0.5">{guide.prepWeeks} weeks</p>
-          </div>
-          <div>
-            <p className="text-[9px] font-black uppercase tracking-widest text-zinc-600">DSA Topics</p>
-            <p className="text-sm font-black text-white mt-0.5">{guide.dsaFocus.length} key areas</p>
-          </div>
+        <div style={{ display: 'flex', gap: 24, padding: '12px 24px', borderBottom: '1px solid rgba(255,255,255,0.07)', background: 'rgba(255,255,255,0.02)', flexShrink: 0 }}>
+          {[
+            { label: 'Interview Steps', val: `${guide.process.length} rounds` },
+            { label: 'Prep Time', val: `${guide.prepWeeks} weeks` },
+            { label: 'DSA Topics', val: `${guide.dsaFocus.length} key areas` },
+          ].map((s) => (
+            <div key={s.label}>
+              <p style={{ fontSize: '0.5625rem', fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.2)' }}>{s.label}</p>
+              <p style={{ fontSize: '0.875rem', fontWeight: 900, color: '#fff', marginTop: 2 }}>{s.val}</p>
+            </div>
+          ))}
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 px-6 pt-4 flex-shrink-0">
+        <div style={{ display: 'flex', gap: 4, padding: '16px 24px 0', flexShrink: 0 }}>
           {([
             { key: 'process', label: 'Process' },
             { key: 'dsa',     label: 'DSA Focus' },
             { key: 'culture', label: 'Culture' },
             { key: 'tips',    label: 'Insider Tips' },
           ] as const).map((t) => (
-            <button
-              key={t.key}
-              onClick={() => setTab(t.key)}
-              className={`px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${
-                tab === t.key ? 'bg-white/10 text-white' : 'text-zinc-600 hover:text-zinc-400'
-              }`}
-            >
+            <button key={t.key} onClick={() => setTab(t.key)}
+              style={{ padding: '8px 16px', borderRadius: 9999, fontSize: '0.625rem', fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer', transition: 'all 0.2s', border: 'none', background: tab === t.key ? 'rgba(255,255,255,0.1)' : 'transparent', color: tab === t.key ? '#fff' : 'rgba(255,255,255,0.3)' }}>
               {t.label}
             </button>
           ))}
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
+        <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
           {tab === 'process' && (
-            <div className="space-y-3">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {guide.process.map((step, i) => (
-                <div key={step.step} className="flex gap-4">
-                  <div className="flex flex-col items-center">
-                    <div className="w-7 h-7 rounded-full bg-zinc-800 border border-white/10 flex items-center justify-center text-[10px] font-black text-zinc-400 flex-shrink-0">
-                      {i + 1}
-                    </div>
-                    {i < guide.process.length - 1 && <div className="w-px flex-1 bg-zinc-800 mt-1" />}
+                <div key={step.step} style={{ display: 'flex', gap: 16 }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.625rem', fontWeight: 900, color: 'rgba(255,255,255,0.4)', flexShrink: 0 }}>{i + 1}</div>
+                    {i < guide.process.length - 1 && <div style={{ width: 1, flex: 1, background: 'rgba(255,255,255,0.06)', marginTop: 4 }} />}
                   </div>
-                  <div className="pb-4 min-w-0">
-                    <p className="text-sm font-bold text-white">{step.step}</p>
-                    <p className="text-xs text-zinc-500 mt-0.5 leading-relaxed">{step.desc}</p>
+                  <div style={{ paddingBottom: 16, minWidth: 0 }}>
+                    <p style={{ fontSize: '0.875rem', fontWeight: 700, color: '#fff' }}>{step.step}</p>
+                    <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.35)', marginTop: 2, lineHeight: 1.6 }}>{step.desc}</p>
                   </div>
                 </div>
               ))}
@@ -388,24 +387,24 @@ function CompanyPanel({ guide, onClose }: CompanyPanelProps) {
           )}
 
           {tab === 'dsa' && (
-            <div className="space-y-5">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
               <div>
-                <p className="text-[10px] font-black uppercase tracking-widest text-blue-400 mb-3">Key DSA Topics</p>
+                <p style={{ fontSize: '0.625rem', fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#60a5fa', marginBottom: 12 }}>Key DSA Topics</p>
                 <div className="grid grid-cols-2 gap-2">
                   {guide.dsaFocus.map((topic) => (
-                    <div key={topic} className="flex items-center gap-2 bg-zinc-900 rounded-lg px-3 py-2.5 text-sm text-zinc-300">
-                      <Icon name="code" size={13} className="text-blue-400 flex-shrink-0" />
+                    <div key={topic} style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.04)', borderRadius: 10, padding: '10px 12px', fontSize: '0.875rem', color: 'rgba(255,255,255,0.6)' }}>
+                      <Icon name="code" size={13} style={{ color: '#60a5fa', flexShrink: 0 }} />
                       {topic}
                     </div>
                   ))}
                 </div>
               </div>
               <div>
-                <p className="text-[10px] font-black uppercase tracking-widest text-cyan-400 mb-3">System Design Topics</p>
-                <div className="space-y-2">
+                <p style={{ fontSize: '0.625rem', fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#22d3ee', marginBottom: 12 }}>System Design Topics</p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {guide.sysDes.map((topic) => (
-                    <div key={topic} className="flex items-center gap-2 bg-zinc-900 rounded-lg px-3 py-2.5 text-sm text-zinc-300">
-                      <Icon name="architecture" size={13} className="text-cyan-400 flex-shrink-0" />
+                    <div key={topic} style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.04)', borderRadius: 10, padding: '10px 12px', fontSize: '0.875rem', color: 'rgba(255,255,255,0.6)' }}>
+                      <Icon name="architecture" size={13} style={{ color: '#22d3ee', flexShrink: 0 }} />
                       {topic}
                     </div>
                   ))}
@@ -415,22 +414,22 @@ function CompanyPanel({ guide, onClose }: CompanyPanelProps) {
           )}
 
           {tab === 'culture' && (
-            <div className="space-y-3">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {guide.cultureTips.map((tip) => (
-                <div key={tip} className="flex items-start gap-3 bg-zinc-900 rounded-xl px-4 py-3">
-                  <Icon name="groups" size={14} className="text-purple-400 flex-shrink-0 mt-0.5" />
-                  <p className="text-sm text-zinc-300 leading-relaxed">{tip}</p>
+                <div key={tip} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, background: 'rgba(192,132,252,0.05)', border: '1px solid rgba(192,132,252,0.1)', borderRadius: 14, padding: '12px 16px' }}>
+                  <Icon name="groups" size={14} style={{ color: '#c084fc', flexShrink: 0, marginTop: 2 }} />
+                  <p style={{ fontSize: '0.875rem', color: 'rgba(255,255,255,0.6)', lineHeight: 1.6 }}>{tip}</p>
                 </div>
               ))}
             </div>
           )}
 
           {tab === 'tips' && (
-            <div className="space-y-3">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {guide.insiderTips.map((tip) => (
-                <div key={tip} className="flex items-start gap-3 bg-amber-500/5 border border-amber-500/15 rounded-xl px-4 py-3">
-                  <Icon name="tips_and_updates" size={14} className="text-amber-400 flex-shrink-0 mt-0.5" />
-                  <p className="text-sm text-zinc-300 leading-relaxed">{tip}</p>
+                <div key={tip} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, background: 'rgba(251,191,36,0.05)', border: '1px solid rgba(251,191,36,0.12)', borderRadius: 14, padding: '12px 16px' }}>
+                  <Icon name="tips_and_updates" size={14} style={{ color: '#fbbf24', flexShrink: 0, marginTop: 2 }} />
+                  <p style={{ fontSize: '0.875rem', color: 'rgba(255,255,255,0.6)', lineHeight: 1.6 }}>{tip}</p>
                 </div>
               ))}
             </div>
@@ -438,17 +437,13 @@ function CompanyPanel({ guide, onClose }: CompanyPanelProps) {
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-white/8 flex-shrink-0 flex gap-3">
-          <button
-            onClick={onClose}
-            className="flex-1 bg-zinc-800 text-zinc-300 font-bold text-xs py-3 rounded-full hover:bg-zinc-700 transition-all uppercase tracking-widest"
-          >
+        <div style={{ padding: '16px 24px', borderTop: '1px solid rgba(255,255,255,0.07)', flexShrink: 0, display: 'flex', gap: 12 }}>
+          <button onClick={onClose}
+            style={{ flex: 1, background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.6)', fontWeight: 700, fontSize: '0.625rem', padding: '12px 0', borderRadius: 9999, cursor: 'pointer', border: 'none', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
             Close
           </button>
-          <button
-            onClick={onClose}
-            className="flex-1 bg-[#E82127] text-white font-black text-xs py-3 rounded-full hover:brightness-110 transition-all uppercase tracking-widest flex items-center justify-center gap-2"
-          >
+          <button onClick={onClose}
+            style={{ flex: 1, background: 'linear-gradient(135deg,#E82127,#ff6b35)', color: '#fff', fontWeight: 900, fontSize: '0.625rem', padding: '12px 0', borderRadius: 9999, cursor: 'pointer', border: 'none', letterSpacing: '0.1em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: '0 0 20px rgba(232,33,39,0.3)' }}>
             <Icon name="play_arrow" size={14} />
             Start Prep
           </button>
@@ -632,12 +627,12 @@ const BEHAVIORAL_QUESTIONS: BehavioralQ[] = [
   { id: 'b12', question: 'Tell me about a time you improved a process or system proactively.', category: 'Ownership' },
 ];
 
-const APP_STATUS: Record<Application['status'], { label: string; color: string; dot: string }> = {
-  applied:   { label: 'Applied',    color: 'text-zinc-400 bg-zinc-500/10',   dot: 'bg-zinc-500' },
-  oa:        { label: 'OA',         color: 'text-blue-400 bg-blue-500/10',   dot: 'bg-blue-400' },
-  interview: { label: 'Interview',  color: 'text-yellow-400 bg-yellow-500/10', dot: 'bg-yellow-400' },
-  offer:     { label: 'Offer 🎉',   color: 'text-green-400 bg-green-500/10', dot: 'bg-green-400' },
-  rejected:  { label: 'Rejected',   color: 'text-red-400 bg-red-500/10',     dot: 'bg-red-400' },
+const APP_STATUS: Record<Application['status'], { label: string; color: string; bg: string; dot: string }> = {
+  applied:   { label: 'Applied',   color: '#a1a1aa', bg: 'rgba(161,161,170,0.08)', dot: '#a1a1aa' },
+  oa:        { label: 'OA',        color: '#60a5fa', bg: 'rgba(96,165,250,0.08)',  dot: '#60a5fa' },
+  interview: { label: 'Interview', color: '#facc15', bg: 'rgba(250,204,21,0.08)',  dot: '#facc15' },
+  offer:     { label: 'Offer 🎉',  color: '#4ade80', bg: 'rgba(74,222,128,0.08)',  dot: '#4ade80' },
+  rejected:  { label: 'Rejected',  color: '#f87171', bg: 'rgba(248,113,113,0.08)', dot: '#f87171' },
 };
 
 const DAILY_QUESTION = {
@@ -866,73 +861,72 @@ export function PlacementPage() {
     return (
       <AppShell>
         <div className="pt-8 max-w-3xl">
-          <button onClick={() => { setSelectedBQ(null); setBqResponse(''); }}
-            className="flex items-center gap-2 text-zinc-500 hover:text-zinc-300 text-sm mb-6 transition-colors">
+          <motion.button onClick={() => { setSelectedBQ(null); setBqResponse(''); }}
+            initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}
+            style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.875rem', fontWeight: 700, color: 'rgba(255,255,255,0.3)', marginBottom: 24, background: 'transparent', border: 'none', cursor: 'pointer' }}
+            whileHover={{ color: '#fff' } as never}>
             <Icon name="arrow_back" size={16} />Back to behavioral questions
-          </button>
+          </motion.button>
 
-          <div className="bg-surface-container rounded-2xl p-8 mb-6">
-            <div className="flex items-center gap-2 mb-4">
-              <span className="text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full bg-primary-container/10 text-primary-container">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+            style={{ ...GLASS, borderRadius: 24, padding: '2rem', marginBottom: 24 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+              <span style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '4px 12px', borderRadius: 9999, background: 'rgba(232,33,39,0.1)', color: '#E82127' }}>
                 {selectedBQ.category}
               </span>
               {selectedBQ.lastPracticed && (
-                <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">
+                <span style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.25)' }}>
                   Last practiced {new Date(selectedBQ.lastPracticed).toLocaleDateString()}
                 </span>
               )}
             </div>
-            <h2 className="text-xl font-bold leading-relaxed mb-6">{selectedBQ.question}</h2>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, lineHeight: 1.6, marginBottom: 24, color: 'rgba(255,255,255,0.9)' }}>{selectedBQ.question}</h2>
 
-            <div className="bg-surface-container-highest rounded-xl p-4 mb-6">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-yellow-400 mb-2 flex items-center gap-1">
+            <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, padding: 16, marginBottom: 24 }}>
+              <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#facc15', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
                 <Icon name="tips_and_updates" size={12} />STAR Framework
               </p>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs text-on-surface-variant">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 {[
                   { label: 'S', name: 'Situation', desc: 'Set the scene' },
-                  { label: 'T', name: 'Task', desc: 'Your responsibility' },
-                  { label: 'A', name: 'Action', desc: 'What you did' },
-                  { label: 'R', name: 'Result', desc: 'Quantified outcome' },
+                  { label: 'T', name: 'Task',      desc: 'Your responsibility' },
+                  { label: 'A', name: 'Action',    desc: 'What you did' },
+                  { label: 'R', name: 'Result',    desc: 'Quantified outcome' },
                 ].map((s) => (
-                  <div key={s.label} className="bg-surface-container rounded-lg p-2.5 text-center">
-                    <p className="text-base font-black text-primary-container">{s.label}</p>
-                    <p className="font-bold text-on-surface">{s.name}</p>
-                    <p className="text-zinc-500">{s.desc}</p>
+                  <div key={s.label} style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 12, padding: 10, textAlign: 'center' }}>
+                    <p style={{ fontSize: '1.125rem', fontWeight: 900, color: '#E82127' }}>{s.label}</p>
+                    <p style={{ fontWeight: 700, color: '#fff', fontSize: '0.75rem' }}>{s.name}</p>
+                    <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.625rem' }}>{s.desc}</p>
                   </div>
                 ))}
               </div>
             </div>
 
             {selectedBQ.response && (
-              <div className="mb-4 p-4 bg-green-500/5 border border-green-500/20 rounded-xl">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-green-400 mb-2">Previous Response</p>
-                <p className="text-sm text-on-surface-variant leading-relaxed">{selectedBQ.response}</p>
+              <div style={{ marginBottom: 16, padding: 16, background: 'rgba(74,222,128,0.05)', border: '1px solid rgba(74,222,128,0.15)', borderRadius: 16 }}>
+                <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#4ade80', marginBottom: 8 }}>Previous Response</p>
+                <p style={{ fontSize: '0.875rem', color: 'rgba(255,255,255,0.5)', lineHeight: 1.7 }}>{selectedBQ.response}</p>
               </div>
             )}
 
-            <textarea
-              value={bqResponse}
-              onChange={(e) => setBqResponse(e.target.value)}
+            <textarea value={bqResponse} onChange={(e) => setBqResponse(e.target.value)}
               placeholder="Write your STAR response here. Try to be specific — use real project names, numbers, and outcomes..."
               rows={8}
-              className="w-full bg-surface-container-highest border border-outline-variant/20 rounded-xl p-4 text-sm text-on-surface focus:outline-none focus:border-primary-container/40 resize-none"
-            />
-            <div className="flex items-center justify-between mt-4">
-              <p className="text-xs text-zinc-600">{bqResponse.length} characters · ~{Math.ceil(bqResponse.split(' ').length / 130)} min read</p>
-              <div className="flex gap-3">
-                <button onClick={() => { setSelectedBQ(null); setBqResponse(''); }} className="text-sm text-zinc-500 hover:text-zinc-300 px-4 py-2 rounded-full transition-colors">Cancel</button>
-                <button
-                  onClick={saveBehavioral}
-                  disabled={savingBQ || bqResponse.length < 10}
-                  className="bg-primary-container text-white font-bold py-2.5 px-6 rounded-full text-sm hover:brightness-110 transition-all disabled:opacity-40 flex items-center gap-2"
-                >
+              style={{ width: '100%', background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16, padding: 16, fontSize: '0.875rem', color: '#fff', outline: 'none', resize: 'none', lineHeight: 1.7 }} />
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 16 }}>
+              <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.2)' }}>{bqResponse.length} characters · ~{Math.ceil(bqResponse.split(' ').length / 130)} min read</p>
+              <div style={{ display: 'flex', gap: 12 }}>
+                <button onClick={() => { setSelectedBQ(null); setBqResponse(''); }}
+                  style={{ fontSize: '0.875rem', color: 'rgba(255,255,255,0.3)', padding: '8px 16px', borderRadius: 9999, background: 'transparent', border: 'none', cursor: 'pointer' }}>Cancel</button>
+                <motion.button onClick={saveBehavioral} disabled={savingBQ || bqResponse.length < 10}
+                  whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
+                  style={{ background: 'linear-gradient(135deg,#E82127,#ff6b35)', color: '#fff', fontWeight: 700, padding: '10px 24px', borderRadius: 9999, fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: 8, boxShadow: '0 0 20px rgba(232,33,39,0.3)', cursor: (savingBQ || bqResponse.length < 10) ? 'default' : 'pointer', opacity: (savingBQ || bqResponse.length < 10) ? 0.4 : 1 }}>
                   {savingBQ ? <Icon name="hourglass_empty" size={14} /> : <Icon name="save" size={14} />}
                   Save Response · +20 XP
-                </button>
+                </motion.button>
               </div>
             </div>
-          </div>
+          </motion.div>
         </div>
       </AppShell>
     );
@@ -943,101 +937,116 @@ export function PlacementPage() {
       {selectedCompany && <CompanyPanel guide={selectedCompany} onClose={() => setSelectedCompany(null)} />}
       <div className="pt-8 max-w-6xl">
         {/* Hero */}
-        <div className="mb-10">
-          <h1 className="text-5xl font-black tracking-tighter mb-2">
-            Placement <span className="text-primary-container">Prep.</span>
+        <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} className="mb-10">
+          <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.2em', color: 'rgba(255,255,255,0.3)', marginBottom: 8, textTransform: 'uppercase' }}>
+            EYF · Career Prep
+          </p>
+          <h1 style={{
+            fontSize: 'clamp(2.5rem, 6vw, 4rem)', fontWeight: 900, lineHeight: 1, letterSpacing: '-0.05em',
+            background: 'linear-gradient(135deg, #fff 20%, #E82127 55%, #fb923c 80%)',
+            WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', marginBottom: 8,
+          }}>
+            PLACEMENT PREP.
           </h1>
-          <p className="text-on-surface-variant text-lg">FAANG-level interview preparation, engineered for precision.</p>
-        </div>
+          <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: '1rem' }}>FAANG-level interview preparation, engineered for precision.</p>
+        </motion.div>
 
         {/* Stats row */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {[
-            { icon: 'send', label: 'Applications', value: stats.applicationsSubmitted || applications.length, color: 'text-blue-400' },
-            { icon: 'calendar_month', label: 'Interviews', value: stats.interviewsScheduled || applications.filter((a) => a.status === 'interview').length, color: 'text-yellow-400' },
-            { icon: 'emoji_events', label: 'Offers', value: stats.offersReceived || applications.filter((a) => a.status === 'offer').length, color: 'text-green-400' },
-            { icon: 'record_voice_over', label: 'BQ Practiced', value: `${practiceCount}/${BEHAVIORAL_QUESTIONS.length}`, color: 'text-purple-400' },
-          ].map((s) => (
-            <div key={s.label} className="bg-surface-container rounded-xl p-5 flex items-center gap-4">
-              <div className="w-10 h-10 bg-surface-container-high rounded-xl flex items-center justify-center flex-shrink-0">
-                <Icon name={s.icon} className={s.color} size={20} />
+            { icon: 'send',             label: 'Applications', value: stats.applicationsSubmitted || applications.length, color: '#60a5fa', glow: 'rgba(96,165,250,0.15)'  },
+            { icon: 'calendar_month',   label: 'Interviews',   value: stats.interviewsScheduled || applications.filter((a) => a.status === 'interview').length, color: '#facc15', glow: 'rgba(250,204,21,0.15)'  },
+            { icon: 'emoji_events',     label: 'Offers',       value: stats.offersReceived || applications.filter((a) => a.status === 'offer').length, color: '#4ade80', glow: 'rgba(74,222,128,0.15)'  },
+            { icon: 'record_voice_over',label: 'BQ Practiced', value: `${practiceCount}/${BEHAVIORAL_QUESTIONS.length}`, color: '#c084fc', glow: 'rgba(192,132,252,0.15)' },
+          ].map((s, i) => (
+            <motion.div key={s.label}
+              initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
+              style={{ ...GLASS, borderRadius: 16, padding: '1.25rem', display: 'flex', alignItems: 'center', gap: 16 }}
+            >
+              <div style={{ width: 44, height: 44, background: `${s.color}18`, border: `1px solid ${s.color}30`, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: `0 0 16px ${s.glow}` }}>
+                <Icon name={s.icon} size={20} style={{ color: s.color }} />
               </div>
               <div>
-                <p className="text-2xl font-black text-on-surface">{s.value}</p>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">{s.label}</p>
+                <p style={{ fontSize: '1.5rem', fontWeight: 900, color: '#fff', letterSpacing: '-0.03em' }}>{s.value}</p>
+                <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.12em', color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase' }}>{s.label}</p>
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
 
         {/* FAANG Readiness + Daily Question */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
           {/* Readiness Score */}
-          <div className="bg-surface-container rounded-2xl p-6 flex flex-col justify-between">
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
+            style={{ ...GLASS, borderRadius: 20, padding: '1.5rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
             <div>
-              <p className="font-['Inter'] uppercase tracking-[0.2em] text-[10px] font-bold text-zinc-500 mb-4">FAANG Readiness</p>
-              <div className="flex items-end gap-2 mb-3">
-                <span className="text-5xl font-black text-on-surface">{readiness}</span>
-                <span className="text-2xl font-black text-zinc-500 mb-1">/100</span>
+              <p style={{ fontFamily: 'Inter, sans-serif', letterSpacing: '0.2em', fontSize: '0.625rem', fontWeight: 700, color: 'rgba(255,255,255,0.25)', marginBottom: 16, textTransform: 'uppercase' }}>FAANG Readiness</p>
+              <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, marginBottom: 12 }}>
+                <span style={{ fontSize: '3rem', fontWeight: 900, color: '#fff' }}>{readiness}</span>
+                <span style={{ fontSize: '1.5rem', fontWeight: 900, color: 'rgba(255,255,255,0.3)', marginBottom: 4 }}>/100</span>
               </div>
-              <div className="h-2 bg-surface-container-highest rounded-full overflow-hidden mb-2">
-                <div
-                  className={`h-full rounded-full transition-all duration-700 ${readinessBarClass}`}
-                  style={{ width: `${readiness}%` }}
+              <div style={{ height: 8, background: 'rgba(255,255,255,0.06)', borderRadius: 999, overflow: 'hidden', marginBottom: 8 }}>
+                <motion.div
+                  style={{ height: '100%', borderRadius: 999, background: readiness >= 70 ? 'linear-gradient(90deg,#4ade80,#34d399)' : readiness >= 40 ? 'linear-gradient(90deg,#facc15,#fb923c)' : 'linear-gradient(90deg,#E82127,#f87171)' }}
+                  animate={{ width: `${readiness}%` }}
+                  transition={{ duration: 0.7 }}
                 />
               </div>
-              <p className="text-xs text-zinc-500">{readinessMsg}</p>
+              <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.35)' }}>{readinessMsg}</p>
             </div>
-            <div className="mt-4 space-y-1">
+            <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 6 }}>
               {[
                 { label: 'Behavioral prep', done: practiceCount >= 5 },
                 { label: 'Applications tracked', done: applications.length > 0 },
                 { label: 'Track in progress', done: false },
               ].map((item) => (
-                <div key={item.label} className="flex items-center gap-2 text-xs">
-                  <div className={`w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 ${item.done ? 'bg-green-500' : 'bg-surface-container-highest'}`}>
-                    {item.done && <Icon name="check" size={10} className="text-white" />}
+                <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.75rem' }}>
+                  <div style={{ width: 16, height: 16, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, background: item.done ? '#4ade80' : 'rgba(255,255,255,0.06)' }}>
+                    {item.done && <Icon name="check" size={10} style={{ color: '#000' }} />}
                   </div>
-                  <span className={item.done ? 'text-on-surface' : 'text-zinc-500'}>{item.label}</span>
+                  <span style={{ color: item.done ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.3)' }}>{item.label}</span>
                 </div>
               ))}
             </div>
-          </div>
+          </motion.div>
 
           {/* Daily Question */}
-          <div className="md:col-span-2 bg-surface-container rounded-2xl p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 bg-primary-container/10 rounded-lg flex items-center justify-center">
-                  <Icon name="today" className="text-primary-container" size={16} />
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
+            className="md:col-span-2"
+            style={{ ...GLASS, borderRadius: 20, padding: '1.5rem' }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ width: 28, height: 28, background: 'rgba(232,33,39,0.1)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Icon name="today" size={16} style={{ color: '#E82127' }} />
                 </div>
-                <p className="font-['Inter'] uppercase tracking-[0.2em] text-[10px] font-bold text-zinc-500">Daily Interview Question</p>
+                <p style={{ fontFamily: 'Inter, sans-serif', letterSpacing: '0.15em', fontSize: '0.625rem', fontWeight: 700, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase' }}>Daily Interview Question</p>
               </div>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary-container/10 text-primary-container">{DAILY_QUESTION.type}</span>
+              <span style={{ fontSize: '0.625rem', fontWeight: 700, padding: '3px 10px', borderRadius: 9999, background: 'rgba(232,33,39,0.1)', color: '#E82127' }}>{DAILY_QUESTION.type}</span>
             </div>
 
-            <p className="text-base font-bold leading-relaxed mb-3">{DAILY_QUESTION.question}</p>
-            <p className="text-xs text-zinc-500 mb-5 flex items-center gap-1">
-              <Icon name="tips_and_updates" size={12} className="text-yellow-400" />
+            <p style={{ fontSize: '1rem', fontWeight: 700, lineHeight: 1.6, marginBottom: 12, color: 'rgba(255,255,255,0.85)' }}>{DAILY_QUESTION.question}</p>
+            <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.3)', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Icon name="tips_and_updates" size={12} style={{ color: '#facc15' }} />
               {DAILY_QUESTION.tip}
             </p>
 
             {renderDailyQuestionAction(dailyAnswered, showDailyInput, dailyResponse, setDailyResponse, setShowDailyInput, submitDailyAnswer)}
-          </div>
+          </motion.div>
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 bg-surface-container p-1 rounded-full mb-8 w-fit">
+        <div style={{ display: 'flex', gap: 4, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)', padding: 4, borderRadius: 9999, width: 'fit-content', marginBottom: 32, flexWrap: 'wrap' }}>
           {TABS.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${
-                activeTab === tab.id
-                  ? 'bg-primary-container text-white shadow-lg shadow-red-900/20'
-                  : 'text-zinc-500 hover:text-zinc-200'
-              }`}
-            >
+            <button key={tab.id} onClick={() => setActiveTab(tab.id)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 9999,
+                fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase',
+                cursor: 'pointer', transition: 'all 0.2s', border: 'none',
+                background: activeTab === tab.id ? '#E82127' : 'transparent',
+                color: activeTab === tab.id ? '#fff' : 'rgba(255,255,255,0.3)',
+                boxShadow: activeTab === tab.id ? '0 0 16px rgba(232,33,39,0.35)' : 'none',
+              }}>
               <Icon name={tab.icon} size={13} />
               {tab.label}
             </button>
@@ -1047,43 +1056,43 @@ export function PlacementPage() {
         {/* Tab: Tracks */}
         {activeTab === 'tracks' && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {TRACKS.map((t) => {
+            {TRACKS.map((t, i) => {
               const tp = tracks.find((tr) => tr.id === t.id);
               const progress = tp?.progress ?? 0;
               const completed = tp?.completedTopics ?? 0;
               const total = tp?.totalTopics ?? 20;
-              let trackBarColor = 'bg-yellow-400';
-              if (t.id === 'sde') trackBarColor = 'bg-blue-400';
-              else if (t.id === 'ds') trackBarColor = 'bg-purple-400';
-              else if (t.id === 'sre') trackBarColor = 'bg-green-400';
               return (
-                <div key={t.id} className={`bg-surface-container rounded-2xl p-7 border ${t.border} hover:bg-surface-container-high transition-all group`}>
-                  <div className="flex justify-between items-start mb-5">
-                    <div className={`w-12 h-12 ${t.bg} rounded-xl flex items-center justify-center ${t.color}`}>
-                      <Icon name={t.icon} size={24} />
+                <motion.div key={t.id}
+                  initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.07 }}
+                  whileHover={{ boxShadow: `0 0 40px ${t.glow}` }}
+                  style={{ ...GLASS, borderRadius: 20, padding: '1.75rem', border: `1px solid ${t.color}20`, transition: 'box-shadow 0.3s' }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
+                    <div style={{ width: 52, height: 52, background: `${t.color}15`, border: `1px solid ${t.color}30`, borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 0 16px ${t.glow}` }}>
+                      <Icon name={t.icon} size={24} style={{ color: t.color }} />
                     </div>
-                    <span className="px-3 py-1 bg-surface-container-highest rounded-full text-[10px] font-bold uppercase tracking-widest text-zinc-400">
+                    <span style={{ padding: '4px 12px', background: 'rgba(255,255,255,0.05)', borderRadius: 9999, fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)' }}>
                       {t.company}
                     </span>
                   </div>
-                  <h3 className="text-xl font-bold mb-1">{t.title}</h3>
-                  <p className="text-xs text-zinc-500 mb-5">{completed}/{total} topics covered</p>
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#fff', marginBottom: 4 }}>{t.title}</h3>
+                  <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.3)', marginBottom: 20 }}>{completed}/{total} topics covered</p>
 
-                  <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-1.5">
-                    <span>Progress</span><span className={t.color}>{progress}%</span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.25)', marginBottom: 6 }}>
+                    <span>Progress</span><span style={{ color: t.color }}>{progress}%</span>
                   </div>
-                  <div className="h-1.5 bg-surface-container-highest rounded-full overflow-hidden mb-5">
-                    <div className={`h-full rounded-full transition-all duration-700 ${trackBarColor}`} style={{ width: `${progress}%` }} />
+                  <div style={{ height: 6, background: 'rgba(255,255,255,0.06)', borderRadius: 999, overflow: 'hidden', marginBottom: 20 }}>
+                    <motion.div style={{ height: '100%', borderRadius: 999, background: t.color }} animate={{ width: `${progress}%` }} transition={{ duration: 0.7 }} />
                   </div>
 
-                  <button
-                    onClick={() => navigate(`/app/placement/${t.id}`)}
-                    className={`flex items-center gap-2 font-bold text-[10px] uppercase tracking-widest ${t.color} group-hover:underline`}
+                  <motion.button onClick={() => navigate(`/app/placement/${t.id}`)}
+                    whileHover={{ x: 4 }}
+                    style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 700, fontSize: '0.625rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: t.color, background: 'transparent', border: 'none', cursor: 'pointer' }}
                   >
                     {progress > 0 ? 'Continue Track' : 'Start Track'}
                     <Icon name="arrow_forward" size={14} />
-                  </button>
-                </div>
+                  </motion.button>
+                </motion.div>
               );
             })}
           </div>
@@ -1093,49 +1102,78 @@ export function PlacementPage() {
         {activeTab === 'behavioral' && (
           <div>
             <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
-              <p className="text-sm text-zinc-500">{practiceCount} of {BEHAVIORAL_QUESTIONS.length} questions practiced</p>
+              <p className="text-sm" style={{ color: '#71717a' }}>{practiceCount} of {BEHAVIORAL_QUESTIONS.length} questions practiced</p>
               <div className="flex gap-2 flex-wrap">
                 {bqCategories.map((cat) => (
-                  <button
+                  <motion.button
                     key={cat}
                     onClick={() => setFilterBQCat(cat)}
-                    className={`px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${
-                      filterBQCat === cat
-                        ? 'bg-primary-container text-white'
-                        : 'bg-surface-container text-zinc-500 hover:text-zinc-200'
-                    }`}
+                    whileHover={{ scale: 1.04 }}
+                    whileTap={{ scale: 0.96 }}
+                    style={filterBQCat === cat ? {
+                      background: 'rgba(232,33,39,0.14)',
+                      border: '1px solid rgba(232,33,39,0.4)',
+                      boxShadow: '0 0 12px rgba(232,33,39,0.18)',
+                      color: '#fff',
+                      padding: '6px 14px',
+                      borderRadius: 999,
+                      fontSize: 10,
+                      fontWeight: 700,
+                      letterSpacing: '0.1em',
+                      textTransform: 'uppercase',
+                      cursor: 'pointer',
+                    } : {
+                      background: 'rgba(255,255,255,0.04)',
+                      border: '1px solid rgba(255,255,255,0.07)',
+                      color: '#71717a',
+                      padding: '6px 14px',
+                      borderRadius: 999,
+                      fontSize: 10,
+                      fontWeight: 700,
+                      letterSpacing: '0.1em',
+                      textTransform: 'uppercase',
+                      cursor: 'pointer',
+                    }}
                   >
                     {cat}
-                  </button>
+                  </motion.button>
                 ))}
               </div>
             </div>
 
             <div className="space-y-3">
-              {filteredBQ.map((q) => (
-                <button
+              {filteredBQ.map((q, i) => (
+                <motion.button
                   key={q.id}
                   type="button"
                   onClick={() => { setSelectedBQ(q); setBqResponse(q.response ?? ''); }}
-                  className="w-full text-left bg-surface-container rounded-xl p-5 hover:bg-surface-container-high transition-all group flex items-start gap-4"
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.03 }}
+                  whileHover={{ scale: 1.005 }}
+                  style={{ ...GLASS, width: '100%', textAlign: 'left', borderRadius: 16, padding: '20px', display: 'flex', alignItems: 'flex-start', gap: 16, cursor: 'pointer' }}
                 >
-                  <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${q.lastPracticed ? 'bg-green-500/10' : 'bg-surface-container-highest'}`}>
-                    <Icon name={q.lastPracticed ? 'check_circle' : 'record_voice_over'} size={18} className={q.lastPracticed ? 'text-green-400' : 'text-zinc-500'} filled={!!q.lastPracticed} />
+                  <div style={{
+                    width: 36, height: 36, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                    background: q.lastPracticed ? 'rgba(74,222,128,0.1)' : 'rgba(255,255,255,0.04)',
+                    border: q.lastPracticed ? '1px solid rgba(74,222,128,0.25)' : '1px solid rgba(255,255,255,0.07)',
+                  }}>
+                    <Icon name={q.lastPracticed ? 'check_circle' : 'record_voice_over'} size={18} style={{ color: q.lastPracticed ? '#4ade80' : '#71717a' }} filled={!!q.lastPracticed} />
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1 flex-wrap">
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-primary-container/70">{q.category}</span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap' as const }}>
+                      <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: 'rgba(232,33,39,0.7)' }}>{q.category}</span>
                       {q.lastPracticed && (
-                        <span className="text-[10px] text-zinc-600">Practiced {new Date(q.lastPracticed).toLocaleDateString()}</span>
+                        <span style={{ fontSize: 10, color: '#52525b' }}>Practiced {new Date(q.lastPracticed).toLocaleDateString()}</span>
                       )}
                     </div>
-                    <p className="text-sm font-medium text-on-surface group-hover:text-primary-container transition-colors">{q.question}</p>
+                    <p style={{ fontSize: 14, fontWeight: 500, color: '#e4e4e7' }}>{q.question}</p>
                     {q.response && (
-                      <p className="text-xs text-zinc-500 mt-1 line-clamp-1">{q.response}</p>
+                      <p style={{ fontSize: 12, color: '#71717a', marginTop: 4, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical' as const }}>{q.response}</p>
                     )}
                   </div>
-                  <Icon name="chevron_right" size={18} className="text-zinc-600 group-hover:text-zinc-300 flex-shrink-0 mt-0.5 transition-colors" />
-                </button>
+                  <Icon name="chevron_right" size={18} style={{ color: '#52525b', flexShrink: 0, marginTop: 2 }} />
+                </motion.button>
               ))}
             </div>
           </div>
@@ -1147,104 +1185,133 @@ export function PlacementPage() {
             <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
               <div className="flex gap-2 flex-wrap">
                 {(['all', 'applied', 'oa', 'interview', 'offer', 'rejected'] as const).map((s) => (
-                  <button
+                  <motion.button
                     key={s}
                     onClick={() => setFilterStatus(s)}
-                    className={`px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${
-                      filterStatus === s
-                        ? 'bg-primary-container text-white'
-                        : 'bg-surface-container text-zinc-500 hover:text-zinc-200'
-                    }`}
+                    whileHover={{ scale: 1.04 }}
+                    whileTap={{ scale: 0.96 }}
+                    style={filterStatus === s ? {
+                      background: 'rgba(232,33,39,0.14)',
+                      border: '1px solid rgba(232,33,39,0.4)',
+                      boxShadow: '0 0 12px rgba(232,33,39,0.18)',
+                      color: '#fff',
+                      padding: '6px 14px',
+                      borderRadius: 999,
+                      fontSize: 10,
+                      fontWeight: 700,
+                      letterSpacing: '0.1em',
+                      textTransform: 'uppercase',
+                      cursor: 'pointer',
+                    } : {
+                      background: 'rgba(255,255,255,0.04)',
+                      border: '1px solid rgba(255,255,255,0.07)',
+                      color: '#71717a',
+                      padding: '6px 14px',
+                      borderRadius: 999,
+                      fontSize: 10,
+                      fontWeight: 700,
+                      letterSpacing: '0.1em',
+                      textTransform: 'uppercase',
+                      cursor: 'pointer',
+                    }}
                   >
                     {s === 'all' ? 'All' : APP_STATUS[s].label}
-                  </button>
+                  </motion.button>
                 ))}
               </div>
-              <button
+              <motion.button
                 onClick={() => setShowAddApp(true)}
-                className="bg-primary-container text-white font-bold py-2.5 px-5 rounded-full text-sm hover:brightness-110 transition-all flex items-center gap-2"
+                whileHover={{ scale: 1.04 }}
+                whileTap={{ scale: 0.96 }}
+                style={{ background: '#E82127', color: '#fff', fontWeight: 700, padding: '10px 20px', borderRadius: 999, fontSize: 14, display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', boxShadow: '0 0 20px rgba(232,33,39,0.3)' }}
               >
                 <Icon name="add" size={16} />Track Application
-              </button>
+              </motion.button>
             </div>
 
             {showAddApp && (
-              <div className="bg-surface-container rounded-2xl p-6 mb-6 border border-primary-container/20">
-                <h3 className="font-bold mb-4 flex items-center gap-2">
-                  <Icon name="work" size={16} className="text-primary-container" />
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                style={{ ...GLASS, borderRadius: 20, padding: 24, marginBottom: 24, border: '1px solid rgba(232,33,39,0.2)' }}
+              >
+                <h3 style={{ fontWeight: 700, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8, color: '#e4e4e7' }}>
+                  <Icon name="work" size={16} style={{ color: '#E82127' }} />
                   Add Application
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
-                  <input
-                    type="text"
-                    value={newApp.company}
-                    onChange={(e) => setNewApp((p) => ({ ...p, company: e.target.value }))}
-                    placeholder="Company name"
-                    className="bg-surface-container-highest border border-outline-variant/20 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-primary-container/40"
-                  />
-                  <input
-                    type="text"
-                    value={newApp.role}
-                    onChange={(e) => setNewApp((p) => ({ ...p, role: e.target.value }))}
-                    placeholder="Role title"
-                    className="bg-surface-container-highest border border-outline-variant/20 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-primary-container/40"
-                  />
+                  {[
+                    { value: newApp.company, placeholder: 'Company name', onChange: (e: React.ChangeEvent<HTMLInputElement>) => setNewApp((p) => ({ ...p, company: e.target.value })) },
+                    { value: newApp.role, placeholder: 'Role title', onChange: (e: React.ChangeEvent<HTMLInputElement>) => setNewApp((p) => ({ ...p, role: e.target.value })) },
+                    { value: newApp.nextStep, placeholder: 'Next step (e.g. OA, Phone Screen)', onChange: (e: React.ChangeEvent<HTMLInputElement>) => setNewApp((p) => ({ ...p, nextStep: e.target.value })) },
+                  ].map((field) => (
+                    <input
+                      key={field.placeholder}
+                      type="text"
+                      value={field.value}
+                      onChange={field.onChange}
+                      placeholder={field.placeholder}
+                      style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, padding: '10px 16px', fontSize: 14, color: '#e4e4e7', outline: 'none' }}
+                    />
+                  ))}
                   <select
                     value={newApp.status}
                     onChange={(e) => setNewApp((p) => ({ ...p, status: e.target.value as Application['status'] }))}
-                    className="bg-surface-container-highest border border-outline-variant/20 rounded-lg px-4 py-2.5 text-sm focus:outline-none"
+                    style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, padding: '10px 16px', fontSize: 14, color: '#e4e4e7', outline: 'none' }}
                   >
                     {Object.entries(APP_STATUS).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
                   </select>
                   <input
-                    type="text"
-                    value={newApp.nextStep}
-                    onChange={(e) => setNewApp((p) => ({ ...p, nextStep: e.target.value }))}
-                    placeholder="Next step (e.g. OA, Phone Screen)"
-                    className="bg-surface-container-highest border border-outline-variant/20 rounded-lg px-4 py-2.5 text-sm focus:outline-none"
-                  />
-                  <input
                     type="date"
                     value={newApp.nextStepDate}
                     onChange={(e) => setNewApp((p) => ({ ...p, nextStepDate: e.target.value }))}
-                    className="bg-surface-container-highest border border-outline-variant/20 rounded-lg px-4 py-2.5 text-sm focus:outline-none md:col-span-2"
+                    style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, padding: '10px 16px', fontSize: 14, color: '#e4e4e7', outline: 'none' }}
+                    className="md:col-span-2"
                   />
                 </div>
-                <div className="flex justify-end gap-3">
-                  <button onClick={() => setShowAddApp(false)} className="text-sm text-zinc-500 hover:text-zinc-300 px-4 py-2 rounded-full">Cancel</button>
-                  <button
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12 }}>
+                  <button onClick={() => setShowAddApp(false)} style={{ fontSize: 14, color: '#71717a', padding: '8px 16px', borderRadius: 999, background: 'transparent', cursor: 'pointer' }}>Cancel</button>
+                  <motion.button
                     onClick={addApplication}
                     disabled={addingApp || !newApp.company || !newApp.role}
-                    className="bg-primary-container text-white font-bold py-2 px-5 rounded-full text-sm hover:brightness-110 disabled:opacity-40"
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                    style={{ background: '#E82127', color: '#fff', fontWeight: 700, padding: '8px 20px', borderRadius: 999, fontSize: 14, cursor: 'pointer', opacity: (addingApp || !newApp.company || !newApp.role) ? 0.4 : 1 }}
                   >
                     {addingApp ? 'Adding...' : 'Add Application'}
-                  </button>
+                  </motion.button>
                 </div>
-              </div>
+              </motion.div>
             )}
 
             {filteredApps.length === 0 ? (
-              <div className="text-center py-20">
-                <Icon name="work_outline" size={48} className="text-zinc-700 mb-4" />
-                <p className="text-on-surface-variant font-bold mb-2">No applications tracked yet</p>
-                <p className="text-sm text-zinc-500">Track every application to stay organized and never miss a follow-up.</p>
+              <div style={{ textAlign: 'center', paddingTop: 80, paddingBottom: 80 }}>
+                <Icon name="work_outline" size={48} style={{ color: '#3f3f46', marginBottom: 16 }} />
+                <p style={{ fontWeight: 700, color: '#a1a1aa', marginBottom: 8 }}>No applications tracked yet</p>
+                <p style={{ fontSize: 14, color: '#71717a' }}>Track every application to stay organized and never miss a follow-up.</p>
               </div>
             ) : (
               <div className="space-y-3">
-                {filteredApps.map((app) => {
+                {filteredApps.map((app, i) => {
                   const status = APP_STATUS[app.status];
                   return (
-                    <div key={app.id} className="bg-surface-container rounded-xl p-5 flex items-center gap-4 flex-wrap">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-0.5">
-                          <p className="font-bold text-on-surface">{app.company}</p>
-                          <span className="text-zinc-500">·</span>
-                          <p className="text-sm text-on-surface-variant">{app.role}</p>
+                    <motion.div
+                      key={app.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.03 }}
+                      style={{ ...GLASS, borderRadius: 14, padding: '20px', display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' as const }}
+                    >
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                          <p style={{ fontWeight: 700, color: '#e4e4e7' }}>{app.company}</p>
+                          <span style={{ color: '#52525b' }}>·</span>
+                          <p style={{ fontSize: 14, color: '#a1a1aa' }}>{app.role}</p>
                         </div>
-                        <div className="flex items-center gap-3 text-xs text-zinc-500 flex-wrap">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 12, color: '#71717a', flexWrap: 'wrap' as const }}>
                           <span>Applied {new Date(app.appliedAt).toLocaleDateString()}</span>
                           {app.nextStep && (
-                            <span className="flex items-center gap-1">
+                            <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                               <Icon name="schedule" size={11} />
                               {app.nextStep}{app.nextStepDate ? ` · ${new Date(app.nextStepDate).toLocaleDateString()}` : ''}
                             </span>
@@ -1254,11 +1321,11 @@ export function PlacementPage() {
                       <select
                         value={app.status}
                         onChange={(e) => updateAppStatus(app.id, e.target.value as Application['status'])}
-                        className={`text-[10px] font-bold px-3 py-1.5 rounded-full border-0 focus:outline-none cursor-pointer ${status.color}`}
+                        style={{ fontSize: 10, fontWeight: 700, padding: '6px 12px', borderRadius: 999, border: `1px solid ${status.color}40`, background: status.bg, color: status.color, cursor: 'pointer', outline: 'none' }}
                       >
                         {Object.entries(APP_STATUS).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
                       </select>
-                    </div>
+                    </motion.div>
                   );
                 })}
               </div>
@@ -1269,219 +1336,273 @@ export function PlacementPage() {
         {/* Tab: Companies */}
         {activeTab === 'companies' && (
           <div>
-            <p className="text-sm text-on-surface-variant mb-6">
+            <p style={{ fontSize: 14, color: '#a1a1aa', marginBottom: 24 }}>
               Click any company to see a tailored guide: interview process, key DSA topics, culture tips, and insider prep advice.
             </p>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-              {COMPANIES.map((c) => (
-                <button
-                  key={c.name}
-                  type="button"
-                  onClick={() => setSelectedCompany(c)}
-                  className="bg-surface-container rounded-xl p-6 flex flex-col items-center gap-3 hover:bg-surface-container-high transition-all cursor-pointer group text-left"
-                >
-                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${c.color} flex items-center justify-center text-white font-black text-lg shadow-lg`}>
-                    {c.logo}
-                  </div>
-                  <div className="text-center">
-                    <p className="font-bold text-on-surface text-sm group-hover:text-white transition-colors">{c.name}</p>
-                    <span className={`text-[9px] font-bold uppercase tracking-widest ${DIFF_COLOR[c.difficulty].split(' ')[0]}`}>
-                      {c.difficulty}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-1 text-[9px] text-zinc-600 font-bold uppercase tracking-widest group-hover:text-zinc-400 transition-colors">
-                    <Icon name="menu_book" size={11} />
-                    {c.process.length} rounds · {c.prepWeeks}w prep
-                  </div>
-                </button>
-              ))}
+              {COMPANIES.map((c, i) => {
+                const diff = DIFF_COLOR[c.difficulty] ?? DIFF_COLOR['Medium'];
+                return (
+                  <motion.button
+                    key={c.name}
+                    type="button"
+                    onClick={() => setSelectedCompany(c)}
+                    initial={{ opacity: 0, y: 16 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: '-20px' }}
+                    transition={{ delay: i * 0.05 }}
+                    whileHover={{ scale: 1.04, boxShadow: '0 8px 32px rgba(0,0,0,0.4)' }}
+                    whileTap={{ scale: 0.97 }}
+                    style={{ ...GLASS, borderRadius: 16, padding: '24px 16px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, cursor: 'pointer', textAlign: 'center' }}
+                  >
+                    <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${c.color} flex items-center justify-center text-white font-black text-lg shadow-lg`}>
+                      {c.logo}
+                    </div>
+                    <div>
+                      <p style={{ fontWeight: 700, color: '#e4e4e7', fontSize: 14, marginBottom: 2 }}>{c.name}</p>
+                      <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: diff.color }}>{c.difficulty}</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 9, color: '#52525b', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' as const }}>
+                      <Icon name="menu_book" size={11} />
+                      {c.process.length} rounds · {c.prepWeeks}w prep
+                    </div>
+                  </motion.button>
+                );
+              })}
             </div>
 
             {/* Quick overview strip */}
-            <div className="mt-8 bg-surface-container rounded-2xl p-6">
-              <p className="text-[10px] font-black uppercase tracking-widest text-zinc-600 mb-4">Quick Comparison</p>
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs">
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              style={{ ...GLASS, borderRadius: 20, padding: 24, marginTop: 32 }}
+            >
+              <p style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#52525b', marginBottom: 16 }}>Quick Comparison</p>
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
                   <thead>
-                    <tr className="border-b border-white/8">
-                      <th className="text-left text-zinc-600 font-bold pb-2 pr-4">Company</th>
-                      <th className="text-left text-zinc-600 font-bold pb-2 pr-4">Difficulty</th>
-                      <th className="text-left text-zinc-600 font-bold pb-2 pr-4">Rounds</th>
-                      <th className="text-left text-zinc-600 font-bold pb-2">Prep (weeks)</th>
+                    <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                      {['Company', 'Difficulty', 'Rounds', 'Prep (weeks)'].map((h) => (
+                        <th key={h} style={{ textAlign: 'left', color: '#52525b', fontWeight: 700, paddingBottom: 8, paddingRight: 16 }}>{h}</th>
+                      ))}
                     </tr>
                   </thead>
                   <tbody>
-                    {COMPANIES.map((c) => (
-                      <tr key={c.name} className="border-b border-white/5 hover:bg-white/3 cursor-pointer transition-colors" onClick={() => setSelectedCompany(c)}>
-                        <td className="py-2 pr-4 font-bold text-on-surface">{c.name}</td>
-                        <td className={`py-2 pr-4 font-bold ${DIFF_COLOR[c.difficulty].split(' ')[0]}`}>{c.difficulty}</td>
-                        <td className="py-2 pr-4 text-zinc-400">{c.process.length}</td>
-                        <td className="py-2 text-zinc-400">{c.prepWeeks}</td>
-                      </tr>
-                    ))}
+                    {COMPANIES.map((c) => {
+                      const diff = DIFF_COLOR[c.difficulty] ?? DIFF_COLOR['Medium'];
+                      return (
+                        <tr
+                          key={c.name}
+                          style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', cursor: 'pointer' }}
+                          onClick={() => setSelectedCompany(c)}
+                        >
+                          <td style={{ padding: '8px 16px 8px 0', fontWeight: 700, color: '#e4e4e7' }}>{c.name}</td>
+                          <td style={{ padding: '8px 16px 8px 0', fontWeight: 700, color: diff.color }}>{c.difficulty}</td>
+                          <td style={{ padding: '8px 16px 8px 0', color: '#a1a1aa' }}>{c.process.length}</td>
+                          <td style={{ padding: '8px 0', color: '#a1a1aa' }}>{c.prepWeeks}</td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
-            </div>
+            </motion.div>
           </div>
         )}
 
         {activeTab === 'india' && (
           <div>
-            <div className="mb-6 p-5 bg-amber-500/5 border border-amber-500/15 rounded-2xl">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-xl">🇮🇳</span>
-                <h2 className="font-black text-amber-400">India Service Company Placement Prep</h2>
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              style={{ marginBottom: 24, padding: 20, background: 'rgba(251,191,36,0.05)', border: '1px solid rgba(251,191,36,0.15)', borderRadius: 20 }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                <span style={{ fontSize: 20 }}>🇮🇳</span>
+                <h2 style={{ fontWeight: 900, color: '#fbbf24' }}>India Service Company Placement Prep</h2>
               </div>
-              <p className="text-sm text-zinc-400">TCS, Infosys, Wipro, Accenture hire 50,000+ freshers per year. The patterns are predictable — learn them and clear the OA on your first attempt.</p>
-            </div>
+              <p style={{ fontSize: 14, color: '#a1a1aa' }}>TCS, Infosys, Wipro, Accenture hire 50,000+ freshers per year. The patterns are predictable — learn them and clear the OA on your first attempt.</p>
+            </motion.div>
 
             {selectedServiceCo ? (
               <div>
-                <button onClick={() => setSelectedServiceCo(null)} className="flex items-center gap-2 text-zinc-500 hover:text-zinc-300 text-sm mb-5 transition-colors">
+                <button
+                  onClick={() => setSelectedServiceCo(null)}
+                  style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#71717a', fontSize: 14, marginBottom: 20, background: 'transparent', cursor: 'pointer' }}
+                >
                   <Icon name="arrow_back" size={16} /> Back to all companies
                 </button>
-                <div className={`p-5 bg-gradient-to-r ${selectedServiceCo.color} rounded-2xl mb-5`}>
-                  <div className="flex items-center justify-between flex-wrap gap-3">
+
+                <motion.div
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className={`bg-gradient-to-r ${selectedServiceCo.color} rounded-2xl`}
+                  style={{ padding: 20, marginBottom: 20 }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' as const, gap: 12 }}>
                     <div>
-                      <h2 className="text-2xl font-black text-white">{selectedServiceCo.name}</h2>
-                      <p className="text-white/70 text-sm mt-0.5">{selectedServiceCo.tagline}</p>
+                      <h2 style={{ fontSize: 24, fontWeight: 900, color: '#fff' }}>{selectedServiceCo.name}</h2>
+                      <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: 14, marginTop: 2 }}>{selectedServiceCo.tagline}</p>
                     </div>
-                    <div className="text-right">
-                      <p className="text-white/60 text-[10px] font-bold uppercase tracking-widest">Avg CTC (Fresher)</p>
-                      <p className="text-white font-black">{selectedServiceCo.ctc}</p>
+                    <div style={{ textAlign: 'right' }}>
+                      <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Avg CTC (Fresher)</p>
+                      <p style={{ color: '#fff', fontWeight: 900 }}>{selectedServiceCo.ctc}</p>
                     </div>
                   </div>
-                  <div className="mt-3 px-3 py-2 bg-black/20 rounded-xl inline-block">
-                    <p className="text-[10px] font-bold text-white/60 uppercase tracking-widest">Test Platform</p>
-                    <p className="text-white font-bold text-sm">{selectedServiceCo.testPlatform}</p>
+                  <div style={{ marginTop: 12, padding: '8px 12px', background: 'rgba(0,0,0,0.2)', borderRadius: 12, display: 'inline-block' }}>
+                    <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.6)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Test Platform</p>
+                    <p style={{ color: '#fff', fontWeight: 700, fontSize: 14 }}>{selectedServiceCo.testPlatform}</p>
                   </div>
-                </div>
+                </motion.div>
 
                 {/* OA sections */}
-                <div className="mb-6">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-4">Online Assessment Sections</p>
+                <div style={{ marginBottom: 24 }}>
+                  <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#52525b', marginBottom: 16 }}>Online Assessment Sections</p>
                   <div className="space-y-3">
-                    {selectedServiceCo.sections.map((section) => (
-                      <div key={section.name} className="bg-[#1a1a1a] rounded-xl p-4 border border-white/5">
-                        <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
-                          <h3 className="font-bold text-white">{section.name}</h3>
-                          <div className="flex gap-3 text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
+                    {selectedServiceCo.sections.map((section, i) => (
+                      <motion.div
+                        key={section.name}
+                        initial={{ opacity: 0, x: -12 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: i * 0.06 }}
+                        style={{ ...GLASS, borderRadius: 14, padding: 16 }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, flexWrap: 'wrap' as const, gap: 8 }}>
+                          <h3 style={{ fontWeight: 700, color: '#fff' }}>{section.name}</h3>
+                          <div style={{ display: 'flex', gap: 12, fontSize: 10, fontWeight: 700, color: '#71717a', letterSpacing: '0.08em', textTransform: 'uppercase' as const }}>
                             <span>{section.questions} questions</span>
                             <span>·</span>
                             <span>{section.time}</span>
                           </div>
                         </div>
-                        <div className="flex flex-wrap gap-2">
+                        <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 8 }}>
                           {section.topics.map((t) => (
-                            <span key={t} className="px-2.5 py-1 bg-zinc-800 rounded-lg text-xs text-zinc-300">{t}</span>
+                            <span key={t} style={{ padding: '4px 10px', background: 'rgba(255,255,255,0.06)', borderRadius: 8, fontSize: 12, color: '#d4d4d8' }}>{t}</span>
                           ))}
                         </div>
-                      </div>
+                      </motion.div>
                     ))}
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
-                  {/* Aptitude tips */}
-                  <div className="bg-[#1a1a1a] rounded-xl p-5 border border-white/5">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-amber-400 mb-3 flex items-center gap-1.5">
+                  <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} style={{ ...GLASS, borderRadius: 14, padding: 20 }}>
+                    <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#fbbf24', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
                       <Icon name="tips_and_updates" size={12} /> Prep Tips
                     </p>
                     <ul className="space-y-2">
                       {selectedServiceCo.aptitudeTips.map((tip, i) => (
-                        <li key={tip} className="flex items-start gap-2 text-sm text-zinc-400">
-                          <span className="text-amber-400 font-black flex-shrink-0 mt-0.5">{i + 1}.</span>
+                        <li key={tip} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 14, color: '#a1a1aa' }}>
+                          <span style={{ color: '#fbbf24', fontWeight: 900, flexShrink: 0, marginTop: 2 }}>{i + 1}.</span>
                           {tip}
                         </li>
                       ))}
                     </ul>
-                  </div>
+                  </motion.div>
 
-                  {/* Technical topics */}
-                  <div className="bg-[#1a1a1a] rounded-xl p-5 border border-white/5">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-blue-400 mb-3 flex items-center gap-1.5">
+                  <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} style={{ ...GLASS, borderRadius: 14, padding: 20 }}>
+                    <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#60a5fa', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
                       <Icon name="code" size={12} /> Technical Interview Topics
                     </p>
                     <ul className="space-y-2">
                       {selectedServiceCo.technicalTopics.map((t) => (
-                        <li key={t} className="flex items-center gap-2 text-sm text-zinc-400">
-                          <Icon name="arrow_right" size={13} className="text-blue-400 flex-shrink-0" />
+                        <li key={t} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: '#a1a1aa' }}>
+                          <Icon name="arrow_right" size={13} style={{ color: '#60a5fa', flexShrink: 0 }} />
                           {t}
                         </li>
                       ))}
                     </ul>
-                  </div>
+                  </motion.div>
                 </div>
 
-                {/* HR Questions */}
-                <div className="bg-[#1a1a1a] rounded-xl p-5 border border-white/5 mb-5">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-purple-400 mb-3 flex items-center gap-1.5">
+                <motion.div
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                  style={{ ...GLASS, borderRadius: 14, padding: 20, marginBottom: 20 }}
+                >
+                  <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#c084fc', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
                     <Icon name="record_voice_over" size={12} /> Common HR Questions
                   </p>
-                  <div className="flex flex-wrap gap-2">
+                  <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 8 }}>
                     {selectedServiceCo.hrQuestions.map((q) => (
-                      <span key={q} className="px-3 py-1.5 bg-purple-500/10 border border-purple-500/20 rounded-lg text-xs text-purple-300">{q}</span>
+                      <span key={q} style={{ padding: '6px 12px', background: 'rgba(192,132,252,0.08)', border: '1px solid rgba(192,132,252,0.2)', borderRadius: 8, fontSize: 12, color: '#c084fc' }}>{q}</span>
                     ))}
                   </div>
-                </div>
+                </motion.div>
 
                 {selectedServiceCo.certifications && (
-                  <div className="bg-green-500/5 border border-green-500/15 rounded-xl p-4">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-green-400 mb-1 flex items-center gap-1.5">
+                  <motion.div
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.25 }}
+                    style={{ background: 'rgba(74,222,128,0.05)', border: '1px solid rgba(74,222,128,0.15)', borderRadius: 14, padding: 16 }}
+                  >
+                    <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#4ade80', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
                       <Icon name="verified" size={12} /> Recommended Certifications
                     </p>
-                    <p className="text-sm text-zinc-400">{selectedServiceCo.certifications}</p>
-                  </div>
+                    <p style={{ fontSize: 14, color: '#a1a1aa' }}>{selectedServiceCo.certifications}</p>
+                  </motion.div>
                 )}
               </div>
             ) : (
               <div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {SERVICE_COMPANIES.map((co) => (
-                    <button
+                  {SERVICE_COMPANIES.map((co, i) => (
+                    <motion.button
                       key={co.name}
                       type="button"
                       onClick={() => setSelectedServiceCo(co)}
-                      className="bg-[#1a1a1a] border border-white/5 rounded-2xl p-5 text-left hover:border-white/15 hover:bg-[#222] transition-all group"
+                      initial={{ opacity: 0, y: 16 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true, margin: '-20px' }}
+                      transition={{ delay: i * 0.07 }}
+                      whileHover={{ scale: 1.02, boxShadow: '0 8px 32px rgba(0,0,0,0.4)' }}
+                      whileTap={{ scale: 0.97 }}
+                      style={{ ...GLASS, borderRadius: 20, padding: 20, textAlign: 'left', cursor: 'pointer' }}
                     >
-                      <div className="flex items-center gap-3 mb-3">
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
                         <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${co.color} flex items-center justify-center text-white font-black text-xs shadow-lg`}>
                           {co.logo}
                         </div>
                         <div>
-                          <h3 className="font-black text-white">{co.name}</h3>
-                          <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Service Company</p>
+                          <h3 style={{ fontWeight: 900, color: '#fff' }}>{co.name}</h3>
+                          <p style={{ fontSize: 10, fontWeight: 700, color: '#52525b', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Service Company</p>
                         </div>
                       </div>
-                      <p className="text-xs text-zinc-500 mb-3 leading-relaxed">{co.tagline}</p>
-                      <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-bold text-green-400">{co.ctc}</span>
-                        <span className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest flex items-center gap-1 group-hover:text-zinc-400 transition-colors">
+                      <p style={{ fontSize: 12, color: '#71717a', marginBottom: 12, lineHeight: 1.6 }}>{co.tagline}</p>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <span style={{ fontSize: 10, fontWeight: 700, color: '#4ade80' }}>{co.ctc}</span>
+                        <span style={{ fontSize: 10, color: '#52525b', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' as const, display: 'flex', alignItems: 'center', gap: 4 }}>
                           {co.sections.length} sections <Icon name="arrow_forward" size={10} />
                         </span>
                       </div>
-                    </button>
+                    </motion.button>
                   ))}
                 </div>
 
-                {/* Aptitude quick tips */}
-                <div className="mt-8 p-6 bg-[#1a1a1a] border border-white/5 rounded-2xl">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-4">Universal Service Company Tips</p>
+                <motion.div
+                  initial={{ opacity: 0, y: 16 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  style={{ ...GLASS, borderRadius: 20, padding: 24, marginTop: 32 }}
+                >
+                  <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#52525b', marginBottom: 16 }}>Universal Service Company Tips</p>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {[
-                      { icon: 'timer', color: 'text-blue-400', tip: 'Time management beats perfection — 60% accuracy with full attempt beats 80% accuracy with 30% skipped' },
-                      { icon: 'book', color: 'text-green-400', tip: 'Verbal is the most neglected section. 10 min of RC daily = top 20% automatically' },
-                      { icon: 'psychology', color: 'text-purple-400', tip: 'Aptitude patterns repeat year to year — use previous year papers for TCS/Wipro' },
-                      { icon: 'verified', color: 'text-amber-400', tip: 'Platform certifications (InfyTQ, TCS iON) act as pre-filters — complete them before applying' },
+                      { icon: 'timer', color: '#60a5fa', tip: 'Time management beats perfection — 60% accuracy with full attempt beats 80% accuracy with 30% skipped' },
+                      { icon: 'book', color: '#4ade80', tip: 'Verbal is the most neglected section. 10 min of RC daily = top 20% automatically' },
+                      { icon: 'psychology', color: '#c084fc', tip: 'Aptitude patterns repeat year to year — use previous year papers for TCS/Wipro' },
+                      { icon: 'verified', color: '#fbbf24', tip: 'Platform certifications (InfyTQ, TCS iON) act as pre-filters — complete them before applying' },
                     ].map((item) => (
-                      <div key={item.icon} className="flex items-start gap-3 bg-zinc-900/50 rounded-xl p-4">
-                        <Icon name={item.icon} size={18} className={`${item.color} flex-shrink-0 mt-0.5`} />
-                        <p className="text-sm text-zinc-400 leading-relaxed">{item.tip}</p>
+                      <div key={item.icon} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, background: 'rgba(255,255,255,0.03)', borderRadius: 14, padding: 16 }}>
+                        <Icon name={item.icon} size={18} style={{ color: item.color, flexShrink: 0, marginTop: 2 }} />
+                        <p style={{ fontSize: 14, color: '#a1a1aa', lineHeight: 1.6 }}>{item.tip}</p>
                       </div>
                     ))}
                   </div>
-                </div>
+                </motion.div>
               </div>
             )}
           </div>

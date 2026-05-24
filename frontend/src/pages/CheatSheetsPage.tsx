@@ -1,7 +1,14 @@
 import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { AppShell } from '../components/AppShell';
 import { Icon } from '../components/Icon';
 import { useUser } from '../contexts/UserContext';
+
+const GLASS = {
+  background: 'rgba(10,10,10,0.7)',
+  border: '1px solid rgba(255,255,255,0.07)',
+  backdropFilter: 'blur(16px)',
+} as const;
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -20,7 +27,7 @@ interface Sheet {
   title: string;
   icon: string;
   color: string;
-  bg: string;
+  glow: string;
   desc: string;
   cards: Card[];
 }
@@ -32,8 +39,8 @@ const SHEETS: Sheet[] = [
     id: 'patterns',
     title: 'Algorithm Patterns',
     icon: 'pattern',
-    color: 'text-blue-400',
-    bg: 'bg-blue-500/10',
+    color: '#60a5fa',
+    glow: 'rgba(96,165,250,0.15)',
     desc: '14 must-know patterns for cracking any DSA interview',
     cards: [
       {
@@ -300,8 +307,8 @@ function solveNQueens(n: number): string[][] {
     id: 'complexity',
     title: 'Big-O Cheat Sheet',
     icon: 'speed',
-    color: 'text-green-400',
-    bg: 'bg-green-500/10',
+    color: '#4ade80',
+    glow: 'rgba(74,222,128,0.15)',
     desc: 'Time and space complexity of common data structures and algorithms',
     cards: [
       {
@@ -394,8 +401,8 @@ Union-Find:     O(α(n)) ≈ O(1) amortized  — with path compression + rank`,
     id: 'system-design',
     title: 'System Design Cards',
     icon: 'architecture',
-    color: 'text-purple-400',
-    bg: 'bg-purple-500/10',
+    color: '#c084fc',
+    glow: 'rgba(192,132,252,0.15)',
     desc: 'Key concepts, trade-offs, and interview frameworks',
     cards: [
       {
@@ -534,8 +541,8 @@ Random              → random server selection
     id: 'oop-patterns',
     title: 'Design Pattern Quick Ref',
     icon: 'account_tree',
-    color: 'text-amber-400',
-    bg: 'bg-amber-500/10',
+    color: '#fbbf24',
+    glow: 'rgba(251,191,36,0.15)',
     desc: 'When to use each of the 23 GoF design patterns',
     cards: [
       {
@@ -634,8 +641,8 @@ Chain of Responsibility — pass request along chain of handlers
     id: 'security',
     title: 'Security Quick Reference',
     icon: 'shield',
-    color: 'text-red-400',
-    bg: 'bg-red-500/10',
+    color: '#f87171',
+    glow: 'rgba(248,113,113,0.15)',
     desc: 'OWASP Top 10, attack vectors, and secure coding rules',
     cards: [
       {
@@ -734,8 +741,8 @@ localStorage (XSS risk — avoid for sensitive tokens)
     id: 'behavioral',
     title: 'Behavioral STAR Bank',
     icon: 'psychology',
-    color: 'text-green-400',
-    bg: 'bg-green-500/10',
+    color: '#4ade80',
+    glow: 'rgba(74,222,128,0.15)',
     desc: 'STAR-format answer templates for every behavioral category',
     cards: [
       {
@@ -897,8 +904,8 @@ What to avoid:
     id: 'sql',
     title: 'SQL Patterns',
     icon: 'storage',
-    color: 'text-violet-400',
-    bg: 'bg-violet-500/10',
+    color: '#a78bfa',
+    glow: 'rgba(167,139,250,0.15)',
     desc: 'Query patterns for joins, window functions, and common interview problems',
     cards: [
       {
@@ -1133,8 +1140,8 @@ JOIN (SELECT DISTINCT user_id FROM events WHERE date BETWEEN d+7 AND d+13) w2
     id: 'networks',
     title: 'Networks & HTTP',
     icon: 'wifi',
-    color: 'text-cyan-400',
-    bg: 'bg-cyan-500/10',
+    color: '#22d3ee',
+    glow: 'rgba(34,211,238,0.15)',
     desc: 'HTTP status codes, headers, TCP/IP, DNS, TLS — networking essentials for backend interviews',
     cards: [
       {
@@ -1309,8 +1316,8 @@ Connection: keep-alive
     id: 'git',
     title: 'Git & CLI Essentials',
     icon: 'merge',
-    color: 'text-orange-400',
-    bg: 'bg-orange-500/10',
+    color: '#fb923c',
+    glow: 'rgba(251,146,60,0.15)',
     desc: 'Git workflows, conflict resolution, rebase, and essential shell commands for every engineer',
     cards: [
       {
@@ -1516,92 +1523,86 @@ function CodeBlock({ code }: { readonly code: string }) {
     setTimeout(() => setCopied(false), 2000);
   };
   return (
-    <div className="relative mt-3">
-      <button
-        type="button"
-        onClick={copy}
-        className="absolute top-2 right-2 p-1.5 rounded-lg bg-zinc-700/50 hover:bg-zinc-600/50 transition-colors"
-        title="Copy code"
-      >
-        <Icon name={copied ? 'check' : 'content_copy'} size={13} className={copied ? 'text-green-400' : 'text-zinc-400'} />
+    <div style={{ position: 'relative', marginTop: 12 }}>
+      <button type="button" onClick={copy} title="Copy code"
+        style={{ position: 'absolute', top: 8, right: 8, padding: 6, borderRadius: 8, background: 'rgba(255,255,255,0.06)', border: 'none', cursor: 'pointer' }}>
+        <Icon name={copied ? 'check' : 'content_copy'} size={13} style={{ color: copied ? '#4ade80' : 'rgba(255,255,255,0.4)' }} />
       </button>
-      <pre className="bg-[#0e0e0e] border border-white/8 rounded-xl p-4 text-xs text-zinc-300 overflow-x-auto leading-relaxed font-mono whitespace-pre">
+      <pre style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, padding: 16, fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)', overflowX: 'auto', lineHeight: 1.7, fontFamily: 'monospace', whiteSpace: 'pre' }}>
         {code}
       </pre>
     </div>
   );
 }
 
-function CheatCard({ card, sheetColor: _sheetColor }: { readonly card: Card; readonly sheetColor: string }) {
+function CheatCard({ card, sheetColor }: { readonly card: Card; readonly sheetColor: string }) {
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <div className={`bg-[#1a1a1a] border border-white/8 rounded-2xl overflow-hidden transition-all duration-200 ${expanded ? 'border-white/15' : ''}`}>
-      <button
-        type="button"
-        onClick={() => setExpanded((e) => !e)}
-        className="w-full text-left px-5 py-4 flex items-start gap-4 hover:bg-white/3 transition-colors"
-      >
-        <div className="flex-1 min-w-0">
-          <div className="flex items-start gap-2 flex-wrap mb-1">
-            <h3 className="font-bold text-white text-sm">{card.title}</h3>
-          </div>
+    <motion.div
+      whileInView={{ opacity: 1, y: 0 }} initial={{ opacity: 0, y: 8 }} viewport={{ once: true, margin: '-10px' }}
+      style={{ ...GLASS, borderRadius: 18, overflow: 'hidden', boxShadow: expanded ? `0 0 24px ${sheetColor}18` : 'none', border: expanded ? `1px solid ${sheetColor}25` : '1px solid rgba(255,255,255,0.07)', transition: 'border 0.2s, box-shadow 0.2s' }}
+    >
+      <button type="button" onClick={() => setExpanded((e) => !e)}
+        style={{ width: '100%', textAlign: 'left', padding: '16px 20px', display: 'flex', alignItems: 'flex-start', gap: 16, cursor: 'pointer', background: 'transparent', border: 'none' }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <h3 style={{ fontWeight: 700, color: '#fff', fontSize: '0.875rem', marginBottom: 4 }}>{card.title}</h3>
           {card.complexity && !expanded && (
-            <div className="flex gap-3 mt-1">
-              <span className="text-[10px] font-bold text-green-400 bg-green-400/10 px-2 py-0.5 rounded-full">
+            <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+              <span style={{ fontSize: '0.625rem', fontWeight: 700, color: '#4ade80', background: 'rgba(74,222,128,0.08)', padding: '2px 8px', borderRadius: 9999 }}>
                 Time: {card.complexity.time}
               </span>
-              <span className="text-[10px] font-bold text-blue-400 bg-blue-400/10 px-2 py-0.5 rounded-full">
+              <span style={{ fontSize: '0.625rem', fontWeight: 700, color: '#60a5fa', background: 'rgba(96,165,250,0.08)', padding: '2px 8px', borderRadius: 9999 }}>
                 Space: {card.complexity.space}
               </span>
             </div>
           )}
           {!expanded && (
-            <p className="text-zinc-500 text-xs mt-1.5 line-clamp-2">{card.content}</p>
+            <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.75rem', marginTop: 6, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{card.content}</p>
           )}
         </div>
-        <div className="flex items-center gap-2 flex-shrink-0">
-          <div className="flex gap-1 flex-wrap">
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+          <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
             {card.tags.map((t) => (
-              <span key={t} className="text-[9px] font-bold text-zinc-600 bg-zinc-800 px-2 py-0.5 rounded-full uppercase tracking-widest">
+              <span key={t} style={{ fontSize: '0.5625rem', fontWeight: 700, color: 'rgba(255,255,255,0.25)', background: 'rgba(255,255,255,0.05)', padding: '2px 8px', borderRadius: 9999, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
                 {t}
               </span>
             ))}
           </div>
-          <Icon
-            name={expanded ? 'keyboard_arrow_up' : 'keyboard_arrow_down'}
-            size={18}
-            className="text-zinc-500 ml-1"
-          />
+          <Icon name={expanded ? 'keyboard_arrow_up' : 'keyboard_arrow_down'} size={18} style={{ color: 'rgba(255,255,255,0.3)', marginLeft: 4 }} />
         </div>
       </button>
 
-      {expanded && (
-        <div className="px-5 pb-5 border-t border-white/5 pt-4 space-y-4">
-          {card.complexity && (
-            <div className="flex gap-3">
-              <span className="text-[10px] font-bold text-green-400 bg-green-400/10 px-3 py-1 rounded-full">
-                Time: {card.complexity.time}
-              </span>
-              <span className="text-[10px] font-bold text-blue-400 bg-blue-400/10 px-3 py-1 rounded-full">
-                Space: {card.complexity.space}
-              </span>
+      <AnimatePresence>
+        {expanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}
+            style={{ overflow: 'hidden', borderTop: '1px solid rgba(255,255,255,0.05)' }}
+          >
+            <div style={{ padding: '16px 20px 20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {card.complexity && (
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <span style={{ fontSize: '0.625rem', fontWeight: 700, color: '#4ade80', background: 'rgba(74,222,128,0.08)', padding: '4px 12px', borderRadius: 9999 }}>
+                    Time: {card.complexity.time}
+                  </span>
+                  <span style={{ fontSize: '0.625rem', fontWeight: 700, color: '#60a5fa', background: 'rgba(96,165,250,0.08)', padding: '4px 12px', borderRadius: 9999 }}>
+                    Space: {card.complexity.space}
+                  </span>
+                </div>
+              )}
+              <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: '0.875rem', lineHeight: 1.7 }}>{card.content}</p>
+              {card.code && <CodeBlock code={card.code} />}
+              {card.tip && (
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, background: 'rgba(232,33,39,0.06)', border: '1px solid rgba(232,33,39,0.2)', borderRadius: 14, padding: '12px 16px' }}>
+                  <Icon name="tips_and_updates" size={15} style={{ color: '#E82127', flexShrink: 0, marginTop: 2 }} />
+                  <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: '0.75rem', lineHeight: 1.6 }}>{card.tip}</p>
+                </div>
+              )}
             </div>
-          )}
-
-          <p className="text-zinc-300 text-sm leading-relaxed">{card.content}</p>
-
-          {card.code && <CodeBlock code={card.code} />}
-
-          {card.tip && (
-            <div className="flex items-start gap-3 bg-[#E82127]/8 border border-[#E82127]/20 rounded-xl px-4 py-3">
-              <Icon name="tips_and_updates" size={15} className="text-[#E82127] flex-shrink-0 mt-0.5" />
-              <p className="text-zinc-300 text-xs leading-relaxed">{card.tip}</p>
-            </div>
-          )}
-        </div>
-      )}
-    </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 }
 
@@ -1633,56 +1634,63 @@ export function CheatSheetsPage() {
   return (
     <AppShell>
       <div className="pt-6 pb-12 max-w-5xl">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-black tracking-tighter text-white mb-2">
-            Cheat <span className="text-[#E82127]">Sheets.</span>
+        {/* Hero */}
+        <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} className="mb-10">
+          <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.2em', color: 'rgba(255,255,255,0.3)', marginBottom: 8, textTransform: 'uppercase' }}>
+            EYF · Quick Reference
+          </p>
+          <h1 style={{
+            fontSize: 'clamp(2.5rem, 6vw, 4rem)', fontWeight: 900, lineHeight: 1, letterSpacing: '-0.05em',
+            background: 'linear-gradient(135deg, #fff 20%, #E82127 55%, #fb923c 80%)',
+            WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', marginBottom: 8,
+          }}>
+            CHEAT SHEETS.
           </h1>
-          <p className="text-zinc-400 text-lg">Quick-reference cards for interviews. Copy code, understand patterns.</p>
-        </div>
+          <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: '1rem' }}>Quick-reference cards for interviews. Copy code, understand patterns.</p>
+        </motion.div>
 
         {/* Sheet selector */}
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3 mb-8">
-          {SHEETS.map((s) => (
-            <button
-              key={s.id}
-              type="button"
-              onClick={() => handleSheetChange(s.id)}
-              className={`flex flex-col items-center gap-2 p-4 rounded-2xl border text-center transition-all ${
-                activeSheet === s.id
-                  ? `${s.bg} border-current/30 ${s.color}`
-                  : 'bg-[#1a1a1a] border-white/8 text-zinc-500 hover:border-white/15 hover:text-zinc-300'
-              }`}
-            >
-              <Icon name={s.icon} size={22} />
-              <span className="text-[10px] font-bold uppercase tracking-widest leading-tight">{s.title}</span>
-            </button>
-          ))}
+          {SHEETS.map((s, i) => {
+            const isActive = activeSheet === s.id;
+            return (
+              <motion.button key={s.id} type="button" onClick={() => handleSheetChange(s.id)}
+                initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}
+                whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
+                style={{
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: 16,
+                  borderRadius: 18, textAlign: 'center', cursor: 'pointer', transition: 'all 0.2s',
+                  background: isActive ? `${s.color}15` : 'rgba(255,255,255,0.03)',
+                  border: isActive ? `1px solid ${s.color}35` : '1px solid rgba(255,255,255,0.07)',
+                  color: isActive ? s.color : 'rgba(255,255,255,0.3)',
+                  boxShadow: isActive ? `0 0 20px ${s.glow}` : 'none',
+                }}>
+                <Icon name={s.icon} size={22} />
+                <span style={{ fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', lineHeight: 1.3 }}>{s.title}</span>
+              </motion.button>
+            );
+          })}
         </div>
 
         {/* Active sheet header */}
         <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
           <div className="flex items-center gap-3">
-            <div className={`w-10 h-10 ${sheet.bg} rounded-xl flex items-center justify-center ${sheet.color} flex-shrink-0`}>
-              <Icon name={sheet.icon} size={20} />
+            <div style={{ width: 44, height: 44, background: `${sheet.color}15`, border: `1px solid ${sheet.color}30`, borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: `0 0 16px ${sheet.glow}` }}>
+              <Icon name={sheet.icon} size={20} style={{ color: sheet.color }} />
             </div>
             <div>
-              <h2 className="text-lg font-black text-white">{sheet.title}</h2>
-              <p className="text-zinc-500 text-xs">{sheet.desc}</p>
+              <h2 style={{ fontSize: '1.125rem', fontWeight: 900, color: '#fff', letterSpacing: '-0.02em' }}>{sheet.title}</h2>
+              <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.75rem', marginTop: 2 }}>{sheet.desc}</p>
             </div>
           </div>
 
           {/* Search */}
-          <div className="flex items-center gap-2 bg-[#1a1a1a] border border-white/8 rounded-xl px-3 py-2 w-full sm:w-auto max-w-xs">
-            <Icon name="search" size={16} className="text-zinc-500 flex-shrink-0" />
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search cards…"
-              className="bg-transparent text-white text-sm placeholder:text-zinc-600 focus:outline-none flex-1 min-w-0"
-            />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, padding: '8px 14px' }} className="w-full sm:w-auto max-w-xs">
+            <Icon name="search" size={16} style={{ color: 'rgba(255,255,255,0.25)', flexShrink: 0 }} />
+            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search cards…"
+              style={{ background: 'transparent', fontSize: '0.875rem', color: '#fff', outline: 'none', flex: 1, minWidth: 0, border: 'none' }} />
             {search && (
-              <button onClick={() => setSearch('')} className="text-zinc-600 hover:text-zinc-400">
+              <button onClick={() => setSearch('')} style={{ color: 'rgba(255,255,255,0.3)', background: 'transparent', border: 'none', cursor: 'pointer' }}>
                 <Icon name="close" size={14} />
               </button>
             )}
@@ -1692,7 +1700,7 @@ export function CheatSheetsPage() {
         {/* Cards */}
         <div className="space-y-3">
           {filtered.length === 0 ? (
-            <p className="text-zinc-600 text-sm text-center py-12">No cards match "{search}"</p>
+            <p style={{ color: 'rgba(255,255,255,0.2)', fontSize: '0.875rem', textAlign: 'center', padding: '3rem 0' }}>No cards match "{search}"</p>
           ) : (
             filtered.map((card) => (
               <CheatCard key={card.id} card={card} sheetColor={sheet.color} />
@@ -1701,11 +1709,14 @@ export function CheatSheetsPage() {
         </div>
 
         {/* Footer tip */}
-        <div className="mt-10 flex items-center gap-3 bg-[#1a1a1a] border border-white/8 rounded-2xl p-5">
-          <Icon name="lightbulb" size={20} className="text-yellow-400 flex-shrink-0" />
-          <p className="text-zinc-400 text-sm">
-            <span className="text-white font-bold">Pro tip:</span> Use{' '}
-            <kbd className="bg-zinc-800 text-zinc-400 text-xs px-1.5 py-0.5 rounded font-mono">Cmd+K</kbd>{' '}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+          style={{ marginTop: 40, display: 'flex', alignItems: 'center', gap: 12, ...GLASS, borderRadius: 20, padding: 20 }}
+        >
+          <Icon name="lightbulb" size={20} style={{ color: '#facc15', flexShrink: 0 }} />
+          <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.875rem', lineHeight: 1.6 }}>
+            <span style={{ color: '#fff', fontWeight: 700 }}>Pro tip:</span> Use{' '}
+            <kbd style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem', padding: '2px 6px', borderRadius: 4, fontFamily: 'monospace' }}>Cmd+K</kbd>{' '}
             to search for any topic across EYF, or click any card to expand the full code example.
           </p>
         </div>
