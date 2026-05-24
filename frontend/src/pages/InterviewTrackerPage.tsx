@@ -1,7 +1,16 @@
 import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { AppShell } from '../components/AppShell';
 import { Icon } from '../components/Icon';
 import { useUser } from '../contexts/UserContext';
+
+// ─── Design tokens ────────────────────────────────────────────────────────────
+
+const GLASS = {
+  background: 'rgba(10,10,10,0.7)',
+  border: '1px solid rgba(255,255,255,0.07)',
+  backdropFilter: 'blur(16px)',
+} as const;
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -33,14 +42,26 @@ interface Application {
 
 // ─── Static state helpers ─────────────────────────────────────────────────────
 
-const STATUS_META: Record<AppStatus, { label: string; color: string; bg: string; icon: string; order: number }> = {
-  applied:   { label: 'Applied',   color: 'text-zinc-400',   bg: 'bg-zinc-500/10',   icon: 'send',              order: 0 },
-  oa:        { label: 'OA',        color: 'text-blue-400',   bg: 'bg-blue-500/10',   icon: 'code',              order: 1 },
-  phone:     { label: 'Phone',     color: 'text-cyan-400',   bg: 'bg-cyan-500/10',   icon: 'call',              order: 2 },
-  onsite:    { label: 'Onsite',    color: 'text-orange-400', bg: 'bg-orange-500/10', icon: 'corporate_fare',    order: 3 },
-  offer:     { label: 'Offer 🎉',  color: 'text-green-400',  bg: 'bg-green-500/10',  icon: 'celebration',       order: 4 },
-  rejected:  { label: 'Rejected',  color: 'text-red-400',    bg: 'bg-red-500/10',    icon: 'cancel',            order: 5 },
-  withdrawn: { label: 'Withdrawn', color: 'text-zinc-600',   bg: 'bg-zinc-700/20',   icon: 'exit_to_app',       order: 6 },
+const STATUS_META: Record<AppStatus, { label: string; color: string; glow: string; bg: string; icon: string; order: number }> = {
+  applied:   { label: 'Applied',   color: '#a1a1aa', glow: 'rgba(161,161,170,0.15)', bg: 'rgba(161,161,170,0.08)', icon: 'send',           order: 0 },
+  oa:        { label: 'OA',        color: '#60a5fa', glow: 'rgba(96,165,250,0.15)',  bg: 'rgba(96,165,250,0.08)',  icon: 'code',           order: 1 },
+  phone:     { label: 'Phone',     color: '#22d3ee', glow: 'rgba(34,211,238,0.15)',  bg: 'rgba(34,211,238,0.08)', icon: 'call',           order: 2 },
+  onsite:    { label: 'Onsite',    color: '#fb923c', glow: 'rgba(251,146,60,0.15)',  bg: 'rgba(251,146,60,0.08)', icon: 'corporate_fare', order: 3 },
+  offer:     { label: 'Offer 🎉',  color: '#4ade80', glow: 'rgba(74,222,128,0.15)',  bg: 'rgba(74,222,128,0.08)', icon: 'celebration',    order: 4 },
+  rejected:  { label: 'Rejected',  color: '#f87171', glow: 'rgba(248,113,113,0.15)', bg: 'rgba(248,113,113,0.08)',icon: 'cancel',         order: 5 },
+  withdrawn: { label: 'Withdrawn', color: '#52525b', glow: 'rgba(82,82,91,0.15)',    bg: 'rgba(82,82,91,0.08)',   icon: 'exit_to_app',    order: 6 },
+};
+
+const DIFF_META: Record<Difficulty, { color: string; bg: string }> = {
+  easy:   { color: '#4ade80', bg: 'rgba(74,222,128,0.1)'  },
+  medium: { color: '#facc15', bg: 'rgba(250,204,21,0.1)'  },
+  hard:   { color: '#f87171', bg: 'rgba(248,113,113,0.1)' },
+};
+
+const ROUND_RESULT_COLOR: Record<Round['result'], string> = {
+  pass:    '#4ade80',
+  fail:    '#f87171',
+  pending: '#52525b',
 };
 
 const ROUND_TYPES = ['Online Assessment', 'Phone Screen', 'Technical Interview', 'System Design', 'Behavioral', 'HR Round', 'Culture Fit', 'Bar Raiser'];
@@ -103,7 +124,8 @@ const EMPTY_APP: Omit<Application, 'id' | 'rounds' | 'starred'> = {
 function StatusBadge({ status }: { readonly status: AppStatus }) {
   const meta = STATUS_META[status];
   return (
-    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest ${meta.color} ${meta.bg}`}>
+    <span style={{ color: meta.color, background: meta.bg, border: `1px solid ${meta.color}30` }}
+      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest">
       <Icon name={meta.icon} size={10} />
       {meta.label}
     </span>
@@ -114,19 +136,18 @@ function StageBar({ status }: { readonly status: AppStatus }) {
   const stages: AppStatus[] = ['applied', 'oa', 'phone', 'onsite', 'offer'];
   const currentOrder = STATUS_META[status].order;
   return (
-    <div className="flex items-center gap-1 mt-2">
+    <div className="flex items-center gap-1 mt-3">
       {stages.map((s, i) => {
         const order = STATUS_META[s].order;
         const meta = STATUS_META[s];
         const active = status === s;
         const done = !['rejected', 'withdrawn'].includes(status) && currentOrder > order;
-        let stageClass = 'bg-zinc-800';
-        if (done) stageClass = 'bg-green-400';
-        else if (active) stageClass = `${meta.bg.replace('/10', '/40')} ${meta.color}`;
+        const barColor = done ? '#4ade80' : active ? meta.color : 'rgba(255,255,255,0.06)';
         return (
           <div key={s} className="flex items-center gap-1 flex-1 min-w-0">
-            <div className={`h-1.5 rounded-full flex-1 transition-all ${stageClass}`} />
-            {i < stages.length - 1 && <div className="w-1.5 h-1.5 rounded-full bg-zinc-800 flex-shrink-0" />}
+            <div style={{ background: barColor, boxShadow: active ? `0 0 8px ${meta.glow}` : 'none' }}
+              className="h-1.5 rounded-full flex-1 transition-all duration-500" />
+            {i < stages.length - 1 && <div style={{ background: 'rgba(255,255,255,0.06)' }} className="w-1.5 h-1.5 rounded-full flex-shrink-0" />}
           </div>
         );
       })}
@@ -198,7 +219,6 @@ export function InterviewTrackerPage() {
     fireXP(10, 'Round logged!');
   };
 
-  // Stats
   const total = apps.length;
   const active = apps.filter((a) => !['rejected', 'withdrawn'].includes(a.status)).length;
   const offers = apps.filter((a) => a.status === 'offer').length;
@@ -212,8 +232,6 @@ export function InterviewTrackerPage() {
   });
 
   const byStatus = (status: AppStatus) => filtered.filter((a) => a.status === status);
-
-  // Pipeline view
   const PIPELINE_COLS: AppStatus[] = ['applied', 'oa', 'phone', 'onsite', 'offer'];
 
   const roundResultIcon = (r: Round['result']) => {
@@ -221,327 +239,444 @@ export function InterviewTrackerPage() {
     if (r === 'fail') return 'cancel';
     return 'schedule';
   };
-  const roundResultColor = (r: Round['result']) => {
-    if (r === 'pass') return 'text-green-400';
-    if (r === 'fail') return 'text-red-400';
-    return 'text-zinc-500';
-  };
-  const diffColor = (d: Difficulty) => {
-    if (d === 'easy') return 'text-green-400 bg-green-500/10';
-    if (d === 'medium') return 'text-yellow-400 bg-yellow-500/10';
-    return 'text-red-400 bg-red-500/10';
-  };
 
-  // Detail view
+  // ─── Detail view ───────────────────────────────────────────────────────────
+
   if (selected) {
+    const selMeta = STATUS_META[selected.status];
     return (
       <AppShell>
         <div className="pt-8 max-w-3xl">
-          <button onClick={() => setSelected(null)} className="flex items-center gap-2 text-zinc-500 hover:text-zinc-300 mb-6 text-sm transition-colors">
+          <motion.button
+            onClick={() => setSelected(null)}
+            initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}
+            className="flex items-center gap-2 mb-8 text-sm font-bold uppercase tracking-widest transition-colors"
+            style={{ color: 'rgba(255,255,255,0.35)' }}
+            whileHover={{ color: '#fff' } as never}
+          >
             <Icon name="arrow_back" size={16} /> Back to tracker
-          </button>
+          </motion.button>
 
           {/* Company header */}
-          <div className="bg-[#161616] border border-white/5 rounded-2xl p-8 mb-5">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+            style={{ ...GLASS, borderRadius: 20, padding: '2rem', marginBottom: '1.25rem',
+              boxShadow: `0 0 60px ${selMeta.glow}` }}
+          >
+            {/* Top accent */}
+            <div style={{ height: 3, borderRadius: 2, background: `linear-gradient(90deg, ${selMeta.color}, transparent)`, marginBottom: '1.5rem' }} />
+
             <div className="flex items-start justify-between flex-wrap gap-4 mb-4">
               <div>
                 <div className="flex items-center gap-3 mb-1">
-                  <h1 className="text-3xl font-black tracking-tighter">{selected.company}</h1>
-                  <button onClick={() => toggleStar(selected.id)} className="transition-colors">
-                    <Icon name="star" size={20} className={selected.starred ? 'text-yellow-400' : 'text-zinc-700'} filled={selected.starred} />
-                  </button>
+                  <h1 style={{
+                    fontSize: '2rem', fontWeight: 900, letterSpacing: '-0.04em',
+                    background: `linear-gradient(135deg, #fff 30%, ${selMeta.color})`,
+                    WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+                  }}>
+                    {selected.company}
+                  </h1>
+                  <motion.button onClick={() => toggleStar(selected.id)} whileHover={{ scale: 1.2 }} whileTap={{ scale: 0.9 }}>
+                    <Icon name="star" size={20} style={{ color: selected.starred ? '#facc15' : 'rgba(255,255,255,0.15)' }} filled={selected.starred} />
+                  </motion.button>
                 </div>
-                <p className="text-zinc-400 text-sm">{selected.role}</p>
-                <p className="text-zinc-600 text-xs mt-1">{selected.location}{selected.remote ? ' · Remote OK' : ''}{selected.salary ? ` · ${selected.salary}` : ''}</p>
+                <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.875rem' }}>{selected.role}</p>
+                <p style={{ color: 'rgba(255,255,255,0.25)', fontSize: '0.75rem', marginTop: 4 }}>
+                  {selected.location}{selected.remote ? ' · Remote OK' : ''}{selected.salary ? ` · ${selected.salary}` : ''}
+                </p>
               </div>
               <StatusBadge status={selected.status} />
             </div>
 
-            {/* Stage bar */}
             {!['rejected', 'withdrawn'].includes(selected.status) && <StageBar status={selected.status} />}
 
             {/* Update status */}
-            <div className="mt-5">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 mb-2">Update Status</p>
+            <div className="mt-6">
+              <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.12em', color: 'rgba(255,255,255,0.25)', marginBottom: 8 }}>
+                UPDATE STATUS
+              </p>
               <div className="flex flex-wrap gap-2">
-                {(Object.keys(STATUS_META) as AppStatus[]).map((s) => (
-                  <button key={s} onClick={() => updateStatus(selected.id, s)}
-                    className={`px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all border ${
-                      selected.status === s
-                        ? `${STATUS_META[s].bg} ${STATUS_META[s].color} border-current/30`
-                        : 'text-zinc-600 border-zinc-800 hover:text-zinc-400'
-                    }`}
-                  >
-                    {STATUS_META[s].label}
-                  </button>
-                ))}
+                {(Object.keys(STATUS_META) as AppStatus[]).map((s) => {
+                  const m = STATUS_META[s];
+                  const isActive = selected.status === s;
+                  return (
+                    <motion.button key={s} onClick={() => updateStatus(selected.id, s)}
+                      whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
+                      style={{
+                        padding: '6px 14px', borderRadius: 9999, fontSize: '0.625rem', fontWeight: 700,
+                        letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer', transition: 'all 0.2s',
+                        color: isActive ? m.color : 'rgba(255,255,255,0.25)',
+                        background: isActive ? m.bg : 'transparent',
+                        border: isActive ? `1px solid ${m.color}40` : '1px solid rgba(255,255,255,0.08)',
+                        boxShadow: isActive ? `0 0 12px ${m.glow}` : 'none',
+                      }}
+                    >
+                      {m.label}
+                    </motion.button>
+                  );
+                })}
               </div>
             </div>
-          </div>
+          </motion.div>
 
           {/* Rounds */}
-          <div className="bg-[#161616] border border-white/5 rounded-2xl p-6 mb-5">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="font-black text-sm">Interview Rounds</h2>
-              <button onClick={() => setShowAddRound(true)} className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-[#E82127] hover:opacity-80 transition-opacity">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}
+            style={{ ...GLASS, borderRadius: 20, padding: '1.5rem', marginBottom: '1.25rem' }}
+          >
+            <div className="flex items-center justify-between mb-5">
+              <h2 style={{ fontWeight: 900, fontSize: '0.875rem', letterSpacing: '-0.02em' }}>Interview Rounds</h2>
+              <motion.button onClick={() => setShowAddRound(true)}
+                whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
+                className="flex items-center gap-1"
+                style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#E82127' }}
+              >
                 <Icon name="add" size={14} /> Add Round
-              </button>
+              </motion.button>
             </div>
 
             {selected.rounds.length === 0 ? (
-              <p className="text-zinc-600 text-sm text-center py-6">No rounds logged yet.</p>
+              <p style={{ color: 'rgba(255,255,255,0.2)', fontSize: '0.875rem', textAlign: 'center', padding: '2rem 0' }}>No rounds logged yet.</p>
             ) : (
               <div className="space-y-3">
-                {selected.rounds.map((round, i) => (
-                  <div key={round.id} className="flex items-start gap-4 p-4 bg-[#1a1a1a] rounded-xl">
-                    <div className="flex-shrink-0 flex flex-col items-center">
-                      <div className="w-7 h-7 rounded-full bg-[#222] flex items-center justify-center text-xs font-bold text-zinc-500">{i + 1}</div>
-                      {i < selected.rounds.length - 1 && <div className="w-0.5 h-8 bg-zinc-800 mt-1" />}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap mb-1">
-                        <span className="text-sm font-bold text-white">{round.type}</span>
-                        <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${diffColor(round.difficulty)}`}>{round.difficulty}</span>
-                        <Icon name={roundResultIcon(round.result)} size={14} className={roundResultColor(round.result)} filled={round.result !== 'pending'} />
+                {selected.rounds.map((round, i) => {
+                  const dm = DIFF_META[round.difficulty];
+                  const rc = ROUND_RESULT_COLOR[round.result];
+                  return (
+                    <motion.div key={round.id}
+                      initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}
+                      style={{ display: 'flex', alignItems: 'flex-start', gap: 16, padding: 16, background: 'rgba(255,255,255,0.03)', borderRadius: 14, border: '1px solid rgba(255,255,255,0.05)' }}
+                    >
+                      <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                        <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 700, color: 'rgba(255,255,255,0.4)' }}>{i + 1}</div>
+                        {i < selected.rounds.length - 1 && <div style={{ width: 1, height: 32, background: 'rgba(255,255,255,0.06)', marginTop: 4 }} />}
                       </div>
-                      <p className="text-[10px] text-zinc-600 mb-1">{new Date(round.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
-                      {round.notes && <p className="text-xs text-zinc-400 leading-relaxed">{round.notes}</p>}
-                    </div>
-                  </div>
-                ))}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div className="flex items-center gap-2 flex-wrap mb-1">
+                          <span style={{ fontSize: '0.875rem', fontWeight: 700, color: '#fff' }}>{round.type}</span>
+                          <span style={{ fontSize: '0.5625rem', fontWeight: 700, padding: '2px 8px', borderRadius: 9999, color: dm.color, background: dm.bg }}>{round.difficulty}</span>
+                          <Icon name={roundResultIcon(round.result)} size={14} style={{ color: rc }} filled={round.result !== 'pending'} />
+                        </div>
+                        <p style={{ fontSize: '0.625rem', color: 'rgba(255,255,255,0.25)', marginBottom: 4 }}>
+                          {new Date(round.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        </p>
+                        {round.notes && <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.45)', lineHeight: 1.6 }}>{round.notes}</p>}
+                      </div>
+                    </motion.div>
+                  );
+                })}
               </div>
             )}
 
-            {showAddRound && (
-              <div className="mt-4 p-4 bg-[#1a1a1a] rounded-xl border border-[#E82127]/20 space-y-3">
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label htmlFor="round-type" className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 block mb-1">Round Type</label>
-                    <select id="round-type" value={roundForm.type} onChange={(e) => setRoundForm((f) => ({ ...f, type: e.target.value }))}
-                      className="w-full bg-[#111] border border-white/8 rounded-lg px-3 py-2 text-sm text-white focus:outline-none">
-                      {ROUND_TYPES.map((t) => <option key={t}>{t}</option>)}
-                    </select>
+            <AnimatePresence>
+              {showAddRound && (
+                <motion.div
+                  initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }}
+                  style={{ marginTop: 16, padding: 16, background: 'rgba(232,33,39,0.04)', borderRadius: 14, border: '1px solid rgba(232,33,39,0.2)' }}
+                  className="space-y-3"
+                >
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      { id: 'round-type', label: 'Round Type', type: 'select', opts: ROUND_TYPES, val: roundForm.type, cb: (v: string) => setRoundForm((f) => ({ ...f, type: v })) },
+                    ].map(({ id, label, opts, val, cb }) => (
+                      <div key={id}>
+                        <label htmlFor={id} style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.1em', color: 'rgba(255,255,255,0.25)', display: 'block', marginBottom: 4 }}>{label.toUpperCase()}</label>
+                        <select id={id} value={val} onChange={(e) => cb(e.target.value)}
+                          style={{ width: '100%', background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '8px 12px', fontSize: '0.875rem', color: '#fff', outline: 'none' }}>
+                          {opts?.map((t) => <option key={t}>{t}</option>)}
+                        </select>
+                      </div>
+                    ))}
+                    <div>
+                      <label htmlFor="round-date" style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.1em', color: 'rgba(255,255,255,0.25)', display: 'block', marginBottom: 4 }}>DATE</label>
+                      <input id="round-date" type="date" value={roundForm.date} onChange={(e) => setRoundForm((f) => ({ ...f, date: e.target.value }))}
+                        style={{ width: '100%', background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '8px 12px', fontSize: '0.875rem', color: '#fff', outline: 'none' }} />
+                    </div>
+                    <div>
+                      <label htmlFor="round-result" style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.1em', color: 'rgba(255,255,255,0.25)', display: 'block', marginBottom: 4 }}>RESULT</label>
+                      <select id="round-result" value={roundForm.result} onChange={(e) => setRoundForm((f) => ({ ...f, result: e.target.value as Round['result'] }))}
+                        style={{ width: '100%', background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '8px 12px', fontSize: '0.875rem', color: '#fff', outline: 'none' }}>
+                        <option value="pending">Pending</option>
+                        <option value="pass">Pass</option>
+                        <option value="fail">Fail</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label htmlFor="round-difficulty" style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.1em', color: 'rgba(255,255,255,0.25)', display: 'block', marginBottom: 4 }}>DIFFICULTY</label>
+                      <select id="round-difficulty" value={roundForm.difficulty} onChange={(e) => setRoundForm((f) => ({ ...f, difficulty: e.target.value as Difficulty }))}
+                        style={{ width: '100%', background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '8px 12px', fontSize: '0.875rem', color: '#fff', outline: 'none' }}>
+                        <option value="easy">Easy</option>
+                        <option value="medium">Medium</option>
+                        <option value="hard">Hard</option>
+                      </select>
+                    </div>
                   </div>
                   <div>
-                    <label htmlFor="round-date" className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 block mb-1">Date</label>
-                    <input id="round-date" type="date" value={roundForm.date} onChange={(e) => setRoundForm((f) => ({ ...f, date: e.target.value }))}
-                      className="w-full bg-[#111] border border-white/8 rounded-lg px-3 py-2 text-sm text-white focus:outline-none" />
+                    <label htmlFor="round-notes" style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.1em', color: 'rgba(255,255,255,0.25)', display: 'block', marginBottom: 4 }}>NOTES</label>
+                    <textarea id="round-notes" value={roundForm.notes} onChange={(e) => setRoundForm((f) => ({ ...f, notes: e.target.value }))}
+                      placeholder="Questions asked, how it went, what to improve..."
+                      rows={3} style={{ width: '100%', background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '8px 12px', fontSize: '0.875rem', color: '#fff', outline: 'none', resize: 'none' }} />
                   </div>
-                  <div>
-                    <label htmlFor="round-result" className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 block mb-1">Result</label>
-                    <select id="round-result" value={roundForm.result} onChange={(e) => setRoundForm((f) => ({ ...f, result: e.target.value as Round['result'] }))}
-                      className="w-full bg-[#111] border border-white/8 rounded-lg px-3 py-2 text-sm text-white focus:outline-none">
-                      <option value="pending">Pending</option>
-                      <option value="pass">Pass</option>
-                      <option value="fail">Fail</option>
-                    </select>
+                  <div className="flex gap-2">
+                    <motion.button onClick={addRound} whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
+                      style={{ background: 'linear-gradient(135deg,#E82127,#ff6b35)', color: '#fff', fontWeight: 700, padding: '8px 20px', borderRadius: 9999, fontSize: '0.75rem', boxShadow: '0 0 20px rgba(232,33,39,0.35)', cursor: 'pointer' }}>
+                      Save Round
+                    </motion.button>
+                    <button onClick={() => setShowAddRound(false)}
+                      style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.75rem', padding: '8px 16px', borderRadius: 9999, cursor: 'pointer', background: 'transparent', border: 'none' }}>
+                      Cancel
+                    </button>
                   </div>
-                  <div>
-                    <label htmlFor="round-difficulty" className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 block mb-1">Difficulty</label>
-                    <select id="round-difficulty" value={roundForm.difficulty} onChange={(e) => setRoundForm((f) => ({ ...f, difficulty: e.target.value as Difficulty }))}
-                      className="w-full bg-[#111] border border-white/8 rounded-lg px-3 py-2 text-sm text-white focus:outline-none">
-                      <option value="easy">Easy</option>
-                      <option value="medium">Medium</option>
-                      <option value="hard">Hard</option>
-                    </select>
-                  </div>
-                </div>
-                <div>
-                  <label htmlFor="round-notes" className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 block mb-1">Notes</label>
-                  <textarea id="round-notes" value={roundForm.notes} onChange={(e) => setRoundForm((f) => ({ ...f, notes: e.target.value }))}
-                    placeholder="Questions asked, how it went, what to improve..."
-                    rows={3} className="w-full bg-[#111] border border-white/8 rounded-lg px-3 py-2 text-sm text-white focus:outline-none resize-none" />
-                </div>
-                <div className="flex gap-2">
-                  <button onClick={addRound} className="bg-[#E82127] text-white font-bold px-4 py-2 rounded-full text-xs hover:brightness-110 transition-all">Save Round</button>
-                  <button onClick={() => setShowAddRound(false)} className="text-zinc-500 hover:text-zinc-300 text-xs px-4 py-2 rounded-full transition-colors">Cancel</button>
-                </div>
-              </div>
-            )}
-          </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
 
           {/* Notes */}
           {selected.notes && (
-            <div className="bg-[#161616] border border-white/5 rounded-2xl p-6 mb-5">
-              <h2 className="font-black text-sm mb-3">Notes</h2>
-              <p className="text-zinc-400 text-sm leading-relaxed">{selected.notes}</p>
-            </div>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.14 }}
+              style={{ ...GLASS, borderRadius: 20, padding: '1.5rem', marginBottom: '1.25rem' }}
+            >
+              <h2 style={{ fontWeight: 900, fontSize: '0.875rem', letterSpacing: '-0.02em', marginBottom: 12 }}>Notes</h2>
+              <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: '0.875rem', lineHeight: 1.7 }}>{selected.notes}</p>
+            </motion.div>
           )}
 
           {/* Delete */}
-          <button onClick={() => { deleteApp(selected.id); }} className="text-zinc-700 hover:text-red-400 text-xs transition-colors flex items-center gap-1">
+          <motion.button onClick={() => deleteApp(selected.id)}
+            whileHover={{ color: '#f87171' } as never}
+            className="flex items-center gap-1 transition-colors"
+            style={{ color: 'rgba(255,255,255,0.2)', fontSize: '0.75rem', background: 'transparent', border: 'none', cursor: 'pointer' }}
+          >
             <Icon name="delete" size={14} /> Delete this application
-          </button>
+          </motion.button>
         </div>
       </AppShell>
     );
   }
 
+  // ─── Main list / pipeline view ─────────────────────────────────────────────
+
   return (
     <AppShell>
       <div className="pt-8 max-w-7xl">
-        {/* Header */}
-        <div className="flex items-start justify-between flex-wrap gap-4 mb-8">
-          <div>
-            <h1 className="text-4xl font-black tracking-tighter mb-1">Interview Tracker</h1>
-            <p className="text-zinc-500 text-sm">Log your applications, track rounds, and land that offer.</p>
+
+        {/* Hero */}
+        <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} className="mb-10">
+          <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.2em', color: 'rgba(255,255,255,0.3)', marginBottom: 8, textTransform: 'uppercase' }}>
+            EYF · Application Tracking
+          </p>
+          <div className="flex items-start justify-between flex-wrap gap-4">
+            <div>
+              <h1 style={{
+                fontSize: 'clamp(2.5rem, 6vw, 4rem)', fontWeight: 900, lineHeight: 1, letterSpacing: '-0.05em',
+                background: 'linear-gradient(135deg, #fff 20%, #E82127 50%, #fb923c 80%)',
+                WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+              }}>
+                INTERVIEW TRACKER.
+              </h1>
+              <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: '0.875rem', marginTop: 8 }}>
+                Log applications, track rounds, land that offer.
+              </p>
+            </div>
+            <motion.button onClick={() => setShowAdd(!showAdd)}
+              whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
+              style={{
+                background: 'linear-gradient(135deg,#E82127,#ff6b35)', color: '#fff', fontWeight: 700,
+                padding: '12px 24px', borderRadius: 9999, fontSize: '0.875rem', display: 'flex', alignItems: 'center',
+                gap: 8, boxShadow: '0 0 32px rgba(232,33,39,0.35)', cursor: 'pointer', flexShrink: 0,
+              }}
+            >
+              <Icon name="add" size={18} /> Add Application
+            </motion.button>
           </div>
-          <button onClick={() => setShowAdd(true)}
-            className="bg-[#E82127] text-white font-bold py-3 px-6 rounded-full hover:brightness-110 transition-all flex items-center gap-2 text-sm shadow-lg shadow-red-900/20">
-            <Icon name="add" size={18} /> Add Application
-          </button>
-        </div>
+        </motion.div>
 
         {/* Stats */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
           {[
-            { label: 'Total Applied', value: total, icon: 'send', color: 'text-zinc-400', bg: 'bg-zinc-500/10' },
-            { label: 'Active',        value: active, icon: 'trending_up', color: 'text-blue-400', bg: 'bg-blue-500/10' },
-            { label: 'Offers',        value: offers, icon: 'celebration', color: 'text-green-400', bg: 'bg-green-500/10' },
-            { label: 'Offer Rate',    value: `${offerRate}%`, icon: 'percent', color: 'text-yellow-400', bg: 'bg-yellow-500/10' },
-          ].map((s) => (
-            <div key={s.label} className="bg-[#161616] border border-white/5 rounded-2xl p-5 flex items-center gap-4">
-              <div className={`w-10 h-10 ${s.bg} rounded-xl flex items-center justify-center flex-shrink-0`}>
-                <Icon name={s.icon} size={18} className={s.color} />
+            { label: 'Total Applied', value: total,       icon: 'send',        color: '#a1a1aa', glow: 'rgba(161,161,170,0.15)' },
+            { label: 'Active',        value: active,      icon: 'trending_up', color: '#60a5fa', glow: 'rgba(96,165,250,0.15)'  },
+            { label: 'Offers',        value: offers,      icon: 'celebration', color: '#4ade80', glow: 'rgba(74,222,128,0.15)'  },
+            { label: 'Offer Rate',    value: `${offerRate}%`, icon: 'percent', color: '#facc15', glow: 'rgba(250,204,21,0.15)'  },
+          ].map((s, i) => (
+            <motion.div key={s.label}
+              initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
+              style={{ ...GLASS, borderRadius: 18, padding: '1.25rem', display: 'flex', alignItems: 'center', gap: 16 }}
+            >
+              <div style={{ width: 44, height: 44, borderRadius: 12, background: `rgba(${s.color.slice(1).match(/.{2}/g)?.map((x) => parseInt(x, 16)).join(',') ?? '255,255,255'},0.1)`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: `0 0 16px ${s.glow}` }}>
+                <Icon name={s.icon} size={18} style={{ color: s.color }} />
               </div>
               <div>
-                <p className="text-2xl font-black text-white">{s.value}</p>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-600">{s.label}</p>
+                <p style={{ fontSize: '1.5rem', fontWeight: 900, color: '#fff', letterSpacing: '-0.03em' }}>{s.value}</p>
+                <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.12em', color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase' }}>{s.label}</p>
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
 
-        {/* Add Application Modal */}
-        {showAdd && (
-          <div className="bg-[#161616] border border-[#E82127]/25 rounded-2xl p-6 mb-8 space-y-4">
-            <h3 className="font-black text-base">New Application</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {[
-                { label: 'Company', key: 'company', placeholder: 'Google' },
-                { label: 'Role', key: 'role', placeholder: 'Software Engineer L4' },
-                { label: 'Location', key: 'location', placeholder: 'Bangalore' },
-                { label: 'Salary / CTC', key: 'salary', placeholder: '₹50-80 LPA' },
-              ].map(({ label, key, placeholder }) => (
-                <div key={key}>
-                  <label htmlFor={`app-${key}`} className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 block mb-1">{label}</label>
-                  <input id={`app-${key}`} type="text" placeholder={placeholder}
-                    value={(form as unknown as Record<string, string>)[key] ?? ''}
-                    onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
-                    className="w-full bg-[#111] border border-white/8 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-zinc-700 focus:outline-none focus:border-[#E82127]/40" />
+        {/* Add Application form */}
+        <AnimatePresence>
+          {showAdd && (
+            <motion.div
+              initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }}
+              style={{ ...GLASS, borderRadius: 20, padding: '1.5rem', marginBottom: '2rem', border: '1px solid rgba(232,33,39,0.2)', boxShadow: '0 0 40px rgba(232,33,39,0.08)' }}
+            >
+              <h3 style={{ fontWeight: 900, fontSize: '1rem', letterSpacing: '-0.02em', marginBottom: 16 }}>New Application</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {[
+                  { label: 'COMPANY',     key: 'company',  placeholder: 'Google' },
+                  { label: 'ROLE',        key: 'role',     placeholder: 'Software Engineer L4' },
+                  { label: 'LOCATION',    key: 'location', placeholder: 'Bangalore' },
+                  { label: 'SALARY / CTC',key: 'salary',   placeholder: '₹50-80 LPA' },
+                ].map(({ label, key, placeholder }) => (
+                  <div key={key}>
+                    <label htmlFor={`app-${key}`} style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.1em', color: 'rgba(255,255,255,0.25)', display: 'block', marginBottom: 6 }}>{label}</label>
+                    <input id={`app-${key}`} type="text" placeholder={placeholder}
+                      value={(form as unknown as Record<string, string>)[key] ?? ''}
+                      onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
+                      style={{ width: '100%', background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '10px 16px', fontSize: '0.875rem', color: '#fff', outline: 'none' }} />
+                  </div>
+                ))}
+                <div>
+                  <label htmlFor="app-applied-date" style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.1em', color: 'rgba(255,255,255,0.25)', display: 'block', marginBottom: 6 }}>APPLIED DATE</label>
+                  <input id="app-applied-date" type="date" value={form.appliedDate} onChange={(e) => setForm((f) => ({ ...f, appliedDate: e.target.value }))}
+                    style={{ width: '100%', background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '10px 16px', fontSize: '0.875rem', color: '#fff', outline: 'none' }} />
                 </div>
-              ))}
-              <div>
-                <label htmlFor="app-applied-date" className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 block mb-1">Applied Date</label>
-                <input id="app-applied-date" type="date" value={form.appliedDate} onChange={(e) => setForm((f) => ({ ...f, appliedDate: e.target.value }))}
-                  className="w-full bg-[#111] border border-white/8 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#E82127]/40" />
+                <div>
+                  <label htmlFor="app-status" style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.1em', color: 'rgba(255,255,255,0.25)', display: 'block', marginBottom: 6 }}>STATUS</label>
+                  <select id="app-status" value={form.status} onChange={(e) => setForm((f) => ({ ...f, status: e.target.value as AppStatus }))}
+                    style={{ width: '100%', background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '10px 16px', fontSize: '0.875rem', color: '#fff', outline: 'none' }}>
+                    {(Object.keys(STATUS_META) as AppStatus[]).map((s) => <option key={s} value={s}>{STATUS_META[s].label}</option>)}
+                  </select>
+                </div>
               </div>
-              <div>
-                <label htmlFor="app-status" className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 block mb-1">Status</label>
-                <select id="app-status" value={form.status} onChange={(e) => setForm((f) => ({ ...f, status: e.target.value as AppStatus }))}
-                  className="w-full bg-[#111] border border-white/8 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none">
-                  {(Object.keys(STATUS_META) as AppStatus[]).map((s) => <option key={s} value={s}>{STATUS_META[s].label}</option>)}
-                </select>
+              <div className="mt-4">
+                <label htmlFor="app-notes" style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.1em', color: 'rgba(255,255,255,0.25)', display: 'block', marginBottom: 6 }}>NOTES</label>
+                <textarea id="app-notes" value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
+                  placeholder="Referral source, key contact, anything to remember..."
+                  rows={2} style={{ width: '100%', background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '10px 16px', fontSize: '0.875rem', color: '#fff', outline: 'none', resize: 'none' }} />
               </div>
-            </div>
-            <div>
-              <label htmlFor="app-notes" className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 block mb-1">Notes</label>
-              <textarea id="app-notes" value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
-                placeholder="Referral source, key contact, anything to remember..."
-                rows={2} className="w-full bg-[#111] border border-white/8 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-zinc-700 focus:outline-none resize-none" />
-            </div>
-            <div className="flex gap-3">
-              <button onClick={addApp} disabled={!form.company || !form.role}
-                className="bg-[#E82127] text-white font-bold px-6 py-2.5 rounded-full text-sm hover:brightness-110 transition-all disabled:opacity-40">
-                Add Application
-              </button>
-              <button onClick={() => setShowAdd(false)} className="text-zinc-500 hover:text-zinc-300 text-sm px-4 py-2.5 rounded-full transition-colors">Cancel</button>
-            </div>
-          </div>
-        )}
+              <div className="flex gap-3 mt-4">
+                <motion.button onClick={addApp} disabled={!form.company || !form.role}
+                  whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
+                  style={{ background: 'linear-gradient(135deg,#E82127,#ff6b35)', color: '#fff', fontWeight: 700, padding: '10px 24px', borderRadius: 9999, fontSize: '0.875rem', boxShadow: '0 0 20px rgba(232,33,39,0.3)', cursor: 'pointer', opacity: (!form.company || !form.role) ? 0.4 : 1 }}>
+                  Add Application
+                </motion.button>
+                <button onClick={() => setShowAdd(false)}
+                  style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.875rem', padding: '10px 16px', borderRadius: 9999, cursor: 'pointer', background: 'transparent', border: 'none' }}>
+                  Cancel
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* View toggle + filters */}
-        <div className="flex items-center gap-3 flex-wrap mb-6">
-          <div className="flex bg-[#1a1a1a] border border-white/8 rounded-full p-1">
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
+          className="flex items-center gap-3 flex-wrap mb-6">
+          {/* Tab toggle */}
+          <div style={{ display: 'flex', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 9999, padding: 4 }}>
             {(['pipeline', 'list'] as const).map((v) => (
               <button key={v} onClick={() => setTab(v)}
-                className={`px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${tab === v ? 'bg-[#E82127] text-white' : 'text-zinc-500 hover:text-zinc-300'}`}>
+                style={{
+                  padding: '6px 18px', borderRadius: 9999, fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.1em',
+                  textTransform: 'uppercase', cursor: 'pointer', transition: 'all 0.2s',
+                  background: tab === v ? '#E82127' : 'transparent',
+                  color: tab === v ? '#fff' : 'rgba(255,255,255,0.3)',
+                  border: 'none',
+                  boxShadow: tab === v ? '0 0 16px rgba(232,33,39,0.4)' : 'none',
+                }}>
                 {v}
               </button>
             ))}
           </div>
 
-          <div className="flex items-center gap-2 bg-[#1a1a1a] border border-white/8 rounded-xl px-3 py-2">
-            <Icon name="search" size={14} className="text-zinc-600" />
+          {/* Search */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 12, padding: '8px 14px' }}>
+            <Icon name="search" size={14} style={{ color: 'rgba(255,255,255,0.25)' }} />
             <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search company or role..."
-              className="bg-transparent text-sm text-white placeholder:text-zinc-700 focus:outline-none w-40" />
+              style={{ background: 'transparent', fontSize: '0.875rem', color: '#fff', outline: 'none', width: 160, border: 'none' }} />
           </div>
 
+          {/* Status filter pills */}
           <div className="flex gap-2 flex-wrap">
             {(['all', ...Object.keys(STATUS_META)] as (AppStatus | 'all')[]).map((s) => {
               const meta = s === 'all' ? null : STATUS_META[s];
+              const isActive = filterStatus === s;
               return (
                 <button key={s} onClick={() => setFilterStatus(s)}
-                  className={`px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all border ${
-                    filterStatus === s
-                      ? `${meta?.bg ?? 'bg-zinc-500/10'} ${meta?.color ?? 'text-zinc-300'} border-current/30`
-                      : 'text-zinc-600 border-zinc-800 hover:text-zinc-400'
-                  }`}>
-                  {s === 'all' ? 'All' : STATUS_META[s].label}
+                  style={{
+                    padding: '6px 14px', borderRadius: 9999, fontSize: '0.625rem', fontWeight: 700,
+                    letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer', transition: 'all 0.2s',
+                    color: isActive ? (meta?.color ?? 'rgba(255,255,255,0.8)') : 'rgba(255,255,255,0.25)',
+                    background: isActive ? (meta?.bg ?? 'rgba(255,255,255,0.08)') : 'transparent',
+                    border: isActive ? `1px solid ${meta?.color ?? 'rgba(255,255,255,0.3)'}40` : '1px solid rgba(255,255,255,0.06)',
+                    boxShadow: isActive && meta ? `0 0 10px ${meta.glow}` : 'none',
+                  }}>
+                  {s === 'all' ? 'All' : STATUS_META[s as AppStatus].label}
                 </button>
               );
             })}
           </div>
-        </div>
+        </motion.div>
 
         {/* Pipeline View */}
         {tab === 'pipeline' && (
           <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
-            {PIPELINE_COLS.map((status) => {
+            {PIPELINE_COLS.map((status, colIdx) => {
               const col = byStatus(status);
               const meta = STATUS_META[status];
               return (
-                <div key={status} className="min-h-48">
-                  <div className={`flex items-center gap-2 px-3 py-2 rounded-xl mb-3 ${meta.bg}`}>
-                    <Icon name={meta.icon} size={14} className={meta.color} />
-                    <span className={`text-[10px] font-bold uppercase tracking-widest ${meta.color}`}>{meta.label}</span>
-                    <span className="ml-auto text-[10px] font-bold text-zinc-600">{col.length}</span>
+                <motion.div key={status}
+                  initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: colIdx * 0.05 }}
+                  className="min-h-48"
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderRadius: 12, marginBottom: 12, background: meta.bg, border: `1px solid ${meta.color}20` }}>
+                    <Icon name={meta.icon} size={14} style={{ color: meta.color }} />
+                    <span style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: meta.color, flex: 1 }}>{meta.label}</span>
+                    <span style={{ fontSize: '0.625rem', fontWeight: 700, color: 'rgba(255,255,255,0.25)' }}>{col.length}</span>
                   </div>
                   <div className="space-y-2">
                     {col.map((app) => (
-                      <button key={app.id} onClick={() => setSelected(app)} type="button"
-                        className="w-full text-left bg-[#1a1a1a] border border-white/8 rounded-xl p-3 hover:border-white/15 transition-all group">
+                      <motion.button key={app.id} onClick={() => setSelected(app)} type="button"
+                        whileHover={{ scale: 1.02, boxShadow: `0 0 20px ${meta.glow}` }}
+                        style={{ width: '100%', textAlign: 'left', ...GLASS, borderRadius: 14, padding: 12, cursor: 'pointer' }}
+                      >
                         <div className="flex items-start justify-between gap-1 mb-1">
-                          <p className="text-white text-xs font-bold truncate">{app.company}</p>
-                          {app.starred && <Icon name="star" size={12} className="text-yellow-400 flex-shrink-0" filled />}
+                          <p style={{ fontSize: '0.75rem', fontWeight: 700, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{app.company}</p>
+                          {app.starred && <Icon name="star" size={12} style={{ color: '#facc15', flexShrink: 0 }} filled />}
                         </div>
-                        <p className="text-zinc-500 text-[10px] truncate">{app.role}</p>
+                        <p style={{ fontSize: '0.625rem', color: 'rgba(255,255,255,0.3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{app.role}</p>
                         {app.rounds.length > 0 && (
-                          <p className="text-[9px] text-zinc-700 mt-1">{app.rounds.length} round{app.rounds.length > 1 ? 's' : ''}</p>
+                          <p style={{ fontSize: '0.5625rem', color: 'rgba(255,255,255,0.2)', marginTop: 4 }}>{app.rounds.length} round{app.rounds.length > 1 ? 's' : ''}</p>
                         )}
-                      </button>
+                      </motion.button>
                     ))}
                   </div>
-                </div>
+                </motion.div>
               );
             })}
           </div>
         )}
 
-        {/* Rejected / Withdrawn in pipeline */}
+        {/* Closed section in pipeline */}
         {tab === 'pipeline' && (byStatus('rejected').length > 0 || byStatus('withdrawn').length > 0) && (
-          <div className="border-t border-zinc-800 pt-6 mb-8">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 mb-4">Closed</p>
+          <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: 24, marginBottom: 32 }}>
+            <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.12em', color: 'rgba(255,255,255,0.2)', textTransform: 'uppercase', marginBottom: 16 }}>Closed</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
               {[...byStatus('rejected'), ...byStatus('withdrawn')].map((app) => (
-                <button key={app.id} onClick={() => setSelected(app)} type="button"
-                  className="text-left bg-[#1a1a1a] border border-white/5 rounded-xl p-4 hover:border-white/10 transition-all opacity-60 hover:opacity-100">
+                <motion.button key={app.id} onClick={() => setSelected(app)} type="button"
+                  whileHover={{ opacity: 1, scale: 1.02 }}
+                  style={{ textAlign: 'left', ...GLASS, borderRadius: 14, padding: 16, cursor: 'pointer', opacity: 0.5, transition: 'opacity 0.2s' }}
+                >
                   <div className="flex items-center justify-between mb-1">
-                    <p className="text-white text-xs font-bold">{app.company}</p>
+                    <p style={{ fontSize: '0.75rem', fontWeight: 700, color: '#fff' }}>{app.company}</p>
                     <StatusBadge status={app.status} />
                   </div>
-                  <p className="text-zinc-500 text-[10px]">{app.role}</p>
-                </button>
+                  <p style={{ fontSize: '0.625rem', color: 'rgba(255,255,255,0.3)' }}>{app.role}</p>
+                </motion.button>
               ))}
             </div>
           </div>
@@ -551,38 +686,47 @@ export function InterviewTrackerPage() {
         {tab === 'list' && (
           <div className="space-y-2 mb-8">
             {filtered.length === 0 ? (
-              <p className="text-zinc-600 text-sm text-center py-16">No applications match your filters.</p>
+              <p style={{ color: 'rgba(255,255,255,0.2)', fontSize: '0.875rem', textAlign: 'center', padding: '4rem 0' }}>No applications match your filters.</p>
             ) : (
-              filtered.sort((a, b) => new Date(b.appliedDate).getTime() - new Date(a.appliedDate).getTime()).map((app) => (
-                <button key={app.id} onClick={() => setSelected(app)} type="button"
-                  className="w-full text-left bg-[#161616] border border-white/5 rounded-xl px-5 py-4 hover:bg-[#1e1e1e] hover:border-white/10 transition-all group flex items-center gap-4">
-                  <div className="w-10 h-10 bg-[#222] rounded-xl flex items-center justify-center text-base font-black text-white flex-shrink-0">
-                    {app.company[0]?.toUpperCase()}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-0.5">
-                      <p className="text-white text-sm font-bold">{app.company}</p>
-                      {app.starred && <Icon name="star" size={14} className="text-yellow-400" filled />}
+              [...filtered].sort((a, b) => new Date(b.appliedDate).getTime() - new Date(a.appliedDate).getTime()).map((app, i) => {
+                const meta = STATUS_META[app.status];
+                return (
+                  <motion.button key={app.id} onClick={() => setSelected(app)} type="button"
+                    initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.04 }}
+                    whileHover={{ scale: 1.005, boxShadow: `0 0 24px ${meta.glow}` }}
+                    style={{ width: '100%', textAlign: 'left', ...GLASS, borderRadius: 16, padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 16, cursor: 'pointer' }}
+                  >
+                    <div style={{ width: 44, height: 44, borderRadius: 12, background: meta.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem', fontWeight: 900, color: meta.color, flexShrink: 0 }}>
+                      {app.company[0]?.toUpperCase()}
                     </div>
-                    <p className="text-zinc-500 text-xs truncate">{app.role} · {app.location}</p>
-                  </div>
-                  <div className="hidden sm:flex items-center gap-4 flex-shrink-0">
-                    <p className="text-[10px] text-zinc-600">{new Date(app.appliedDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</p>
-                    <p className="text-[10px] text-zinc-600">{app.rounds.length} rounds</p>
-                    <StatusBadge status={app.status} />
-                  </div>
-                  <Icon name="chevron_right" size={16} className="text-zinc-700 group-hover:text-zinc-400 transition-colors flex-shrink-0" />
-                </button>
-              ))
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <p style={{ fontSize: '0.875rem', fontWeight: 700, color: '#fff' }}>{app.company}</p>
+                        {app.starred && <Icon name="star" size={14} style={{ color: '#facc15' }} filled />}
+                      </div>
+                      <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.35)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{app.role} · {app.location}</p>
+                    </div>
+                    <div className="hidden sm:flex items-center gap-4 flex-shrink-0">
+                      <p style={{ fontSize: '0.625rem', color: 'rgba(255,255,255,0.2)' }}>{new Date(app.appliedDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</p>
+                      <p style={{ fontSize: '0.625rem', color: 'rgba(255,255,255,0.2)' }}>{app.rounds.length} rounds</p>
+                      <StatusBadge status={app.status} />
+                    </div>
+                    <Icon name="chevron_right" size={16} style={{ color: 'rgba(255,255,255,0.2)', flexShrink: 0 }} />
+                  </motion.button>
+                );
+              })
             )}
           </div>
         )}
 
         {/* Tips */}
-        <div className="bg-[#161616] border border-white/5 rounded-2xl p-6">
+        <motion.div
+          initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-20px' }}
+          style={{ ...GLASS, borderRadius: 20, padding: '1.5rem' }}
+        >
           <div className="flex items-center gap-3 mb-4">
-            <Icon name="lightbulb" size={18} className="text-yellow-400" filled />
-            <h3 className="font-black text-sm">Interview Tips</h3>
+            <Icon name="lightbulb" size={18} style={{ color: '#facc15' }} filled />
+            <h3 style={{ fontWeight: 900, fontSize: '0.875rem', letterSpacing: '-0.02em' }}>Interview Tips</h3>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {[
@@ -592,14 +736,19 @@ export function InterviewTrackerPage() {
               'Rejected? Follow up after 3-6 months. Feedback improves your next attempt.',
               'Track your weak spots by round type — patterns emerge across companies.',
               'One offer received → log it for +100 XP to celebrate your achievement!',
-            ].map((tip) => (
-              <div key={tip.slice(0, 20)} className="flex items-start gap-2">
-                <div className="w-1 h-1 rounded-full bg-[#E82127] mt-2 flex-shrink-0" />
-                <p className="text-xs text-zinc-500 leading-relaxed">{tip}</p>
-              </div>
+            ].map((tip, i) => (
+              <motion.div key={tip.slice(0, 20)}
+                initial={{ opacity: 0, x: -8 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}
+                transition={{ delay: i * 0.06 }}
+                className="flex items-start gap-2"
+              >
+                <div style={{ width: 4, height: 4, borderRadius: '50%', background: '#E82127', marginTop: 8, flexShrink: 0 }} />
+                <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.35)', lineHeight: 1.7 }}>{tip}</p>
+              </motion.div>
             ))}
           </div>
-        </div>
+        </motion.div>
+
       </div>
     </AppShell>
   );

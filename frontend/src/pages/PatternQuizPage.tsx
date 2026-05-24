@@ -1,8 +1,17 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { AppShell } from '../components/AppShell';
 import { Icon } from '../components/Icon';
 import { useUser } from '../contexts/UserContext';
+
+// ─── Design tokens ────────────────────────────────────────────────────────────
+
+const GLASS = {
+  background: 'rgba(10,10,10,0.7)',
+  border: '1px solid rgba(255,255,255,0.07)',
+  backdropFilter: 'blur(16px)',
+} as const;
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -224,10 +233,10 @@ const ALL_QUESTIONS: QuizQuestion[] = [
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const DIFF_STYLE: Record<string, string> = {
-  easy:   'text-green-400 bg-green-500/10 border-green-500/20',
-  medium: 'text-yellow-400 bg-yellow-500/10 border-yellow-500/20',
-  hard:   'text-red-400 bg-red-500/10 border-red-500/20',
+const DIFF_META: Record<string, { color: string; bg: string; border: string }> = {
+  easy:   { color: '#4ade80', bg: 'rgba(74,222,128,0.08)',   border: 'rgba(74,222,128,0.2)'   },
+  medium: { color: '#facc15', bg: 'rgba(250,204,21,0.08)',   border: 'rgba(250,204,21,0.2)'   },
+  hard:   { color: '#f87171', bg: 'rgba(248,113,113,0.08)',  border: 'rgba(248,113,113,0.2)'  },
 };
 
 function shuffle<T>(arr: T[]): T[] {
@@ -270,7 +279,6 @@ export function PatternQuizPage() {
     setMode('quiz');
   }, [difficulty, questionCount]);
 
-  // Timer
   useEffect(() => {
     if (mode !== 'quiz' || !timedMode) return;
     const interval = setInterval(() => setTimer(t => t + 1), 1000);
@@ -317,38 +325,42 @@ export function PatternQuizPage() {
         {/* ── Home ── */}
         {mode === 'home' && (
           <>
-            {/* Hero */}
-            <div className="bg-surface-container rounded-2xl p-8 mb-8 relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 blur-[80px] rounded-full -mr-16 -mt-16 pointer-events-none" />
-              <div className="flex items-center gap-4 mb-6 relative">
-                <div className="w-14 h-14 bg-indigo-500/10 rounded-2xl flex items-center justify-center">
-                  <Icon name="quiz" size={28} className="text-indigo-400" />
-                </div>
-                <div>
-                  <h1 className="text-3xl font-black tracking-tighter">Pattern Recognition Quiz</h1>
-                  <p className="text-on-surface-variant text-sm">Train your instinct for choosing the right algorithm.</p>
-                </div>
-              </div>
+            {/* Hero card */}
+            <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}
+              style={{ ...GLASS, borderRadius: 24, padding: '2.5rem', marginBottom: '1.5rem', position: 'relative', overflow: 'hidden' }}>
+              {/* ambient glow */}
+              <div style={{ position: 'absolute', top: -80, right: -80, width: 280, height: 280, background: 'rgba(99,102,241,0.08)', borderRadius: '50%', filter: 'blur(60px)', pointerEvents: 'none' }} />
 
-              <p className="text-sm text-zinc-400 leading-relaxed mb-6 relative max-w-xl">
+              <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.2em', color: 'rgba(255,255,255,0.3)', marginBottom: 8, textTransform: 'uppercase', position: 'relative' }}>
+                EYF · Pattern Recognition
+              </p>
+              <h1 style={{
+                fontSize: 'clamp(2rem, 5vw, 3rem)', fontWeight: 900, lineHeight: 1, letterSpacing: '-0.05em',
+                background: 'linear-gradient(135deg, #fff 30%, #818cf8 60%, #c084fc)',
+                WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+                marginBottom: 12, position: 'relative',
+              }}>
+                PATTERN QUIZ.
+              </h1>
+              <p style={{ fontSize: '0.875rem', color: 'rgba(255,255,255,0.45)', lineHeight: 1.7, maxWidth: 480, marginBottom: 24, position: 'relative' }}>
                 The hardest part of coding interviews isn't implementing the algorithm — it's recognizing{' '}
-                <em>which</em> pattern to use. This quiz trains your pattern-matching instinct with 20 real
-                interview scenarios and explains the <em>why</em> behind each answer.
+                <em style={{ color: 'rgba(255,255,255,0.7)' }}>which</em> pattern to use. Train your pattern-matching instinct with{' '}
+                20 real interview scenarios and the <em style={{ color: 'rgba(255,255,255,0.7)' }}>why</em> behind each answer.
               </p>
 
               {/* Config */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6 relative">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6" style={{ position: 'relative' }}>
                 <div>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-zinc-600 block mb-2">Difficulty</p>
-                  <div className="flex gap-1 bg-zinc-900 rounded-xl p-1">
+                  <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.12em', color: 'rgba(255,255,255,0.25)', marginBottom: 8, textTransform: 'uppercase' }}>Difficulty</p>
+                  <div style={{ display: 'flex', background: 'rgba(255,255,255,0.04)', borderRadius: 12, padding: 4, gap: 2 }}>
                     {(['all', 'easy', 'medium', 'hard'] as const).map((d) => (
-                      <button
-                        key={d}
-                        onClick={() => setDifficulty(d)}
-                        className={`flex-1 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${
-                          difficulty === d ? 'bg-indigo-500/20 text-indigo-400' : 'text-zinc-600 hover:text-zinc-300'
-                        }`}
-                      >
+                      <button key={d} onClick={() => setDifficulty(d)}
+                        style={{
+                          flex: 1, padding: '8px 0', borderRadius: 8, fontSize: '0.5625rem', fontWeight: 700,
+                          letterSpacing: '0.08em', textTransform: 'uppercase', cursor: 'pointer', transition: 'all 0.2s', border: 'none',
+                          background: difficulty === d ? 'rgba(99,102,241,0.2)' : 'transparent',
+                          color: difficulty === d ? '#818cf8' : 'rgba(255,255,255,0.25)',
+                        }}>
                         {d === 'all' ? 'All' : d}
                       </button>
                     ))}
@@ -356,16 +368,16 @@ export function PatternQuizPage() {
                 </div>
 
                 <div>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-zinc-600 block mb-2">Questions</p>
-                  <div className="flex gap-1 bg-zinc-900 rounded-xl p-1">
+                  <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.12em', color: 'rgba(255,255,255,0.25)', marginBottom: 8, textTransform: 'uppercase' }}>Questions</p>
+                  <div style={{ display: 'flex', background: 'rgba(255,255,255,0.04)', borderRadius: 12, padding: 4, gap: 2 }}>
                     {[5, 10, 20].map((n) => (
-                      <button
-                        key={n}
-                        onClick={() => setQuestionCount(n)}
-                        className={`flex-1 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${
-                          questionCount === n ? 'bg-indigo-500/20 text-indigo-400' : 'text-zinc-600 hover:text-zinc-300'
-                        }`}
-                      >
+                      <button key={n} onClick={() => setQuestionCount(n)}
+                        style={{
+                          flex: 1, padding: '8px 0', borderRadius: 8, fontSize: '0.5625rem', fontWeight: 700,
+                          letterSpacing: '0.08em', cursor: 'pointer', transition: 'all 0.2s', border: 'none',
+                          background: questionCount === n ? 'rgba(99,102,241,0.2)' : 'transparent',
+                          color: questionCount === n ? '#818cf8' : 'rgba(255,255,255,0.25)',
+                        }}>
                         {n}
                       </button>
                     ))}
@@ -373,139 +385,187 @@ export function PatternQuizPage() {
                 </div>
 
                 <div>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-zinc-600 block mb-2">Timer</p>
-                  <button
-                    onClick={() => setTimedMode(!timedMode)}
-                    className={`w-full py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-widest border transition-all ${
-                      timedMode ? 'bg-indigo-500/10 border-indigo-500/30 text-indigo-400' : 'border-zinc-800 text-zinc-600 hover:text-zinc-300'
-                    }`}
-                  >
+                  <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.12em', color: 'rgba(255,255,255,0.25)', marginBottom: 8, textTransform: 'uppercase' }}>Timer</p>
+                  <button onClick={() => setTimedMode(!timedMode)}
+                    style={{
+                      width: '100%', padding: '10px 0', borderRadius: 12, fontSize: '0.5625rem', fontWeight: 700,
+                      letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer', transition: 'all 0.2s',
+                      background: timedMode ? 'rgba(99,102,241,0.1)' : 'transparent',
+                      color: timedMode ? '#818cf8' : 'rgba(255,255,255,0.25)',
+                      border: timedMode ? '1px solid rgba(99,102,241,0.3)' : '1px solid rgba(255,255,255,0.08)',
+                    }}>
                     {timedMode ? '⏱ Timed On' : 'No Timer'}
                   </button>
                 </div>
               </div>
 
-              <button
-                onClick={startQuiz}
-                className="bg-[#E82127] text-white font-black uppercase tracking-widest text-xs py-4 px-8 rounded-full hover:brightness-110 transition-all active:scale-95 shadow-lg shadow-red-900/30 flex items-center gap-2 relative"
-              >
+              <motion.button onClick={startQuiz}
+                whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
+                style={{
+                  background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', color: '#fff', fontWeight: 900,
+                  fontSize: '0.75rem', letterSpacing: '0.1em', textTransform: 'uppercase',
+                  padding: '14px 32px', borderRadius: 9999, display: 'flex', alignItems: 'center', gap: 8,
+                  boxShadow: '0 0 32px rgba(99,102,241,0.4)', cursor: 'pointer', position: 'relative',
+                }}>
                 <Icon name="play_arrow" size={16} />
                 Start Quiz
-              </button>
-            </div>
+              </motion.button>
+            </motion.div>
 
-            {/* Preview of patterns covered */}
-            <div className="bg-surface-container rounded-2xl p-6">
-              <p className="text-[10px] font-black uppercase tracking-widest text-zinc-600 mb-4">Patterns Covered</p>
+            {/* Patterns covered */}
+            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+              style={{ ...GLASS, borderRadius: 20, padding: '1.5rem' }}>
+              <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.12em', color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', marginBottom: 16 }}>Patterns Covered</p>
               <div className="flex flex-wrap gap-2">
                 {Array.from(new Set(ALL_QUESTIONS.flatMap(q => q.tags))).sort((a, b) => a.localeCompare(b)).map((tag) => (
-                  <span key={tag} className="px-3 py-1.5 bg-zinc-800 rounded-full text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
+                  <span key={tag} style={{ padding: '6px 14px', background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.15)', borderRadius: 9999, fontSize: '0.625rem', fontWeight: 700, color: 'rgba(129,140,248,0.8)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
                     {tag}
                   </span>
                 ))}
               </div>
-            </div>
+            </motion.div>
           </>
         )}
 
         {/* ── Quiz ── */}
         {mode === 'quiz' && q && (
           <>
-            {/* Progress bar */}
-            <div className="mb-6">
+            {/* Progress header */}
+            <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-[10px] font-bold text-zinc-600">{current + 1} / {questions.length}</span>
-                <div className="flex items-center gap-3">
+                <span style={{ fontSize: '0.625rem', fontWeight: 700, color: 'rgba(255,255,255,0.3)', letterSpacing: '0.1em' }}>
+                  {current + 1} / {questions.length}
+                </span>
+                <div className="flex items-center gap-4">
                   {timedMode && (
-                    <span className="text-[10px] font-bold text-zinc-500">
-                      <Icon name="timer" size={11} className="inline mr-1" />
+                    <span style={{ fontSize: '0.625rem', fontWeight: 700, color: 'rgba(255,255,255,0.3)', display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <Icon name="timer" size={11} />
                       {Math.floor(timer / 60)}:{String(timer % 60).padStart(2, '0')}
                     </span>
                   )}
-                  <span className="text-[10px] font-bold text-green-400">{score} correct</span>
+                  <span style={{ fontSize: '0.625rem', fontWeight: 700, color: '#4ade80' }}>{score} correct</span>
                 </div>
               </div>
-              <div className="h-1.5 bg-zinc-800 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-500"
-                  style={{ width: `${progressPct}%` }}
+              <div style={{ height: 6, background: 'rgba(255,255,255,0.06)', borderRadius: 999, overflow: 'hidden' }}>
+                <motion.div
+                  style={{ height: '100%', background: 'linear-gradient(90deg,#6366f1,#8b5cf6)', borderRadius: 999 }}
+                  animate={{ width: `${progressPct}%` }}
+                  transition={{ duration: 0.5 }}
                 />
               </div>
-            </div>
+            </motion.div>
 
             {/* Question card */}
-            <div className="bg-surface-container rounded-2xl overflow-hidden mb-4">
-              <div className="flex items-center justify-between px-6 py-4 border-b border-white/5">
-                <span className={`text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full border ${DIFF_STYLE[q.difficulty]}`}>
-                  {q.difficulty}
-                </span>
-                <div className="flex gap-2">
-                  {q.tags.map((tag) => (
-                    <span key={tag} className="text-[9px] font-bold text-zinc-600 bg-zinc-800 px-2 py-0.5 rounded-full uppercase tracking-widest">
-                      {tag}
-                    </span>
-                  ))}
+            <AnimatePresence mode="wait">
+              <motion.div key={q.id}
+                initial={{ opacity: 0, y: 20, filter: 'blur(6px)' }}
+                animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                exit={{ opacity: 0, y: -16 }}
+                style={{ ...GLASS, borderRadius: 24, overflow: 'hidden', marginBottom: 16 }}
+              >
+                {/* Card header */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                  <span style={{
+                    fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase',
+                    padding: '4px 12px', borderRadius: 9999,
+                    color: DIFF_META[q.difficulty].color, background: DIFF_META[q.difficulty].bg, border: `1px solid ${DIFF_META[q.difficulty].border}`,
+                  }}>
+                    {q.difficulty}
+                  </span>
+                  <div className="flex gap-2 flex-wrap justify-end">
+                    {q.tags.map((tag) => (
+                      <span key={tag} style={{ fontSize: '0.5625rem', fontWeight: 700, color: 'rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.04)', padding: '2px 8px', borderRadius: 9999, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
                 </div>
-              </div>
 
-              <div className="p-6">
-                <p className="text-[10px] font-black uppercase tracking-widest text-indigo-400 mb-3">Which pattern / approach solves this problem?</p>
-                <p className="text-on-surface text-base leading-relaxed font-medium">{q.problem}</p>
-              </div>
+                <div style={{ padding: '24px 24px 16px' }}>
+                  <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#818cf8', marginBottom: 12 }}>
+                    Which pattern / approach solves this problem?
+                  </p>
+                  <p style={{ fontSize: '1rem', color: 'rgba(255,255,255,0.9)', lineHeight: 1.7, fontWeight: 500 }}>{q.problem}</p>
+                </div>
 
-              {/* Options */}
-              <div className="px-6 pb-6 space-y-2">
-                {q.options.map((option) => {
-                  let style = 'bg-surface-container-high border-white/5 hover:border-indigo-500/30 hover:text-white';
-                  if (answered) {
-                    if (option === q.correct) style = 'bg-green-500/10 border-green-500/30 text-green-400';
-                    else if (option === selected) style = 'bg-red-500/10 border-red-500/30 text-red-400';
-                    else style = 'bg-surface-container-high border-white/5 opacity-40';
-                  }
-                  return (
-                    <button
-                      key={option}
-                      type="button"
-                      onClick={() => handleSelect(option)}
-                      disabled={answered}
-                      className={`w-full text-left px-5 py-4 rounded-xl border text-sm font-bold transition-all ${style} ${answered ? 'cursor-default' : 'cursor-pointer'}`}
-                    >
-                      <span className={answered && option === q.correct ? 'text-green-400' : ''}>
+                {/* Options */}
+                <div style={{ padding: '0 24px 24px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {q.options.map((option) => {
+                    let optBg = 'rgba(255,255,255,0.03)';
+                    let optBorder = 'rgba(255,255,255,0.07)';
+                    let optColor = 'rgba(255,255,255,0.7)';
+                    let optOpacity = 1;
+                    let optShadow = 'none';
+                    if (answered) {
+                      if (option === q.correct) {
+                        optBg = 'rgba(74,222,128,0.1)';
+                        optBorder = 'rgba(74,222,128,0.3)';
+                        optColor = '#4ade80';
+                        optShadow = '0 0 16px rgba(74,222,128,0.12)';
+                      } else if (option === selected) {
+                        optBg = 'rgba(248,113,113,0.1)';
+                        optBorder = 'rgba(248,113,113,0.3)';
+                        optColor = '#f87171';
+                      } else {
+                        optOpacity = 0.35;
+                      }
+                    }
+                    return (
+                      <motion.button key={option} type="button"
+                        onClick={() => handleSelect(option)}
+                        disabled={answered}
+                        whileHover={answered ? {} : { scale: 1.01, borderColor: 'rgba(99,102,241,0.4)' }}
+                        style={{
+                          width: '100%', textAlign: 'left', padding: '16px 20px', borderRadius: 14,
+                          fontSize: '0.875rem', fontWeight: 700, transition: 'all 0.2s', cursor: answered ? 'default' : 'pointer',
+                          background: optBg, border: `1px solid ${optBorder}`, color: optColor,
+                          opacity: optOpacity, boxShadow: optShadow,
+                        }}>
                         {answered && option === q.correct && '✓ '}
                         {answered && option === selected && option !== q.correct && '✗ '}
                         {option}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Explanation (revealed after answering) */}
-              {answered && (
-                <div className="mx-6 mb-6 p-4 bg-zinc-900 border border-white/5 rounded-xl">
-                  <p className={`text-[10px] font-black uppercase tracking-widest mb-2 ${selected === q.correct ? 'text-green-400' : 'text-red-400'}`}>
-                    {selected === q.correct ? '✓ Correct!' : `✗ Correct answer: ${q.correct}`}
-                  </p>
-                  <p className="text-sm text-zinc-300 leading-relaxed mb-3">{q.explanation}</p>
-                  <div className="flex items-start gap-2 text-xs text-zinc-500 border-t border-white/5 pt-3 mt-3">
-                    <Icon name="lightbulb" size={13} className="text-yellow-500 flex-shrink-0 mt-0.5" />
-                    <p>{q.followUp}</p>
-                  </div>
+                      </motion.button>
+                    );
+                  })}
                 </div>
-              )}
-            </div>
+
+                {/* Explanation */}
+                <AnimatePresence>
+                  {answered && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                      style={{ margin: '0 24px 24px', padding: 16, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 16 }}
+                    >
+                      <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 8, color: selected === q.correct ? '#4ade80' : '#f87171' }}>
+                        {selected === q.correct ? '✓ Correct!' : `✗ Correct answer: ${q.correct}`}
+                      </p>
+                      <p style={{ fontSize: '0.875rem', color: 'rgba(255,255,255,0.6)', lineHeight: 1.7, marginBottom: 12 }}>{q.explanation}</p>
+                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: '0.75rem', color: 'rgba(255,255,255,0.35)', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: 12 }}>
+                        <Icon name="lightbulb" size={13} style={{ color: '#facc15', flexShrink: 0, marginTop: 2 }} />
+                        <p style={{ lineHeight: 1.6 }}>{q.followUp}</p>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
+            </AnimatePresence>
 
             {answered && (
-              <button
-                onClick={handleNext}
-                className="w-full bg-[#E82127] text-white font-black uppercase tracking-widest text-xs py-4 rounded-full hover:brightness-110 transition-all active:scale-95 flex items-center justify-center gap-2"
-              >
+              <motion.button onClick={handleNext}
+                initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+                whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
+                style={{
+                  width: '100%', background: 'linear-gradient(135deg,#E82127,#ff6b35)', color: '#fff',
+                  fontWeight: 900, fontSize: '0.75rem', letterSpacing: '0.1em', textTransform: 'uppercase',
+                  padding: 16, borderRadius: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  gap: 8, boxShadow: '0 0 28px rgba(232,33,39,0.35)', cursor: 'pointer',
+                }}>
                 {current + 1 >= questions.length ? (
                   <><Icon name="emoji_events" size={16} /> View Results</>
                 ) : (
                   <><Icon name="arrow_forward" size={16} /> Next Question</>
                 )}
-              </button>
+              </motion.button>
             )}
           </>
         )}
@@ -513,89 +573,99 @@ export function PatternQuizPage() {
         {/* ── Results ── */}
         {mode === 'results' && (
           <>
-            <div className="bg-surface-container rounded-2xl p-8 mb-6 text-center">
-              <div className="text-6xl mb-4">
-                {resultEmoji}
-              </div>
-              <h2 className="text-3xl font-black tracking-tighter mb-1">
+            <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}
+              style={{ ...GLASS, borderRadius: 24, padding: '2.5rem', marginBottom: 24, textAlign: 'center' }}>
+              <div style={{ fontSize: '4rem', marginBottom: 16 }}>{resultEmoji}</div>
+              <h2 style={{
+                fontSize: '3rem', fontWeight: 900, letterSpacing: '-0.05em', marginBottom: 4,
+                background: accuracy >= 80 ? 'linear-gradient(135deg,#4ade80,#22d3ee)' : accuracy >= 60 ? 'linear-gradient(135deg,#facc15,#fb923c)' : 'linear-gradient(135deg,#f87171,#fb923c)',
+                WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+              }}>
                 {score} / {questions.length}
               </h2>
-              <p className="text-on-surface-variant mb-6">
+              <p style={{ color: 'rgba(255,255,255,0.35)', marginBottom: 24 }}>
                 {accuracy}% accuracy
-                {timedMode && <span className="ml-2">· {Math.floor(timer / 60)}:{String(timer % 60).padStart(2, '0')}</span>}
+                {timedMode && <span style={{ marginLeft: 8 }}>· {Math.floor(timer / 60)}:{String(timer % 60).padStart(2, '0')}</span>}
               </p>
 
               <div className="flex gap-3 justify-center flex-wrap mb-6">
-                <div className="px-4 py-2 bg-green-500/10 border border-green-500/20 rounded-xl">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Correct</p>
-                  <p className="text-xl font-black text-green-400">{score}</p>
-                </div>
-                <div className="px-4 py-2 bg-red-500/10 border border-red-500/20 rounded-xl">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Wrong</p>
-                  <p className="text-xl font-black text-red-400">{questions.length - score}</p>
-                </div>
-                <div className="px-4 py-2 bg-indigo-500/10 border border-indigo-500/20 rounded-xl">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">XP Earned</p>
-                  <p className="text-xl font-black text-indigo-400">+{score * 10}</p>
-                </div>
+                {[
+                  { label: 'Correct',  value: score,                color: '#4ade80', bg: 'rgba(74,222,128,0.08)',   border: 'rgba(74,222,128,0.2)'   },
+                  { label: 'Wrong',    value: questions.length - score, color: '#f87171', bg: 'rgba(248,113,113,0.08)', border: 'rgba(248,113,113,0.2)'  },
+                  { label: 'XP Earned',value: `+${score * 10}`,    color: '#818cf8', bg: 'rgba(99,102,241,0.08)',   border: 'rgba(99,102,241,0.2)'   },
+                ].map((s) => (
+                  <div key={s.label} style={{ padding: '12px 20px', borderRadius: 16, background: s.bg, border: `1px solid ${s.border}` }}>
+                    <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', marginBottom: 4 }}>{s.label}</p>
+                    <p style={{ fontSize: '1.5rem', fontWeight: 900, color: s.color }}>{s.value}</p>
+                  </div>
+                ))}
               </div>
 
-              <p className="text-sm text-on-surface-variant max-w-sm mx-auto">
-                {resultMsg}
-              </p>
-            </div>
+              <p style={{ fontSize: '0.875rem', color: 'rgba(255,255,255,0.4)', maxWidth: 380, margin: '0 auto' }}>{resultMsg}</p>
+            </motion.div>
 
-            {/* Detailed review */}
+            {/* Review */}
             <div className="space-y-3 mb-6">
-              <p className="text-[10px] font-black uppercase tracking-widest text-zinc-600 mb-4">Review</p>
+              <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.2)', marginBottom: 16 }}>Review</p>
               {answers.map((a, i) => (
-                <div
-                  key={a.question.id}
-                  className={`rounded-xl border p-4 ${a.correct ? 'bg-green-500/5 border-green-500/10' : 'bg-red-500/5 border-red-500/10'}`}
+                <motion.div key={a.question.id}
+                  initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.04 }}
+                  style={{
+                    borderRadius: 16, border: `1px solid ${a.correct ? 'rgba(74,222,128,0.15)' : 'rgba(248,113,113,0.15)'}`,
+                    background: a.correct ? 'rgba(74,222,128,0.04)' : 'rgba(248,113,113,0.04)', padding: 16,
+                  }}
                 >
                   <div className="flex items-start gap-3">
-                    <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 text-xs font-black ${a.correct ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+                    <div style={{ width: 28, height: 28, borderRadius: '50%', flexShrink: 0, marginTop: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 900, background: a.correct ? 'rgba(74,222,128,0.15)' : 'rgba(248,113,113,0.15)', color: a.correct ? '#4ade80' : '#f87171' }}>
                       {i + 1}
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm text-on-surface font-medium leading-relaxed mb-2">{a.question.problem}</p>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ fontSize: '0.875rem', color: 'rgba(255,255,255,0.75)', fontWeight: 500, lineHeight: 1.6, marginBottom: 8 }}>{a.question.problem}</p>
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className={`text-[10px] font-bold ${a.correct ? 'text-green-400' : 'text-red-400'}`}>
+                        <span style={{ fontSize: '0.625rem', fontWeight: 700, color: a.correct ? '#4ade80' : '#f87171' }}>
                           {a.correct ? '✓' : '✗'} Your answer: {a.selected}
                         </span>
                         {!a.correct && (
-                          <span className="text-[10px] text-green-400 font-bold">→ Correct: {a.question.correct}</span>
+                          <span style={{ fontSize: '0.625rem', fontWeight: 700, color: '#4ade80' }}>→ Correct: {a.question.correct}</span>
                         )}
                       </div>
                       {!a.correct && (
-                        <p className="text-xs text-zinc-500 mt-2 leading-relaxed">{a.question.explanation}</p>
+                        <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.3)', marginTop: 8, lineHeight: 1.6 }}>{a.question.explanation}</p>
                       )}
                     </div>
                   </div>
-                </div>
+                </motion.div>
               ))}
             </div>
 
             {/* Actions */}
             <div className="flex gap-3 flex-wrap">
-              <button
-                onClick={startQuiz}
-                className="flex-1 bg-[#E82127] text-white font-black uppercase tracking-widest text-xs py-4 rounded-full hover:brightness-110 transition-all active:scale-95 flex items-center justify-center gap-2"
-              >
-                <Icon name="refresh" size={16} />
-                Try Again
-              </button>
-              <button
-                onClick={() => setMode('home')}
-                className="flex-1 bg-surface-container text-on-surface font-black uppercase tracking-widest text-xs py-4 rounded-full hover:bg-surface-container-high transition-all"
-              >
+              <motion.button onClick={startQuiz}
+                whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+                style={{
+                  flex: 1, background: 'linear-gradient(135deg,#E82127,#ff6b35)', color: '#fff', fontWeight: 900,
+                  fontSize: '0.625rem', letterSpacing: '0.1em', textTransform: 'uppercase', padding: 16,
+                  borderRadius: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                  boxShadow: '0 0 24px rgba(232,33,39,0.3)', cursor: 'pointer',
+                }}>
+                <Icon name="refresh" size={16} /> Try Again
+              </motion.button>
+              <motion.button onClick={() => setMode('home')}
+                whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+                style={{
+                  flex: 1, ...GLASS, color: 'rgba(255,255,255,0.6)', fontWeight: 900,
+                  fontSize: '0.625rem', letterSpacing: '0.1em', textTransform: 'uppercase', padding: 16,
+                  borderRadius: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  cursor: 'pointer',
+                }}>
                 New Quiz
-              </button>
-              <Link to="/app/flashcards" className="flex-1">
-                <button
-                  type="button"
-                  className="w-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 font-black uppercase tracking-widest text-xs py-4 rounded-full hover:bg-indigo-500/20 transition-all"
-                >
+              </motion.button>
+              <Link to="/app/flashcards" style={{ flex: 1 }}>
+                <button type="button" style={{
+                  width: '100%', background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.2)',
+                  color: '#818cf8', fontWeight: 900, fontSize: '0.625rem', letterSpacing: '0.1em', textTransform: 'uppercase',
+                  padding: 16, borderRadius: 9999, cursor: 'pointer',
+                }}>
                   Review Flashcards
                 </button>
               </Link>

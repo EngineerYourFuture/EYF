@@ -1,9 +1,18 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Icon } from '../components/Icon';
 import { ApiError, apiRequest } from '../lib/api';
 import { getSession } from '../lib/session';
 import { useUser } from '../contexts/UserContext';
+
+// ─── Design tokens ────────────────────────────────────────────────────────────
+
+const GLASS = {
+  background: 'rgba(10,10,10,0.7)',
+  border: '1px solid rgba(255,255,255,0.07)',
+  backdropFilter: 'blur(16px)',
+} as const;
 
 // ─── Trace types ─────────────────────────────────────────────────────────────
 
@@ -91,7 +100,7 @@ function localTrace(algorithm: string, input: string): TraceStep[] | null {
   const arr = parseIntArray(input);
   if (algorithm === 'Bubble Sort') return bubbleSortTrace(arr);
   if (algorithm === 'Quick Sort')  return quickSortTrace(arr);
-  if (algorithm === 'Binary Search') return binarySearchTrace(arr, arr[0] + 1); // search for a number close to first
+  if (algorithm === 'Binary Search') return binarySearchTrace(arr, arr[0] + 1);
   return null;
 }
 
@@ -121,16 +130,16 @@ interface Turn {
   question: string;
   insight: string;
   codeHint: string;
-  userReply: string; // filled in after student replies
+  userReply: string;
 }
 
 const STAGES: { key: Stage; label: string; icon: string; color: string; desc: string }[] = [
-  { key: 'understand',   label: 'Understand',  icon: 'visibility',     color: 'text-sky-400',     desc: 'What does the problem ask?' },
-  { key: 'constraints',  label: 'Constraints', icon: 'rule',           color: 'text-violet-400',  desc: 'Input size & complexity' },
-  { key: 'brute_force',  label: 'Brute Force', icon: 'fitness_center', color: 'text-amber-400',   desc: 'Simplest possible solution' },
-  { key: 'pattern',      label: 'Pattern',     icon: 'pattern',        color: 'text-pink-400',    desc: 'Recognise the structure' },
-  { key: 'approach',     label: 'Approach',    icon: 'route',          color: 'text-emerald-400', desc: 'Design the strategy' },
-  { key: 'code',         label: 'Code',        icon: 'code',           color: 'text-primary-container', desc: 'Write it yourself' },
+  { key: 'understand',  label: 'Understand',  icon: 'visibility',     color: '#38bdf8', desc: 'What does the problem ask?' },
+  { key: 'constraints', label: 'Constraints', icon: 'rule',           color: '#a78bfa', desc: 'Input size & complexity'     },
+  { key: 'brute_force', label: 'Brute Force', icon: 'fitness_center', color: '#fbbf24', desc: 'Simplest possible solution'  },
+  { key: 'pattern',     label: 'Pattern',     icon: 'pattern',        color: '#f472b6', desc: 'Recognise the structure'     },
+  { key: 'approach',    label: 'Approach',    icon: 'route',          color: '#34d399', desc: 'Design the strategy'         },
+  { key: 'code',        label: 'Code',        icon: 'code',           color: '#E82127', desc: 'Write it yourself'           },
 ];
 
 type Tab = 'trace' | 'guide';
@@ -166,14 +175,11 @@ export function VisualizerPage() {
     guidanceRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [turns]);
 
-  // ─── Trace ────────────────────────────────────────────────────────────────
-
   const trace = async () => {
     setTraceLoading(true);
     setTraceError(null);
     setSteps([]);
     setCurrentStep(0);
-    // Try local trace first (instant, no backend needed)
     const local = localTrace(algorithm, code);
     if (local) {
       setSteps(local);
@@ -201,9 +207,6 @@ export function VisualizerPage() {
     }
   };
 
-  // ─── Guide ────────────────────────────────────────────────────────────────
-
-  // Build message history from turns for the backend
   const buildMessages = (allTurns: Turn[]) => {
     const msgs: { role: 'user' | 'assistant'; content: string }[] = [];
     for (const t of allTurns) {
@@ -287,47 +290,60 @@ export function VisualizerPage() {
   const latestTurn = turns.at(-1);
   const step = steps[currentStep];
 
-  // ─── Render ───────────────────────────────────────────────────────────────
-
   return (
-    <div className="dark min-h-screen bg-surface text-on-surface">
+    <div style={{ minHeight: '100vh', background: '#080808', color: '#fff' }}>
+
       {/* Navbar */}
-      <header className="fixed top-0 left-0 right-0 z-50 h-16 bg-[#131313]/80 backdrop-blur-xl border-b border-white/5 flex items-center justify-between px-8">
-        <div className="flex items-center gap-4">
-          <Link to="/app/dashboard" className="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors">
+      <header style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50, height: 64, background: 'rgba(8,8,8,0.85)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 2rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <Link to="/app/dashboard" style={{ display: 'flex', alignItems: 'center', color: 'rgba(255,255,255,0.3)', transition: 'color 0.2s' }}>
             <Icon name="arrow_back" size={20} />
           </Link>
-          <span className="text-2xl font-black tracking-tighter text-[#E82127]">EYF</span>
-          <span className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-zinc-500 ml-4">Algorithm Visualizer</span>
+          <span style={{ fontSize: '1.5rem', fontWeight: 900, letterSpacing: '-0.04em', color: '#E82127' }}>EYF</span>
+          <span style={{ fontFamily: 'Inter, sans-serif', letterSpacing: '0.15em', fontSize: '0.625rem', fontWeight: 700, color: 'rgba(255,255,255,0.25)', marginLeft: 16, textTransform: 'uppercase' }}>
+            Algorithm Visualizer
+          </span>
         </div>
 
-        <div className="flex items-center gap-1 bg-surface-container-low rounded-full p-1">
-          <button type="button" onClick={() => setTab('trace')}
-            className={`px-4 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-widest transition-all ${tab === 'trace' ? 'bg-primary-container text-white' : 'text-zinc-500 hover:text-zinc-300'}`}>
-            Trace
-          </button>
-          <button type="button" onClick={() => setTab('guide')}
-            className={`px-4 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-widest transition-all ${tab === 'guide' ? 'bg-primary-container text-white' : 'text-zinc-500 hover:text-zinc-300'}`}>
-            Guide Me
-          </button>
+        {/* Tab toggle */}
+        <div style={{ display: 'flex', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 9999, padding: 4 }}>
+          {(['trace', 'guide'] as const).map((v) => (
+            <button key={v} type="button" onClick={() => setTab(v)}
+              style={{
+                padding: '6px 20px', borderRadius: 9999, fontSize: '0.6875rem', fontWeight: 700,
+                letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer', transition: 'all 0.2s', border: 'none',
+                background: tab === v ? '#E82127' : 'transparent',
+                color: tab === v ? '#fff' : 'rgba(255,255,255,0.3)',
+                boxShadow: tab === v ? '0 0 16px rgba(232,33,39,0.35)' : 'none',
+              }}>
+              {v === 'trace' ? 'Trace' : 'Guide Me'}
+            </button>
+          ))}
         </div>
 
+        {/* Trace controls */}
         {tab === 'trace' && (
-          <div className="flex items-center gap-3">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <select value={algorithm} onChange={(e) => setAlgorithm(e.target.value)}
-              className="bg-surface-container-low rounded-full px-4 py-2 text-[11px] font-bold uppercase tracking-widest text-zinc-300 border-none focus:outline-none">
+              style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 9999, padding: '8px 16px', fontSize: '0.6875rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.7)', outline: 'none', cursor: 'pointer' }}>
               {ALGORITHMS.map((a) => <option key={a} value={a}>{a}</option>)}
             </select>
-            <button type="button" onClick={() => void trace()} disabled={traceLoading}
-              className="bg-primary-container text-white font-bold px-6 py-2 rounded-full text-[11px] uppercase tracking-widest hover:brightness-110 transition-all active:scale-95 disabled:opacity-60 flex items-center gap-2">
+            <motion.button type="button" onClick={() => void trace()} disabled={traceLoading}
+              whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
+              style={{
+                background: 'linear-gradient(135deg,#E82127,#ff6b35)', color: '#fff', fontWeight: 700,
+                padding: '8px 24px', borderRadius: 9999, fontSize: '0.6875rem', letterSpacing: '0.08em', textTransform: 'uppercase',
+                display: 'flex', alignItems: 'center', gap: 8, boxShadow: '0 0 20px rgba(232,33,39,0.35)',
+                cursor: traceLoading ? 'default' : 'pointer', opacity: traceLoading ? 0.6 : 1,
+              }}>
               {traceLoading ? 'Tracing...' : 'Run Trace'}
               <Icon name="play_arrow" size={18} />
-            </button>
+            </motion.button>
           </div>
         )}
         {tab === 'guide' && sessionStarted && (
           <button type="button" onClick={resetGuide}
-            className="text-zinc-500 hover:text-zinc-300 text-[11px] font-bold uppercase tracking-widest flex items-center gap-2 transition-colors">
+            style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.6875rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', background: 'transparent', border: 'none', transition: 'color 0.2s' }}>
             <Icon name="restart_alt" size={16} />
             New Problem
           </button>
@@ -337,62 +353,78 @@ export function VisualizerPage() {
 
       {/* ── TRACE TAB ── */}
       {tab === 'trace' && (
-        <div className="pt-16 flex h-screen">
-          <div className="w-1/2 border-r border-white/5 flex flex-col">
-            <div className="p-6 border-b border-white/5">
-              <p className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-zinc-500">Input Data</p>
+        <div style={{ paddingTop: 64, display: 'flex', height: '100vh' }}>
+          {/* Left: input */}
+          <div style={{ width: '50%', borderRight: '1px solid rgba(255,255,255,0.05)', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ padding: '16px 24px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+              <p style={{ fontFamily: 'Inter, sans-serif', letterSpacing: '0.12em', fontSize: '0.625rem', fontWeight: 700, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase' }}>Input Data</p>
             </div>
             <textarea value={code} onChange={(e) => setCode(e.target.value)}
-              className="flex-1 bg-surface-container-lowest text-on-surface font-mono text-sm p-6 resize-none focus:outline-none border-none"
+              style={{ flex: 1, background: 'rgba(0,0,0,0.3)', color: '#e4e4e7', fontFamily: 'monospace', fontSize: '0.875rem', padding: 24, resize: 'none', outline: 'none', border: 'none' }}
               placeholder="Enter input data (array, graph, etc.)" />
             {traceError && (
-              <div className="p-4 text-error text-sm flex items-center gap-2 border-t border-white/5">
+              <div style={{ padding: 16, color: '#f87171', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: 8, borderTop: '1px solid rgba(255,255,255,0.05)' }}>
                 <Icon name="error_outline" size={18} />{traceError}
               </div>
             )}
           </div>
-          <div className="w-1/2 flex flex-col">
-            <div className="p-6 border-b border-white/5 flex items-center justify-between">
-              <p className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-zinc-500">
+
+          {/* Right: steps */}
+          <div style={{ width: '50%', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ padding: '16px 24px', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <p style={{ fontFamily: 'Inter, sans-serif', letterSpacing: '0.12em', fontSize: '0.625rem', fontWeight: 700, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase' }}>
                 Step {steps.length > 0 ? currentStep + 1 : 0} of {steps.length}
               </p>
               {steps.length > 0 && (
-                <div className="flex items-center gap-2">
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <button type="button" onClick={() => setCurrentStep((s) => Math.max(0, s - 1))} disabled={currentStep === 0}
-                    className="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center text-zinc-400 hover:text-white disabled:opacity-30">
+                    style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.5)', border: 'none', cursor: currentStep === 0 ? 'default' : 'pointer', opacity: currentStep === 0 ? 0.3 : 1 }}>
                     <Icon name="navigate_before" size={20} />
                   </button>
                   <button type="button" onClick={() => setCurrentStep((s) => Math.min(steps.length - 1, s + 1))} disabled={currentStep === steps.length - 1}
-                    className="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center text-zinc-400 hover:text-white disabled:opacity-30">
+                    style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.5)', border: 'none', cursor: currentStep === steps.length - 1 ? 'default' : 'pointer', opacity: currentStep === steps.length - 1 ? 0.3 : 1 }}>
                     <Icon name="navigate_next" size={20} />
                   </button>
                 </div>
               )}
             </div>
+
             {steps.length === 0 && (
-              <div className="flex-1 flex items-center justify-center">
-                <div className="text-center">
-                  <Icon name="play_circle" size={64} className="text-zinc-700 mx-auto mb-4" />
-                  <p className="text-zinc-500">Run a trace to see step-by-step visualization</p>
+              <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ textAlign: 'center' }}>
+                  <Icon name="play_circle" size={64} style={{ color: 'rgba(255,255,255,0.1)', display: 'block', margin: '0 auto 16px' }} />
+                  <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.875rem' }}>Run a trace to see step-by-step visualization</p>
                 </div>
               </div>
             )}
+
             {steps.length > 0 && step && (
-              <div className="flex-1 overflow-y-auto p-8">
-                <div className="mb-6">
-                  <span className="px-3 py-1 bg-primary-container/20 text-primary-container rounded-full text-[10px] font-bold uppercase tracking-widest">Step {step.step}</span>
-                  <p className="text-on-surface mt-4 text-lg font-semibold">{step.description}</p>
-                </div>
-                <div className="bg-surface-container rounded-xl p-6">
-                  <p className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-zinc-500 mb-4">State</p>
-                  <pre className="font-mono text-sm text-on-surface-variant overflow-x-auto">{JSON.stringify(step.state, null, 2)}</pre>
-                </div>
-                <div className="mt-6">
-                  <div className="h-1.5 bg-surface-container-highest rounded-full">
-                    <div className="h-full bg-primary-container rounded-full transition-all" style={{ width: `${((currentStep + 1) / steps.length) * 100}%` }} />
+              <AnimatePresence mode="wait">
+                <motion.div key={currentStep}
+                  initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                  style={{ flex: 1, overflowY: 'auto', padding: 32 }}
+                >
+                  <div style={{ marginBottom: 24 }}>
+                    <span style={{ padding: '4px 12px', background: 'rgba(232,33,39,0.1)', color: '#E82127', borderRadius: 9999, fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+                      Step {step.step}
+                    </span>
+                    <p style={{ color: '#fff', marginTop: 16, fontSize: '1.125rem', fontWeight: 600, lineHeight: 1.5 }}>{step.description}</p>
                   </div>
-                </div>
-              </div>
+                  <div style={{ ...GLASS, borderRadius: 16, padding: 24 }}>
+                    <p style={{ fontFamily: 'Inter, sans-serif', letterSpacing: '0.12em', fontSize: '0.625rem', fontWeight: 700, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', marginBottom: 16 }}>State</p>
+                    <pre style={{ fontFamily: 'monospace', fontSize: '0.875rem', color: 'rgba(255,255,255,0.6)', overflowX: 'auto', lineHeight: 1.7 }}>{JSON.stringify(step.state, null, 2)}</pre>
+                  </div>
+                  <div style={{ marginTop: 24 }}>
+                    <div style={{ height: 6, background: 'rgba(255,255,255,0.06)', borderRadius: 999 }}>
+                      <motion.div
+                        style={{ height: '100%', background: 'linear-gradient(90deg,#E82127,#ff6b35)', borderRadius: 999 }}
+                        animate={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
+                        transition={{ duration: 0.4 }}
+                      />
+                    </div>
+                  </div>
+                </motion.div>
+              </AnimatePresence>
             )}
           </div>
         </div>
@@ -400,39 +432,31 @@ export function VisualizerPage() {
 
       {/* ── GUIDE TAB ── */}
       {tab === 'guide' && (
-        <div className="pt-16 flex flex-col h-screen overflow-hidden">
+        <div style={{ paddingTop: 64, display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
 
           {/* Stage roadmap */}
           {sessionStarted && (
-            <div className="flex-shrink-0 border-b border-white/5 bg-[#131313]/60 backdrop-blur px-8 py-4">
-              <div className="flex items-center gap-0 max-w-4xl mx-auto">
+            <div style={{ flexShrink: 0, borderBottom: '1px solid rgba(255,255,255,0.05)', background: 'rgba(8,8,8,0.7)', backdropFilter: 'blur(16px)', padding: '16px 32px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 0, maxWidth: 768, margin: '0 auto' }}>
                 {STAGES.map((s, i) => {
                   const done = i < stageIndex;
                   const active = i === stageIndex;
-                  let stageOpacity: string;
-                  if (active) { stageOpacity = 'opacity-100'; }
-                  else if (done) { stageOpacity = 'opacity-70'; }
-                  else { stageOpacity = 'opacity-30'; }
-                  let stageBg: string;
-                  if (active) {
-                    stageBg = `bg-primary-container/20 ring-2 ring-primary-container ${s.color}`;
-                  } else if (done) {
-                    stageBg = 'bg-surface-container-high text-zinc-400';
-                  } else {
-                    stageBg = 'bg-surface-container text-zinc-600';
-                  }
                   return (
-                    <div key={s.key} className="flex items-center flex-1">
-                      <div className={`flex flex-col items-center gap-1 flex-shrink-0 transition-all ${stageOpacity}`}>
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${stageBg}`}>
-                          {done
-                            ? <Icon name="check" size={14} />
-                            : <Icon name={s.icon} size={14} />}
+                    <div key={s.key} style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, flexShrink: 0, opacity: active ? 1 : done ? 0.7 : 0.3, transition: 'opacity 0.3s' }}>
+                        <div style={{
+                          width: 32, height: 32, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.3s',
+                          background: active ? `${s.color}22` : done ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.04)',
+                          border: active ? `2px solid ${s.color}` : done ? '2px solid rgba(255,255,255,0.15)' : '2px solid rgba(255,255,255,0.06)',
+                          color: active ? s.color : done ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.2)',
+                          boxShadow: active ? `0 0 12px ${s.color}44` : 'none',
+                        }}>
+                          {done ? <Icon name="check" size={14} /> : <Icon name={s.icon} size={14} />}
                         </div>
-                        <span className={`text-[9px] font-bold uppercase tracking-widest ${active ? s.color : 'text-zinc-500'}`}>{s.label}</span>
+                        <span style={{ fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: active ? s.color : 'rgba(255,255,255,0.3)' }}>{s.label}</span>
                       </div>
                       {i < STAGES.length - 1 && (
-                        <div className={`flex-1 h-px mx-1 transition-all ${done ? 'bg-primary-container/40' : 'bg-white/5'}`} />
+                        <div style={{ flex: 1, height: 1, margin: '0 4px', marginBottom: 16, background: done ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.05)', transition: 'background 0.3s' }} />
                       )}
                     </div>
                   );
@@ -442,73 +466,65 @@ export function VisualizerPage() {
           )}
 
           {/* Main content */}
-          <div className="flex flex-1 min-h-0">
+          <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
 
-            {/* ── Left: Problem + Insights ── */}
-            <div className="w-2/5 border-r border-white/5 flex flex-col">
-              <div className="p-5 border-b border-white/5 flex items-center justify-between">
-                <p className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-zinc-500">Problem</p>
+            {/* Left: Problem + Insights */}
+            <div style={{ width: '40%', borderRight: '1px solid rgba(255,255,255,0.05)', display: 'flex', flexDirection: 'column' }}>
+              <div style={{ padding: '16px 20px', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <p style={{ fontFamily: 'Inter, sans-serif', letterSpacing: '0.12em', fontSize: '0.625rem', fontWeight: 700, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase' }}>Problem</p>
                 {!sessionStarted && problem.trim() && (
-                  <button type="button" onClick={() => void startSession()}
-                    className="bg-primary-container text-white font-bold px-4 py-1.5 rounded-full text-[11px] uppercase tracking-widest hover:brightness-110 transition-all active:scale-95 flex items-center gap-1.5">
+                  <motion.button type="button" onClick={() => void startSession()}
+                    whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
+                    style={{ background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', color: '#fff', fontWeight: 700, padding: '6px 16px', borderRadius: 9999, fontSize: '0.6875rem', letterSpacing: '0.08em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', boxShadow: '0 0 16px rgba(99,102,241,0.3)' }}>
                     <Icon name="psychology" size={14} />
                     Guide Me
-                  </button>
+                  </motion.button>
                 )}
               </div>
 
               {sessionStarted ? (
-                <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
-                  {/* Problem text */}
-                  <div className="p-5 border-b border-white/5 overflow-y-auto max-h-48 flex-shrink-0">
-                    <p className="text-xs text-zinc-400 leading-relaxed whitespace-pre-wrap font-mono">{problem}</p>
+                <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, overflow: 'hidden' }}>
+                  <div style={{ padding: 20, borderBottom: '1px solid rgba(255,255,255,0.05)', overflowY: 'auto', maxHeight: 192, flexShrink: 0 }}>
+                    <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.45)', lineHeight: 1.7, whiteSpace: 'pre-wrap', fontFamily: 'monospace' }}>{problem}</p>
                   </div>
-
-                  {/* Insights unlocked */}
-                  <div className="flex-1 overflow-y-auto p-5">
-                    <p className="font-['Inter'] uppercase tracking-widest text-[9px] font-bold text-zinc-600 mb-3">Insights Unlocked</p>
+                  <div style={{ flex: 1, overflowY: 'auto', padding: 20 }}>
+                    <p style={{ fontFamily: 'Inter, sans-serif', letterSpacing: '0.1em', fontSize: '0.5625rem', fontWeight: 700, color: 'rgba(255,255,255,0.2)', textTransform: 'uppercase', marginBottom: 12 }}>Insights Unlocked</p>
                     {insights.length === 0 ? (
-                      <p className="text-zinc-600 text-xs">Nothing yet — answer the first question to start building your understanding.</p>
+                      <p style={{ color: 'rgba(255,255,255,0.2)', fontSize: '0.75rem' }}>Nothing yet — answer the first question to start building your understanding.</p>
                     ) : (
-                      <div className="space-y-2">
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                         {insights.map((insight) => (
-                          <div key={insight} className="flex items-start gap-2 bg-surface-container rounded-lg px-3 py-2">
-                            <span className="text-emerald-400 mt-0.5 flex-shrink-0 text-xs">✓</span>
-                            <p className="text-xs text-zinc-300 leading-relaxed">{insight}</p>
+                          <div key={insight} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, background: 'rgba(52,211,153,0.06)', border: '1px solid rgba(52,211,153,0.12)', borderRadius: 10, padding: '8px 12px' }}>
+                            <span style={{ color: '#34d399', flexShrink: 0, fontSize: '0.75rem', marginTop: 1 }}>✓</span>
+                            <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.55)', lineHeight: 1.6 }}>{insight}</p>
                           </div>
                         ))}
                       </div>
                     )}
                   </div>
-
-                  {/* Code scratchpad — appears at approach/code stage */}
                   {(currentStage === 'approach' || currentStage === 'code') && (
-                    <div className="border-t border-white/5 flex-shrink-0">
-                      <div className="px-5 pt-4 pb-1 flex items-center justify-between">
-                        <p className="font-['Inter'] uppercase tracking-widest text-[9px] font-bold text-zinc-600">Your Code</p>
-                        <span className="text-[9px] text-zinc-600 uppercase tracking-widest">Write it yourself</span>
+                    <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', flexShrink: 0 }}>
+                      <div style={{ padding: '12px 20px 4px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <p style={{ fontFamily: 'Inter, sans-serif', letterSpacing: '0.1em', fontSize: '0.5625rem', fontWeight: 700, color: 'rgba(255,255,255,0.2)', textTransform: 'uppercase' }}>Your Code</p>
+                        <span style={{ fontSize: '0.5625rem', color: 'rgba(255,255,255,0.2)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Write it yourself</span>
                       </div>
-                      <textarea
-                        value={studentCode}
-                        onChange={(e) => setStudentCode(e.target.value)}
-                        rows={8}
-                        placeholder="// Start writing your solution here…"
-                        className="w-full bg-surface-container-lowest text-on-surface font-mono text-xs p-4 resize-none focus:outline-none border-none"
-                        spellCheck={false}
-                      />
+                      <textarea value={studentCode} onChange={(e) => setStudentCode(e.target.value)}
+                        rows={8} placeholder="// Start writing your solution here…"
+                        style={{ width: '100%', background: 'rgba(0,0,0,0.3)', color: '#e4e4e7', fontFamily: 'monospace', fontSize: '0.75rem', padding: 16, resize: 'none', outline: 'none', border: 'none' }}
+                        spellCheck={false} />
                     </div>
                   )}
                 </div>
               ) : (
                 <>
                   <textarea value={problem} onChange={(e) => setProblem(e.target.value)}
-                    className="flex-1 bg-surface-container-lowest text-on-surface font-mono text-sm p-5 resize-none focus:outline-none border-none"
+                    style={{ flex: 1, background: 'rgba(0,0,0,0.3)', color: '#e4e4e7', fontFamily: 'monospace', fontSize: '0.875rem', padding: 20, resize: 'none', outline: 'none', border: 'none' }}
                     placeholder={`Paste any DSA problem here…\n\nExample:\n"Given an integer array nums and an integer target, return indices of the two numbers such that they add up to target."`} />
                   {!problem.trim() && (
-                    <div className="p-5 border-t border-white/5 space-y-2">
+                    <div style={{ padding: 20, borderTop: '1px solid rgba(255,255,255,0.05)', display: 'flex', flexDirection: 'column', gap: 8 }}>
                       {['Paste any DSA problem above', 'AI asks you guiding questions — not answers', 'Discover the logic yourself, then write the code'].map((tip) => (
-                        <div key={tip} className="flex items-start gap-2 text-[11px] text-zinc-500">
-                          <span className="text-primary-container mt-0.5 flex-shrink-0">→</span>{tip}
+                        <div key={tip} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: '0.6875rem', color: 'rgba(255,255,255,0.3)' }}>
+                          <span style={{ color: '#818cf8', flexShrink: 0, marginTop: 1 }}>→</span>{tip}
                         </div>
                       ))}
                     </div>
@@ -517,19 +533,14 @@ export function VisualizerPage() {
               )}
             </div>
 
-            {/* ── Right: Guidance ── */}
-            <div className="flex-1 flex flex-col min-h-0">
+            {/* Right: Guidance */}
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
               {sessionStarted ? (
                 <>
-                  {/* Guidance scroll area */}
-                  <div className="flex-1 overflow-y-auto p-6 space-y-5 bg-[#111111]">
-
-                    {/* Previous turns (compact) */}
+                  <div style={{ flex: 1, overflowY: 'auto', padding: 24, display: 'flex', flexDirection: 'column', gap: 20, background: 'rgba(4,4,4,0.8)' }}>
                     {turns.slice(0, -1).map((turn) => (
                       <PastTurnCard key={turn.question.slice(0, 40)} turn={turn} />
                     ))}
-
-                    {/* Current guidance card */}
                     {guideLoading && turns.length === 0 && <ThinkingCard />}
                     {latestTurn && (
                       <ActiveGuidanceCard
@@ -538,54 +549,46 @@ export function VisualizerPage() {
                       />
                     )}
                     {guideLoading && turns.length > 0 && <ThinkingCard />}
-
                     {guideError && (
-                      <div className="flex items-center gap-2 text-error text-sm px-2 py-3 bg-error/10 rounded-xl">
-                        <Icon name="error_outline" size={16} />
-                        {guideError}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#f87171', fontSize: '0.875rem', padding: 12, background: 'rgba(248,113,113,0.08)', borderRadius: 12 }}>
+                        <Icon name="error_outline" size={16} />{guideError}
                       </div>
                     )}
-
                     <div ref={guidanceRef} />
                   </div>
-
-                  {/* Reply input */}
-                  <div className="border-t border-white/5 p-4 flex-shrink-0">
-                    <div className="flex items-end gap-3 bg-surface-container rounded-xl px-4 py-3">
-                      <textarea
-                        value={userInput}
-                        onChange={(e) => setUserInput(e.target.value)}
+                  <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', padding: 16, flexShrink: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'flex-end', gap: 12, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, padding: '12px 16px' }}>
+                      <textarea value={userInput} onChange={(e) => setUserInput(e.target.value)}
                         onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); void sendReply(); } }}
-                        rows={2}
-                        disabled={guideLoading}
+                        rows={2} disabled={guideLoading}
                         placeholder="Share your thinking… (Enter to send)"
-                        className="flex-1 bg-transparent text-sm text-on-surface placeholder-zinc-600 resize-none focus:outline-none"
-                      />
-                      <button type="button" onClick={() => void sendReply()} disabled={!userInput.trim() || guideLoading}
-                        className="w-9 h-9 rounded-full bg-primary-container flex items-center justify-center hover:brightness-110 transition-all active:scale-95 disabled:opacity-30 flex-shrink-0">
-                        <Icon name="send" size={16} className="text-white" />
-                      </button>
+                        style={{ flex: 1, background: 'transparent', fontSize: '0.875rem', color: '#fff', resize: 'none', outline: 'none', border: 'none', lineHeight: 1.6 }} />
+                      <motion.button type="button" onClick={() => void sendReply()} disabled={!userInput.trim() || guideLoading}
+                        whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
+                        style={{ width: 36, height: 36, borderRadius: '50%', background: '#6366f1', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: (!userInput.trim() || guideLoading) ? 'default' : 'pointer', opacity: (!userInput.trim() || guideLoading) ? 0.3 : 1, flexShrink: 0, border: 'none', boxShadow: '0 0 12px rgba(99,102,241,0.4)' }}>
+                        <Icon name="send" size={16} style={{ color: '#fff' }} />
+                      </motion.button>
                     </div>
-                    <p className="text-[10px] text-zinc-600 mt-2 px-1">The AI will never write your code — only guide your thinking.</p>
+                    <p style={{ fontSize: '0.625rem', color: 'rgba(255,255,255,0.2)', marginTop: 8, paddingLeft: 4 }}>The AI will never write your code — only guide your thinking.</p>
                   </div>
                 </>
               ) : (
-                <div className="flex-1 flex items-center justify-center">
-                  <div className="text-center max-w-sm">
-                    <div className="w-16 h-16 bg-primary-container/10 rounded-2xl flex items-center justify-center mx-auto mb-5">
-                      <Icon name="psychology" size={32} className="text-primary-container" />
+                <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div style={{ textAlign: 'center', maxWidth: 400 }}>
+                    <div style={{ width: 64, height: 64, background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.2)', borderRadius: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
+                      <Icon name="psychology" size={32} style={{ color: '#818cf8' }} />
                     </div>
-                    <p className="text-zinc-400 text-sm leading-relaxed">
+                    <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.875rem', lineHeight: 1.8 }}>
                       Paste a problem on the left, then hit{' '}
-                      <span className="text-primary-container font-bold">Guide Me</span>.
+                      <span style={{ color: '#818cf8', fontWeight: 700 }}>Guide Me</span>.
                       <br /><br />
                       The AI walks you through 6 thinking stages — from understanding the problem to writing the code — asking questions instead of giving answers.
                     </p>
-                    <div className="mt-6 grid grid-cols-3 gap-2">
+                    <div style={{ marginTop: 24, display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
                       {STAGES.map((s) => (
-                        <div key={s.key} className="bg-surface-container rounded-xl p-3 text-center">
-                          <Icon name={s.icon} size={16} className={`mx-auto mb-1 ${s.color}`} />
-                          <p className={`text-[9px] font-bold uppercase tracking-widest ${s.color}`}>{s.label}</p>
+                        <div key={s.key} style={{ ...GLASS, borderRadius: 14, padding: 12, textAlign: 'center' }}>
+                          <Icon name={s.icon} size={16} style={{ color: s.color, display: 'block', margin: '0 auto 6px' }} />
+                          <p style={{ fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: s.color }}>{s.label}</p>
                         </div>
                       ))}
                     </div>
@@ -607,64 +610,60 @@ function ActiveGuidanceCard({ turn, stageMeta }: Readonly<{
   stageMeta: typeof STAGES[0];
 }>) {
   return (
-    <div className="rounded-2xl overflow-hidden border border-zinc-700/60 bg-zinc-900">
+    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
+      style={{ borderRadius: 20, overflow: 'hidden', border: `1px solid ${stageMeta.color}25`, background: 'rgba(12,12,12,0.8)' }}>
       {/* Stage badge */}
-      <div className="px-5 pt-4 pb-3 flex items-center gap-3 border-b border-zinc-700/40">
-        <div className={`w-8 h-8 rounded-xl flex items-center justify-center bg-zinc-800 ${stageMeta.color}`}>
+      <div style={{ padding: '16px 20px 12px', display: 'flex', alignItems: 'center', gap: 12, borderBottom: `1px solid ${stageMeta.color}15` }}>
+        <div style={{ width: 36, height: 36, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', background: `${stageMeta.color}15`, border: `1px solid ${stageMeta.color}30`, color: stageMeta.color, boxShadow: `0 0 12px ${stageMeta.color}30` }}>
           <Icon name={stageMeta.icon} size={16} />
         </div>
-        <div>
-          <p className={`text-xs font-black uppercase tracking-widest ${stageMeta.color}`}>{stageMeta.label}</p>
-          <p className="text-[10px] text-zinc-500 mt-0.5">{stageMeta.desc}</p>
+        <div style={{ flex: 1 }}>
+          <p style={{ fontSize: '0.75rem', fontWeight: 900, letterSpacing: '0.06em', textTransform: 'uppercase', color: stageMeta.color }}>{stageMeta.label}</p>
+          <p style={{ fontSize: '0.625rem', color: 'rgba(255,255,255,0.3)', marginTop: 2 }}>{stageMeta.desc}</p>
         </div>
-        <div className="ml-auto">
-          <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest bg-zinc-800 ${stageMeta.color}`}>
-            Stage {STAGES.findIndex(s => s.key === stageMeta.key) + 1} / {STAGES.length}
-          </span>
-        </div>
+        <span style={{ padding: '3px 10px', borderRadius: 9999, fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', background: `${stageMeta.color}15`, color: stageMeta.color }}>
+          Stage {STAGES.findIndex(s => s.key === stageMeta.key) + 1} / {STAGES.length}
+        </span>
       </div>
 
-      {/* Question — the core content */}
-      <div className="px-5 py-5">
-        <p className="text-white text-base font-medium leading-relaxed">{turn.question}</p>
+      <div style={{ padding: '20px 20px 16px' }}>
+        <p style={{ color: '#fff', fontSize: '1rem', fontWeight: 500, lineHeight: 1.7 }}>{turn.question}</p>
       </div>
 
-      {/* Code scaffold — code stage only */}
       {turn.codeHint && (
-        <div className="mx-5 mb-5 rounded-xl bg-zinc-950 border border-zinc-700/40 overflow-hidden">
-          <div className="px-4 py-2 border-b border-zinc-700/40 flex items-center gap-2">
-            <Icon name="code" size={12} className="text-zinc-500" />
-            <p className="text-[9px] font-bold uppercase tracking-widest text-zinc-500">Scaffold — you fill in the logic</p>
+        <div style={{ margin: '0 20px 20px', borderRadius: 14, background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.07)', overflow: 'hidden' }}>
+          <div style={{ padding: '8px 16px', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Icon name="code" size={12} style={{ color: 'rgba(255,255,255,0.2)' }} />
+            <p style={{ fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.2)' }}>Scaffold — you fill in the logic</p>
           </div>
-          <pre className="font-mono text-sm text-zinc-300 px-4 py-3 leading-relaxed overflow-x-auto">{turn.codeHint}</pre>
+          <pre style={{ fontFamily: 'monospace', fontSize: '0.875rem', color: 'rgba(255,255,255,0.6)', padding: '12px 16px', lineHeight: 1.7, overflowX: 'auto' }}>{turn.codeHint}</pre>
         </div>
       )}
 
-      {/* Student reply */}
       {turn.userReply && (
-        <div className="border-t border-zinc-700/40 bg-zinc-800/50 px-5 py-3 flex items-start gap-3">
-          <div className="w-5 h-5 rounded-full bg-primary-container/30 flex items-center justify-center flex-shrink-0 mt-0.5">
-            <Icon name="person" size={11} className="text-primary-container" />
+        <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', background: 'rgba(255,255,255,0.02)', padding: '12px 20px', display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+          <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'rgba(99,102,241,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2 }}>
+            <Icon name="person" size={11} style={{ color: '#818cf8' }} />
           </div>
-          <p className="text-sm text-zinc-300 leading-relaxed">{turn.userReply}</p>
+          <p style={{ fontSize: '0.875rem', color: 'rgba(255,255,255,0.5)', lineHeight: 1.6 }}>{turn.userReply}</p>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }
 
 function PastTurnCard({ turn }: Readonly<{ turn: Turn }>) {
   const meta = STAGES.find((s) => s.key === turn.stage) ?? STAGES[0];
   return (
-    <div className="rounded-xl bg-zinc-800/60 border border-zinc-700/40 px-4 py-3 opacity-60">
-      <div className="flex items-center gap-2 mb-1.5">
-        <Icon name={meta.icon} size={12} className={meta.color} />
-        <p className={`text-[9px] font-bold uppercase tracking-widest ${meta.color}`}>{meta.label}</p>
-        <Icon name="check_circle" size={12} className="text-emerald-400 ml-auto" />
+    <div style={{ borderRadius: 14, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', padding: '12px 16px', opacity: 0.55 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+        <Icon name={meta.icon} size={12} style={{ color: meta.color }} />
+        <p style={{ fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: meta.color }}>{meta.label}</p>
+        <Icon name="check_circle" size={12} style={{ color: '#34d399', marginLeft: 'auto' }} />
       </div>
-      <p className="text-xs text-zinc-300 line-clamp-2">{turn.question}</p>
+      <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{turn.question}</p>
       {turn.userReply && (
-        <p className="text-xs text-zinc-500 mt-1 line-clamp-1 border-t border-zinc-700/40 pt-1">You: {turn.userReply}</p>
+        <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.25)', marginTop: 6, borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: 6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>You: {turn.userReply}</p>
       )}
     </div>
   );
@@ -672,14 +671,14 @@ function PastTurnCard({ turn }: Readonly<{ turn: Turn }>) {
 
 function ThinkingCard() {
   return (
-    <div className="rounded-2xl bg-surface-container border border-white/5 px-5 py-4 flex items-center gap-3">
-      <div className="w-7 h-7 rounded-full bg-primary-container/20 flex items-center justify-center flex-shrink-0">
-        <Icon name="psychology" size={14} className="text-primary-container" />
+    <div style={{ borderRadius: 16, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 12 }}>
+      <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'rgba(99,102,241,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+        <Icon name="psychology" size={14} style={{ color: '#818cf8' }} />
       </div>
-      <div className="flex items-center gap-1.5">
-        <span className="w-1.5 h-1.5 bg-zinc-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-        <span className="w-1.5 h-1.5 bg-zinc-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-        <span className="w-1.5 h-1.5 bg-zinc-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+        {[0, 150, 300].map((delay) => (
+          <span key={delay} style={{ width: 6, height: 6, background: 'rgba(255,255,255,0.3)', borderRadius: '50%', display: 'inline-block', animationDuration: '1s', animationIterationCount: 'infinite', animationName: 'bounce', animationDelay: `${delay}ms` }} className="animate-bounce" />
+        ))}
       </div>
     </div>
   );
