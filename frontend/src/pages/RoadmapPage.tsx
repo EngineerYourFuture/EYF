@@ -1,7 +1,14 @@
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { AppShell } from '../components/AppShell';
 import { useUser } from '../contexts/UserContext';
+
+const GLASS = {
+  background: 'rgba(10,10,10,0.7)',
+  border: '1px solid rgba(255,255,255,0.07)',
+  backdropFilter: 'blur(16px)',
+} as const;
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -454,24 +461,30 @@ const ROADMAPS: RoadmapTrack[] = [
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const TYPE_META: Record<RoadmapTask['type'], { label: string; color: string; icon: string }> = {
-  theory:   { label: 'Theory',   color: 'bg-blue-500/15 text-blue-300 border-blue-500/30',    icon: 'menu_book' },
-  practice: { label: 'Practice', color: 'bg-orange-500/15 text-orange-300 border-orange-500/30', icon: 'code' },
-  project:  { label: 'Project',  color: 'bg-purple-500/15 text-purple-300 border-purple-500/30', icon: 'build' },
-  mock:     { label: 'Mock',     color: 'bg-red-500/15 text-red-300 border-red-500/30',       icon: 'record_voice_over' },
-  review:   { label: 'Review',   color: 'bg-green-500/15 text-green-300 border-green-500/30', icon: 'refresh' },
+const TYPE_META: Record<RoadmapTask['type'], { label: string; color: string; bg: string; icon: string }> = {
+  theory:   { label: 'Theory',   color: '#60a5fa', bg: 'rgba(96,165,250,0.12)',   icon: 'menu_book'        },
+  practice: { label: 'Practice', color: '#fb923c', bg: 'rgba(251,146,60,0.12)',   icon: 'code'             },
+  project:  { label: 'Project',  color: '#c084fc', bg: 'rgba(192,132,252,0.12)',  icon: 'build'            },
+  mock:     { label: 'Mock',     color: '#f87171', bg: 'rgba(248,113,113,0.12)',  icon: 'record_voice_over'},
+  review:   { label: 'Review',   color: '#4ade80', bg: 'rgba(74,222,128,0.12)',   icon: 'refresh'          },
 };
 
-const WEEK_COLORS: Record<string, { bg: string; text: string; ring: string }> = {
-  'border-blue-500':   { bg: 'bg-blue-500/10',   text: 'text-blue-400',   ring: 'ring-blue-500/40' },
-  'border-purple-500': { bg: 'bg-purple-500/10', text: 'text-purple-400', ring: 'ring-purple-500/40' },
-  'border-green-500':  { bg: 'bg-green-500/10',  text: 'text-green-400',  ring: 'ring-green-500/40' },
-  'border-orange-500': { bg: 'bg-orange-500/10', text: 'text-orange-400', ring: 'ring-orange-500/40' },
-  'border-pink-500':   { bg: 'bg-pink-500/10',   text: 'text-pink-400',   ring: 'ring-pink-500/40' },
-  'border-red-500':    { bg: 'bg-red-500/10',    text: 'text-red-400',    ring: 'ring-red-500/40' },
-  'border-yellow-500': { bg: 'bg-yellow-500/10', text: 'text-yellow-400', ring: 'ring-yellow-500/40' },
-  'border-cyan-500':   { bg: 'bg-cyan-500/10',   text: 'text-cyan-400',   ring: 'ring-cyan-500/40' },
-  'border-teal-500':   { bg: 'bg-teal-500/10',   text: 'text-teal-400',   ring: 'ring-teal-500/40' },
+const WEEK_COLORS: Record<string, { color: string; glow: string; border: string }> = {
+  'border-blue-500':   { color: '#60a5fa', glow: 'rgba(96,165,250,0.1)',   border: 'rgba(96,165,250,0.25)'  },
+  'border-purple-500': { color: '#c084fc', glow: 'rgba(192,132,252,0.1)',  border: 'rgba(192,132,252,0.25)' },
+  'border-green-500':  { color: '#4ade80', glow: 'rgba(74,222,128,0.1)',   border: 'rgba(74,222,128,0.25)'  },
+  'border-orange-500': { color: '#fb923c', glow: 'rgba(251,146,60,0.1)',   border: 'rgba(251,146,60,0.25)'  },
+  'border-pink-500':   { color: '#f472b6', glow: 'rgba(244,114,182,0.1)',  border: 'rgba(244,114,182,0.25)' },
+  'border-red-500':    { color: '#f87171', glow: 'rgba(248,113,113,0.1)',  border: 'rgba(248,113,113,0.25)' },
+  'border-yellow-500': { color: '#facc15', glow: 'rgba(250,204,21,0.1)',   border: 'rgba(250,204,21,0.25)'  },
+  'border-cyan-500':   { color: '#22d3ee', glow: 'rgba(34,211,238,0.1)',   border: 'rgba(34,211,238,0.25)'  },
+  'border-teal-500':   { color: '#2dd4bf', glow: 'rgba(45,212,191,0.1)',   border: 'rgba(45,212,191,0.25)'  },
+};
+
+const TRACK_COLOR: Record<string, { color: string; glow: string }> = {
+  campus:  { color: '#60a5fa', glow: 'rgba(96,165,250,0.15)'  },
+  faang:   { color: '#c084fc', glow: 'rgba(192,132,252,0.15)' },
+  backend: { color: '#4ade80', glow: 'rgba(74,222,128,0.15)'  },
 };
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -505,9 +518,8 @@ export function RoadmapPage() {
   ).filter(k => completedTasks.has(k)).length;
 
   const progressPct = totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0;
-  let progressBarColor = 'bg-blue-500';
-  if (progressPct >= 80) progressBarColor = 'bg-green-500';
-  else if (progressPct >= 40) progressBarColor = 'bg-orange-500';
+  const progressBarHex = progressPct >= 80 ? '#4ade80' : progressPct >= 40 ? '#fb923c' : '#60a5fa';
+  const trackColors = TRACK_COLOR[selectedTrack] ?? { color: '#60a5fa', glow: 'rgba(96,165,250,0.15)' };
 
   function toggleTask(trackId: string, weekIdx: number, taskIdx: number, xp: number) {
     const key = `${trackId}-${weekIdx}-${taskIdx}`;
@@ -532,57 +544,80 @@ export function RoadmapPage() {
 
   return (
     <AppShell>
-      <div className="max-w-4xl mx-auto px-4 py-8 space-y-8">
+      <div style={{ maxWidth: 900, margin: '0 auto', padding: '0 24px 80px' }}>
 
-        {/* Header */}
-        <div>
-          <h1 className="text-2xl font-bold text-zinc-100">Interview Prep Roadmap</h1>
-          <p className="text-zinc-400 mt-1 text-sm">
-            Structured week-by-week plan for your target role. Check off tasks as you complete them — earn XP every step.
+        {/* ── Hero ── */}
+        <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} style={{ paddingTop: 56, paddingBottom: 40 }}>
+          <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', marginBottom: 8 }}>
+            Prep Strategy
           </p>
+          <h1 style={{
+            fontSize: 'clamp(2.2rem, 6vw, 3.8rem)', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1,
+            background: 'linear-gradient(135deg, #60a5fa 0%, #c084fc 50%, #4ade80 100%)',
+            WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', marginBottom: 12,
+          }}>
+            ROADMAP.
+          </h1>
+          <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.4)' }}>
+            Structured week-by-week plan for your target role. Check off tasks, earn XP every step.
+          </p>
+        </motion.div>
+
+        {/* ── Track selector ── */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 14, marginBottom: 24 }}>
+          {ROADMAPS.map((r, i) => {
+            const tc = TRACK_COLOR[r.id] ?? { color: '#60a5fa', glow: 'rgba(96,165,250,0.15)' };
+            const isActive = selectedTrack === r.id;
+            return (
+              <motion.button
+                key={r.id}
+                onClick={() => { setSelectedTrack(r.id); setExpandedWeek(1); }}
+                initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}
+                whileHover={{ boxShadow: `0 8px 28px ${tc.glow}` }}
+                style={{
+                  textAlign: 'left', padding: 20, borderRadius: 18,
+                  background: isActive ? tc.glow.replace('0.15', '0.1') : 'rgba(10,10,10,0.7)',
+                  border: isActive ? `1px solid ${tc.color}40` : '1px solid rgba(255,255,255,0.07)',
+                  backdropFilter: 'blur(16px)', cursor: 'pointer',
+                  boxShadow: isActive ? `0 0 28px ${tc.glow}` : 'none',
+                  transition: 'all 0.2s',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                  <span className="material-symbols-outlined" style={{ color: tc.color, fontSize: 20 }}>{r.icon}</span>
+                  <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.14em', color: tc.color }}>{r.duration}</span>
+                </div>
+                <p style={{ fontSize: 14, fontWeight: 700, color: '#fff', marginBottom: 4 }}>{r.label}</p>
+                <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>{r.targetRole}</p>
+              </motion.button>
+            );
+          })}
         </div>
 
-        {/* Track selector */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {ROADMAPS.map(r => (
-            <button
-              key={r.id}
-              onClick={() => { setSelectedTrack(r.id); setExpandedWeek(1); }}
-              className={`relative rounded-xl border p-4 text-left transition-all duration-200 ${
-                selectedTrack === r.id
-                  ? `border-zinc-500 bg-gradient-to-br ${r.gradient} ring-2 ring-inset ring-zinc-500/40`
-                  : 'border-zinc-800 bg-zinc-900/50 hover:border-zinc-700'
-              }`}
-            >
-              <div className="flex items-center gap-2 mb-2">
-                <span className={`material-symbols-outlined text-xl ${r.color}`}>{r.icon}</span>
-                <span className={`text-xs font-bold uppercase tracking-wider ${r.color}`}>{r.duration}</span>
-              </div>
-              <p className="font-semibold text-zinc-100 text-sm">{r.label}</p>
-              <p className="text-zinc-500 text-xs mt-0.5">{r.targetRole}</p>
-            </button>
-          ))}
-        </div>
-
-        {/* Progress bar */}
-        <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-5">
-          <div className="flex items-center justify-between mb-3">
+        {/* ── Progress card ── */}
+        <motion.div
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}
+          style={{ ...GLASS, borderRadius: 18, padding: '18px 22px', marginBottom: 24 }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
             <div>
-              <p className="text-sm font-semibold text-zinc-200">{track.label} — Overall Progress</p>
-              <p className="text-xs text-zinc-500 mt-0.5">{doneTasks} / {totalTasks} tasks · {earnedXP} / {totalXP} XP</p>
+              <p style={{ fontSize: 13, fontWeight: 700, color: '#fff' }}>{track.label} — Overall Progress</p>
+              <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', marginTop: 2 }}>{doneTasks} / {totalTasks} tasks · {earnedXP} / {totalXP} XP</p>
             </div>
-            <span className={`text-2xl font-bold ${track.color}`}>{progressPct}%</span>
+            <span style={{ fontSize: 26, fontWeight: 900, color: trackColors.color }}>{progressPct}%</span>
           </div>
-          <div className="h-2 bg-zinc-800 rounded-full overflow-hidden">
-            <div
-              className={`h-full rounded-full transition-all duration-700 ${progressBarColor}`}
-              style={{ width: `${progressPct}%` }}
+          <div style={{ height: 4, background: 'rgba(255,255,255,0.05)', borderRadius: 4, overflow: 'hidden' }}>
+            <motion.div
+              initial={{ width: 0 }}
+              animate={{ width: `${progressPct}%` }}
+              transition={{ duration: 1, ease: 'easeOut' }}
+              style={{ height: '100%', background: progressBarHex, borderRadius: 4 }}
             />
           </div>
-        </div>
+        </motion.div>
 
-        {/* Week cards */}
-        <div className="space-y-3">
+        {/* ── Week cards ── */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {track.weeks.map((week, wi) => {
             const wc = WEEK_COLORS[week.color] ?? WEEK_COLORS['border-blue-500'];
             const { done, count } = getWeekProgress(wi);
@@ -591,135 +626,158 @@ export function RoadmapPage() {
             const isComplete = done === count;
 
             return (
-              <div
+              <motion.div
                 key={week.week}
-                className={`rounded-xl border ${week.color} bg-zinc-900/60 overflow-hidden transition-all duration-200`}
+                initial={{ opacity: 0, y: 10 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-20px' }}
+                transition={{ delay: wi * 0.03 }}
+                style={{
+                  borderRadius: 16, border: `1px solid ${isComplete ? 'rgba(74,222,128,0.2)' : wc.border}`,
+                  background: 'rgba(10,10,10,0.7)', backdropFilter: 'blur(16px)', overflow: 'hidden',
+                }}
               >
                 {/* Week header */}
                 <button
-                  className="w-full flex items-center gap-4 p-4 hover:bg-zinc-800/30 transition-colors"
+                  style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 14, padding: '14px 18px', cursor: 'pointer', background: 'none', border: 'none' }}
                   onClick={() => setExpandedWeek(isExpanded ? null : week.week)}
                 >
-                  {/* Week number badge */}
-                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${wc.bg} ring-1 ${wc.ring}`}>
+                  <div style={{
+                    width: 40, height: 40, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    background: isComplete ? 'rgba(74,222,128,0.1)' : wc.glow,
+                    border: `1px solid ${isComplete ? 'rgba(74,222,128,0.25)' : wc.border}`, flexShrink: 0,
+                  }}>
                     {isComplete
-                      ? <span className="material-symbols-outlined text-green-400 text-lg">check_circle</span>
-                      : <span className={`text-sm font-bold ${wc.text}`}>W{week.week}</span>
+                      ? <span className="material-symbols-outlined" style={{ color: '#4ade80', fontSize: 20 }}>check_circle</span>
+                      : <span style={{ fontSize: 12, fontWeight: 900, color: wc.color }}>W{week.week}</span>
                     }
                   </div>
 
-                  <div className="flex-1 text-left min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <p className="text-sm font-semibold text-zinc-100 truncate">{week.theme}</p>
-                      <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${wc.bg} ${wc.text}`}>
+                  <div style={{ flex: 1, textAlign: 'left', minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                      <p style={{ fontSize: 13, fontWeight: 700, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{week.theme}</p>
+                      <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', padding: '2px 8px', borderRadius: 999, background: wc.glow, color: wc.color }}>
                         {week.focus}
                       </span>
                     </div>
-                    <div className="flex items-center gap-3 mt-1">
-                      <div className="flex-1 max-w-32 h-1.5 bg-zinc-800 rounded-full overflow-hidden">
-                        <div
-                          className={`h-full rounded-full ${isComplete ? 'bg-green-500' : 'bg-zinc-500'}`}
-                          style={{ width: `${weekPct}%` }}
-                        />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 6 }}>
+                      <div style={{ width: 120, height: 3, background: 'rgba(255,255,255,0.05)', borderRadius: 3, overflow: 'hidden' }}>
+                        <div style={{ height: '100%', background: isComplete ? '#4ade80' : wc.color, borderRadius: 3, width: `${weekPct}%`, transition: 'width 0.4s' }} />
                       </div>
-                      <span className="text-xs text-zinc-500">{done}/{count} done</span>
+                      <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)' }}>{done}/{count}</span>
                     </div>
                   </div>
 
                   {week.milestone && (
-                    <div className="hidden sm:flex items-center gap-1 text-xs text-yellow-400 font-medium flex-shrink-0">
-                      <span className="material-symbols-outlined text-sm">flag</span>
+                    <div className="hidden sm:flex" style={{ alignItems: 'center', gap: 4, fontSize: 11, color: '#facc15', fontWeight: 600, flexShrink: 0 }}>
+                      <span className="material-symbols-outlined" style={{ fontSize: 14 }}>flag</span>
                       {week.milestone}
                     </div>
                   )}
 
-                  <span className="material-symbols-outlined text-zinc-600 flex-shrink-0">
+                  <span className="material-symbols-outlined" style={{ color: 'rgba(255,255,255,0.25)', flexShrink: 0, fontSize: 20 }}>
                     {isExpanded ? 'expand_less' : 'expand_more'}
                   </span>
                 </button>
 
                 {/* Week tasks */}
-                {isExpanded && (
-                  <div className="px-4 pb-4 space-y-2">
-                    {week.milestone && (
-                      <div className="flex items-center gap-2 py-2 px-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20 text-yellow-300 text-xs font-medium mb-3">
-                        <span className="material-symbols-outlined text-sm">flag</span>
-                        Milestone: {week.milestone}
-                      </div>
-                    )}
-                    {week.tasks.map((task, ti) => {
-                      const key = `${selectedTrack}-${wi}-${ti}`;
-                      const isDone = completedTasks.has(key);
-                      const meta = TYPE_META[task.type];
+                <AnimatePresence>
+                  {isExpanded && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.25 }}
+                      style={{ overflow: 'hidden' }}
+                    >
+                      <div style={{ padding: '0 18px 16px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                        {week.milestone && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderRadius: 10, background: 'rgba(250,204,21,0.07)', border: '1px solid rgba(250,204,21,0.2)', fontSize: 11, fontWeight: 600, color: '#facc15', marginBottom: 4 }}>
+                            <span className="material-symbols-outlined" style={{ fontSize: 14 }}>flag</span>
+                            Milestone: {week.milestone}
+                          </div>
+                        )}
+                        {week.tasks.map((task, ti) => {
+                          const key = `${selectedTrack}-${wi}-${ti}`;
+                          const isDone = completedTasks.has(key);
+                          const meta = TYPE_META[task.type];
 
-                      return (
-                        <div
-                          key={`task-${wi}-${ti}`}
-                          className={`flex items-start gap-3 p-3 rounded-lg border transition-all duration-150 ${
-                            isDone
-                              ? 'bg-green-500/5 border-green-500/20'
-                              : 'bg-zinc-800/40 border-zinc-700/50 hover:border-zinc-600'
-                          }`}
-                        >
-                          <button
-                            onClick={() => toggleTask(selectedTrack, wi, ti, task.xp)}
-                            className={`flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition-all mt-0.5 ${
-                              isDone
-                                ? 'bg-green-500 border-green-500'
-                                : 'border-zinc-600 hover:border-green-500'
-                            }`}
-                          >
-                            {isDone && (
-                              <span className="material-symbols-outlined text-white text-xs leading-none">check</span>
-                            )}
-                          </button>
-
-                          <div className="flex-1 min-w-0">
-                            {task.link ? (
-                              <Link
-                                to={task.link}
-                                className={`text-sm font-medium leading-snug transition-colors ${
-                                  isDone ? 'text-zinc-500 line-through' : 'text-zinc-200 hover:text-white'
-                                }`}
+                          return (
+                            <div
+                              key={`task-${wi}-${ti}`}
+                              style={{
+                                display: 'flex', alignItems: 'flex-start', gap: 10, padding: '10px 12px', borderRadius: 12,
+                                background: isDone ? 'rgba(74,222,128,0.05)' : 'rgba(255,255,255,0.03)',
+                                border: isDone ? '1px solid rgba(74,222,128,0.2)' : '1px solid rgba(255,255,255,0.05)',
+                                transition: 'all 0.15s',
+                              }}
+                            >
+                              <button
+                                onClick={() => toggleTask(selectedTrack, wi, ti, task.xp)}
+                                style={{
+                                  flexShrink: 0, width: 20, height: 20, borderRadius: 6,
+                                  border: isDone ? '2px solid #4ade80' : '2px solid rgba(255,255,255,0.2)',
+                                  background: isDone ? '#4ade80' : 'transparent',
+                                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                  cursor: 'pointer', marginTop: 1, transition: 'all 0.15s',
+                                }}
                               >
-                                {task.title}
-                              </Link>
-                            ) : (
-                              <p className={`text-sm font-medium leading-snug ${isDone ? 'text-zinc-500 line-through' : 'text-zinc-200'}`}>
-                                {task.title}
-                              </p>
-                            )}
-                          </div>
+                                {isDone && <span className="material-symbols-outlined" style={{ color: '#000', fontSize: 12, lineHeight: 1 }}>check</span>}
+                              </button>
 
-                          <div className="flex items-center gap-2 flex-shrink-0">
-                            <span className={`hidden sm:inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded border ${meta.color}`}>
-                              <span className="material-symbols-outlined text-xs">{meta.icon}</span>
-                              {meta.label}
-                            </span>
-                            <span className="text-xs text-yellow-400 font-semibold">+{task.xp} XP</span>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                {task.link ? (
+                                  <Link to={task.link} style={{ textDecoration: 'none' }}>
+                                    <span style={{ fontSize: 13, fontWeight: 500, lineHeight: 1.5, color: isDone ? 'rgba(255,255,255,0.3)' : '#fff', textDecoration: isDone ? 'line-through' : 'none' }}>
+                                      {task.title}
+                                    </span>
+                                  </Link>
+                                ) : (
+                                  <p style={{ fontSize: 13, fontWeight: 500, lineHeight: 1.5, color: isDone ? 'rgba(255,255,255,0.3)' : '#fff', textDecoration: isDone ? 'line-through' : 'none', margin: 0 }}>
+                                    {task.title}
+                                  </p>
+                                )}
+                              </div>
+
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+                                <span style={{ display: 'none', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', padding: '2px 7px', borderRadius: 999, background: meta.bg, color: meta.color }} className="sm-chip">
+                                  {meta.label}
+                                </span>
+                                <span style={{ fontSize: 12, fontWeight: 700, color: '#facc15' }}>+{task.xp}</span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
             );
           })}
         </div>
 
-        {/* Footer CTA */}
-        <div className="bg-gradient-to-br from-zinc-900 to-zinc-800/50 rounded-xl border border-zinc-700 p-6 text-center">
-          <p className="text-zinc-300 font-semibold mb-1">Want a personalized daily schedule?</p>
-          <p className="text-zinc-500 text-sm mb-4">The Study Plan generator turns this roadmap into day-by-day tasks tailored to your target date.</p>
-          <Link
-            to="/app/study-plan"
-            className="inline-flex items-center gap-2 bg-[#E82127] hover:bg-red-600 text-white text-sm font-bold px-5 py-2.5 rounded-lg transition-colors"
-          >
-            <span className="material-symbols-outlined text-base">calendar_month</span>{' '}
-            Generate My Study Plan
+        {/* ── Footer CTA ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+          style={{ marginTop: 28, borderRadius: 20, padding: '28px 32px', textAlign: 'center', background: 'linear-gradient(135deg, rgba(232,33,39,0.08), rgba(192,132,252,0.08))', border: '1px solid rgba(232,33,39,0.15)' }}
+        >
+          <p style={{ fontSize: 15, fontWeight: 700, color: '#fff', marginBottom: 6 }}>Want a personalized daily schedule?</p>
+          <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', marginBottom: 18 }}>The Study Plan generator turns this roadmap into day-by-day tasks tailored to your target date.</p>
+          <Link to="/app/study-plan" style={{ textDecoration: 'none' }}>
+            <motion.span
+              whileHover={{ scale: 1.04, boxShadow: '0 0 24px rgba(232,33,39,0.35)' }}
+              whileTap={{ scale: 0.97 }}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 8,
+                background: 'linear-gradient(135deg, #e82127, #c41a1f)', borderRadius: 999, padding: '12px 28px',
+                color: '#fff', fontSize: 13, fontWeight: 900,
+              }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: 16 }}>calendar_month</span>
+              Generate My Study Plan
+            </motion.span>
           </Link>
-        </div>
+        </motion.div>
+
       </div>
     </AppShell>
   );

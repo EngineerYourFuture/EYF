@@ -1,5 +1,6 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { AppShell } from '../components/AppShell';
 import { Icon } from '../components/Icon';
 import { apiRequest } from '../lib/api';
@@ -239,34 +240,41 @@ export function ProblemsPage() {
   const [selectedCompany, setSelectedCompany] = useState<string>(searchParams.get('company') ?? 'all');
   const [stats, setStats] = useState<ProblemsResponse['stats'] | null>(null);
 
-  const fetchProblems = useCallback(async () => {
-    if (!session?.accessToken) {
-      setProblems(STATIC_PROBLEMS);
-      setLoading(false);
-      return;
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      if (!session?.accessToken) {
+        setProblems(STATIC_PROBLEMS);
+        setLoading(false);
+        return;
+      }
+      setLoading(true);
+      try {
+        const params = new URLSearchParams();
+        if (difficulty !== 'all') params.set('difficulty', difficulty);
+        if (selectedTag !== 'all') params.set('tag', selectedTag);
+        const queryStr = params.toString();
+        const url = queryStr ? `/problems?${queryStr}` : '/problems';
+        const d = await apiRequest<ProblemsResponse>(url, { token: session.accessToken });
+        if (!cancelled) {
+          setProblems(d.problems ?? []);
+          if (d.stats) setStats(d.stats);
+        }
+      } catch {
+        if (!cancelled) setProblems(STATIC_PROBLEMS);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
     }
-    setLoading(true);
-    try {
-      const params = new URLSearchParams();
-      if (difficulty !== 'all') params.set('difficulty', difficulty);
-      if (selectedTag !== 'all') params.set('tag', selectedTag);
-      const queryStr = params.toString();
-      const url = queryStr ? `/problems?${queryStr}` : '/problems';
-      const d = await apiRequest<ProblemsResponse>(url, { token: session.accessToken });
-      setProblems(d.problems ?? []);
-      if (d.stats) setStats(d.stats);
-    } catch {
-      setProblems(STATIC_PROBLEMS);
-    } finally {
-      setLoading(false);
-    }
+    load();
+    return () => { cancelled = true; };
   }, [session?.accessToken, difficulty, selectedTag]);
-
-  useEffect(() => { fetchProblems(); }, [fetchProblems]);
 
   useEffect(() => {
     const tag = searchParams.get('tag');
-    if (tag) setSelectedTag(tag);
+    if (!tag) return;
+    const raf = requestAnimationFrame(() => setSelectedTag(tag));
+    return () => cancelAnimationFrame(raf);
   }, [searchParams]);
 
   const handleTagClick = (tag: string) => {
@@ -303,106 +311,150 @@ export function ProblemsPage() {
         {/* Hero */}
         <div className="mb-10 flex items-end justify-between flex-wrap gap-6">
           <div>
-            <h1 className="text-6xl font-black tracking-tighter text-white mb-2 leading-none">
-              MASTER THE<br /><span className="text-primary-container">ALGORITHMS.</span>
-            </h1>
-            <p className="text-on-surface-variant text-lg max-w-lg">
+            <motion.h1
+              className="text-6xl font-black tracking-tighter mb-2 leading-none"
+              initial={{ opacity: 0, y: 30, filter: 'blur(12px)' }}
+              animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+              transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+              style={{
+                background: 'linear-gradient(135deg, #E8E8E8 0%, rgba(232,25,44,0.8) 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+              }}
+            >
+              MASTER THE<br />
+              <span style={{
+                background: 'linear-gradient(135deg, #E8192C, #FF5566)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+              }}>ALGORITHMS.</span>
+            </motion.h1>
+            <motion.p
+              className="text-on-surface-variant text-lg max-w-lg"
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+            >
               Curated problems engineered to take you from beginner to FAANG-ready.
-            </p>
+            </motion.p>
           </div>
 
           {/* Progress card */}
-          <div className="bg-surface-container rounded-2xl p-6 w-full md:w-auto md:min-w-[280px] border border-zinc-800">
+          <motion.div
+            className="rounded-2xl p-6 w-full md:w-auto md:min-w-[280px]"
+            style={{
+              background: 'rgba(10,10,10,0.8)',
+              border: '1px solid rgba(255,255,255,0.07)',
+              backdropFilter: 'blur(16px)',
+              boxShadow: '0 24px 60px rgba(0,0,0,0.6)',
+            }}
+            initial={{ opacity: 0, x: 20, filter: 'blur(8px)' }}
+            animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }}
+            transition={{ duration: 0.6, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            whileHover={{ boxShadow: '0 24px 60px rgba(0,0,0,0.7), 0 0 30px rgba(232,25,44,0.08)' }}
+          >
             <p className="text-[10px] font-bold uppercase tracking-widest text-primary-container mb-4">Your Progress</p>
             <div className="space-y-3">
               {[
-                { label: 'Easy', solved: easySolved, total: easyTotal, color: 'bg-green-400' },
-                { label: 'Medium', solved: mediumSolved, total: mediumTotal, color: 'bg-yellow-400' },
-                { label: 'Hard', solved: hardSolved, total: hardTotal, color: 'bg-red-400' },
+                { label: 'Easy',   solved: easySolved,   total: easyTotal,   hex: '#4ADE80' },
+                { label: 'Medium', solved: mediumSolved, total: mediumTotal, hex: '#FACC15' },
+                { label: 'Hard',   solved: hardSolved,   total: hardTotal,   hex: '#F87171' },
               ].map((row) => (
                 <div key={row.label}>
                   <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest mb-1">
                     <span className="text-zinc-500">{row.label}</span>
                     <span className="text-on-surface">{row.solved}/{row.total}</span>
                   </div>
-                  <div className="h-1.5 bg-surface-container-highest rounded-full overflow-hidden">
-                    <div
-                      className={`h-full rounded-full transition-all duration-700 ${row.color}`}
-                      style={{ width: row.total ? `${(row.solved / row.total) * 100}%` : '0%' }}
+                  <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
+                    <motion.div
+                      className="h-full rounded-full"
+                      style={{ background: row.hex, boxShadow: `0 0 8px ${row.hex}60` }}
+                      initial={{ width: 0 }}
+                      animate={{ width: row.total ? `${(row.solved / row.total) * 100}%` : '0%' }}
+                      transition={{ duration: 1.2, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
                     />
                   </div>
                 </div>
               ))}
             </div>
-            <div className="mt-4 pt-4 border-t border-zinc-800 flex items-center justify-between">
+            <div className="mt-4 pt-4 flex items-center justify-between" style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
               <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Total Solved</span>
               <span className="text-xl font-black text-on-surface">{solvedCount}/{problems.length}</span>
             </div>
-          </div>
+          </motion.div>
         </div>
 
         {/* Company Tags */}
         <div className="mb-4">
           <div className="flex items-center gap-2 mb-3">
-            <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-zinc-600">Company</p>
-            <span className="text-[9px] font-bold text-[#E82127] bg-[#E82127]/10 px-2 py-0.5 rounded-full border border-[#E82127]/20">FREE on EYF · Premium on LeetCode</span>
+            <p className="text-[10px] font-bold uppercase tracking-[0.3em]" style={{ color: 'rgba(255,255,255,0.28)' }}>Company</p>
+            <span className="text-[9px] font-bold" style={{ color: 'var(--red)', background: 'rgba(232,25,44,0.08)', border: '1px solid rgba(232,25,44,0.18)', padding: '2px 8px', borderRadius: 999 }}>FREE on EYF · Premium on LeetCode</span>
           </div>
-          <div className="flex gap-2 flex-wrap">
-            <button
-              onClick={() => setSelectedCompany('all')}
-              className={`px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all border ${
-                selectedCompany === 'all'
-                  ? 'bg-[#E82127] text-white border-transparent'
-                  : 'text-zinc-500 border-zinc-800 hover:text-zinc-200 hover:border-zinc-600'
-              }`}
-            >
-              All Companies
-            </button>
-            {COMPANY_TAGS.map((co) => (
-              <button
-                key={co}
-                onClick={() => setSelectedCompany(co)}
-                className={`px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all border ${
-                  selectedCompany === co
-                    ? 'bg-zinc-700 text-white border-zinc-600'
-                    : 'text-zinc-500 border-zinc-800 hover:text-zinc-300 hover:border-zinc-600'
-                }`}
-              >
-                {co}
-              </button>
-            ))}
+          <div className="flex gap-1.5 flex-wrap">
+            {(['all', ...COMPANY_TAGS]).map((co) => {
+              const active = selectedCompany === co;
+              return (
+                <motion.button
+                  key={co}
+                  onClick={() => setSelectedCompany(co)}
+                  whileHover={{ scale: 1.04 }}
+                  whileTap={{ scale: 0.97 }}
+                  transition={{ duration: 0.12 }}
+                  style={{
+                    padding: '5px 14px',
+                    borderRadius: 999,
+                    fontSize: 10,
+                    fontWeight: 700,
+                    letterSpacing: '0.12em',
+                    textTransform: 'uppercase',
+                    cursor: 'pointer',
+                    background: active ? 'rgba(232,25,44,0.14)' : 'rgba(255,255,255,0.04)',
+                    border: active ? '1px solid rgba(232,25,44,0.4)' : '1px solid rgba(255,255,255,0.07)',
+                    color: active ? '#ff4d5a' : 'rgba(255,255,255,0.35)',
+                    boxShadow: active ? '0 0 16px rgba(232,25,44,0.18), inset 0 1px 0 rgba(255,255,255,0.06)' : 'none',
+                    transition: 'background 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.15s',
+                  }}
+                >
+                  {co === 'all' ? 'All' : co}
+                </motion.button>
+              );
+            })}
           </div>
         </div>
 
         {/* Topic Tags */}
         <div className="mb-6">
-          <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-zinc-600 mb-3">Topic</p>
-          <div className="flex gap-2 flex-wrap">
-            <button
-              onClick={() => handleTagClick('all')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all border ${
-                selectedTag === 'all'
-                  ? 'bg-primary-container text-white border-transparent'
-                  : 'text-zinc-500 border-zinc-800 hover:text-zinc-200 hover:border-zinc-600'
-              }`}
-            >
-              All Topics
-            </button>
-            {TOPIC_TAGS.map((tag) => {
-              const meta = CATEGORY_META[tag] ?? { icon: 'code', color: 'text-zinc-400' };
+          <p className="text-[10px] font-bold uppercase tracking-[0.3em] mb-3" style={{ color: 'rgba(255,255,255,0.28)' }}>Topic</p>
+          <div className="flex gap-1.5 flex-wrap">
+            {(['all', ...TOPIC_TAGS]).map((tag) => {
+              const active = selectedTag === tag;
+              const meta = tag === 'all' ? { icon: 'apps', color: '' } : (CATEGORY_META[tag] ?? { icon: 'code', color: '' });
               return (
-                <button
+                <motion.button
                   key={tag}
                   onClick={() => handleTagClick(tag)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all border ${
-                    selectedTag === tag
-                      ? `bg-surface-container-high ${meta.color} border-current/20`
-                      : 'text-zinc-500 border-zinc-800 hover:text-zinc-300 hover:border-zinc-600'
-                  }`}
+                  whileHover={{ scale: 1.04 }}
+                  whileTap={{ scale: 0.97 }}
+                  transition={{ duration: 0.12 }}
+                  className="flex items-center gap-1.5"
+                  style={{
+                    padding: '5px 12px',
+                    borderRadius: 999,
+                    fontSize: 10,
+                    fontWeight: 700,
+                    letterSpacing: '0.12em',
+                    textTransform: 'uppercase',
+                    cursor: 'pointer',
+                    background: active ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.03)',
+                    border: active ? '1px solid rgba(255,255,255,0.18)' : '1px solid rgba(255,255,255,0.07)',
+                    color: active ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.3)',
+                    boxShadow: active ? 'inset 0 1px 0 rgba(255,255,255,0.08)' : 'none',
+                    transition: 'background 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.15s',
+                  }}
                 >
                   <Icon name={meta.icon} size={11} />
-                  {tag}
-                </button>
+                  {tag === 'all' ? 'All Topics' : tag}
+                </motion.button>
               );
             })}
           </div>
@@ -411,54 +463,91 @@ export function ProblemsPage() {
         {/* Filter bar */}
         <div className="flex flex-wrap items-center gap-3 mb-8">
           {/* Difficulty */}
-          <div className="flex items-center bg-surface-container p-1 rounded-full">
-            {(['all', 'easy', 'medium', 'hard'] as const).map((d) => (
-              <button
-                key={d}
-                onClick={() => setDifficulty(d)}
-                className={`px-4 py-2 rounded-full font-['Inter'] uppercase tracking-widest text-[10px] font-black transition-all ${
-                  difficulty === d ? 'bg-surface-container-highest text-white' : 'text-zinc-500 hover:text-zinc-200'
-                }`}
-              >
-                {d === 'all' ? 'All' : d}
-              </button>
-            ))}
+          <div className="flex items-center p-1 rounded-full" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
+            {(['all', 'easy', 'medium', 'hard'] as const).map((d) => {
+              const active = difficulty === d;
+              const diffColor = d === 'easy' ? '#4ade80' : d === 'medium' ? '#facc15' : d === 'hard' ? '#f87171' : 'white';
+              return (
+                <button
+                  key={d}
+                  onClick={() => setDifficulty(d)}
+                  className="font-['Inter'] uppercase tracking-widest text-[10px] font-black transition-all"
+                  style={{
+                    padding: '6px 16px',
+                    borderRadius: 999,
+                    background: active ? 'rgba(255,255,255,0.1)' : 'transparent',
+                    color: active ? (d === 'all' ? 'white' : diffColor) : 'rgba(255,255,255,0.28)',
+                    boxShadow: active && d !== 'all' ? `0 0 10px ${diffColor}30` : 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    transition: 'background 0.15s, color 0.15s, box-shadow 0.15s',
+                  }}
+                >
+                  {d === 'all' ? 'All' : d}
+                </button>
+              );
+            })}
           </div>
 
           {/* Status */}
-          <div className="flex items-center bg-surface-container p-1 rounded-full">
-            {(['all', 'solved', 'unsolved'] as const).map((s) => (
-              <button
-                key={s}
-                onClick={() => setStatus(s)}
-                className={`px-4 py-2 rounded-full font-['Inter'] uppercase tracking-widest text-[10px] font-black transition-all ${
-                  status === s ? 'bg-surface-container-highest text-white' : 'text-zinc-500 hover:text-zinc-200'
-                }`}
-              >
-                {s === 'all' ? 'All' : s}
-              </button>
-            ))}
+          <div className="flex items-center p-1 rounded-full" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
+            {(['all', 'solved', 'unsolved'] as const).map((s) => {
+              const active = status === s;
+              return (
+                <button
+                  key={s}
+                  onClick={() => setStatus(s)}
+                  className="font-['Inter'] uppercase tracking-widest text-[10px] font-black transition-all"
+                  style={{
+                    padding: '6px 16px',
+                    borderRadius: 999,
+                    background: active ? 'rgba(255,255,255,0.1)' : 'transparent',
+                    color: active ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.28)',
+                    border: 'none',
+                    cursor: 'pointer',
+                    transition: 'background 0.15s, color 0.15s',
+                  }}
+                >
+                  {s === 'all' ? 'All' : s}
+                </button>
+              );
+            })}
           </div>
 
           {/* Search */}
           <div className="relative flex-1 min-w-[200px] max-w-sm">
-            <Icon name="search" size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" />
+            <Icon name="search" size={16} className="absolute left-4 top-1/2 -translate-y-1/2" style={{ color: 'rgba(255,255,255,0.28)' }} />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search problems..."
-              className="w-full bg-surface-container rounded-full pl-10 pr-5 py-2.5 text-sm placeholder:text-zinc-600 focus:outline-none focus:ring-0 text-on-surface"
+              className="w-full rounded-full pl-10 pr-5 py-2.5 text-sm focus:outline-none focus:ring-0"
+              style={{
+                background: 'rgba(255,255,255,0.04)',
+                border: '1px solid rgba(255,255,255,0.07)',
+                color: 'rgba(255,255,255,0.85)',
+              }}
             />
           </div>
 
-          <span className="text-xs text-zinc-500 font-bold ml-auto">
+          <span className="text-[10px] font-bold ml-auto" style={{ color: 'rgba(255,255,255,0.28)' }}>
             {filtered.length} problem{filtered.length === 1 ? '' : 's'}
           </span>
         </div>
 
+        {/* Separator */}
+        <div style={{ height: 1, background: 'var(--border)', marginBottom: 24 }} />
+
         {/* Table header */}
-        <div className="grid grid-cols-12 gap-4 px-6 py-3 font-['Inter'] uppercase tracking-widest text-[10px] font-black text-zinc-600 mb-1">
+        <div
+          className="grid grid-cols-12 gap-4 px-6 py-3 font-['Inter'] uppercase tracking-widest text-[10px] font-black mb-1 rounded-xl"
+          style={{
+            color: 'rgba(255,255,255,0.22)',
+            background: 'rgba(255,255,255,0.025)',
+            border: '1px solid rgba(255,255,255,0.05)',
+          }}
+        >
           <div className="col-span-1 text-center">#</div>
           <div className="col-span-4">Title</div>
           <div className="col-span-2 text-center">Difficulty</div>
@@ -489,11 +578,29 @@ export function ProblemsPage() {
           {!loading && filtered.map((p, i) => {
             const DEFAULT_XP: Record<string, number> = { hard: 100, medium: 60 };
             const xpReward = p.xpReward ?? (DEFAULT_XP[p.difficulty] ?? 30);
+            const diffGlow = p.difficulty === 'easy' ? 'rgba(74,222,128,0.12)' : p.difficulty === 'medium' ? 'rgba(250,204,21,0.10)' : 'rgba(232,25,44,0.12)';
             return (
-            <Link key={p.id} to={`/app/problems/${p.id}`} className="block">
-              <div className={`grid grid-cols-12 gap-4 rounded-xl px-6 py-4 hover:bg-surface-container-high transition-all cursor-pointer group items-center border ${
-                p.solved ? 'bg-surface-container border-green-500/10' : 'bg-surface-container border-transparent'
-              }`}>
+            <motion.div
+              key={p.id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: Math.min(i * 0.025, 0.5), ease: 'easeOut' }}
+            >
+            <Link to={`/app/problems/${p.id}`} className="block">
+              <motion.div
+                className={`grid grid-cols-12 gap-4 rounded-xl px-6 py-4 cursor-pointer group items-center border`}
+                style={{
+                  background: p.solved ? 'rgba(74,222,128,0.04)' : 'var(--bg-elevated)',
+                  borderColor: p.solved ? 'rgba(74,222,128,0.1)' : 'rgba(255,255,255,0.05)',
+                }}
+                whileHover={{
+                  background: 'rgba(16,16,16,0.9)',
+                  borderColor: p.difficulty === 'easy' ? 'rgba(74,222,128,0.2)' : p.difficulty === 'medium' ? 'rgba(250,204,21,0.2)' : 'rgba(232,25,44,0.2)',
+                  boxShadow: `0 4px 24px ${diffGlow}, 0 1px 0 rgba(255,255,255,0.04)`,
+                  y: -1,
+                }}
+                transition={{ duration: 0.15 }}
+              >
                 <div className="col-span-1 text-center">
                   {p.solved ? (
                     <Icon name="check_circle" size={18} className="text-green-400 mx-auto" filled />
@@ -542,8 +649,9 @@ export function ProblemsPage() {
                   <span className="text-xs font-black text-primary-container">{xpReward}</span>
                   <Icon name="bolt" size={12} className="text-primary-container" filled />
                 </div>
-              </div>
+              </motion.div>
             </Link>
+            </motion.div>
             );
           })}
         </div>

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { AppShell } from '../components/AppShell';
 import { Icon } from '../components/Icon';
 import { apiRequest, ApiError } from '../lib/api';
@@ -34,53 +35,59 @@ interface SecProgress {
   ctf: { total: number; solved: number; points: number };
 }
 
-const CATEGORY_META: Record<string, { icon: string; color: string; bg: string; label: string }> = {
-  owasp:    { icon: 'security', color: 'text-red-400', bg: 'bg-red-500/10', label: 'OWASP Top 10' },
-  web:      { icon: 'language', color: 'text-orange-400', bg: 'bg-orange-500/10', label: 'Web Security' },
-  network:  { icon: 'router', color: 'text-yellow-400', bg: 'bg-yellow-500/10', label: 'Network Security' },
-  crypto:   { icon: 'lock', color: 'text-blue-400', bg: 'bg-blue-500/10', label: 'Cryptography' },
-  cloud:    { icon: 'cloud', color: 'text-cyan-400', bg: 'bg-cyan-500/10', label: 'Cloud Security' },
-  forensics:{ icon: 'search', color: 'text-purple-400', bg: 'bg-purple-500/10', label: 'Digital Forensics' },
-  malware:  { icon: 'bug_report', color: 'text-pink-400', bg: 'bg-pink-500/10', label: 'Malware Analysis' },
+const CATEGORY_META: Record<string, { icon: string; color: string; glow: string; label: string }> = {
+  owasp:    { icon: 'security',   color: '#f87171', glow: 'rgba(248,113,113,0.14)', label: 'OWASP Top 10' },
+  web:      { icon: 'language',   color: '#fb923c', glow: 'rgba(251,146,60,0.14)',  label: 'Web Security' },
+  network:  { icon: 'router',     color: '#facc15', glow: 'rgba(250,204,21,0.14)',  label: 'Network Security' },
+  crypto:   { icon: 'lock',       color: '#60a5fa', glow: 'rgba(96,165,250,0.14)',  label: 'Cryptography' },
+  cloud:    { icon: 'cloud',      color: '#22d3ee', glow: 'rgba(34,211,238,0.14)',  label: 'Cloud Security' },
+  forensics:{ icon: 'search',     color: '#c084fc', glow: 'rgba(192,132,252,0.14)', label: 'Digital Forensics' },
+  malware:  { icon: 'bug_report', color: '#f472b6', glow: 'rgba(244,114,182,0.14)', label: 'Malware Analysis' },
+};
+
+const DIFF_STYLE: Record<string, { color: string; bg: string }> = {
+  easy:   { color: '#4ade80', bg: 'rgba(74,222,128,0.1)' },
+  medium: { color: '#facc15', bg: 'rgba(250,204,21,0.1)' },
+  hard:   { color: '#f87171', bg: 'rgba(248,113,113,0.1)' },
 };
 
 const STATIC_LESSONS: SecurityLesson[] = [
-  { id: '1', lessonKey: 'owasp-injection', title: 'Injection Attacks', category: 'owasp', description: 'SQL, NoSQL, OS, LDAP injection flaws. Learn how attackers manipulate queries and how to prevent them.', difficulty: 'easy', planAccess: 'free', status: 'not_started' },
-  { id: '2', lessonKey: 'owasp-broken-auth', title: 'Broken Authentication', category: 'owasp', description: 'Credential stuffing, brute force, session fixation, and insecure token storage vulnerabilities.', difficulty: 'medium', planAccess: 'free', status: 'not_started' },
-  { id: '3', lessonKey: 'owasp-xss', title: 'Cross-Site Scripting (XSS)', category: 'owasp', description: 'Stored, reflected, and DOM-based XSS. Content Security Policy and input sanitization.', difficulty: 'easy', planAccess: 'free', status: 'not_started' },
-  { id: '4', lessonKey: 'owasp-idor', title: 'Insecure Direct Object References', category: 'owasp', description: 'IDOR vulnerabilities, object-level authorization, and horizontal privilege escalation.', difficulty: 'medium', planAccess: 'free', status: 'not_started' },
-  { id: '5', lessonKey: 'owasp-security-misconfig', title: 'Security Misconfiguration', category: 'owasp', description: 'Default credentials, exposed admin panels, unnecessary features, and verbose error messages.', difficulty: 'easy', planAccess: 'free', status: 'not_started' },
-  { id: '6', lessonKey: 'web-csrf', title: 'Cross-Site Request Forgery', category: 'web', description: 'CSRF attacks, SameSite cookies, CSRF tokens, and double-submit cookie pattern.', difficulty: 'medium', planAccess: 'free', status: 'not_started' },
-  { id: '7', lessonKey: 'web-cors', title: 'CORS & Same-Origin Policy', category: 'web', description: 'Origin policies, preflight requests, CORS misconfiguration exploits and secure configurations.', difficulty: 'medium', planAccess: 'free', status: 'not_started' },
-  { id: '8', lessonKey: 'web-headers', title: 'Security Headers', category: 'web', description: 'HSTS, CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy and their impact.', difficulty: 'easy', planAccess: 'free', status: 'not_started' },
-  { id: '9', lessonKey: 'network-tls', title: 'TLS & PKI', category: 'network', description: 'TLS handshake, certificate chains, pinning, MITM attacks, and downgrade attacks.', difficulty: 'medium', planAccess: 'free', status: 'not_started' },
-  { id: '10', lessonKey: 'network-firewalls', title: 'Firewalls & IDS/IPS', category: 'network', description: 'Stateful vs stateless firewalls, intrusion detection, WAF rules, and network segmentation.', difficulty: 'medium', planAccess: 'free', status: 'not_started' },
-  { id: '11', lessonKey: 'crypto-symmetric', title: 'Symmetric Encryption', category: 'crypto', description: 'AES modes (ECB, CBC, GCM), key derivation, padding oracles, and common pitfalls.', difficulty: 'hard', planAccess: 'pro', status: 'not_started' },
-  { id: '12', lessonKey: 'crypto-asymmetric', title: 'Asymmetric Encryption & Signatures', category: 'crypto', description: 'RSA, ECDSA, key exchange (DH, ECDH), digital signatures, and PKI.', difficulty: 'hard', planAccess: 'pro', status: 'not_started' },
-  { id: '13', lessonKey: 'cloud-iam', title: 'Cloud IAM & Privilege Escalation', category: 'cloud', description: 'AWS/GCP/Azure IAM misconfigurations, excessive permissions, and lateral movement.', difficulty: 'hard', planAccess: 'pro', status: 'not_started' },
-  { id: '14', lessonKey: 'forensics-log-analysis', title: 'Log Analysis & Threat Hunting', category: 'forensics', description: 'SIEM, log correlation, IOC extraction, and forensic artifact analysis.', difficulty: 'hard', planAccess: 'pro', status: 'not_started' },
+  { id: '1',  lessonKey: 'owasp-injection',        title: 'Injection Attacks',                   category: 'owasp',     description: 'SQL, NoSQL, OS, LDAP injection flaws. Learn how attackers manipulate queries and how to prevent them.', difficulty: 'easy',   planAccess: 'free', status: 'not_started' },
+  { id: '2',  lessonKey: 'owasp-broken-auth',      title: 'Broken Authentication',               category: 'owasp',     description: 'Credential stuffing, brute force, session fixation, and insecure token storage vulnerabilities.', difficulty: 'medium', planAccess: 'free', status: 'not_started' },
+  { id: '3',  lessonKey: 'owasp-xss',              title: 'Cross-Site Scripting (XSS)',          category: 'owasp',     description: 'Stored, reflected, and DOM-based XSS. Content Security Policy and input sanitization.', difficulty: 'easy',   planAccess: 'free', status: 'not_started' },
+  { id: '4',  lessonKey: 'owasp-idor',             title: 'Insecure Direct Object References',   category: 'owasp',     description: 'IDOR vulnerabilities, object-level authorization, and horizontal privilege escalation.', difficulty: 'medium', planAccess: 'free', status: 'not_started' },
+  { id: '5',  lessonKey: 'owasp-security-misconfig',title: 'Security Misconfiguration',          category: 'owasp',     description: 'Default credentials, exposed admin panels, unnecessary features, and verbose error messages.', difficulty: 'easy',   planAccess: 'free', status: 'not_started' },
+  { id: '6',  lessonKey: 'web-csrf',               title: 'Cross-Site Request Forgery',          category: 'web',       description: 'CSRF attacks, SameSite cookies, CSRF tokens, and double-submit cookie pattern.', difficulty: 'medium', planAccess: 'free', status: 'not_started' },
+  { id: '7',  lessonKey: 'web-cors',               title: 'CORS & Same-Origin Policy',           category: 'web',       description: 'Origin policies, preflight requests, CORS misconfiguration exploits and secure configurations.', difficulty: 'medium', planAccess: 'free', status: 'not_started' },
+  { id: '8',  lessonKey: 'web-headers',            title: 'Security Headers',                    category: 'web',       description: 'HSTS, CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy and their impact.', difficulty: 'easy',   planAccess: 'free', status: 'not_started' },
+  { id: '9',  lessonKey: 'network-tls',            title: 'TLS & PKI',                           category: 'network',   description: 'TLS handshake, certificate chains, pinning, MITM attacks, and downgrade attacks.', difficulty: 'medium', planAccess: 'free', status: 'not_started' },
+  { id: '10', lessonKey: 'network-firewalls',      title: 'Firewalls & IDS/IPS',                 category: 'network',   description: 'Stateful vs stateless firewalls, intrusion detection, WAF rules, and network segmentation.', difficulty: 'medium', planAccess: 'free', status: 'not_started' },
+  { id: '11', lessonKey: 'crypto-symmetric',       title: 'Symmetric Encryption',                category: 'crypto',    description: 'AES modes (ECB, CBC, GCM), key derivation, padding oracles, and common pitfalls.', difficulty: 'hard',   planAccess: 'pro',  status: 'not_started' },
+  { id: '12', lessonKey: 'crypto-asymmetric',      title: 'Asymmetric Encryption & Signatures',  category: 'crypto',    description: 'RSA, ECDSA, key exchange (DH, ECDH), digital signatures, and PKI.', difficulty: 'hard',   planAccess: 'pro',  status: 'not_started' },
+  { id: '13', lessonKey: 'cloud-iam',              title: 'Cloud IAM & Privilege Escalation',    category: 'cloud',     description: 'AWS/GCP/Azure IAM misconfigurations, excessive permissions, and lateral movement.', difficulty: 'hard',   planAccess: 'pro',  status: 'not_started' },
+  { id: '14', lessonKey: 'forensics-log-analysis', title: 'Log Analysis & Threat Hunting',       category: 'forensics', description: 'SIEM, log correlation, IOC extraction, and forensic artifact analysis.', difficulty: 'hard',   planAccess: 'pro',  status: 'not_started' },
 ];
 
 const STATIC_CTF: CTFChallenge[] = [
-  { id: 'c1', challengeKey: 'sql-injection-1', title: 'Login Bypass', category: 'web', difficulty: 'easy', description: 'A login form with a classic SQL injection vulnerability. Extract the admin credentials.', points: 100, solved: false, attempts: 0 },
-  { id: 'c2', challengeKey: 'xss-stored-1', title: 'Comment Box', category: 'web', difficulty: 'easy', description: 'A blog with a stored XSS vulnerability. Steal the admin\'s session cookie.', points: 150, solved: false, attempts: 0 },
-  { id: 'c3', challengeKey: 'rsa-weak-1', title: 'Weak RSA', category: 'crypto', difficulty: 'medium', description: 'A server using RSA with a small modulus. Factor the key and decrypt the message.', points: 200, solved: false, attempts: 0 },
-  { id: 'c4', challengeKey: 'forensics-pcap-1', title: 'Suspicious Traffic', category: 'forensics', difficulty: 'medium', description: 'Analyze a PCAP file to find credentials exfiltrated over DNS.', points: 250, solved: false, attempts: 0 },
-  { id: 'c5', challengeKey: 'reverse-1', title: 'License Check', category: 'reverse', difficulty: 'medium', description: 'A binary with a license key validation. Reverse engineer to find or bypass the check.', points: 300, solved: false, attempts: 0 },
+  { id: 'c1', challengeKey: 'sql-injection-1', title: 'Login Bypass',        category: 'web',       difficulty: 'easy',   description: "A login form with a classic SQL injection vulnerability. Extract the admin credentials.", points: 100, solved: false, attempts: 0 },
+  { id: 'c2', challengeKey: 'xss-stored-1',    title: 'Comment Box',          category: 'web',       difficulty: 'easy',   description: "A blog with a stored XSS vulnerability. Steal the admin's session cookie.", points: 150, solved: false, attempts: 0 },
+  { id: 'c3', challengeKey: 'rsa-weak-1',      title: 'Weak RSA',             category: 'crypto',    difficulty: 'medium', description: 'A server using RSA with a small modulus. Factor the key and decrypt the message.', points: 200, solved: false, attempts: 0 },
+  { id: 'c4', challengeKey: 'forensics-pcap-1',title: 'Suspicious Traffic',   category: 'forensics', difficulty: 'medium', description: 'Analyze a PCAP file to find credentials exfiltrated over DNS.', points: 250, solved: false, attempts: 0 },
+  { id: 'c5', challengeKey: 'reverse-1',       title: 'License Check',        category: 'reverse',   difficulty: 'medium', description: 'A binary with a license key validation. Reverse engineer to find or bypass the check.', points: 300, solved: false, attempts: 0 },
 ];
 
 const CERT_ROADMAP = [
-  { cert: 'CompTIA Security+', level: 'Beginner', months: '2-3', focus: 'Security fundamentals, risk management, cryptography basics', color: 'border-green-500/30 bg-green-500/5' },
-  { cert: 'CEH', level: 'Intermediate', months: '3-4', focus: 'Ethical hacking methodology, penetration testing, vulnerability assessment', color: 'border-yellow-500/30 bg-yellow-500/5' },
-  { cert: 'OSCP', level: 'Advanced', months: '6-12', focus: 'Hands-on penetration testing, exploit development, report writing', color: 'border-orange-500/30 bg-orange-500/5' },
-  { cert: 'CISSP', level: 'Expert', months: '12+', focus: 'Security management, architecture, 8 domains of knowledge', color: 'border-red-500/30 bg-red-500/5' },
+  { cert: 'CompTIA Security+', level: 'Beginner',     months: '2-3',  focus: 'Security fundamentals, risk management, cryptography basics', borderColor: 'rgba(74,222,128,0.25)',  bg: 'rgba(74,222,128,0.04)'  },
+  { cert: 'CEH',               level: 'Intermediate', months: '3-4',  focus: 'Ethical hacking methodology, penetration testing, vulnerability assessment', borderColor: 'rgba(250,204,21,0.25)', bg: 'rgba(250,204,21,0.04)' },
+  { cert: 'OSCP',              level: 'Advanced',     months: '6-12', focus: 'Hands-on penetration testing, exploit development, report writing', borderColor: 'rgba(251,146,60,0.25)',  bg: 'rgba(251,146,60,0.04)'  },
+  { cert: 'CISSP',             level: 'Expert',       months: '12+',  focus: 'Security management, architecture, 8 domains of knowledge', borderColor: 'rgba(248,113,113,0.25)', bg: 'rgba(248,113,113,0.04)' },
 ];
 
-const DIFF_COLOR: Record<string, string> = {
-  easy: 'text-green-400 bg-green-500/10',
-  medium: 'text-yellow-400 bg-yellow-500/10',
-  hard: 'text-red-400 bg-red-500/10',
-};
+const GLASS = {
+  background: 'rgba(10,10,10,0.7)',
+  border: '1px solid rgba(255,255,255,0.07)',
+  backdropFilter: 'blur(16px)',
+} as const;
 
 export function CybersecurityPage() {
   const session = getSession();
@@ -101,13 +108,11 @@ export function CybersecurityPage() {
     setFlagError((prev) => ({ ...prev, [challenge.id]: '' }));
     try {
       await apiRequest(`/security-learn/ctf/${challenge.challengeKey}/submit`, {
-        method: 'POST',
-        body: { flag },
-        token: session.accessToken,
+        method: 'POST', body: { flag }, token: session.accessToken,
       });
       setCTF((prev) => prev.map((c) => c.id === challenge.id ? { ...c, solved: true } : c));
       setFlagInput((prev) => ({ ...prev, [challenge.id]: '' }));
-      fireXP(challenge.points, `🚩 Flag captured: ${challenge.title}`);
+      fireXP(challenge.points, `Flag captured: ${challenge.title}`);
     } catch (err) {
       const msg = err instanceof ApiError ? err.message : 'Incorrect flag. Try again!';
       setFlagError((prev) => ({ ...prev, [challenge.id]: msg }));
@@ -134,58 +139,75 @@ export function CybersecurityPage() {
 
   return (
     <AppShell>
-      <div className="pt-8 max-w-7xl mx-auto">
+      <div className="pt-8 max-w-7xl">
         {/* Hero */}
-        <div className="mb-10 p-10 bg-surface-container rounded-2xl relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-96 h-96 bg-red-500/5 blur-[100px] rounded-full -mr-32 -mt-32" />
-          <div className="absolute bottom-0 left-32 w-64 h-64 bg-orange-500/5 blur-[80px] rounded-full" />
-          <div className="flex items-start justify-between flex-wrap gap-6">
-            <div>
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 bg-red-500/10 rounded-xl flex items-center justify-center">
-                  <Icon name="shield" className="text-red-400" size={24} />
+        <div className="mb-10 flex items-end justify-between flex-wrap gap-6">
+          <div>
+            <motion.h1
+              className="text-6xl font-black tracking-tighter mb-2 leading-none"
+              initial={{ opacity: 0, y: 30, filter: 'blur(12px)' }}
+              animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+              transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+              style={{
+                background: 'linear-gradient(135deg, #E8E8E8 0%, rgba(248,113,113,0.8) 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+              }}
+            >
+              CYBER<br />
+              <span style={{ background: 'linear-gradient(135deg, #f87171, #fb923c)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>SECURITY.</span>
+            </motion.h1>
+            <motion.p
+              className="text-lg max-w-md"
+              style={{ color: 'rgba(255,255,255,0.4)' }}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+            >
+              OWASP · Ethical Hacking · CTF Challenges · Certifications
+            </motion.p>
+          </div>
+
+          {/* Stats + warning */}
+          <div className="flex flex-col gap-3">
+            <motion.div
+              className="rounded-2xl p-5 flex gap-7"
+              style={{ ...GLASS, boxShadow: '0 24px 60px rgba(0,0,0,0.5)' }}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.55, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            >
+              {[
+                { label: 'Lessons Done', value: `${progress?.lessons.completed ?? 0}/${progress?.lessons.total ?? 14}`, color: '#f87171' },
+                { label: 'CTF Solved',   value: `${progress?.ctf.solved ?? 0}/${progress?.ctf.total ?? 5}`,             color: '#fb923c' },
+                { label: 'CTF Points',   value: String(progress?.ctf.points ?? 0),                                       color: '#facc15' },
+              ].map((s, i) => (
+                <div key={s.label} style={i > 0 ? { borderLeft: '1px solid rgba(255,255,255,0.07)', paddingLeft: 28 } : {}}>
+                  <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: 'rgba(255,255,255,0.28)' }}>{s.label}</p>
+                  <p className="text-2xl font-black" style={{ color: s.color }}>{s.value}</p>
                 </div>
-                <div>
-                  <h1 className="text-4xl font-black tracking-tighter">Cybersecurity</h1>
-                  <p className="text-on-surface-variant text-sm mt-0.5">OWASP · Ethical Hacking · CTF Challenges · Certifications</p>
-                </div>
-              </div>
-              <div className="flex gap-6 mt-8">
-                <div>
-                  <p className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-on-surface-variant mb-1">Lessons Done</p>
-                  <p className="text-2xl font-bold">{progress?.lessons.completed ?? 0}<span className="text-zinc-500 text-base">/{progress?.lessons.total ?? 14}</span></p>
-                </div>
-                <div className="border-l border-outline-variant/20 pl-6">
-                  <p className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-on-surface-variant mb-1">CTF Solved</p>
-                  <p className="text-2xl font-bold">{progress?.ctf.solved ?? 0}<span className="text-zinc-500 text-base">/{progress?.ctf.total ?? 5}</span></p>
-                </div>
-                <div className="border-l border-outline-variant/20 pl-6">
-                  <p className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-on-surface-variant mb-1">CTF Points</p>
-                  <p className="text-2xl font-bold text-red-400">{progress?.ctf.points ?? 0}</p>
-                </div>
-              </div>
-            </div>
-            <div className="flex flex-col gap-2">
-              <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2">
-                <Icon name="warning" size={14} />
-                Ethical use only. Never attack systems without authorization.
-              </div>
-              <div className="bg-surface-container-high rounded-xl p-4 text-xs text-zinc-400">
-                All labs are in isolated sandboxed environments
-              </div>
+              ))}
+            </motion.div>
+            <div className="rounded-lg px-4 py-2.5 flex items-center gap-2" style={{ background: 'rgba(248,113,113,0.07)', border: '1px solid rgba(248,113,113,0.2)' }}>
+              <Icon name="warning" size={14} style={{ color: '#f87171' }} />
+              <span className="text-xs font-bold" style={{ color: '#f87171' }}>Ethical use only. Never attack systems without authorization.</span>
             </div>
           </div>
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 mb-8 bg-surface-container rounded-xl p-1 w-fit">
+        <div className="flex gap-1 mb-8 p-1 w-fit rounded-xl" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
           {(['learn', 'ctf', 'certs'] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`px-5 py-2.5 rounded-lg text-[11px] font-bold uppercase tracking-widest transition-all ${
-                activeTab === tab ? 'bg-primary-container text-white' : 'text-zinc-500 hover:text-zinc-300'
-              }`}
+              className="px-5 py-2.5 rounded-lg text-[11px] font-bold uppercase tracking-widest transition-all"
+              style={{
+                background: activeTab === tab ? 'rgba(232,25,44,0.15)' : 'transparent',
+                color: activeTab === tab ? '#ff4d5a' : 'rgba(255,255,255,0.3)',
+                border: activeTab === tab ? '1px solid rgba(232,25,44,0.3)' : '1px solid transparent',
+                boxShadow: activeTab === tab ? '0 0 12px rgba(232,25,44,0.12)' : 'none',
+              }}
             >
               {{ learn: 'Learn', ctf: 'CTF Challenges', certs: 'Certifications' }[tab]}
             </button>
@@ -195,63 +217,77 @@ export function CybersecurityPage() {
         {/* Learn Tab */}
         {activeTab === 'learn' && (
           <div>
-            {/* Category filter */}
-            <div className="flex gap-2 flex-wrap mb-6">
+            <div className="flex gap-1.5 flex-wrap mb-6">
               {cats.map((cat) => {
                 const meta = CATEGORY_META[cat];
+                const active = activeCategory === cat;
                 return (
-                  <button
+                  <motion.button
                     key={cat}
                     onClick={() => setActiveCategory(cat)}
-                    className={`px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all border ${
-                      activeCategory === cat
-                        ? `${meta?.bg ?? 'bg-zinc-500/10'} ${meta?.color ?? 'text-zinc-300'} border-current/30`
-                        : 'text-zinc-500 hover:text-zinc-300 border-zinc-800/50'
-                    }`}
+                    whileHover={{ scale: 1.04 }}
+                    whileTap={{ scale: 0.97 }}
+                    transition={{ duration: 0.12 }}
+                    style={{
+                      padding: '5px 14px', borderRadius: 999, fontSize: 10, fontWeight: 700,
+                      letterSpacing: '0.12em', textTransform: 'uppercase', cursor: 'pointer',
+                      background: active ? (meta ? meta.glow : 'rgba(255,255,255,0.08)') : 'rgba(255,255,255,0.04)',
+                      border: active ? `1px solid ${meta ? meta.color + '50' : 'rgba(255,255,255,0.25)'}` : '1px solid rgba(255,255,255,0.07)',
+                      color: active ? (meta ? meta.color : 'rgba(255,255,255,0.9)') : 'rgba(255,255,255,0.32)',
+                      transition: 'all 0.15s',
+                    }}
                   >
                     {meta?.label ?? 'All'}
-                  </button>
+                  </motion.button>
                 );
               })}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {filteredLessons.map((lesson) => {
-                const catMeta = CATEGORY_META[lesson.category] ?? { icon: 'security', color: 'text-zinc-400', bg: 'bg-zinc-500/10', label: lesson.category };
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {filteredLessons.map((lesson, i) => {
+                const catMeta = CATEGORY_META[lesson.category] ?? { icon: 'security', color: '#a1a1aa', glow: 'rgba(161,161,170,0.1)', label: lesson.category };
+                const diffStyle = DIFF_STYLE[lesson.difficulty] ?? { color: '#a1a1aa', bg: 'rgba(161,161,170,0.1)' };
                 const locked = lesson.planAccess === 'pro' || lesson.planAccess === 'elite';
                 return (
-                  <div key={lesson.id} className={`bg-surface-container rounded-xl p-6 transition-all ${locked ? 'opacity-70' : 'hover:bg-surface-container-high'}`}>
+                  <motion.div
+                    key={lesson.id}
+                    className="rounded-xl p-6"
+                    style={{ ...GLASS, opacity: locked ? 0.6 : 1 }}
+                    initial={{ opacity: 0, y: 16, filter: 'blur(6px)' }}
+                    whileInView={{ opacity: locked ? 0.6 : 1, y: 0, filter: 'blur(0px)' }}
+                    viewport={{ once: true, margin: '-20px' }}
+                    transition={{ duration: 0.4, delay: i * 0.03, ease: [0.16, 1, 0.3, 1] }}
+                    whileHover={!locked ? { background: 'rgba(255,255,255,0.06)', borderColor: `${catMeta.color}35`, y: -1 } : {}}
+                  >
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center gap-2">
-                        <div className={`w-8 h-8 ${catMeta.bg} rounded-lg flex items-center justify-center`}>
-                          <Icon name={catMeta.icon} className={catMeta.color} size={16} />
+                        <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: catMeta.glow }}>
+                          <Icon name={catMeta.icon} size={16} style={{ color: catMeta.color }} />
                         </div>
-                        <span className={`text-[10px] font-bold uppercase tracking-widest ${catMeta.color}`}>{catMeta.label}</span>
+                        <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: catMeta.color }}>{catMeta.label}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        {locked && <span className="text-[9px] font-bold bg-primary-container/20 text-primary-container px-2 py-0.5 rounded-full uppercase tracking-widest">Pro</span>}
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${DIFF_COLOR[lesson.difficulty] ?? 'text-zinc-400 bg-zinc-500/10'}`}>
-                          {lesson.difficulty}
-                        </span>
+                        {locked && <span className="text-[9px] font-bold px-2 py-0.5 rounded-full" style={{ color: '#E8192C', background: 'rgba(232,25,44,0.1)' }}>Pro</span>}
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ color: diffStyle.color, background: diffStyle.bg }}>{lesson.difficulty}</span>
                       </div>
                     </div>
-                    <h3 className="text-base font-bold mb-2">{lesson.title}</h3>
-                    <p className="text-xs text-on-surface-variant leading-relaxed mb-4 line-clamp-2">{lesson.description}</p>
+                    <h3 className="text-base font-bold mb-2" style={{ color: 'rgba(255,255,255,0.88)' }}>{lesson.title}</h3>
+                    <p className="text-xs leading-relaxed mb-4 line-clamp-2" style={{ color: 'rgba(255,255,255,0.4)' }}>{lesson.description}</p>
                     {lesson.status === 'completed' && (
-                      <div className="flex items-center gap-1 text-green-400 text-[10px] font-bold">
+                      <div className="flex items-center gap-1 text-[10px] font-bold mb-2" style={{ color: '#4ade80' }}>
                         <Icon name="check_circle" size={12} filled /> Completed
                       </div>
                     )}
                     {locked ? (
-                      <Link to="/plans" className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 hover:text-primary-container flex items-center gap-1">
-                        <Icon name="upgrade" size={12} />Upgrade
+                      <Link to="/plans" className="text-[10px] font-bold uppercase tracking-widest flex items-center gap-1 transition-colors" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                        <Icon name="upgrade" size={12} />Upgrade to unlock
                       </Link>
                     ) : (
-                      <button className={`text-[10px] font-bold uppercase tracking-widest flex items-center gap-1 ${catMeta.color} hover:brightness-125`}>
+                      <button className="text-[10px] font-bold uppercase tracking-widest flex items-center gap-1" style={{ color: catMeta.color }}>
                         Start Lesson <Icon name="arrow_forward" size={12} />
                       </button>
                     )}
-                  </div>
+                  </motion.div>
                 );
               })}
             </div>
@@ -261,33 +297,43 @@ export function CybersecurityPage() {
         {/* CTF Tab */}
         {activeTab === 'ctf' && (
           <div>
-            <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-4 mb-6 flex items-center gap-3">
-              <Icon name="emoji_events" className="text-yellow-400" size={20} />
-              <p className="text-sm text-yellow-400">Capture The Flag challenges use sandboxed environments. Submit flags in <code className="bg-black/20 px-1 rounded">EYF&#123;...&#125;</code> format.</p>
+            <div className="rounded-xl p-4 mb-6 flex items-center gap-3" style={{ background: 'rgba(250,204,21,0.07)', border: '1px solid rgba(250,204,21,0.2)' }}>
+              <Icon name="emoji_events" size={20} style={{ color: '#facc15' }} />
+              <p className="text-sm" style={{ color: '#facc15' }}>
+                Capture The Flag challenges use sandboxed environments. Submit flags in <code className="rounded px-1" style={{ background: 'rgba(0,0,0,0.3)' }}>EYF{'{...}'}</code> format.
+              </p>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {ctf.map((c) => {
-                const catMeta = CATEGORY_META[c.category] ?? { icon: 'bug_report', color: 'text-zinc-400', bg: 'bg-zinc-500/10', label: c.category };
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {ctf.map((c, i) => {
+                const catMeta = CATEGORY_META[c.category] ?? { icon: 'bug_report', color: '#a1a1aa', glow: 'rgba(161,161,170,0.1)', label: c.category };
+                const diffStyle = DIFF_STYLE[c.difficulty] ?? { color: '#a1a1aa', bg: 'rgba(161,161,170,0.1)' };
                 return (
-                  <div key={c.id} className={`bg-surface-container rounded-xl p-6 transition-all hover:bg-surface-container-high ${c.solved ? 'border border-green-500/20' : ''}`}>
+                  <motion.div
+                    key={c.id}
+                    className="rounded-xl p-6"
+                    style={{ ...GLASS, borderColor: c.solved ? 'rgba(74,222,128,0.2)' : 'rgba(255,255,255,0.07)' }}
+                    initial={{ opacity: 0, y: 16, filter: 'blur(6px)' }}
+                    whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                    viewport={{ once: true, margin: '-20px' }}
+                    transition={{ duration: 0.4, delay: i * 0.05, ease: [0.16, 1, 0.3, 1] }}
+                    whileHover={{ background: 'rgba(255,255,255,0.06)', y: -1 }}
+                  >
                     <div className="flex items-start justify-between mb-4">
-                      <div className={`w-10 h-10 ${catMeta.bg} rounded-xl flex items-center justify-center`}>
-                        <Icon name={catMeta.icon} className={catMeta.color} size={20} />
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: catMeta.glow }}>
+                        <Icon name={catMeta.icon} size={20} style={{ color: catMeta.color }} />
                       </div>
                       <div className="flex flex-col items-end gap-1">
-                        {c.solved && <Icon name="emoji_events" className="text-yellow-400" size={18} filled />}
-                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${DIFF_COLOR[c.difficulty] ?? ''}`}>{c.difficulty}</span>
+                        {c.solved && <Icon name="emoji_events" size={18} filled style={{ color: '#facc15' }} />}
+                        <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{ color: diffStyle.color, background: diffStyle.bg }}>{c.difficulty}</span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className={`text-[10px] font-bold uppercase tracking-widest ${catMeta.color}`}>{catMeta.label}</span>
-                    </div>
-                    <h3 className="text-base font-bold mb-2">{c.title}</h3>
-                    <p className="text-xs text-on-surface-variant leading-relaxed mb-4 line-clamp-2">{c.description}</p>
+                    <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: catMeta.color }}>{catMeta.label}</span>
+                    <h3 className="text-base font-bold mt-1 mb-2" style={{ color: 'rgba(255,255,255,0.88)' }}>{c.title}</h3>
+                    <p className="text-xs leading-relaxed mb-4 line-clamp-2" style={{ color: 'rgba(255,255,255,0.4)' }}>{c.description}</p>
                     <div className="flex items-center justify-between mb-3">
-                      <span className="text-yellow-400 font-bold text-sm">{c.points} pts</span>
+                      <span className="font-bold text-sm" style={{ color: '#facc15' }}>{c.points} pts</span>
                       {c.solved && (
-                        <span className="text-green-400 text-[10px] font-bold flex items-center gap-1">
+                        <span className="text-[10px] font-bold flex items-center gap-1" style={{ color: '#4ade80' }}>
                           <Icon name="check_circle" size={12} filled /> Solved
                         </span>
                       )}
@@ -301,29 +347,29 @@ export function CybersecurityPage() {
                             onChange={(e) => setFlagInput((prev) => ({ ...prev, [c.id]: e.target.value }))}
                             onKeyDown={(e) => { if (e.key === 'Enter') { void submitFlag(c); } }}
                             placeholder="EYF{flag_here}"
-                            className="flex-1 bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-xs text-white font-mono placeholder:text-zinc-700 focus:outline-none focus:border-red-500/60 transition-colors"
+                            className="flex-1 rounded-lg px-3 py-2 text-xs font-mono focus:outline-none transition-colors"
+                            style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.85)' }}
                           />
                           <button
                             onClick={() => void submitFlag(c)}
                             disabled={submittingFlag === c.id || !flagInput[c.id]?.trim()}
-                            className={`px-3 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all flex-shrink-0 ${
-                              submittingFlag === c.id ? 'bg-zinc-700 text-zinc-500' : 'bg-red-600 text-white hover:bg-red-500 active:scale-95'
-                            }`}
+                            className="px-3 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all flex-shrink-0 disabled:opacity-40"
+                            style={{ background: 'linear-gradient(135deg, #E8192C, #ff5566)', color: 'white' }}
                           >
                             {submittingFlag === c.id ? '…' : 'Submit'}
                           </button>
                         </div>
                         {flagError[c.id] && (
-                          <p className="text-[10px] text-red-400 font-bold flex items-center gap-1">
+                          <p className="text-[10px] font-bold flex items-center gap-1" style={{ color: '#f87171' }}>
                             <Icon name="error_outline" size={11} /> {flagError[c.id]}
                           </p>
                         )}
                         {c.attempts > 0 && (
-                          <p className="text-[10px] text-zinc-600">{c.attempts} attempt{c.attempts === 1 ? '' : 's'}</p>
+                          <p className="text-[10px]" style={{ color: 'rgba(255,255,255,0.22)' }}>{c.attempts} attempt{c.attempts === 1 ? '' : 's'}</p>
                         )}
                       </div>
                     )}
-                  </div>
+                  </motion.div>
                 );
               })}
             </div>
@@ -333,37 +379,55 @@ export function CybersecurityPage() {
         {/* Certifications Tab */}
         {activeTab === 'certs' && (
           <div>
-            <p className="text-on-surface-variant text-sm mb-8 max-w-2xl">
-              EYF maps its curriculum directly to industry certifications. Each certification track includes the relevant lessons, practice labs, and exam prep resources.
+            <p className="text-sm mb-8 max-w-2xl" style={{ color: 'rgba(255,255,255,0.4)' }}>
+              EYF maps its curriculum directly to industry certifications. Each track includes relevant lessons, practice labs, and exam prep resources.
             </p>
-            <div className="space-y-4">
+            <div className="space-y-3">
               {CERT_ROADMAP.map((cert, i) => (
-                <div key={cert.cert} className={`rounded-xl p-6 border ${cert.color} transition-all hover:brightness-110`}>
+                <motion.div
+                  key={cert.cert}
+                  className="rounded-xl p-6"
+                  style={{ background: cert.bg, border: `1px solid ${cert.borderColor}` }}
+                  initial={{ opacity: 0, y: 16 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: '-20px' }}
+                  transition={{ duration: 0.4, delay: i * 0.07, ease: [0.16, 1, 0.3, 1] }}
+                  whileHover={{ scale: 1.005 }}
+                >
                   <div className="flex items-start gap-6">
-                    <div className="w-10 h-10 bg-surface-container-highest rounded-xl flex items-center justify-center text-lg font-black text-zinc-400 flex-shrink-0">
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center text-lg font-black flex-shrink-0" style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.5)' }}>
                       {i + 1}
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2 flex-wrap">
-                        <h3 className="text-lg font-bold">{cert.cert}</h3>
-                        <span className="text-[10px] font-bold uppercase tracking-widest bg-surface-container-high px-2 py-0.5 rounded-full text-zinc-400">{cert.level}</span>
-                        <span className="text-[10px] font-bold text-zinc-500">{cert.months} months prep</span>
+                        <h3 className="text-lg font-bold" style={{ color: 'rgba(255,255,255,0.88)' }}>{cert.cert}</h3>
+                        <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full" style={{ color: 'rgba(255,255,255,0.4)', background: 'rgba(255,255,255,0.06)' }}>{cert.level}</span>
+                        <span className="text-[10px] font-bold" style={{ color: 'rgba(255,255,255,0.3)' }}>{cert.months} months prep</span>
                       </div>
-                      <p className="text-sm text-on-surface-variant">{cert.focus}</p>
+                      <p className="text-sm" style={{ color: 'rgba(255,255,255,0.45)' }}>{cert.focus}</p>
                     </div>
-                    <button className="flex-shrink-0 text-[10px] font-bold uppercase tracking-widest text-primary-container hover:underline flex items-center gap-1">
+                    <button className="flex-shrink-0 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1" style={{ color: 'rgba(255,255,255,0.3)' }}>
                       View Path <Icon name="arrow_forward" size={12} />
                     </button>
                   </div>
-                </div>
+                </motion.div>
               ))}
             </div>
-            <div className="mt-8 bg-surface-container rounded-xl p-6">
-              <h3 className="font-bold mb-2 flex items-center gap-2"><Icon name="info" className="text-blue-400" size={16} />Certification Disclaimer</h3>
-              <p className="text-xs text-on-surface-variant leading-relaxed">
-                EYF prepares you for certification exams but does not issue official certificates. Official certifications must be obtained through the respective governing bodies (CompTIA, EC-Council, Offensive Security, (ISC)²).
+            <motion.div
+              className="mt-6 rounded-xl p-6"
+              style={GLASS}
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+            >
+              <h3 className="font-bold mb-2 flex items-center gap-2" style={{ color: 'rgba(255,255,255,0.8)' }}>
+                <Icon name="info" size={16} style={{ color: '#60a5fa' }} />Certification Disclaimer
+              </h3>
+              <p className="text-xs leading-relaxed" style={{ color: 'rgba(255,255,255,0.38)' }}>
+                EYF prepares you for certification exams but does not issue official certificates. Official certifications must be obtained through the respective governing bodies (CompTIA, EC-Council, Offensive Security, ISC²).
               </p>
-            </div>
+            </motion.div>
           </div>
         )}
       </div>

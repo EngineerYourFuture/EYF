@@ -1,8 +1,15 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { AppShell } from '../components/AppShell';
 import { Icon } from '../components/Icon';
 import { useUser } from '../contexts/UserContext';
+
+const GLASS = {
+  background: 'rgba(10,10,10,0.7)',
+  border: '1px solid rgba(255,255,255,0.07)',
+  backdropFilter: 'blur(16px)',
+} as const;
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -689,19 +696,19 @@ while (CHALLENGES.length < 31) {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const TYPE_META: Record<ChallengeType, { label: string; icon: string; color: string; bg: string }> = {
-  dsa:             { label: 'DSA',           icon: 'code',             color: 'text-blue-400',   bg: 'bg-blue-500/10'   },
-  'system-design': { label: 'System Design', icon: 'architecture',     color: 'text-cyan-400',   bg: 'bg-cyan-500/10'   },
-  behavioral:      { label: 'Behavioral',    icon: 'record_voice_over', color: 'text-orange-400', bg: 'bg-orange-500/10' },
-  sql:             { label: 'SQL',           icon: 'storage',          color: 'text-purple-400', bg: 'bg-purple-500/10' },
-  security:        { label: 'Security',      icon: 'shield',           color: 'text-red-400',    bg: 'bg-red-500/10'    },
-  oop:             { label: 'OOP Design',    icon: 'account_tree',     color: 'text-amber-400',  bg: 'bg-amber-500/10'  },
+const TYPE_META: Record<ChallengeType, { label: string; icon: string; color: string; glow: string }> = {
+  dsa:             { label: 'DSA',           icon: 'code',              color: '#60a5fa', glow: 'rgba(96,165,250,0.18)'  },
+  'system-design': { label: 'System Design', icon: 'architecture',      color: '#22d3ee', glow: 'rgba(34,211,238,0.18)'  },
+  behavioral:      { label: 'Behavioral',    icon: 'record_voice_over', color: '#fb923c', glow: 'rgba(251,146,60,0.18)'  },
+  sql:             { label: 'SQL',           icon: 'storage',           color: '#c084fc', glow: 'rgba(192,132,252,0.18)' },
+  security:        { label: 'Security',      icon: 'shield',            color: '#f87171', glow: 'rgba(248,113,113,0.18)' },
+  oop:             { label: 'OOP Design',    icon: 'account_tree',      color: '#fbbf24', glow: 'rgba(251,191,36,0.18)'  },
 };
 
-const DIFF_STYLE: Record<string, string> = {
-  easy:   'text-green-400 bg-green-500/10 border-green-500/20',
-  medium: 'text-yellow-400 bg-yellow-500/10 border-yellow-500/20',
-  hard:   'text-red-400 bg-red-500/10 border-red-500/20',
+const DIFF_STYLE: Record<string, { color: string; bg: string; border: string }> = {
+  easy:   { color: '#4ade80', bg: 'rgba(74,222,128,0.08)',   border: 'rgba(74,222,128,0.25)'   },
+  medium: { color: '#facc15', bg: 'rgba(250,204,21,0.08)',   border: 'rgba(250,204,21,0.25)'   },
+  hard:   { color: '#f87171', bg: 'rgba(248,113,113,0.08)',  border: 'rgba(248,113,113,0.25)'  },
 };
 
 function todayChallenge(): DailyChallenge {
@@ -759,79 +766,151 @@ export function DailyChallengePage() {
   const hoursTil = Math.floor(msTilTomorrow / 3600000);
   const minsTil = Math.floor((msTilTomorrow % 3600000) / 60000);
 
+  const diff = DIFF_STYLE[challenge.difficulty] ?? DIFF_STYLE.medium;
+
   return (
     <AppShell>
-      <div className="pt-8 max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-[#E82127]/10 rounded-xl flex items-center justify-center">
-              <Icon name="today" className="text-[#E82127]" size={24} />
-            </div>
+      <div style={{ maxWidth: 896, margin: '0 auto', padding: '0 24px 80px' }}>
+
+        {/* ── Hero ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          style={{ paddingTop: 56, paddingBottom: 40 }}
+        >
+          <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', flexWrap: 'wrap', gap: 20 }}>
             <div>
-              <h1 className="text-3xl font-black tracking-tighter">Daily Challenge</h1>
-              <p className="text-on-surface-variant text-sm">
+              <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.18em', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', marginBottom: 8 }}>
                 {now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
               </p>
+              <h1 style={{
+                fontSize: 'clamp(2.2rem, 6vw, 3.8rem)',
+                fontWeight: 900,
+                letterSpacing: '-0.03em',
+                lineHeight: 1,
+                background: 'linear-gradient(135deg, #ff4d5a 0%, #ff8c42 60%, #facc15 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                marginBottom: 10,
+              }}>
+                DAILY CHALLENGE.
+              </h1>
+              <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.45)', fontWeight: 500 }}>
+                One challenge per day. Compound your edge.
+              </p>
             </div>
-          </div>
-          <div className="flex items-center gap-6">
-            {streak > 0 && (
-              <div className="flex items-center gap-2 bg-orange-500/10 border border-orange-500/20 rounded-xl px-4 py-2">
-                <Icon name="local_fire_department" size={18} className="text-orange-400" filled />
-                <span className="font-black text-orange-400">{streak}</span>
-                <span className="text-xs font-bold text-orange-400/70">day streak</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexShrink: 0 }}>
+              {streak > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.85 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.2 }}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 8,
+                    background: 'rgba(251,146,60,0.1)', border: '1px solid rgba(251,146,60,0.25)',
+                    borderRadius: 14, padding: '10px 18px',
+                  }}
+                >
+                  <Icon name="local_fire_department" size={18} style={{ color: '#fb923c' }} filled />
+                  <span style={{ fontWeight: 900, color: '#fb923c', fontSize: 20 }}>{streak}</span>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: 'rgba(251,146,60,0.6)' }}>day streak</span>
+                </motion.div>
+              )}
+              <div style={{ textAlign: 'right' }}>
+                <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.15em', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase' }}>
+                  Next in
+                </p>
+                <p style={{ fontWeight: 900, color: '#fff', fontSize: 18 }}>{hoursTil}h {minsTil}m</p>
               </div>
-            )}
-            <div className="text-right">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-600">Next challenge in</p>
-              <p className="font-black text-on-surface text-lg">{hoursTil}h {minsTil}m</p>
             </div>
           </div>
-        </div>
+        </motion.div>
 
-        {/* Challenge card */}
-        <div className="bg-surface-container rounded-2xl overflow-hidden mb-6">
-          {/* Top bar */}
-          <div className={`p-6 border-b border-white/5 ${meta.bg}`}>
-            <div className="flex items-center justify-between flex-wrap gap-4">
-              <div className="flex items-center gap-3">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${meta.bg} ${meta.color}`}>
-                  <Icon name={meta.icon} size={20} />
+        {/* ── Challenge card ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, delay: 0.1 }}
+          style={{
+            ...GLASS,
+            borderRadius: 20,
+            overflow: 'hidden',
+            marginBottom: 20,
+            boxShadow: submitted ? '0 0 40px rgba(74,222,128,0.08)' : `0 0 40px ${meta.glow}`,
+            transition: 'box-shadow 0.4s',
+          }}
+        >
+          {/* Top accent bar */}
+          <div style={{ height: 3, background: `linear-gradient(90deg, ${meta.color}, transparent)` }} />
+
+          {/* Card header */}
+          <div style={{
+            padding: '20px 24px',
+            borderBottom: '1px solid rgba(255,255,255,0.06)',
+            background: `linear-gradient(135deg, ${meta.glow.replace('0.18', '0.07')}, transparent)`,
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{
+                  width: 40, height: 40, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  background: meta.glow.replace('0.18', '0.12'), border: `1px solid ${meta.color}30`,
+                }}>
+                  <Icon name={meta.icon} size={20} style={{ color: meta.color }} />
                 </div>
                 <div>
-                  <p className={`text-[10px] font-black uppercase tracking-widest ${meta.color}`}>{meta.label}</p>
-                  <h2 className="text-xl font-black text-on-surface">{challenge.title}</h2>
+                  <p style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: meta.color, marginBottom: 2 }}>
+                    {meta.label}
+                  </p>
+                  <h2 style={{ fontWeight: 900, color: '#fff', fontSize: 20, letterSpacing: '-0.01em' }}>{challenge.title}</h2>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
-                <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border ${DIFF_STYLE[challenge.difficulty]}`}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                <span style={{
+                  padding: '4px 12px', borderRadius: 999,
+                  fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase',
+                  color: diff.color, background: diff.bg, border: `1px solid ${diff.border}`,
+                }}>
                   {challenge.difficulty}
                 </span>
-                <div className="flex items-center gap-1 bg-surface-container rounded-full px-3 py-1.5">
-                  <Icon name="bolt" size={14} className="text-[#E82127]" filled />
-                  <span className="font-black text-[#E82127] text-sm">+{challenge.xpReward} XP</span>
+                <div style={{
+                  display: 'flex', alignItems: 'center', gap: 5,
+                  background: 'rgba(232,33,39,0.1)', border: '1px solid rgba(232,33,39,0.2)',
+                  borderRadius: 999, padding: '5px 12px',
+                }}>
+                  <Icon name="bolt" size={13} style={{ color: '#ff4d5a' }} filled />
+                  <span style={{ fontWeight: 900, color: '#ff4d5a', fontSize: 13 }}>+{challenge.xpReward} XP</span>
                 </div>
                 {submitted && (
-                  <div className="flex items-center gap-1.5 bg-green-500/10 border border-green-500/20 rounded-full px-3 py-1.5">
-                    <Icon name="check_circle" size={14} className="text-green-400" filled />
-                    <span className="text-[10px] font-black text-green-400 uppercase tracking-widest">Completed</span>
-                  </div>
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 6,
+                      background: 'rgba(74,222,128,0.1)', border: '1px solid rgba(74,222,128,0.25)',
+                      borderRadius: 999, padding: '5px 12px',
+                    }}
+                  >
+                    <Icon name="check_circle" size={13} style={{ color: '#4ade80' }} filled />
+                    <span style={{ fontSize: 10, fontWeight: 900, color: '#4ade80', textTransform: 'uppercase', letterSpacing: '0.12em' }}>Completed</span>
+                  </motion.div>
                 )}
               </div>
             </div>
           </div>
 
           {/* Prompt */}
-          <div className="p-6">
-            <pre className="text-sm text-on-surface/90 whitespace-pre-wrap font-sans leading-relaxed">
+          <div style={{ padding: '24px 24px 0' }}>
+            <pre style={{ fontSize: 14, color: 'rgba(255,255,255,0.85)', whiteSpace: 'pre-wrap', fontFamily: 'inherit', lineHeight: 1.75, margin: 0 }}>
               {challenge.prompt}
             </pre>
-
-            {/* Tags */}
-            <div className="flex gap-2 mt-4 flex-wrap">
+            <div style={{ display: 'flex', gap: 8, marginTop: 16, flexWrap: 'wrap' }}>
               {challenge.tags.map((tag) => (
-                <span key={tag} className="px-2.5 py-1 bg-surface-container-high rounded-full text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
+                <span key={tag} style={{
+                  padding: '4px 10px', borderRadius: 999,
+                  background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
+                  fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.1em',
+                }}>
                   {tag}
                 </span>
               ))}
@@ -840,81 +919,144 @@ export function DailyChallengePage() {
 
           {/* Answer area */}
           {!submitted && (
-            <div className="px-6 pb-6">
-              <label htmlFor="daily-answer" className="text-[10px] font-black uppercase tracking-widest text-zinc-600 block mb-2">Your Answer / Approach</label>
+            <div style={{ padding: '20px 24px 24px' }}>
+              <label htmlFor="daily-answer" style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', display: 'block', marginBottom: 8 }}>
+                Your Answer / Approach
+              </label>
               <textarea
                 id="daily-answer"
                 value={answer}
                 onChange={(e) => setAnswer(e.target.value)}
                 placeholder="Write your solution, approach, or key insights here..."
                 rows={8}
-                className="w-full bg-zinc-900 border border-white/8 rounded-xl px-4 py-3 text-sm text-white font-mono placeholder:text-zinc-700 focus:outline-none focus:border-[#E82127]/40 resize-none"
+                style={{
+                  width: '100%', background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.08)',
+                  borderRadius: 14, padding: '12px 16px', fontSize: 13, color: '#fff',
+                  fontFamily: 'monospace', outline: 'none', resize: 'none', boxSizing: 'border-box',
+                  transition: 'border-color 0.2s',
+                }}
+                onFocus={(e) => { e.currentTarget.style.borderColor = 'rgba(232,33,39,0.4)'; }}
+                onBlur={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; }}
               />
-              <div className="flex items-center gap-3 mt-3 flex-wrap">
-                <button
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 12, flexWrap: 'wrap' }}>
+                <motion.button
                   onClick={handleSubmit}
                   disabled={!answer.trim()}
-                  className="bg-[#E82127] disabled:opacity-40 text-white font-black uppercase tracking-widest text-xs py-3 px-6 rounded-full hover:brightness-110 transition-all active:scale-95 flex items-center gap-2"
+                  whileHover={answer.trim() ? { scale: 1.03, boxShadow: '0 0 24px rgba(232,33,39,0.4)' } : {}}
+                  whileTap={answer.trim() ? { scale: 0.97 } : {}}
+                  style={{
+                    background: 'linear-gradient(135deg, #e82127, #c41a1f)',
+                    border: 'none', borderRadius: 999, padding: '11px 24px',
+                    color: '#fff', fontSize: 11, fontWeight: 900, textTransform: 'uppercase',
+                    letterSpacing: '0.14em', cursor: answer.trim() ? 'pointer' : 'not-allowed',
+                    opacity: answer.trim() ? 1 : 0.4, display: 'flex', alignItems: 'center', gap: 8,
+                  }}
                 >
-                  <Icon name="check" size={14} />
+                  <Icon name="check" size={13} />
                   Submit & Reveal Solution (+{challenge.xpReward} XP)
-                </button>
-                <button
+                </motion.button>
+                <motion.button
                   onClick={() => setShowHint(!showHint)}
-                  className="flex items-center gap-2 text-xs font-bold text-zinc-500 hover:text-zinc-300 transition-colors"
+                  whileHover={{ color: '#fff' }}
+                  style={{
+                    background: 'none', border: 'none', cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', gap: 6,
+                    fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,0.35)',
+                    transition: 'color 0.2s',
+                  }}
                 >
-                  <Icon name="lightbulb" size={14} />
+                  <Icon name="lightbulb" size={13} />
                   {showHint ? 'Hide Hint' : 'Show Hint'}
-                </button>
+                </motion.button>
               </div>
 
-              {showHint && (
-                <div className="mt-4 p-4 bg-yellow-500/5 border border-yellow-500/20 rounded-xl">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-yellow-400 mb-2">Hint</p>
-                  <p className="text-sm text-zinc-300">{challenge.hint}</p>
-                </div>
-              )}
+              <AnimatePresence>
+                {showHint && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    style={{ overflow: 'hidden' }}
+                  >
+                    <div style={{
+                      marginTop: 16, padding: '14px 18px',
+                      background: 'rgba(250,204,21,0.05)', border: '1px solid rgba(250,204,21,0.2)', borderRadius: 14,
+                    }}>
+                      <p style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#facc15', marginBottom: 8 }}>Hint</p>
+                      <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)', lineHeight: 1.7 }}>{challenge.hint}</p>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           )}
-        </div>
+        </motion.div>
 
-        {/* Solution (revealed after submit or explicitly) */}
-        {(showSolution || submitted) && (
-          <div className="bg-surface-container rounded-2xl overflow-hidden mb-6">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-white/5">
-              <div className="flex items-center gap-2">
-                <Icon name="star" size={18} className="text-yellow-400" filled />
-                <h3 className="font-black text-on-surface">Model Solution</h3>
+        {/* ── Solution ── */}
+        <AnimatePresence>
+          {(showSolution || submitted) && (
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.4 }}
+              style={{ ...GLASS, borderRadius: 20, overflow: 'hidden', marginBottom: 20 }}
+            >
+              {/* Gold accent line */}
+              <div style={{ height: 3, background: 'linear-gradient(90deg, #facc15, transparent)' }} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '18px 24px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                <Icon name="star" size={18} style={{ color: '#facc15' }} filled />
+                <h3 style={{ fontWeight: 900, color: '#fff', fontSize: 15 }}>Model Solution</h3>
               </div>
-            </div>
-            <div className="p-6">
-              <pre className="text-sm text-on-surface/90 bg-zinc-900 rounded-xl p-4 overflow-x-auto whitespace-pre-wrap font-mono leading-relaxed border border-white/5">
-                {challenge.solution}
-              </pre>
-            </div>
+              <div style={{ padding: 24 }}>
+                <pre style={{
+                  fontSize: 13, color: 'rgba(255,255,255,0.88)',
+                  background: 'rgba(0,0,0,0.5)', borderRadius: 14,
+                  padding: 20, overflowX: 'auto', whiteSpace: 'pre-wrap',
+                  fontFamily: 'monospace', lineHeight: 1.65,
+                  border: '1px solid rgba(255,255,255,0.06)', margin: 0,
+                }}>
+                  {challenge.solution}
+                </pre>
+              </div>
+              <div style={{ padding: '0 24px 24px' }}>
+                <p style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', marginBottom: 12 }}>
+                  Discussion Points
+                </p>
+                <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  {challenge.discussionPoints.map((point, i) => (
+                    <motion.li
+                      key={point}
+                      initial={{ opacity: 0, x: -8 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.06 }}
+                      style={{ display: 'flex', alignItems: 'flex-start', gap: 10, fontSize: 13, color: 'rgba(255,255,255,0.6)' }}
+                    >
+                      <Icon name="arrow_forward" size={13} style={{ color: '#ff4d5a', flexShrink: 0, marginTop: 2 }} />
+                      {point}
+                    </motion.li>
+                  ))}
+                </ul>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-            {/* Discussion points */}
-            <div className="px-6 pb-6">
-              <p className="text-[10px] font-black uppercase tracking-widest text-zinc-600 mb-3">Discussion Points</p>
-              <ul className="space-y-2">
-                {challenge.discussionPoints.map((point) => (
-                  <li key={point} className="flex items-start gap-2 text-sm text-zinc-400">
-                    <Icon name="arrow_forward" size={14} className="text-[#E82127] flex-shrink-0 mt-0.5" />
-                    {point}
-                  </li>
-                ))}
-              </ul>
-            </div>
+        {/* ── Recent Challenges ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-20px' }}
+          transition={{ duration: 0.4 }}
+          style={{ ...GLASS, borderRadius: 20, padding: 24, marginBottom: 20 }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
+            <h3 style={{ fontWeight: 900, color: '#fff', fontSize: 15 }}>Recent Challenges</h3>
+            <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.14em' }}>
+              Last 7 days
+            </span>
           </div>
-        )}
-
-        {/* Past challenges preview */}
-        <div className="bg-surface-container rounded-2xl p-6">
-          <div className="flex items-center justify-between mb-5">
-            <h3 className="font-black text-on-surface">Recent Challenges</h3>
-            <span className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest">Last 7 days</span>
-          </div>
-          <div className="space-y-2">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {Array.from({ length: 7 }, (_, i) => i + 1).map((daysAgo) => {
               const d = new Date();
               d.setDate(d.getDate() - daysAgo);
@@ -923,42 +1065,69 @@ export function DailyChallengePage() {
               const dayChallenge = CHALLENGES[(d.getDate() - 1) % CHALLENGES.length];
               const m = TYPE_META[dayChallenge.type];
               return (
-                <div key={daysAgo} className={`flex items-center gap-4 p-3 rounded-xl ${done ? 'bg-green-500/5 border border-green-500/10' : 'bg-surface-container-high'}`}>
-                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${m.bg}`}>
-                    <Icon name={m.icon} size={16} className={m.color} />
+                <motion.div
+                  key={daysAgo}
+                  initial={{ opacity: 0, x: -8 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: daysAgo * 0.04 }}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 14,
+                    padding: '10px 14px', borderRadius: 12,
+                    background: done ? 'rgba(74,222,128,0.06)' : 'rgba(255,255,255,0.03)',
+                    border: done ? '1px solid rgba(74,222,128,0.15)' : '1px solid rgba(255,255,255,0.05)',
+                  }}
+                >
+                  <div style={{
+                    width: 32, height: 32, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    background: m.glow.replace('0.18', '0.12'), border: `1px solid ${m.color}25`, flexShrink: 0,
+                  }}>
+                    <Icon name={m.icon} size={15} style={{ color: m.color }} />
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-on-surface truncate">{dayChallenge.title}</p>
-                    <p className="text-[10px] text-zinc-600">
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ fontSize: 13, fontWeight: 700, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {dayChallenge.title}
+                    </p>
+                    <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)' }}>
                       {d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })} · {m.label}
                     </p>
                   </div>
                   {done
-                    ? <Icon name="check_circle" size={18} className="text-green-400 flex-shrink-0" filled />
-                    : <span className="text-[10px] font-bold text-zinc-600 flex-shrink-0">Missed</span>
+                    ? <Icon name="check_circle" size={17} style={{ color: '#4ade80', flexShrink: 0 }} filled />
+                    : <span style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.25)', flexShrink: 0 }}>Missed</span>
                   }
-                </div>
+                </motion.div>
               );
             })}
           </div>
-        </div>
+        </motion.div>
 
-        {/* CTA to related resources */}
-        <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {/* ── CTA grid ── */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14 }}>
           {[
-            { icon: 'code', label: 'Practice Problems', path: '/app/problems', color: 'text-blue-400', bg: 'bg-blue-500/10' },
-            { icon: 'style', label: 'Flashcard Review', path: '/app/flashcards', color: 'text-purple-400', bg: 'bg-purple-500/10' },
-            { icon: 'record_voice_over', label: 'Mock Interview', path: '/app/mock-interview', color: 'text-orange-400', bg: 'bg-orange-500/10' },
+            { icon: 'code',              label: 'Practice Problems', path: '/app/problems',      color: '#60a5fa', glow: 'rgba(96,165,250,0.12)'  },
+            { icon: 'style',             label: 'Flashcard Review',  path: '/app/flashcards',    color: '#c084fc', glow: 'rgba(192,132,252,0.12)' },
+            { icon: 'record_voice_over', label: 'Mock Interview',    path: '/app/mock-interview',color: '#fb923c', glow: 'rgba(251,146,60,0.12)'  },
           ].map((item) => (
-            <Link key={item.path} to={item.path}>
-              <div className={`flex items-center gap-3 bg-surface-container rounded-xl p-4 hover:bg-surface-container-high transition-all ${item.bg} border border-white/4`}>
-                <Icon name={item.icon} size={18} className={item.color} />
-                <span className="text-sm font-bold text-on-surface">{item.label}</span>
-                <Icon name="arrow_forward" size={14} className="text-zinc-600 ml-auto" />
-              </div>
+            <Link key={item.path} to={item.path} style={{ textDecoration: 'none' }}>
+              <motion.div
+                whileHover={{ borderColor: `${item.color}30`, boxShadow: `0 8px 24px ${item.glow}` }}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 12,
+                  ...GLASS, borderRadius: 16, padding: '14px 18px',
+                  transition: 'box-shadow 0.25s',
+                }}
+              >
+                <div style={{ width: 36, height: 36, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', background: item.glow, flexShrink: 0 }}>
+                  <Icon name={item.icon} size={17} style={{ color: item.color }} />
+                </div>
+                <span style={{ fontSize: 13, fontWeight: 700, color: '#fff', flex: 1 }}>{item.label}</span>
+                <Icon name="arrow_forward" size={14} style={{ color: 'rgba(255,255,255,0.25)' }} />
+              </motion.div>
             </Link>
           ))}
         </div>
+
       </div>
     </AppShell>
   );

@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, useMotionValue, useSpring, useTransform, AnimatePresence } from 'framer-motion';
 import { AppShell } from '../components/AppShell';
 import { apiRequest } from '../lib/api';
 import { getSession } from '../lib/session';
@@ -46,6 +46,56 @@ const ENGINEERING_INSIGHTS = [
   { tip: "DP heuristic: if you see 'minimum/maximum', 'count ways', or 'is it possible' — suspect DP. Start with recursion + memo, then optimize to tabulation.", category: 'DSA', icon: 'code', hex: '#2563EB' },
 ];
 
+/* ── 3D Tilt card ─────────────────────────────────────────────────────────── */
+
+function TiltCard({ children, className, style, glowColor }: {
+  readonly children: React.ReactNode;
+  readonly className?: string;
+  readonly style?: React.CSSProperties;
+  readonly glowColor?: string;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const mx = useMotionValue(0);
+  const my = useMotionValue(0);
+  const rx = useSpring(useTransform(my, [-0.5, 0.5], [8, -8]),  { stiffness: 260, damping: 24 });
+  const ry = useSpring(useTransform(mx, [-0.5, 0.5], [-8, 8]),  { stiffness: 260, damping: 24 });
+
+  const [hovered, setHovered] = useState(false);
+
+  function onMove(e: React.MouseEvent<HTMLDivElement>) {
+    if (!ref.current) return;
+    const r = ref.current.getBoundingClientRect();
+    mx.set((e.clientX - r.left) / r.width - 0.5);
+    my.set((e.clientY - r.top)  / r.height - 0.5);
+  }
+  function onLeave() {
+    mx.set(0); my.set(0); setHovered(false);
+  }
+
+  return (
+    <motion.div
+      ref={ref}
+      className={className}
+      style={{
+        transformPerspective: 800,
+        rotateX: rx,
+        rotateY: ry,
+        boxShadow: hovered && glowColor
+          ? `0 0 32px ${glowColor}28, 0 8px 32px rgba(0,0,0,0.5)`
+          : undefined,
+        ...style,
+      }}
+      onMouseMove={onMove}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={onLeave}
+      whileHover={{ scale: 1.02 }}
+      transition={{ scale: { duration: 0.2 } }}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
 /* ── Progress ring ────────────────────────────────────────────────────────── */
 
 function ProgressRing({ pct, hex }: { readonly pct: number; readonly hex: string }) {
@@ -55,9 +105,15 @@ function ProgressRing({ pct, hex }: { readonly pct: number; readonly hex: string
   return (
     <div className="relative w-10 h-10 flex-shrink-0">
       <svg className="w-full h-full -rotate-90" viewBox="0 0 40 40">
-        <circle cx="20" cy="20" r={r} fill="none" stroke="#F4F4F5" strokeWidth="2.5" />
-        <circle cx="20" cy="20" r={r} fill="none" stroke={hex} strokeWidth="2.5"
-          strokeDasharray={circ} strokeDashoffset={off} strokeLinecap="round" />
+        <circle cx="20" cy="20" r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="2.5" />
+        <motion.circle
+          cx="20" cy="20" r={r} fill="none" stroke={hex} strokeWidth="2.5"
+          strokeDasharray={circ}
+          initial={{ strokeDashoffset: circ }}
+          animate={{ strokeDashoffset: off }}
+          transition={{ duration: 1.4, ease: [0.16, 1, 0.3, 1] }}
+          strokeLinecap="round"
+        />
       </svg>
       <span className="absolute inset-0 flex items-center justify-center text-[9px] font-bold" style={{ color: hex }}>
         {pct}%
@@ -121,35 +177,37 @@ function DailyChallengeCard() {
   const today = POOL[day % POOL.length];
 
   return (
-    <div className="stat-tile">
-      <div className="flex items-center gap-2 mb-4">
-        <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: 'var(--red-muted)' }}>
-          <span className="material-symbols-rounded text-sm" style={{ color: 'var(--red)' }}>today</span>
+    <TiltCard glowColor="#E8192C" style={{ borderRadius: 16 }}>
+      <div className="stat-tile">
+        <div className="flex items-center gap-2 mb-4">
+          <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: 'var(--red-muted)' }}>
+            <span className="material-symbols-rounded text-sm" style={{ color: 'var(--red)' }}>today</span>
+          </div>
+          <span className="text-sm font-semibold" style={{ color: 'var(--t1)' }}>Daily Challenge</span>
+          <span className="ml-auto text-xs font-bold px-2 py-0.5 rounded-full" style={{ background: 'rgba(202,138,4,0.1)', color: '#CA8A04' }}>+50 XP</span>
         </div>
-        <span className="text-sm font-semibold" style={{ color: 'var(--t1)' }}>Daily Challenge</span>
-        <span className="ml-auto text-xs font-bold px-2 py-0.5 rounded-full" style={{ background: 'rgba(202,138,4,0.1)', color: '#CA8A04' }}>+50 XP</span>
+        <div className="flex items-center gap-2 mb-2">
+          <span className={`tag tag-${today.diff}`}>{today.diff}</span>
+          <span className="text-xs" style={{ color: 'var(--t4)' }}>{today.type}</span>
+        </div>
+        <p className="text-sm font-semibold mb-4" style={{ color: 'var(--t1)' }}>{today.title}</p>
+        <Link to="/app/daily">
+          <button
+            type="button"
+            className="w-full py-2.5 rounded-lg text-sm font-semibold transition-all flex items-center justify-center gap-2"
+            style={done
+              ? { background: 'rgba(22,163,74,0.08)', color: '#16A34A', border: '1px solid rgba(22,163,74,0.15)' }
+              : { background: 'var(--red)', color: '#fff', border: 'none', boxShadow: '0 4px 20px rgba(232,25,44,0.35)' }
+            }
+          >
+            {done
+              ? <><span className="material-symbols-rounded text-base">check_circle</span> Completed</>
+              : <>Solve now <span className="material-symbols-rounded text-base">arrow_forward</span></>
+            }
+          </button>
+        </Link>
       </div>
-      <div className="flex items-center gap-2 mb-2">
-        <span className={`tag tag-${today.diff}`}>{today.diff}</span>
-        <span className="text-xs" style={{ color: 'var(--t4)' }}>{today.type}</span>
-      </div>
-      <p className="text-sm font-semibold mb-4" style={{ color: 'var(--t1)' }}>{today.title}</p>
-      <Link to="/app/daily">
-        <button
-          type="button"
-          className="w-full py-2.5 rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-2"
-          style={done
-            ? { background: 'rgba(22,163,74,0.08)', color: '#16A34A', border: '1px solid rgba(22,163,74,0.15)' }
-            : { background: 'var(--red)', color: '#fff', border: 'none' }
-          }
-        >
-          {done
-            ? <><span className="material-symbols-rounded text-base">check_circle</span> Completed</>
-            : <>Solve now <span className="material-symbols-rounded text-base">arrow_forward</span></>
-          }
-        </button>
-      </Link>
-    </div>
+    </TiltCard>
   );
 }
 
@@ -178,6 +236,32 @@ function buildRecommendations(xp: number, streak: number, modules: ModItem[]) {
   return recs.toSorted((a, b) => b.priority - a.priority).slice(0, 3);
 }
 
+/* ── Section header ───────────────────────────────────────────────────────── */
+
+function SectionLabel({ children }: { readonly children: React.ReactNode }) {
+  return (
+    <div className="flex items-center gap-2 mb-3">
+      <div style={{ width: 3, height: 14, borderRadius: 2, background: 'var(--red)', boxShadow: '0 0 8px rgba(232,25,44,0.7)' }} />
+      <p className="field-label" style={{ marginBottom: 0, letterSpacing: '0.08em' }}>{children}</p>
+    </div>
+  );
+}
+
+/* ── Reveal wrapper ───────────────────────────────────────────────────────── */
+
+function Reveal({ children, delay = 0 }: { readonly children: React.ReactNode; readonly delay?: number }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 24, filter: 'blur(8px)' }}
+      whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+      viewport={{ once: true, margin: '-40px' }}
+      transition={{ duration: 0.55, delay, ease: [0.16, 1, 0.3, 1] }}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
 /* ── Page ─────────────────────────────────────────────────────────────────── */
 
 export function HomePage() {
@@ -196,14 +280,18 @@ export function HomePage() {
   useEffect(() => {
     if (!summary) return;
     const stored = Number(localStorage.getItem('eyf.lastLevel') ?? 0);
-    if (stored > 0 && summary.level > stored) setLevelUpFor(summary.level);
     localStorage.setItem('eyf.lastLevel', String(summary.level));
     const today = new Date().toDateString();
     const lastDay = localStorage.getItem('eyf.lastStreakToastDay');
-    if ([7,14,30,60,100,200,365].includes(summary.streak) && lastDay !== today) {
-      localStorage.setItem('eyf.lastStreakToastDay', today);
-      setStreakToast(true);
-    }
+    const shouldLevelUp = stored > 0 && summary.level > stored;
+    const shouldStreak = [7,14,30,60,100,200,365].includes(summary.streak) && lastDay !== today;
+    if (shouldStreak) localStorage.setItem('eyf.lastStreakToastDay', today);
+    if (!shouldLevelUp && !shouldStreak) return;
+    const raf = requestAnimationFrame(() => {
+      if (shouldLevelUp) setLevelUpFor(summary.level);
+      if (shouldStreak) setStreakToast(true);
+    });
+    return () => cancelAnimationFrame(raf);
   }, [summary]);
 
   const xp        = summary?.xp ?? 0;
@@ -224,14 +312,16 @@ export function HomePage() {
     ? [...modules, ...defaultModules.filter((d) => !modules.some((m) => m.module === d.module))]
     : defaultModules;
 
-  const greeting = (() => {
+  const [greeting] = useState<string>(() => {
     const h = new Date().getHours();
     if (h < 12) return 'Good morning';
     if (h < 17) return 'Good afternoon';
     return 'Good evening';
-  })();
+  });
 
-  const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000);
+  const [dayOfYear] = useState<number>(
+    () => Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000),
+  );
   const insight   = ENGINEERING_INSIGHTS[dayOfYear % ENGINEERING_INSIGHTS.length];
   const [insightDismissed, setInsightDismissed] = useState(
     () => localStorage.getItem('eyf.insightDay') === String(dayOfYear),
@@ -239,39 +329,62 @@ export function HomePage() {
 
   const recs = buildRecommendations(xp, streak, moduleList);
 
-  const appear = (delay = 0) => ({
-    initial: { opacity: 0, y: 8 },
-    animate: { opacity: 1, y: 0 },
-    transition: { duration: 0.28, delay, ease: 'easeOut' as const },
-  });
+  const STAT_TILES = [
+    { label: 'Total XP',  value: xp.toLocaleString(),            sub: `Lv.${level} · ${levelName}`, color: '#E8192C',  glow: '#E8192C' },
+    { label: 'This Week', value: `+${weeklyXp.toLocaleString()}`, sub: 'XP earned',                  color: '#16A34A',  glow: '#16A34A' },
+    { label: 'Streak',    value: `${streak}d`,                    sub: streak >= 7 ? '🔥 On fire' : 'Keep going',       color: '#EA580C', glow: '#EA580C' },
+    { label: 'Badges',    value: String(achievementsEarned),      sub: 'earned',                     color: '#CA8A04',  glow: '#CA8A04' },
+  ];
 
   return (
     <AppShell>
-      {levelUpFor && (
-        <LevelUpModal level={levelUpFor} onClose={() => { setLevelUpFor(null); refresh(); }} />
-      )}
+      <AnimatePresence>
+        {levelUpFor && (
+          <LevelUpModal level={levelUpFor} onClose={() => { setLevelUpFor(null); refresh(); }} />
+        )}
+      </AnimatePresence>
       {streakToast && streak > 0 && (
         <StreakToast streak={streak} onClose={() => setStreakToast(false)} />
       )}
 
-      <div className="max-w-6xl mx-auto px-4 md:px-6 pt-8 pb-24">
+      {/* Ambient background glow */}
+      <div style={{
+        position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0,
+        background: 'radial-gradient(ellipse 60% 40% at 70% 20%, rgba(232,25,44,0.04) 0%, transparent 70%)',
+      }} />
 
-        {/* ── Header ──────────────────────────────────────────────────────── */}
-        <motion.div {...appear(0)} className="mb-8">
-          <p className="text-sm mb-1" style={{ color: 'var(--t3)' }}>{greeting},</p>
+      <div className="max-w-6xl mx-auto px-4 md:px-6 pt-8 pb-24" style={{ position: 'relative', zIndex: 1 }}>
+
+        {/* ── Hero greeting ──────────────────────────────────────────────── */}
+        <motion.div
+          className="mb-8"
+          initial={{ opacity: 0, y: 20, filter: 'blur(10px)' }}
+          animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+        >
+          <p className="text-xs font-semibold tracking-widest mb-1.5" style={{ color: 'var(--t4)', textTransform: 'uppercase' }}>{greeting}</p>
           <div className="flex items-end justify-between gap-4 flex-wrap">
             <h1
-              className="text-2xl font-bold"
-              style={{ color: 'var(--t1)', letterSpacing: '-0.025em' }}
+              className="text-3xl font-bold"
+              style={{
+                letterSpacing: '-0.03em',
+                background: 'linear-gradient(135deg, #F0F0F0 30%, rgba(232,25,44,0.7) 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+              }}
             >
               {displayName || 'Engineer'}
             </h1>
             <div className="flex items-center gap-2">
               {streak > 0 && (
-                <div className="streak-badge">
+                <motion.div
+                  className="streak-badge"
+                  animate={{ boxShadow: ['0 0 0px rgba(234,88,12,0)', '0 0 12px rgba(234,88,12,0.5)', '0 0 0px rgba(234,88,12,0)'] }}
+                  transition={{ repeat: Infinity, duration: 2.5 }}
+                >
                   <span>🔥</span>
                   <span>{streak}d streak</span>
-                </div>
+                </motion.div>
               )}
               <Link to="/app/progress" className="btn btn-secondary btn-sm">
                 <span className="material-symbols-rounded text-sm">insights</span>
@@ -281,54 +394,76 @@ export function HomePage() {
           </div>
         </motion.div>
 
-        {/* ── Stat tiles ──────────────────────────────────────────────────── */}
-        <motion.div {...appear(0.04)} className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
-          {[
-            { label: 'Total XP',  value: xp.toLocaleString(),          sub: `Lv.${level} · ${levelName}`, color: 'var(--red)' },
-            { label: 'This Week', value: `+${weeklyXp.toLocaleString()}`, sub: 'XP earned',               color: '#16A34A' },
-            { label: 'Streak',    value: `${streak}d`,                  sub: streak >= 7 ? '🔥 On fire' : 'Keep going', color: '#EA580C' },
-            { label: 'Badges',    value: String(achievementsEarned),    sub: 'earned',                     color: '#CA8A04' },
-          ].map(({ label, value, sub, color }) => (
-            <div key={label} className="stat-tile">
-              <p className="field-label mb-2">{label}</p>
-              <p className="text-xl font-bold mb-0.5" style={{ color, letterSpacing: '-0.02em' }}>{value}</p>
-              <p className="text-xs" style={{ color: 'var(--t4)' }}>{sub}</p>
-            </div>
+        {/* ── Stat tiles ─────────────────────────────────────────────────── */}
+        <motion.div
+          className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.4, delay: 0.08 }}
+        >
+          {STAT_TILES.map(({ label, value, sub, color, glow }, i) => (
+            <motion.div
+              key={label}
+              initial={{ opacity: 0, y: 20, filter: 'blur(6px)' }}
+              animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+              transition={{ duration: 0.5, delay: 0.1 + i * 0.06, ease: [0.16, 1, 0.3, 1] }}
+            >
+              <TiltCard glowColor={glow} className="stat-tile h-full">
+                <p className="field-label mb-2">{label}</p>
+                <p className="text-xl font-bold mb-0.5" style={{ color, letterSpacing: '-0.02em', textShadow: `0 0 20px ${glow}40` }}>{value}</p>
+                <p className="text-xs" style={{ color: 'var(--t4)' }}>{sub}</p>
+              </TiltCard>
+            </motion.div>
           ))}
         </motion.div>
 
-        {/* XP bar */}
-        <motion.div {...appear(0.06)} className="mb-8 stat-tile">
-          <div className="flex justify-between mb-2 text-xs" style={{ color: 'var(--t3)' }}>
-            <span className="font-medium">Lv.{level} · {levelName}</span>
-            <span>{(nextThreshold - xp).toLocaleString()} XP to {LEVEL_NAMES[level + 1] ?? 'Legend'}</span>
+        {/* ── XP bar ─────────────────────────────────────────────────────── */}
+        <Reveal delay={0.18}>
+          <div className="mb-8 stat-tile" style={{ position: 'relative', overflow: 'hidden' }}>
+            {/* Subtle red ambient behind bar */}
+            <div style={{
+              position: 'absolute', bottom: 0, left: 0, right: 0, height: '60%',
+              background: 'radial-gradient(ellipse 50% 100% at 20% 100%, rgba(232,25,44,0.06) 0%, transparent 70%)',
+              pointerEvents: 'none',
+            }} />
+            <div className="flex justify-between mb-2 text-xs" style={{ color: 'var(--t3)' }}>
+              <span className="font-medium">Lv.{level} · {levelName}</span>
+              <span>{(nextThreshold - xp).toLocaleString()} XP to {LEVEL_NAMES[level + 1] ?? 'Legend'}</span>
+            </div>
+            <div className="progress-track">
+              <motion.div
+                className="xp-bar-fill"
+                style={{ height: '100%', borderRadius: 4, background: 'var(--red)' }}
+                initial={{ width: 0 }}
+                animate={{ width: `${xpPct}%` }}
+                transition={{ duration: 1.4, ease: [0.16, 1, 0.3, 1] }}
+              />
+            </div>
+            <div className="flex justify-between mt-1.5 text-[10px]" style={{ color: 'var(--t4)' }}>
+              <span>{xpPct}% to next level</span>
+              <span>{xp.toLocaleString()} XP total</span>
+            </div>
           </div>
-          <div className="progress-track">
-            <motion.div
-              className="progress-fill"
-              initial={{ width: 0 }}
-              animate={{ width: `${xpPct}%` }}
-              transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-            />
-          </div>
-          <div className="flex justify-between mt-1.5 text-[10px]" style={{ color: 'var(--t4)' }}>
-            <span>{xpPct}% to next level</span>
-            <span>{xp.toLocaleString()} XP total</span>
-          </div>
-        </motion.div>
+        </Reveal>
 
-        {/* ── Main grid ───────────────────────────────────────────────────── */}
+        {/* ── Main grid ──────────────────────────────────────────────────── */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-8">
 
           {/* Left col */}
           <div className="lg:col-span-2 space-y-4">
 
             {/* Readiness CTA */}
-            <motion.div {...appear(0.08)}>
+            <Reveal delay={0.05}>
               <Link to="/app/readiness">
-                <div
-                  className="flex items-center gap-4 p-4 rounded-xl cursor-pointer hover-card-red"
-                  style={{ background: 'var(--bg)' }}
+                <motion.div
+                  className="flex items-center gap-4 p-4 rounded-xl cursor-pointer"
+                  style={{ background: 'var(--bg)', border: '1px solid var(--border)' }}
+                  whileHover={{
+                    borderColor: 'rgba(232,25,44,0.35)',
+                    boxShadow: '0 0 24px rgba(232,25,44,0.12), 0 4px 16px rgba(0,0,0,0.4)',
+                    x: 2,
+                  }}
+                  transition={{ duration: 0.2 }}
                 >
                   <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'var(--red-muted)' }}>
                     <span className="material-symbols-rounded" style={{ color: 'var(--red)' }}>speed</span>
@@ -338,19 +473,27 @@ export function HomePage() {
                     <p className="text-xs" style={{ color: 'var(--t3)' }}>See your score, skill gaps, and 7-day improvement plan</p>
                   </div>
                   <span className="material-symbols-rounded text-base shrink-0" style={{ color: 'var(--t4)' }}>arrow_forward</span>
-                </div>
+                </motion.div>
               </Link>
-            </motion.div>
+            </Reveal>
 
             {/* Recommendations */}
-            <motion.div {...appear(0.1)}>
-              <p className="field-label mb-3">Recommended next</p>
+            <Reveal delay={0.1}>
+              <SectionLabel>Recommended next</SectionLabel>
               <div className="space-y-2">
-                {recs.map((rec) => (
+                {recs.map((rec, i) => (
                   <Link key={rec.path} to={rec.path}>
-                    <div
-                      className="flex items-center gap-3 p-3.5 rounded-xl cursor-pointer hover-card-border"
-                      style={{ background: 'var(--bg)' }}
+                    <motion.div
+                      className="flex items-center gap-3 p-3.5 rounded-xl cursor-pointer"
+                      style={{ background: 'var(--bg)', border: '1px solid var(--border)' }}
+                      initial={{ opacity: 0, x: -12 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.15 + i * 0.07, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                      whileHover={{
+                        borderColor: `${rec.hex}33`,
+                        boxShadow: `0 0 20px ${rec.hex}14, 0 4px 12px rgba(0,0,0,0.4)`,
+                        x: 3,
+                      }}
                     >
                       <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: `${rec.hex}12` }}>
                         <span className="material-symbols-rounded text-sm" style={{ color: rec.hex }}>{rec.icon}</span>
@@ -360,7 +503,7 @@ export function HomePage() {
                         <p className="text-xs truncate" style={{ color: 'var(--t3)' }}>{rec.reason}</p>
                       </div>
                       <span className="text-xs font-bold shrink-0 px-2 py-0.5 rounded-full" style={{ background: 'rgba(22,163,74,0.08)', color: '#16A34A' }}>{rec.xpLabel}</span>
-                    </div>
+                    </motion.div>
                   </Link>
                 ))}
                 {recs.length === 0 && (
@@ -369,11 +512,11 @@ export function HomePage() {
                   </div>
                 )}
               </div>
-            </motion.div>
+            </Reveal>
 
             {/* Quick access */}
-            <motion.div {...appear(0.13)}>
-              <p className="field-label mb-3">Quick access</p>
+            <Reveal delay={0.14}>
+              <SectionLabel>Quick access</SectionLabel>
               <div className="grid grid-cols-4 gap-2">
                 {[
                   { label: 'DSA',         icon: 'code',              path: '/app/problems',       hex: '#2563EB' },
@@ -384,31 +527,54 @@ export function HomePage() {
                   { label: 'Flashcards',  icon: 'style',             path: '/app/flashcards',     hex: '#9333EA' },
                   { label: 'Notes',       icon: 'sticky_note_2',     path: '/app/notes',          hex: '#CA8A04' },
                   { label: 'Contest',     icon: 'emoji_events',      path: '/app/contests',       hex: '#16A34A' },
-                ].map((a) => (
+                ].map((a, i) => (
                   <Link key={a.path} to={a.path}>
-                    <div
-                      className="flex flex-col items-center gap-1.5 py-3 rounded-xl cursor-pointer hover-card-border"
-                      style={{ background: 'var(--bg)' }}
+                    <motion.div
+                      className="flex flex-col items-center gap-1.5 py-3 rounded-xl cursor-pointer"
+                      style={{ background: 'var(--bg)', border: '1px solid var(--border)' }}
+                      initial={{ opacity: 0, scale: 0.85 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: 0.18 + i * 0.04, duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                      whileHover={{
+                        scale: 1.08,
+                        borderColor: `${a.hex}40`,
+                        boxShadow: `0 0 16px ${a.hex}20, 0 4px 12px rgba(0,0,0,0.4)`,
+                        y: -2,
+                      }}
+                      whileTap={{ scale: 0.96 }}
                     >
-                      <span className="material-symbols-rounded text-lg" style={{ color: a.hex }}>{a.icon}</span>
+                      <motion.span
+                        className="material-symbols-rounded text-lg"
+                        style={{ color: a.hex }}
+                        whileHover={{ filter: `drop-shadow(0 0 6px ${a.hex}80)` }}
+                      >{a.icon}</motion.span>
                       <span className="text-[10px] font-semibold" style={{ color: 'var(--t3)' }}>{a.label}</span>
-                    </div>
+                    </motion.div>
                   </Link>
                 ))}
               </div>
-            </motion.div>
+            </Reveal>
           </div>
 
           {/* Right col */}
           <div className="space-y-4">
-            <motion.div {...appear(0.09)}>
+            <Reveal delay={0.09}>
               <DailyChallengeCard />
-            </motion.div>
+            </Reveal>
 
             {/* Engineering insight */}
             {!insightDismissed && (
-              <motion.div {...appear(0.12)}>
-                <div className="insight-card">
+              <Reveal delay={0.12}>
+                <motion.div
+                  className="insight-card"
+                  style={{ position: 'relative', overflow: 'hidden' }}
+                  whileHover={{ boxShadow: `0 0 24px ${insight.hex}14, 0 8px 24px rgba(0,0,0,0.4)` }}
+                >
+                  <div style={{
+                    position: 'absolute', top: 0, right: 0, width: 60, height: 60,
+                    background: `radial-gradient(circle, ${insight.hex}10 0%, transparent 70%)`,
+                    pointerEvents: 'none',
+                  }} />
                   <div className="flex items-start justify-between gap-2 mb-2.5">
                     <div className="flex items-center gap-2">
                       <div className="w-6 h-6 rounded flex items-center justify-center shrink-0" style={{ background: `${insight.hex}10` }}>
@@ -426,13 +592,13 @@ export function HomePage() {
                     </button>
                   </div>
                   <p className="text-sm leading-relaxed" style={{ color: 'var(--t2)' }}>{insight.tip}</p>
-                </div>
-              </motion.div>
+                </motion.div>
+              </Reveal>
             )}
 
             {/* Recent badges */}
             {recentAchievements.length > 0 && (
-              <motion.div {...appear(0.14)}>
+              <Reveal delay={0.15}>
                 <div className="card">
                   <div className="flex items-center justify-between mb-3">
                     <p className="field-label" style={{ marginBottom: 0 }}>Recent badges</p>
@@ -446,55 +612,80 @@ export function HomePage() {
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {recentAchievements.map((a) => (
-                      <div
+                      <motion.div
                         key={a.key}
                         title={a.name}
-                        className="w-10 h-10 rounded-xl flex items-center justify-center text-lg cursor-default transition-transform hover:scale-110"
+                        className="w-10 h-10 rounded-xl flex items-center justify-center text-lg cursor-default"
                         style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}
+                        whileHover={{ scale: 1.15, boxShadow: '0 0 12px rgba(232,25,44,0.25)' }}
+                        whileTap={{ scale: 0.95 }}
                       >
                         {a.icon}
-                      </div>
+                      </motion.div>
                     ))}
                   </div>
                 </div>
-              </motion.div>
+              </Reveal>
             )}
           </div>
         </div>
 
-        {/* ── Activity heatmap ────────────────────────────────────────────── */}
-        <motion.div {...appear(0.18)} className="mb-8">
-          <div className="card">
-            <div className="flex items-center justify-between mb-5">
-              <div>
-                <p className="text-sm font-semibold mb-0.5" style={{ color: 'var(--t1)' }}>Activity</p>
-                <p className="text-xs" style={{ color: 'var(--t3)' }}>12-week history</p>
+        {/* ── Activity heatmap ───────────────────────────────────────────── */}
+        <Reveal>
+          <div className="mb-8">
+            <div className="card" style={{ position: 'relative', overflow: 'hidden' }}>
+              <div style={{
+                position: 'absolute', bottom: 0, left: 0, right: 0, height: 80,
+                background: 'linear-gradient(to top, rgba(232,25,44,0.03), transparent)',
+                pointerEvents: 'none',
+              }} />
+              <div className="flex items-center justify-between mb-5">
+                <div>
+                  <p className="text-sm font-semibold mb-0.5" style={{ color: 'var(--t1)' }}>Activity</p>
+                  <p className="text-xs" style={{ color: 'var(--t3)' }}>12-week history</p>
+                </div>
+                <Link to="/app/progress" className="btn btn-ghost btn-sm">View full history</Link>
               </div>
-              <Link to="/app/progress" className="btn btn-ghost btn-sm">View full history</Link>
+              <ActivityHeatmap streak={streak} />
             </div>
-            <ActivityHeatmap streak={streak} />
           </div>
-        </motion.div>
+        </Reveal>
 
-        {/* ── Charts grid ─────────────────────────────────────────────────── */}
-        <motion.div {...appear(0.19)} className="mb-8">
-          <p className="text-sm font-semibold mb-4" style={{ color: 'var(--t1)' }}>Your progress at a glance</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-            <XPLineChart />
-            <SkillsRadar />
-            <ReadinessGauge value={xp > 0 ? Math.min(100, Math.round(xpPct * 0.7 + streak * 0.3)) : 0} />
-            <ActivityBars streak={streak} />
+        {/* ── Charts grid ────────────────────────────────────────────────── */}
+        <Reveal>
+          <div className="mb-8">
+            <SectionLabel>Progress at a glance</SectionLabel>
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+              {([
+                { el: <XPLineChart />, i: 0 },
+                { el: <SkillsRadar />, i: 1 },
+                { el: <ReadinessGauge value={xp > 0 ? Math.min(100, Math.round(xpPct * 0.7 + streak * 0.3)) : 0} />, i: 2 },
+                { el: <ActivityBars streak={streak} />, i: 3 },
+              ]).map(({ el, i }) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 20, filter: 'blur(6px)' }}
+                  whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                  viewport={{ once: true, margin: '-20px' }}
+                  transition={{ duration: 0.5, delay: i * 0.08, ease: [0.16, 1, 0.3, 1] }}
+                  whileHover={{ y: -3, boxShadow: '0 12px 40px rgba(0,0,0,0.4)' }}
+                  style={{ borderRadius: 16 }}
+                >
+                  {el}
+                </motion.div>
+              ))}
+            </div>
           </div>
-        </motion.div>
+        </Reveal>
 
-        {/* ── All modules ──────────────────────────────────────────────────── */}
-        <motion.div {...appear(0.2)}>
+        {/* ── All modules ────────────────────────────────────────────────── */}
+        <Reveal>
           <div className="flex items-center justify-between mb-4">
-            <p className="text-sm font-semibold" style={{ color: 'var(--t1)' }}>All modules</p>
+            <SectionLabel>All modules</SectionLabel>
             <Link to="/app/career" className="btn btn-ghost btn-sm">Learning path →</Link>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
-            {moduleList.map((mod) => {
+            {moduleList.map((mod, i) => {
               const cfg = MODULE_CONFIG[mod.module];
               if (!cfg) return null;
               const rawPct = mod.progress;
@@ -503,22 +694,40 @@ export function HomePage() {
                 pct = rawPct > 1 ? Math.round(rawPct) : Math.round(rawPct * 100);
               }
               return (
-                <Link key={mod.module} to={cfg.path} className="module-card">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: `${cfg.hex}12` }}>
-                      <span className="material-symbols-rounded text-base" style={{ color: cfg.hex }}>{cfg.icon}</span>
-                    </div>
-                    <ProgressRing pct={pct} hex={cfg.hex} />
-                  </div>
-                  <p className="text-xs font-semibold truncate mb-0.5" style={{ color: 'var(--t1)' }}>{cfg.title}</p>
-                  <p className="text-[10px] font-medium" style={{ color: cfg.hex }}>
-                    {mod.cta || 'Start'}
-                  </p>
-                </Link>
+                <motion.div
+                  key={mod.module}
+                  initial={{ opacity: 0, scale: 0.88, filter: 'blur(4px)' }}
+                  whileInView={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
+                  viewport={{ once: true, margin: '-10px' }}
+                  transition={{ duration: 0.45, delay: (i % 6) * 0.05, ease: [0.16, 1, 0.3, 1] }}
+                >
+                  <Link to={cfg.path}>
+                    <TiltCard
+                      glowColor={cfg.hex}
+                      className="module-card"
+                      style={{ display: 'block', height: '100%' }}
+                    >
+                      <div className="flex items-center justify-between mb-3">
+                        <motion.div
+                          className="w-8 h-8 rounded-lg flex items-center justify-center"
+                          style={{ background: `${cfg.hex}12` }}
+                          whileHover={{ background: `${cfg.hex}22` }}
+                        >
+                          <span className="material-symbols-rounded text-base" style={{ color: cfg.hex }}>{cfg.icon}</span>
+                        </motion.div>
+                        <ProgressRing pct={pct} hex={cfg.hex} />
+                      </div>
+                      <p className="text-xs font-semibold truncate mb-0.5" style={{ color: 'var(--t1)' }}>{cfg.title}</p>
+                      <p className="text-[10px] font-medium" style={{ color: cfg.hex }}>
+                        {mod.cta || 'Start'}
+                      </p>
+                    </TiltCard>
+                  </Link>
+                </motion.div>
               );
             })}
           </div>
-        </motion.div>
+        </Reveal>
 
       </div>
     </AppShell>

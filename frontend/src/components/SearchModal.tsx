@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Icon } from './Icon';
 
 interface SearchResult {
@@ -67,14 +68,14 @@ export function SearchModal({ open, onClose }: Props) {
     : ALL_ITEMS.slice(0, 8);
 
   useEffect(() => {
-    if (open) {
+    if (!open) return;
+    const raf = requestAnimationFrame(() => {
       setQuery('');
       setSelected(0);
-      requestAnimationFrame(() => inputRef.current?.focus());
-    }
+      inputRef.current?.focus();
+    });
+    return () => cancelAnimationFrame(raf);
   }, [open]);
-
-  useEffect(() => { setSelected(0); }, [query]);
 
   const go = useCallback((path: string) => {
     navigate(path);
@@ -93,71 +94,113 @@ export function SearchModal({ open, onClose }: Props) {
     return () => globalThis.removeEventListener('keydown', handler);
   }, [open, results, selected, go, onClose]);
 
-  if (!open) return null;
-
   return (
-    <div className="fixed inset-0 z-[9998] flex items-start justify-center pt-[15vh]">
-      {/* Backdrop */}
-      <div role="none" className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} onKeyDown={(e) => { if (e.key === 'Escape') onClose(); }} />
-
-      {/* Modal */}
-      <div className="relative w-full max-w-2xl mx-4 bg-[#1a1a1a] border border-white/10 rounded-2xl shadow-2xl overflow-hidden">
-        {/* Search input */}
-        <div className="flex items-center gap-3 px-5 py-4 border-b border-white/8">
-          <Icon name="search" size={20} className="text-zinc-400 flex-shrink-0" />
-          <input
-            ref={inputRef}
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search modules, tools, pages…"
-            className="flex-1 bg-transparent text-white text-base placeholder:text-zinc-600 focus:outline-none"
+    <AnimatePresence>
+      {open && (
+        <div className="fixed inset-0 z-[9998] flex items-start justify-center pt-[15vh]">
+          {/* Backdrop */}
+          <motion.div
+            role="none"
+            className="absolute inset-0"
+            style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(8px)' }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            onClick={onClose}
+            onKeyDown={(e) => { if (e.key === 'Escape') onClose(); }}
           />
-          <kbd className="hidden sm:flex items-center gap-1 px-2 py-1 bg-zinc-800 rounded text-[10px] text-zinc-500 font-mono">
-            ESC
-          </kbd>
-        </div>
 
-        {/* Results */}
-        <div className="max-h-[50vh] overflow-y-auto p-2">
-          {results.length === 0 ? (
-            <p className="text-zinc-600 text-sm text-center py-8">No results for "{query}"</p>
-          ) : (
-            results.map((item, i) => (
-              <button
-                key={item.path}
-                type="button"
-                onClick={() => go(item.path)}
-                onMouseEnter={() => setSelected(i)}
-                className={`w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-all text-left ${
-                  i === selected ? 'bg-white/8' : 'hover:bg-white/5'
-                }`}
-              >
-                <div className={`w-9 h-9 rounded-xl bg-zinc-800 flex items-center justify-center flex-shrink-0 ${item.color}`}>
-                  <Icon name={item.icon} size={18} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-white text-sm font-bold truncate">{item.title}</p>
-                  <p className="text-zinc-500 text-xs truncate">{item.subtitle}</p>
-                </div>
-                {i === selected && (
-                  <Icon name="arrow_forward" size={16} className="text-zinc-500 flex-shrink-0" />
-                )}
-              </button>
-            ))
-          )}
-        </div>
+          {/* Modal */}
+          <motion.div
+            className="relative w-full max-w-2xl mx-4 rounded-2xl overflow-hidden"
+            style={{
+              background: 'rgba(10,10,10,0.92)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              backdropFilter: 'blur(32px) saturate(160%)',
+              boxShadow: '0 48px 120px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.04), inset 0 1px 0 rgba(255,255,255,0.05)',
+            }}
+            initial={{ opacity: 0, y: -20, scale: 0.96, filter: 'blur(8px)' }}
+            animate={{ opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }}
+            exit={{ opacity: 0, y: -10, scale: 0.97, filter: 'blur(4px)' }}
+            transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+          >
+            {/* Top red accent */}
+            <div style={{
+              height: 1, background: 'linear-gradient(90deg, transparent, rgba(232,25,44,0.7) 40%, rgba(232,25,44,0.3) 70%, transparent)',
+            }} />
 
-        {/* Footer */}
-        <div className="flex items-center gap-4 px-5 py-3 border-t border-white/8">
-          <span className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest">
-            {results.length} result{results.length === 1 ? '' : 's'}
-          </span>
-          <div className="flex items-center gap-3 ml-auto text-[10px] text-zinc-700 font-mono">
-            <span>↑↓ navigate</span>
-            <span>↵ open</span>
-          </div>
+            {/* Search input */}
+            <div className="flex items-center gap-3 px-5 py-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+              <Icon name="search" size={20} className="text-zinc-500 flex-shrink-0" />
+              <input
+                ref={inputRef}
+                value={query}
+                onChange={(e) => { setQuery(e.target.value); setSelected(0); }}
+                placeholder="Search modules, tools, pages…"
+                className="flex-1 bg-transparent text-white text-base placeholder:text-zinc-600 focus:outline-none"
+              />
+              <kbd className="hidden sm:flex items-center gap-1 px-2 py-1 rounded text-[10px] text-zinc-600 font-mono" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                ESC
+              </kbd>
+            </div>
+
+            {/* Results */}
+            <div className="max-h-[50vh] overflow-y-auto p-2">
+              {results.length === 0 ? (
+                <p className="text-zinc-600 text-sm text-center py-8">No results for "{query}"</p>
+              ) : (
+                results.map((item, i) => (
+                  <motion.button
+                    key={item.path}
+                    type="button"
+                    onClick={() => go(item.path)}
+                    onMouseEnter={() => setSelected(i)}
+                    className="w-full flex items-center gap-4 px-4 py-3 rounded-xl text-left"
+                    style={{
+                      background: i === selected ? 'rgba(255,255,255,0.06)' : 'transparent',
+                      border: i === selected ? '1px solid rgba(255,255,255,0.08)' : '1px solid transparent',
+                      boxShadow: i === selected ? '0 0 20px rgba(232,25,44,0.06)' : 'none',
+                    }}
+                    animate={{
+                      background: i === selected ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0)',
+                    }}
+                    transition={{ duration: 0.12 }}
+                  >
+                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${item.color}`} style={{ background: 'rgba(255,255,255,0.06)' }}>
+                      <Icon name={item.icon} size={18} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-white text-sm font-bold truncate">{item.title}</p>
+                      <p className="text-zinc-500 text-xs truncate">{item.subtitle}</p>
+                    </div>
+                    {i === selected && (
+                      <motion.div
+                        initial={{ opacity: 0, x: -4 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.15 }}
+                      >
+                        <Icon name="arrow_forward" size={16} className="text-zinc-500 flex-shrink-0" />
+                      </motion.div>
+                    )}
+                  </motion.button>
+                ))
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="flex items-center gap-4 px-5 py-3" style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+              <span className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest">
+                {results.length} result{results.length === 1 ? '' : 's'}
+              </span>
+              <div className="flex items-center gap-3 ml-auto text-[10px] text-zinc-700 font-mono">
+                <span>↑↓ navigate</span>
+                <span>↵ open</span>
+              </div>
+            </div>
+          </motion.div>
         </div>
-      </div>
-    </div>
+      )}
+    </AnimatePresence>
   );
 }

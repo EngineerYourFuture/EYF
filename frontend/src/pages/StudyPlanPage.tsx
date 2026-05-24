@@ -1,8 +1,15 @@
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { AppShell } from '../components/AppShell';
 import { Icon } from '../components/Icon';
 import { useUser } from '../contexts/UserContext';
+
+const GLASS = {
+  background: 'rgba(10,10,10,0.7)',
+  border: '1px solid rgba(255,255,255,0.07)',
+  backdropFilter: 'blur(16px)',
+} as const;
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -263,13 +270,13 @@ function buildPlan(config: PlanConfig): WeekPlan[] {
 
 // ─── UI helpers ───────────────────────────────────────────────────────────────
 
-const TYPE_COLORS: Record<DayTask['type'], string> = {
-  dsa:           'bg-blue-500/10 border-blue-500/20 text-blue-400',
-  'system-design': 'bg-cyan-500/10 border-cyan-500/20 text-cyan-400',
-  behavioral:    'bg-orange-500/10 border-orange-500/20 text-orange-400',
-  review:        'bg-purple-500/10 border-purple-500/20 text-purple-400',
-  mock:          'bg-rose-500/10 border-rose-500/20 text-rose-400',
-  oop:           'bg-amber-500/10 border-amber-500/20 text-amber-400',
+const TYPE_COLORS: Record<DayTask['type'], { color: string; bg: string; border: string }> = {
+  dsa:             { color: '#60a5fa', bg: 'rgba(96,165,250,0.1)',   border: 'rgba(96,165,250,0.2)'   },
+  'system-design': { color: '#22d3ee', bg: 'rgba(34,211,238,0.1)',   border: 'rgba(34,211,238,0.2)'   },
+  behavioral:      { color: '#fb923c', bg: 'rgba(251,146,60,0.1)',   border: 'rgba(251,146,60,0.2)'   },
+  review:          { color: '#c084fc', bg: 'rgba(192,132,252,0.1)',  border: 'rgba(192,132,252,0.2)'  },
+  mock:            { color: '#f87171', bg: 'rgba(248,113,113,0.1)',  border: 'rgba(248,113,113,0.2)'  },
+  oop:             { color: '#fbbf24', bg: 'rgba(251,191,36,0.1)',   border: 'rgba(251,191,36,0.2)'   },
 };
 
 const TYPE_LABELS: Record<DayTask['type'], string> = {
@@ -332,272 +339,260 @@ export function StudyPlanPage() {
 
   const currentWeek = plan?.[activeWeek];
 
+  const selectStyle: React.CSSProperties = {
+    width: '100%', background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.08)',
+    borderRadius: 12, padding: '12px 16px', fontSize: 13, color: '#fff', outline: 'none', cursor: 'pointer',
+  };
+  const labelStyle: React.CSSProperties = {
+    fontSize: 10, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', display: 'block', marginBottom: 8,
+  };
+
   return (
     <AppShell>
-      <div className="pt-8 max-w-7xl mx-auto">
-        {/* Hero */}
-        <div className="mb-10 p-10 bg-surface-container rounded-2xl relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-80 h-80 bg-indigo-500/5 blur-[100px] rounded-full -mr-24 -mt-24" />
-          <div className="flex items-start gap-4 mb-6">
-            <div className="w-12 h-12 bg-indigo-500/10 rounded-xl flex items-center justify-center flex-shrink-0">
-              <Icon name="calendar_month" className="text-indigo-400" size={24} />
-            </div>
-            <div>
-              <h1 className="text-4xl font-black tracking-tighter text-on-surface">Study Plan Generator</h1>
-              <p className="text-on-surface-variant text-sm mt-1">
-                Personalized day-by-day prep schedule based on your target company, role, and interview date.
-              </p>
-            </div>
-          </div>
+      <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 24px 80px' }}>
+
+        {/* ── Hero + config ── */}
+        <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} style={{ paddingTop: 56, marginBottom: 32 }}>
+          <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', marginBottom: 8 }}>
+            Personalized Prep
+          </p>
+          <h1 style={{
+            fontSize: 'clamp(2.2rem, 6vw, 3.8rem)', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1,
+            background: 'linear-gradient(135deg, #818cf8 0%, #c084fc 50%, #22d3ee 100%)',
+            WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', marginBottom: 12,
+          }}>
+            STUDY PLAN.
+          </h1>
+          <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.4)', marginBottom: 28 }}>
+            Personalized day-by-day prep schedule based on your target company, role, and interview date.
+          </p>
 
           {/* Config form */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            {/* Company */}
-            <div>
-              <label htmlFor="sp-company" className="text-[10px] font-black uppercase tracking-widest text-zinc-600 block mb-2">Target Company</label>
-              <select
-                id="sp-company"
-                value={config.company}
-                onChange={(e) => setConfig((p) => ({ ...p, company: e.target.value }))}
-                className="w-full bg-zinc-900 border border-white/8 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-indigo-500/50 cursor-pointer"
-              >
-                {COMPANIES.map((c) => <option key={c} value={c}>{c}</option>)}
-              </select>
-            </div>
-
-            {/* Role */}
-            <div>
-              <label htmlFor="sp-role" className="text-[10px] font-black uppercase tracking-widest text-zinc-600 block mb-2">Role</label>
-              <select
-                id="sp-role"
-                value={config.role}
-                onChange={(e) => setConfig((p) => ({ ...p, role: e.target.value as PlanConfig['role'] }))}
-                className="w-full bg-zinc-900 border border-white/8 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-indigo-500/50 cursor-pointer"
-              >
-                <option value="sde">SDE / Software Engineer</option>
-                <option value="sre">SRE / DevOps</option>
-                <option value="ds">Data Science / ML</option>
-                <option value="pm">Product Management</option>
-              </select>
-            </div>
-
-            {/* Level */}
-            <div>
-              <label htmlFor="sp-level" className="text-[10px] font-black uppercase tracking-widest text-zinc-600 block mb-2">Level</label>
-              <select
-                id="sp-level"
-                value={config.level}
-                onChange={(e) => setConfig((p) => ({ ...p, level: e.target.value as PlanConfig['level'] }))}
-                className="w-full bg-zinc-900 border border-white/8 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-indigo-500/50 cursor-pointer"
-              >
-                <option value="entry">Entry / Fresher (0-2 yrs)</option>
-                <option value="mid">Mid-level (2-5 yrs)</option>
-                <option value="senior">Senior (5+ yrs)</option>
-              </select>
-            </div>
-
-            {/* Date */}
-            <div>
-              <label htmlFor="sp-date" className="text-[10px] font-black uppercase tracking-widest text-zinc-600 block mb-2">Interview Date</label>
-              <input
-                id="sp-date"
-                type="date"
-                min={minDateStr}
-                max={maxDateStr}
-                value={config.interviewDate}
-                onChange={(e) => setConfig((p) => ({ ...p, interviewDate: e.target.value }))}
-                className="w-full bg-zinc-900 border border-white/8 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-indigo-500/50 cursor-pointer"
-              />
-              {weeksLeft !== null && (
-                <p className="text-[10px] text-indigo-400 mt-1 font-bold">{weeksLeft} week{weeksLeft === 1 ? '' : 's'} to go</p>
-              )}
-            </div>
-          </div>
-
-          <button
-            onClick={generate}
-            disabled={config.interviewDate === ''}
-            className="bg-[#E82127] disabled:opacity-40 disabled:cursor-not-allowed text-white font-black uppercase tracking-widest text-xs py-4 px-8 rounded-full hover:brightness-110 transition-all active:scale-95 shadow-lg shadow-red-900/30 flex items-center gap-2"
-          >
-            <Icon name="auto_awesome" size={16} />
-            Generate My Study Plan
-          </button>
-        </div>
-
-        {/* Plan display */}
-        {plan && generated && (
-          <>
-            {/* Progress bar */}
-            <div className="bg-surface-container rounded-2xl p-6 mb-6 flex items-center gap-6 flex-wrap">
-              <div className="flex-1 min-w-[200px]">
-                <div className="flex justify-between mb-2">
-                  <span className="text-xs font-bold text-zinc-400">Overall Progress</span>
-                  <span className="text-xs font-bold text-indigo-400">{completedCount}/{totalTasks} tasks · {progressPct}%</span>
-                </div>
-                <div className="h-2 bg-zinc-800 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-500"
-                    style={{ width: `${progressPct}%` }}
-                  />
-                </div>
-              </div>
-              <div className="flex gap-4 text-center">
-                <div>
-                  <p className="text-xs text-zinc-600 font-bold uppercase tracking-widest">Weeks</p>
-                  <p className="text-xl font-black text-on-surface">{plan.length}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-zinc-600 font-bold uppercase tracking-widest">Tasks</p>
-                  <p className="text-xl font-black text-on-surface">{totalTasks}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-zinc-600 font-bold uppercase tracking-widest">Done</p>
-                  <p className="text-xl font-black text-indigo-400">{completedCount}</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Week selector */}
-            <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
-              {plan.map((w, i) => (
-                <button
-                  key={w.weekNum}
-                  onClick={() => setActiveWeek(i)}
-                  className={`flex-shrink-0 px-4 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${
-                    i === activeWeek
-                      ? 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30'
-                      : 'bg-surface-container text-zinc-500 hover:text-zinc-300'
-                  }`}
-                >
-                  Week {w.weekNum}
-                </button>
-              ))}
-            </div>
-
-            {/* Week content */}
-            {currentWeek && (
+          <div style={{ ...GLASS, borderRadius: 20, padding: '24px 28px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 18, marginBottom: 24 }}>
               <div>
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-8 h-8 rounded-full bg-indigo-500/20 flex items-center justify-center text-xs font-black text-indigo-400">
-                    {currentWeek.weekNum}
+                <label htmlFor="sp-company" style={labelStyle}>Target Company</label>
+                <select id="sp-company" value={config.company} onChange={(e) => setConfig((p) => ({ ...p, company: e.target.value }))} style={selectStyle}>
+                  {COMPANIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+              <div>
+                <label htmlFor="sp-role" style={labelStyle}>Role</label>
+                <select id="sp-role" value={config.role} onChange={(e) => setConfig((p) => ({ ...p, role: e.target.value as PlanConfig['role'] }))} style={selectStyle}>
+                  <option value="sde">SDE / Software Engineer</option>
+                  <option value="sre">SRE / DevOps</option>
+                  <option value="ds">Data Science / ML</option>
+                  <option value="pm">Product Management</option>
+                </select>
+              </div>
+              <div>
+                <label htmlFor="sp-level" style={labelStyle}>Level</label>
+                <select id="sp-level" value={config.level} onChange={(e) => setConfig((p) => ({ ...p, level: e.target.value as PlanConfig['level'] }))} style={selectStyle}>
+                  <option value="entry">Entry / Fresher (0-2 yrs)</option>
+                  <option value="mid">Mid-level (2-5 yrs)</option>
+                  <option value="senior">Senior (5+ yrs)</option>
+                </select>
+              </div>
+              <div>
+                <label htmlFor="sp-date" style={labelStyle}>Interview Date</label>
+                <input id="sp-date" type="date" min={minDateStr} max={maxDateStr} value={config.interviewDate} onChange={(e) => setConfig((p) => ({ ...p, interviewDate: e.target.value }))} style={selectStyle} />
+                {weeksLeft !== null && (
+                  <p style={{ fontSize: 10, fontWeight: 700, color: '#818cf8', marginTop: 6 }}>{weeksLeft} week{weeksLeft === 1 ? '' : 's'} to go</p>
+                )}
+              </div>
+            </div>
+
+            <motion.button
+              onClick={generate}
+              disabled={config.interviewDate === ''}
+              whileHover={config.interviewDate !== '' ? { scale: 1.03, boxShadow: '0 0 28px rgba(232,33,39,0.4)' } : {}}
+              whileTap={{ scale: 0.97 }}
+              style={{
+                background: 'linear-gradient(135deg, #e82127, #c41a1f)', border: 'none', borderRadius: 999,
+                padding: '12px 28px', color: '#fff', fontSize: 11, fontWeight: 900, textTransform: 'uppercase',
+                letterSpacing: '0.14em', cursor: config.interviewDate !== '' ? 'pointer' : 'not-allowed',
+                opacity: config.interviewDate !== '' ? 1 : 0.4, display: 'flex', alignItems: 'center', gap: 8,
+              }}
+            >
+              <Icon name="auto_awesome" size={15} />
+              Generate My Study Plan
+            </motion.button>
+          </div>
+        </motion.div>
+
+        {/* ── Plan display ── */}
+        <AnimatePresence>
+          {plan && generated && (
+            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+              {/* Progress card */}
+              <div style={{ ...GLASS, borderRadius: 18, padding: '18px 24px', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap' }}>
+                <div style={{ flex: 1, minWidth: 200 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.4)' }}>Overall Progress</span>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: '#818cf8' }}>{completedCount}/{totalTasks} tasks · {progressPct}%</span>
                   </div>
-                  <div>
-                    <h2 className="text-lg font-black text-on-surface">{currentWeek.theme}</h2>
-                    <p className="text-xs text-zinc-500">
-                      {config.company} · {config.role.toUpperCase()} · {currentWeek.days[0]?.label} – {currentWeek.days[6]?.label}
-                    </p>
+                  <div style={{ height: 4, background: 'rgba(255,255,255,0.05)', borderRadius: 4, overflow: 'hidden' }}>
+                    <motion.div
+                      initial={{ width: 0 }} animate={{ width: `${progressPct}%` }} transition={{ duration: 0.6, ease: 'easeOut' }}
+                      style={{ height: '100%', background: 'linear-gradient(90deg, #818cf8, #c084fc)', borderRadius: 4 }}
+                    />
                   </div>
                 </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                  {currentWeek.days.map((day) => (
-                    <div key={day.date} className="bg-surface-container rounded-xl overflow-hidden">
-                      <div className="px-4 py-3 border-b border-white/5 flex items-center justify-between">
-                        <p className="text-xs font-black text-on-surface">{day.label}</p>
-                        {day.tasks.length === 0 && (
-                          <span className="text-[9px] text-zinc-600 font-bold uppercase">Rest Day</span>
-                        )}
-                      </div>
-                      <div className="p-3 space-y-2">
-                        {day.tasks.length === 0 ? (
-                          <div className="py-4 flex flex-col items-center gap-2 text-zinc-700">
-                            <Icon name="weekend" size={22} />
-                            <p className="text-xs font-bold">Take a break!</p>
-                          </div>
-                        ) : (
-                          day.tasks.map((task, ti) => {
-                            const taskKey = `${day.date}-${ti}`;
-                            const done = completedTasks.has(taskKey);
-                            return (
-                              <button
-                                key={taskKey}
-                                type="button"
-                                onClick={() => toggleTask(taskKey)}
-                                className={`w-full text-left rounded-xl border p-3 transition-all ${
-                                  done
-                                    ? 'bg-green-500/8 border-green-500/15 opacity-60'
-                                    : `${TYPE_COLORS[task.type]} hover:opacity-80`
-                                }`}
-                              >
-                                <div className="flex items-start gap-2">
-                                  <Icon
-                                    name={done ? 'check_circle' : task.icon}
-                                    size={13}
-                                    className={done ? 'text-green-400 flex-shrink-0 mt-0.5' : `${TYPE_COLORS[task.type].split(' ')[2]} flex-shrink-0 mt-0.5`}
-                                    filled={done}
-                                  />
-                                  <div className="flex-1 min-w-0">
-                                    <p className={`text-xs font-bold leading-tight ${done ? 'line-through text-zinc-500' : 'text-on-surface'}`}>
-                                      {task.topic}
-                                    </p>
-                                    <div className="flex items-center gap-2 mt-1">
-                                      <span className={`text-[9px] font-bold uppercase tracking-widest ${done ? 'text-zinc-600' : TYPE_COLORS[task.type].split(' ')[2]}`}>
-                                        {TYPE_LABELS[task.type]}
-                                      </span>
-                                      <span className="text-[9px] text-zinc-600">· {task.duration} min</span>
-                                    </div>
-                                  </div>
-                                </div>
-                              </button>
-                            );
-                          })
-                        )}
-                        {day.tasks.length > 0 && (
-                          <div className="pt-1 flex items-center justify-between">
-                            <span className="text-[9px] text-zinc-700">
-                              {day.tasks.reduce((s, t) => s + t.duration, 0)} min total
-                            </span>
-                            {day.tasks[0]?.link && (
-                              <Link to={day.tasks[0].link} className="text-[9px] text-zinc-600 hover:text-zinc-400 flex items-center gap-0.5 transition-colors">
-                                Go <Icon name="arrow_forward" size={9} />
-                              </Link>
-                            )}
-                          </div>
-                        )}
-                      </div>
+                <div style={{ display: 'flex', gap: 0, ...GLASS, borderRadius: 14, overflow: 'hidden' }}>
+                  {[
+                    { label: 'Weeks', value: String(plan.length) },
+                    { label: 'Tasks',  value: String(totalTasks) },
+                    { label: 'Done',   value: String(completedCount), color: '#818cf8' },
+                  ].map((s, i) => (
+                    <div key={s.label} style={{ padding: '12px 20px', borderRight: i < 2 ? '1px solid rgba(255,255,255,0.07)' : 'none', textAlign: 'center' }}>
+                      <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.14em', color: 'rgba(255,255,255,0.3)' }}>{s.label}</p>
+                      <p style={{ fontSize: 18, fontWeight: 900, color: s.color ?? '#fff' }}>{s.value}</p>
                     </div>
                   ))}
                 </div>
               </div>
-            )}
 
-            {/* Legend */}
-            <div className="mt-8 bg-surface-container rounded-2xl p-6">
-              <p className="text-[10px] font-black uppercase tracking-widest text-zinc-600 mb-4">Legend</p>
-              <div className="flex flex-wrap gap-3">
-                {(Object.entries(TYPE_LABELS) as Array<[DayTask['type'], string]>).map(([type, label]) => (
-                  <div key={type} className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-bold ${TYPE_COLORS[type]}`}>
-                    <span className="w-2 h-2 rounded-full bg-current" />
-                    {label}
-                  </div>
+              {/* Week selector */}
+              <div style={{ display: 'flex', gap: 8, marginBottom: 24, overflowX: 'auto', paddingBottom: 4 }}>
+                {plan.map((w, i) => (
+                  <motion.button
+                    key={w.weekNum}
+                    onClick={() => setActiveWeek(i)}
+                    whileHover={{ scale: 1.04 }}
+                    style={{
+                      flexShrink: 0, padding: '7px 16px', borderRadius: 999,
+                      fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.12em', cursor: 'pointer',
+                      background: i === activeWeek ? 'rgba(129,140,248,0.12)' : 'transparent',
+                      border: i === activeWeek ? '1px solid rgba(129,140,248,0.3)' : '1px solid rgba(255,255,255,0.07)',
+                      color: i === activeWeek ? '#818cf8' : 'rgba(255,255,255,0.35)',
+                    }}
+                  >
+                    Week {w.weekNum}
+                  </motion.button>
                 ))}
-                <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/8 text-xs font-bold text-zinc-500">
-                  <Icon name="check_circle" size={12} className="text-green-400" filled />
-                  Click task to mark done
+              </div>
+
+              {/* Week content */}
+              {currentWeek && (
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+                    <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(129,140,248,0.15)', border: '1px solid rgba(129,140,248,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 900, color: '#818cf8', flexShrink: 0 }}>
+                      {currentWeek.weekNum}
+                    </div>
+                    <div>
+                      <h2 style={{ fontSize: 16, fontWeight: 900, color: '#fff' }}>{currentWeek.theme}</h2>
+                      <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)' }}>
+                        {config.company} · {config.role.toUpperCase()} · {currentWeek.days[0]?.label} – {currentWeek.days[6]?.label}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12 }}>
+                    {currentWeek.days.map((day) => (
+                      <div key={day.date} style={{ ...GLASS, borderRadius: 16, overflow: 'hidden' }}>
+                        <div style={{ padding: '10px 14px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <p style={{ fontSize: 11, fontWeight: 900, color: '#fff' }}>{day.label}</p>
+                          {day.tasks.length === 0 && <span style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: 'rgba(255,255,255,0.2)' }}>Rest</span>}
+                        </div>
+                        <div style={{ padding: 10, display: 'flex', flexDirection: 'column', gap: 7 }}>
+                          {day.tasks.length === 0 ? (
+                            <div style={{ padding: '16px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, color: 'rgba(255,255,255,0.2)' }}>
+                              <Icon name="weekend" size={20} />
+                              <p style={{ fontSize: 11, fontWeight: 700 }}>Take a break!</p>
+                            </div>
+                          ) : (
+                            day.tasks.map((task, ti) => {
+                              const taskKey = `${day.date}-${ti}`;
+                              const done = completedTasks.has(taskKey);
+                              const tc = TYPE_COLORS[task.type];
+                              return (
+                                <button
+                                  key={taskKey}
+                                  type="button"
+                                  onClick={() => toggleTask(taskKey)}
+                                  style={{
+                                    width: '100%', textAlign: 'left', borderRadius: 10, border: done ? '1px solid rgba(74,222,128,0.2)' : `1px solid ${tc.border}`,
+                                    padding: '8px 10px', background: done ? 'rgba(74,222,128,0.05)' : tc.bg,
+                                    cursor: 'pointer', opacity: done ? 0.6 : 1, transition: 'opacity 0.15s',
+                                  }}
+                                >
+                                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 7 }}>
+                                    <Icon name={done ? 'check_circle' : task.icon} size={12} style={{ color: done ? '#4ade80' : tc.color, flexShrink: 0, marginTop: 1 }} filled={done} />
+                                    <div style={{ flex: 1, minWidth: 0 }}>
+                                      <p style={{ fontSize: 11, fontWeight: 700, lineHeight: 1.4, color: done ? 'rgba(255,255,255,0.35)' : '#fff', textDecoration: done ? 'line-through' : 'none' }}>
+                                        {task.topic}
+                                      </p>
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 3 }}>
+                                        <span style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: done ? 'rgba(255,255,255,0.2)' : tc.color }}>
+                                          {TYPE_LABELS[task.type]}
+                                        </span>
+                                        <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.25)' }}>· {task.duration}m</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </button>
+                              );
+                            })
+                          )}
+                          {day.tasks.length > 0 && (
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 2 }}>
+                              <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.2)' }}>{day.tasks.reduce((s, t) => s + t.duration, 0)}m total</span>
+                              {day.tasks[0]?.link && (
+                                <Link to={day.tasks[0].link} style={{ fontSize: 9, color: 'rgba(255,255,255,0.3)', display: 'flex', alignItems: 'center', gap: 2, textDecoration: 'none' }}>
+                                  Go <Icon name="arrow_forward" size={9} />
+                                </Link>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Legend */}
+              <div style={{ ...GLASS, borderRadius: 18, padding: '18px 22px', marginTop: 24 }}>
+                <p style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', marginBottom: 12 }}>Legend</p>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                  {(Object.entries(TYPE_LABELS) as Array<[DayTask['type'], string]>).map(([type, label]) => {
+                    const tc = TYPE_COLORS[type];
+                    return (
+                      <div key={type} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 12px', borderRadius: 999, border: `1px solid ${tc.border}`, background: tc.bg, fontSize: 11, fontWeight: 700, color: tc.color }}>
+                        <span style={{ width: 6, height: 6, borderRadius: '50%', background: tc.color, flexShrink: 0 }} />
+                        {label}
+                      </div>
+                    );
+                  })}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 12px', borderRadius: 999, border: '1px solid rgba(255,255,255,0.08)', fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.4)' }}>
+                    <Icon name="check_circle" size={11} style={{ color: '#4ade80' }} filled />
+                    Click to mark done
+                  </div>
                 </div>
               </div>
-            </div>
-          </>
-        )}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-        {/* Empty state */}
+        {/* ── Empty state ── */}
         {!generated && (
-          <div className="bg-surface-container rounded-2xl p-16 flex flex-col items-center gap-4 text-center">
-            <div className="w-16 h-16 bg-indigo-500/10 rounded-2xl flex items-center justify-center mb-2">
-              <Icon name="calendar_month" className="text-indigo-400" size={30} />
+          <motion.div
+            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
+            style={{ ...GLASS, borderRadius: 22, padding: '64px 32px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, textAlign: 'center' }}
+          >
+            <div style={{ width: 64, height: 64, background: 'rgba(129,140,248,0.1)', border: '1px solid rgba(129,140,248,0.2)', borderRadius: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 4 }}>
+              <Icon name="calendar_month" size={28} style={{ color: '#818cf8' }} />
             </div>
-            <h3 className="text-xl font-black text-on-surface">Build your personalized roadmap</h3>
-            <p className="text-on-surface-variant text-sm max-w-md leading-relaxed">
-              Select your target company and interview date above. EYF will generate a day-by-day study plan
-              weighted for that company's interview style — DSA-heavy for Google, LP-focused for Amazon, System
-              Design-first for Netflix.
+            <h3 style={{ fontSize: 20, fontWeight: 900, color: '#fff' }}>Build your personalized roadmap</h3>
+            <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)', maxWidth: 460, lineHeight: 1.7 }}>
+              Select your target company and interview date above. EYF generates a day-by-day study plan weighted for that company's interview style.
             </p>
-            <div className="flex flex-wrap gap-3 mt-4 justify-center">
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8, justifyContent: 'center' }}>
               {['Google (algo-first)', 'Amazon (LP-heavy)', 'Netflix (SD-first)'].map((c) => (
-                <span key={c} className="bg-zinc-800 text-zinc-400 text-xs px-4 py-2 rounded-full font-bold">{c}</span>
+                <span key={c} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.5)', fontSize: 12, fontWeight: 700, padding: '6px 16px', borderRadius: 999 }}>{c}</span>
               ))}
             </div>
-          </div>
+          </motion.div>
         )}
       </div>
     </AppShell>

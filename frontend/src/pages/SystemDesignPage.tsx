@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
 import { AppShell } from '../components/AppShell';
 import { Icon } from '../components/Icon';
 import { apiRequest } from '../lib/api';
@@ -17,13 +18,19 @@ interface SDQuestion {
   lastAttemptAt: string | null;
 }
 
-const CATEGORY_META: Record<string, { icon: string; color: string; bg: string }> = {
-  scalability:   { icon: 'trending_up', color: 'text-blue-400', bg: 'bg-blue-500/10' },
-  database:      { icon: 'storage', color: 'text-green-400', bg: 'bg-green-500/10' },
-  microservices: { icon: 'hub', color: 'text-purple-400', bg: 'bg-purple-500/10' },
-  caching:       { icon: 'speed', color: 'text-yellow-400', bg: 'bg-yellow-500/10' },
-  messaging:     { icon: 'message', color: 'text-orange-400', bg: 'bg-orange-500/10' },
-  api:           { icon: 'api', color: 'text-cyan-400', bg: 'bg-cyan-500/10' },
+const CATEGORY_META: Record<string, { icon: string; color: string; glow: string }> = {
+  scalability:   { icon: 'trending_up',  color: '#60a5fa', glow: 'rgba(96,165,250,0.15)' },
+  database:      { icon: 'storage',      color: '#4ade80', glow: 'rgba(74,222,128,0.15)' },
+  microservices: { icon: 'hub',          color: '#c084fc', glow: 'rgba(192,132,252,0.15)' },
+  caching:       { icon: 'speed',        color: '#facc15', glow: 'rgba(250,204,21,0.15)' },
+  messaging:     { icon: 'message',      color: '#fb923c', glow: 'rgba(251,146,60,0.15)' },
+  api:           { icon: 'api',          color: '#22d3ee', glow: 'rgba(34,211,238,0.15)' },
+};
+
+const DIFF_STYLE: Record<string, { color: string; bg: string }> = {
+  easy:   { color: '#4ade80', bg: 'rgba(74,222,128,0.1)' },
+  medium: { color: '#facc15', bg: 'rgba(250,204,21,0.1)' },
+  hard:   { color: '#f87171', bg: 'rgba(248,113,113,0.1)' },
 };
 
 const STATIC_QUESTIONS: SDQuestion[] = [
@@ -48,25 +55,25 @@ const STATIC_QUESTIONS: SDQuestion[] = [
 ];
 
 const CONCEPTS = [
-  { title: 'CAP Theorem',         desc: 'Consistency, Availability, Partition Tolerance trade-offs — in practice, choose CP or AP', icon: 'balance' },
-  { title: 'Consistent Hashing',  desc: 'Distribute load across nodes with minimal key redistribution on topology changes', icon: 'join_inner' },
-  { title: 'CQRS & Event Sourcing', desc: 'Separate read/write models, rebuild state from immutable event log', icon: 'history' },
-  { title: 'Rate Limiting',       desc: 'Token bucket, leaky bucket, sliding window counter — trade precision for memory', icon: 'speed' },
-  { title: 'Database Sharding',   desc: 'Horizontal partitioning strategies: hash, range, directory-based sharding', icon: 'grid_view' },
-  { title: 'Circuit Breaker',     desc: 'Prevent cascading failures via CLOSED → OPEN → HALF_OPEN state machine', icon: 'electric_bolt' },
-  { title: 'Read Replicas',       desc: 'Route reads to replicas for horizontal read scaling; handle replication lag carefully', icon: 'content_copy' },
-  { title: 'Write-Ahead Log',     desc: 'Append changes to WAL before applying — enables crash recovery and replication', icon: 'edit_note' },
-  { title: 'Bloom Filter',        desc: 'Probabilistic set membership: no false negatives, small false positive rate, O(1) space', icon: 'filter_alt' },
+  { title: 'CAP Theorem',                   desc: 'Consistency, Availability, Partition Tolerance trade-offs — in practice, choose CP or AP', icon: 'balance' },
+  { title: 'Consistent Hashing',            desc: 'Distribute load across nodes with minimal key redistribution on topology changes', icon: 'join_inner' },
+  { title: 'CQRS & Event Sourcing',         desc: 'Separate read/write models, rebuild state from immutable event log', icon: 'history' },
+  { title: 'Rate Limiting',                 desc: 'Token bucket, leaky bucket, sliding window counter — trade precision for memory', icon: 'speed' },
+  { title: 'Database Sharding',             desc: 'Horizontal partitioning strategies: hash, range, directory-based sharding', icon: 'grid_view' },
+  { title: 'Circuit Breaker',               desc: 'Prevent cascading failures via CLOSED → OPEN → HALF_OPEN state machine', icon: 'electric_bolt' },
+  { title: 'Read Replicas',                 desc: 'Route reads to replicas for horizontal read scaling; handle replication lag carefully', icon: 'content_copy' },
+  { title: 'Write-Ahead Log',               desc: 'Append changes to WAL before applying — enables crash recovery and replication', icon: 'edit_note' },
+  { title: 'Bloom Filter',                  desc: 'Probabilistic set membership: no false negatives, small false positive rate, O(1) space', icon: 'filter_alt' },
   { title: 'Long Polling vs SSE vs WebSocket', desc: 'Choose push mechanism based on direction (uni/bi), latency, and infrastructure', icon: 'sync_alt' },
-  { title: 'Idempotency Keys',    desc: 'Prevent duplicate processing in distributed systems — retry-safe operations', icon: 'key' },
-  { title: 'Two-Phase Commit',    desc: 'Distributed transaction protocol: prepare phase + commit phase with coordinator', icon: 'commit' },
+  { title: 'Idempotency Keys',              desc: 'Prevent duplicate processing in distributed systems — retry-safe operations', icon: 'key' },
+  { title: 'Two-Phase Commit',              desc: 'Distributed transaction protocol: prepare phase + commit phase with coordinator', icon: 'commit' },
 ];
 
-const DIFF_COLOR: Record<string, string> = {
-  easy: 'text-green-400 bg-green-500/10',
-  medium: 'text-yellow-400 bg-yellow-500/10',
-  hard: 'text-red-400 bg-red-500/10',
-};
+const GLASS = {
+  background: 'rgba(10,10,10,0.7)',
+  border: '1px solid rgba(255,255,255,0.07)',
+  backdropFilter: 'blur(16px)',
+} as const;
 
 export function SystemDesignPage() {
   const session = getSession();
@@ -112,69 +119,106 @@ export function SystemDesignPage() {
   };
 
   if (selected) {
-    const catMeta = CATEGORY_META[selected.category] ?? { icon: 'design_services', color: 'text-zinc-400', bg: 'bg-zinc-500/10' };
+    const catMeta = CATEGORY_META[selected.category] ?? { icon: 'design_services', color: '#a1a1aa', glow: 'rgba(161,161,170,0.1)' };
+    const diffStyle = DIFF_STYLE[selected.difficulty] ?? { color: '#a1a1aa', bg: 'rgba(161,161,170,0.1)' };
     return (
       <AppShell>
         <div className="pt-8 max-w-4xl mx-auto">
-          <button onClick={() => { setSelected(null); setResponse(''); setSubmitted(false); }}
-            className="flex items-center gap-2 text-zinc-500 hover:text-zinc-300 text-sm mb-6 transition-colors">
+          <motion.button
+            onClick={() => { setSelected(null); setResponse(''); setSubmitted(false); }}
+            className="flex items-center gap-2 text-sm mb-8 transition-colors"
+            style={{ color: 'rgba(255,255,255,0.35)' }}
+            whileHover={{ color: 'rgba(255,255,255,0.8)', x: -2 }}
+            transition={{ duration: 0.15 }}
+          >
             <Icon name="arrow_back" size={16} />Back to questions
-          </button>
-          <div className="bg-surface-container rounded-2xl p-8 mb-6">
-            <div className="flex items-center gap-3 mb-4">
-              <div className={`w-10 h-10 ${catMeta.bg} rounded-xl flex items-center justify-center`}>
-                <Icon name={catMeta.icon} className={catMeta.color} size={20} />
+          </motion.button>
+
+          <motion.div
+            className="rounded-2xl p-8 mb-6"
+            style={GLASS}
+            initial={{ opacity: 0, y: 20, filter: 'blur(8px)' }}
+            animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+          >
+            <div
+              style={{ height: 1, marginBottom: 28, background: `linear-gradient(90deg, transparent, ${catMeta.color}80 40%, ${catMeta.color}30 70%, transparent)` }}
+            />
+            <div className="flex items-center gap-3 mb-5">
+              <div className="w-11 h-11 rounded-xl flex items-center justify-center" style={{ background: catMeta.glow }}>
+                <Icon name={catMeta.icon} size={22} style={{ color: catMeta.color }} />
               </div>
               <div>
-                <div className="flex items-center gap-2">
-                  <span className={`text-[10px] font-bold uppercase tracking-widest ${catMeta.color}`}>{selected.category}</span>
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${DIFF_COLOR[selected.difficulty]}`}>{selected.difficulty}</span>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: catMeta.color }}>{selected.category}</span>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ color: diffStyle.color, background: diffStyle.bg }}>{selected.difficulty}</span>
                 </div>
-                <h1 className="text-2xl font-bold">{selected.title}</h1>
+                <h1 className="text-2xl font-bold" style={{ color: 'rgba(255,255,255,0.95)' }}>{selected.title}</h1>
               </div>
             </div>
-            <p className="text-on-surface-variant leading-relaxed">{selected.description}</p>
-          </div>
+            <p className="leading-relaxed" style={{ color: 'rgba(255,255,255,0.5)' }}>{selected.description}</p>
+          </motion.div>
 
           {submitted ? (
-            <div className="bg-green-500/10 border border-green-500/20 rounded-xl p-8 text-center">
-              <Icon name="check_circle" className="text-green-400 mb-3" size={40} filled />
-              <h3 className="text-xl font-bold mb-2 text-green-400">Response Saved!</h3>
-              <p className="text-on-surface-variant text-sm">Your system design response has been recorded. Review the reference approach and compare your solution.</p>
-              <button onClick={() => setSubmitted(false)} className="mt-4 text-sm text-green-400 hover:underline">Write another attempt</button>
-            </div>
+            <motion.div
+              className="rounded-xl p-8 text-center"
+              style={{ background: 'rgba(74,222,128,0.06)', border: '1px solid rgba(74,222,128,0.2)' }}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+            >
+              <Icon name="check_circle" size={40} filled style={{ color: '#4ade80' }} />
+              <h3 className="text-xl font-bold mt-3 mb-2" style={{ color: '#4ade80' }}>Response Saved!</h3>
+              <p className="text-sm" style={{ color: 'rgba(255,255,255,0.45)' }}>Your system design response has been recorded. Review the reference approach and compare your solution.</p>
+              <button onClick={() => setSubmitted(false)} className="mt-4 text-sm underline" style={{ color: '#4ade80' }}>Write another attempt</button>
+            </motion.div>
           ) : (
             <div className="space-y-4">
-              <div className="bg-surface-container rounded-xl p-4">
-                <h3 className="font-bold text-sm mb-3 flex items-center gap-2">
-                  <Icon name="tips_and_updates" className="text-yellow-400" size={16} />
+              <div className="rounded-xl p-5" style={GLASS}>
+                <h3 className="font-bold text-sm mb-3 flex items-center gap-2" style={{ color: 'rgba(255,255,255,0.8)' }}>
+                  <Icon name="tips_and_updates" size={16} style={{ color: '#facc15' }} />
                   Consider covering:
                 </h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-xs text-on-surface-variant">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                   {['Requirements (functional & non-functional)', 'Capacity estimation', 'High-level architecture', 'Database schema', 'API design', 'Scalability & bottlenecks'].map((t) => (
-                    <div key={t} className="flex items-center gap-1"><Icon name="radio_button_unchecked" size={10} className="text-zinc-600" />{t}</div>
+                    <div key={t} className="flex items-center gap-1.5 text-xs" style={{ color: 'rgba(255,255,255,0.38)' }}>
+                      <Icon name="radio_button_unchecked" size={10} style={{ color: 'rgba(255,255,255,0.2)' }} />{t}
+                    </div>
                   ))}
                 </div>
               </div>
               <div>
-                <label htmlFor="sd-response" className="block text-sm font-bold mb-2 text-on-surface-variant">Your Design Response</label>
+                <label htmlFor="sd-response" className="block text-sm font-bold mb-2" style={{ color: 'rgba(255,255,255,0.4)' }}>Your Design Response</label>
                 <textarea
                   id="sd-response"
                   value={response}
                   onChange={(e) => setResponse(e.target.value)}
                   placeholder="Start with requirements clarification, then capacity estimation, then architecture..."
                   rows={14}
-                  className="w-full bg-surface-container border border-outline-variant/20 rounded-xl p-4 text-sm text-on-surface focus:outline-none focus:border-primary-container/40 resize-none font-mono"
+                  className="w-full rounded-xl p-4 text-sm focus:outline-none resize-none font-mono"
+                  style={{
+                    background: 'rgba(255,255,255,0.03)',
+                    border: '1px solid rgba(255,255,255,0.07)',
+                    color: 'rgba(255,255,255,0.85)',
+                  }}
                 />
-                <p className="text-xs text-zinc-500 mt-1">{response.length} characters</p>
+                <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.22)' }}>{response.length} characters</p>
               </div>
-              <button
+              <motion.button
                 onClick={handleSubmit}
                 disabled={submitting || response.length < 10}
-                className="bg-primary-container text-white font-bold py-3 px-8 rounded-full hover:brightness-110 transition-all disabled:opacity-40 flex items-center gap-2"
+                className="font-bold py-3 px-8 rounded-full flex items-center gap-2 disabled:opacity-40"
+                style={{
+                  background: 'linear-gradient(135deg, #E8192C, #FF5566)',
+                  color: 'white',
+                  boxShadow: '0 4px 24px rgba(232,25,44,0.3)',
+                }}
+                whileHover={{ boxShadow: '0 4px 32px rgba(232,25,44,0.5)', scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                transition={{ duration: 0.15 }}
               >
                 {submitting ? <><Icon name="hourglass_empty" size={16} />Saving...</> : <><Icon name="save" size={16} />Save Response</>}
-              </button>
+              </motion.button>
             </div>
           )}
         </div>
@@ -184,45 +228,78 @@ export function SystemDesignPage() {
 
   return (
     <AppShell>
-      <div className="pt-8 max-w-7xl mx-auto">
+      <div className="pt-8 max-w-7xl">
         {/* Hero */}
-        <div className="mb-10 p-10 bg-surface-container rounded-2xl relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-72 h-72 bg-purple-500/5 blur-[80px] rounded-full -mr-20 -mt-20" />
-          <div className="flex items-start gap-4 mb-6">
-            <div className="w-12 h-12 bg-purple-500/10 rounded-xl flex items-center justify-center">
-              <Icon name="architecture" className="text-purple-400" size={24} />
-            </div>
-            <div>
-              <h1 className="text-4xl font-black tracking-tighter">System Design</h1>
-              <p className="text-on-surface-variant text-sm mt-0.5">Scalability · Distributed Systems · Architecture Patterns</p>
-            </div>
+        <div className="mb-10 flex items-end justify-between flex-wrap gap-6">
+          <div>
+            <motion.h1
+              className="text-6xl font-black tracking-tighter mb-2 leading-none"
+              initial={{ opacity: 0, y: 30, filter: 'blur(12px)' }}
+              animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+              transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+              style={{
+                background: 'linear-gradient(135deg, #E8E8E8 0%, rgba(192,132,252,0.8) 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+              }}
+            >
+              SYSTEM<br />
+              <span style={{ background: 'linear-gradient(135deg, #c084fc, #a855f7)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>DESIGN.</span>
+            </motion.h1>
+            <motion.p
+              className="text-lg max-w-md"
+              style={{ color: 'rgba(255,255,255,0.4)' }}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+            >
+              Scalability · Distributed Systems · Architecture Patterns
+            </motion.p>
           </div>
-          <div className="flex gap-6">
+
+          {/* Stats card */}
+          <motion.div
+            className="rounded-2xl p-6 flex gap-8"
+            style={{ ...GLASS, boxShadow: '0 24px 60px rgba(0,0,0,0.6)' }}
+            initial={{ opacity: 0, x: 20, filter: 'blur(8px)' }}
+            animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }}
+            transition={{ duration: 0.6, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            whileHover={{ boxShadow: '0 24px 60px rgba(0,0,0,0.7), 0 0 30px rgba(192,132,252,0.08)' }}
+          >
             <div>
-              <p className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-on-surface-variant mb-1">Total Questions</p>
-              <p className="text-2xl font-bold">{stats.total}</p>
+              <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: 'rgba(255,255,255,0.28)' }}>Questions</p>
+              <p className="text-2xl font-black" style={{ color: 'rgba(255,255,255,0.9)' }}>{stats.total}</p>
             </div>
-            <div className="border-l border-outline-variant/20 pl-6">
-              <p className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-on-surface-variant mb-1">Attempted</p>
-              <p className="text-2xl font-bold text-purple-400">{stats.attempted}</p>
+            <div style={{ borderLeft: '1px solid rgba(255,255,255,0.07)', paddingLeft: 28 }}>
+              <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: 'rgba(255,255,255,0.28)' }}>Attempted</p>
+              <p className="text-2xl font-black" style={{ color: '#c084fc' }}>{stats.attempted}</p>
             </div>
-          </div>
+          </motion.div>
         </div>
 
         {/* Core Concepts */}
-        <section className="mb-10">
-          <h2 className="font-['Inter'] uppercase tracking-[0.3em] text-[10px] font-bold text-on-surface-variant/60 mb-5 ml-1">Core Concepts</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {CONCEPTS.map((c) => (
-              <div key={c.title} className="bg-surface-container rounded-xl p-5 flex items-start gap-4 hover:bg-surface-container-high transition-colors">
-                <div className="w-9 h-9 bg-purple-500/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <Icon name={c.icon} className="text-purple-400" size={18} />
+        <section className="mb-12">
+          <p className="text-[10px] font-bold uppercase tracking-[0.3em] mb-5" style={{ color: 'rgba(255,255,255,0.22)' }}>Core Concepts</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {CONCEPTS.map((c, i) => (
+              <motion.div
+                key={c.title}
+                className="rounded-xl p-5 flex items-start gap-4"
+                style={GLASS}
+                initial={{ opacity: 0, y: 16, filter: 'blur(6px)' }}
+                whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                viewport={{ once: true, margin: '-30px' }}
+                transition={{ duration: 0.45, delay: i * 0.04, ease: [0.16, 1, 0.3, 1] }}
+                whileHover={{ background: 'rgba(255,255,255,0.05)', borderColor: 'rgba(192,132,252,0.2)' }}
+              >
+                <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(192,132,252,0.1)' }}>
+                  <Icon name={c.icon} size={18} style={{ color: '#c084fc' }} />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold mb-1">{c.title}</h3>
-                  <p className="text-xs text-on-surface-variant leading-relaxed">{c.desc}</p>
+                  <h3 className="text-sm font-bold mb-1" style={{ color: 'rgba(255,255,255,0.85)' }}>{c.title}</h3>
+                  <p className="text-xs leading-relaxed" style={{ color: 'rgba(255,255,255,0.38)' }}>{c.desc}</p>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
         </section>
@@ -230,53 +307,87 @@ export function SystemDesignPage() {
         {/* Questions */}
         <section>
           <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
-            <h2 className="font-['Inter'] uppercase tracking-[0.3em] text-[10px] font-bold text-on-surface-variant/60 ml-1">Practice Questions</h2>
-            <div className="flex gap-2 flex-wrap">
+            <p className="text-[10px] font-bold uppercase tracking-[0.3em]" style={{ color: 'rgba(255,255,255,0.22)' }}>Practice Questions</p>
+            <div className="flex gap-1.5 flex-wrap">
               {cats.map((cat) => {
                 const meta = CATEGORY_META[cat];
+                const active = activeCategory === cat;
                 return (
-                  <button key={cat} onClick={() => setActiveCategory(cat)}
-                    className={`px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all border ${
-                      activeCategory === cat
-                        ? `${meta?.bg ?? 'bg-zinc-500/10'} ${meta?.color ?? 'text-zinc-300'} border-current/30`
-                        : 'text-zinc-500 border-zinc-800/50 hover:text-zinc-300'
-                    }`}>
+                  <motion.button
+                    key={cat}
+                    onClick={() => setActiveCategory(cat)}
+                    whileHover={{ scale: 1.04 }}
+                    whileTap={{ scale: 0.97 }}
+                    transition={{ duration: 0.12 }}
+                    style={{
+                      padding: '5px 14px',
+                      borderRadius: 999,
+                      fontSize: 10,
+                      fontWeight: 700,
+                      letterSpacing: '0.12em',
+                      textTransform: 'uppercase',
+                      cursor: 'pointer',
+                      background: active ? (meta ? `${meta.glow}` : 'rgba(255,255,255,0.08)') : 'rgba(255,255,255,0.04)',
+                      border: active ? `1px solid ${meta ? meta.color + '50' : 'rgba(255,255,255,0.25)'}` : '1px solid rgba(255,255,255,0.07)',
+                      color: active ? (meta ? meta.color : 'rgba(255,255,255,0.9)') : 'rgba(255,255,255,0.32)',
+                      transition: 'all 0.15s',
+                    }}
+                  >
                     {cat}
-                  </button>
+                  </motion.button>
                 );
               })}
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {filtered.map((q) => {
-              const catMeta = CATEGORY_META[q.category] ?? { icon: 'design_services', color: 'text-zinc-400', bg: 'bg-zinc-500/10' };
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {filtered.map((q, i) => {
+              const catMeta = CATEGORY_META[q.category] ?? { icon: 'design_services', color: '#a1a1aa', glow: 'rgba(161,161,170,0.1)' };
+              const diffStyle = DIFF_STYLE[q.difficulty] ?? { color: '#a1a1aa', bg: 'rgba(161,161,170,0.1)' };
               const locked = q.planAccess === 'pro' || q.planAccess === 'elite';
               return (
-                <button key={q.id}
+                <motion.button
+                  key={q.id}
                   type="button"
                   disabled={locked}
                   onClick={() => setSelected(q)}
-                  className={`w-full text-left bg-surface-container rounded-xl p-6 transition-all ${locked ? 'opacity-60 cursor-not-allowed' : 'hover:bg-surface-container-high cursor-pointer'} ${q.attempted ? 'border border-purple-500/20' : ''}`}>
+                  className="w-full text-left rounded-xl p-6"
+                  style={{
+                    ...GLASS,
+                    cursor: locked ? 'not-allowed' : 'pointer',
+                    opacity: locked ? 0.5 : 1,
+                    borderColor: q.attempted ? 'rgba(192,132,252,0.2)' : 'rgba(255,255,255,0.07)',
+                  }}
+                  initial={{ opacity: 0, y: 16, filter: 'blur(6px)' }}
+                  whileInView={{ opacity: locked ? 0.5 : 1, y: 0, filter: 'blur(0px)' }}
+                  viewport={{ once: true, margin: '-20px' }}
+                  transition={{ duration: 0.4, delay: i * 0.03, ease: [0.16, 1, 0.3, 1] }}
+                  whileHover={!locked ? {
+                    background: 'rgba(255,255,255,0.06)',
+                    borderColor: catMeta.color + '40',
+                    boxShadow: `0 8px 32px ${catMeta.glow}`,
+                    y: -2,
+                  } : {}}
+                >
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-2">
-                      <div className={`w-8 h-8 ${catMeta.bg} rounded-lg flex items-center justify-center`}>
-                        <Icon name={catMeta.icon} className={catMeta.color} size={16} />
+                      <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: catMeta.glow }}>
+                        <Icon name={catMeta.icon} size={16} style={{ color: catMeta.color }} />
                       </div>
-                      <span className={`text-[10px] font-bold uppercase tracking-widest ${catMeta.color}`}>{q.category}</span>
+                      <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: catMeta.color }}>{q.category}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      {q.attempted && <Icon name="check_circle" className="text-purple-400" size={16} filled />}
-                      {locked && <Icon name="lock" className="text-zinc-600" size={14} />}
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${DIFF_COLOR[q.difficulty]}`}>{q.difficulty}</span>
+                      {q.attempted && <Icon name="check_circle" size={16} filled style={{ color: '#c084fc' }} />}
+                      {locked && <Icon name="lock" size={14} style={{ color: 'rgba(255,255,255,0.22)' }} />}
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ color: diffStyle.color, background: diffStyle.bg }}>{q.difficulty}</span>
                     </div>
                   </div>
-                  <h3 className="text-base font-bold mb-2">{q.title}</h3>
-                  <p className="text-xs text-on-surface-variant leading-relaxed line-clamp-2">{q.description}</p>
+                  <h3 className="text-base font-bold mb-2" style={{ color: 'rgba(255,255,255,0.88)' }}>{q.title}</h3>
+                  <p className="text-xs leading-relaxed line-clamp-2" style={{ color: 'rgba(255,255,255,0.38)' }}>{q.description}</p>
                   {q.lastAttemptAt && (
-                    <p className="text-[10px] text-zinc-600 mt-3">Last attempted {new Date(q.lastAttemptAt).toLocaleDateString()}</p>
+                    <p className="text-[10px] mt-3" style={{ color: 'rgba(255,255,255,0.22)' }}>Last attempted {new Date(q.lastAttemptAt).toLocaleDateString()}</p>
                   )}
-                </button>
+                </motion.button>
               );
             })}
           </div>

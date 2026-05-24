@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { motion } from 'framer-motion';
 import { shuffle } from '../lib/random';
 import { AppShell } from '../components/AppShell';
 import { Icon } from '../components/Icon';
@@ -26,16 +27,16 @@ interface CardProgress {
 
 // ─── Deck definitions ─────────────────────────────────────────────────────────
 
-const DECKS: { id: string; title: string; icon: string; color: string; bg: string; count: number }[] = [
-  { id: 'os',            title: 'Operating Systems',    icon: 'terminal',           color: 'text-green-400',  bg: 'bg-green-500/10',  count: 12 },
-  { id: 'dbms',          title: 'DBMS & SQL',            icon: 'storage',            color: 'text-blue-400',   bg: 'bg-blue-500/10',   count: 10 },
-  { id: 'networks',      title: 'Computer Networks',     icon: 'hub',                color: 'text-cyan-400',   bg: 'bg-cyan-500/10',   count: 9  },
-  { id: 'dsa',           title: 'DSA Concepts',          icon: 'code',               color: 'text-purple-400', bg: 'bg-purple-500/10', count: 12 },
-  { id: 'system-design', title: 'System Design',         icon: 'architecture',       color: 'text-orange-400', bg: 'bg-orange-500/10', count: 8  },
-  { id: 'security',      title: 'Cybersecurity',         icon: 'shield',             color: 'text-red-400',    bg: 'bg-red-500/10',    count: 7  },
-  { id: 'oop',           title: 'OOP & Design Patterns', icon: 'account_tree',       color: 'text-amber-400',  bg: 'bg-amber-500/10',  count: 7  },
-  { id: 'behavioral',    title: 'Behavioral Interview',  icon: 'record_voice_over',  color: 'text-rose-400',   bg: 'bg-rose-500/10',   count: 10 },
-  { id: 'patterns',      title: 'Algorithm Patterns',    icon: 'pattern',            color: 'text-indigo-400', bg: 'bg-indigo-500/10', count: 10 },
+const DECKS: { id: string; title: string; icon: string; color: string; glow: string; count: number }[] = [
+  { id: 'os',            title: 'Operating Systems',    icon: 'terminal',          color: '#4ade80', glow: 'rgba(74,222,128,0.14)',   count: 12 },
+  { id: 'dbms',          title: 'DBMS & SQL',           icon: 'storage',           color: '#60a5fa', glow: 'rgba(96,165,250,0.14)',   count: 10 },
+  { id: 'networks',      title: 'Computer Networks',    icon: 'hub',               color: '#22d3ee', glow: 'rgba(34,211,238,0.14)',   count: 9  },
+  { id: 'dsa',           title: 'DSA Concepts',         icon: 'code',              color: '#c084fc', glow: 'rgba(192,132,252,0.14)', count: 12 },
+  { id: 'system-design', title: 'System Design',        icon: 'architecture',      color: '#fb923c', glow: 'rgba(251,146,60,0.14)',   count: 8  },
+  { id: 'security',      title: 'Cybersecurity',        icon: 'shield',            color: '#f87171', glow: 'rgba(248,113,113,0.14)', count: 7  },
+  { id: 'oop',           title: 'OOP & Design Patterns',icon: 'account_tree',      color: '#fbbf24', glow: 'rgba(251,191,36,0.14)',  count: 7  },
+  { id: 'behavioral',    title: 'Behavioral Interview', icon: 'record_voice_over', color: '#fb7185', glow: 'rgba(251,113,133,0.14)', count: 10 },
+  { id: 'patterns',      title: 'Algorithm Patterns',   icon: 'pattern',           color: '#818cf8', glow: 'rgba(129,140,248,0.14)', count: 10 },
 ];
 
 const ALL_CARDS: Flashcard[] = [
@@ -314,61 +315,94 @@ export function FlashcardsPage() {
         <div className="pt-6 pb-12 max-w-4xl">
           {/* Header */}
           <div className="mb-8">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-11 h-11 bg-[#E82127]/10 rounded-2xl flex items-center justify-center">
-                <Icon name="style" size={22} className="text-[#E82127]" />
-              </div>
-              <div>
-                <h1 className="text-3xl font-black tracking-tight text-white">Flashcards</h1>
-                <p className="text-zinc-500 text-sm">Spaced repetition review — built for interview prep</p>
-              </div>
-            </div>
+            <motion.h1
+              className="text-5xl font-black tracking-tighter mb-2 leading-none"
+              style={{
+                background: 'linear-gradient(135deg, #E8E8E8 0%, rgba(232,25,44,0.8) 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+              }}
+              initial={{ opacity: 0, y: 24, filter: 'blur(10px)' }}
+              animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+              transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
+            >
+              FLASHCARDS
+            </motion.h1>
+            <motion.p
+              className="text-sm"
+              style={{ color: 'rgba(255,255,255,0.35)' }}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.12, ease: [0.16, 1, 0.3, 1] }}
+            >
+              Spaced repetition review — built for interview prep
+            </motion.p>
 
             {totalDue > 0 && (
-              <div className="mt-4 bg-[#1a1010] border border-[#E82127]/20 rounded-2xl px-5 py-3 flex items-center gap-3">
-                <Icon name="notifications_active" size={18} className="text-[#E82127] flex-shrink-0" />
-                <p className="text-zinc-300 text-sm">
-                  <span className="text-white font-bold">{totalDue} cards</span> are due for review across all decks.
+              <motion.div
+                className="mt-5 rounded-2xl px-5 py-3 flex items-center gap-3"
+                style={{ background: 'rgba(232,25,44,0.07)', border: '1px solid rgba(232,25,44,0.2)' }}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+              >
+                <Icon name="notifications_active" size={18} style={{ color: '#E8192C', flexShrink: 0 }} />
+                <p className="text-sm" style={{ color: 'rgba(255,255,255,0.6)' }}>
+                  <span className="font-bold" style={{ color: 'rgba(255,255,255,0.9)' }}>{totalDue} cards</span> are due for review across all decks.
                 </p>
-              </div>
+              </motion.div>
             )}
           </div>
 
           {/* Decks grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {DECKS.map((deck) => {
+            {DECKS.map((deck, i) => {
               const stats = getDeckStats(deck.id);
               return (
-                <button
+                <motion.button
                   key={deck.id}
                   type="button"
                   onClick={() => startDeck(deck.id)}
-                  className="bg-[#1a1a1a] border border-white/8 rounded-2xl p-5 text-left hover:border-white/15 hover:bg-[#1e1e1e] transition-all group active:scale-[0.98]"
+                  className="rounded-2xl p-5 text-left"
+                  style={{
+                    background: 'rgba(10,10,10,0.7)',
+                    border: '1px solid rgba(255,255,255,0.07)',
+                    backdropFilter: 'blur(16px)',
+                    cursor: 'pointer',
+                  }}
+                  initial={{ opacity: 0, y: 16, filter: 'blur(6px)' }}
+                  animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                  transition={{ duration: 0.4, delay: i * 0.04, ease: [0.16, 1, 0.3, 1] }}
+                  whileHover={{
+                    background: 'rgba(255,255,255,0.05)',
+                    borderColor: `${deck.color}35`,
+                    boxShadow: `0 8px 32px ${deck.glow}`,
+                    y: -2,
+                  }}
+                  whileTap={{ scale: 0.98 }}
                 >
-                  <div className={`w-10 h-10 ${deck.bg} rounded-xl flex items-center justify-center ${deck.color} mb-4 group-hover:scale-110 transition-transform`}>
-                    <Icon name={deck.icon} size={20} />
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4" style={{ background: deck.glow }}>
+                    <Icon name={deck.icon} size={20} style={{ color: deck.color }} />
                   </div>
-                  <h3 className="font-black text-white text-sm mb-1">{deck.title}</h3>
+                  <h3 className="font-black text-sm mb-1" style={{ color: 'rgba(255,255,255,0.88)' }}>{deck.title}</h3>
                   <div className="flex items-center gap-3 mb-3">
-                    <span className="text-[10px] text-zinc-600 font-bold">{deck.count} cards</span>
+                    <span className="text-[10px] font-bold" style={{ color: 'rgba(255,255,255,0.25)' }}>{deck.count} cards</span>
                     {stats.mastered > 0 && (
-                      <span className="text-[10px] text-emerald-400 font-bold">
-                        {stats.mastered} mastered
-                      </span>
+                      <span className="text-[10px] font-bold" style={{ color: '#4ade80' }}>{stats.mastered} mastered</span>
                     )}
                   </div>
                   {stats.due > 0 ? (
-                    <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold ${deck.bg} ${deck.color}`}>
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold" style={{ color: deck.color, background: deck.glow }}>
                       <Icon name="schedule" size={11} />
                       {stats.due} due
                     </div>
                   ) : (
-                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400">
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold" style={{ color: '#4ade80', background: 'rgba(74,222,128,0.1)' }}>
                       <Icon name="check_circle" size={11} />
                       All caught up
                     </div>
                   )}
-                </button>
+                </motion.button>
               );
             })}
           </div>
@@ -398,10 +432,11 @@ export function FlashcardsPage() {
                           key={deck.id}
                           type="button"
                           onClick={() => startDeck(deck.id)}
-                          className="w-full flex items-center gap-3 p-3 bg-zinc-900/50 rounded-xl hover:bg-zinc-900 transition-colors group"
+                          className="w-full flex items-center gap-3 p-3 rounded-xl transition-colors group"
+                          style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}
                         >
-                          <div className={`w-8 h-8 ${deck.bg} rounded-lg flex items-center justify-center flex-shrink-0`}>
-                            <Icon name={deck.icon} size={15} className={deck.color} />
+                          <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: deck.glow }}>
+                            <Icon name={deck.icon} size={15} style={{ color: deck.color }} />
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between mb-1">
@@ -430,7 +465,7 @@ export function FlashcardsPage() {
                             <Icon name="close" size={14} className="text-red-400 flex-shrink-0 mt-0.5" />
                             <div className="min-w-0">
                               <p className="text-xs text-zinc-400 truncate">{card.front}</p>
-                              {deck && <p className={`text-[10px] font-bold mt-0.5 ${deck.color}`}>{deck.title}</p>}
+                              {deck && <p className="text-[10px] font-bold mt-0.5" style={{ color: deck.color }}>{deck.title}</p>}
                             </div>
                           </div>
                         );
@@ -581,7 +616,7 @@ export function FlashcardsPage() {
           {/* Category tag */}
           <div className="flex items-center gap-2 mb-4">
             {deck && (
-              <span className={`text-[10px] font-bold uppercase tracking-widest ${deck.color} ${deck.bg} px-2 py-1 rounded-full`}>
+              <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-full" style={{ color: deck.color, background: deck.glow }}>
                 {deck.title}
               </span>
             )}

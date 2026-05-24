@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { FormEvent } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useMotionValue, useSpring } from 'framer-motion';
 import { ApiError, apiRequest } from '../lib/api';
 import { setSession } from '../lib/session';
 import { Icon } from '../components/Icon';
@@ -33,15 +33,16 @@ const GoogleIcon = () => (
 function ErrorBanner({ message }: { readonly message: string }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: -6 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.2 }}
+      initial={{ opacity: 0, y: -6, filter: 'blur(4px)' }}
+      animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+      transition={{ duration: 0.25 }}
       role="alert"
       className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm"
       style={{
-        background: 'rgba(232,25,44,0.06)',
-        color: '#B91C1C',
-        border: '1px solid rgba(232,25,44,0.15)',
+        background: 'rgba(232,25,44,0.08)',
+        color: '#FF5566',
+        border: '1px solid rgba(232,25,44,0.2)',
+        boxShadow: '0 0 16px rgba(232,25,44,0.08)',
       }}
     >
       <Icon name="error_outline" size={14} aria-hidden="true" />
@@ -57,6 +58,29 @@ function Divider() {
       <span className="text-xs font-medium" style={{ color: 'var(--t4)' }}>or</span>
       <div className="flex-1 h-px" style={{ background: 'var(--border)' }} />
     </div>
+  );
+}
+
+/* ── Animated stat on left panel ───────────────────────────────────────────── */
+
+function AnimStat({ stat, label, delay }: { readonly stat: string; readonly label: string; readonly delay: number }) {
+  return (
+    <motion.div
+      className="flex items-center gap-3"
+      initial={{ opacity: 0, x: -16 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.6, delay, ease: [0.16, 1, 0.3, 1] }}
+    >
+      <span
+        className="text-2xl font-black"
+        style={{
+          color: '#E8192C',
+          letterSpacing: '-0.04em',
+          textShadow: '0 0 20px rgba(232,25,44,0.5)',
+        }}
+      >{stat}</span>
+      <span className="text-sm" style={{ color: 'rgba(255,255,255,0.3)' }}>{label}</span>
+    </motion.div>
   );
 }
 
@@ -82,6 +106,21 @@ export function LoginPage() {
   const [regConfirm,  setRegConfirm]  = useState('');
   const [regError,    setRegError]    = useState<string | null>(null);
   const [regLoading,  setRegLoading]  = useState(false);
+
+  /* Mouse parallax for left panel */
+  const panelMx = useMotionValue(0);
+  const panelMy = useMotionValue(0);
+  const blobX = useSpring(panelMx, { stiffness: 40, damping: 18 });
+  const blobY = useSpring(panelMy, { stiffness: 40, damping: 18 });
+
+  useEffect(() => {
+    function onMove(e: MouseEvent) {
+      panelMx.set((e.clientX / window.innerWidth  - 0.5) * 60);
+      panelMy.set((e.clientY / window.innerHeight - 0.5) * 40);
+    }
+    window.addEventListener('mousemove', onMove);
+    return () => window.removeEventListener('mousemove', onMove);
+  }, [panelMx, panelMy]);
 
   const onLogin = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -122,53 +161,104 @@ export function LoginPage() {
   const submitLabel = require2FA ? 'Verify code' : 'Sign in';
 
   return (
-    <div
-      className="min-h-screen flex"
-      style={{ background: 'var(--bg-surface)' }}
-    >
-      {/* Left — branding panel (hidden on mobile) */}
+    <div className="min-h-screen flex" style={{ background: '#020202' }}>
+
+      {/* ── Left branding panel ──────────────────────────────────────────── */}
       <div
         className="hidden lg:flex lg:w-[480px] shrink-0 flex-col justify-between p-12"
-        style={{ background: '#09090B', color: '#F4F4F5' }}
+        style={{ position: 'relative', overflow: 'hidden', background: '#050505' }}
       >
-        <div className="flex items-center gap-2.5">
-          <EYFMark size={22} />
-          <span className="font-black tracking-tight text-base" style={{ color: '#F4F4F5' }}>EYF</span>
-        </div>
+        {/* Top red accent line */}
+        <div style={{
+          position: 'absolute', top: 0, left: 0, right: 0, height: 1,
+          background: 'linear-gradient(90deg, transparent, rgba(232,25,44,0.8) 40%, rgba(232,25,44,0.4) 70%, transparent)',
+        }} />
 
-        <div>
-          <blockquote
-            className="text-3xl font-bold leading-tight mb-6"
-            style={{ letterSpacing: '-0.03em', color: '#F4F4F5' }}
+        {/* Vertical right separator */}
+        <div style={{
+          position: 'absolute', top: 0, right: 0, bottom: 0, width: 1,
+          background: 'linear-gradient(180deg, transparent, rgba(255,255,255,0.05) 20%, rgba(255,255,255,0.05) 80%, transparent)',
+        }} />
+
+        {/* Mouse-parallax ambient blob */}
+        <motion.div
+          style={{
+            position: 'absolute', width: 300, height: 300, borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(232,25,44,0.12) 0%, transparent 70%)',
+            filter: 'blur(40px)',
+            left: '50%', top: '40%',
+            translateX: blobX,
+            translateY: blobY,
+            pointerEvents: 'none',
+          }}
+        />
+
+        {/* Subtle grid pattern */}
+        <div style={{
+          position: 'absolute', inset: 0, pointerEvents: 'none',
+          backgroundImage: 'linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px)',
+          backgroundSize: '48px 48px',
+        }} />
+
+        {/* Content */}
+        <motion.div
+          className="flex items-center gap-2.5"
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          style={{ position: 'relative', zIndex: 1 }}
+        >
+          <EYFMark size={22} />
+          <span className="font-black tracking-tight text-base" style={{ color: '#F0F0F0' }}>EYF</span>
+        </motion.div>
+
+        <motion.div style={{ position: 'relative', zIndex: 1 }}>
+          <motion.blockquote
+            className="text-3xl font-bold leading-tight mb-8"
+            style={{ letterSpacing: '-0.03em', color: '#E8E8E8' }}
+            initial={{ opacity: 0, y: 20, filter: 'blur(8px)' }}
+            animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+            transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
           >
             "The structured path<br />to your first<br />
-            <span style={{ color: '#E8192C' }}>tech offer.</span>"
-          </blockquote>
-          <div className="space-y-4">
-            {[
-              { stat: '12,000+', label: 'Students enrolled' },
-              { stat: '450+',    label: 'DSA problems & solutions' },
-              { stat: '94%',     label: 'Placement success rate' },
-            ].map(({ stat, label }) => (
-              <div key={label} className="flex items-center gap-3">
-                <span className="text-2xl font-black" style={{ color: '#E8192C', letterSpacing: '-0.04em' }}>{stat}</span>
-                <span className="text-sm" style={{ color: '#52525B' }}>{label}</span>
-              </div>
-            ))}
-          </div>
-        </div>
+            <span style={{
+              color: '#E8192C',
+              textShadow: '0 0 30px rgba(232,25,44,0.5)',
+            }}>tech offer.</span>"
+          </motion.blockquote>
 
-        <p className="text-xs" style={{ color: '#3F3F46' }}>
+          <div className="space-y-4">
+            <AnimStat stat="12,000+" label="Students enrolled"      delay={0.3} />
+            <AnimStat stat="450+"    label="DSA problems"            delay={0.4} />
+            <AnimStat stat="94%"     label="Placement success rate"  delay={0.5} />
+          </div>
+        </motion.div>
+
+        <motion.p
+          className="text-xs"
+          style={{ color: 'rgba(255,255,255,0.15)', position: 'relative', zIndex: 1 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.7, duration: 0.5 }}
+        >
           © 2026 EYF · Engineer Your Future
-        </p>
+        </motion.p>
       </div>
 
-      {/* Right — auth form */}
-      <div className="flex-1 flex flex-col">
+      {/* ── Right — auth form ─────────────────────────────────────────────── */}
+      <div className="flex-1 flex flex-col" style={{ position: 'relative' }}>
+        {/* Ambient glow behind form */}
+        <div style={{
+          position: 'absolute', top: '30%', left: '50%', transform: 'translate(-50%, -50%)',
+          width: 400, height: 400, borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(232,25,44,0.04) 0%, transparent 70%)',
+          filter: 'blur(60px)', pointerEvents: 'none',
+        }} />
+
         {/* Mobile header */}
         <header
           className="flex items-center justify-between px-6 h-14 lg:hidden"
-          style={{ borderBottom: '1px solid var(--border)', background: 'var(--bg)' }}
+          style={{ borderBottom: '1px solid var(--border)', background: 'rgba(4,4,4,0.9)', backdropFilter: 'blur(16px)' }}
         >
           <Link to="/" className="flex items-center gap-2 group" aria-label="EYF home">
             <EYFMark size={20} />
@@ -186,45 +276,59 @@ export function LoginPage() {
         </header>
 
         {/* Form area */}
-        <div className="flex-1 flex items-center justify-center p-6">
+        <div className="flex-1 flex items-center justify-center p-6" style={{ position: 'relative', zIndex: 1 }}>
           <div className="w-full max-w-[400px]">
 
             {/* Heading */}
             <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.35, ease: 'easeOut' }}
+              initial={{ opacity: 0, y: 16, filter: 'blur(8px)' }}
+              animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+              transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
               className="mb-8"
             >
-              <h1
-                className="text-2xl font-bold mb-1.5"
-                style={{ color: 'var(--t1)', letterSpacing: '-0.025em' }}
-              >
-                {tab === 'login' ? 'Welcome back' : 'Create an account'}
-              </h1>
-              <p className="text-sm" style={{ color: 'var(--t3)' }}>
-                {tab === 'login'
-                  ? 'Sign in to continue your preparation.'
-                  : 'Join 12,000+ students preparing for placements.'}
-              </p>
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={tab}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <h1
+                    className="text-2xl font-bold mb-1.5"
+                    style={{
+                      color: 'var(--t1)',
+                      letterSpacing: '-0.03em',
+                    }}
+                  >
+                    {tab === 'login' ? 'Welcome back' : 'Create an account'}
+                  </h1>
+                  <p className="text-sm" style={{ color: 'var(--t3)' }}>
+                    {tab === 'login'
+                      ? 'Sign in to continue your preparation.'
+                      : 'Join 12,000+ students preparing for placements.'}
+                  </p>
+                </motion.div>
+              </AnimatePresence>
             </motion.div>
 
             {/* Card */}
             <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.07, ease: 'easeOut' }}
+              initial={{ opacity: 0, y: 20, filter: 'blur(10px)' }}
+              animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+              transition={{ duration: 0.6, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
               className="rounded-2xl p-6"
               style={{
-                background: 'var(--bg)',
-                border: '1px solid var(--border)',
-                boxShadow: 'var(--shadow-md)',
+                background: 'rgba(8,8,8,0.85)',
+                border: '1px solid rgba(255,255,255,0.07)',
+                backdropFilter: 'blur(24px) saturate(160%)',
+                boxShadow: '0 32px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.03), inset 0 1px 0 rgba(255,255,255,0.04)',
               }}
             >
               {/* Tab switcher */}
               <div
                 className="flex mb-6 rounded-xl p-0.5"
-                style={{ background: 'var(--bg-elevated)' }}
+                style={{ background: 'rgba(255,255,255,0.04)' }}
                 role="tablist"
                 aria-label="Authentication mode"
               >
@@ -236,8 +340,13 @@ export function LoginPage() {
                     onClick={() => { setTab(t); setError(null); setRegError(null); }}
                     className="flex-1 py-2 rounded-lg text-sm font-semibold transition-all duration-200"
                     style={tab === t
-                      ? { background: 'var(--bg)', color: 'var(--t1)', boxShadow: 'var(--shadow-xs)' }
-                      : { color: 'var(--t3)' }
+                      ? {
+                          background: 'rgba(232,25,44,0.12)',
+                          color: '#FF4455',
+                          border: '1px solid rgba(232,25,44,0.2)',
+                          boxShadow: '0 0 12px rgba(232,25,44,0.15)',
+                        }
+                      : { color: 'var(--t3)', border: '1px solid transparent' }
                     }
                   >
                     {t === 'login' ? 'Sign in' : 'Create account'}
@@ -249,10 +358,10 @@ export function LoginPage() {
                 {tab === 'login' ? (
                   <motion.form
                     key="login"
-                    initial={{ opacity: 0, x: -10 }}
+                    initial={{ opacity: 0, x: -12 }}
                     animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 10 }}
-                    transition={{ duration: 0.18 }}
+                    exit={{ opacity: 0, x: 12 }}
+                    transition={{ duration: 0.22 }}
                     onSubmit={onLogin}
                     className="space-y-4"
                   >
@@ -303,10 +412,16 @@ export function LoginPage() {
 
                     {error && <ErrorBanner message={error} />}
 
-                    <button type="submit" disabled={loading} className="btn btn-primary w-full">
+                    <motion.button
+                      type="submit"
+                      disabled={loading}
+                      className="btn btn-primary w-full"
+                      whileHover={{ boxShadow: '0 0 24px rgba(232,25,44,0.4), 0 4px 12px rgba(0,0,0,0.4)' }}
+                      whileTap={{ scale: 0.98 }}
+                    >
                       {loading ? 'Signing in…' : submitLabel}
                       {!loading && <Icon name="arrow_forward" size={15} aria-hidden="true" />}
-                    </button>
+                    </motion.button>
 
                     {!require2FA && (
                       <>
@@ -314,9 +429,13 @@ export function LoginPage() {
                         <a
                           href="/api/auth/google"
                           className="flex items-center justify-center gap-2.5 w-full py-2.5 rounded-lg text-sm font-medium transition-all"
-                          style={{ background: 'var(--bg)', color: 'var(--t2)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-xs)' }}
-                          onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border-hover)'; (e.currentTarget as HTMLElement).style.boxShadow = 'var(--shadow-sm)'; }}
-                          onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'; (e.currentTarget as HTMLElement).style.boxShadow = 'var(--shadow-xs)'; }}
+                          style={{
+                            background: 'rgba(255,255,255,0.04)',
+                            color: 'var(--t2)',
+                            border: '1px solid rgba(255,255,255,0.08)',
+                          }}
+                          onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.14)'; (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.07)'; }}
+                          onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.08)'; (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.04)'; }}
                         >
                           <GoogleIcon />
                           Continue with Google
@@ -327,10 +446,10 @@ export function LoginPage() {
                 ) : (
                   <motion.form
                     key="register"
-                    initial={{ opacity: 0, x: 10 }}
+                    initial={{ opacity: 0, x: 12 }}
                     animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -10 }}
-                    transition={{ duration: 0.18 }}
+                    exit={{ opacity: 0, x: -12 }}
+                    transition={{ duration: 0.22 }}
                     onSubmit={onRegister}
                     className="space-y-4"
                   >
@@ -357,19 +476,29 @@ export function LoginPage() {
 
                     {regError && <ErrorBanner message={regError} />}
 
-                    <button type="submit" disabled={regLoading} className="btn btn-primary w-full">
+                    <motion.button
+                      type="submit"
+                      disabled={regLoading}
+                      className="btn btn-primary w-full"
+                      whileHover={{ boxShadow: '0 0 24px rgba(232,25,44,0.4), 0 4px 12px rgba(0,0,0,0.4)' }}
+                      whileTap={{ scale: 0.98 }}
+                    >
                       {regLoading ? 'Creating account…' : 'Create account'}
                       {!regLoading && <Icon name="arrow_forward" size={15} aria-hidden="true" />}
-                    </button>
+                    </motion.button>
 
                     <Divider />
 
                     <a
                       href="/api/auth/google"
                       className="flex items-center justify-center gap-2.5 w-full py-2.5 rounded-lg text-sm font-medium transition-all"
-                      style={{ background: 'var(--bg)', color: 'var(--t2)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-xs)' }}
-                      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border-hover)'; (e.currentTarget as HTMLElement).style.boxShadow = 'var(--shadow-sm)'; }}
-                      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'; (e.currentTarget as HTMLElement).style.boxShadow = 'var(--shadow-xs)'; }}
+                      style={{
+                        background: 'rgba(255,255,255,0.04)',
+                        color: 'var(--t2)',
+                        border: '1px solid rgba(255,255,255,0.08)',
+                      }}
+                      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.14)'; (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.07)'; }}
+                      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.08)'; (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.04)'; }}
                     >
                       <GoogleIcon />
                       Sign up with Google
@@ -390,7 +519,7 @@ export function LoginPage() {
             <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.4, duration: 0.4 }}
+              transition={{ delay: 0.5, duration: 0.4 }}
               className="mt-5 text-center text-xs"
               style={{ color: 'var(--t4)' }}
             >

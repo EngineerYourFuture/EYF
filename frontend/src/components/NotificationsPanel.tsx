@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { Icon } from './Icon';
 
 export interface Notification {
@@ -61,12 +62,27 @@ export function NotificationsPanel({ notifications, onClose, onMarkAllRead, onMa
   }, [onClose]);
 
   return (
-    <div
+    <motion.div
       ref={panelRef}
-      className="absolute right-0 top-full mt-2 w-[380px] bg-[#141414] border border-zinc-800 rounded-2xl shadow-2xl shadow-black/50 z-50 overflow-hidden"
+      className="absolute right-0 top-full mt-2 w-[380px] rounded-2xl z-50 overflow-hidden"
+      style={{
+        background: 'rgba(8,8,8,0.95)',
+        border: '1px solid rgba(255,255,255,0.08)',
+        backdropFilter: 'blur(32px) saturate(160%)',
+        boxShadow: '0 32px 80px rgba(0,0,0,0.75), 0 0 0 1px rgba(255,255,255,0.03), inset 0 1px 0 rgba(255,255,255,0.04)',
+      }}
+      initial={{ opacity: 0, y: -8, scale: 0.97, filter: 'blur(6px)' }}
+      animate={{ opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }}
+      exit={{ opacity: 0, y: -4, scale: 0.98 }}
+      transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
     >
+      {/* Top red accent */}
+      <div style={{
+        height: 1, background: 'linear-gradient(90deg, transparent, rgba(232,25,44,0.6) 40%, rgba(232,25,44,0.2) 70%, transparent)',
+      }} />
+
       {/* Header */}
-      <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-800">
+      <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
         <div className="flex items-center gap-2">
           <h3 className="font-bold text-on-surface">Notifications</h3>
           {unreadCount > 0 && (
@@ -99,31 +115,45 @@ export function NotificationsPanel({ notifications, onClose, onMarkAllRead, onMa
             <p className="text-xs text-zinc-600 mt-1">New activity will show up here.</p>
           </div>
         ) : (
-          notifications.map((n) => {
+          notifications.map((n, i) => {
             const meta = TYPE_META[n.type];
             const Wrapper = (n.href ? Link : 'div') as React.ElementType;
             const wrapperProps = n.href ? { to: n.href } : {};
             return (
-              <Wrapper
+              <motion.div
                 key={n.id}
-                {...wrapperProps}
-                onClick={() => { onMarkRead(n.id); if (n.href) onClose(); }}
-                className={`flex items-start gap-3 px-5 py-4 border-b border-zinc-800/50 transition-colors cursor-pointer ${
-                  n.read ? 'opacity-60 hover:opacity-80' : 'hover:bg-surface-container-low'
-                }`}
+                initial={{ opacity: 0, x: 8 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.25, delay: i * 0.04, ease: 'easeOut' }}
               >
-                <div className={`w-9 h-9 rounded-xl ${meta.bg} flex items-center justify-center flex-shrink-0 mt-0.5`}>
-                  <Icon name={meta.icon} className={meta.color} size={18} filled={n.type === 'xp' || n.type === 'streak'} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between gap-2">
-                    <p className={`text-sm font-bold leading-snug ${n.read ? 'text-on-surface' : 'text-white'}`}>{n.title}</p>
-                    {!n.read && <div className="w-2 h-2 bg-primary-container rounded-full flex-shrink-0 mt-1" />}
+                <Wrapper
+                  {...wrapperProps}
+                  onClick={() => { onMarkRead(n.id); if (n.href) onClose(); }}
+                  className={`flex items-start gap-3 px-5 py-4 cursor-pointer transition-colors ${
+                    n.read ? 'opacity-50 hover:opacity-70' : 'hover:bg-white/[0.03]'
+                  }`}
+                  style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}
+                >
+                  <div className={`w-9 h-9 rounded-xl ${meta.bg} flex items-center justify-center flex-shrink-0 mt-0.5`}>
+                    <Icon name={meta.icon} className={meta.color} size={18} filled={n.type === 'xp' || n.type === 'streak'} />
                   </div>
-                  <p className="text-xs text-zinc-500 leading-relaxed mt-0.5">{n.body}</p>
-                  <p className="text-[10px] text-zinc-600 mt-1 font-bold">{timeAgo(n.createdAt)}</p>
-                </div>
-              </Wrapper>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-2">
+                      <p className={`text-sm font-bold leading-snug ${n.read ? 'text-zinc-400' : 'text-white'}`}>{n.title}</p>
+                      {!n.read && (
+                        <motion.div
+                          className="w-2 h-2 rounded-full flex-shrink-0 mt-1"
+                          style={{ background: '#E8192C' }}
+                          animate={{ boxShadow: ['0 0 0px rgba(232,25,44,0)', '0 0 8px rgba(232,25,44,0.7)', '0 0 0px rgba(232,25,44,0)'] }}
+                          transition={{ repeat: Infinity, duration: 2 }}
+                        />
+                      )}
+                    </div>
+                    <p className="text-xs text-zinc-500 leading-relaxed mt-0.5">{n.body}</p>
+                    <p className="text-[10px] text-zinc-600 mt-1 font-bold">{timeAgo(n.createdAt)}</p>
+                  </div>
+                </Wrapper>
+              </motion.div>
             );
           })
         )}
@@ -131,12 +161,12 @@ export function NotificationsPanel({ notifications, onClose, onMarkAllRead, onMa
 
       {/* Footer */}
       {notifications.length > 0 && (
-        <div className="px-5 py-3 border-t border-zinc-800 flex items-center justify-center">
+        <div className="px-5 py-3 flex items-center justify-center" style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
           <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-600">
             Showing last {notifications.length} notifications
           </p>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }

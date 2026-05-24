@@ -1,6 +1,8 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { AppShell } from '../components/AppShell';
+import { Icon } from '../components/Icon';
 import { getSession } from '../lib/session';
 import { apiRequest } from '../lib/api';
 
@@ -79,12 +81,12 @@ const STATIC_STATS: StatsData = {
   totalTopics: 52,
   dailyActivity: generateFakeDailyActivity(),
   subjectProgress: [
-    { id: 'os',      title: 'Operating Systems', icon: 'terminal',    color: 'text-blue-400',   completed: 5,  total: 19 },
-    { id: 'dbms',    title: 'DBMS',              icon: 'storage',     color: 'text-purple-400', completed: 6,  total: 14 },
-    { id: 'networks',title: 'Networks',           icon: 'wifi',        color: 'text-cyan-400',   completed: 4,  total: 16 },
-    { id: 'oop',     title: 'OOP',               icon: 'code_blocks', color: 'text-green-400',  completed: 8,  total: 14 },
-    { id: 'sd',      title: 'System Design',     icon: 'architecture',color: 'text-orange-400', completed: 9,  total: 19 },
-    { id: 'discrete',title: 'Discrete Math',     icon: 'calculate',   color: 'text-teal-400',   completed: 2,  total: 15 },
+    { id: 'os',      title: 'Operating Systems', icon: 'terminal',    color: '#60a5fa', completed: 5,  total: 19 },
+    { id: 'dbms',    title: 'DBMS',              icon: 'storage',     color: '#c084fc', completed: 6,  total: 14 },
+    { id: 'networks',title: 'Networks',           icon: 'wifi',        color: '#22d3ee', completed: 4,  total: 16 },
+    { id: 'oop',     title: 'OOP',               icon: 'code_blocks', color: '#4ade80', completed: 8,  total: 14 },
+    { id: 'sd',      title: 'System Design',     icon: 'architecture',color: '#fb923c', completed: 9,  total: 19 },
+    { id: 'discrete',title: 'Discrete Math',     icon: 'calculate',   color: '#2dd4bf', completed: 2,  total: 15 },
   ],
   rankPercentile: 73,
   weeklyXP: 620,
@@ -105,47 +107,68 @@ function xpToIntensity(xp: number): number {
   return 4;
 }
 
-const INTENSITY_CLASSES = [
-  'bg-zinc-800',
-  'bg-blue-900/70',
-  'bg-blue-600/70',
-  'bg-blue-500/80',
-  'bg-blue-400',
+const INTENSITY_COLORS = [
+  'rgba(255,255,255,0.05)',
+  'rgba(232,25,44,0.15)',
+  'rgba(232,25,44,0.32)',
+  'rgba(232,25,44,0.55)',
+  'rgba(232,25,44,0.85)',
 ];
 
-function groupByWeek(days: DailyActivity[]): DailyActivity[][] {
-  const weeks: DailyActivity[][] = [];
-  // Pad so first day aligns to correct weekday (0=Sun)
+function groupByWeek(days: DailyActivity[]): (DailyActivity | null)[][] {
   const firstDay = new Date(days[0].date);
-  const padDays = firstDay.getDay(); // 0-6
+  const padDays = firstDay.getDay();
   const padded: (DailyActivity | null)[] = [
     ...new Array(padDays).fill(null),
     ...days,
   ];
+  const weeks: (DailyActivity | null)[][] = [];
   for (let i = 0; i < padded.length; i += 7) {
-    weeks.push(padded.slice(i, i + 7).filter((d): d is DailyActivity => d !== null));
+    weeks.push(padded.slice(i, i + 7));
   }
   return weeks;
 }
 
 const MONTH_LABELS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
+const GLASS = {
+  background: 'rgba(10,10,10,0.7)',
+  border: '1px solid rgba(255,255,255,0.07)',
+  backdropFilter: 'blur(16px)',
+} as const;
+
 // ─── Stat card ────────────────────────────────────────────────────────────────
 
-function StatCard({ icon, label, value, sub, color }: {
-  readonly icon: string; readonly label: string; readonly value: string | number; readonly sub?: string; readonly color: string;
+function StatCard({ icon, label, value, sub, color, glow, delay = 0 }: {
+  readonly icon: string;
+  readonly label: string;
+  readonly value: string | number;
+  readonly sub?: string;
+  readonly color: string;
+  readonly glow: string;
+  readonly delay?: number;
 }) {
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+    <motion.div
+      className="rounded-xl p-5 flex flex-col gap-3"
+      style={GLASS}
+      initial={{ opacity: 0, y: 16, filter: 'blur(6px)' }}
+      whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+      viewport={{ once: true, margin: '-20px' }}
+      transition={{ duration: 0.45, delay, ease: [0.16, 1, 0.3, 1] }}
+      whileHover={{ boxShadow: `0 8px 32px ${glow}` }}
+    >
       <div className="flex items-start justify-between">
-        <div>
-          <p className="text-xs text-zinc-500 uppercase tracking-wider font-semibold mb-1">{label}</p>
-          <p className={`text-2xl font-bold ${color}`}>{value}</p>
-          {sub && <p className="text-xs text-zinc-600 mt-0.5">{sub}</p>}
+        <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.28)' }}>{label}</p>
+        <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: glow }}>
+          <Icon name={icon} size={16} style={{ color }} />
         </div>
-        <span className={`material-symbols-outlined text-2xl opacity-60 ${color}`}>{icon}</span>
       </div>
-    </div>
+      <div>
+        <p className="text-2xl font-black" style={{ color }}>{value}</p>
+        {sub && <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.25)' }}>{sub}</p>}
+      </div>
+    </motion.div>
   );
 }
 
@@ -156,33 +179,45 @@ function WeeklyXPChart({ days }: { readonly days: DailyActivity[] }) {
   const maxXP = Math.max(...last14.map(d => d.xp), 1);
 
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-      <p className="text-xs font-bold uppercase tracking-wider text-zinc-400 mb-4">XP — Last 14 Days</p>
-      <div className="flex items-end gap-1 h-24">
-        {last14.map((day, _i) => {
+    <motion.div
+      className="rounded-xl p-5"
+      style={GLASS}
+      initial={{ opacity: 0, y: 16 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+    >
+      <p className="text-[10px] font-bold uppercase tracking-widest mb-4" style={{ color: 'rgba(255,255,255,0.28)' }}>XP — Last 14 Days</p>
+      <div className="flex items-end gap-1" style={{ height: 80 }}>
+        {last14.map((day) => {
           const pct = (day.xp / maxXP) * 100;
-          const label = new Date(day.date).toLocaleDateString('en', { weekday: 'short' });
           return (
             <div key={day.date} className="flex-1 flex flex-col items-center gap-1 group relative">
-              <div className="w-full flex flex-col justify-end" style={{ height: '80px' }}>
-                <div
-                  className={`w-full rounded-sm transition-all duration-300 ${
-                    day.xp > 0 ? 'bg-blue-500 group-hover:bg-blue-400' : 'bg-zinc-800'
-                  }`}
-                  style={{ height: `${Math.max(pct, day.xp > 0 ? 4 : 0)}%` }}
+              <div className="w-full flex flex-col justify-end" style={{ height: 72 }}>
+                <motion.div
+                  className="w-full rounded-sm"
+                  style={{
+                    background: day.xp > 0 ? 'rgba(232,25,44,0.7)' : 'rgba(255,255,255,0.05)',
+                    boxShadow: day.xp > 0 ? '0 0 8px rgba(232,25,44,0.3)' : 'none',
+                  }}
+                  initial={{ height: 0 }}
+                  whileInView={{ height: `${Math.max(pct, day.xp > 0 ? 4 : 0)}%` }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+                  whileHover={{ background: 'rgba(232,25,44,1)', boxShadow: '0 0 12px rgba(232,25,44,0.5)' }}
                 />
               </div>
-              <span className="text-[9px] text-zinc-600 hidden sm:block">{label[0]}</span>
-              {/* tooltip */}
-              <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 hidden group-hover:block z-10
-                bg-zinc-800 text-zinc-100 text-xs rounded px-2 py-1 whitespace-nowrap border border-zinc-700 pointer-events-none">
+              <span className="text-[9px] hidden sm:block" style={{ color: 'rgba(255,255,255,0.2)' }}>
+                {new Date(day.date).toLocaleDateString('en', { weekday: 'short' })[0]}
+              </span>
+              <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 hidden group-hover:block z-10 text-xs rounded-lg px-2 py-1 whitespace-nowrap pointer-events-none" style={{ background: 'rgba(10,10,10,0.95)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.85)' }}>
                 {day.xp} XP · {day.date.slice(5)}
               </div>
             </div>
           );
         })}
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -190,35 +225,38 @@ function WeeklyXPChart({ days }: { readonly days: DailyActivity[] }) {
 
 function ActivityHeatmap({ days }: { readonly days: DailyActivity[] }) {
   const weeks = groupByWeek(days);
-
-  // Get month labels positioned by week index
   const monthMarkers: { label: string; weekIdx: number }[] = [];
   let lastMonth = -1;
   days.forEach((day, di) => {
     const m = new Date(day.date).getMonth();
     if (m !== lastMonth) {
-      const weekIdx = Math.floor(di / 7);
-      monthMarkers.push({ label: MONTH_LABELS[m], weekIdx });
+      monthMarkers.push({ label: MONTH_LABELS[m], weekIdx: Math.floor(di / 7) });
       lastMonth = m;
     }
   });
-
   const totalXP = days.reduce((s, d) => s + d.xp, 0);
   const activeDays = days.filter(d => d.xp > 0).length;
 
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 overflow-x-auto">
-      <div className="flex items-center justify-between mb-3">
-        <p className="text-xs font-bold uppercase tracking-wider text-zinc-400">Activity Heatmap — Last 52 Weeks</p>
-        <p className="text-xs text-zinc-500">{activeDays} active days · {totalXP.toLocaleString()} total XP</p>
+    <motion.div
+      className="rounded-xl p-5 overflow-x-auto"
+      style={GLASS}
+      initial={{ opacity: 0, y: 16 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+    >
+      <div className="flex items-center justify-between mb-4">
+        <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.28)' }}>Activity Heatmap — Last 52 Weeks</p>
+        <p className="text-[10px]" style={{ color: 'rgba(255,255,255,0.22)' }}>{activeDays} active days · {totalXP.toLocaleString()} total XP</p>
       </div>
 
-      {/* Month labels */}
       <div className="flex gap-[2px] mb-1 ml-6">
         {weeks.map((week, wi) => {
+          const validDay = week.find((d): d is DailyActivity => d !== null);
           const marker = monthMarkers.find(m => m.weekIdx === wi);
           return (
-            <div key={week[0]?.date ?? `month-${wi}`} className="w-3 flex-shrink-0 text-[9px] text-zinc-600 text-center">
+            <div key={validDay?.date ?? `month-${wi}`} className="w-3 flex-shrink-0 text-[9px] text-center" style={{ color: 'rgba(255,255,255,0.2)' }}>
               {marker ? marker.label[0] : ''}
             </div>
           );
@@ -226,108 +264,129 @@ function ActivityHeatmap({ days }: { readonly days: DailyActivity[] }) {
       </div>
 
       <div className="flex gap-[2px]">
-        {/* Day labels */}
         <div className="flex flex-col gap-[2px] mr-1">
           {['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map((d, i) => (
-            <div key={d} className="h-3 w-4 text-[9px] text-zinc-600 flex items-center">{i % 2 === 1 ? d[0] : ''}</div>
+            <div key={d} className="h-3 w-4 text-[9px] flex items-center" style={{ color: 'rgba(255,255,255,0.18)' }}>{i % 2 === 1 ? d[0] : ''}</div>
           ))}
         </div>
-
-        {/* Week columns */}
-        {weeks.map((week, wi) => (
-          <div key={week[0]?.date ?? `week-${wi}`} className="flex flex-col gap-[2px]">
-            {/* Pad to 7 cells */}
-            {new Array(7).fill(null).map((_, di) => {
-              const day = week[di];
-              const intensity = day ? xpToIntensity(day.xp) : 0;
-              return (
-                <div
-                  key={`cell-${wi}-${di}`}
-                  title={day ? `${day.date}: ${day.xp} XP, ${day.problems} problems` : ''}
-                  className={`w-3 h-3 rounded-[2px] flex-shrink-0 ${INTENSITY_CLASSES[intensity]} transition-colors cursor-default`}
-                />
-              );
-            })}
-          </div>
-        ))}
+        {weeks.map((week, wi) => {
+          const validDay = week.find((d): d is DailyActivity => d !== null);
+          return (
+            <div key={validDay?.date ?? `week-${wi}`} className="flex flex-col gap-[2px]">
+              {new Array(7).fill(null).map((_, di) => {
+                const day = week[di];
+                const intensity = day ? xpToIntensity(day.xp) : 0;
+                return (
+                  <div
+                    key={`cell-${wi}-${di}`}
+                    title={day ? `${day.date}: ${day.xp} XP, ${day.problems} problems` : ''}
+                    className="w-3 h-3 rounded-[2px] flex-shrink-0 cursor-default transition-colors"
+                    style={{ background: INTENSITY_COLORS[intensity] }}
+                  />
+                );
+              })}
+            </div>
+          );
+        })}
       </div>
 
-      {/* Legend */}
       <div className="flex items-center gap-2 mt-3 justify-end">
-        <span className="text-[10px] text-zinc-600">Less</span>
-        {INTENSITY_CLASSES.map((cls) => (
-          <div key={cls} className={`w-3 h-3 rounded-[2px] ${cls}`} />
+        <span className="text-[10px]" style={{ color: 'rgba(255,255,255,0.2)' }}>Less</span>
+        {INTENSITY_COLORS.map((bg, i) => (
+          <div key={i} className="w-3 h-3 rounded-[2px]" style={{ background: bg }} />
         ))}
-        <span className="text-[10px] text-zinc-600">More</span>
+        <span className="text-[10px]" style={{ color: 'rgba(255,255,255,0.2)' }}>More</span>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
-// ─── Subject progress bars ────────────────────────────────────────────────────
+// ─── Subject progress ─────────────────────────────────────────────────────────
 
 function SubjectProgressPanel({ subjects }: { readonly subjects: SubjectProgress[] }) {
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 space-y-4">
-      <p className="text-xs font-bold uppercase tracking-wider text-zinc-400">Subject Completion</p>
-      {subjects.map(s => {
+    <motion.div
+      className="rounded-xl p-6 space-y-5"
+      style={GLASS}
+      initial={{ opacity: 0, y: 16 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+    >
+      <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.28)' }}>Subject Completion</p>
+      {subjects.map((s, i) => {
         const pct = s.total > 0 ? Math.round((s.completed / s.total) * 100) : 0;
-        let barColor = 'bg-zinc-600';
-        if (pct >= 80) barColor = 'bg-green-500';
-        else if (pct >= 50) barColor = 'bg-blue-500';
         return (
           <Link key={s.id} to={`/app/subjects/${s.id}`} className="block group">
-            <div className="flex items-center justify-between mb-1">
+            <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
-                <span className={`material-symbols-outlined text-base ${s.color}`}>{s.icon}</span>
-                <span className="text-sm text-zinc-300 group-hover:text-white transition-colors">{s.title}</span>
+                <Icon name={s.icon} size={15} style={{ color: s.color }} />
+                <span className="text-sm font-semibold transition-colors" style={{ color: 'rgba(255,255,255,0.65)' }}>{s.title}</span>
               </div>
-              <span className="text-xs text-zinc-500">{s.completed}/{s.total}</span>
+              <span className="text-[10px] font-bold" style={{ color: 'rgba(255,255,255,0.28)' }}>{s.completed}/{s.total}</span>
             </div>
-            <div className="h-1.5 bg-zinc-800 rounded-full overflow-hidden">
-              <div
-                className={`h-full rounded-full transition-all duration-500 ${barColor}`}
-                style={{ width: `${pct}%` }}
+            <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.05)' }}>
+              <motion.div
+                className="h-full rounded-full"
+                style={{ background: s.color, boxShadow: `0 0 8px ${s.color}60` }}
+                initial={{ width: 0 }}
+                whileInView={{ width: `${pct}%` }}
+                viewport={{ once: true }}
+                transition={{ duration: 1, delay: i * 0.08, ease: [0.16, 1, 0.3, 1] }}
               />
             </div>
           </Link>
         );
       })}
-    </div>
+    </motion.div>
   );
 }
 
 // ─── Rank card ────────────────────────────────────────────────────────────────
 
-function RankCard({ percentile, streak, longestStreak }: { readonly percentile: number; readonly streak: number; readonly longestStreak: number }) {
+function RankCard({ percentile, streak, longestStreak }: {
+  readonly percentile: number;
+  readonly streak: number;
+  readonly longestStreak: number;
+}) {
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 space-y-4">
-      <p className="text-xs font-bold uppercase tracking-wider text-zinc-400">Your Standing</p>
-
+    <motion.div
+      className="rounded-xl p-6 space-y-5"
+      style={GLASS}
+      initial={{ opacity: 0, y: 16 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.45, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+    >
+      <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.28)' }}>Your Standing</p>
       <div className="text-center py-2">
-        <p className="text-4xl font-black text-yellow-400">Top {100 - percentile}%</p>
-        <p className="text-xs text-zinc-500 mt-1">among all EYF users this week</p>
+        <motion.p
+          className="text-4xl font-black"
+          style={{ color: '#facc15' }}
+          initial={{ scale: 0.8, opacity: 0 }}
+          whileInView={{ scale: 1, opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+        >
+          Top {100 - percentile}%
+        </motion.p>
+        <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.28)' }}>among all EYF users this week</p>
       </div>
-
       <div className="grid grid-cols-2 gap-3">
-        <div className="bg-zinc-800/50 rounded-lg p-3 text-center">
-          <p className="text-xl font-bold text-orange-400">{streak}</p>
-          <p className="text-[11px] text-zinc-500">Current Streak</p>
-        </div>
-        <div className="bg-zinc-800/50 rounded-lg p-3 text-center">
-          <p className="text-xl font-bold text-orange-300">{longestStreak}</p>
-          <p className="text-[11px] text-zinc-500">Longest Streak</p>
-        </div>
+        {[
+          { label: 'Current Streak', value: streak, color: '#fb923c' },
+          { label: 'Longest Streak', value: longestStreak, color: '#fdba74' },
+        ].map((item) => (
+          <div key={item.label} className="rounded-lg p-3 text-center" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
+            <p className="text-xl font-black" style={{ color: item.color }}>{item.value}</p>
+            <p className="text-[11px] mt-0.5" style={{ color: 'rgba(255,255,255,0.3)' }}>{item.label}</p>
+          </div>
+        ))}
       </div>
-
-      <Link
-        to="/app/leaderboard"
-        className="flex items-center justify-center gap-2 text-xs font-bold text-zinc-400 hover:text-white transition-colors pt-1"
-      >
-        <span className="material-symbols-outlined text-sm">leaderboard</span>{' '}
-        View Full Leaderboard
+      <Link to="/app/leaderboard" className="flex items-center justify-center gap-2 text-xs font-bold pt-1 transition-colors" style={{ color: 'rgba(255,255,255,0.3)' }}>
+        <Icon name="leaderboard" size={14} />View Full Leaderboard
       </Link>
-    </div>
+    </motion.div>
   );
 }
 
@@ -352,86 +411,100 @@ export function ProgressPage() {
 
   return (
     <AppShell>
-      <div className="max-w-5xl mx-auto px-4 py-8 space-y-6">
+      <div className="pt-8 max-w-5xl space-y-6">
 
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-end justify-between flex-wrap gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-zinc-100">Progress</h1>
-            <p className="text-zinc-400 text-sm mt-0.5">Your engineering journey at a glance</p>
+            <motion.h1
+              className="text-5xl font-black tracking-tighter leading-none"
+              style={{
+                background: 'linear-gradient(135deg, #E8E8E8 0%, rgba(96,165,250,0.8) 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+              }}
+              initial={{ opacity: 0, y: 24, filter: 'blur(10px)' }}
+              animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+              transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
+            >
+              MY PROGRESS
+            </motion.h1>
+            <motion.p
+              className="mt-2 text-sm"
+              style={{ color: 'rgba(255,255,255,0.35)' }}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+            >
+              Your engineering journey at a glance
+            </motion.p>
           </div>
-          <Link
-            to="/app/achievements"
-            className="flex items-center gap-2 text-sm text-zinc-400 hover:text-yellow-400 transition-colors"
+          <motion.div
+            initial={{ opacity: 0, x: 16 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
           >
-            <span className="material-symbols-outlined text-lg">emoji_events</span>{' '}
-            Achievements
-          </Link>
+            <Link to="/app/achievements" className="flex items-center gap-2 text-sm font-bold transition-colors" style={{ color: 'rgba(255,255,255,0.35)' }}>
+              <Icon name="emoji_events" size={18} />Achievements
+            </Link>
+          </motion.div>
         </div>
 
         {/* XP & Level hero */}
-        <div className="bg-gradient-to-br from-zinc-900 via-zinc-900 to-blue-950/30 border border-zinc-700 rounded-2xl p-6">
+        <motion.div
+          className="rounded-2xl p-6"
+          style={{
+            background: 'rgba(10,10,10,0.85)',
+            border: '1px solid rgba(96,165,250,0.18)',
+            backdropFilter: 'blur(20px)',
+            boxShadow: '0 0 60px rgba(96,165,250,0.06)',
+          }}
+          initial={{ opacity: 0, y: 20, filter: 'blur(8px)' }}
+          animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+          transition={{ duration: 0.6, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+        >
+          <div
+            style={{ height: 1, marginBottom: 24, background: 'linear-gradient(90deg, transparent, rgba(96,165,250,0.6) 40%, rgba(96,165,250,0.3) 70%, transparent)' }}
+          />
           <div className="flex items-start justify-between flex-wrap gap-4">
             <div>
               <div className="flex items-center gap-3 mb-1">
-                <span className="text-3xl font-black text-blue-400">{stats.totalXP.toLocaleString()} XP</span>
-                <span className="bg-blue-500/20 text-blue-300 text-xs font-bold px-2.5 py-1 rounded-full border border-blue-500/30">
+                <span className="text-3xl font-black" style={{ color: '#60a5fa' }}>{stats.totalXP.toLocaleString()} XP</span>
+                <span className="text-xs font-bold px-3 py-1 rounded-full" style={{ color: '#93c5fd', background: 'rgba(96,165,250,0.12)', border: '1px solid rgba(96,165,250,0.2)' }}>
                   Level {stats.level} · {LEVEL_NAMES[stats.level] ?? 'Legend'}
                 </span>
               </div>
-              <p className="text-zinc-500 text-sm">{stats.xpToNext} XP to Level {stats.level + 1} · {LEVEL_NAMES[stats.level + 1] ?? 'Max'}</p>
+              <p className="text-sm" style={{ color: 'rgba(255,255,255,0.35)' }}>{stats.xpToNext} XP to Level {stats.level + 1} · {LEVEL_NAMES[stats.level + 1] ?? 'Max'}</p>
             </div>
             <div className="text-right">
-              <p className="text-xs text-zinc-500 uppercase tracking-wider font-semibold">This Week</p>
-              <p className="text-xl font-bold text-green-400">+{stats.weeklyXP} XP</p>
+              <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: 'rgba(255,255,255,0.28)' }}>This Week</p>
+              <p className="text-xl font-black" style={{ color: '#4ade80' }}>+{stats.weeklyXP} XP</p>
             </div>
           </div>
-
-          <div className="mt-4">
-            <div className="flex items-center justify-between text-xs text-zinc-600 mb-1">
+          <div className="mt-5">
+            <div className="flex items-center justify-between mb-2" style={{ color: 'rgba(255,255,255,0.25)', fontSize: 11 }}>
               <span>Level {stats.level}</span>
-              <span>{levelPct}%</span>
+              <span className="font-bold">{levelPct}%</span>
               <span>Level {stats.level + 1}</span>
             </div>
-            <div className="h-3 bg-zinc-800 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-gradient-to-r from-blue-600 to-blue-400 rounded-full transition-all duration-1000"
-                style={{ width: `${levelPct}%` }}
+            <div className="h-2 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.05)' }}>
+              <motion.div
+                className="h-full rounded-full"
+                style={{ background: 'linear-gradient(90deg, #3b82f6, #60a5fa)', boxShadow: '0 0 12px rgba(96,165,250,0.5)' }}
+                initial={{ width: 0 }}
+                animate={{ width: `${levelPct}%` }}
+                transition={{ duration: 1.2, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
               />
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Stat grid */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <StatCard
-            icon="code"
-            label="Problems Solved"
-            value={stats.problemsSolved}
-            sub={`of ${stats.totalProblems} total`}
-            color="text-orange-400"
-          />
-          <StatCard
-            icon="auto_stories"
-            label="Topics Done"
-            value={stats.topicsCompleted}
-            sub={`of ${stats.totalTopics} total`}
-            color="text-blue-400"
-          />
-          <StatCard
-            icon="style"
-            label="Flashcards Reviewed"
-            value={stats.flashcardsReviewed}
-            sub="all time"
-            color="text-purple-400"
-          />
-          <StatCard
-            icon="record_voice_over"
-            label="Mock Interviews"
-            value={stats.mockInterviews}
-            sub="completed"
-            color="text-pink-400"
-          />
+          <StatCard icon="code"             label="Problems Solved"    value={stats.problemsSolved}    sub={`of ${stats.totalProblems} total`} color="#fb923c" glow="rgba(251,146,60,0.15)"  delay={0} />
+          <StatCard icon="auto_stories"     label="Topics Done"        value={stats.topicsCompleted}   sub={`of ${stats.totalTopics} total`}   color="#60a5fa" glow="rgba(96,165,250,0.15)"  delay={0.05} />
+          <StatCard icon="style"            label="Flashcards"         value={stats.flashcardsReviewed} sub="reviewed"                         color="#c084fc" glow="rgba(192,132,252,0.15)" delay={0.1} />
+          <StatCard icon="record_voice_over" label="Mock Interviews"   value={stats.mockInterviews}    sub="completed"                         color="#f472b6" glow="rgba(244,114,182,0.15)" delay={0.15} />
         </div>
 
         {/* Heatmap */}
@@ -440,11 +513,7 @@ export function ProgressPage() {
         {/* Charts row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <WeeklyXPChart days={stats.dailyActivity} />
-          <RankCard
-            percentile={stats.rankPercentile}
-            streak={stats.streak}
-            longestStreak={stats.longestStreak}
-          />
+          <RankCard percentile={stats.rankPercentile} streak={stats.streak} longestStreak={stats.longestStreak} />
         </div>
 
         {/* Subject progress */}
@@ -453,23 +522,25 @@ export function ProgressPage() {
         {/* CTAs */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {[
-            { to: '/app/daily', icon: 'today', label: 'Extend Your Streak', color: 'text-orange-400', desc: 'Solve today\'s challenge' },
-            { to: '/app/roadmap', icon: 'map', label: 'Follow the Roadmap', color: 'text-green-400', desc: 'Structured week-by-week plan' },
-            { to: '/app/pattern-quiz', icon: 'quiz', label: 'Test Your Patterns', color: 'text-indigo-400', desc: '20-question algorithm quiz' },
-          ].map(cta => (
-            <Link
-              key={cta.to}
-              to={cta.to}
-              className="flex items-center gap-3 bg-zinc-900 border border-zinc-800 hover:border-zinc-600 rounded-xl p-4 transition-colors group"
-            >
-              <span className={`material-symbols-outlined text-2xl ${cta.color} group-hover:scale-110 transition-transform`}>
-                {cta.icon}
-              </span>
-              <div>
-                <p className="text-sm font-semibold text-zinc-200">{cta.label}</p>
-                <p className="text-xs text-zinc-500">{cta.desc}</p>
-              </div>
-            </Link>
+            { to: '/app/daily',        icon: 'today',         label: "Extend Your Streak",  desc: "Solve today's challenge",         color: '#fb923c', glow: 'rgba(251,146,60,0.12)' },
+            { to: '/app/roadmap',      icon: 'map',           label: 'Follow the Roadmap',  desc: 'Structured week-by-week plan',    color: '#4ade80', glow: 'rgba(74,222,128,0.12)' },
+            { to: '/app/pattern-quiz', icon: 'quiz',          label: 'Test Your Patterns',  desc: '20-question algorithm quiz',      color: '#818cf8', glow: 'rgba(129,140,248,0.12)' },
+          ].map((cta) => (
+            <motion.div key={cta.to} whileHover={{ scale: 1.02, boxShadow: `0 8px 32px ${cta.glow}` }} transition={{ duration: 0.15 }}>
+              <Link
+                to={cta.to}
+                className="flex items-center gap-3 rounded-xl p-4 transition-colors"
+                style={GLASS}
+              >
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: cta.glow }}>
+                  <Icon name={cta.icon} size={20} style={{ color: cta.color }} />
+                </div>
+                <div>
+                  <p className="text-sm font-bold" style={{ color: 'rgba(255,255,255,0.8)' }}>{cta.label}</p>
+                  <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.3)' }}>{cta.desc}</p>
+                </div>
+              </Link>
+            </motion.div>
           ))}
         </div>
       </div>

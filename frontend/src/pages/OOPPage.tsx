@@ -1,11 +1,18 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import Editor from '@monaco-editor/react';
 import { AppShell } from '../components/AppShell';
 import { Icon } from '../components/Icon';
 import { apiRequest } from '../lib/api';
 import { getSession } from '../lib/session';
 import { useUser } from '../contexts/UserContext';
+
+const GLASS = {
+  background: 'rgba(10,10,10,0.7)',
+  border: '1px solid rgba(255,255,255,0.07)',
+  backdropFilter: 'blur(16px)',
+} as const;
 
 interface Pattern {
   id: string;
@@ -32,18 +39,18 @@ interface OOPProgress {
   categories: Array<{ category: string; total: number; completed: number }>;
 }
 
-const CATEGORY_META: Record<string, { icon: string; color: string; label: string }> = {
-  creational: { icon: 'add_box', color: 'text-blue-400', label: 'Creational' },
-  structural: { icon: 'account_tree', color: 'text-green-400', label: 'Structural' },
-  behavioral: { icon: 'swap_horiz', color: 'text-purple-400', label: 'Behavioral' },
+const CATEGORY_META: Record<string, { icon: string; color: string; glow: string; label: string }> = {
+  creational: { icon: 'add_box',      color: '#60a5fa', glow: 'rgba(96,165,250,0.15)',  label: 'Creational' },
+  structural:  { icon: 'account_tree', color: '#4ade80', glow: 'rgba(74,222,128,0.15)',  label: 'Structural'  },
+  behavioral:  { icon: 'swap_horiz',   color: '#c084fc', glow: 'rgba(192,132,252,0.15)', label: 'Behavioral'  },
 };
 
 const SOLID_META: Record<string, { color: string; tagline: string }> = {
-  S: { color: 'text-red-400', tagline: 'Single Responsibility' },
-  O: { color: 'text-orange-400', tagline: 'Open / Closed' },
-  L: { color: 'text-yellow-400', tagline: 'Liskov Substitution' },
-  I: { color: 'text-green-400', tagline: 'Interface Segregation' },
-  D: { color: 'text-blue-400', tagline: 'Dependency Inversion' },
+  S: { color: '#f87171', tagline: 'Single Responsibility' },
+  O: { color: '#fb923c', tagline: 'Open / Closed' },
+  L: { color: '#facc15', tagline: 'Liskov Substitution' },
+  I: { color: '#4ade80', tagline: 'Interface Segregation' },
+  D: { color: '#60a5fa', tagline: 'Dependency Inversion' },
 };
 
 const STATIC_PATTERNS: Pattern[] = [
@@ -932,65 +939,89 @@ interface PatternPanelProps {
 function PatternPanel({ pattern, onClose, onComplete }: PatternPanelProps) {
   const code = PATTERN_CODE[pattern.patternKey] ?? `// ${pattern.name} pattern\n// Content coming soon...`;
   const useCases = PATTERN_USE_CASES[pattern.patternKey];
-  const catMeta = CATEGORY_META[pattern.category] ?? { icon: 'category', color: 'text-zinc-400', label: pattern.category };
+  const catMeta = CATEGORY_META[pattern.category] ?? { icon: 'category', color: '#a1a1aa', glow: 'rgba(161,161,170,0.1)', label: pattern.category };
   const isDone = pattern.status === 'completed';
   const [tab, setTab] = useState<'overview' | 'code' | 'usage'>('overview');
 
   return (
-    <div className="fixed inset-0 z-50 flex">
-      <div role="none" className="flex-1 bg-black/60 backdrop-blur-sm" onClick={onClose} onKeyDown={(e) => { if (e.key === 'Escape') onClose(); }} />
-      <div className="w-full max-w-2xl bg-[#111] border-l border-white/10 flex flex-col overflow-hidden">
+    <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex' }}>
+      <div
+        role="none"
+        style={{ flex: 1, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)' }}
+        onClick={onClose}
+        onKeyDown={(e) => { if (e.key === 'Escape') onClose(); }}
+      />
+      <motion.div
+        initial={{ x: 80, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        exit={{ x: 80, opacity: 0 }}
+        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+        style={{ width: '100%', maxWidth: 640, background: '#0d0d0d', borderLeft: '1px solid rgba(255,255,255,0.09)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+      >
+        {/* Accent line */}
+        <div style={{ height: 3, background: `linear-gradient(90deg, ${catMeta.color}, transparent)` }} />
+
         {/* Header */}
-        <div className="flex items-center gap-4 px-6 py-5 border-b border-white/8 flex-shrink-0">
-          <div className={`w-10 h-10 rounded-xl bg-zinc-800 flex items-center justify-center ${catMeta.color}`}>
-            <Icon name={catMeta.icon} size={20} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '18px 24px', borderBottom: '1px solid rgba(255,255,255,0.07)', flexShrink: 0 }}>
+          <div style={{ width: 40, height: 40, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', background: catMeta.glow, border: `1px solid ${catMeta.color}30`, flexShrink: 0 }}>
+            <Icon name={catMeta.icon} size={19} style={{ color: catMeta.color }} />
           </div>
-          <div className="flex-1 min-w-0">
-            <p className={`text-[10px] font-black uppercase tracking-widest ${catMeta.color}`}>{catMeta.label}</p>
-            <h2 className="text-lg font-black text-white truncate">{pattern.name}</h2>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <p style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: catMeta.color, marginBottom: 2 }}>{catMeta.label}</p>
+            <h2 style={{ fontSize: 17, fontWeight: 900, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{pattern.name}</h2>
           </div>
-          <button onClick={onClose} className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white transition-colors flex-shrink-0">
-            <Icon name="close" size={18} />
-          </button>
+          <motion.button
+            onClick={onClose}
+            whileHover={{ background: 'rgba(255,255,255,0.08)' }}
+            style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}
+          >
+            <Icon name="close" size={16} style={{ color: 'rgba(255,255,255,0.5)' }} />
+          </motion.button>
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 px-6 pt-4 flex-shrink-0">
+        <div style={{ display: 'flex', gap: 6, padding: '14px 24px 0', flexShrink: 0 }}>
           {(['overview', 'code', 'usage'] as const).map((t) => (
-            <button
+            <motion.button
               key={t}
               onClick={() => setTab(t)}
-              className={`px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${
-                tab === t ? 'bg-white/10 text-white' : 'text-zinc-600 hover:text-zinc-400'
-              }`}
+              whileHover={{ color: '#fff' }}
+              style={{
+                padding: '7px 16px', borderRadius: 999,
+                fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.14em',
+                background: tab === t ? 'rgba(255,255,255,0.08)' : 'transparent',
+                border: tab === t ? '1px solid rgba(255,255,255,0.12)' : '1px solid transparent',
+                color: tab === t ? '#fff' : 'rgba(255,255,255,0.35)',
+                cursor: 'pointer', transition: 'all 0.2s',
+              }}
             >
               {t}
-            </button>
+            </motion.button>
           ))}
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
+        <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
           {tab === 'overview' && (
             <>
-              <p className="text-zinc-300 text-sm leading-relaxed">{pattern.description}</p>
+              <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.72)', lineHeight: 1.75 }}>{pattern.description}</p>
               {PATTERN_USE_CASES[pattern.patternKey] && (
-                <div className="bg-zinc-900 rounded-xl p-4 space-y-2">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-zinc-600 mb-3">Common Use Cases</p>
+                <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, padding: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <p style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', marginBottom: 4 }}>Common Use Cases</p>
                   {PATTERN_USE_CASES[pattern.patternKey].when.slice(0, 4).map((c) => (
-                    <div key={c} className="flex items-start gap-2 text-sm text-zinc-400">
-                      <Icon name="check_circle" size={14} className="text-green-400 flex-shrink-0 mt-0.5" filled />
+                    <div key={c} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 13, color: 'rgba(255,255,255,0.6)' }}>
+                      <Icon name="check_circle" size={13} style={{ color: '#4ade80', flexShrink: 0, marginTop: 2 }} filled />
                       {c}
                     </div>
                   ))}
                 </div>
               )}
               {PATTERN_USE_CASES[pattern.patternKey] && (
-                <div className="bg-zinc-900 rounded-xl p-4 space-y-2">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-zinc-600 mb-3">Real-World Examples</p>
-                  <div className="flex flex-wrap gap-2">
+                <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, padding: 16 }}>
+                  <p style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', marginBottom: 12 }}>Real-World Examples</p>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                     {PATTERN_USE_CASES[pattern.patternKey].realWorld.map((r) => (
-                      <span key={r} className="bg-blue-500/10 border border-blue-500/20 text-blue-300 text-xs px-3 py-1 rounded-full">{r}</span>
+                      <span key={r} style={{ background: catMeta.glow, border: `1px solid ${catMeta.color}25`, color: catMeta.color, fontSize: 11, fontWeight: 600, padding: '4px 10px', borderRadius: 999 }}>{r}</span>
                     ))}
                   </div>
                 </div>
@@ -999,53 +1030,45 @@ function PatternPanel({ pattern, onClose, onComplete }: PatternPanelProps) {
           )}
 
           {tab === 'code' && (
-            <div className="rounded-xl overflow-hidden border border-white/8" style={{ height: '420px' }}>
+            <div style={{ borderRadius: 14, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.08)', height: 420 }}>
               <Editor
                 language="typescript"
                 value={code}
                 theme="vs-dark"
-                options={{
-                  readOnly: true,
-                  minimap: { enabled: false },
-                  fontSize: 13,
-                  lineNumbers: 'on',
-                  scrollBeyondLastLine: false,
-                  wordWrap: 'on',
-                  padding: { top: 16 },
-                }}
+                options={{ readOnly: true, minimap: { enabled: false }, fontSize: 13, lineNumbers: 'on', scrollBeyondLastLine: false, wordWrap: 'on', padding: { top: 16 } }}
               />
             </div>
           )}
 
           {tab === 'usage' && useCases && (
-            <div className="space-y-5">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
               <div>
-                <p className="text-[10px] font-black uppercase tracking-widest text-green-400 mb-3">✓ Use When</p>
-                <ul className="space-y-1.5">
+                <p style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#4ade80', marginBottom: 12 }}>✓ Use When</p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {useCases.when.map((w) => (
-                    <li key={w} className="text-sm text-zinc-300 flex items-start gap-2">
-                      <Icon name="check_circle" size={14} className="text-green-400 flex-shrink-0 mt-0.5" filled />
+                    <div key={w} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 13, color: 'rgba(255,255,255,0.7)' }}>
+                      <Icon name="check_circle" size={13} style={{ color: '#4ade80', flexShrink: 0, marginTop: 2 }} filled />
                       {w}
-                    </li>
+                    </div>
                   ))}
-                </ul>
+                </div>
               </div>
               <div>
-                <p className="text-[10px] font-black uppercase tracking-widest text-red-400 mb-3">✗ Avoid When</p>
-                <ul className="space-y-1.5">
+                <p style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#f87171', marginBottom: 12 }}>✗ Avoid When</p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {useCases.avoid.map((a) => (
-                    <li key={a} className="text-sm text-zinc-400 flex items-start gap-2">
-                      <Icon name="remove_circle" size={14} className="text-red-400 flex-shrink-0 mt-0.5" filled />
+                    <div key={a} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 13, color: 'rgba(255,255,255,0.55)' }}>
+                      <Icon name="remove_circle" size={13} style={{ color: '#f87171', flexShrink: 0, marginTop: 2 }} filled />
                       {a}
-                    </li>
+                    </div>
                   ))}
-                </ul>
+                </div>
               </div>
               <div>
-                <p className="text-[10px] font-black uppercase tracking-widest text-blue-400 mb-3">Real World Usage</p>
-                <div className="flex flex-wrap gap-2">
+                <p style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.15em', textTransform: 'uppercase', color: catMeta.color, marginBottom: 10 }}>Real World Usage</p>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                   {useCases.realWorld.map((r) => (
-                    <span key={r} className="bg-blue-500/10 border border-blue-500/20 text-blue-300 text-xs px-3 py-1 rounded-full font-medium">{r}</span>
+                    <span key={r} style={{ background: catMeta.glow, border: `1px solid ${catMeta.color}25`, color: catMeta.color, fontSize: 11, fontWeight: 600, padding: '4px 10px', borderRadius: 999 }}>{r}</span>
                   ))}
                 </div>
               </div>
@@ -1054,23 +1077,31 @@ function PatternPanel({ pattern, onClose, onComplete }: PatternPanelProps) {
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-5 border-t border-white/8 flex-shrink-0">
+        <div style={{ padding: '16px 24px', borderTop: '1px solid rgba(255,255,255,0.07)', flexShrink: 0 }}>
           {isDone ? (
-            <div className="flex items-center gap-2 justify-center text-green-400 font-black text-sm">
-              <Icon name="check_circle" size={18} filled />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center', color: '#4ade80', fontWeight: 900, fontSize: 14 }}>
+              <Icon name="check_circle" size={18} style={{ color: '#4ade80' }} filled />
               Completed! +50 XP earned
             </div>
           ) : (
-            <button
+            <motion.button
               onClick={() => onComplete(pattern.patternKey)}
-              className="w-full bg-[#E82127] text-white font-black uppercase tracking-widest text-xs py-4 rounded-full hover:brightness-110 transition-all active:scale-95 shadow-lg shadow-red-900/30 flex items-center justify-center gap-2"
+              whileHover={{ scale: 1.02, boxShadow: '0 0 28px rgba(232,33,39,0.35)' }}
+              whileTap={{ scale: 0.97 }}
+              style={{
+                width: '100%', background: 'linear-gradient(135deg, #e82127, #c41a1f)',
+                border: 'none', borderRadius: 999, padding: '14px 0',
+                color: '#fff', fontSize: 11, fontWeight: 900, textTransform: 'uppercase',
+                letterSpacing: '0.14em', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              }}
             >
-              <Icon name="check" size={16} />
+              <Icon name="check" size={15} />
               Mark as Complete · +50 XP
-            </button>
+            </motion.button>
           )}
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }
@@ -1121,181 +1152,255 @@ export function OOPPage() {
   const categories = ['all', 'creational', 'structural', 'behavioral'];
 
   const STATUS_ICON: Record<string, string> = { completed: 'check_circle', in_progress: 'play_circle' };
-  const STATUS_COLOR: Record<string, string> = { completed: 'text-green-400', in_progress: 'text-yellow-400' };
+  const STATUS_COLOR: Record<string, string> = { completed: '#4ade80', in_progress: '#facc15' };
   const statusIcon = (s: string) => STATUS_ICON[s] ?? 'radio_button_unchecked';
-  const statusColor = (s: string) => STATUS_COLOR[s] ?? 'text-zinc-600';
+  const statusColor = (s: string) => STATUS_COLOR[s] ?? 'rgba(255,255,255,0.25)';
+
+  const pct = progress?.pct ?? 0;
 
   return (
     <AppShell>
-      {selectedPattern && (
-        <PatternPanel
-          pattern={selectedPattern}
-          onClose={() => setSelectedPattern(null)}
-          onComplete={handleComplete}
-        />
-      )}
-      <div className="pt-8 max-w-7xl mx-auto">
-        {/* Hero */}
-        <div className="mb-12 p-10 bg-surface-container rounded-2xl relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/5 blur-[100px] rounded-full -mr-32 -mt-32" />
-          <div className="flex items-start justify-between flex-wrap gap-6">
-            <div>
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center">
-                  <Icon name="account_tree" className="text-blue-400" size={24} />
-                </div>
-                <div>
-                  <h1 className="text-4xl font-black tracking-tighter text-on-surface">OOP & Software Engineering</h1>
-                  <p className="text-on-surface-variant text-sm mt-0.5">Master design patterns, SOLID principles, and software architecture</p>
-                </div>
+      <AnimatePresence>
+        {selectedPattern && (
+          <PatternPanel
+            pattern={selectedPattern}
+            onClose={() => setSelectedPattern(null)}
+            onComplete={handleComplete}
+          />
+        )}
+      </AnimatePresence>
+
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px 80px' }}>
+
+        {/* ── Hero ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          style={{ paddingTop: 56, paddingBottom: 48 }}
+        >
+          <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.18em', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', marginBottom: 8 }}>
+            Software Engineering
+          </p>
+          <h1 style={{
+            fontSize: 'clamp(2.4rem, 6vw, 4rem)', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1,
+            background: 'linear-gradient(135deg, #60a5fa 0%, #818cf8 50%, #c084fc 100%)',
+            WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', marginBottom: 12,
+          }}>
+            OOP & PATTERNS.
+          </h1>
+          <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.4)', fontWeight: 500 }}>
+            Master design patterns, SOLID principles, and software architecture.
+          </p>
+
+          {/* Stats row */}
+          <div style={{ display: 'flex', gap: 0, marginTop: 40, ...GLASS, borderRadius: 18, overflow: 'hidden', alignSelf: 'flex-start', width: 'fit-content' }}>
+            {[
+              { label: 'Completed', value: `${progress?.completed ?? 0}/${progress?.total ?? 23}` },
+              { label: 'Progress',  value: `${pct}%` },
+              { label: 'GoF Total', value: '23' },
+            ].map((stat, i) => (
+              <div key={stat.label} style={{
+                padding: '20px 36px',
+                borderRight: i < 2 ? '1px solid rgba(255,255,255,0.07)' : 'none',
+              }}>
+                <p style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', marginBottom: 6 }}>{stat.label}</p>
+                <p style={{ fontSize: 26, fontWeight: 900, color: '#fff' }}>{stat.value}</p>
               </div>
-              <div className="flex gap-6 mt-8">
-                <div>
-                  <p className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-on-surface-variant mb-1">Patterns</p>
-                  <p className="text-2xl font-bold">{progress?.completed ?? 0}<span className="text-zinc-500 text-base font-normal">/{progress?.total ?? 23}</span></p>
-                </div>
-                <div className="border-l border-outline-variant/20 pl-6">
-                  <p className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-on-surface-variant mb-1">Progress</p>
-                  <p className="text-2xl font-bold">{progress?.pct ?? 0}<span className="text-zinc-500 text-base font-normal">%</span></p>
-                </div>
-                <div className="border-l border-outline-variant/20 pl-6">
-                  <p className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-on-surface-variant mb-1">GoF Patterns</p>
-                  <p className="text-2xl font-bold">23</p>
-                </div>
-              </div>
-            </div>
-            <div className="flex flex-col gap-3 min-w-[200px]">
-              <div className="bg-surface-container-high rounded-xl p-4">
-                <div className="flex justify-between mb-2">
-                  <span className="text-xs text-zinc-400">Overall Progress</span>
-                  <span className="text-xs text-blue-400">{progress?.pct ?? 0}%</span>
-                </div>
-                <div className="h-1.5 bg-surface-container-highest rounded-full overflow-hidden">
-                  <div className="h-full bg-blue-400 rounded-full transition-all" style={{ width: `${progress?.pct ?? 0}%` }} />
-                </div>
-              </div>
+            ))}
+          </div>
+
+          {/* Progress bar */}
+          <div style={{ marginTop: 20, maxWidth: 360 }}>
+            <div style={{ height: 4, background: 'rgba(255,255,255,0.06)', borderRadius: 4, overflow: 'hidden' }}>
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${pct}%` }}
+                transition={{ duration: 1, ease: 'easeOut', delay: 0.4 }}
+                style={{ height: '100%', background: 'linear-gradient(90deg, #60a5fa, #c084fc)', borderRadius: 4 }}
+              />
             </div>
           </div>
-        </div>
+        </motion.div>
 
-        {/* SOLID Principles */}
-        <section className="mb-12">
-          <h2 className="font-['Inter'] uppercase tracking-[0.3em] text-[10px] font-bold text-on-surface-variant/60 mb-6 ml-1">
+        {/* ── SOLID Principles ── */}
+        <section style={{ marginBottom: 56 }}>
+          <p style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', marginBottom: 20 }}>
             SOLID Principles
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-            {solid.map((s) => {
-              const meta = SOLID_META[s.letter] ?? { color: 'text-zinc-400', tagline: '' };
+          </p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 14 }}>
+            {solid.map((s, i) => {
+              const meta = SOLID_META[s.letter] ?? { color: '#a1a1aa', tagline: '' };
               return (
-                <div key={s.id} className="bg-surface-container rounded-xl p-6 hover:bg-surface-container-high transition-colors group cursor-pointer">
-                  <div className={`text-5xl font-black mb-4 ${meta.color} opacity-20 group-hover:opacity-40 transition-opacity`}>{s.letter}</div>
-                  <p className={`text-xs font-bold uppercase tracking-widest mb-2 ${meta.color}`}>{meta.tagline}</p>
-                  <h3 className="text-sm font-bold text-on-surface mb-2 leading-snug">{s.title}</h3>
-                  <p className="text-xs text-on-surface-variant leading-relaxed line-clamp-3">{s.description}</p>
-                </div>
+                <motion.div
+                  key={s.id}
+                  initial={{ opacity: 0, y: 16, filter: 'blur(6px)' }}
+                  whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                  viewport={{ once: true, margin: '-20px' }}
+                  transition={{ delay: i * 0.06, duration: 0.4 }}
+                  whileHover={{ borderColor: `${meta.color}25`, boxShadow: `0 8px 28px ${meta.color}18` }}
+                  style={{ ...GLASS, borderRadius: 18, padding: 24, cursor: 'default', transition: 'box-shadow 0.25s' }}
+                >
+                  <div style={{ fontSize: 52, fontWeight: 900, color: meta.color, opacity: 0.18, lineHeight: 1, marginBottom: 14 }}>{s.letter}</div>
+                  <p style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: meta.color, marginBottom: 6 }}>{meta.tagline}</p>
+                  <h3 style={{ fontSize: 13, fontWeight: 700, color: '#fff', marginBottom: 6, lineHeight: 1.35 }}>{s.title}</h3>
+                  <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)', lineHeight: 1.7, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                    {s.description}
+                  </p>
+                </motion.div>
               );
             })}
           </div>
         </section>
 
-        {/* Design Patterns */}
-        <section className="mb-12">
-          <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
-            <h2 className="font-['Inter'] uppercase tracking-[0.3em] text-[10px] font-bold text-on-surface-variant/60 ml-1">
+        {/* ── Design Patterns ── */}
+        <section style={{ marginBottom: 56 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
+            <p style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)' }}>
               GoF Design Patterns
-            </h2>
-            <div className="flex gap-2">
-              {categories.map((cat) => (
-                <button
-                  key={cat}
-                  onClick={() => setActiveCategory(cat)}
-                  className={`px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${
-                    activeCategory === cat
-                      ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
-                      : 'text-zinc-500 hover:text-zinc-300 hover:bg-surface-container-high border border-transparent'
-                  }`}
-                >
-                  {cat}
-                </button>
-              ))}
+            </p>
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              {categories.map((cat) => {
+                const catColor = cat === 'all' ? '#a1a1aa' : (CATEGORY_META[cat]?.color ?? '#a1a1aa');
+                const catGlow = cat === 'all' ? 'rgba(161,161,170,0.12)' : (CATEGORY_META[cat]?.glow ?? 'rgba(161,161,170,0.1)');
+                const isActive = activeCategory === cat;
+                return (
+                  <motion.button
+                    key={cat}
+                    onClick={() => setActiveCategory(cat)}
+                    whileHover={{ scale: 1.04 }}
+                    whileTap={{ scale: 0.96 }}
+                    style={{
+                      padding: '6px 16px', borderRadius: 999,
+                      fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em',
+                      cursor: 'pointer', transition: 'all 0.2s',
+                      background: isActive ? catGlow : 'transparent',
+                      border: isActive ? `1px solid ${catColor}35` : '1px solid rgba(255,255,255,0.07)',
+                      color: isActive ? catColor : 'rgba(255,255,255,0.35)',
+                    }}
+                  >
+                    {cat}
+                  </motion.button>
+                );
+              })}
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filtered.map((p) => {
-              const catMeta = CATEGORY_META[p.category] ?? { icon: 'category', color: 'text-zinc-400', label: p.category };
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 14 }}>
+            {filtered.map((p, i) => {
+              const catMeta = CATEGORY_META[p.category] ?? { icon: 'category', color: '#a1a1aa', glow: 'rgba(161,161,170,0.1)', label: p.category };
               const locked = p.planAccess === 'pro' || p.planAccess === 'elite';
+              const done = p.status === 'completed';
               return (
-                <button
+                <motion.button
                   type="button"
                   key={p.id}
+                  initial={{ opacity: 0, y: 12 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: '-20px' }}
+                  transition={{ delay: i * 0.03, duration: 0.35 }}
+                  whileHover={!locked ? { borderColor: `${catMeta.color}22`, boxShadow: `0 8px 28px ${catMeta.glow}` } : {}}
                   onClick={() => !locked && setSelectedPattern(p)}
-                  className={`w-full text-left bg-surface-container rounded-xl p-6 transition-all group ${locked ? 'opacity-70 cursor-default' : 'hover:bg-surface-container-high hover:scale-[1.01] cursor-pointer'}`}
+                  style={{
+                    ...GLASS, borderRadius: 16, padding: 20,
+                    textAlign: 'left', cursor: locked ? 'default' : 'pointer',
+                    opacity: locked ? 0.6 : 1, transition: 'box-shadow 0.25s',
+                    display: 'flex', flexDirection: 'column',
+                  }}
                 >
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center gap-2">
-                      <Icon name={catMeta.icon} className={catMeta.color} size={18} />
-                      <span className={`text-[10px] font-bold uppercase tracking-widest ${catMeta.color}`}>{catMeta.label}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                      <Icon name={catMeta.icon} size={16} style={{ color: catMeta.color }} />
+                      <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: catMeta.color }}>{catMeta.label}</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      {locked && <Icon name="lock" className="text-zinc-600" size={14} />}
-                      <Icon name={statusIcon(p.status)} className={statusColor(p.status)} size={18} />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      {locked && <Icon name="lock" size={13} style={{ color: 'rgba(255,255,255,0.25)' }} />}
+                      <Icon name={statusIcon(p.status)} size={17} style={{ color: statusColor(p.status) }} filled={done} />
                     </div>
                   </div>
-                  <h3 className="text-base font-bold text-on-surface mb-2">{p.name}</h3>
-                  <p className="text-xs text-on-surface-variant leading-relaxed mb-4 line-clamp-2">{p.description}</p>
+                  <h3 style={{ fontSize: 14, fontWeight: 700, color: '#fff', marginBottom: 6 }}>{p.name}</h3>
+                  <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)', lineHeight: 1.65, flex: 1, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', marginBottom: 14 }}>
+                    {p.description}
+                  </p>
                   {locked ? (
-                    <Link to="/plans" onClick={(e) => e.stopPropagation()}>
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 hover:text-primary-container flex items-center gap-1">
+                    <Link to="/plans" onClick={(e) => e.stopPropagation()} style={{ textDecoration: 'none' }}>
+                      <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: 'rgba(255,255,255,0.3)', display: 'flex', alignItems: 'center', gap: 4 }}>
                         <Icon name="upgrade" size={12} />Upgrade to access
                       </span>
                     </Link>
                   ) : (
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-blue-400 group-hover:text-blue-300 flex items-center gap-1">
+                    <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: catMeta.color, display: 'flex', alignItems: 'center', gap: 4 }}>
                       Study Pattern <Icon name="arrow_forward" size={12} />
                     </span>
                   )}
-                </button>
+                </motion.button>
               );
             })}
           </div>
         </section>
 
-        {/* Resources */}
-        <section className="mb-12">
-          <h2 className="font-['Inter'] uppercase tracking-[0.3em] text-[10px] font-bold text-on-surface-variant/60 mb-6 ml-1">
+        {/* ── Resources ── */}
+        <section style={{ marginBottom: 56 }}>
+          <p style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', marginBottom: 20 }}>
             Additional Resources
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {RESOURCES.map((r) => (
-              <div key={r.title} className="bg-surface-container rounded-xl p-6 hover:bg-surface-container-high transition-colors group cursor-pointer">
-                <div className="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center mb-4">
-                  <Icon name={r.icon} className="text-blue-400" size={20} />
+          </p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 14 }}>
+            {RESOURCES.map((r, i) => (
+              <motion.div
+                key={r.title}
+                initial={{ opacity: 0, y: 14 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-20px' }}
+                transition={{ delay: i * 0.07 }}
+                whileHover={{ borderColor: 'rgba(96,165,250,0.2)', boxShadow: '0 8px 24px rgba(96,165,250,0.1)' }}
+                style={{ ...GLASS, borderRadius: 18, padding: 24, cursor: 'pointer', transition: 'box-shadow 0.25s' }}
+              >
+                <div style={{ width: 40, height: 40, background: 'rgba(96,165,250,0.1)', border: '1px solid rgba(96,165,250,0.2)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
+                  <Icon name={r.icon} size={19} style={{ color: '#60a5fa' }} />
                 </div>
-                <div className="flex items-center gap-2 mb-2">
-                  <h3 className="text-sm font-bold">{r.title}</h3>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                  <h3 style={{ fontSize: 13, fontWeight: 700, color: '#fff' }}>{r.title}</h3>
                   {r.tag === 'Pro' && (
-                    <span className="text-[9px] font-bold uppercase tracking-widest bg-primary-container/20 text-primary-container px-2 py-0.5 rounded-full">Pro</span>
+                    <span style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', background: 'rgba(232,33,39,0.12)', border: '1px solid rgba(232,33,39,0.25)', color: '#ff4d5a', padding: '2px 7px', borderRadius: 999 }}>Pro</span>
                   )}
                 </div>
-                <p className="text-xs text-on-surface-variant leading-relaxed">{r.desc}</p>
-              </div>
+                <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)', lineHeight: 1.65 }}>{r.desc}</p>
+              </motion.div>
             ))}
           </div>
         </section>
 
-        {/* Architecture Patterns Banner */}
-        <div className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/20 rounded-2xl p-8 flex items-center justify-between flex-wrap gap-6">
+        {/* ── Architecture Banner ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-20px' }}
+          style={{
+            borderRadius: 22, padding: '36px 40px',
+            background: 'linear-gradient(135deg, rgba(96,165,250,0.08), rgba(192,132,252,0.08))',
+            border: '1px solid rgba(96,165,250,0.15)',
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 24,
+          }}
+        >
           <div>
-            <h3 className="text-xl font-bold mb-2">Software Architecture Patterns</h3>
-            <p className="text-on-surface-variant text-sm">MVC, MVP, MVVM, Microservices, Event-Driven, Hexagonal Architecture and more</p>
+            <h3 style={{ fontSize: 20, fontWeight: 900, color: '#fff', marginBottom: 8 }}>Software Architecture Patterns</h3>
+            <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.45)' }}>MVC, MVP, MVVM, Microservices, Event-Driven, Hexagonal Architecture and more</p>
           </div>
-          <Link to="/app/system-design">
-            <button className="bg-blue-500/20 border border-blue-500/30 text-blue-400 hover:bg-blue-500/30 font-bold py-3 px-6 rounded-full text-sm transition-all flex items-center gap-2">
-              Explore System Design <Icon name="arrow_forward" size={16} />
-            </button>
+          <Link to="/app/system-design" style={{ textDecoration: 'none' }}>
+            <motion.button
+              whileHover={{ scale: 1.04, boxShadow: '0 0 24px rgba(96,165,250,0.2)' }}
+              whileTap={{ scale: 0.97 }}
+              style={{
+                background: 'rgba(96,165,250,0.12)', border: '1px solid rgba(96,165,250,0.25)',
+                color: '#60a5fa', fontWeight: 700, padding: '12px 24px', borderRadius: 999,
+                fontSize: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8,
+              }}
+            >
+              Explore System Design <Icon name="arrow_forward" size={15} />
+            </motion.button>
           </Link>
-        </div>
+        </motion.div>
+
       </div>
     </AppShell>
   );

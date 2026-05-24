@@ -1,11 +1,18 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { shuffle } from '../lib/random';
 import { AppShell } from '../components/AppShell';
 import { Icon } from '../components/Icon';
 import { apiRequest } from '../lib/api';
 import { getSession } from '../lib/session';
 import { useUser } from '../contexts/UserContext';
+
+const GLASS = {
+  background: 'rgba(10,10,10,0.7)',
+  border: '1px solid rgba(255,255,255,0.07)',
+  backdropFilter: 'blur(16px)',
+} as const;
 
 type InterviewType = 'behavioral' | 'dsa' | 'system_design' | 'mixed';
 type Phase = 'select' | 'active' | 'done';
@@ -62,31 +69,35 @@ const ALL_QUESTIONS: Record<InterviewType, Question[]> = {
   mixed: [...BEHAVIORAL_QUESTIONS.slice(0, 2), ...DSA_QUESTIONS.slice(0, 2), ...SD_QUESTIONS.slice(0, 1)],
 };
 
-const TYPE_META: Record<InterviewType, { label: string; icon: string; color: string; bg: string; desc: string; duration: string }> = {
-  behavioral:    { label: 'Behavioral',    icon: 'psychology',    color: 'text-green-400',  bg: 'bg-green-500/10',  desc: 'STAR-format questions on leadership, conflict, impact, and growth.', duration: '30 min' },
-  dsa:           { label: 'DSA Coding',    icon: 'code',          color: 'text-blue-400',   bg: 'bg-blue-500/10',   desc: 'Algorithm and data structure questions at FAANG interview level.', duration: '45 min' },
-  system_design: { label: 'System Design', icon: 'architecture',  color: 'text-purple-400', bg: 'bg-purple-500/10', desc: 'Design scalable distributed systems under realistic constraints.', duration: '45 min' },
-  mixed:         { label: 'Full Loop',     icon: 'shuffle',       color: 'text-orange-400', bg: 'bg-orange-500/10', desc: 'Mixed interview: behavioral, DSA, and system design — like a real FAANG loop.', duration: '60 min' },
+const TYPE_META: Record<InterviewType, { label: string; icon: string; color: string; glow: string; desc: string; duration: string }> = {
+  behavioral:    { label: 'Behavioral',    icon: 'psychology',   color: '#4ade80', glow: 'rgba(74,222,128,0.15)',   desc: 'STAR-format questions on leadership, conflict, impact, and growth.', duration: '30 min' },
+  dsa:           { label: 'DSA Coding',    icon: 'code',         color: '#60a5fa', glow: 'rgba(96,165,250,0.15)',   desc: 'Algorithm and data structure questions at FAANG interview level.', duration: '45 min' },
+  system_design: { label: 'System Design', icon: 'architecture', color: '#c084fc', glow: 'rgba(192,132,252,0.15)', desc: 'Design scalable distributed systems under realistic constraints.', duration: '45 min' },
+  mixed:         { label: 'Full Loop',     icon: 'shuffle',      color: '#fb923c', glow: 'rgba(251,146,60,0.15)',   desc: 'Mixed interview: behavioral, DSA, and system design — like a real FAANG loop.', duration: '60 min' },
 };
 
-const DIFF_COLOR: Record<string, string> = {
-  'Hash Map':            'text-blue-400 bg-blue-400/10',
-  'Design':              'text-purple-400 bg-purple-400/10',
-  'Heap':                'text-yellow-400 bg-yellow-400/10',
-  'Backtracking':        'text-orange-400 bg-orange-400/10',
-  'Dynamic Programming': 'text-pink-400 bg-pink-400/10',
-  'Tree DFS':            'text-green-400 bg-green-400/10',
-  'Scalability':         'text-cyan-400 bg-cyan-400/10',
-  'Distributed Systems': 'text-violet-400 bg-violet-400/10',
-  'Messaging':           'text-amber-400 bg-amber-400/10',
-  'Ambiguity':           'text-green-400 bg-green-400/10',
-  'Negotiation':         'text-blue-400 bg-blue-400/10',
-  'Conflict':            'text-red-400 bg-red-400/10',
-  'Impact':              'text-primary-container bg-primary-container/10',
-  'Failure':             'text-orange-400 bg-orange-400/10',
-  'Prioritization':      'text-yellow-400 bg-yellow-400/10',
-  'Leadership':          'text-purple-400 bg-purple-400/10',
-  'Mentoring':           'text-pink-400 bg-pink-400/10',
+const DIFF_COLOR: Record<string, { color: string; bg: string }> = {
+  'Hash Map':            { color: '#60a5fa', bg: 'rgba(96,165,250,0.1)'   },
+  'Design':              { color: '#c084fc', bg: 'rgba(192,132,252,0.1)'  },
+  'Heap':                { color: '#facc15', bg: 'rgba(250,204,21,0.1)'   },
+  'Backtracking':        { color: '#fb923c', bg: 'rgba(251,146,60,0.1)'   },
+  'Dynamic Programming': { color: '#f472b6', bg: 'rgba(244,114,182,0.1)'  },
+  'Tree DFS':            { color: '#4ade80', bg: 'rgba(74,222,128,0.1)'   },
+  'Scalability':         { color: '#22d3ee', bg: 'rgba(34,211,238,0.1)'   },
+  'Distributed Systems': { color: '#a78bfa', bg: 'rgba(167,139,250,0.1)'  },
+  'Messaging':           { color: '#fbbf24', bg: 'rgba(251,191,36,0.1)'   },
+  'Ambiguity':           { color: '#4ade80', bg: 'rgba(74,222,128,0.1)'   },
+  'Negotiation':         { color: '#60a5fa', bg: 'rgba(96,165,250,0.1)'   },
+  'Conflict':            { color: '#f87171', bg: 'rgba(248,113,113,0.1)'  },
+  'Impact':              { color: '#ff4d5a', bg: 'rgba(232,33,39,0.1)'    },
+  'Failure':             { color: '#fb923c', bg: 'rgba(251,146,60,0.1)'   },
+  'Prioritization':      { color: '#facc15', bg: 'rgba(250,204,21,0.1)'   },
+  'Leadership':          { color: '#c084fc', bg: 'rgba(192,132,252,0.1)'  },
+  'Mentoring':           { color: '#f472b6', bg: 'rgba(244,114,182,0.1)'  },
+  'Two Pointers':        { color: '#22d3ee', bg: 'rgba(34,211,238,0.1)'   },
+  'Binary Search':       { color: '#60a5fa', bg: 'rgba(96,165,250,0.1)'   },
+  'Topological Sort':    { color: '#a78bfa', bg: 'rgba(167,139,250,0.1)'  },
+  'Real-time':           { color: '#4ade80', bg: 'rgba(74,222,128,0.1)'   },
 };
 
 function formatTime(seconds: number) {
@@ -180,108 +191,131 @@ export function MockInterviewPage() {
   const currentQ = questions[qIdx];
   const answeredCount = Object.values(answers).filter((a) => a.trim().length > 20).length;
   const timerPct = totalTime > 0 ? (timeLeft / totalTime) * 100 : 0;
-  let timerColor = 'text-red-400';
-  let timerBarColor = 'bg-red-400';
-  if (timerPct > 50) { timerColor = 'text-green-400'; timerBarColor = 'bg-green-400'; }
-  else if (timerPct > 25) { timerColor = 'text-yellow-400'; timerBarColor = 'bg-yellow-400'; }
+  const timerHex = timerPct > 50 ? '#4ade80' : timerPct > 25 ? '#facc15' : '#f87171';
   const XP_PER_ANS: Record<string, number> = { system_design: 20, dsa: 15 };
+
+  const categoryChip = (cat: string) => {
+    const c = DIFF_COLOR[cat] ?? { color: 'rgba(255,255,255,0.4)', bg: 'rgba(255,255,255,0.06)' };
+    return (
+      <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', padding: '3px 10px', borderRadius: 999, color: c.color, background: c.bg }}>
+        {cat}
+      </span>
+    );
+  };
 
   if (phase === 'select') {
     return (
       <AppShell>
-        <div className="pt-8 max-w-5xl">
+        <div style={{ maxWidth: 900, margin: '0 auto', padding: '0 24px 80px' }}>
           {/* Hero */}
-          <div className="mb-10">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 bg-primary-container/10 rounded-xl flex items-center justify-center">
-                <Icon name="record_voice_over" size={22} className="text-primary-container" />
-              </div>
-              <span className="text-[10px] font-bold uppercase tracking-widest text-primary-container">Mock Interview</span>
-            </div>
-            <h1 className="text-5xl font-black tracking-tighter mb-2">
-              Interview <span className="text-primary-container">Simulator.</span>
-            </h1>
-            <p className="text-on-surface-variant max-w-xl">
-              Practice FAANG-level interviews with timed questions, hints, and structured response tracking. Get comfortable under pressure before the real thing.
+          <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} style={{ paddingTop: 56, paddingBottom: 40 }}>
+            <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', marginBottom: 8 }}>
+              Interview Prep
             </p>
-          </div>
+            <h1 style={{
+              fontSize: 'clamp(2.2rem, 6vw, 3.8rem)', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1,
+              background: 'linear-gradient(135deg, #ff4d5a 0%, #fb923c 60%, #facc15 100%)',
+              WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', marginBottom: 12,
+            }}>
+              MOCK INTERVIEW.
+            </h1>
+            <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.4)', maxWidth: 520, lineHeight: 1.65 }}>
+              Practice FAANG-level interviews with timed questions, hints, and structured response tracking.
+            </p>
+          </motion.div>
 
           {/* Tips banner */}
-          <div className="bg-surface-container rounded-xl p-5 mb-8 flex items-start gap-4">
-            <Icon name="tips_and_updates" size={20} className="text-yellow-400 mt-0.5 flex-shrink-0" filled />
+          <motion.div
+            initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
+            style={{ ...GLASS, borderRadius: 16, padding: '16px 20px', marginBottom: 28, display: 'flex', alignItems: 'flex-start', gap: 14 }}
+          >
+            <Icon name="tips_and_updates" size={18} style={{ color: '#facc15', flexShrink: 0, marginTop: 2 }} filled />
             <div>
-              <p className="text-sm font-bold text-on-surface mb-1">How to get the most out of mock interviews</p>
-              <p className="text-xs text-zinc-400 leading-relaxed">
-                Speak your answers out loud (or type them in full). Use the timer — it forces the pace of a real interview. Review hints only after attempting. After each session, reflect on what you'd improve.
+              <p style={{ fontSize: 13, fontWeight: 700, color: '#fff', marginBottom: 4 }}>How to get the most out of mock interviews</p>
+              <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)', lineHeight: 1.7 }}>
+                Speak your answers out loud (or type them in full). Use the timer — it forces the pace of a real interview. Review hints only after attempting. Reflect on what you'd improve after each session.
               </p>
             </div>
-          </div>
+          </motion.div>
 
           {/* Type selection */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-10">
-            {(Object.entries(TYPE_META) as [InterviewType, typeof TYPE_META[InterviewType]][]).map(([key, meta]) => (
-              <button
-                key={key}
-                type="button"
-                onClick={() => setSelectedType(key)}
-                className={`text-left p-6 rounded-2xl border-2 transition-all ${
-                  selectedType === key
-                    ? `${meta.bg} border-current/50 ${meta.color}`
-                    : 'bg-surface-container border-transparent hover:bg-surface-container-high'
-                }`}
-              >
-                <div className="flex items-start justify-between mb-4">
-                  <div className={`w-12 h-12 ${meta.bg} rounded-xl flex items-center justify-center`}>
-                    <Icon name={meta.icon} size={24} className={meta.color} />
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 14, marginBottom: 36 }}>
+            {(Object.entries(TYPE_META) as [InterviewType, typeof TYPE_META[InterviewType]][]).map(([key, meta], i) => {
+              const isActive = selectedType === key;
+              return (
+                <motion.button
+                  key={key}
+                  type="button"
+                  onClick={() => setSelectedType(key)}
+                  initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.07 }}
+                  whileHover={{ boxShadow: `0 8px 28px ${meta.glow}` }}
+                  style={{
+                    textAlign: 'left', padding: 24, borderRadius: 20,
+                    background: isActive ? meta.glow.replace('0.15', '0.1') : 'rgba(10,10,10,0.7)',
+                    border: isActive ? `1px solid ${meta.color}40` : '1px solid rgba(255,255,255,0.07)',
+                    backdropFilter: 'blur(16px)', cursor: 'pointer',
+                    boxShadow: isActive ? `0 0 32px ${meta.glow}` : 'none',
+                    transition: 'border-color 0.2s, box-shadow 0.25s',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16 }}>
+                    <div style={{ width: 48, height: 48, borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', background: meta.glow, border: `1px solid ${meta.color}25` }}>
+                      <Icon name={meta.icon} size={22} style={{ color: meta.color }} />
+                    </div>
+                    {isActive && <Icon name="check_circle" size={20} style={{ color: meta.color }} filled />}
                   </div>
-                  {selectedType === key && (
-                    <Icon name="check_circle" size={20} className={meta.color} filled />
-                  )}
-                </div>
-                <h3 className="text-lg font-bold mb-1">{meta.label}</h3>
-                <p className="text-xs text-zinc-400 leading-relaxed mb-3">{meta.desc}</p>
-                <div className="flex items-center gap-3">
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 flex items-center gap-1">
-                    <Icon name="schedule" size={12} /> {meta.duration}
-                  </span>
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 flex items-center gap-1">
-                    <Icon name="quiz" size={12} /> {ALL_QUESTIONS[key].length} questions
-                  </span>
-                </div>
-              </button>
-            ))}
+                  <h3 style={{ fontSize: 16, fontWeight: 700, color: '#fff', marginBottom: 6 }}>{meta.label}</h3>
+                  <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)', lineHeight: 1.65, marginBottom: 14 }}>{meta.desc}</p>
+                  <div style={{ display: 'flex', gap: 16 }}>
+                    <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: 'rgba(255,255,255,0.3)', display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <Icon name="schedule" size={11} /> {meta.duration}
+                    </span>
+                    <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: 'rgba(255,255,255,0.3)', display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <Icon name="quiz" size={11} /> {ALL_QUESTIONS[key].length} questions
+                    </span>
+                  </div>
+                </motion.button>
+              );
+            })}
           </div>
 
           {/* What to expect */}
-          <div className="mb-8">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-4">What to Expect</p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div style={{ marginBottom: 32 }}>
+            <p style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', marginBottom: 16 }}>What to Expect</p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 12 }}>
               {[
-                { icon: 'timer', title: 'Timed Responses', desc: 'Each question has a recommended time limit, just like real interviews.' },
-                { icon: 'lightbulb', title: 'Structured Hints', desc: 'Optional hints guide your thinking without giving away the answer.' },
-                { icon: 'bolt', title: 'XP Rewards', desc: 'Earn XP based on how many questions you answer thoughtfully.' },
+                { icon: 'timer',    title: 'Timed Responses', desc: 'Each question has a recommended time limit, just like real interviews.', color: '#f87171' },
+                { icon: 'lightbulb', title: 'Structured Hints', desc: 'Optional hints guide your thinking without giving away the answer.', color: '#facc15' },
+                { icon: 'bolt',     title: 'XP Rewards',       desc: 'Earn XP based on how many questions you answer thoughtfully.', color: '#ff4d5a' },
               ].map((item) => (
-                <div key={item.title} className="bg-surface-container rounded-xl p-5 flex gap-3">
-                  <div className="w-9 h-9 bg-primary-container/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Icon name={item.icon} size={18} className="text-primary-container" />
+                <div key={item.title} style={{ ...GLASS, borderRadius: 16, padding: 18, display: 'flex', gap: 12 }}>
+                  <div style={{ width: 36, height: 36, background: `${item.color}15`, border: `1px solid ${item.color}25`, borderRadius: 11, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <Icon name={item.icon} size={17} style={{ color: item.color }} />
                   </div>
                   <div>
-                    <p className="font-bold text-sm mb-1">{item.title}</p>
-                    <p className="text-xs text-zinc-500 leading-relaxed">{item.desc}</p>
+                    <p style={{ fontSize: 13, fontWeight: 700, color: '#fff', marginBottom: 4 }}>{item.title}</p>
+                    <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', lineHeight: 1.6 }}>{item.desc}</p>
                   </div>
                 </div>
               ))}
             </div>
           </div>
 
-          <button
+          <motion.button
             type="button"
             onClick={startInterview}
-            className="bg-primary-container text-white font-bold px-10 py-4 rounded-full text-sm hover:brightness-110 transition-all active:scale-95 flex items-center gap-3 shadow-lg shadow-red-900/20"
+            whileHover={{ scale: 1.03, boxShadow: '0 0 32px rgba(232,33,39,0.4)' }}
+            whileTap={{ scale: 0.97 }}
+            style={{
+              background: 'linear-gradient(135deg, #e82127, #c41a1f)',
+              border: 'none', borderRadius: 999, padding: '14px 36px',
+              color: '#fff', fontSize: 14, fontWeight: 900, cursor: 'pointer',
+              display: 'flex', alignItems: 'center', gap: 10,
+            }}
           >
             <Icon name="play_arrow" size={20} filled />
             Start {TYPE_META[selectedType].label} Interview
-          </button>
+          </motion.button>
         </div>
       </AppShell>
     );
@@ -290,91 +324,106 @@ export function MockInterviewPage() {
   if (phase === 'done') {
     return (
       <AppShell>
-        <div className="pt-8 max-w-3xl mx-auto">
+        <div style={{ maxWidth: 760, margin: '0 auto', padding: '56px 24px 80px' }}>
           {/* Completion header */}
-          <div className="bg-surface-container rounded-2xl p-8 mb-6 text-center">
-            <div className="w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Icon name="celebration" size={32} className="text-green-400" filled />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
+            style={{ ...GLASS, borderRadius: 22, padding: 40, marginBottom: 24, textAlign: 'center' }}
+          >
+            <div style={{ width: 64, height: 64, background: 'rgba(74,222,128,0.12)', border: '1px solid rgba(74,222,128,0.25)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
+              <Icon name="celebration" size={30} style={{ color: '#4ade80' }} filled />
             </div>
-            <h1 className="text-3xl font-black tracking-tighter mb-2">Interview Complete!</h1>
-            <p className="text-on-surface-variant mb-6">
+            <h1 style={{ fontSize: 32, fontWeight: 900, color: '#fff', marginBottom: 8, letterSpacing: '-0.02em' }}>Interview Complete!</h1>
+            <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.45)', marginBottom: 28 }}>
               You completed {questions.length} {TYPE_META[selectedType].label} questions. {answeredCount} answered in depth.
             </p>
-            <div className="flex justify-center gap-8">
-              <div>
-                <p className="text-2xl font-black text-on-surface">{questions.length}</p>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Questions</p>
-              </div>
-              <div className="border-l border-zinc-800 pl-8">
-                <p className="text-2xl font-black text-green-400">{answeredCount}</p>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Answered</p>
-              </div>
-              <div className="border-l border-zinc-800 pl-8">
-                <p className="text-2xl font-black text-primary-container">
-                  +{Math.round(answeredCount * (XP_PER_ANS[selectedType] ?? 10))}
-                </p>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">XP Earned</p>
-              </div>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: 0, ...GLASS, borderRadius: 16, overflow: 'hidden', width: 'fit-content', margin: '0 auto' }}>
+              {[
+                { label: 'Questions', value: String(questions.length), color: '#fff' },
+                { label: 'Answered',  value: String(answeredCount),    color: '#4ade80' },
+                { label: 'XP Earned', value: `+${Math.round(answeredCount * (XP_PER_ANS[selectedType] ?? 10))}`, color: '#ff4d5a' },
+              ].map((s, i) => (
+                <div key={s.label} style={{ padding: '18px 32px', borderRight: i < 2 ? '1px solid rgba(255,255,255,0.07)' : 'none' }}>
+                  <p style={{ fontSize: 26, fontWeight: 900, color: s.color }}>{s.value}</p>
+                  <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.14em', color: 'rgba(255,255,255,0.3)' }}>{s.label}</p>
+                </div>
+              ))}
             </div>
-          </div>
+          </motion.div>
 
           {/* Review answers */}
-          <div className="space-y-4 mb-6">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Your Responses</p>
+          <p style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', marginBottom: 14 }}>Your Responses</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 24 }}>
             {questions.map((q, i) => (
-              <div key={q.id} className="bg-surface-container rounded-xl p-5">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-[10px] font-bold text-zinc-500">Q{i + 1}</span>
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${DIFF_COLOR[q.category] ?? 'text-zinc-400 bg-zinc-400/10'}`}>{q.category}</span>
+              <motion.div
+                key={q.id}
+                initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }} transition={{ delay: i * 0.05 }}
+                style={{ ...GLASS, borderRadius: 16, padding: 20 }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                  <span style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.3)' }}>Q{i + 1}</span>
+                  {categoryChip(q.category)}
                 </div>
-                <p className="text-sm font-bold text-on-surface mb-3 whitespace-pre-line">{q.text}</p>
-                <div className="bg-surface-container-highest rounded-lg p-3">
-                  <p className="text-xs text-zinc-400 whitespace-pre-wrap">
-                    {answers[q.id]?.trim() || <span className="text-zinc-600 italic">No response recorded</span>}
+                <p style={{ fontSize: 13, fontWeight: 700, color: '#fff', marginBottom: 12, lineHeight: 1.65, whiteSpace: 'pre-line' }}>{q.text}</p>
+                <div style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 12, padding: '12px 14px' }}>
+                  <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', whiteSpace: 'pre-wrap', fontFamily: 'monospace', lineHeight: 1.65 }}>
+                    {answers[q.id]?.trim() || <em style={{ color: 'rgba(255,255,255,0.2)' }}>No response recorded</em>}
                   </p>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
 
           {/* Self-assessment */}
-          <div className="bg-surface-container rounded-xl p-5 mb-6">
-            <h3 className="font-bold text-sm mb-3 flex items-center gap-2">
-              <Icon name="rate_review" size={16} className="text-primary-container" />
+          <div style={{ ...GLASS, borderRadius: 18, padding: 22, marginBottom: 24 }}>
+            <h3 style={{ fontSize: 14, fontWeight: 700, color: '#fff', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Icon name="rate_review" size={16} style={{ color: '#ff4d5a' }} />
               Self-Assessment
             </h3>
-            <p className="text-xs text-zinc-400 mb-3">How did the interview feel? What would you do differently? (Optional)</p>
+            <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', marginBottom: 12 }}>How did the interview feel? What would you do differently? (Optional)</p>
             <textarea
               value={feedback}
               onChange={(e) => setFeedback(e.target.value)}
               placeholder="Struggled with time management on the DSA question. Need to practice more DP problems. Behavioral answers felt structured."
               rows={4}
-              className="w-full bg-surface-container-highest rounded-xl p-3 text-sm text-on-surface focus:outline-none focus:border-primary-container/40 border border-transparent resize-none"
+              style={{ width: '100%', background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 12, padding: '10px 14px', fontSize: 13, color: '#fff', outline: 'none', resize: 'none', boxSizing: 'border-box', fontFamily: 'inherit' }}
             />
           </div>
 
-          <div className="flex gap-3 flex-wrap">
-            <button
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            <motion.button
               type="button"
               onClick={submitSession}
               disabled={submitting}
-              className="bg-primary-container text-white font-bold px-8 py-3 rounded-full text-sm hover:brightness-110 transition-all flex items-center gap-2 disabled:opacity-60"
+              whileHover={!submitting ? { scale: 1.03, boxShadow: '0 0 24px rgba(232,33,39,0.35)' } : {}}
+              whileTap={{ scale: 0.97 }}
+              style={{
+                background: 'linear-gradient(135deg, #e82127, #c41a1f)', border: 'none', borderRadius: 999, padding: '12px 28px',
+                color: '#fff', fontSize: 13, fontWeight: 900, cursor: 'pointer', opacity: submitting ? 0.6 : 1,
+                display: 'flex', alignItems: 'center', gap: 8,
+              }}
             >
-              {submitting ? <Icon name="hourglass_empty" size={16} /> : <Icon name="save" size={16} />}
+              {submitting ? <Icon name="hourglass_empty" size={15} /> : <Icon name="save" size={15} />}
               {submitting ? 'Saving…' : 'Save & Claim XP'}
-            </button>
-            <button
+            </motion.button>
+            <motion.button
               type="button"
               onClick={() => { setPhase('select'); setFeedback(''); }}
-              className="bg-surface-container text-zinc-300 font-bold px-8 py-3 rounded-full text-sm hover:bg-surface-container-high transition-all"
+              whileHover={{ background: 'rgba(255,255,255,0.08)' }}
+              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 999, padding: '12px 24px', color: 'rgba(255,255,255,0.7)', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}
             >
               New Interview
-            </button>
-            <Link to="/app/placement">
-              <button type="button" className="bg-surface-container text-zinc-300 font-bold px-8 py-3 rounded-full text-sm hover:bg-surface-container-high transition-all flex items-center gap-2">
-                <Icon name="work" size={16} />
+            </motion.button>
+            <Link to="/app/placement" style={{ textDecoration: 'none' }}>
+              <motion.button
+                type="button"
+                whileHover={{ background: 'rgba(255,255,255,0.08)' }}
+                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 999, padding: '12px 24px', color: 'rgba(255,255,255,0.7)', fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}
+              >
+                <Icon name="work" size={14} />
                 Placement Prep
-              </button>
+              </motion.button>
             </Link>
           </div>
         </div>
@@ -395,122 +444,125 @@ export function MockInterviewPage() {
 
   return (
     <AppShell>
-      <div className="pt-8 max-w-4xl mx-auto">
+      <div style={{ maxWidth: 860, margin: '0 auto', padding: '40px 24px 80px' }}>
         {/* Progress header */}
-        <div className="bg-surface-container rounded-2xl p-5 mb-6">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-3">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">
-                {TYPE_META[selectedType].label} Interview
+        <div style={{ ...GLASS, borderRadius: 18, padding: '18px 22px', marginBottom: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <span style={{ fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.15em', color: TYPE_META[selectedType].color }}>
+                {TYPE_META[selectedType].label}
               </span>
-              <span className="text-[10px] font-bold text-zinc-600">
-                Question {qIdx + 1} of {questions.length}
+              <span style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.3)' }}>
+                Q{qIdx + 1} of {questions.length}
               </span>
             </div>
-            <div className={`font-mono text-2xl font-black ${timerColor} flex items-center gap-2`}>
-              <Icon name="timer" size={20} className={timerColor} />
+            <div style={{ fontFamily: 'monospace', fontSize: 24, fontWeight: 900, color: timerHex, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Icon name="timer" size={19} style={{ color: timerHex }} />
               {formatTime(timeLeft)}
             </div>
           </div>
-          {/* Progress bar */}
-          <div className="h-1.5 bg-surface-container-highest rounded-full overflow-hidden mb-2">
-            <div
-              className="h-full bg-primary-container rounded-full transition-all duration-300"
-              style={{ width: `${((qIdx) / questions.length) * 100}%` }}
-            />
+          <div style={{ height: 3, background: 'rgba(255,255,255,0.05)', borderRadius: 3, overflow: 'hidden', marginBottom: 6 }}>
+            <div style={{ height: '100%', background: 'rgba(232,33,39,0.7)', borderRadius: 3, width: `${(qIdx / questions.length) * 100}%`, transition: 'width 0.4s' }} />
           </div>
-          {/* Timer bar */}
-          <div className="h-1 bg-surface-container-highest rounded-full overflow-hidden">
-            <div
-              className={`h-full rounded-full transition-all duration-1000 ${timerBarColor}`}
-              style={{ width: `${timerPct}%` }}
-            />
+          <div style={{ height: 2, background: 'rgba(255,255,255,0.04)', borderRadius: 2, overflow: 'hidden' }}>
+            <div style={{ height: '100%', background: timerHex, borderRadius: 2, width: `${timerPct}%`, transition: 'width 1s linear' }} />
           </div>
         </div>
 
         {/* Question card */}
-        <div className="bg-surface-container rounded-2xl p-8 mb-5">
-          <div className="flex items-center gap-3 mb-5">
-            <div className={`w-9 h-9 ${TYPE_META[currentQ.type].bg} rounded-xl flex items-center justify-center`}>
-              <Icon name={TYPE_META[currentQ.type].icon} size={18} className={TYPE_META[currentQ.type].color} />
+        <div style={{ ...GLASS, borderRadius: 20, padding: '28px 32px', marginBottom: 18 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+            <div style={{ width: 36, height: 36, background: TYPE_META[currentQ.type].glow, border: `1px solid ${TYPE_META[currentQ.type].color}25`, borderRadius: 11, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <Icon name={TYPE_META[currentQ.type].icon} size={17} style={{ color: TYPE_META[currentQ.type].color }} />
             </div>
-            <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full ${DIFF_COLOR[currentQ.category] ?? 'text-zinc-400 bg-zinc-400/10'}`}>
-              {currentQ.category}
+            {categoryChip(currentQ.category)}
+            <span style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.3)', marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 4 }}>
+              <Icon name="schedule" size={11} /> {Math.round(currentQ.timeSeconds / 60)} min suggested
             </span>
-            <div className="ml-auto flex items-center gap-2">
-              <span className="text-[10px] font-bold text-zinc-500 flex items-center gap-1">
-                <Icon name="schedule" size={12} /> {Math.round(currentQ.timeSeconds / 60)} min suggested
-              </span>
-            </div>
           </div>
-          <p className="text-lg font-bold text-on-surface leading-relaxed whitespace-pre-line mb-6">{currentQ.text}</p>
+          <p style={{ fontSize: 16, fontWeight: 700, color: '#fff', lineHeight: 1.7, whiteSpace: 'pre-line', marginBottom: 22 }}>{currentQ.text}</p>
 
-          {/* Hint toggle */}
           {currentQ.hint && (
-            <div className="mb-2">
-              <button
+            <div>
+              <motion.button
                 type="button"
                 onClick={() => setShowHint((v) => !v)}
-                className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-zinc-600 hover:text-yellow-400 transition-colors"
+                whileHover={{ color: '#facc15' }}
+                style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.14em', color: showHint ? '#facc15' : 'rgba(255,255,255,0.3)', background: 'none', border: 'none', cursor: 'pointer', transition: 'color 0.2s' }}
               >
-                <Icon name="lightbulb" size={14} className={showHint ? 'text-yellow-400' : ''} />
+                <Icon name="lightbulb" size={13} style={{ color: showHint ? '#facc15' : 'rgba(255,255,255,0.3)' }} />
                 {showHint ? 'Hide Hint' : 'Show Hint (think first!)'}
-              </button>
-              {showHint && (
-                <div className="mt-3 bg-yellow-400/5 border border-yellow-400/20 rounded-xl p-4">
-                  <p className="text-xs text-yellow-300 leading-relaxed">{currentQ.hint}</p>
-                </div>
-              )}
+              </motion.button>
+              <AnimatePresence>
+                {showHint && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
+                    style={{ overflow: 'hidden', marginTop: 12 }}
+                  >
+                    <div style={{ background: 'rgba(250,204,21,0.05)', border: '1px solid rgba(250,204,21,0.2)', borderRadius: 12, padding: '12px 16px' }}>
+                      <p style={{ fontSize: 12, color: 'rgba(250,204,21,0.8)', lineHeight: 1.65 }}>{currentQ.hint}</p>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           )}
         </div>
 
         {/* Response area */}
-        <div className="bg-surface-container rounded-2xl overflow-hidden mb-5">
-          <div className="flex items-center justify-between px-5 py-3 border-b border-zinc-800">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">
+        <div style={{ ...GLASS, borderRadius: 18, overflow: 'hidden', marginBottom: 18 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 20px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+            <p style={{ fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.15em', color: 'rgba(255,255,255,0.3)' }}>
               {answerLabel}
             </p>
-            <span className="text-[10px] text-zinc-600">{(answers[currentQ.id] ?? '').length} chars</span>
+            <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.2)' }}>{(answers[currentQ.id] ?? '').length} chars</span>
           </div>
           <textarea
             value={answers[currentQ.id] ?? ''}
             onChange={(e) => setAnswers((prev) => ({ ...prev, [currentQ.id]: e.target.value }))}
             placeholder={answerPlaceholder}
-            rows={14}
-            className="w-full bg-transparent p-5 text-sm text-on-surface focus:outline-none resize-none font-mono leading-relaxed"
+            rows={13}
+            style={{ width: '100%', background: 'transparent', border: 'none', padding: '18px 20px', fontSize: 13, color: '#fff', outline: 'none', resize: 'none', fontFamily: 'monospace', lineHeight: 1.7, boxSizing: 'border-box' }}
           />
         </div>
 
         {/* Controls */}
-        <div className="flex items-center justify-between gap-4">
-          <button
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14 }}>
+          <motion.button
             type="button"
             onClick={() => { setTimerActive(false); setPhase('done'); }}
-            className="text-zinc-500 hover:text-zinc-300 text-sm font-bold flex items-center gap-1 transition-colors"
+            whileHover={{ color: '#fff' }}
+            style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, transition: 'color 0.2s' }}
           >
-            <Icon name="stop" size={16} /> End Interview
-          </button>
-          <div className="flex items-center gap-3">
-            <button
+            <Icon name="stop" size={15} /> End Interview
+          </motion.button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <motion.button
               type="button"
               onClick={() => setTimerActive((v) => !v)}
-              className="flex items-center gap-2 px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest bg-surface-container text-zinc-400 hover:text-zinc-200 transition-all"
+              whileHover={{ background: 'rgba(255,255,255,0.08)' }}
+              style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '9px 18px', borderRadius: 999, fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.55)', cursor: 'pointer' }}
             >
-              <Icon name={timerActive ? 'pause' : 'play_arrow'} size={16} />
+              <Icon name={timerActive ? 'pause' : 'play_arrow'} size={15} />
               {timerActive ? 'Pause' : 'Resume'}
-            </button>
-            <button
+            </motion.button>
+            <motion.button
               type="button"
               onClick={nextQuestion}
-              className="bg-primary-container text-white font-bold px-8 py-3 rounded-full text-sm hover:brightness-110 transition-all active:scale-95 flex items-center gap-2"
+              whileHover={{ scale: 1.03, boxShadow: '0 0 24px rgba(232,33,39,0.35)' }}
+              whileTap={{ scale: 0.97 }}
+              style={{
+                background: 'linear-gradient(135deg, #e82127, #c41a1f)', border: 'none', borderRadius: 999, padding: '12px 28px',
+                color: '#fff', fontSize: 13, fontWeight: 900, cursor: 'pointer',
+                display: 'flex', alignItems: 'center', gap: 8,
+              }}
             >
               {qIdx < questions.length - 1 ? (
-                <><Icon name="arrow_forward" size={16} />Next Question</>
+                <><Icon name="arrow_forward" size={15} />Next Question</>
               ) : (
-                <><Icon name="check" size={16} />Finish Interview</>
+                <><Icon name="check" size={15} />Finish Interview</>
               )}
-            </button>
+            </motion.button>
           </div>
         </div>
       </div>

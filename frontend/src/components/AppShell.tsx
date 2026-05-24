@@ -75,8 +75,7 @@ const NAV_GROUPS: NavGroup[] = [
 const LEVEL_NAMES      = ['Newcomer','Learner','Explorer','Builder','Practitioner','Engineer','Senior','Lead','Architect','Expert','Legend'];
 const LEVEL_THRESHOLDS = [0,100,300,700,1500,3000,6000,12000,25000,50000,100000];
 
-/* ── Sidebar nav item ─────────────────────────────────────────────────────── */
-
+/* ── Nav link ──────────────────────────────────────────────────────────────── */
 function NavLink({ item, isActive }: { readonly item: NavItem; readonly isActive: boolean }) {
   return (
     <Link to={item.path} className={`nav-item ${isActive ? 'active' : ''}`}>
@@ -97,8 +96,7 @@ function NavLink({ item, isActive }: { readonly item: NavItem; readonly isActive
   );
 }
 
-/* ── Keyboard shortcuts modal ─────────────────────────────────────────────── */
-
+/* ── Keyboard shortcuts modal ──────────────────────────────────────────────── */
 function ShortcutsModal({ onClose }: { readonly onClose: () => void }) {
   const groups = [
     { label: 'Navigation', items: [
@@ -131,25 +129,18 @@ function ShortcutsModal({ onClose }: { readonly onClose: () => void }) {
         aria-label="Close shortcuts"
         className="absolute inset-0 w-full"
         onClick={onClose}
-        style={{ background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)' }}
+        style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)' }}
       />
       <motion.div
         className="shortcuts-modal relative w-full max-w-md mx-4 overflow-hidden"
-        initial={{ scale: 0.96, y: 10 }}
-        animate={{ scale: 1, y: 0 }}
-        exit={{ scale: 0.96, y: 10 }}
-        transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+        initial={{ scale: 0.94, y: 16, opacity: 0 }}
+        animate={{ scale: 1, y: 0, opacity: 1 }}
+        exit={{ scale: 0.94, y: 16, opacity: 0 }}
+        transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
       >
-        <div
-          className="flex items-center justify-between px-5 py-4"
-          style={{ borderBottom: '1px solid var(--border)' }}
-        >
+        <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid var(--border)' }}>
           <h2 className="text-sm font-semibold" style={{ color: 'var(--t1)' }}>Keyboard Shortcuts</h2>
-          <button
-            onClick={onClose}
-            className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors hover:bg-[var(--bg-elevated)]"
-            style={{ color: 'var(--t3)' }}
-          >
+          <button onClick={onClose} className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors hover:bg-white/5" style={{ color: 'var(--t3)' }}>
             <Icon name="close" size={15} />
           </button>
         </div>
@@ -178,8 +169,7 @@ function ShortcutsModal({ onClose }: { readonly onClose: () => void }) {
   );
 }
 
-/* ── Sidebar ──────────────────────────────────────────────────────────────── */
-
+/* ── Sidebar ───────────────────────────────────────────────────────────────── */
 function Sidebar({
   location, level, levelName, xp, xpPct, streak, displayName, initials, isPro, onClose, onLogout,
 }: {
@@ -200,17 +190,23 @@ function Sidebar({
       initial={{ x: '-100%' }}
       animate={{ x: 0 }}
       exit={{ x: '-100%' }}
-      transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
       className="fixed left-0 top-0 h-screen w-64 z-50 flex flex-col"
-      style={{ background: '#FFFFFF', borderRight: '1px solid var(--border)', boxShadow: '4px 0 24px rgba(0,0,0,0.06)' }}
+      style={{
+        background: '#050505',
+        borderRight: '1px solid rgba(255,255,255,0.06)',
+        boxShadow: '8px 0 48px rgba(0,0,0,0.8)',
+      }}
     >
+      {/* Top red accent line */}
+      <div style={{ height: 1, background: 'linear-gradient(90deg, transparent, rgba(232,25,44,0.6) 40%, rgba(232,25,44,0.6) 60%, transparent)', flexShrink: 0 }} />
+
       {/* Header */}
-      <div
-        className="flex items-center justify-between px-4 py-3.5"
-        style={{ borderBottom: '1px solid var(--border)' }}
-      >
+      <div className="flex items-center justify-between px-4 py-3.5" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
         <div className="flex items-center gap-2.5">
-          <EYFMark size={18} className="flex-shrink-0" />
+          <div style={{ filter: 'drop-shadow(0 0 6px rgba(232,25,44,0.5))' }}>
+            <EYFMark size={18} className="flex-shrink-0" />
+          </div>
           <div>
             <span className="text-sm font-black tracking-tight" style={{ color: 'var(--t1)' }}>EYF</span>
             <p className="text-[9px] font-bold uppercase tracking-wider" style={{ color: 'var(--t4)' }}>
@@ -220,7 +216,7 @@ function Sidebar({
         </div>
         <button
           onClick={onClose}
-          className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors hover:bg-[var(--bg-elevated)]"
+          className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors hover:bg-white/5"
           style={{ color: 'var(--t3)' }}
           aria-label="Close menu"
         >
@@ -228,13 +224,16 @@ function Sidebar({
         </button>
       </div>
 
-      {/* User profile */}
+      {/* User profile card */}
       <Link
         to="/app/progress"
-        className="mx-3 mt-3 mb-1 p-3 rounded-xl block transition-colors"
-        style={{ border: '1px solid var(--border)', background: 'var(--bg-surface)' }}
-        onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--bg-elevated)'; }}
-        onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--bg-surface)'; }}
+        className="mx-3 mt-3 mb-1 p-3 rounded-xl block transition-all"
+        style={{
+          border: '1px solid rgba(255,255,255,0.07)',
+          background: 'rgba(255,255,255,0.025)',
+        }}
+        onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.04)'; (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.11)'; }}
+        onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.025)'; (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.07)'; }}
       >
         <div className="flex items-center gap-2.5 mb-2.5">
           <div className="avatar avatar-sm">{initials}</div>
@@ -261,7 +260,7 @@ function Sidebar({
               className="xp-bar-fill"
               initial={{ width: 0 }}
               animate={{ width: `${xpPct}%` }}
-              transition={{ duration: 1, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+              transition={{ duration: 1.2, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
             />
           </div>
         </div>
@@ -283,12 +282,18 @@ function Sidebar({
       </nav>
 
       {/* Footer */}
-      <div className="px-2 pb-4 pt-3 space-y-1" style={{ borderTop: '1px solid var(--border)' }}>
+      <div className="px-2 pb-4 pt-3 space-y-1" style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
         {!isPro && (
           <Link
             to="/plans"
-            className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-sm font-bold mb-2"
-            style={{ background: 'var(--red)', color: '#fff' }}
+            className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-sm font-bold mb-2 transition-all"
+            style={{
+              background: 'var(--red)',
+              color: '#fff',
+              boxShadow: '0 4px 20px rgba(232,25,44,0.35)',
+            }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.boxShadow = '0 6px 28px rgba(232,25,44,0.5)'; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 20px rgba(232,25,44,0.35)'; }}
           >
             <Icon name="workspace_premium" size={14} />
             Upgrade to Pro
@@ -302,16 +307,25 @@ function Sidebar({
             <Icon name="payments" size={14} /> Plans
           </Link>
           <button onClick={onLogout} className="btn btn-ghost btn-sm flex-1 justify-center" style={{ color: 'var(--t3)' }}>
-            <Icon name="logout" size={14} /> Sign out
+            <Icon name="logout" size={14} /> Out
           </button>
         </div>
       </div>
+
+      {/* Ambient red glow at bottom */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'absolute', bottom: -20, left: '20%', right: '20%', height: 120,
+          background: 'radial-gradient(ellipse, rgba(232,25,44,0.12) 0%, transparent 70%)',
+          filter: 'blur(20px)', pointerEvents: 'none', zIndex: 0,
+        }}
+      />
     </motion.aside>
   );
 }
 
-/* ── App Shell ────────────────────────────────────────────────────────────── */
-
+/* ── App Shell ─────────────────────────────────────────────────────────────── */
 export function AppShell({ children }: { readonly children: ReactNode }) {
   const location = useLocation();
   const navigate  = useNavigate();
@@ -385,7 +399,18 @@ export function AppShell({ children }: { readonly children: ReactNode }) {
   }, [navigate]);
 
   return (
-    <div className="min-h-screen" style={{ background: 'var(--bg-surface)', color: 'var(--t1)' }}>
+    <div className="min-h-screen" style={{ background: 'var(--bg)', color: 'var(--t1)' }}>
+      {/* Film grain overlay */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-0 z-[9998]"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
+          opacity: 0.025,
+          mixBlendMode: 'overlay',
+        }}
+      />
+
       <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
 
       <AnimatePresence>
@@ -399,10 +424,10 @@ export function AppShell({ children }: { readonly children: ReactNode }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
+            transition={{ duration: 0.22 }}
             aria-hidden="true"
             className="fixed inset-0 z-40"
-            style={{ background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(2px)' }}
+            style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)' }}
             onClick={() => setSidebarOpen(false)}
           />
         )}
@@ -426,42 +451,55 @@ export function AppShell({ children }: { readonly children: ReactNode }) {
         )}
       </AnimatePresence>
 
-      {/* Top header */}
+      {/* Top header — cinematic dark glass */}
       <header
-        className="fixed top-0 left-0 right-0 z-30 h-14 px-4 md:px-6 flex items-center gap-3 transition-all duration-200"
+        className="fixed top-0 left-0 right-0 z-30 h-14 px-4 md:px-6 flex items-center gap-3"
         style={{
-          background: 'rgba(255,255,255,0.92)',
-          backdropFilter: scrolled ? 'blur(12px) saturate(180%)' : 'none',
-          borderBottom: '1px solid var(--border)',
-          boxShadow: scrolled ? '0 1px 8px rgba(0,0,0,0.06)' : 'none',
+          background: scrolled ? 'rgba(4,4,4,0.92)' : 'rgba(4,4,4,0.75)',
+          backdropFilter: 'blur(24px) saturate(180%)',
+          borderBottom: '1px solid rgba(255,255,255,0.05)',
+          boxShadow: scrolled ? '0 1px 0 rgba(255,255,255,0.04), 0 4px 24px rgba(0,0,0,0.6)' : 'none',
+          transition: 'background 0.3s, box-shadow 0.3s',
         }}
       >
-        {/* Menu */}
+        {/* Header top accent */}
+        <div style={{
+          position: 'absolute', top: 0, left: 0, right: 0, height: 1,
+          background: 'linear-gradient(90deg, transparent, rgba(232,25,44,0.4) 30%, rgba(232,25,44,0.4) 70%, transparent)',
+        }} />
+
+        {/* Menu button */}
         <button
           onClick={() => setSidebarOpen(true)}
-          className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
-          style={{ color: 'var(--t3)', border: '1px solid var(--border)' }}
+          className="w-8 h-8 rounded-lg flex items-center justify-center transition-all"
+          style={{ color: 'var(--t3)', border: '1px solid rgba(255,255,255,0.07)' }}
           aria-label="Open menu"
-          onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = 'var(--t1)'; (e.currentTarget as HTMLElement).style.background = 'var(--bg-elevated)'; }}
+          onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = 'var(--t1)'; (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.06)'; }}
           onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = 'var(--t3)'; (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
         >
           <Icon name="menu" size={16} />
         </button>
 
         {/* Logo */}
-        <Link to="/app/dashboard" className="flex items-center gap-2 shrink-0 mr-2 group">
-          <EYFMark size={17} />
+        <Link to="/app/dashboard" className="flex items-center gap-2 shrink-0 mr-2">
+          <div style={{ filter: 'drop-shadow(0 0 5px rgba(232,25,44,0.4))' }}>
+            <EYFMark size={17} />
+          </div>
           <span className="font-black tracking-tight text-sm" style={{ color: 'var(--t1)' }}>EYF</span>
         </Link>
 
-        {/* Search */}
+        {/* Search bar */}
         <button
           type="button"
           onClick={() => setSearchOpen(true)}
-          className="flex-1 max-w-sm flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-left transition-colors"
-          style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--t4)' }}
-          onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border-hover)'; (e.currentTarget as HTMLElement).style.color = 'var(--t3)'; }}
-          onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'; (e.currentTarget as HTMLElement).style.color = 'var(--t4)'; }}
+          className="flex-1 max-w-sm flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-left transition-all"
+          style={{
+            background: 'rgba(255,255,255,0.04)',
+            border: '1px solid rgba(255,255,255,0.07)',
+            color: 'var(--t4)',
+          }}
+          onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.12)'; (e.currentTarget as HTMLElement).style.color = 'var(--t3)'; }}
+          onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.07)'; (e.currentTarget as HTMLElement).style.color = 'var(--t4)'; }}
         >
           <Icon name="search" size={14} className="flex-shrink-0" />
           <span className="flex-1 text-sm">Search EYF…</span>
@@ -480,10 +518,10 @@ export function AppShell({ children }: { readonly children: ReactNode }) {
           <button
             type="button"
             onClick={() => setShortcutsOpen(true)}
-            className="hidden md:flex w-8 h-8 rounded-lg items-center justify-center text-xs font-bold transition-colors"
-            style={{ color: 'var(--t4)', border: '1px solid var(--border)' }}
+            className="hidden md:flex w-8 h-8 rounded-lg items-center justify-center text-xs font-bold transition-all"
+            style={{ color: 'var(--t4)', border: '1px solid rgba(255,255,255,0.07)' }}
             title="Keyboard shortcuts (?)"
-            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = 'var(--t2)'; (e.currentTarget as HTMLElement).style.background = 'var(--bg-elevated)'; }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = 'var(--t2)'; (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.05)'; }}
             onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = 'var(--t4)'; (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
           >
             ?
@@ -493,16 +531,16 @@ export function AppShell({ children }: { readonly children: ReactNode }) {
             <button
               type="button"
               onClick={() => setNotifOpen((o) => !o)}
-              className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors relative"
-              style={{ color: 'var(--t3)', border: '1px solid var(--border)' }}
-              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = 'var(--t1)'; (e.currentTarget as HTMLElement).style.background = 'var(--bg-elevated)'; }}
+              className="w-8 h-8 rounded-lg flex items-center justify-center transition-all relative"
+              style={{ color: 'var(--t3)', border: '1px solid rgba(255,255,255,0.07)' }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = 'var(--t1)'; (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.05)'; }}
               onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = 'var(--t3)'; (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
             >
               <Icon name="notifications" size={16} />
               {unreadCount > 0 && (
                 <span
                   className="absolute top-1 right-1 w-2 h-2 rounded-full"
-                  style={{ background: '#E8192C', border: '1.5px solid #fff' }}
+                  style={{ background: '#E8192C', border: '1.5px solid #040404', boxShadow: '0 0 6px rgba(232,25,44,0.6)' }}
                 />
               )}
             </button>
@@ -518,7 +556,7 @@ export function AppShell({ children }: { readonly children: ReactNode }) {
 
           <Link to="/app/profile">
             <div
-              className="avatar avatar-sm cursor-pointer transition-opacity hover:opacity-80"
+              className="avatar avatar-sm cursor-pointer transition-all hover:scale-105"
               title={displayName ?? session?.email ?? 'Profile'}
             >
               {initials}
@@ -528,21 +566,30 @@ export function AppShell({ children }: { readonly children: ReactNode }) {
       </header>
 
       {/* Page content */}
-      <main className="pt-14 min-h-screen pb-20 md:pb-8">
-        <motion.div
-          key={location.pathname}
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.22, ease: 'easeOut' }}
-        >
-          {children}
-        </motion.div>
+      <main className="pt-14 min-h-screen pb-20 md:pb-10" style={{ paddingLeft: 'max(16px, env(safe-area-inset-left))', paddingRight: 'max(16px, env(safe-area-inset-right))' }}>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={location.pathname}
+            initial={{ opacity: 0, y: 16, filter: 'blur(8px)' }}
+            animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+            exit={{ opacity: 0, y: -6, filter: 'blur(3px)' }}
+            transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
+            style={{ maxWidth: '100%', margin: '0 auto' }}
+          >
+            {children}
+          </motion.div>
+        </AnimatePresence>
       </main>
 
       {/* Mobile bottom nav */}
       <nav
         className="fixed bottom-0 left-0 right-0 z-30 md:hidden flex h-16"
-        style={{ background: 'rgba(255,255,255,0.96)', backdropFilter: 'blur(12px)', borderTop: '1px solid var(--border)' }}
+        style={{
+          background: 'rgba(5,5,5,0.95)',
+          backdropFilter: 'blur(24px) saturate(180%)',
+          borderTop: '1px solid rgba(255,255,255,0.06)',
+          boxShadow: '0 -1px 0 rgba(255,255,255,0.04)',
+        }}
       >
         {[
           { path: '/app/dashboard', icon: 'home',         label: 'Home' },
@@ -557,13 +604,13 @@ export function AppShell({ children }: { readonly children: ReactNode }) {
               key={item.path}
               to={item.path}
               className="flex-1 flex flex-col items-center justify-center gap-0.5 transition-colors relative"
-              style={{ color: isActive ? 'var(--red)' : 'var(--t4)' }}
+              style={{ color: isActive ? '#E8192C' : 'var(--t4)' }}
             >
               {isActive && (
                 <motion.div
                   layoutId="mobile-tab-indicator"
                   className="absolute top-0 left-1/2 -translate-x-1/2"
-                  style={{ width: 24, height: 2, background: 'var(--red)', borderRadius: '0 0 3px 3px' }}
+                  style={{ width: 24, height: 2, background: '#E8192C', borderRadius: '0 0 3px 3px', boxShadow: '0 2px 8px rgba(232,25,44,0.6)' }}
                   transition={{ type: 'spring', stiffness: 500, damping: 35 }}
                 />
               )}
