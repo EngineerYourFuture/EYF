@@ -122,7 +122,7 @@ export function AuthorityQueuePage() {
                           disabled={actionLoading !== null}
                           whileHover={{ scale: 1.04 }}
                           whileTap={{ scale: 0.96 }}
-                          style={{ padding: '8px 16px', background: 'rgba(74,222,128,0.1)', color: '#4ade80', borderRadius: 999, fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer', opacity: actionLoading !== null ? 0.5 : 1, border: '1px solid rgba(74,222,128,0.2)' }}
+                          style={{ padding: '8px 16px', background: 'rgba(74,222,128,0.1)', color: '#4ade80', borderRadius: 999, fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer', opacity: actionLoading === null ? 1 : 0.5, border: '1px solid rgba(74,222,128,0.2)' }}
                         >
                           {actionLoading === `${item.id}-approve` ? '…' : 'Approve'}
                         </motion.button>
@@ -131,7 +131,7 @@ export function AuthorityQueuePage() {
                           disabled={actionLoading !== null}
                           whileHover={{ scale: 1.04 }}
                           whileTap={{ scale: 0.96 }}
-                          style={{ padding: '8px 16px', background: 'rgba(248,113,113,0.1)', color: '#f87171', borderRadius: 999, fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer', opacity: actionLoading !== null ? 0.5 : 1, border: '1px solid rgba(248,113,113,0.2)' }}
+                          style={{ padding: '8px 16px', background: 'rgba(248,113,113,0.1)', color: '#f87171', borderRadius: 999, fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer', opacity: actionLoading === null ? 1 : 0.5, border: '1px solid rgba(248,113,113,0.2)' }}
                         >
                           {actionLoading === `${item.id}-reject` ? '…' : 'Reject'}
                         </motion.button>

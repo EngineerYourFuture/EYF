@@ -377,7 +377,10 @@ export function CoreSubjectsPage() {
               const diffStyle = DIFFICULTY_COLOR[sub.difficulty];
               const isCompleted = prog === 100;
               const isInProgress = prog > 0 && prog < 100;
-              const btnLabel = isCompleted ? 'Review' : isInProgress ? 'Continue' : 'Start Learning';
+              let btnLabel: string;
+              if (isCompleted) { btnLabel = 'Review'; }
+              else if (isInProgress) { btnLabel = 'Continue'; }
+              else { btnLabel = 'Start Learning'; }
 
               return (
                 <motion.button

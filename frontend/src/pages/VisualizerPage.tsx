@@ -144,6 +144,15 @@ const STAGES: { key: Stage; label: string; icon: string; color: string; desc: st
 
 type Tab = 'trace' | 'guide';
 
+function buildGuideMessages(allTurns: Turn[]): { role: 'user' | 'assistant'; content: string }[] {
+  const msgs: { role: 'user' | 'assistant'; content: string }[] = [];
+  for (const t of allTurns) {
+    if (t.question) msgs.push({ role: 'assistant', content: JSON.stringify({ stage: t.stage, question: t.question, insight: t.insight, codeHint: t.codeHint }) });
+    if (t.userReply) msgs.push({ role: 'user', content: t.userReply });
+  }
+  return msgs;
+}
+
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export function VisualizerPage() {
@@ -207,14 +216,7 @@ export function VisualizerPage() {
     }
   };
 
-  const buildMessages = (allTurns: Turn[]) => {
-    const msgs: { role: 'user' | 'assistant'; content: string }[] = [];
-    for (const t of allTurns) {
-      if (t.question) msgs.push({ role: 'assistant', content: JSON.stringify({ stage: t.stage, question: t.question, insight: t.insight, codeHint: t.codeHint }) });
-      if (t.userReply) msgs.push({ role: 'user', content: t.userReply });
-    }
-    return msgs;
-  };
+  const buildMessages = buildGuideMessages;
 
   const callGuide = async (messages: { role: 'user' | 'assistant'; content: string }[]) => {
     if (!session?.accessToken) return null;
@@ -441,14 +443,24 @@ export function VisualizerPage() {
                 {STAGES.map((s, i) => {
                   const done = i < stageIndex;
                   const active = i === stageIndex;
+                  const stageOpacity = active ? 1 : (done ? 0.7 : 0.3);
+                  let stageBg: string;
+                  if (active) { stageBg = `${s.color}22`; }
+                  else if (done) { stageBg = 'rgba(255,255,255,0.08)'; }
+                  else { stageBg = 'rgba(255,255,255,0.04)'; }
+                  let stageBorder: string;
+                  if (active) { stageBorder = `2px solid ${s.color}`; }
+                  else if (done) { stageBorder = '2px solid rgba(255,255,255,0.15)'; }
+                  else { stageBorder = '2px solid rgba(255,255,255,0.06)'; }
+                  const stageColor = active ? s.color : (done ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.2)');
                   return (
                     <div key={s.key} style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
-                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, flexShrink: 0, opacity: active ? 1 : done ? 0.7 : 0.3, transition: 'opacity 0.3s' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, flexShrink: 0, opacity: stageOpacity, transition: 'opacity 0.3s' }}>
                         <div style={{
                           width: 32, height: 32, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.3s',
-                          background: active ? `${s.color}22` : done ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.04)',
-                          border: active ? `2px solid ${s.color}` : done ? '2px solid rgba(255,255,255,0.15)' : '2px solid rgba(255,255,255,0.06)',
-                          color: active ? s.color : done ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.2)',
+                          background: stageBg,
+                          border: stageBorder,
+                          color: stageColor,
                           boxShadow: active ? `0 0 12px ${s.color}44` : 'none',
                         }}>
                           {done ? <Icon name="check" size={14} /> : <Icon name={s.icon} size={14} />}

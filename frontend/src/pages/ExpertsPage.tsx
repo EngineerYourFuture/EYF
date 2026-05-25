@@ -45,6 +45,14 @@ function StarRating({ rating }: { readonly rating: number }) {
   );
 }
 
+function filterExperts(experts: Expert[], filterAvailable: boolean, filterSpec: string): Expert[] {
+  return experts.filter((e) => {
+    if (filterAvailable && !e.available) return false;
+    if (filterSpec !== 'all' && !e.specializations.includes(filterSpec)) return false;
+    return true;
+  });
+}
+
 export function ExpertsPage() {
   const session = getSession();
   const { fireXP } = useUser();
@@ -103,11 +111,7 @@ export function ExpertsPage() {
     }
   };
 
-  const filtered = experts.filter((e) => {
-    if (filterAvailable && !e.available) return false;
-    if (filterSpec !== 'all' && !e.specializations.includes(filterSpec)) return false;
-    return true;
-  });
+  const filtered = filterExperts(experts, filterAvailable, filterSpec);
 
   if (selected) {
     return (

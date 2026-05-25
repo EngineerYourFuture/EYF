@@ -221,6 +221,9 @@ export function CybersecurityPage() {
               {cats.map((cat) => {
                 const meta = CATEGORY_META[cat];
                 const active = activeCategory === cat;
+                const catBg = active ? (meta ? meta.glow : 'rgba(255,255,255,0.08)') : 'rgba(255,255,255,0.04)';
+                const catBorder = active ? `1px solid ${meta ? meta.color + '50' : 'rgba(255,255,255,0.25)'}` : '1px solid rgba(255,255,255,0.07)';
+                const catColor = active ? (meta ? meta.color : 'rgba(255,255,255,0.9)') : 'rgba(255,255,255,0.32)';
                 return (
                   <motion.button
                     key={cat}
@@ -231,9 +234,9 @@ export function CybersecurityPage() {
                     style={{
                       padding: '5px 14px', borderRadius: 999, fontSize: 10, fontWeight: 700,
                       letterSpacing: '0.12em', textTransform: 'uppercase', cursor: 'pointer',
-                      background: active ? (meta ? meta.glow : 'rgba(255,255,255,0.08)') : 'rgba(255,255,255,0.04)',
-                      border: active ? `1px solid ${meta ? meta.color + '50' : 'rgba(255,255,255,0.25)'}` : '1px solid rgba(255,255,255,0.07)',
-                      color: active ? (meta ? meta.color : 'rgba(255,255,255,0.9)') : 'rgba(255,255,255,0.32)',
+                      background: catBg,
+                      border: catBorder,
+                      color: catColor,
                       transition: 'all 0.15s',
                     }}
                   >
@@ -257,7 +260,7 @@ export function CybersecurityPage() {
                     whileInView={{ opacity: locked ? 0.6 : 1, y: 0, filter: 'blur(0px)' }}
                     viewport={{ once: true, margin: '-20px' }}
                     transition={{ duration: 0.4, delay: i * 0.03, ease: [0.16, 1, 0.3, 1] }}
-                    whileHover={!locked ? { background: 'rgba(255,255,255,0.06)', borderColor: `${catMeta.color}35`, y: -1 } : {}}
+                    whileHover={locked ? {} : { background: 'rgba(255,255,255,0.06)', borderColor: `${catMeta.color}35`, y: -1 }}
                   >
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center gap-2">

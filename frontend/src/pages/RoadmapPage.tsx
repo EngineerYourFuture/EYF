@@ -518,7 +518,10 @@ export function RoadmapPage() {
   ).filter(k => completedTasks.has(k)).length;
 
   const progressPct = totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0;
-  const progressBarHex = progressPct >= 80 ? '#4ade80' : progressPct >= 40 ? '#fb923c' : '#60a5fa';
+  let progressBarHex: string;
+  if (progressPct >= 80) { progressBarHex = '#4ade80'; }
+  else if (progressPct >= 40) { progressBarHex = '#fb923c'; }
+  else { progressBarHex = '#60a5fa'; }
   const trackColors = TRACK_COLOR[selectedTrack] ?? { color: '#60a5fa', glow: 'rgba(96,165,250,0.15)' };
 
   function toggleTask(trackId: string, weekIdx: number, taskIdx: number, xp: number) {
@@ -772,7 +775,7 @@ export function RoadmapPage() {
                 color: '#fff', fontSize: 13, fontWeight: 900,
               }}
             >
-              <span className="material-symbols-outlined" style={{ fontSize: 16 }}>calendar_month</span>
+              <span className="material-symbols-outlined" style={{ fontSize: 16 }}>calendar_month</span>{' '}
               Generate My Study Plan
             </motion.span>
           </Link>

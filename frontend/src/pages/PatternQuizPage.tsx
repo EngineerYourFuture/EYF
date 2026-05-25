@@ -250,6 +250,11 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
+function pickQuizQuestions(difficulty: 'all' | 'easy' | 'medium' | 'hard', count: number): QuizQuestion[] {
+  const pool = difficulty === 'all' ? ALL_QUESTIONS : ALL_QUESTIONS.filter(q => q.difficulty === difficulty);
+  return shuffle(pool).slice(0, Math.min(count, pool.length));
+}
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export function PatternQuizPage() {
@@ -267,8 +272,7 @@ export function PatternQuizPage() {
   const [timedMode, setTimedMode] = useState(false);
 
   const startQuiz = useCallback(() => {
-    const pool = difficulty === 'all' ? ALL_QUESTIONS : ALL_QUESTIONS.filter(q => q.difficulty === difficulty);
-    const picked = shuffle(pool).slice(0, Math.min(questionCount, pool.length));
+    const picked = pickQuizQuestions(difficulty, questionCount);
     setQuestions(picked);
     setCurrent(0);
     setSelected(null);
@@ -317,6 +321,10 @@ export function PatternQuizPage() {
   let resultMsg = 'Keep practicing! Pattern recognition builds with repetition.';
   if (accuracy >= 80) resultMsg = 'Excellent! Your pattern recognition is interview-ready. 🔥';
   else if (accuracy >= 60) resultMsg = 'Good progress! Review the patterns you missed below.';
+  let scoreGradient: string;
+  if (accuracy >= 80) { scoreGradient = 'linear-gradient(135deg,#4ade80,#22d3ee)'; }
+  else if (accuracy >= 60) { scoreGradient = 'linear-gradient(135deg,#facc15,#fb923c)'; }
+  else { scoreGradient = 'linear-gradient(135deg,#f87171,#fb923c)'; }
 
   return (
     <AppShell>
@@ -578,7 +586,7 @@ export function PatternQuizPage() {
               <div style={{ fontSize: '4rem', marginBottom: 16 }}>{resultEmoji}</div>
               <h2 style={{
                 fontSize: '3rem', fontWeight: 900, letterSpacing: '-0.05em', marginBottom: 4,
-                background: accuracy >= 80 ? 'linear-gradient(135deg,#4ade80,#22d3ee)' : accuracy >= 60 ? 'linear-gradient(135deg,#facc15,#fb923c)' : 'linear-gradient(135deg,#f87171,#fb923c)',
+                background: scoreGradient,
                 WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
               }}>
                 {score} / {questions.length}

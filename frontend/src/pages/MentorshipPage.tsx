@@ -83,6 +83,17 @@ const LEVEL_META: Record<StudyGroup['level'], { label: string; color: string; bg
   advanced:     { label: 'Advanced',     color: '#f87171', bg: 'rgba(248,113,113,0.1)'  },
 };
 
+function buildFallbackSession(mentor: Mentor, sessionType: string, sessionGoal: string): MySession {
+  return {
+    id: Date.now().toString(),
+    mentorName: mentor.name,
+    type: SESSION_TYPES.find((t) => t.id === sessionType)?.label ?? sessionType,
+    scheduledAt: new Date(Date.now() + 86400000).toISOString(),
+    status: 'upcoming',
+    notes: sessionGoal,
+  };
+}
+
 const SESSION_STATUS_META = {
   upcoming:  { label: 'Upcoming',  color: '#60a5fa', bg: 'rgba(96,165,250,0.1)'  },
   completed: { label: 'Completed', color: '#4ade80', bg: 'rgba(74,222,128,0.1)'  },
@@ -134,14 +145,7 @@ export function MentorshipPage() {
       });
       setMySessions((prev) => [created, ...prev]);
     } catch {
-      const fallback: MySession = {
-        id: Date.now().toString(),
-        mentorName: bookingMentor.name,
-        type: SESSION_TYPES.find((t) => t.id === sessionType)?.label ?? sessionType,
-        scheduledAt: new Date(Date.now() + 86400000).toISOString(),
-        status: 'upcoming',
-        notes: sessionGoal,
-      };
+      const fallback = buildFallbackSession(bookingMentor, sessionType, sessionGoal);
       setMySessions((prev) => [fallback, ...prev]);
     } finally {
       setBooking(false);
@@ -407,14 +411,25 @@ export function MentorshipPage() {
                         <div style={{ height: '100%', borderRadius: 999, background: g.memberCount / g.maxMembers > 0.8 ? '#f87171' : '#4ade80', width: `${(g.memberCount / g.maxMembers) * 100}%`, transition: 'width 0.5s' }} />
                       </div>
 
-                      <button
-                        onClick={() => toggleGroup(g.id)}
-                        disabled={full}
-                        style={{ width: '100%', padding: '10px 0', borderRadius: 999, fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', cursor: full ? 'not-allowed' : 'pointer', border: g.joined ? '1px solid rgba(34,197,94,0.25)' : 'none', background: g.joined ? 'rgba(34,197,94,0.1)' : full ? 'rgba(255,255,255,0.03)' : '#E82127', color: g.joined ? '#4ade80' : full ? '#52525b' : '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: (!g.joined && !full) ? '0 0 16px rgba(232,33,39,0.2)' : 'none' }}
-                      >
-                        <Icon name={g.joined ? 'check_circle' : full ? 'group_off' : 'group_add'} size={14} />
-                        {g.joined ? 'Joined · Leave' : full ? 'Group Full' : 'Join Group'}
-                      </button>
+                      {(() => {
+                        let groupBtnBg: string;
+                        if (g.joined) { groupBtnBg = 'rgba(34,197,94,0.1)'; }
+                        else if (full) { groupBtnBg = 'rgba(255,255,255,0.03)'; }
+                        else { groupBtnBg = '#E82127'; }
+                        const groupBtnColor = g.joined ? '#4ade80' : (full ? '#52525b' : '#fff');
+                        const groupBtnIcon = g.joined ? 'check_circle' : (full ? 'group_off' : 'group_add');
+                        const groupBtnLabel = g.joined ? 'Joined · Leave' : (full ? 'Group Full' : 'Join Group');
+                        return (
+                        <button
+                          onClick={() => toggleGroup(g.id)}
+                          disabled={full}
+                          style={{ width: '100%', padding: '10px 0', borderRadius: 999, fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', cursor: full ? 'not-allowed' : 'pointer', border: g.joined ? '1px solid rgba(34,197,94,0.25)' : 'none', background: groupBtnBg, color: groupBtnColor, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: (!g.joined && !full) ? '0 0 16px rgba(232,33,39,0.2)' : 'none' }}
+                        >
+                          <Icon name={groupBtnIcon} size={14} />
+                          {groupBtnLabel}
+                        </button>
+                        );
+                      })()}
                     </motion.div>
                   );
                 })}

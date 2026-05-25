@@ -405,13 +405,13 @@ export function StudyPlanPage() {
             <motion.button
               onClick={generate}
               disabled={config.interviewDate === ''}
-              whileHover={config.interviewDate !== '' ? { scale: 1.03, boxShadow: '0 0 28px rgba(232,33,39,0.4)' } : {}}
+              whileHover={config.interviewDate === '' ? {} : { scale: 1.03, boxShadow: '0 0 28px rgba(232,33,39,0.4)' }}
               whileTap={{ scale: 0.97 }}
               style={{
                 background: 'linear-gradient(135deg, #e82127, #c41a1f)', border: 'none', borderRadius: 999,
                 padding: '12px 28px', color: '#fff', fontSize: 11, fontWeight: 900, textTransform: 'uppercase',
-                letterSpacing: '0.14em', cursor: config.interviewDate !== '' ? 'pointer' : 'not-allowed',
-                opacity: config.interviewDate !== '' ? 1 : 0.4, display: 'flex', alignItems: 'center', gap: 8,
+                letterSpacing: '0.14em', cursor: config.interviewDate === '' ? 'not-allowed' : 'pointer',
+                opacity: config.interviewDate === '' ? 0.4 : 1, display: 'flex', alignItems: 'center', gap: 8,
               }}
             >
               <Icon name="auto_awesome" size={15} />

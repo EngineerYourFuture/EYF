@@ -115,11 +115,11 @@ export function LoginPage() {
 
   useEffect(() => {
     function onMove(e: MouseEvent) {
-      panelMx.set((e.clientX / window.innerWidth  - 0.5) * 60);
-      panelMy.set((e.clientY / window.innerHeight - 0.5) * 40);
+      panelMx.set((e.clientX / globalThis.innerWidth  - 0.5) * 60);
+      panelMy.set((e.clientY / globalThis.innerHeight - 0.5) * 40);
     }
-    window.addEventListener('mousemove', onMove);
-    return () => window.removeEventListener('mousemove', onMove);
+    globalThis.addEventListener('mousemove', onMove);
+    return () => globalThis.removeEventListener('mousemove', onMove);
   }, [panelMx, panelMy]);
 
   const onLogin = async (e: FormEvent<HTMLFormElement>) => {

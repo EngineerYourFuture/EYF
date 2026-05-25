@@ -163,7 +163,7 @@ export function BillingPage() {
               whileHover={{ scale: 1.03 }}
               style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 20px', borderRadius: 999, fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', cursor: 'pointer', border: 'none', background: billing === 'annual' ? 'rgba(255,255,255,0.1)' : 'transparent', color: billing === 'annual' ? '#fff' : '#71717a' }}
             >
-              Annual
+              Annual{' '}
               <span style={{ background: 'rgba(74,222,128,0.15)', color: '#4ade80', padding: '2px 8px', borderRadius: 999, fontSize: 9, fontWeight: 900 }}>SAVE 25%</span>
             </motion.button>
           </div>
@@ -191,11 +191,14 @@ export function BillingPage() {
             const price = getPrice(plan);
             const savings = getSavings(plan);
 
-            const cardStyle = isPopular
-              ? { background: 'rgba(232,33,39,0.08)', border: '2px solid rgba(232,33,39,0.35)', boxShadow: '0 0 40px rgba(232,33,39,0.12)' }
-              : isCurrent
-              ? { background: 'rgba(10,10,10,0.7)', border: '2px solid rgba(255,255,255,0.15)', backdropFilter: 'blur(16px)' }
-              : GLASS;
+            let cardStyle: React.CSSProperties;
+            if (isPopular) {
+              cardStyle = { background: 'rgba(232,33,39,0.08)', border: '2px solid rgba(232,33,39,0.35)', boxShadow: '0 0 40px rgba(232,33,39,0.12)' };
+            } else if (isCurrent) {
+              cardStyle = { background: 'rgba(10,10,10,0.7)', border: '2px solid rgba(255,255,255,0.15)', backdropFilter: 'blur(16px)' };
+            } else {
+              cardStyle = GLASS;
+            }
 
             let btnStyle: React.CSSProperties = { background: 'rgba(255,255,255,0.06)', color: 'var(--t1)', border: '1px solid rgba(255,255,255,0.12)', cursor: 'pointer' };
             if (isCurrent) btnStyle = { background: 'rgba(255,255,255,0.04)', color: 'var(--t4)', border: '1px solid rgba(255,255,255,0.06)', cursor: 'default' };
@@ -259,8 +262,8 @@ export function BillingPage() {
                 <motion.button
                   disabled={isCurrent || loadingPlan === plan.id}
                   onClick={() => handleUpgrade(plan.id)}
-                  whileHover={!isCurrent ? { scale: 1.03 } : {}}
-                  whileTap={!isCurrent ? { scale: 0.97 } : {}}
+                  whileHover={isCurrent ? {} : { scale: 1.03 }}
+                  whileTap={isCurrent ? {} : { scale: 0.97 }}
                   style={{ ...btnStyle, width: '100%', padding: '14px 0', borderRadius: 999, fontWeight: 700, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.1em', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
                 >
                   {btnLabel}

@@ -1299,7 +1299,7 @@ export function OOPPage() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, margin: '-20px' }}
                   transition={{ delay: i * 0.03, duration: 0.35 }}
-                  whileHover={!locked ? { borderColor: `${catMeta.color}22`, boxShadow: `0 8px 28px ${catMeta.glow}` } : {}}
+                  whileHover={locked ? {} : { borderColor: `${catMeta.color}22`, boxShadow: `0 8px 28px ${catMeta.glow}` }}
                   onClick={() => !locked && setSelectedPattern(p)}
                   style={{
                     ...GLASS, borderRadius: 16, padding: 20,

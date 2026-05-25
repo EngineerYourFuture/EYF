@@ -466,7 +466,12 @@ export function ProblemsPage() {
           <div className="flex items-center p-1 rounded-full" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
             {(['all', 'easy', 'medium', 'hard'] as const).map((d) => {
               const active = difficulty === d;
-              const diffColor = d === 'easy' ? '#4ade80' : d === 'medium' ? '#facc15' : d === 'hard' ? '#f87171' : 'white';
+              let diffColor: string;
+              if (d === 'easy') { diffColor = '#4ade80'; }
+              else if (d === 'medium') { diffColor = '#facc15'; }
+              else if (d === 'hard') { diffColor = '#f87171'; }
+              else { diffColor = 'white'; }
+              const diffBtnColor = active ? (d === 'all' ? 'white' : diffColor) : 'rgba(255,255,255,0.28)';
               return (
                 <button
                   key={d}
@@ -476,7 +481,7 @@ export function ProblemsPage() {
                     padding: '6px 16px',
                     borderRadius: 999,
                     background: active ? 'rgba(255,255,255,0.1)' : 'transparent',
-                    color: active ? (d === 'all' ? 'white' : diffColor) : 'rgba(255,255,255,0.28)',
+                    color: diffBtnColor,
                     boxShadow: active && d !== 'all' ? `0 0 10px ${diffColor}30` : 'none',
                     border: 'none',
                     cursor: 'pointer',
@@ -582,7 +587,14 @@ export function ProblemsPage() {
           {!loading && filtered.map((p, i) => {
             const DEFAULT_XP: Record<string, number> = { hard: 100, medium: 60 };
             const xpReward = p.xpReward ?? (DEFAULT_XP[p.difficulty] ?? 30);
-            const diffGlow = p.difficulty === 'easy' ? 'rgba(74,222,128,0.12)' : p.difficulty === 'medium' ? 'rgba(250,204,21,0.10)' : 'rgba(232,25,44,0.12)';
+            let diffGlow: string;
+            if (p.difficulty === 'easy') { diffGlow = 'rgba(74,222,128,0.12)'; }
+            else if (p.difficulty === 'medium') { diffGlow = 'rgba(250,204,21,0.10)'; }
+            else { diffGlow = 'rgba(232,25,44,0.12)'; }
+            let diffBorderColor: string;
+            if (p.difficulty === 'easy') { diffBorderColor = 'rgba(74,222,128,0.2)'; }
+            else if (p.difficulty === 'medium') { diffBorderColor = 'rgba(250,204,21,0.2)'; }
+            else { diffBorderColor = 'rgba(232,25,44,0.2)'; }
             return (
             <motion.div
               key={p.id}
@@ -599,7 +611,7 @@ export function ProblemsPage() {
                 }}
                 whileHover={{
                   background: 'rgba(16,16,16,0.9)',
-                  borderColor: p.difficulty === 'easy' ? 'rgba(74,222,128,0.2)' : p.difficulty === 'medium' ? 'rgba(250,204,21,0.2)' : 'rgba(232,25,44,0.2)',
+                  borderColor: diffBorderColor,
                   boxShadow: `0 4px 24px ${diffGlow}, 0 1px 0 rgba(255,255,255,0.04)`,
                   y: -1,
                 }}

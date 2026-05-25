@@ -34,6 +34,12 @@ function StatusMsg({ msg }: { readonly msg: { type: 'success' | 'error'; text: s
   );
 }
 
+function getPlanLabel(plan: string | undefined): string {
+  if (plan === 'elite') return '⭐ Elite';
+  if (plan === 'pro') return '✦ Pro';
+  return 'Free';
+}
+
 export function SecurityPage() {
   const session  = getSession();
   const { summary, displayName, plan, refresh } = useUser();
@@ -161,9 +167,7 @@ export function SecurityPage() {
   const xp    = summary?.xp ?? 0;
   const level = summary?.level ?? 0;
   const LEVEL_NAMES = ['Newcomer','Learner','Explorer','Builder','Practitioner','Engineer','Senior','Lead','Architect','Expert','Legend'];
-  let planLabel = 'Free';
-  if (plan === 'elite') planLabel = '⭐ Elite';
-  else if (plan === 'pro') planLabel = '✦ Pro';
+  const planLabel = getPlanLabel(plan);
 
   return (
     <AppShell>

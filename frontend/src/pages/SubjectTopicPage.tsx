@@ -4114,6 +4114,14 @@ function solve(input) {
 
 /* ------------------------------------------------------------------ */
 
+function markTopicCompleteApi(token: string, subjectId: string, topicId: string) {
+  apiRequest(`/subjects/${subjectId}/topics/${topicId}/complete`, {
+    method: 'POST',
+    token,
+    body: {},
+  }).catch(() => {});
+}
+
 export function SubjectTopicPage() {
   const { subjectId, topicId } = useParams<{ subjectId: string; topicId: string }>();
   const navigate = useNavigate();
@@ -4151,11 +4159,7 @@ export function SubjectTopicPage() {
     setCompleted(true);
     fireXP(15, `"${topic.title}" completed!`);
     if (session?.accessToken && subjectId && topicId) {
-      apiRequest(`/subjects/${subjectId}/topics/${topicId}/complete`, {
-        method: 'POST',
-        token: session.accessToken,
-        body: {},
-      }).catch(() => {});
+      markTopicCompleteApi(session.accessToken, subjectId, topicId);
     }
     if (nextTopic) {
       setTimeout(() => navigate(`/app/subjects/${subjectId}/${nextTopic.id}`), 500);

@@ -57,6 +57,14 @@ const DAILY_GOALS = [
 const TOTAL_STEPS = 5;
 const INPUT_STYLE = { width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '16px 20px', fontSize: 18, fontWeight: 700, color: 'var(--t1)', outline: 'none', boxSizing: 'border-box' } as const;
 
+function canAdvanceStep(step: number, data: OnboardingData): boolean {
+  if (step === 1) return data.name.length >= 2;
+  if (step === 2) return data.track !== '';
+  if (step === 3) return data.targetRole !== '';
+  if (step === 4) return data.targetCompanies.length > 0;
+  return true;
+}
+
 export function OnboardingPage() {
   const navigate = useNavigate();
   const session = getSession();
@@ -106,13 +114,7 @@ export function OnboardingPage() {
     }
   };
 
-  const canNext = () => {
-    if (step === 1) return data.name.length >= 2;
-    if (step === 2) return data.track !== '';
-    if (step === 3) return data.targetRole !== '';
-    if (step === 4) return data.targetCompanies.length > 0;
-    return true;
-  };
+  const canNext = () => canAdvanceStep(step, data);
 
   return (
     <div style={{ minHeight: '100vh', background: '#0a0a0a', color: 'var(--t1)', display: 'flex', flexDirection: 'column' }}>
@@ -232,7 +234,10 @@ export function OnboardingPage() {
                 <p style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--t2)', marginBottom: 12 }}>Years of experience</p>
                 <div style={{ display: 'flex', gap: 8 }}>
                   {[0, 1, 2, 3, 5, 7, 10].map((yr) => {
-                    const label = yr === 0 ? 'None' : yr === 10 ? '10+' : `${yr}yr`;
+                    let label: string;
+                    if (yr === 0) { label = 'None'; }
+                    else if (yr === 10) { label = '10+'; }
+                    else { label = `${yr}yr`; }
                     const active = data.experienceYears === yr;
                     return (
                       <button
@@ -261,13 +266,17 @@ export function OnboardingPage() {
                 {COMPANIES.map((c) => {
                   const selected = data.targetCompanies.includes(c);
                   const disabled = !selected && data.targetCompanies.length >= 4;
+                  let companyBtnColor: string;
+                  if (selected) { companyBtnColor = '#e4e4e7'; }
+                  else if (disabled) { companyBtnColor = '#3f3f46'; }
+                  else { companyBtnColor = '#a1a1aa'; }
                   return (
                     <motion.button
                       key={c}
                       type="button"
                       onClick={() => toggleCompany(c)}
-                      whileHover={!disabled ? { scale: 1.04 } : {}}
-                      style={{ padding: '10px 20px', borderRadius: 999, fontSize: 14, fontWeight: 700, cursor: disabled ? 'not-allowed' : 'pointer', border: selected ? '1px solid rgba(232,33,39,0.4)' : '1px solid rgba(255,255,255,0.08)', background: selected ? 'rgba(232,33,39,0.12)' : 'rgba(255,255,255,0.04)', color: selected ? '#e4e4e7' : disabled ? '#3f3f46' : '#a1a1aa', display: 'flex', alignItems: 'center', gap: 6 }}
+                      whileHover={disabled ? {} : { scale: 1.04 }}
+                      style={{ padding: '10px 20px', borderRadius: 999, fontSize: 14, fontWeight: 700, cursor: disabled ? 'not-allowed' : 'pointer', border: selected ? '1px solid rgba(232,33,39,0.4)' : '1px solid rgba(255,255,255,0.08)', background: selected ? 'rgba(232,33,39,0.12)' : 'rgba(255,255,255,0.04)', color: companyBtnColor, display: 'flex', alignItems: 'center', gap: 6 }}
                     >
                       {selected && <Icon name="check" size={12} />}
                       {c}
@@ -288,13 +297,17 @@ export function OnboardingPage() {
                 {FOCUS_AREAS.map((f) => {
                   const selected = data.focusAreas.includes(f.id);
                   const disabled = !selected && data.focusAreas.length >= 4;
+                  let focusBtnColor: string;
+                  if (selected) { focusBtnColor = '#e4e4e7'; }
+                  else if (disabled) { focusBtnColor = '#3f3f46'; }
+                  else { focusBtnColor = '#a1a1aa'; }
                   return (
                     <motion.button
                       key={f.id}
                       type="button"
                       onClick={() => toggleFocus(f.id)}
-                      whileHover={!disabled ? { scale: 1.02 } : {}}
-                      style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 16, borderRadius: 12, textAlign: 'left', cursor: disabled ? 'not-allowed' : 'pointer', border: selected ? '1px solid rgba(232,33,39,0.4)' : '1px solid rgba(255,255,255,0.08)', background: selected ? 'rgba(232,33,39,0.1)' : 'rgba(255,255,255,0.03)', color: selected ? '#e4e4e7' : disabled ? '#3f3f46' : '#a1a1aa' }}
+                      whileHover={disabled ? {} : { scale: 1.02 }}
+                      style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 16, borderRadius: 12, textAlign: 'left', cursor: disabled ? 'not-allowed' : 'pointer', border: selected ? '1px solid rgba(232,33,39,0.4)' : '1px solid rgba(255,255,255,0.08)', background: selected ? 'rgba(232,33,39,0.1)' : 'rgba(255,255,255,0.03)', color: focusBtnColor }}
                     >
                       <Icon name={f.icon} size={18} style={{ color: selected ? '#E82127' : '#71717a' }} />
                       <span style={{ fontSize: 14, fontWeight: 700 }}>{f.label}</span>

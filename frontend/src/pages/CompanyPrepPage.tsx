@@ -579,7 +579,7 @@ export function CompanyPrepPage() {
             <span style={{ background: 'linear-gradient(135deg, #fff 40%, #E82127)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>COMPANY PREP.</span>
           </h1>
           <p style={{ fontSize: 14, color: 'var(--t3)', display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' as const }}>
-            Tailored prep for top companies — focus topics, most-asked problems, interview rounds, tips, and CTC data.
+            Tailored prep for top companies — focus topics, most-asked problems, interview rounds, tips, and CTC data.{' '}
             <span style={{ fontSize: 10, fontWeight: 700, color: '#E82127', background: 'rgba(232,33,39,0.1)', padding: '2px 8px', borderRadius: 999, border: '1px solid rgba(232,33,39,0.2)' }}>
               FREE · Company-filtered problems are ₹2500/mo on LeetCode
             </span>

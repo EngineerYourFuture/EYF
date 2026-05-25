@@ -699,6 +699,18 @@ function renderDailyQuestionAction(
   );
 }
 
+function buildLocalApplication(newApp: { company: string; role: string; status: Application['status']; nextStep: string; nextStepDate: string }): Application {
+  return {
+    id: Date.now().toString(),
+    company: newApp.company,
+    role: newApp.role,
+    status: newApp.status,
+    appliedAt: new Date().toISOString(),
+    nextStep: newApp.nextStep || undefined,
+    nextStepDate: newApp.nextStepDate || undefined,
+  };
+}
+
 export function PlacementPage() {
   const navigate = useNavigate();
   const session = getSession();
@@ -785,7 +797,7 @@ export function PlacementPage() {
       fireXP(10, 'Application tracked!');
     } catch {
       // fallback: add locally
-      const local: Application = { id: Date.now().toString(), company: newApp.company, role: newApp.role, status: newApp.status, appliedAt: new Date().toISOString(), nextStep: newApp.nextStep || undefined, nextStepDate: newApp.nextStepDate || undefined };
+      const local = buildLocalApplication(newApp);
       setApplications((prev) => [local, ...prev]);
       setStats((s) => ({ ...s, applicationsSubmitted: s.applicationsSubmitted + 1 }));
       setNewApp({ company: '', role: '', status: 'applied', nextStep: '', nextStepDate: '' });
@@ -842,6 +854,10 @@ export function PlacementPage() {
   ));
 
   const readinessMsg = getReadinessMsg(readiness);
+  let readinessBarGradient: string;
+  if (readiness >= 70) { readinessBarGradient = 'linear-gradient(90deg,#4ade80,#34d399)'; }
+  else if (readiness >= 40) { readinessBarGradient = 'linear-gradient(90deg,#facc15,#fb923c)'; }
+  else { readinessBarGradient = 'linear-gradient(90deg,#E82127,#f87171)'; }
 
   const TABS = [
     { id: 'tracks' as const, label: 'Interview Tracks', icon: 'route' },
@@ -981,7 +997,7 @@ export function PlacementPage() {
               </div>
               <div style={{ height: 8, background: 'rgba(255,255,255,0.06)', borderRadius: 999, overflow: 'hidden', marginBottom: 8 }}>
                 <motion.div
-                  style={{ height: '100%', borderRadius: 999, background: readiness >= 70 ? 'linear-gradient(90deg,#4ade80,#34d399)' : readiness >= 40 ? 'linear-gradient(90deg,#facc15,#fb923c)' : 'linear-gradient(90deg,#E82127,#f87171)' }}
+                  style={{ height: '100%', borderRadius: 999, background: readinessBarGradient }}
                   animate={{ width: `${readiness}%` }}
                   transition={{ duration: 0.7 }}
                 />

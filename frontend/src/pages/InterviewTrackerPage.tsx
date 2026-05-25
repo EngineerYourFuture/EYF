@@ -142,7 +142,10 @@ function StageBar({ status }: { readonly status: AppStatus }) {
         const meta = STATUS_META[s];
         const active = status === s;
         const done = !['rejected', 'withdrawn'].includes(status) && currentOrder > order;
-        const barColor = done ? '#4ade80' : active ? meta.color : 'rgba(255,255,255,0.06)';
+        let barColor: string;
+        if (done) { barColor = '#4ade80'; }
+        else if (active) { barColor = meta.color; }
+        else { barColor = 'rgba(255,255,255,0.06)'; }
         return (
           <div key={s} className="flex items-center gap-1 flex-1 min-w-0">
             <div style={{ background: barColor, boxShadow: active ? `0 0 8px ${meta.glow}` : 'none' }}
@@ -615,7 +618,7 @@ export function InterviewTrackerPage() {
                     border: isActive ? `1px solid ${meta?.color ?? 'rgba(255,255,255,0.3)'}40` : '1px solid rgba(255,255,255,0.06)',
                     boxShadow: isActive && meta ? `0 0 10px ${meta.glow}` : 'none',
                   }}>
-                  {s === 'all' ? 'All' : STATUS_META[s as AppStatus].label}
+                  {s === 'all' ? 'All' : STATUS_META[s].label}
                 </button>
               );
             })}

@@ -257,6 +257,20 @@ function PreviewModern({ data }: { readonly data: ResumeData }) {
   );
 }
 
+function updateExpBulletAt(experience: ResumeData['experience'], expIdx: number, bulletIdx: number, value: string): ResumeData['experience'] {
+  const updated = [...experience];
+  const newBullets = [...updated[expIdx].bullets];
+  newBullets[bulletIdx] = value;
+  updated[expIdx] = { ...updated[expIdx], bullets: newBullets };
+  return updated;
+}
+
+function removeExpBulletAt(experience: ResumeData['experience'], expIdx: number, bulletIdx: number): ResumeData['experience'] {
+  const updated = [...experience];
+  updated[expIdx] = { ...updated[expIdx], bullets: updated[expIdx].bullets.filter((_, k) => k !== bulletIdx) };
+  return updated;
+}
+
 export function ResumePage() {
   const { fireXP, displayName } = useUser();
   const session = getSession();
@@ -363,22 +377,23 @@ export function ResumePage() {
   }
 
   function updateExpBullet(expIdx: number, bulletIdx: number, value: string) {
-    const updated = [...data.experience];
-    const newBullets = [...updated[expIdx].bullets];
-    newBullets[bulletIdx] = value;
-    updated[expIdx] = { ...updated[expIdx], bullets: newBullets };
-    update('experience', updated);
+    update('experience', updateExpBulletAt(data.experience, expIdx, bulletIdx, value));
   }
 
   function removeExpBullet(expIdx: number, bulletIdx: number) {
-    const updated = [...data.experience];
-    updated[expIdx] = { ...updated[expIdx], bullets: updated[expIdx].bullets.filter((_, k) => k !== bulletIdx) };
-    update('experience', updated);
+    update('experience', removeExpBulletAt(data.experience, expIdx, bulletIdx));
   }
 
-  const atsHex = atsScore >= 80 ? '#4ade80' : atsScore >= 50 ? '#facc15' : '#f87171';
-  const atsBgRgba = atsScore >= 80 ? 'rgba(74,222,128,0.1)' : atsScore >= 50 ? 'rgba(250,204,21,0.1)' : 'rgba(248,113,113,0.1)';
-  const atsBorderColor = atsScore >= 80 ? 'rgba(74,222,128,0.4)' : atsScore >= 50 ? 'rgba(250,204,21,0.4)' : 'rgba(248,113,113,0.4)';
+  let atsHex: string;
+  let atsBgRgba: string;
+  let atsBorderColor: string;
+  if (atsScore >= 80) {
+    atsHex = '#4ade80'; atsBgRgba = 'rgba(74,222,128,0.1)'; atsBorderColor = 'rgba(74,222,128,0.4)';
+  } else if (atsScore >= 50) {
+    atsHex = '#facc15'; atsBgRgba = 'rgba(250,204,21,0.1)'; atsBorderColor = 'rgba(250,204,21,0.4)';
+  } else {
+    atsHex = '#f87171'; atsBgRgba = 'rgba(248,113,113,0.1)'; atsBorderColor = 'rgba(248,113,113,0.4)';
+  }
 
   const SECTIONS: { key: Section; label: string; icon: string }[] = [
     { key: 'personal',       label: 'Personal',       icon: 'person' },

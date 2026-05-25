@@ -106,6 +106,20 @@ function formatTime(seconds: number) {
   return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 }
 
+function buildSubmitPayload(sessionId: string, selectedType: InterviewType, answers: Record<string, string>) {
+  return {
+    sessionId,
+    type: selectedType,
+    answers: Object.entries(answers).map(([qId, text]) => ({ questionId: qId, answer: text })),
+  };
+}
+
+function calcInterviewXP(selectedType: InterviewType, answers: Record<string, string>): number {
+  const answered = Object.values(answers).filter((a) => a.trim().length > 20).length;
+  const XP_PER_ANSWER: Record<string, number> = { system_design: 20, dsa: 15 };
+  return Math.round(answered * (XP_PER_ANSWER[selectedType] ?? 10));
+}
+
 export function MockInterviewPage() {
   const session = getSession();
   const { fireXP } = useUser();
@@ -171,17 +185,10 @@ export function MockInterviewPage() {
         await apiRequest('/mock-interview/sessions', {
           method: 'POST',
           token: session.accessToken,
-          body: {
-            sessionId,
-            type: selectedType,
-            answers: Object.entries(answers).map(([qId, text]) => ({ questionId: qId, answer: text })),
-            selfRating: feedback,
-          },
+          body: { ...buildSubmitPayload(sessionId, selectedType, answers), selfRating: feedback },
         }).catch(() => {});
       }
-      const answered = Object.values(answers).filter((a) => a.trim().length > 20).length;
-      const XP_PER_ANSWER: Record<string, number> = { system_design: 20, dsa: 15 };
-      const xp = Math.round(answered * (XP_PER_ANSWER[selectedType] ?? 10));
+      const xp = calcInterviewXP(selectedType, answers);
       fireXP(xp, `Mock ${TYPE_META[selectedType].label} interview complete!`);
     } finally {
       setSubmitting(false);
@@ -191,7 +198,10 @@ export function MockInterviewPage() {
   const currentQ = questions[qIdx];
   const answeredCount = Object.values(answers).filter((a) => a.trim().length > 20).length;
   const timerPct = totalTime > 0 ? (timeLeft / totalTime) * 100 : 0;
-  const timerHex = timerPct > 50 ? '#4ade80' : timerPct > 25 ? '#facc15' : '#f87171';
+  let timerHex: string;
+  if (timerPct > 50) { timerHex = '#4ade80'; }
+  else if (timerPct > 25) { timerHex = '#facc15'; }
+  else { timerHex = '#f87171'; }
   const XP_PER_ANS: Record<string, number> = { system_design: 20, dsa: 15 };
 
   const categoryChip = (cat: string) => {
@@ -396,7 +406,7 @@ export function MockInterviewPage() {
               type="button"
               onClick={submitSession}
               disabled={submitting}
-              whileHover={!submitting ? { scale: 1.03, boxShadow: '0 0 24px rgba(232,33,39,0.35)' } : {}}
+              whileHover={submitting ? {} : { scale: 1.03, boxShadow: '0 0 24px rgba(232,33,39,0.35)' }}
               whileTap={{ scale: 0.97 }}
               style={{
                 background: 'linear-gradient(135deg, #e82127, #c41a1f)', border: 'none', borderRadius: 999, padding: '12px 28px',

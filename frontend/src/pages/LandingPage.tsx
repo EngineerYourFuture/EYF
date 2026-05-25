@@ -27,8 +27,8 @@ function CursorGlow() {
   const sy = useSpring(y, { stiffness: 90, damping: 22 });
   useEffect(() => {
     const fn = (e: MouseEvent) => { x.set(e.clientX - 350); y.set(e.clientY - 350); };
-    window.addEventListener('mousemove', fn);
-    return () => window.removeEventListener('mousemove', fn);
+    globalThis.addEventListener('mousemove', fn);
+    return () => globalThis.removeEventListener('mousemove', fn);
   }, [x, y]);
   return (
     <motion.div
@@ -269,11 +269,11 @@ function HeroSection() {
 
   useEffect(() => {
     const fn = (e: MouseEvent) => {
-      mx.set((e.clientX / window.innerWidth - 0.5));
-      my.set((e.clientY / window.innerHeight - 0.5));
+      mx.set((e.clientX / globalThis.innerWidth - 0.5));
+      my.set((e.clientY / globalThis.innerHeight - 0.5));
     };
-    window.addEventListener('mousemove', fn);
-    return () => window.removeEventListener('mousemove', fn);
+    globalThis.addEventListener('mousemove', fn);
+    return () => globalThis.removeEventListener('mousemove', fn);
   }, [mx, my]);
 
   return (
@@ -316,7 +316,7 @@ function HeroSection() {
               border: '1px solid rgba(232,25,44,0.22)',
               color: '#FF4D5E', fontSize: 12, fontWeight: 600, letterSpacing: '0.01em',
             }}>
-              <span className="anim-pulse" style={{ width: 6, height: 6, borderRadius: '50%', background: '#E82127', display: 'inline-block' }} />
+              <span className="anim-pulse" style={{ width: 6, height: 6, borderRadius: '50%', background: '#E82127', display: 'inline-block' }} />{' '}
               Open beta · 12,000+ students enrolled
             </span>
           </motion.div>
@@ -353,7 +353,7 @@ function HeroSection() {
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45, delay: 0.24 }}
             style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 28 }}>
             <Link to="/login?tab=register" className="btn btn-primary btn-xl">
-              Start for free
+              Start for free{' '}
               <span className="material-symbols-rounded text-base">arrow_forward</span>
             </Link>
             <a href="#showcase" className="btn btn-xl"
@@ -607,16 +607,16 @@ function FeatureShowcase() {
   const { scrollYProgress } = useScroll({ target: containerRef, offset: ['start start', 'end end'] });
 
   // Feature 1: visible 0 → 0.36
-  const f1o = useTransform(scrollYProgress, [0, 0.04, 0.30, 0.38], [0, 1, 1, 0]);
-  const f1y = useTransform(scrollYProgress, [0, 0.04, 0.30, 0.38], [50, 0, 0, -60]);
-  const f1s = useTransform(scrollYProgress, [0.30, 0.38], [1, 0.93]);
+  const f1o = useTransform(scrollYProgress, [0, 0.04, 0.3, 0.38], [0, 1, 1, 0]);
+  const f1y = useTransform(scrollYProgress, [0, 0.04, 0.3, 0.38], [50, 0, 0, -60]);
+  const f1s = useTransform(scrollYProgress, [0.3, 0.38], [1, 0.93]);
   const f1ry = useTransform(scrollYProgress, [0, 0.04], [-6, 0]);
 
   // Feature 2: visible 0.33 → 0.70
-  const f2o = useTransform(scrollYProgress, [0.32, 0.40, 0.64, 0.72], [0, 1, 1, 0]);
-  const f2y = useTransform(scrollYProgress, [0.32, 0.40, 0.64, 0.72], [60, 0, 0, -60]);
+  const f2o = useTransform(scrollYProgress, [0.32, 0.4, 0.64, 0.72], [0, 1, 1, 0]);
+  const f2y = useTransform(scrollYProgress, [0.32, 0.4, 0.64, 0.72], [60, 0, 0, -60]);
   const f2s = useTransform(scrollYProgress, [0.64, 0.72], [1, 0.93]);
-  const f2ry = useTransform(scrollYProgress, [0.32, 0.40], [-6, 0]);
+  const f2ry = useTransform(scrollYProgress, [0.32, 0.4], [-6, 0]);
 
   // Feature 3: visible 0.67 → 1.0
   const f3o = useTransform(scrollYProgress, [0.66, 0.74, 1, 1], [0, 1, 1, 1]);
@@ -652,7 +652,7 @@ function FeatureShowcase() {
         {/* Progress dots */}
         <div style={{ position: 'absolute', top: 32, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 8, zIndex: 10 }}>
           {dots.map((dot, i) => (
-            <motion.div key={i} style={{
+            <motion.div key={`dot-${i}`} style={{
               width: 6, height: 6, borderRadius: '50%',
               background: '#E82127',
               opacity: dot,
@@ -664,7 +664,7 @@ function FeatureShowcase() {
         {/* All 3 feature panels stacked, each absolutely positioned */}
         {FEATURES.map((feat, i) => (
           <motion.div
-            key={i}
+            key={feat.eyebrow}
             style={{
               opacity: motions[i].opacity,
               y: motions[i].y,
@@ -782,7 +782,7 @@ function CurriculumSection() {
             </div>
             <Link to="/login?tab=register" className="btn btn-sm hidden md:flex"
               style={{ background: 'rgba(255,255,255,0.04)', color: D.t2, border: `1px solid ${D.border}` }}>
-              View all modules
+              View all modules{' '}
               <span className="material-symbols-rounded text-sm">arrow_forward</span>
             </Link>
           </div>
@@ -949,7 +949,7 @@ function CTASection() {
           <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
             <Link to="/login?tab=register" className="btn btn-primary btn-xl"
               style={{ boxShadow: '0 8px 32px rgba(232,25,44,0.4)' }}>
-              Create free account
+              Create free account{' '}
               <span className="material-symbols-rounded text-base">arrow_forward</span>
             </Link>
             <Link to="/login" className="btn btn-xl"

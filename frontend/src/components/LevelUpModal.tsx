@@ -58,14 +58,16 @@ export function LevelUpModal({ level, onClose }: Props) {
 
           {/* Particle ring */}
           <div style={{ position: 'absolute', top: '50%', left: '50%', width: 0, height: 0 }}>
-            {PARTICLES.map((p, i) => (
+            {PARTICLES.map((p, i) => {
+              const particleColor = i % 3 === 0 ? '#E82127' : (i % 3 === 1 ? '#FF8C00' : '#FFD700');
+              return (
               <motion.div
-                key={i}
+                key={p.angle}
                 style={{
                   position: 'absolute',
                   width: p.size, height: p.size,
                   borderRadius: '50%',
-                  background: i % 3 === 0 ? '#E82127' : i % 3 === 1 ? '#FF8C00' : '#FFD700',
+                  background: particleColor,
                   boxShadow: `0 0 6px currentColor`,
                 }}
                 initial={{ x: 0, y: 0, opacity: 1, scale: 0 }}
@@ -77,7 +79,8 @@ export function LevelUpModal({ level, onClose }: Props) {
                 }}
                 transition={{ duration: 1.2, delay: p.delay, ease: 'easeOut' }}
               />
-            ))}
+              );
+            })}
           </div>
 
           {/* Stars above */}
