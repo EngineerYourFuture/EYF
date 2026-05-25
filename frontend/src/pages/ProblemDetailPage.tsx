@@ -586,7 +586,7 @@ export function ProblemDetailPage() {
   const detectedPattern = failedVerdict ? detectCodePattern(code) : null;
 
   return (
-    <div className="dark min-h-screen bg-[#0e0e0e] text-on-surface flex flex-col" style={{ fontFamily: 'Inter, sans-serif' }}>
+    <div className="dark min-h-screen bg-[#0e0e0e] flex flex-col" style={{ fontFamily: 'Inter, sans-serif', color: '#e4e4e7' }}>
       {/* Top bar */}
       <header className="fixed top-0 left-0 right-0 z-50 h-14 bg-[#111]/90 backdrop-blur-xl border-b border-white/5 flex items-center justify-between px-6 gap-4">
         <div className="flex items-center gap-3 min-w-0">

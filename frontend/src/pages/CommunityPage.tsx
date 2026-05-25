@@ -94,13 +94,13 @@ const STATIC_SQUADS: Squad[] = [
 ];
 
 const CATEGORIES = ['general', 'dsa', 'oop', 'security', 'system-design', 'career'] as const;
-const CAT_META: Record<string, { icon: string; color: string; bg: string }> = {
-  general:       { icon: 'forum', color: 'text-zinc-400', bg: 'bg-zinc-500/10' },
-  dsa:           { icon: 'code', color: 'text-blue-400', bg: 'bg-blue-500/10' },
-  oop:           { icon: 'account_tree', color: 'text-purple-400', bg: 'bg-purple-500/10' },
-  security:      { icon: 'shield', color: 'text-red-400', bg: 'bg-red-500/10' },
-  'system-design':{ icon: 'architecture', color: 'text-green-400', bg: 'bg-green-500/10' },
-  career:        { icon: 'work', color: 'text-yellow-400', bg: 'bg-yellow-500/10' },
+const CAT_META: Record<string, { icon: string; color: string; colorHex: string; bg: string }> = {
+  general:        { icon: 'forum',         color: 'text-zinc-400',   colorHex: '#a1a1aa', bg: 'rgba(113,113,122,0.1)' },
+  dsa:            { icon: 'code',          color: 'text-blue-400',   colorHex: '#60a5fa', bg: 'rgba(96,165,250,0.1)'  },
+  oop:            { icon: 'account_tree',  color: 'text-purple-400', colorHex: '#c084fc', bg: 'rgba(192,132,252,0.1)' },
+  security:       { icon: 'shield',        color: 'text-red-400',    colorHex: '#f87171', bg: 'rgba(248,113,113,0.1)' },
+  'system-design':{ icon: 'architecture', color: 'text-green-400',  colorHex: '#4ade80', bg: 'rgba(74,222,128,0.1)'  },
+  career:         { icon: 'work',          color: 'text-yellow-400', colorHex: '#facc15', bg: 'rgba(250,204,21,0.1)'  },
 };
 
 const STATIC_POSTS: Post[] = [
@@ -239,26 +239,26 @@ function PostDetailView({ selected, newReply, setNewReply, posting, onVote, onSu
         <button onClick={onBack} className="flex items-center gap-2 text-zinc-500 hover:text-zinc-300 text-sm mb-6 transition-colors">
           <Icon name="arrow_back" size={16} />Back to community
         </button>
-        <div className="bg-surface-container rounded-2xl p-8 mb-4">
+        <div style={{ background: 'rgba(10,10,10,0.7)', border: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(16px)', borderRadius: 16, padding: 32, marginBottom: 16 }}>
           {selected.pinned && (
             <div className="flex items-center gap-1 text-[10px] font-bold text-yellow-400 mb-3">
               <Icon name="push_pin" size={12} />Pinned
             </div>
           )}
           <div className="flex items-center gap-2 mb-4">
-            <div className={`w-7 h-7 ${catMeta.bg} rounded-lg flex items-center justify-center`}>
-              <Icon name={catMeta.icon} className={catMeta.color} size={14} />
+            <div style={{ width: 28, height: 28, background: catMeta.bg, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Icon name={catMeta.icon} style={{ color: catMeta.colorHex }} size={14} />
             </div>
-            <span className={`text-[10px] font-bold uppercase tracking-widest ${catMeta.color}`}>{selected.category}</span>
+            <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: catMeta.colorHex }}>{selected.category}</span>
           </div>
           <h1 className="text-2xl font-bold mb-3">{selected.title}</h1>
-          <p className="text-on-surface-variant leading-relaxed mb-6">{selected.body}</p>
+          <p className="leading-relaxed mb-6" style={{ color: '#a1a1aa' }}>{selected.body}</p>
           <div className="flex items-center justify-between flex-wrap gap-3">
             <div className="flex items-center gap-3 text-xs text-zinc-500">
               <span className="font-bold text-zinc-400">{selected.author}</span>
               <span>{timeAgo(selected.createdAt)}</span>
               {selected.tags.map((t) => (
-                <span key={t} className="bg-surface-container-high px-2 py-0.5 rounded-full">{t}</span>
+                <span key={t} style={{ background: 'rgba(255,255,255,0.06)', padding: '2px 8px', borderRadius: 999, fontSize: 10 }}>{t}</span>
               ))}
             </div>
             <div className="flex items-center gap-2">
@@ -277,8 +277,8 @@ function PostDetailView({ selected, newReply, setNewReply, posting, onVote, onSu
             <p className="text-sm text-zinc-500 text-center py-6">No replies yet. Be the first to respond.</p>
           ) : (
             selected.replies.map((r) => (
-              <div key={r.id} className="bg-surface-container rounded-xl p-5 ml-4 border-l-2 border-outline-variant/20">
-                <p className="text-sm text-on-surface leading-relaxed mb-3">{r.body}</p>
+              <div key={r.id} style={{ background: 'rgba(10,10,10,0.7)', border: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(16px)', borderRadius: 12, padding: 20, marginLeft: 16, borderLeft: '2px solid rgba(255,255,255,0.1)' }}>
+                <p className="text-sm leading-relaxed mb-3" style={{ color: '#e4e4e7' }}>{r.body}</p>
                 <div className="flex items-center justify-between">
                   <div className="text-xs text-zinc-500">
                     <span className="font-bold text-zinc-400 mr-2">{r.author}</span>{timeAgo(r.createdAt)}
@@ -292,18 +292,18 @@ function PostDetailView({ selected, newReply, setNewReply, posting, onVote, onSu
             ))
           )}
         </div>
-        <div className="bg-surface-container rounded-xl p-5">
+        <div style={{ background: 'rgba(10,10,10,0.7)', border: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(16px)', borderRadius: 12, padding: 20 }}>
           <h3 className="text-sm font-bold mb-3">Write a Reply</h3>
           <textarea
             value={newReply}
             onChange={(e) => setNewReply(e.target.value)}
             placeholder="Share your thoughts..."
             rows={4}
-            className="w-full bg-surface-container-highest border border-outline-variant/20 rounded-lg p-3 text-sm focus:outline-none focus:border-primary-container/40 resize-none"
+            style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, padding: 12, fontSize: 14, color: '#e4e4e7', outline: 'none', resize: 'none', boxSizing: 'border-box' }}
           />
           <div className="flex justify-end mt-3">
             <button onClick={onSubmitReply} disabled={posting || !newReply}
-              className="bg-primary-container text-white font-bold py-2 px-5 rounded-full text-sm hover:brightness-110 transition-all disabled:opacity-40 flex items-center gap-2">
+              style={{ background: '#E82127', color: '#fff', fontWeight: 700, padding: '8px 20px', borderRadius: 999, fontSize: 14, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, opacity: posting || !newReply ? 0.4 : 1 }}>
               {posting ? <Icon name="hourglass_empty" size={14} /> : <Icon name="send" size={14} />}
               Reply
             </button>
@@ -676,10 +676,10 @@ export function CommunityPage() {
         <div className="mb-8 flex items-start justify-between flex-wrap gap-4">
           <div>
             <h1 className="text-4xl font-black tracking-tighter mb-1">Community</h1>
-            <p className="text-on-surface-variant">Discuss, ask questions, and share knowledge with other engineers</p>
+            <p style={{ color: '#a1a1aa' }}>Discuss, ask questions, and share knowledge with other engineers</p>
           </div>
           <button onClick={() => setShowCompose(!showCompose)}
-            className="bg-primary-container text-white font-bold py-3 px-6 rounded-full hover:brightness-110 transition-all flex items-center gap-2 text-sm">
+            style={{ background: '#E82127', color: '#fff', fontWeight: 700, padding: '12px 24px', borderRadius: 999, fontSize: 14, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
             <Icon name="edit" size={16} />New Post
           </button>
         </div>
@@ -731,7 +731,7 @@ export function CommunityPage() {
         {activeView === 'community' && <>
         {/* Compose */}
         {showCompose && (
-          <div className="bg-surface-container rounded-2xl p-6 mb-8 border border-primary-container/20">
+          <div style={{ background: 'rgba(10,10,10,0.7)', border: '1px solid rgba(232,33,39,0.2)', backdropFilter: 'blur(16px)', borderRadius: 16, padding: 24, marginBottom: 32 }}>
             <h3 className="font-bold mb-4">Create a Post</h3>
             <div className="space-y-3">
               <input
@@ -739,20 +739,20 @@ export function CommunityPage() {
                 value={newPost.title}
                 onChange={(e) => setNewPost((p) => ({ ...p, title: e.target.value }))}
                 placeholder="Post title..."
-                className="w-full bg-surface-container-highest border border-outline-variant/20 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-primary-container/40"
+                style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, padding: '10px 16px', fontSize: 14, color: '#e4e4e7', outline: 'none', boxSizing: 'border-box' }}
               />
               <textarea
                 value={newPost.body}
                 onChange={(e) => setNewPost((p) => ({ ...p, body: e.target.value }))}
                 placeholder="What's on your mind? Share a question, insight, or experience..."
                 rows={5}
-                className="w-full bg-surface-container-highest border border-outline-variant/20 rounded-lg p-3 text-sm focus:outline-none focus:border-primary-container/40 resize-none"
+                style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, padding: 12, fontSize: 14, color: '#e4e4e7', outline: 'none', resize: 'none', boxSizing: 'border-box' }}
               />
               <div className="flex gap-3">
                 <select
                   value={newPost.category}
                   onChange={(e) => setNewPost((p) => ({ ...p, category: e.target.value }))}
-                  className="flex-1 bg-surface-container-highest border border-outline-variant/20 rounded-lg px-4 py-2.5 text-sm focus:outline-none"
+                  style={{ flex: 1, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, padding: '10px 16px', fontSize: 14, color: '#e4e4e7', outline: 'none' }}
                 >
                   {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
                 </select>
@@ -761,13 +761,13 @@ export function CommunityPage() {
                   value={newPost.tags}
                   onChange={(e) => setNewPost((p) => ({ ...p, tags: e.target.value }))}
                   placeholder="Tags (comma-separated)"
-                  className="flex-1 bg-surface-container-highest border border-outline-variant/20 rounded-lg px-4 py-2.5 text-sm focus:outline-none"
+                  style={{ flex: 1, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, padding: '10px 16px', fontSize: 14, color: '#e4e4e7', outline: 'none', boxSizing: 'border-box' }}
                 />
               </div>
               <div className="flex justify-end gap-3">
                 <button onClick={() => setShowCompose(false)} className="text-sm text-zinc-500 hover:text-zinc-300 px-4 py-2 rounded-full transition-colors">Cancel</button>
                 <button onClick={submitPost} disabled={posting || !newPost.title || !newPost.body}
-                  className="bg-primary-container text-white font-bold py-2 px-5 rounded-full text-sm hover:brightness-110 transition-all disabled:opacity-40">
+                  style={{ background: '#E82127', color: '#fff', fontWeight: 700, padding: '8px 20px', borderRadius: 999, fontSize: 14, border: 'none', cursor: 'pointer', opacity: posting || !newPost.title || !newPost.body ? 0.4 : 1 }}>
                   {posting ? 'Posting...' : 'Post'}
                 </button>
               </div>
@@ -800,7 +800,7 @@ export function CommunityPage() {
               <button
                 key={post.id}
                 type="button"
-                className="w-full text-left bg-surface-container rounded-xl p-6 hover:bg-surface-container-high transition-all cursor-pointer group"
+                style={{ width: '100%', textAlign: 'left', background: 'rgba(10,10,10,0.7)', border: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(16px)', borderRadius: 12, padding: 24, cursor: 'pointer' }}
                 onClick={() => openPost(post.id)}
               >
                 <div className="flex items-start gap-4">
@@ -823,11 +823,11 @@ export function CommunityPage() {
                         <span className="text-[10px] font-bold uppercase tracking-widest">{post.category.replace('-', ' ')}</span>
                       </div>
                       {post.tags.map((t) => (
-                        <span key={t} className="text-[10px] bg-surface-container-highest px-2 py-0.5 rounded-full text-zinc-500">{t}</span>
+                        <span key={t} style={{ fontSize: 10, background: 'rgba(255,255,255,0.04)', padding: '2px 8px', borderRadius: 999, color: '#71717a' }}>{t}</span>
                       ))}
                     </div>
-                    {post.title && <h3 className="text-base font-bold mb-1 group-hover:text-primary-container transition-colors">{post.title}</h3>}
-                    <p className="text-sm text-on-surface-variant line-clamp-2 mb-3">{post.body}</p>
+                    {post.title && <h3 className="text-base font-bold mb-1">{post.title}</h3>}
+                    <p className="text-sm line-clamp-2 mb-3" style={{ color: '#a1a1aa' }}>{post.body}</p>
                     <div className="flex items-center gap-3 text-xs text-zinc-500">
                       <span className="font-bold text-zinc-400">{post.author}</span>
                       <span>{timeAgo(post.createdAt)}</span>
@@ -844,7 +844,7 @@ export function CommunityPage() {
           {filtered.length === 0 && (
             <div className="text-center py-16">
               <Icon name="forum" className="text-zinc-700 mb-3" size={40} />
-              <p className="text-on-surface-variant">No posts in this category yet. Start the conversation!</p>
+              <p style={{ color: '#a1a1aa' }}>No posts in this category yet. Start the conversation!</p>
             </div>
           )}
         </div>
