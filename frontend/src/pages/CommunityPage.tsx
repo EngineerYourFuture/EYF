@@ -251,8 +251,8 @@ function PostDetailView({ selected, newReply, setNewReply, posting, onVote, onSu
             </div>
             <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: catMeta.colorHex }}>{selected.category}</span>
           </div>
-          <h1 className="text-2xl font-bold mb-3">{selected.title}</h1>
-          <p className="leading-relaxed mb-6" style={{ color: 'var(--t2)' }}>{selected.body}</p>
+          <h1 className="text-2xl font-bold mb-3" style={{ overflowWrap: 'break-word', wordBreak: 'break-word' }}>{selected.title}</h1>
+          <p className="leading-relaxed mb-6" style={{ color: 'var(--t2)', overflowWrap: 'break-word', wordBreak: 'break-word' }}>{selected.body}</p>
           <div className="flex items-center justify-between flex-wrap gap-3">
             <div className="flex items-center gap-3 text-xs text-zinc-500">
               <span className="font-bold text-zinc-400">{selected.author}</span>
@@ -278,7 +278,7 @@ function PostDetailView({ selected, newReply, setNewReply, posting, onVote, onSu
           ) : (
             selected.replies.map((r) => (
               <div key={r.id} style={{ background: 'rgba(10,10,10,0.7)', border: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(16px)', borderRadius: 12, padding: 20, marginLeft: 16, borderLeft: '2px solid rgba(255,255,255,0.1)' }}>
-                <p className="text-sm leading-relaxed mb-3" style={{ color: 'var(--t1)' }}>{r.body}</p>
+                <p className="text-sm leading-relaxed mb-3" style={{ color: 'var(--t1)', overflowWrap: 'break-word', wordBreak: 'break-word' }}>{r.body}</p>
                 <div className="flex items-center justify-between">
                   <div className="text-xs text-zinc-500">
                     <span className="font-bold text-zinc-400 mr-2">{r.author}</span>{timeAgo(r.createdAt)}

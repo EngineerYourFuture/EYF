@@ -71,6 +71,12 @@ body {
 img, svg { display: block; max-width: 100%; }
 button   { cursor: pointer; font: inherit; }
 
+/* Prevent long words/URLs from breaking layouts */
+p, li, h1, h2, h3, h4, h5, h6, span, td, th {
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
 /* ── Scrollbar ─────────────────────────────────────────────────────────────── */
 ::-webkit-scrollbar          { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track    { background: transparent; }

@@ -738,7 +738,7 @@ export function RoadmapPage() {
                               </div>
 
                               <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-                                <span style={{ display: 'none', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', padding: '2px 7px', borderRadius: 999, background: meta.bg, color: meta.color }} className="sm-chip">
+                                <span className="hidden sm:inline-flex" style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', padding: '2px 7px', borderRadius: 999, background: meta.bg, color: meta.color }}>
                                   {meta.label}
                                 </span>
                                 <span style={{ fontSize: 12, fontWeight: 700, color: '#facc15' }}>+{task.xp}</span>

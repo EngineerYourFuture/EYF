@@ -539,6 +539,10 @@ export function ProblemsPage() {
         {/* Separator */}
         <div style={{ height: 1, background: 'var(--border)', marginBottom: 24 }} />
 
+        {/* Table — horizontally scrollable on small screens */}
+        <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+        <div style={{ minWidth: 640 }}>
+
         {/* Table header */}
         <div
           className="grid grid-cols-12 gap-4 px-6 py-3 font-['Inter'] uppercase tracking-widest text-[10px] font-black mb-1 rounded-xl"
@@ -655,6 +659,8 @@ export function ProblemsPage() {
             );
           })}
         </div>
+        </div>{/* minWidth wrapper */}
+        </div>{/* overflow-x wrapper */}
       </div>
     </AppShell>
   );

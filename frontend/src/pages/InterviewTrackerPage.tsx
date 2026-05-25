@@ -360,7 +360,7 @@ export function InterviewTrackerPage() {
                         <p style={{ fontSize: '0.625rem', color: 'rgba(255,255,255,0.25)', marginBottom: 4 }}>
                           {new Date(round.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                         </p>
-                        {round.notes && <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.45)', lineHeight: 1.6 }}>{round.notes}</p>}
+                        {round.notes && <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.45)', lineHeight: 1.6, overflowWrap: 'break-word' }}>{round.notes}</p>}
                       </div>
                     </motion.div>
                   );
@@ -382,7 +382,7 @@ export function InterviewTrackerPage() {
                       <div key={id}>
                         <label htmlFor={id} style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.1em', color: 'rgba(255,255,255,0.25)', display: 'block', marginBottom: 4 }}>{label.toUpperCase()}</label>
                         <select id={id} value={val} onChange={(e) => cb(e.target.value)}
-                          style={{ width: '100%', background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '8px 12px', fontSize: '0.875rem', color: '#fff', outline: 'none' }}>
+                          style={{ width: '100%', background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '8px 12px', fontSize: '0.875rem', color: '#fff', outline: 'none', boxSizing: 'border-box' }}>
                           {opts?.map((t) => <option key={t}>{t}</option>)}
                         </select>
                       </div>
@@ -390,12 +390,12 @@ export function InterviewTrackerPage() {
                     <div>
                       <label htmlFor="round-date" style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.1em', color: 'rgba(255,255,255,0.25)', display: 'block', marginBottom: 4 }}>DATE</label>
                       <input id="round-date" type="date" value={roundForm.date} onChange={(e) => setRoundForm((f) => ({ ...f, date: e.target.value }))}
-                        style={{ width: '100%', background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '8px 12px', fontSize: '0.875rem', color: '#fff', outline: 'none' }} />
+                        style={{ width: '100%', background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '8px 12px', fontSize: '0.875rem', color: '#fff', outline: 'none', boxSizing: 'border-box' }} />
                     </div>
                     <div>
                       <label htmlFor="round-result" style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.1em', color: 'rgba(255,255,255,0.25)', display: 'block', marginBottom: 4 }}>RESULT</label>
                       <select id="round-result" value={roundForm.result} onChange={(e) => setRoundForm((f) => ({ ...f, result: e.target.value as Round['result'] }))}
-                        style={{ width: '100%', background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '8px 12px', fontSize: '0.875rem', color: '#fff', outline: 'none' }}>
+                        style={{ width: '100%', background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '8px 12px', fontSize: '0.875rem', color: '#fff', outline: 'none', boxSizing: 'border-box' }}>
                         <option value="pending">Pending</option>
                         <option value="pass">Pass</option>
                         <option value="fail">Fail</option>
@@ -404,7 +404,7 @@ export function InterviewTrackerPage() {
                     <div>
                       <label htmlFor="round-difficulty" style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.1em', color: 'rgba(255,255,255,0.25)', display: 'block', marginBottom: 4 }}>DIFFICULTY</label>
                       <select id="round-difficulty" value={roundForm.difficulty} onChange={(e) => setRoundForm((f) => ({ ...f, difficulty: e.target.value as Difficulty }))}
-                        style={{ width: '100%', background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '8px 12px', fontSize: '0.875rem', color: '#fff', outline: 'none' }}>
+                        style={{ width: '100%', background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '8px 12px', fontSize: '0.875rem', color: '#fff', outline: 'none', boxSizing: 'border-box' }}>
                         <option value="easy">Easy</option>
                         <option value="medium">Medium</option>
                         <option value="hard">Hard</option>
@@ -415,7 +415,7 @@ export function InterviewTrackerPage() {
                     <label htmlFor="round-notes" style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.1em', color: 'rgba(255,255,255,0.25)', display: 'block', marginBottom: 4 }}>NOTES</label>
                     <textarea id="round-notes" value={roundForm.notes} onChange={(e) => setRoundForm((f) => ({ ...f, notes: e.target.value }))}
                       placeholder="Questions asked, how it went, what to improve..."
-                      rows={3} style={{ width: '100%', background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '8px 12px', fontSize: '0.875rem', color: '#fff', outline: 'none', resize: 'none' }} />
+                      rows={3} style={{ width: '100%', background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '8px 12px', fontSize: '0.875rem', color: '#fff', outline: 'none', resize: 'none', boxSizing: 'border-box' }} />
                   </div>
                   <div className="flex gap-2">
                     <motion.button onClick={addRound} whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
@@ -505,7 +505,7 @@ export function InterviewTrackerPage() {
               initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
               style={{ ...GLASS, borderRadius: 18, padding: '1.25rem', display: 'flex', alignItems: 'center', gap: 16 }}
             >
-              <div style={{ width: 44, height: 44, borderRadius: 12, background: `rgba(${s.color.slice(1).match(/.{2}/g)?.map((x) => parseInt(x, 16)).join(',') ?? '255,255,255'},0.1)`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: `0 0 16px ${s.glow}` }}>
+              <div style={{ width: 44, height: 44, borderRadius: 12, background: s.glow, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: `0 0 16px ${s.glow}` }}>
                 <Icon name={s.icon} size={18} style={{ color: s.color }} />
               </div>
               <div>
@@ -536,18 +536,18 @@ export function InterviewTrackerPage() {
                     <input id={`app-${key}`} type="text" placeholder={placeholder}
                       value={(form as unknown as Record<string, string>)[key] ?? ''}
                       onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
-                      style={{ width: '100%', background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '10px 16px', fontSize: '0.875rem', color: '#fff', outline: 'none' }} />
+                      style={{ width: '100%', background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '10px 16px', fontSize: '0.875rem', color: '#fff', outline: 'none', boxSizing: 'border-box' }} />
                   </div>
                 ))}
                 <div>
                   <label htmlFor="app-applied-date" style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.1em', color: 'rgba(255,255,255,0.25)', display: 'block', marginBottom: 6 }}>APPLIED DATE</label>
                   <input id="app-applied-date" type="date" value={form.appliedDate} onChange={(e) => setForm((f) => ({ ...f, appliedDate: e.target.value }))}
-                    style={{ width: '100%', background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '10px 16px', fontSize: '0.875rem', color: '#fff', outline: 'none' }} />
+                    style={{ width: '100%', background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '10px 16px', fontSize: '0.875rem', color: '#fff', outline: 'none', boxSizing: 'border-box' }} />
                 </div>
                 <div>
                   <label htmlFor="app-status" style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.1em', color: 'rgba(255,255,255,0.25)', display: 'block', marginBottom: 6 }}>STATUS</label>
                   <select id="app-status" value={form.status} onChange={(e) => setForm((f) => ({ ...f, status: e.target.value as AppStatus }))}
-                    style={{ width: '100%', background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '10px 16px', fontSize: '0.875rem', color: '#fff', outline: 'none' }}>
+                    style={{ width: '100%', background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '10px 16px', fontSize: '0.875rem', color: '#fff', outline: 'none', boxSizing: 'border-box' }}>
                     {(Object.keys(STATUS_META) as AppStatus[]).map((s) => <option key={s} value={s}>{STATUS_META[s].label}</option>)}
                   </select>
                 </div>
@@ -556,7 +556,7 @@ export function InterviewTrackerPage() {
                 <label htmlFor="app-notes" style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.1em', color: 'rgba(255,255,255,0.25)', display: 'block', marginBottom: 6 }}>NOTES</label>
                 <textarea id="app-notes" value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
                   placeholder="Referral source, key contact, anything to remember..."
-                  rows={2} style={{ width: '100%', background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '10px 16px', fontSize: '0.875rem', color: '#fff', outline: 'none', resize: 'none' }} />
+                  rows={2} style={{ width: '100%', background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '10px 16px', fontSize: '0.875rem', color: '#fff', outline: 'none', resize: 'none', boxSizing: 'border-box' }} />
               </div>
               <div className="flex gap-3 mt-4">
                 <motion.button onClick={addApp} disabled={!form.company || !form.role}
@@ -645,7 +645,7 @@ export function InterviewTrackerPage() {
                         style={{ width: '100%', textAlign: 'left', ...GLASS, borderRadius: 14, padding: 12, cursor: 'pointer' }}
                       >
                         <div className="flex items-start justify-between gap-1 mb-1">
-                          <p style={{ fontSize: '0.75rem', fontWeight: 700, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{app.company}</p>
+                          <p style={{ fontSize: '0.75rem', fontWeight: 700, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>{app.company}</p>
                           {app.starred && <Icon name="star" size={12} style={{ color: '#facc15', flexShrink: 0 }} filled />}
                         </div>
                         <p style={{ fontSize: '0.625rem', color: 'var(--t3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{app.role}</p>
@@ -672,7 +672,7 @@ export function InterviewTrackerPage() {
                   style={{ textAlign: 'left', ...GLASS, borderRadius: 14, padding: 16, cursor: 'pointer', opacity: 0.5, transition: 'opacity 0.2s' }}
                 >
                   <div className="flex items-center justify-between mb-1">
-                    <p style={{ fontSize: '0.75rem', fontWeight: 700, color: '#fff' }}>{app.company}</p>
+                    <p style={{ fontSize: '0.75rem', fontWeight: 700, color: '#fff', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{app.company}</p>
                     <StatusBadge status={app.status} />
                   </div>
                   <p style={{ fontSize: '0.625rem', color: 'var(--t3)' }}>{app.role}</p>

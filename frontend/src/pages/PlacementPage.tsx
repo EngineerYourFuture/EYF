@@ -906,7 +906,7 @@ export function PlacementPage() {
             <textarea value={bqResponse} onChange={(e) => setBqResponse(e.target.value)}
               placeholder="Write your STAR response here. Try to be specific — use real project names, numbers, and outcomes..."
               rows={8}
-              style={{ width: '100%', background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16, padding: 16, fontSize: '0.875rem', color: '#fff', outline: 'none', resize: 'none', lineHeight: 1.7 }} />
+              style={{ width: '100%', background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16, padding: 16, fontSize: '0.875rem', color: '#fff', outline: 'none', resize: 'none', lineHeight: 1.7, boxSizing: 'border-box' }} />
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 16 }}>
               <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.2)' }}>{bqResponse.length} characters · ~{Math.ceil(bqResponse.split(' ').length / 130)} min read</p>
               <div style={{ display: 'flex', gap: 12 }}>

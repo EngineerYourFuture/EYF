@@ -184,7 +184,7 @@ export function BillingPage() {
         </motion.div>
 
         {/* Plan cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto" style={{ marginBottom: 32 }}>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto" style={{ marginBottom: 32, paddingTop: 20 }}>
           {PLANS.map((plan, i) => {
             const isCurrent = plan.id === (currentPlan ?? 'free');
             const isPopular = plan.popular;

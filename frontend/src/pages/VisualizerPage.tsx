@@ -510,7 +510,7 @@ export function VisualizerPage() {
                       </div>
                       <textarea value={studentCode} onChange={(e) => setStudentCode(e.target.value)}
                         rows={8} placeholder="// Start writing your solution here…"
-                        style={{ width: '100%', background: 'rgba(0,0,0,0.3)', color: 'var(--t1)', fontFamily: 'monospace', fontSize: '0.75rem', padding: 16, resize: 'none', outline: 'none', border: 'none' }}
+                        style={{ width: '100%', background: 'rgba(0,0,0,0.3)', color: 'var(--t1)', fontFamily: 'monospace', fontSize: '0.75rem', padding: 16, resize: 'none', outline: 'none', border: 'none', boxSizing: 'border-box' }}
                         spellCheck={false} />
                     </div>
                   )}
