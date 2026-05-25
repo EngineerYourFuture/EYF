@@ -1,7 +1,10 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { apiPost } from '../lib/api';
 import { Icon } from '../components/Icon';
+
+const GLASS = { background: 'rgba(10,10,10,0.7)', border: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(16px)' } as const;
 
 export function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
@@ -24,57 +27,63 @@ export function ForgotPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen bg-surface flex items-center justify-center px-4">
-      <div className="w-full max-w-md">
-        <Link to="/login" className="flex items-center gap-2 text-zinc-500 hover:text-zinc-300 transition-colors mb-8 text-sm">
-          <Icon name="arrow_back" size={16} />
-          Back to login
+    <div style={{ minHeight: '100vh', background: '#0a0a0a', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 16px' }}>
+      {/* Ambient glow */}
+      <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none' }}>
+        <div style={{ position: 'absolute', top: '-10%', right: '-10%', width: '60%', height: '60%', borderRadius: '50%', background: 'rgba(232,33,39,0.04)', filter: 'blur(120px)' }} />
+      </div>
+
+      <div style={{ width: '100%', maxWidth: 440, position: 'relative', zIndex: 1 }}>
+        <Link to="/login" style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#71717a', fontSize: 14, textDecoration: 'none', marginBottom: 32 }}>
+          <Icon name="arrow_back" size={16} />Back to login
         </Link>
 
-        <div className="bg-surface-container rounded-2xl p-10">
-          <div className="mb-8">
-            <span className="font-black text-2xl tracking-tighter">
-              EY<span className="text-primary-container">F</span>
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} style={{ ...GLASS, borderRadius: 20, padding: 40 }}>
+          <div style={{ marginBottom: 32 }}>
+            <span style={{ fontWeight: 900, fontSize: 22, letterSpacing: '-0.04em', color: '#e4e4e7' }}>
+              EY<span style={{ color: '#E82127' }}>F</span>
             </span>
-            <h1 className="text-2xl font-black tracking-tighter mt-4 mb-2">Forgot password?</h1>
-            <p className="text-zinc-500 text-sm">Enter your email and we'll send a reset link.</p>
+            <h1 style={{ fontSize: 24, fontWeight: 900, letterSpacing: '-0.03em', marginTop: 16, marginBottom: 8, color: '#e4e4e7' }}>Forgot password?</h1>
+            <p style={{ color: '#71717a', fontSize: 14 }}>Enter your email and we'll send a reset link.</p>
           </div>
 
           {sent ? (
-            <div className="text-center py-6">
-              <div className="w-14 h-14 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Icon name="mark_email_read" size={28} className="text-green-400" />
+            <div style={{ textAlign: 'center', padding: '24px 0' }}>
+              <div style={{ width: 56, height: 56, background: 'rgba(74,222,128,0.1)', border: '1px solid rgba(74,222,128,0.3)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+                <Icon name="mark_email_read" size={28} style={{ color: '#4ade80' }} />
               </div>
-              <p className="font-bold text-on-surface mb-2">Check your inbox</p>
-              <p className="text-zinc-500 text-sm">If an account exists for <span className="text-zinc-300">{email}</span>, you'll receive a reset link shortly.</p>
+              <p style={{ fontWeight: 700, color: '#e4e4e7', marginBottom: 8 }}>Check your inbox</p>
+              <p style={{ color: '#71717a', fontSize: 14 }}>If an account exists for <span style={{ color: '#d4d4d8' }}>{email}</span>, you'll receive a reset link shortly.</p>
             </div>
           ) : (
             <form onSubmit={submit} className="space-y-5">
               <div>
-                <label htmlFor="fp-email" className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-zinc-500 block mb-2">Email</label>
+                <label htmlFor="fp-email" style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#71717a', display: 'block', marginBottom: 8 }}>Email</label>
                 <input
                   id="fp-email"
                   type="email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-surface-container-low border-none rounded-xl px-6 py-4 text-on-surface placeholder:text-zinc-600 focus:outline-none focus:ring-0 transition-all"
+                  style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '14px 20px', color: '#e4e4e7', fontSize: 14, outline: 'none', boxSizing: 'border-box' }}
                   placeholder="you@example.com"
                 />
               </div>
 
-              {error && <p className="text-red-400 text-sm">{error}</p>}
+              {error && <p style={{ color: '#f87171', fontSize: 14 }}>{error}</p>}
 
-              <button
+              <motion.button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-primary-container text-white font-bold py-4 rounded-xl text-[11px] uppercase tracking-widest hover:brightness-110 transition-all active:scale-95 disabled:opacity-50"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                style={{ width: '100%', background: '#E82127', color: '#fff', fontWeight: 700, padding: '14px 0', borderRadius: 12, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.1em', border: 'none', cursor: 'pointer', opacity: loading ? 0.5 : 1, boxShadow: '0 0 24px rgba(232,33,39,0.3)' }}
               >
                 {loading ? 'Sending…' : 'Send Reset Link'}
-              </button>
+              </motion.button>
             </form>
           )}
-        </div>
+        </motion.div>
       </div>
     </div>
   );

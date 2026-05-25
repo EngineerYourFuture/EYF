@@ -1,7 +1,11 @@
 import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { apiPost } from '../lib/api';
 import { Icon } from '../components/Icon';
+
+const GLASS = { background: 'rgba(10,10,10,0.7)', border: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(16px)' } as const;
+const INPUT = { width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '14px 20px', color: '#e4e4e7', fontSize: 14, outline: 'none', boxSizing: 'border-box' } as const;
 
 export function ResetPasswordPage() {
   const [params] = useSearchParams();
@@ -33,69 +37,75 @@ export function ResetPasswordPage() {
 
   if (!token) {
     return (
-      <div className="min-h-screen bg-surface flex items-center justify-center px-4">
-        <div className="text-center">
-          <p className="text-zinc-400 mb-4">Invalid reset link.</p>
-          <Link to="/forgot-password" className="text-primary-container hover:underline text-sm">Request a new one</Link>
+      <div style={{ minHeight: '100vh', background: '#0a0a0a', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 16px' }}>
+        <div style={{ textAlign: 'center' }}>
+          <p style={{ color: '#a1a1aa', marginBottom: 16 }}>Invalid reset link.</p>
+          <Link to="/forgot-password" style={{ color: '#E82127', fontSize: 14, textDecoration: 'none', fontWeight: 700 }}>Request a new one</Link>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-surface flex items-center justify-center px-4">
-      <div className="w-full max-w-md">
-        <div className="bg-surface-container rounded-2xl p-10">
-          <div className="mb-8">
-            <span className="font-black text-2xl tracking-tighter">
-              EY<span className="text-primary-container">F</span>
+    <div style={{ minHeight: '100vh', background: '#0a0a0a', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 16px' }}>
+      <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none' }}>
+        <div style={{ position: 'absolute', top: '-10%', right: '-10%', width: '60%', height: '60%', borderRadius: '50%', background: 'rgba(232,33,39,0.04)', filter: 'blur(120px)' }} />
+      </div>
+
+      <div style={{ width: '100%', maxWidth: 440, position: 'relative', zIndex: 1 }}>
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} style={{ ...GLASS, borderRadius: 20, padding: 40 }}>
+          <div style={{ marginBottom: 32 }}>
+            <span style={{ fontWeight: 900, fontSize: 22, letterSpacing: '-0.04em', color: '#e4e4e7' }}>
+              EY<span style={{ color: '#E82127' }}>F</span>
             </span>
-            <h1 className="text-2xl font-black tracking-tighter mt-4 mb-2">Reset password</h1>
-            <p className="text-zinc-500 text-sm">Choose a strong new password for your account.</p>
+            <h1 style={{ fontSize: 24, fontWeight: 900, letterSpacing: '-0.03em', marginTop: 16, marginBottom: 8, color: '#e4e4e7' }}>Reset password</h1>
+            <p style={{ color: '#71717a', fontSize: 14 }}>Choose a strong new password for your account.</p>
           </div>
 
           {done ? (
-            <div className="text-center py-6">
-              <div className="w-14 h-14 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Icon name="check_circle" size={28} className="text-green-400" />
+            <div style={{ textAlign: 'center', padding: '24px 0' }}>
+              <div style={{ width: 56, height: 56, background: 'rgba(74,222,128,0.1)', border: '1px solid rgba(74,222,128,0.3)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+                <Icon name="check_circle" size={28} style={{ color: '#4ade80' }} />
               </div>
-              <p className="font-bold text-on-surface mb-2">Password updated!</p>
-              <p className="text-zinc-500 text-sm">Redirecting to login…</p>
+              <p style={{ fontWeight: 700, color: '#e4e4e7', marginBottom: 8 }}>Password updated!</p>
+              <p style={{ color: '#71717a', fontSize: 14 }}>Redirecting to login…</p>
             </div>
           ) : (
             <form onSubmit={submit} className="space-y-5">
               {[
-                { id: 'rp-pass', label: 'New Password', value: password, setter: setPassword },
-                { id: 'rp-confirm', label: 'Confirm Password', value: confirm, setter: setConfirm },
+                { id: 'rp-pass',    label: 'New Password',     value: password, setter: setPassword },
+                { id: 'rp-confirm', label: 'Confirm Password', value: confirm,  setter: setConfirm },
               ].map((f) => (
                 <div key={f.id}>
-                  <label htmlFor={f.id} className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-zinc-500 block mb-2">{f.label}</label>
+                  <label htmlFor={f.id} style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#71717a', display: 'block', marginBottom: 8 }}>{f.label}</label>
                   <input
                     id={f.id}
                     type="password"
                     required
                     value={f.value}
                     onChange={(e) => f.setter(e.target.value)}
-                    className="w-full bg-surface-container-low border-none rounded-xl px-6 py-4 text-on-surface placeholder:text-zinc-600 focus:outline-none focus:ring-0 transition-all"
+                    style={INPUT}
                     placeholder="••••••••••••"
                   />
                 </div>
               ))}
 
-              <p className="text-zinc-600 text-xs">8+ chars · uppercase · lowercase · digit · special char</p>
+              <p style={{ color: '#52525b', fontSize: 12 }}>8+ chars · uppercase · lowercase · digit · special char</p>
 
-              {error && <p className="text-red-400 text-sm">{error}</p>}
+              {error && <p style={{ color: '#f87171', fontSize: 14 }}>{error}</p>}
 
-              <button
+              <motion.button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-primary-container text-white font-bold py-4 rounded-xl text-[11px] uppercase tracking-widest hover:brightness-110 transition-all active:scale-95 disabled:opacity-50"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                style={{ width: '100%', background: '#E82127', color: '#fff', fontWeight: 700, padding: '14px 0', borderRadius: 12, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.1em', border: 'none', cursor: 'pointer', opacity: loading ? 0.5 : 1, boxShadow: '0 0 24px rgba(232,33,39,0.3)' }}
               >
                 {loading ? 'Updating…' : 'Set New Password'}
-              </button>
+              </motion.button>
             </form>
           )}
-        </div>
+        </motion.div>
       </div>
     </div>
   );

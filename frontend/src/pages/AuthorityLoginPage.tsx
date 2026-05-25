@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { ApiError, apiRequest } from '../lib/api';
 import { setSession } from '../lib/session';
 import { Icon } from '../components/Icon';
@@ -37,129 +38,133 @@ export function AuthorityLoginPage() {
   };
 
   return (
-    <div className="dark bg-surface text-on-surface min-h-screen flex items-center justify-center p-6 overflow-hidden selection:bg-primary-container selection:text-white">
-      {/* Background */}
-      <div className="fixed inset-0 z-0">
-        <div className="absolute inset-0 bg-surface" />
-        <div className="absolute top-[-10%] right-[-10%] w-[60%] h-[60%] rounded-full bg-primary-container/5 blur-[120px]" />
-        <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-tertiary-container/5 blur-[120px]" />
+    <div style={{ minHeight: '100vh', background: '#080808', color: '#e4e4e7', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, overflow: 'hidden' }}>
+      {/* Background glows */}
+      <div style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none' }}>
+        <div style={{ position: 'absolute', top: '-10%', right: '-10%', width: '60%', height: '60%', borderRadius: '50%', background: 'rgba(232,33,39,0.04)', filter: 'blur(120px)' }} />
+        <div style={{ position: 'absolute', bottom: '-10%', left: '-10%', width: '40%', height: '40%', borderRadius: '50%', background: 'rgba(96,165,250,0.03)', filter: 'blur(120px)' }} />
       </div>
 
-      <main className="relative z-10 w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-0 overflow-hidden bg-surface-container rounded-xl shadow-2xl">
+      <motion.main
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        style={{ position: 'relative', zIndex: 10, width: '100%', maxWidth: 1024, display: 'grid', gridTemplateColumns: '1fr', borderRadius: 16, overflow: 'hidden', background: 'rgba(10,10,10,0.85)', border: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(16px)', boxShadow: '0 32px 80px rgba(0,0,0,0.6)' }}
+        className="lg:grid-cols-12"
+      >
         {/* Left brand panel */}
-        <div className="hidden lg:flex lg:col-span-5 relative overflow-hidden flex-col justify-between p-16 bg-surface-container-low">
-          <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-primary-container rounded-full" />
-              <span className="text-xl font-black tracking-tighter text-on-surface uppercase">EYF PLATFORM</span>
+        <div className="hidden lg:flex lg:col-span-5" style={{ flexDirection: 'column', justifyContent: 'space-between', padding: 64, background: 'rgba(0,0,0,0.3)', borderRight: '1px solid rgba(255,255,255,0.06)' }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 48 }}>
+              <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#E82127' }} />
+              <span style={{ fontSize: 18, fontWeight: 900, letterSpacing: '-0.04em', textTransform: 'uppercase', color: '#e4e4e7' }}>EYF PLATFORM</span>
             </div>
-            <h1 className="text-5xl font-extrabold tracking-tighter text-on-surface mt-12 leading-[1.1]">
-              Authority <br />
-              <span className="text-primary-container">Gateway.</span>
+            <h1 style={{ fontSize: '3rem', fontWeight: 900, letterSpacing: '-0.04em', lineHeight: 1.1, color: '#e4e4e7' }}>
+              Authority<br />
+              <span style={{ color: '#E82127' }}>Gateway.</span>
             </h1>
-            <p className="text-on-surface-variant text-sm leading-relaxed mt-4 max-w-xs">
+            <p style={{ color: '#71717a', fontSize: 14, lineHeight: 1.7, marginTop: 16, maxWidth: 280 }}>
               Restricted access for authorized EYF Platform operators, staff, and administrators.
             </p>
           </div>
-          <div className="space-y-4">
+          <div className="space-y-1">
             {[
-              { icon: 'shield', label: 'ENCRYPTED ACCESS', value: 'AES-256' },
-              { icon: 'groups', label: 'AUTHORITY ZONE', value: 'RESTRICTED' },
-              { icon: 'monitoring', label: 'AUDIT LOGGING', value: 'ACTIVE' },
+              { icon: 'shield',     label: 'ENCRYPTED ACCESS', value: 'AES-256'   },
+              { icon: 'groups',     label: 'AUTHORITY ZONE',   value: 'RESTRICTED' },
+              { icon: 'monitoring', label: 'AUDIT LOGGING',    value: 'ACTIVE'     },
             ].map((item) => (
-              <div key={item.label} className="flex items-center justify-between py-3 border-b border-outline-variant/20">
-                <div className="flex items-center gap-3">
-                  <Icon name={item.icon} size={16} className="text-zinc-500" />
-                  <span className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-zinc-500">{item.label}</span>
+              <div key={item.label} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <Icon name={item.icon} size={16} style={{ color: '#71717a' }} />
+                  <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#71717a' }}>{item.label}</span>
                 </div>
-                <span className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-primary-container">{item.value}</span>
+                <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#E82127' }}>{item.value}</span>
               </div>
             ))}
           </div>
         </div>
 
         {/* Right form panel */}
-        <div className="lg:col-span-7 flex flex-col justify-center p-12 lg:p-20">
-          <div className="mb-12">
-            <h2 className="text-3xl font-black tracking-tighter text-white mb-2">Secure Login</h2>
-            <p className="text-on-surface-variant text-sm">
-              Enter your authority credentials to access the operator dashboard.
-            </p>
+        <div className="lg:col-span-7" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: 48 }}>
+          <div style={{ marginBottom: 48 }}>
+            <h2 style={{ fontSize: 28, fontWeight: 900, letterSpacing: '-0.03em', color: '#e4e4e7', marginBottom: 8 }}>Secure Login</h2>
+            <p style={{ color: '#71717a', fontSize: 14 }}>Enter your authority credentials to access the operator dashboard.</p>
           </div>
 
           <form onSubmit={onLogin} className="space-y-8">
             <div className="space-y-3">
-              <label htmlFor="auth-email" className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-on-surface-variant block">
+              <label htmlFor="auth-email" style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#71717a', display: 'block' }}>
                 Authority Email
               </label>
-              <div className="relative">
+              <div style={{ position: 'relative' }}>
                 <input
                   id="auth-email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-surface-container-low border-none rounded-xl px-6 py-4 text-on-surface placeholder:text-zinc-600 focus:outline-none focus:ring-0 transition-all"
+                  style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '14px 48px 14px 20px', color: '#e4e4e7', fontSize: 14, outline: 'none', boxSizing: 'border-box' }}
                   placeholder="authority@eyf.platform"
                   required
                 />
-                <div className="absolute right-6 top-1/2 -translate-y-1/2 text-zinc-600">
+                <div style={{ position: 'absolute', right: 20, top: '50%', transform: 'translateY(-50%)', color: '#52525b' }}>
                   <Icon name="badge" size={20} />
                 </div>
               </div>
             </div>
 
             <div className="space-y-3">
-              <label htmlFor="auth-token" className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-on-surface-variant block">
+              <label htmlFor="auth-token" style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#71717a', display: 'block' }}>
                 Security Token
               </label>
-              <div className="relative">
+              <div style={{ position: 'relative' }}>
                 <input
                   id="auth-token"
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-surface-container-low border-none rounded-xl px-6 py-4 text-on-surface placeholder:text-zinc-600 focus:outline-none focus:ring-0 transition-all"
+                  style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '14px 48px 14px 20px', color: '#e4e4e7', fontSize: 14, outline: 'none', boxSizing: 'border-box' }}
                   placeholder="••••••••••••"
                   required
                 />
-                <div className="absolute right-6 top-1/2 -translate-y-1/2 text-zinc-600">
+                <div style={{ position: 'absolute', right: 20, top: '50%', transform: 'translateY(-50%)', color: '#52525b' }}>
                   <Icon name="key" size={20} />
                 </div>
               </div>
               {error && (
-                <div className="flex items-center gap-2 mt-2 text-error text-xs font-medium">
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8, color: '#f87171', fontSize: 12, fontWeight: 500 }}>
                   <Icon name="error_outline" size={16} />
                   <span>{error}</span>
                 </div>
               )}
             </div>
 
-            <div className="pt-4 space-y-4">
-              <button
+            <div style={{ paddingTop: 16 }} className="space-y-4">
+              <motion.button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-primary-container text-white font-bold py-4 rounded-full text-lg shadow-lg shadow-red-900/20 active:scale-[0.98] transition-transform flex items-center justify-center gap-3 disabled:opacity-60"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                style={{ width: '100%', background: '#E82127', color: '#fff', fontWeight: 700, padding: '16px 0', borderRadius: 999, fontSize: 16, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, opacity: loading ? 0.6 : 1, boxShadow: '0 0 32px rgba(232,33,39,0.3)' }}
               >
                 {loading ? 'Authenticating...' : 'Access Authority Zone'}
                 <Icon name="arrow_forward" size={20} />
-              </button>
-              <div className="text-center">
-                <Link to="/login" className="text-xs text-zinc-500 hover:text-white transition-colors">
+              </motion.button>
+              <div style={{ textAlign: 'center' }}>
+                <Link to="/login" style={{ fontSize: 12, color: '#71717a', textDecoration: 'none' }}>
                   ← Return to User Login
                 </Link>
               </div>
             </div>
           </form>
 
-          <div className="mt-12 flex items-center gap-4 text-zinc-700 font-['Inter'] uppercase tracking-widest text-[10px] font-bold">
+          <div style={{ marginTop: 48, display: 'flex', alignItems: 'center', gap: 16, color: '#3f3f46', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
             <span>V1.0</span>
-            <span className="w-1 h-1 bg-zinc-800 rounded-full" />
+            <span style={{ width: 4, height: 4, background: '#3f3f46', borderRadius: '50%' }} />
             <span>Authority Protocol</span>
-            <span className="w-1 h-1 bg-zinc-800 rounded-full" />
-            <span className="text-primary-container">Encrypted</span>
+            <span style={{ width: 4, height: 4, background: '#3f3f46', borderRadius: '50%' }} />
+            <span style={{ color: '#E82127' }}>Encrypted</span>
           </div>
         </div>
-      </main>
+      </motion.main>
     </div>
   );
 }

@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { apiPost } from '../lib/api';
 import { Icon } from '../components/Icon';
+
+const GLASS = { background: 'rgba(10,10,10,0.7)', border: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(16px)' } as const;
 
 export function VerifyEmailPage() {
   const [params] = useSearchParams();
   const token = params.get('token') ?? '';
-
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [message, setMessage] = useState('');
 
@@ -22,27 +24,31 @@ export function VerifyEmailPage() {
   }, [token]);
 
   return (
-    <div className="min-h-screen bg-surface flex items-center justify-center px-4">
-      <div className="w-full max-w-md bg-surface-container rounded-2xl p-10 text-center">
-        <span className="font-black text-2xl tracking-tighter block mb-8">
-          EY<span className="text-primary-container">F</span>
+    <div style={{ minHeight: '100vh', background: '#0a0a0a', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 16px' }}>
+      <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none' }}>
+        <div style={{ position: 'absolute', top: '-10%', right: '-10%', width: '60%', height: '60%', borderRadius: '50%', background: 'rgba(232,33,39,0.04)', filter: 'blur(120px)' }} />
+      </div>
+
+      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} style={{ ...GLASS, borderRadius: 20, padding: 40, maxWidth: 440, width: '100%', textAlign: 'center', position: 'relative', zIndex: 1 }}>
+        <span style={{ fontWeight: 900, fontSize: 22, letterSpacing: '-0.04em', color: '#e4e4e7', display: 'block', marginBottom: 32 }}>
+          EY<span style={{ color: '#E82127' }}>F</span>
         </span>
 
         {status === 'loading' && (
           <>
-            <div className="w-14 h-14 rounded-full border-2 border-primary-container border-t-transparent animate-spin mx-auto mb-4" />
-            <p className="text-zinc-400 text-sm">Verifying your email…</p>
+            <div style={{ width: 56, height: 56, borderRadius: '50%', border: '2px solid #E82127', borderTopColor: 'transparent', animation: 'spin 1s linear infinite', margin: '0 auto 16px' }} />
+            <p style={{ color: '#a1a1aa', fontSize: 14 }}>Verifying your email…</p>
           </>
         )}
 
         {status === 'success' && (
           <>
-            <div className="w-14 h-14 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Icon name="verified" size={28} className="text-green-400" />
+            <div style={{ width: 56, height: 56, background: 'rgba(74,222,128,0.1)', border: '1px solid rgba(74,222,128,0.3)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+              <Icon name="verified" size={28} style={{ color: '#4ade80' }} />
             </div>
-            <p className="font-black text-xl tracking-tighter mb-2">Email verified!</p>
-            <p className="text-zinc-500 text-sm mb-6">Your account is now fully active.</p>
-            <Link to="/app/dashboard" className="bg-primary-container text-white font-bold px-8 py-3 rounded-full text-[11px] uppercase tracking-widest hover:brightness-110 transition-all">
+            <p style={{ fontSize: 20, fontWeight: 900, letterSpacing: '-0.03em', color: '#e4e4e7', marginBottom: 8 }}>Email verified!</p>
+            <p style={{ color: '#71717a', fontSize: 14, marginBottom: 24 }}>Your account is now fully active.</p>
+            <Link to="/app/dashboard" style={{ background: '#E82127', color: '#fff', fontWeight: 700, padding: '12px 32px', borderRadius: 999, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.1em', textDecoration: 'none', boxShadow: '0 0 20px rgba(232,33,39,0.3)', display: 'inline-block' }}>
               Go to Dashboard
             </Link>
           </>
@@ -50,15 +56,15 @@ export function VerifyEmailPage() {
 
         {status === 'error' && (
           <>
-            <div className="w-14 h-14 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Icon name="error" size={28} className="text-red-400" />
+            <div style={{ width: 56, height: 56, background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.3)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+              <Icon name="error" size={28} style={{ color: '#f87171' }} />
             </div>
-            <p className="font-black text-xl tracking-tighter mb-2">Verification failed</p>
-            <p className="text-zinc-500 text-sm mb-6">{message}</p>
-            <Link to="/login" className="text-primary-container hover:underline text-sm">Back to login</Link>
+            <p style={{ fontSize: 20, fontWeight: 900, letterSpacing: '-0.03em', color: '#e4e4e7', marginBottom: 8 }}>Verification failed</p>
+            <p style={{ color: '#71717a', fontSize: 14, marginBottom: 24 }}>{message}</p>
+            <Link to="/login" style={{ color: '#E82127', fontSize: 14, textDecoration: 'none', fontWeight: 700 }}>Back to login</Link>
           </>
         )}
-      </div>
+      </motion.div>
     </div>
   );
 }

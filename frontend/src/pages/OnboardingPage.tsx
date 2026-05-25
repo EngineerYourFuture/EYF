@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { Icon } from '../components/Icon';
 import { EYFMark } from '../components/EYFLogo';
-// Standalone page — no AppShell sidebar
 import { apiRequest } from '../lib/api';
 import { getSession } from '../lib/session';
 import { useUser } from '../contexts/UserContext';
@@ -18,33 +18,9 @@ interface OnboardingData {
 }
 
 const TRACKS = [
-  {
-    id: 'student',
-    title: 'Student',
-    icon: 'school',
-    desc: 'Currently in college or a bootcamp. Landing my first role.',
-    color: 'text-blue-400',
-    bg: 'bg-blue-500/10',
-    border: 'border-blue-500/30',
-  },
-  {
-    id: 'professional',
-    title: 'Working Professional',
-    icon: 'work',
-    desc: 'Currently employed. Targeting FAANG or senior roles.',
-    color: 'text-green-400',
-    bg: 'bg-green-500/10',
-    border: 'border-green-500/30',
-  },
-  {
-    id: 'career_change',
-    title: 'Career Changer',
-    icon: 'swap_horiz',
-    desc: 'Transitioning into tech from a non-CS background.',
-    color: 'text-purple-400',
-    bg: 'bg-purple-500/10',
-    border: 'border-purple-500/30',
-  },
+  { id: 'student',       title: 'Student',              icon: 'school',      desc: 'Currently in college or a bootcamp. Landing my first role.',    color: '#60a5fa', bg: 'rgba(96,165,250,0.1)',  border: 'rgba(96,165,250,0.3)'  },
+  { id: 'professional',  title: 'Working Professional', icon: 'work',        desc: 'Currently employed. Targeting FAANG or senior roles.',           color: '#4ade80', bg: 'rgba(74,222,128,0.1)', border: 'rgba(74,222,128,0.3)'  },
+  { id: 'career_change', title: 'Career Changer',       icon: 'swap_horiz',  desc: 'Transitioning into tech from a non-CS background.',              color: '#c084fc', bg: 'rgba(192,132,252,0.1)',border: 'rgba(192,132,252,0.3)' },
 ];
 
 const TARGET_ROLES = [
@@ -61,24 +37,26 @@ const TARGET_ROLES = [
 const COMPANIES = ['Google', 'Amazon', 'Microsoft', 'Meta', 'Apple', 'Netflix', 'Uber', 'Stripe', 'Flipkart', 'Swiggy', 'Zomato', 'Razorpay', 'Other'];
 
 const FOCUS_AREAS = [
-  { id: 'dsa', label: 'DSA & Algorithms', icon: 'code' },
-  { id: 'system-design', label: 'System Design', icon: 'architecture' },
-  { id: 'oop', label: 'OOP & Design Patterns', icon: 'account_tree' },
-  { id: 'security', label: 'Cybersecurity', icon: 'shield' },
-  { id: 'os', label: 'Core CS (OS/DBMS/CN)', icon: 'terminal' },
-  { id: 'behavioral', label: 'Behavioral Prep', icon: 'record_voice_over' },
-  { id: 'resume', label: 'Resume Building', icon: 'description' },
-  { id: 'placement', label: 'Placement Strategy', icon: 'route' },
+  { id: 'dsa',        label: 'DSA & Algorithms',    icon: 'code' },
+  { id: 'system-design', label: 'System Design',   icon: 'architecture' },
+  { id: 'oop',        label: 'OOP & Design Patterns', icon: 'account_tree' },
+  { id: 'security',   label: 'Cybersecurity',       icon: 'shield' },
+  { id: 'os',         label: 'Core CS (OS/DBMS/CN)', icon: 'terminal' },
+  { id: 'behavioral', label: 'Behavioral Prep',     icon: 'record_voice_over' },
+  { id: 'resume',     label: 'Resume Building',     icon: 'description' },
+  { id: 'placement',  label: 'Placement Strategy',  icon: 'route' },
 ];
 
 const DAILY_GOALS = [
-  { minutes: 30, label: '30 min/day', desc: 'Casual pace' },
-  { minutes: 60, label: '1 hour/day', desc: 'Recommended' },
+  { minutes: 30,  label: '30 min/day', desc: 'Casual pace' },
+  { minutes: 60,  label: '1 hour/day', desc: 'Recommended' },
   { minutes: 120, label: '2 hours/day', desc: 'Intensive' },
   { minutes: 180, label: '3+ hours/day', desc: 'All-in mode' },
 ];
 
 const TOTAL_STEPS = 5;
+const GLASS = { background: 'rgba(10,10,10,0.7)', border: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(16px)' } as const;
+const INPUT_STYLE = { width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '16px 20px', fontSize: 18, fontWeight: 700, color: '#e4e4e7', outline: 'none', boxSizing: 'border-box' } as const;
 
 export function OnboardingPage() {
   const navigate = useNavigate();
@@ -88,13 +66,7 @@ export function OnboardingPage() {
   const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
   const [data, setData] = useState<OnboardingData>({
-    name: '',
-    track: '',
-    targetRole: '',
-    targetCompanies: [],
-    experienceYears: 0,
-    dailyGoalMinutes: 60,
-    focusAreas: [],
+    name: '', track: '', targetRole: '', targetCompanies: [], experienceYears: 0, dailyGoalMinutes: 60, focusAreas: [],
   });
 
   const next = () => setStep((s) => Math.min(s + 1, TOTAL_STEPS));
@@ -102,29 +74,17 @@ export function OnboardingPage() {
 
   const toggleCompany = (company: string) => {
     setData((d) => {
-      let targetCompanies: string[];
-      if (d.targetCompanies.includes(company)) {
-        targetCompanies = d.targetCompanies.filter((c) => c !== company);
-      } else if (d.targetCompanies.length < 4) {
-        targetCompanies = [...d.targetCompanies, company];
-      } else {
-        targetCompanies = d.targetCompanies;
-      }
-      return { ...d, targetCompanies };
+      if (d.targetCompanies.includes(company)) return { ...d, targetCompanies: d.targetCompanies.filter((c) => c !== company) };
+      if (d.targetCompanies.length < 4) return { ...d, targetCompanies: [...d.targetCompanies, company] };
+      return d;
     });
   };
 
   const toggleFocus = (id: string) => {
     setData((d) => {
-      let focusAreas: string[];
-      if (d.focusAreas.includes(id)) {
-        focusAreas = d.focusAreas.filter((f) => f !== id);
-      } else if (d.focusAreas.length < 4) {
-        focusAreas = [...d.focusAreas, id];
-      } else {
-        focusAreas = d.focusAreas;
-      }
-      return { ...d, focusAreas };
+      if (d.focusAreas.includes(id)) return { ...d, focusAreas: d.focusAreas.filter((f) => f !== id) };
+      if (d.focusAreas.length < 4) return { ...d, focusAreas: [...d.focusAreas, id] };
+      return d;
     });
   };
 
@@ -133,26 +93,14 @@ export function OnboardingPage() {
     try {
       await Promise.all([
         session?.accessToken && apiRequest('/career/profile', {
-          token: session.accessToken,
-          method: 'PUT',
-          body: {
-            track: data.track,
-            targetRole: data.targetRole,
-            interests: data.focusAreas,
-            experienceYears: data.experienceYears,
-            dailyGoalMinutes: data.dailyGoalMinutes,
-            targetCompanies: data.targetCompanies,
-          },
+          token: session.accessToken, method: 'PUT',
+          body: { track: data.track, targetRole: data.targetRole, interests: data.focusAreas, experienceYears: data.experienceYears, dailyGoalMinutes: data.dailyGoalMinutes, targetCompanies: data.targetCompanies },
         }),
-        data.name && session?.accessToken && apiRequest('/auth/profile', {
-          token: session.accessToken,
-          method: 'PATCH',
-          body: { name: data.name },
-        }),
+        data.name && session?.accessToken && apiRequest('/auth/profile', { token: session.accessToken, method: 'PATCH', body: { name: data.name } }),
       ]);
       await refresh();
     } catch {
-      // Don't block — onboarding should always succeed UX-wise
+      // Don't block onboarding UX
     } finally {
       setSaving(false);
       navigate('/app/dashboard', { replace: true });
@@ -168,269 +116,253 @@ export function OnboardingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0E0E0E] text-white flex flex-col dark">
+    <div style={{ minHeight: '100vh', background: '#0a0a0a', color: '#e4e4e7', display: 'flex', flexDirection: 'column' }}>
       {/* Top bar */}
-      <div className="w-full flex items-center justify-between px-6 py-5 border-b border-zinc-900">
-        <div className="flex items-center gap-3">
-          <EYFMark size={32} className="text-[#E82127]" />
-          <span className="font-black tracking-tighter text-white">EYF</span>
+      <div style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 24px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <EYFMark size={32} style={{ color: '#E82127' }} />
+          <span style={{ fontWeight: 900, letterSpacing: '-0.04em', color: '#e4e4e7' }}>EYF</span>
         </div>
         <button
           onClick={() => navigate('/app/dashboard', { replace: true })}
-          className="text-xs font-bold uppercase tracking-widest text-zinc-600 hover:text-zinc-400 transition-colors"
+          style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#52525b', background: 'none', border: 'none', cursor: 'pointer' }}
         >
           Skip
         </button>
       </div>
 
-      <div className="flex-1 flex flex-col items-center justify-center px-4 py-10">
-      {/* Progress bar */}
-      <div className="w-full max-w-xl mb-8">
-        <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-zinc-600 mb-2">
-          <span>Setup</span>
-          <span>Step {step} of {TOTAL_STEPS}</span>
-        </div>
-        <div className="h-1.5 bg-zinc-800 rounded-full overflow-hidden">
-          <div
-            className="h-full bg-gradient-to-r from-primary-container to-red-400 rounded-full transition-all duration-500"
-            style={{ width: `${(step / TOTAL_STEPS) * 100}%` }}
-          />
-        </div>
-      </div>
-
-      <div className="w-full max-w-xl">
-        {/* Step 1: Name */}
-        {step === 1 && (
-          <div className="text-center">
-            <div className="w-20 h-20 bg-primary-container/10 rounded-full flex items-center justify-center mx-auto mb-6">
-              <Icon name="waving_hand" size={36} className="text-primary-container" />
-            </div>
-            <h1 className="text-4xl font-black tracking-tighter mb-3">Welcome to EYF!</h1>
-            <p className="text-zinc-400 mb-10">Let's set up your profile. It takes 2 minutes and personalizes your entire experience.</p>
-
-            <div className="text-left">
-              <label htmlFor="onboarding-name" className="block text-xs font-bold text-zinc-400 uppercase tracking-widest mb-3">What should we call you?</label>
-              <input
-                id="onboarding-name"
-                type="text"
-                value={data.name}
-                onChange={(e) => setData((d) => ({ ...d, name: e.target.value }))}
-                placeholder="Your first name"
-                autoFocus
-                className="w-full bg-surface-container border border-zinc-800 rounded-xl px-5 py-4 text-lg font-bold text-on-surface focus:outline-none focus:border-primary-container/50 placeholder:font-normal placeholder:text-zinc-600"
-              />
-            </div>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 16px' }}>
+        {/* Progress bar */}
+        <div style={{ width: '100%', maxWidth: 576, marginBottom: 32 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#52525b', marginBottom: 8 }}>
+            <span>Setup</span>
+            <span>Step {step} of {TOTAL_STEPS}</span>
           </div>
-        )}
-
-        {/* Step 2: Track */}
-        {step === 2 && (
-          <div>
-            <h2 className="text-3xl font-black tracking-tighter mb-2">
-              Hey {data.name.split(' ')[0]}! 👋
-            </h2>
-            <p className="text-zinc-400 mb-8">Which best describes where you are right now?</p>
-
-            <div className="space-y-3">
-              {TRACKS.map((track) => (
-                <button
-                  key={track.id}
-                  type="button"
-                  onClick={() => setData((d) => ({ ...d, track: track.id }))}
-                  className={`w-full flex items-center gap-5 p-5 rounded-2xl text-left transition-all border ${
-                    data.track === track.id
-                      ? `${track.bg} ${track.border} border-2`
-                      : 'bg-surface-container border-zinc-800 hover:border-zinc-700'
-                  }`}
-                >
-                  <div className={`w-12 h-12 ${track.bg} rounded-xl flex items-center justify-center flex-shrink-0`}>
-                    <Icon name={track.icon} className={track.color} size={24} />
-                  </div>
-                  <div>
-                    <p className={`font-bold text-base ${data.track === track.id ? track.color : 'text-on-surface'}`}>{track.title}</p>
-                    <p className="text-sm text-zinc-500">{track.desc}</p>
-                  </div>
-                  {data.track === track.id && (
-                    <Icon name="check_circle" className={`${track.color} ml-auto flex-shrink-0`} size={22} filled />
-                  )}
-                </button>
-              ))}
-            </div>
+          <div style={{ height: 6, background: 'rgba(255,255,255,0.06)', borderRadius: 999, overflow: 'hidden' }}>
+            <motion.div
+              animate={{ width: `${(step / TOTAL_STEPS) * 100}%` }}
+              transition={{ duration: 0.4 }}
+              style={{ height: '100%', background: 'linear-gradient(90deg, #E82127, #ff6b6b)', borderRadius: 999 }}
+            />
           </div>
-        )}
+        </div>
 
-        {/* Step 3: Target Role */}
-        {step === 3 && (
-          <div>
-            <h2 className="text-3xl font-black tracking-tighter mb-2">What's your target?</h2>
-            <p className="text-zinc-400 mb-8">This helps us recommend the right learning path for you.</p>
+        <div style={{ width: '100%', maxWidth: 576 }}>
+          {/* Step 1: Name */}
+          {step === 1 && (
+            <motion.div key="step1" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} style={{ textAlign: 'center' }}>
+              <div style={{ width: 80, height: 80, background: 'rgba(232,33,39,0.1)', border: '1px solid rgba(232,33,39,0.2)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
+                <Icon name="waving_hand" size={36} style={{ color: '#E82127' }} />
+              </div>
+              <h1 style={{ fontSize: '2.5rem', fontWeight: 900, letterSpacing: '-0.03em', marginBottom: 12 }}>Welcome to EYF!</h1>
+              <p style={{ color: '#71717a', marginBottom: 40 }}>Let's set up your profile. It takes 2 minutes and personalizes your entire experience.</p>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-8">
-              {TARGET_ROLES.map((role) => (
-                <button
-                  key={role}
-                  type="button"
-                  onClick={() => setData((d) => ({ ...d, targetRole: role }))}
-                  className={`p-4 rounded-xl text-left text-sm font-bold transition-all border ${
-                    data.targetRole === role
-                      ? 'bg-primary-container/10 border-primary-container/50 text-primary-container'
-                      : 'bg-surface-container border-zinc-800 text-on-surface-variant hover:border-zinc-700'
-                  }`}
-                >
-                  {role}
-                </button>
-              ))}
-            </div>
+              <div style={{ textAlign: 'left' }}>
+                <label htmlFor="onboarding-name" style={{ display: 'block', fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#a1a1aa', marginBottom: 12 }}>What should we call you?</label>
+                <input
+                  id="onboarding-name"
+                  type="text"
+                  value={data.name}
+                  onChange={(e) => setData((d) => ({ ...d, name: e.target.value }))}
+                  placeholder="Your first name"
+                  autoFocus
+                  style={INPUT_STYLE}
+                />
+              </div>
+            </motion.div>
+          )}
 
-            <div>
-              <p className="block text-xs font-bold text-zinc-400 uppercase tracking-widest mb-3">Years of experience</p>
-              <div className="flex gap-2">
-                {[0, 1, 2, 3, 5, 7, 10].map((yr) => {
-                  let yrLabel = `${yr}yr`;
-                  if (yr === 0) yrLabel = 'None';
-                  else if (yr === 10) yrLabel = '10+';
+          {/* Step 2: Track */}
+          {step === 2 && (
+            <motion.div key="step2" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
+              <h2 style={{ fontSize: '2rem', fontWeight: 900, letterSpacing: '-0.03em', marginBottom: 8 }}>
+                Hey {data.name.split(' ')[0]}! 👋
+              </h2>
+              <p style={{ color: '#71717a', marginBottom: 32 }}>Which best describes where you are right now?</p>
+
+              <div className="space-y-3">
+                {TRACKS.map((track) => {
+                  const active = data.track === track.id;
                   return (
-                    <button
-                      key={yr}
+                    <motion.button
+                      key={track.id}
                       type="button"
-                      onClick={() => setData((d) => ({ ...d, experienceYears: yr }))}
-                      className={`flex-1 py-2.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${
-                        data.experienceYears === yr
-                          ? 'bg-primary-container text-white'
-                          : 'bg-surface-container text-zinc-500 hover:text-zinc-200'
-                      }`}
+                      onClick={() => setData((d) => ({ ...d, track: track.id }))}
+                      whileHover={{ scale: 1.01 }}
+                      style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 20, padding: 20, borderRadius: 16, textAlign: 'left', cursor: 'pointer', border: active ? `2px solid ${track.border}` : '1px solid rgba(255,255,255,0.08)', background: active ? track.bg : 'rgba(255,255,255,0.03)' }}
                     >
-                      {yrLabel}
-                    </button>
+                      <div style={{ width: 48, height: 48, borderRadius: 14, background: track.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <Icon name={track.icon} size={24} style={{ color: track.color }} />
+                      </div>
+                      <div>
+                        <p style={{ fontWeight: 700, fontSize: 16, color: active ? track.color : '#e4e4e7' }}>{track.title}</p>
+                        <p style={{ fontSize: 14, color: '#71717a' }}>{track.desc}</p>
+                      </div>
+                      {active && <Icon name="check_circle" size={22} filled style={{ color: track.color, marginLeft: 'auto', flexShrink: 0 }} />}
+                    </motion.button>
                   );
                 })}
               </div>
-            </div>
-          </div>
-        )}
+            </motion.div>
+          )}
 
-        {/* Step 4: Target Companies */}
-        {step === 4 && (
-          <div>
-            <h2 className="text-3xl font-black tracking-tighter mb-2">Dream companies?</h2>
-            <p className="text-zinc-400 mb-2">Pick up to 4 companies you're targeting.</p>
-            <p className="text-[11px] text-zinc-600 mb-8">{data.targetCompanies.length}/4 selected</p>
+          {/* Step 3: Target Role */}
+          {step === 3 && (
+            <motion.div key="step3" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
+              <h2 style={{ fontSize: '2rem', fontWeight: 900, letterSpacing: '-0.03em', marginBottom: 8 }}>What's your target?</h2>
+              <p style={{ color: '#71717a', marginBottom: 32 }}>This helps us recommend the right learning path for you.</p>
 
-            <div className="flex flex-wrap gap-2.5">
-              {COMPANIES.map((c) => {
-                const selected = data.targetCompanies.includes(c);
-                let companyBtnClass = 'bg-surface-container border-zinc-800 text-zinc-400 hover:border-zinc-600 hover:text-zinc-200';
-                if (selected) companyBtnClass = 'bg-primary-container/10 border-primary-container/50 text-primary-container';
-                else if (data.targetCompanies.length >= 4) companyBtnClass = 'bg-surface-container border-zinc-800 text-zinc-600 cursor-not-allowed';
-                return (
-                  <button
-                    key={c}
-                    type="button"
-                    onClick={() => toggleCompany(c)}
-                    className={`px-5 py-2.5 rounded-full text-sm font-bold transition-all border ${companyBtnClass}`}
-                  >
-                    {selected && <Icon name="check" size={12} className="inline mr-1" />}
-                    {c}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* Step 5: Focus + Daily Goal */}
-        {step === 5 && (
-          <div>
-            <h2 className="text-3xl font-black tracking-tighter mb-2">Almost there!</h2>
-            <p className="text-zinc-400 mb-8">What do you want to focus on? Pick up to 4 areas.</p>
-
-            <div className="grid grid-cols-2 gap-2 mb-8">
-              {FOCUS_AREAS.map((f) => {
-                const selected = data.focusAreas.includes(f.id);
-                let focusBtnClass = 'bg-surface-container border-zinc-800 text-on-surface-variant hover:border-zinc-700';
-                if (selected) focusBtnClass = 'bg-primary-container/10 border-primary-container/50 text-primary-container';
-                else if (data.focusAreas.length >= 4) focusBtnClass = 'bg-surface-container border-zinc-800 text-zinc-600 cursor-not-allowed';
-                return (
-                  <button
-                    key={f.id}
-                    type="button"
-                    onClick={() => toggleFocus(f.id)}
-                    className={`flex items-center gap-3 p-4 rounded-xl text-left transition-all border ${focusBtnClass}`}
-                  >
-                    <Icon name={f.icon} size={18} className={selected ? 'text-primary-container' : 'text-zinc-500'} />
-                    <span className="text-sm font-bold">{f.label}</span>
-                    {selected && <Icon name="check" size={14} className="ml-auto text-primary-container flex-shrink-0" />}
-                  </button>
-                );
-              })}
-            </div>
-
-            <div>
-              <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-3">Daily study goal</p>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                {DAILY_GOALS.map((g) => (
-                  <button
-                    key={g.minutes}
-                    type="button"
-                    onClick={() => setData((d) => ({ ...d, dailyGoalMinutes: g.minutes }))}
-                    className={`p-3 rounded-xl text-center transition-all border ${
-                      data.dailyGoalMinutes === g.minutes
-                        ? 'bg-primary-container/10 border-primary-container/50 text-primary-container'
-                        : 'bg-surface-container border-zinc-800 text-on-surface-variant hover:border-zinc-700'
-                    }`}
-                  >
-                    <p className="text-sm font-bold">{g.label}</p>
-                    <p className="text-[10px] text-zinc-500">{g.desc}</p>
-                  </button>
-                ))}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2" style={{ marginBottom: 32 }}>
+                {TARGET_ROLES.map((role) => {
+                  const active = data.targetRole === role;
+                  return (
+                    <motion.button
+                      key={role}
+                      type="button"
+                      onClick={() => setData((d) => ({ ...d, targetRole: role }))}
+                      whileHover={{ scale: 1.02 }}
+                      style={{ padding: 16, borderRadius: 12, textAlign: 'left', fontSize: 14, fontWeight: 700, cursor: 'pointer', border: active ? '1px solid rgba(232,33,39,0.4)' : '1px solid rgba(255,255,255,0.08)', background: active ? 'rgba(232,33,39,0.1)' : 'rgba(255,255,255,0.03)', color: active ? '#e4e4e7' : '#a1a1aa' }}
+                    >
+                      {role}
+                    </motion.button>
+                  );
+                })}
               </div>
-            </div>
+
+              <div>
+                <p style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#a1a1aa', marginBottom: 12 }}>Years of experience</p>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  {[0, 1, 2, 3, 5, 7, 10].map((yr) => {
+                    const label = yr === 0 ? 'None' : yr === 10 ? '10+' : `${yr}yr`;
+                    const active = data.experienceYears === yr;
+                    return (
+                      <button
+                        key={yr}
+                        type="button"
+                        onClick={() => setData((d) => ({ ...d, experienceYears: yr }))}
+                        style={{ flex: 1, padding: '10px 0', borderRadius: 999, fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', cursor: 'pointer', border: 'none', background: active ? '#E82127' : 'rgba(255,255,255,0.06)', color: active ? '#fff' : '#71717a' }}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Step 4: Target Companies */}
+          {step === 4 && (
+            <motion.div key="step4" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
+              <h2 style={{ fontSize: '2rem', fontWeight: 900, letterSpacing: '-0.03em', marginBottom: 8 }}>Dream companies?</h2>
+              <p style={{ color: '#71717a', marginBottom: 4 }}>Pick up to 4 companies you're targeting.</p>
+              <p style={{ fontSize: 11, color: '#52525b', marginBottom: 32 }}>{data.targetCompanies.length}/4 selected</p>
+
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+                {COMPANIES.map((c) => {
+                  const selected = data.targetCompanies.includes(c);
+                  const disabled = !selected && data.targetCompanies.length >= 4;
+                  return (
+                    <motion.button
+                      key={c}
+                      type="button"
+                      onClick={() => toggleCompany(c)}
+                      whileHover={!disabled ? { scale: 1.04 } : {}}
+                      style={{ padding: '10px 20px', borderRadius: 999, fontSize: 14, fontWeight: 700, cursor: disabled ? 'not-allowed' : 'pointer', border: selected ? '1px solid rgba(232,33,39,0.4)' : '1px solid rgba(255,255,255,0.08)', background: selected ? 'rgba(232,33,39,0.12)' : 'rgba(255,255,255,0.04)', color: selected ? '#e4e4e7' : disabled ? '#3f3f46' : '#a1a1aa', display: 'flex', alignItems: 'center', gap: 6 }}
+                    >
+                      {selected && <Icon name="check" size={12} />}
+                      {c}
+                    </motion.button>
+                  );
+                })}
+              </div>
+            </motion.div>
+          )}
+
+          {/* Step 5: Focus + Daily Goal */}
+          {step === 5 && (
+            <motion.div key="step5" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
+              <h2 style={{ fontSize: '2rem', fontWeight: 900, letterSpacing: '-0.03em', marginBottom: 8 }}>Almost there!</h2>
+              <p style={{ color: '#71717a', marginBottom: 32 }}>What do you want to focus on? Pick up to 4 areas.</p>
+
+              <div className="grid grid-cols-2 gap-2" style={{ marginBottom: 32 }}>
+                {FOCUS_AREAS.map((f) => {
+                  const selected = data.focusAreas.includes(f.id);
+                  const disabled = !selected && data.focusAreas.length >= 4;
+                  return (
+                    <motion.button
+                      key={f.id}
+                      type="button"
+                      onClick={() => toggleFocus(f.id)}
+                      whileHover={!disabled ? { scale: 1.02 } : {}}
+                      style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 16, borderRadius: 12, textAlign: 'left', cursor: disabled ? 'not-allowed' : 'pointer', border: selected ? '1px solid rgba(232,33,39,0.4)' : '1px solid rgba(255,255,255,0.08)', background: selected ? 'rgba(232,33,39,0.1)' : 'rgba(255,255,255,0.03)', color: selected ? '#e4e4e7' : disabled ? '#3f3f46' : '#a1a1aa' }}
+                    >
+                      <Icon name={f.icon} size={18} style={{ color: selected ? '#E82127' : '#71717a' }} />
+                      <span style={{ fontSize: 14, fontWeight: 700 }}>{f.label}</span>
+                      {selected && <Icon name="check" size={14} style={{ marginLeft: 'auto', color: '#E82127', flexShrink: 0 }} />}
+                    </motion.button>
+                  );
+                })}
+              </div>
+
+              <div>
+                <p style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#a1a1aa', marginBottom: 12 }}>Daily study goal</p>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                  {DAILY_GOALS.map((g) => {
+                    const active = data.dailyGoalMinutes === g.minutes;
+                    return (
+                      <motion.button
+                        key={g.minutes}
+                        type="button"
+                        onClick={() => setData((d) => ({ ...d, dailyGoalMinutes: g.minutes }))}
+                        whileHover={{ scale: 1.04 }}
+                        style={{ padding: 12, borderRadius: 12, textAlign: 'center', cursor: 'pointer', border: active ? '1px solid rgba(232,33,39,0.4)' : '1px solid rgba(255,255,255,0.08)', background: active ? 'rgba(232,33,39,0.1)' : 'rgba(255,255,255,0.03)' }}
+                      >
+                        <p style={{ fontSize: 14, fontWeight: 700, color: active ? '#e4e4e7' : '#a1a1aa' }}>{g.label}</p>
+                        <p style={{ fontSize: 10, color: '#71717a' }}>{g.desc}</p>
+                      </motion.button>
+                    );
+                  })}
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Navigation */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 40 }}>
+            {step > 1 ? (
+              <motion.button onClick={back} whileHover={{ x: -2 }} style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#71717a', fontWeight: 700, fontSize: 14, background: 'none', border: 'none', cursor: 'pointer' }}>
+                <Icon name="arrow_back" size={16} />Back
+              </motion.button>
+            ) : (
+              <button onClick={() => navigate('/app/dashboard', { replace: true })} style={{ color: '#52525b', fontSize: 14, fontWeight: 700, background: 'none', border: 'none', cursor: 'pointer' }}>
+                Skip for now
+              </button>
+            )}
+
+            {step < TOTAL_STEPS ? (
+              <motion.button
+                onClick={next}
+                disabled={!canNext()}
+                whileHover={canNext() ? { scale: 1.04 } : {}}
+                whileTap={canNext() ? { scale: 0.96 } : {}}
+                style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#E82127', color: '#fff', fontWeight: 700, padding: '12px 32px', borderRadius: 999, border: 'none', cursor: canNext() ? 'pointer' : 'not-allowed', opacity: canNext() ? 1 : 0.4, boxShadow: canNext() ? '0 0 20px rgba(232,33,39,0.3)' : 'none' }}
+              >
+                Continue<Icon name="arrow_forward" size={16} />
+              </motion.button>
+            ) : (
+              <motion.button
+                onClick={finish}
+                disabled={saving}
+                whileHover={{ scale: 1.04 }}
+                whileTap={{ scale: 0.96 }}
+                style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#E82127', color: '#fff', fontWeight: 700, padding: '12px 32px', borderRadius: 999, border: 'none', cursor: 'pointer', opacity: saving ? 0.5 : 1, boxShadow: '0 0 24px rgba(232,33,39,0.3)' }}
+              >
+                {saving ? <><Icon name="hourglass_empty" size={16} />Setting up...</> : <><Icon name="rocket_launch" size={16} />Launch EYF!</>}
+              </motion.button>
+            )}
           </div>
-        )}
-
-        {/* Navigation */}
-        <div className="flex items-center justify-between mt-10">
-          {step > 1 ? (
-            <button
-              onClick={back}
-              className="flex items-center gap-2 text-zinc-500 hover:text-zinc-300 transition-colors font-bold text-sm"
-            >
-              <Icon name="arrow_back" size={16} />
-              Back
-            </button>
-          ) : (
-            <button
-              onClick={() => navigate('/app/dashboard', { replace: true })}
-              className="text-zinc-600 hover:text-zinc-400 transition-colors text-sm font-bold"
-            >
-              Skip for now
-            </button>
-          )}
-
-          {step < TOTAL_STEPS ? (
-            <button
-              onClick={next}
-              disabled={!canNext()}
-              className="flex items-center gap-2 bg-primary-container text-white font-bold py-3 px-8 rounded-full hover:brightness-110 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              Continue
-              <Icon name="arrow_forward" size={16} />
-            </button>
-          ) : (
-            <button
-              onClick={finish}
-              disabled={saving}
-              className="flex items-center gap-2 bg-primary-container text-white font-bold py-3 px-8 rounded-full hover:brightness-110 transition-all disabled:opacity-40"
-            >
-              {saving ? (
-                <><Icon name="hourglass_empty" size={16} />Setting up...</>
-              ) : (
-                <><Icon name="rocket_launch" size={16} />Launch EYF!</>
-              )}
-            </button>
-          )}
         </div>
-      </div>
       </div>
     </div>
   );
