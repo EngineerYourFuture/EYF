@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
 import { AuthorityShell } from '../components/AuthorityShell';
 import { Icon } from '../components/Icon';
 import { apiRequest } from '../lib/api';
@@ -18,11 +19,10 @@ interface ProblemsResponse {
   items: Problem[];
 }
 
-const diffColor = (d: string) => {
-  if (d === 'easy') return 'text-green-400';
-  if (d === 'medium') return 'text-yellow-400';
-  return 'text-red-400';
-};
+const GLASS = { background: 'rgba(10,10,10,0.7)', border: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(16px)' } as const;
+const INPUT = { width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '12px 16px', fontSize: 14, color: '#e4e4e7', outline: 'none', boxSizing: 'border-box' } as const;
+
+const DIFF_COLOR: Record<string, string> = { easy: '#4ade80', medium: '#facc15', hard: '#f87171' };
 
 export function AdminProblemsPage() {
   const session = getSession();
@@ -81,96 +81,113 @@ export function AdminProblemsPage() {
 
   return (
     <AuthorityShell>
-      <div className="pt-8">
-        <div className="mb-12 flex items-center justify-between">
+      <div style={{ paddingTop: 32 }}>
+        <div style={{ marginBottom: 48, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
           <div>
-            <h1 className="text-5xl font-black tracking-tighter mb-3">Problem <span className="text-primary-container">Management.</span></h1>
-            <p className="text-on-surface-variant">Create, edit, and manage the problem database.</p>
+            <h1 style={{ fontSize: 48, fontWeight: 900, letterSpacing: '-0.04em', lineHeight: 1.05, marginBottom: 12 }}>
+              Problem{' '}
+              <span style={{ background: 'linear-gradient(135deg, #E82127, #ff4d52)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Management.</span>
+            </h1>
+            <p style={{ color: '#71717a', fontSize: 15 }}>Create, edit, and manage the problem database.</p>
           </div>
-          <button
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
             onClick={openAdd}
-            className="bg-primary-container text-white font-bold px-6 py-3 rounded-full text-[11px] uppercase tracking-widest flex items-center gap-2 hover:brightness-110 transition-all active:scale-95"
+            style={{ background: '#E82127', color: '#fff', fontWeight: 700, padding: '12px 24px', borderRadius: 999, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.1em', display: 'flex', alignItems: 'center', gap: 8, border: 'none', cursor: 'pointer', boxShadow: '0 0 24px rgba(232,33,39,0.3)', flexShrink: 0 }}
           >
             <Icon name="add" size={18} />
             Add Problem
-          </button>
+          </motion.button>
         </div>
 
-        <div className="grid grid-cols-12 gap-4 px-8 py-4 font-['Inter'] uppercase tracking-widest text-[10px] font-black text-zinc-500 mb-2">
-          <div className="col-span-5">Title</div>
-          <div className="col-span-2 text-center">Difficulty</div>
-          <div className="col-span-2 text-center">Category</div>
-          <div className="col-span-2 text-center">Status</div>
-          <div className="col-span-1 text-right">Actions</div>
+        {/* Table header */}
+        <div style={{ display: 'grid', gridTemplateColumns: '5fr 2fr 2fr 2fr 1fr', gap: 16, padding: '12px 32px', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#52525b', marginBottom: 8 }}>
+          <div>Title</div>
+          <div style={{ textAlign: 'center' }}>Difficulty</div>
+          <div style={{ textAlign: 'center' }}>Category</div>
+          <div style={{ textAlign: 'center' }}>Status</div>
+          <div style={{ textAlign: 'right' }}>Actions</div>
         </div>
 
-        {loading && <div className="text-center py-20 text-zinc-500">Loading problems...</div>}
-        {!loading && problems.length === 0 && <div className="text-center py-20 text-zinc-500">No problems yet.</div>}
+        {loading && <div style={{ textAlign: 'center', padding: '80px 0', color: '#52525b' }}>Loading problems...</div>}
+        {!loading && problems.length === 0 && <div style={{ textAlign: 'center', padding: '80px 0', color: '#52525b' }}>No problems yet.</div>}
         {!loading && problems.length > 0 && (
-          <div className="space-y-2">
-            {problems.map((p) => (
-              <div key={p.id} className="grid grid-cols-12 gap-4 bg-surface-container rounded-xl px-8 py-5 hover:bg-surface-container-high transition-colors items-center">
-                <div className="col-span-5 font-semibold text-on-surface">{p.title}</div>
-                <div className="col-span-2 text-center">
-                  <span className={`font-bold text-xs uppercase tracking-widest ${diffColor(p.difficulty)}`}>{p.difficulty}</span>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {problems.map((p, i) => (
+              <motion.div
+                key={p.id}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.03 }}
+                style={{ ...GLASS, borderRadius: 12, padding: '20px 32px', display: 'grid', gridTemplateColumns: '5fr 2fr 2fr 2fr 1fr', gap: 16, alignItems: 'center' }}
+              >
+                <div style={{ fontWeight: 600, fontSize: 14, color: '#e4e4e7' }}>{p.title}</div>
+                <div style={{ textAlign: 'center' }}>
+                  <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: DIFF_COLOR[p.difficulty] ?? '#e4e4e7' }}>{p.difficulty}</span>
                 </div>
-                <div className="col-span-2 text-center">
-                  <span className="px-3 py-1 bg-surface-container-highest rounded-full text-[10px] font-bold text-zinc-400">
+                <div style={{ textAlign: 'center' }}>
+                  <span style={{ padding: '4px 12px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 999, fontSize: 10, fontWeight: 700, color: '#71717a' }}>
                     {p.category ?? 'General'}
                   </span>
                 </div>
-                <div className="col-span-2 flex justify-center">
-                  <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${p.status === 'published' ? 'text-green-400 bg-green-400/10' : 'text-zinc-400 bg-zinc-400/10'}`}>
+                <div style={{ display: 'flex', justifyContent: 'center' }}>
+                  <span style={{ padding: '4px 12px', borderRadius: 999, fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', background: p.status === 'published' ? 'rgba(74,222,128,0.1)' : 'rgba(113,113,122,0.1)', color: p.status === 'published' ? '#4ade80' : '#71717a' }}>
                     {p.status ?? 'draft'}
                   </span>
                 </div>
-                <div className="col-span-1 flex justify-end gap-2">
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
                   <button
                     onClick={() => openEdit(p)}
-                    className="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center text-zinc-400 hover:text-white transition-colors"
-                  >                    <Icon name="edit" size={16} />
+                    style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#71717a', cursor: 'pointer' }}
+                  >
+                    <Icon name="edit" size={16} />
                   </button>
                   <button
                     onClick={() => deleteProblem(p.id)}
-                    className="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center text-zinc-400 hover:text-red-400 transition-colors"
+                    style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#71717a', cursor: 'pointer' }}
                   >
                     <Icon name="delete" size={16} />
                   </button>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
         )}
 
         {/* Modal */}
         {showModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-            <div className="bg-surface-container rounded-xl p-10 w-full max-w-md shadow-2xl">
-              <div className="flex items-center justify-between mb-8">
-                <h2 className="text-xl font-black tracking-tight">{editingProblem ? 'Edit Problem' : 'Add Problem'}</h2>
-                <button onClick={() => setShowModal(false)} className="text-zinc-500 hover:text-white transition-colors">
+          <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)' }}>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              style={{ ...GLASS, borderRadius: 20, padding: 40, width: '100%', maxWidth: 440 }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 32 }}>
+                <h2 style={{ fontSize: 22, fontWeight: 900, letterSpacing: '-0.03em', color: '#e4e4e7' }}>{editingProblem ? 'Edit Problem' : 'Add Problem'}</h2>
+                <button onClick={() => setShowModal(false)} style={{ color: '#52525b', background: 'none', border: 'none', cursor: 'pointer' }}>
                   <Icon name="close" size={24} />
                 </button>
               </div>
-              <form onSubmit={addProblem} className="space-y-6">
+              <form onSubmit={addProblem} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
                 <div>
-                  <label htmlFor="prob-title" className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-zinc-500 block mb-2">Title</label>
+                  <label htmlFor="prob-title" style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#71717a', display: 'block', marginBottom: 8 }}>Title</label>
                   <input
                     id="prob-title"
                     value={newTitle}
                     onChange={(e) => setNewTitle(e.target.value)}
-                    className="w-full bg-surface-container-low rounded-xl px-5 py-3.5 text-on-surface text-sm border-none focus:outline-none"
+                    style={INPUT}
                     placeholder="Two Sum"
                     required
                   />
                 </div>
                 <div>
-                  <label htmlFor="prob-diff" className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-zinc-500 block mb-2">Difficulty</label>
+                  <label htmlFor="prob-diff" style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#71717a', display: 'block', marginBottom: 8 }}>Difficulty</label>
                   <select
                     id="prob-diff"
                     value={newDiff}
                     onChange={(e) => setNewDiff(e.target.value as Difficulty)}
-                    className="w-full bg-surface-container-low rounded-xl px-5 py-3.5 text-on-surface text-sm border-none focus:outline-none"
+                    style={INPUT}
                   >
                     <option value="easy">Easy</option>
                     <option value="medium">Medium</option>
@@ -178,23 +195,25 @@ export function AdminProblemsPage() {
                   </select>
                 </div>
                 <div>
-                  <label htmlFor="prob-cat" className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-zinc-500 block mb-2">Category</label>
+                  <label htmlFor="prob-cat" style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#71717a', display: 'block', marginBottom: 8 }}>Category</label>
                   <input
                     id="prob-cat"
                     value={newCat}
                     onChange={(e) => setNewCat(e.target.value)}
-                    className="w-full bg-surface-container-low rounded-xl px-5 py-3.5 text-on-surface text-sm border-none focus:outline-none"
+                    style={INPUT}
                     placeholder="Arrays"
                   />
                 </div>
-                <button
+                <motion.button
                   type="submit"
-                  className="w-full bg-primary-container text-white font-bold py-4 rounded-full text-[11px] uppercase tracking-widest hover:brightness-110 transition-all active:scale-95"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  style={{ width: '100%', background: '#E82127', color: '#fff', fontWeight: 700, padding: '14px 0', borderRadius: 999, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.1em', border: 'none', cursor: 'pointer', boxShadow: '0 0 20px rgba(232,33,39,0.3)' }}
                 >
                   {editingProblem ? 'Save Changes' : 'Create Problem'}
-                </button>
+                </motion.button>
               </form>
-            </div>
+            </motion.div>
           </div>
         )}
       </div>

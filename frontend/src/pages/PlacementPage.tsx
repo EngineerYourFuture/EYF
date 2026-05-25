@@ -642,10 +642,8 @@ const DAILY_QUESTION = {
   category: 'Adaptability',
 };
 
-function getReadinessBarClass(readiness: number): string {
-  if (readiness >= 70) return 'bg-gradient-to-r from-green-500 to-emerald-400';
-  if (readiness >= 40) return 'bg-gradient-to-r from-yellow-500 to-amber-400';
-  return 'bg-gradient-to-r from-primary-container to-red-400';
+function getReadinessBarClass(_readiness: number): string {
+  return '';
 }
 
 function getReadinessMsg(readiness: number): string {
@@ -678,14 +676,14 @@ function renderDailyQuestionAction(
           onChange={(e) => setDailyResponse(e.target.value)}
           placeholder="Write your answer using STAR format..."
           rows={4}
-          className="w-full bg-surface-container-highest border border-outline-variant/20 rounded-xl p-3 text-sm text-on-surface focus:outline-none focus:border-primary-container/40 resize-none mb-3"
+          style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: 12, fontSize: 14, color: '#e4e4e7', outline: 'none', resize: 'none', marginBottom: 12, boxSizing: 'border-box' }}
         />
-        <div className="flex gap-2 justify-end">
-          <button onClick={() => setShowDailyInput(false)} className="text-sm text-zinc-500 hover:text-zinc-300 px-3 py-2 rounded-full">Cancel</button>
+        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+          <button onClick={() => setShowDailyInput(false)} style={{ fontSize: 14, color: '#71717a', padding: '8px 12px', borderRadius: 999, background: 'transparent', border: 'none', cursor: 'pointer' }}>Cancel</button>
           <button
             onClick={submitDailyAnswer}
             disabled={dailyResponse.length < 20}
-            className="bg-primary-container text-white font-bold py-2 px-5 rounded-full text-sm hover:brightness-110 disabled:opacity-40"
+            style={{ background: '#E82127', color: '#fff', fontWeight: 700, padding: '8px 20px', borderRadius: 999, fontSize: 14, border: 'none', cursor: dailyResponse.length < 20 ? 'default' : 'pointer', opacity: dailyResponse.length < 20 ? 0.4 : 1 }}
           >
             Submit · +25 XP
           </button>
@@ -696,7 +694,7 @@ function renderDailyQuestionAction(
   return (
     <button
       onClick={() => setShowDailyInput(true)}
-      className="bg-primary-container text-white font-bold py-2.5 px-6 rounded-full text-sm hover:brightness-110 transition-all flex items-center gap-2"
+      style={{ background: '#E82127', color: '#fff', fontWeight: 700, padding: '10px 24px', borderRadius: 999, fontSize: 14, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, boxShadow: '0 0 20px rgba(232,33,39,0.25)' }}
     >
       <Icon name="edit" size={14} />
       Answer Today's Question

@@ -1,9 +1,13 @@
 import { useEffect, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { AppShell } from '../components/AppShell';
 import { Icon } from '../components/Icon';
 import { apiRequest } from '../lib/api';
 import { getSession } from '../lib/session';
 import { useUser } from '../contexts/UserContext';
+
+const GLASS = { background: 'rgba(10,10,10,0.7)', border: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(16px)' } as const;
+const INPUT = { width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '12px 16px', fontSize: 14, color: '#e4e4e7', outline: 'none', boxSizing: 'border-box' } as const;
 
 interface Mentor {
   id: string;
@@ -42,77 +46,27 @@ interface MySession {
 }
 
 const STATIC_MENTORS: Mentor[] = [
-  {
-    id: 'm1', name: 'Alex Chen', role: 'Senior SWE', company: 'Google',
-    tags: ['DSA', 'System Design', 'LC 500+', 'FAANG Prep'],
-    bio: '5 years at Google. Helped 50+ engineers clear FAANG interviews. Specializes in hard DSA and system design walkthroughs.',
-    rating: 4.9, sessionCount: 87, available: true, featured: true, avatarColor: 'bg-blue-500',
-  },
-  {
-    id: 'm2', name: 'Sarah Kim', role: 'Staff Engineer', company: 'Meta',
-    tags: ['ML', 'Python', 'Career Growth'],
-    bio: 'Staff engineer at Meta working on recommendation systems. Passionate about ML career paths and Python best practices.',
-    rating: 4.8, sessionCount: 62, available: true, avatarColor: 'bg-purple-500',
-  },
-  {
-    id: 'm3', name: 'Raj Patel', role: 'SWE II', company: 'Amazon',
-    tags: ['Backend', 'AWS', 'Java', 'System Design'],
-    bio: 'Amazon SWE with deep experience in distributed systems and AWS. Loves helping engineers crack the backend track.',
-    rating: 4.7, sessionCount: 44, available: true, avatarColor: 'bg-orange-500',
-  },
-  {
-    id: 'm4', name: 'Maya Johnson', role: 'Principal SWE', company: 'Microsoft',
-    tags: ['Leadership', 'Azure', 'Architecture'],
-    bio: 'Principal engineer at Microsoft. Focus on technical leadership, career leveling, and architecture decisions at scale.',
-    rating: 4.6, sessionCount: 39, available: false, avatarColor: 'bg-cyan-500',
-  },
-  {
-    id: 'm5', name: 'Lena Zhang', role: 'Tech Lead', company: 'Netflix',
-    tags: ['Distributed Systems', 'Reliability', 'Scala'],
-    bio: 'Tech lead at Netflix running chaos engineering and reliability. Expert in building fault-tolerant distributed systems.',
-    rating: 4.8, sessionCount: 55, available: true, avatarColor: 'bg-red-500',
-  },
-  {
-    id: 'm6', name: 'Amit Sharma', role: 'Security Engineer', company: 'Razorpay',
-    tags: ['AppSec', 'Bug Bounty', 'Penetration Testing'],
-    bio: 'Security engineer with a bug bounty background. Helps engineers transition into security roles and CTF challenges.',
-    rating: 4.7, sessionCount: 31, available: true, avatarColor: 'bg-green-500',
-  },
-  {
-    id: 'm7', name: 'Priya Nair', role: 'SDE-III', company: 'Flipkart',
-    tags: ['DSA', 'Java', 'Microservices', 'FAANG Prep'],
-    bio: 'Senior engineer at Flipkart Infra. Cracked Google, Amazon, and Flipkart. Specializes in Java/microservices architecture and DSA coaching for freshers.',
-    rating: 4.8, sessionCount: 48, available: true, avatarColor: 'bg-indigo-500',
-  },
-  {
-    id: 'm8', name: 'Karan Mehta', role: 'ML Engineer', company: 'Swiggy',
-    tags: ['Machine Learning', 'Python', 'Deep Learning', 'NLP'],
-    bio: 'ML engineer at Swiggy working on demand forecasting and recommendation. Helps students break into ML/AI roles with solid fundamentals.',
-    rating: 4.6, sessionCount: 27, available: true, avatarColor: 'bg-pink-500',
-  },
-  {
-    id: 'm9', name: 'Divya Reddy', role: 'Engineering Manager', company: 'Atlassian',
-    tags: ['Leadership', 'Career Growth', 'EM Transition', 'System Design'],
-    bio: 'Engineering Manager with 8 years of experience. Guides engineers on IC-to-EM transitions, performance reviews, and navigating big tech culture.',
-    rating: 4.9, sessionCount: 73, available: false, featured: true, avatarColor: 'bg-teal-500',
-  },
-  {
-    id: 'm10', name: 'Rohan Joshi', role: 'SRE Lead', company: 'Uber',
-    tags: ['SRE', 'DevOps', 'Kubernetes', 'Reliability'],
-    bio: 'SRE lead at Uber managing reliability for payment systems. Teaches SRE fundamentals, Kubernetes, and building on-call runbooks for the SRE track.',
-    rating: 4.7, sessionCount: 36, available: true, avatarColor: 'bg-zinc-500',
-  },
+  { id: 'm1', name: 'Alex Chen', role: 'Senior SWE', company: 'Google', tags: ['DSA', 'System Design', 'LC 500+', 'FAANG Prep'], bio: '5 years at Google. Helped 50+ engineers clear FAANG interviews. Specializes in hard DSA and system design walkthroughs.', rating: 4.9, sessionCount: 87, available: true, featured: true, avatarColor: '#3b82f6' },
+  { id: 'm2', name: 'Sarah Kim', role: 'Staff Engineer', company: 'Meta', tags: ['ML', 'Python', 'Career Growth'], bio: 'Staff engineer at Meta working on recommendation systems. Passionate about ML career paths and Python best practices.', rating: 4.8, sessionCount: 62, available: true, avatarColor: '#a855f7' },
+  { id: 'm3', name: 'Raj Patel', role: 'SWE II', company: 'Amazon', tags: ['Backend', 'AWS', 'Java', 'System Design'], bio: 'Amazon SWE with deep experience in distributed systems and AWS. Loves helping engineers crack the backend track.', rating: 4.7, sessionCount: 44, available: true, avatarColor: '#f97316' },
+  { id: 'm4', name: 'Maya Johnson', role: 'Principal SWE', company: 'Microsoft', tags: ['Leadership', 'Azure', 'Architecture'], bio: 'Principal engineer at Microsoft. Focus on technical leadership, career leveling, and architecture decisions at scale.', rating: 4.6, sessionCount: 39, available: false, avatarColor: '#06b6d4' },
+  { id: 'm5', name: 'Lena Zhang', role: 'Tech Lead', company: 'Netflix', tags: ['Distributed Systems', 'Reliability', 'Scala'], bio: 'Tech lead at Netflix running chaos engineering and reliability. Expert in building fault-tolerant distributed systems.', rating: 4.8, sessionCount: 55, available: true, avatarColor: '#E82127' },
+  { id: 'm6', name: 'Amit Sharma', role: 'Security Engineer', company: 'Razorpay', tags: ['AppSec', 'Bug Bounty', 'Penetration Testing'], bio: 'Security engineer with a bug bounty background. Helps engineers transition into security roles and CTF challenges.', rating: 4.7, sessionCount: 31, available: true, avatarColor: '#22c55e' },
+  { id: 'm7', name: 'Priya Nair', role: 'SDE-III', company: 'Flipkart', tags: ['DSA', 'Java', 'Microservices', 'FAANG Prep'], bio: 'Senior engineer at Flipkart Infra. Cracked Google, Amazon, and Flipkart. Specializes in Java/microservices architecture and DSA coaching for freshers.', rating: 4.8, sessionCount: 48, available: true, avatarColor: '#6366f1' },
+  { id: 'm8', name: 'Karan Mehta', role: 'ML Engineer', company: 'Swiggy', tags: ['Machine Learning', 'Python', 'Deep Learning', 'NLP'], bio: 'ML engineer at Swiggy working on demand forecasting and recommendation. Helps students break into ML/AI roles with solid fundamentals.', rating: 4.6, sessionCount: 27, available: true, avatarColor: '#ec4899' },
+  { id: 'm9', name: 'Divya Reddy', role: 'Engineering Manager', company: 'Atlassian', tags: ['Leadership', 'Career Growth', 'EM Transition', 'System Design'], bio: 'Engineering Manager with 8 years of experience. Guides engineers on IC-to-EM transitions, performance reviews, and navigating big tech culture.', rating: 4.9, sessionCount: 73, available: false, featured: true, avatarColor: '#14b8a6' },
+  { id: 'm10', name: 'Rohan Joshi', role: 'SRE Lead', company: 'Uber', tags: ['SRE', 'DevOps', 'Kubernetes', 'Reliability'], bio: 'SRE lead at Uber managing reliability for payment systems. Teaches SRE fundamentals, Kubernetes, and building on-call runbooks for the SRE track.', rating: 4.7, sessionCount: 36, available: true, avatarColor: '#71717a' },
 ];
 
 const STATIC_GROUPS: StudyGroup[] = [
-  { id: 'g1', name: 'LC Grind Squad', topic: 'DSA Problems', icon: 'code', color: 'text-blue-400', memberCount: 12, maxMembers: 15, schedule: 'Daily 9 PM IST', joined: false, level: 'intermediate' },
-  { id: 'g2', name: 'System Design Circle', topic: 'System Design', icon: 'architecture', color: 'text-purple-400', memberCount: 8, maxMembers: 10, schedule: 'Sat & Sun 7 PM IST', joined: false, level: 'advanced' },
-  { id: 'g3', name: 'OOP Pattern Masters', topic: 'OOP & Design Patterns', icon: 'account_tree', color: 'text-yellow-400', memberCount: 6, maxMembers: 12, schedule: 'Tue & Thu 8 PM IST', joined: false, level: 'intermediate' },
-  { id: 'g4', name: 'Security Crew', topic: 'Cybersecurity & CTFs', icon: 'shield', color: 'text-red-400', memberCount: 9, maxMembers: 15, schedule: 'Fri 9 PM IST', joined: false, level: 'beginner' },
-  { id: 'g5', name: 'CS Fundamentals', topic: 'Core CS (OS/DBMS/Networks)', icon: 'school', color: 'text-green-400', memberCount: 14, maxMembers: 20, schedule: 'Mon, Wed 7 PM IST', joined: false, level: 'beginner' },
-  { id: 'g6', name: 'Placement Warriors', topic: 'Mock Interviews & Behavioral', icon: 'work', color: 'text-orange-400', memberCount: 11, maxMembers: 15, schedule: 'Daily 8 PM IST', joined: false, level: 'intermediate' },
-  { id: 'g7', name: 'ML Study Group', topic: 'Machine Learning & Deep Learning', icon: 'psychology', color: 'text-pink-400', memberCount: 7, maxMembers: 12, schedule: 'Wed & Sat 6 PM IST', joined: false, level: 'intermediate' },
-  { id: 'g8', name: 'SRE & DevOps Club', topic: 'Kubernetes, CI/CD, Reliability', icon: 'cloud', color: 'text-cyan-400', memberCount: 5, maxMembers: 10, schedule: 'Sun 5 PM IST', joined: false, level: 'advanced' },
+  { id: 'g1', name: 'LC Grind Squad', topic: 'DSA Problems', icon: 'code', color: '#60a5fa', memberCount: 12, maxMembers: 15, schedule: 'Daily 9 PM IST', joined: false, level: 'intermediate' },
+  { id: 'g2', name: 'System Design Circle', topic: 'System Design', icon: 'architecture', color: '#c084fc', memberCount: 8, maxMembers: 10, schedule: 'Sat & Sun 7 PM IST', joined: false, level: 'advanced' },
+  { id: 'g3', name: 'OOP Pattern Masters', topic: 'OOP & Design Patterns', icon: 'account_tree', color: '#facc15', memberCount: 6, maxMembers: 12, schedule: 'Tue & Thu 8 PM IST', joined: false, level: 'intermediate' },
+  { id: 'g4', name: 'Security Crew', topic: 'Cybersecurity & CTFs', icon: 'shield', color: '#f87171', memberCount: 9, maxMembers: 15, schedule: 'Fri 9 PM IST', joined: false, level: 'beginner' },
+  { id: 'g5', name: 'CS Fundamentals', topic: 'Core CS (OS/DBMS/Networks)', icon: 'school', color: '#4ade80', memberCount: 14, maxMembers: 20, schedule: 'Mon, Wed 7 PM IST', joined: false, level: 'beginner' },
+  { id: 'g6', name: 'Placement Warriors', topic: 'Mock Interviews & Behavioral', icon: 'work', color: '#fb923c', memberCount: 11, maxMembers: 15, schedule: 'Daily 8 PM IST', joined: false, level: 'intermediate' },
+  { id: 'g7', name: 'ML Study Group', topic: 'Machine Learning & Deep Learning', icon: 'psychology', color: '#f472b6', memberCount: 7, maxMembers: 12, schedule: 'Wed & Sat 6 PM IST', joined: false, level: 'intermediate' },
+  { id: 'g8', name: 'SRE & DevOps Club', topic: 'Kubernetes, CI/CD, Reliability', icon: 'cloud', color: '#22d3ee', memberCount: 5, maxMembers: 10, schedule: 'Sun 5 PM IST', joined: false, level: 'advanced' },
 ];
 
 const SESSION_TYPES = [
@@ -123,10 +77,16 @@ const SESSION_TYPES = [
   { id: 'review', label: 'Code Review', desc: 'Deep dive into your code quality', icon: 'rate_review' },
 ];
 
-const LEVEL_BADGE: Record<StudyGroup['level'], { label: string; color: string; bg: string }> = {
-  beginner:     { label: 'Beginner',     color: 'text-green-400',  bg: 'bg-green-500/10' },
-  intermediate: { label: 'Intermediate', color: 'text-yellow-400', bg: 'bg-yellow-500/10' },
-  advanced:     { label: 'Advanced',     color: 'text-red-400',    bg: 'bg-red-500/10' },
+const LEVEL_META: Record<StudyGroup['level'], { label: string; color: string; bg: string }> = {
+  beginner:     { label: 'Beginner',     color: '#4ade80', bg: 'rgba(74,222,128,0.1)'   },
+  intermediate: { label: 'Intermediate', color: '#facc15', bg: 'rgba(250,204,21,0.1)'   },
+  advanced:     { label: 'Advanced',     color: '#f87171', bg: 'rgba(248,113,113,0.1)'  },
+};
+
+const SESSION_STATUS_META = {
+  upcoming:  { label: 'Upcoming',  color: '#60a5fa', bg: 'rgba(96,165,250,0.1)'  },
+  completed: { label: 'Completed', color: '#4ade80', bg: 'rgba(74,222,128,0.1)'  },
+  cancelled: { label: 'Cancelled', color: '#71717a', bg: 'rgba(113,113,122,0.1)' },
 };
 
 export function MentorshipPage() {
@@ -200,17 +160,10 @@ export function MentorshipPage() {
     const grp = groups.find((g) => g.id === groupId);
     if (!grp) return;
     const joined = !grp.joined;
-    setGroups((prev) => prev.map((g) => g.id === groupId
-      ? { ...g, joined, memberCount: g.memberCount + (joined ? 1 : -1) }
-      : g
-    ));
+    setGroups((prev) => prev.map((g) => g.id === groupId ? { ...g, joined, memberCount: g.memberCount + (joined ? 1 : -1) } : g));
     if (joined) fireXP(10, 'Joined study group!');
     if (session?.accessToken) {
-      apiRequest(`/mentorship/groups/${groupId}/${joined ? 'join' : 'leave'}`, {
-        token: session.accessToken,
-        method: 'POST',
-        body: {},
-      }).catch(() => {});
+      apiRequest(`/mentorship/groups/${groupId}/${joined ? 'join' : 'leave'}`, { token: session.accessToken, method: 'POST', body: {} }).catch(() => {});
     }
   };
 
@@ -221,15 +174,10 @@ export function MentorshipPage() {
       await apiRequest('/mentorship/become-mentor', {
         token: session.accessToken,
         method: 'POST',
-        body: {
-          bio: becomeForm.bio,
-          specializations: becomeForm.specializations.split(',').map((s) => s.trim()),
-          yearsExperience: Number.parseInt(becomeForm.yearsExp, 10) || 0,
-        },
+        body: { bio: becomeForm.bio, specializations: becomeForm.specializations.split(',').map((s) => s.trim()), yearsExperience: Number.parseInt(becomeForm.yearsExp, 10) || 0 },
       });
-    } catch {
-      // ignore — show success anyway for UX
-    } finally {
+    } catch {}
+    finally {
       setSubmittingBecome(false);
       setBecomeSubmitted(true);
       fireXP(50, 'Mentor application submitted!');
@@ -245,53 +193,56 @@ export function MentorshipPage() {
 
   return (
     <AppShell>
-      <div className="pt-8 max-w-6xl">
+      <div style={{ paddingTop: 32, maxWidth: 1152 }}>
         {/* Hero */}
-        <div className="mb-10">
-          <h1 className="text-5xl font-black tracking-tighter mb-2">
-            Mentorship <span className="text-primary-container">Network.</span>
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} style={{ marginBottom: 40 }}>
+          <h1 style={{ fontSize: 48, fontWeight: 900, letterSpacing: '-0.04em', lineHeight: 1.05, marginBottom: 8 }}>
+            Mentorship{' '}
+            <span style={{ background: 'linear-gradient(135deg, #E82127, #ff4d52)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Network.</span>
           </h1>
-          <p className="text-on-surface-variant text-lg max-w-xl">
+          <p style={{ color: '#71717a', fontSize: 16, maxWidth: 480 }}>
             Learn faster with guidance from engineers who've done it. 1:1 sessions, study groups, and peer mentorship.
           </p>
-        </div>
+        </motion.div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 16, marginBottom: 32 }}>
           {[
-            { icon: 'workspace_premium', label: 'Active Mentors', value: mentors.filter((m) => m.available).length, color: 'text-yellow-400' },
-            { icon: 'groups', label: 'Study Groups', value: groups.length, color: 'text-blue-400' },
-            { icon: 'calendar_month', label: 'My Sessions', value: mySessions.length, color: 'text-green-400' },
-            { icon: 'star', label: 'Avg Rating', value: '4.8', color: 'text-orange-400' },
-          ].map((s) => (
-            <div key={s.label} className="bg-surface-container rounded-xl p-5 flex items-center gap-4">
-              <div className="w-10 h-10 bg-surface-container-high rounded-xl flex items-center justify-center flex-shrink-0">
-                <Icon name={s.icon} className={s.color} size={20} />
+            { icon: 'workspace_premium', label: 'Active Mentors', value: mentors.filter((m) => m.available).length, color: '#facc15' },
+            { icon: 'groups',            label: 'Study Groups',   value: groups.length,       color: '#60a5fa' },
+            { icon: 'calendar_month',    label: 'My Sessions',    value: mySessions.length,   color: '#4ade80' },
+            { icon: 'star',              label: 'Avg Rating',     value: '4.8',               color: '#fb923c' },
+          ].map((s, i) => (
+            <motion.div
+              key={s.label}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.06 }}
+              style={{ ...GLASS, borderRadius: 14, padding: 20, display: 'flex', alignItems: 'center', gap: 16 }}
+            >
+              <div style={{ width: 40, height: 40, background: `${s.color}18`, border: `1px solid ${s.color}30`, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <Icon name={s.icon} size={20} style={{ color: s.color }} />
               </div>
               <div>
-                <p className="text-2xl font-black text-on-surface">{s.value}</p>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">{s.label}</p>
+                <p style={{ fontSize: 24, fontWeight: 900, color: '#e4e4e7', letterSpacing: '-0.03em' }}>{s.value}</p>
+                <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#52525b' }}>{s.label}</p>
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 bg-surface-container p-1 rounded-full mb-8 w-fit flex-wrap">
+        <div style={{ display: 'flex', gap: 4, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', padding: 4, borderRadius: 999, width: 'fit-content', marginBottom: 32, flexWrap: 'wrap' }}>
           {TABS.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all relative ${
-                activeTab === tab.id
-                  ? 'bg-primary-container text-white shadow-lg shadow-red-900/20'
-                  : 'text-zinc-500 hover:text-zinc-200'
-              }`}
+              style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 999, fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', cursor: 'pointer', border: 'none', transition: 'all 0.2s', background: activeTab === tab.id ? '#E82127' : 'transparent', color: activeTab === tab.id ? '#fff' : '#71717a', boxShadow: activeTab === tab.id ? '0 0 16px rgba(232,33,39,0.35)' : 'none' }}
             >
               <Icon name={tab.icon} size={13} />
               {tab.label}
               {tab.badge && tab.badge > 0 ? (
-                <span className="absolute -top-1 -right-1 w-4 h-4 bg-primary-container text-white text-[9px] font-black rounded-full flex items-center justify-center">
+                <span style={{ position: 'absolute', top: -4, right: -4, width: 16, height: 16, background: '#E82127', color: '#fff', fontSize: 9, fontWeight: 900, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   {tab.badge}
                 </span>
               ) : null}
@@ -299,401 +250,406 @@ export function MentorshipPage() {
           ))}
         </div>
 
-        {/* Tab: Mentors */}
-        {activeTab === 'mentors' && (
-          <div>
-            {/* Tag filter */}
-            <div className="flex gap-2 flex-wrap mb-6 overflow-x-auto pb-1">
-              {allTags.slice(0, 12).map((tag) => (
-                <button
-                  key={tag}
-                  onClick={() => setFilterTag(tag)}
-                  className={`flex-shrink-0 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${
-                    filterTag === tag
-                      ? 'bg-primary-container text-white'
-                      : 'bg-surface-container text-zinc-500 hover:text-zinc-200 hover:bg-surface-container-high'
-                  }`}
-                >
-                  {tag}
-                </button>
-              ))}
-            </div>
-
-            {/* Featured */}
-            {filterTag === 'all' && (() => {
-              const featured = filteredMentors.find((m) => m.featured);
-              if (!featured) return null;
-              return (
-                <div className="bg-surface-container rounded-2xl p-8 mb-6 border-l-4 border-primary-container relative overflow-hidden">
-                  <div className="absolute top-0 right-0 w-72 h-72 bg-primary-container/5 blur-[80px] rounded-full pointer-events-none" />
-                  <div className="flex items-start gap-6 flex-wrap">
-                    <div className={`w-20 h-20 rounded-full ${featured.avatarColor} flex items-center justify-center text-3xl font-black text-white flex-shrink-0`}>
-                      {featured.name[0]}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-3 mb-1 flex-wrap">
-                        <h2 className="text-2xl font-black">{featured.name}</h2>
-                        <span className="px-3 py-1 bg-primary-container/20 text-primary-container rounded-full text-[10px] font-bold uppercase tracking-widest">Featured</span>
-                        <span className="flex items-center gap-1 text-yellow-400 text-sm font-bold">
-                          <Icon name="star" size={14} filled />
-                          {featured.rating} · {featured.sessionCount} sessions
-                        </span>
-                      </div>
-                      <p className="text-on-surface-variant text-sm mb-3">{featured.role} at {featured.company}</p>
-                      <p className="text-sm text-zinc-400 leading-relaxed mb-4 max-w-xl">{featured.bio}</p>
-                      <div className="flex flex-wrap gap-2 mb-5">
-                        {featured.tags.map((t) => (
-                          <span key={t} className="px-3 py-1 bg-surface-container-highest rounded-full text-xs font-bold text-zinc-300">{t}</span>
-                        ))}
-                      </div>
-                      <button
-                        onClick={() => setBookingMentor(featured)}
-                        className="bg-primary-container text-white font-bold px-8 py-3 rounded-full text-[11px] uppercase tracking-widest hover:brightness-110 transition-all flex items-center gap-2"
-                      >
-                        <Icon name="calendar_today" size={14} />
-                        Book Session
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              );
-            })()}
-
-            {/* Mentor grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {filteredMentors.filter((m) => !m.featured || filterTag !== 'all').map((m) => (
-                <div key={m.id} className="bg-surface-container rounded-xl p-6 hover:bg-surface-container-high transition-all group flex flex-col">
-                  <div className="flex items-center gap-4 mb-4">
-                    <div className={`w-12 h-12 rounded-full ${m.avatarColor} flex items-center justify-center text-xl font-black text-white flex-shrink-0`}>
-                      {m.name[0]}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-bold text-on-surface truncate">{m.name}</h3>
-                        {!m.available && <span className="w-2 h-2 bg-zinc-600 rounded-full flex-shrink-0" title="Unavailable" />}
-                        {m.available && <span className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0 animate-pulse" title="Available" />}
-                      </div>
-                      <p className="text-xs text-on-surface-variant">{m.role}</p>
-                      <p className="text-xs text-primary-container font-bold">{m.company}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3 text-xs text-zinc-500 mb-3">
-                    <span className="flex items-center gap-1 text-yellow-400 font-bold">
-                      <Icon name="star" size={12} filled />{m.rating}
-                    </span>
-                    <span>{m.sessionCount} sessions</span>
-                  </div>
-
-                  <p className="text-xs text-zinc-500 leading-relaxed mb-4 flex-1">{m.bio}</p>
-
-                  <div className="flex flex-wrap gap-1.5 mb-5">
-                    {m.tags.map((t) => (
-                      <span key={t} className="px-2 py-0.5 bg-surface-container-highest rounded-full text-[10px] font-bold text-zinc-400">{t}</span>
-                    ))}
-                  </div>
-
-                  <button
-                    onClick={() => { if (m.available) setBookingMentor(m); }}
-                    disabled={!m.available}
-                    className={`w-full py-2.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${
-                      m.available
-                        ? 'border border-outline-variant/30 hover:border-primary-container hover:text-primary-container text-zinc-400'
-                        : 'text-zinc-600 border border-zinc-800 cursor-not-allowed'
-                    }`}
-                  >
-                    <Icon name={m.available ? 'calendar_today' : 'event_busy'} size={13} />
-                    {m.available ? 'Book Session' : 'Unavailable'}
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Tab: Study Groups */}
-        {activeTab === 'groups' && (
-          <div>
-            <p className="text-sm text-zinc-500 mb-6">Join a study group to stay consistent. All groups meet virtually over Discord/Meet.</p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              {groups.map((g) => {
-                const badge = LEVEL_BADGE[g.level];
-                const full = g.memberCount >= g.maxMembers && !g.joined;
-                let groupBtnClass = 'bg-primary-container text-white hover:brightness-110';
-                if (g.joined) groupBtnClass = 'bg-green-500/10 text-green-400 border border-green-500/20';
-                else if (full) groupBtnClass = 'text-zinc-600 border border-zinc-800 cursor-not-allowed';
-                let groupBtnIcon = 'group_add';
-                if (g.joined) groupBtnIcon = 'check_circle';
-                else if (full) groupBtnIcon = 'group_off';
-                let groupBtnLabel = 'Join Group';
-                if (g.joined) groupBtnLabel = 'Joined · Leave';
-                else if (full) groupBtnLabel = 'Group Full';
-                return (
-                  <div key={g.id} className={`bg-surface-container rounded-xl p-6 flex flex-col gap-4 transition-all ${g.joined ? 'border border-green-500/20' : ''}`}>
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-11 h-11 bg-surface-container-high rounded-xl flex items-center justify-center flex-shrink-0">
-                          <Icon name={g.icon} className={g.color} size={22} />
-                        </div>
-                        <div>
-                          <h3 className="font-bold text-on-surface">{g.name}</h3>
-                          <p className="text-xs text-zinc-500">{g.topic}</p>
-                        </div>
-                      </div>
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0 ${badge.bg} ${badge.color}`}>
-                        {badge.label}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-4 text-xs text-zinc-500">
-                      <span className="flex items-center gap-1">
-                        <Icon name="schedule" size={12} />
-                        {g.schedule}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Icon name="group" size={12} />
-                        {g.memberCount}/{g.maxMembers}
-                      </span>
-                    </div>
-
-                    <div className="h-1 bg-surface-container-highest rounded-full overflow-hidden">
-                      <div
-                        className={`h-full rounded-full transition-all ${g.memberCount / g.maxMembers > 0.8 ? 'bg-red-400' : 'bg-green-400'}`}
-                        style={{ width: `${(g.memberCount / g.maxMembers) * 100}%` }}
-                      />
-                    </div>
-
-                    <button
-                      onClick={() => toggleGroup(g.id)}
-                      disabled={full}
-                      className={`w-full py-2.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${groupBtnClass}`}
-                    >
-                      <Icon name={groupBtnIcon} size={14} />
-                      {groupBtnLabel}
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* Tab: My Sessions */}
-        {activeTab === 'sessions' && (
-          <div>
-            {mySessions.length === 0 ? (
-              <div className="text-center py-20">
-                <Icon name="calendar_month" size={48} className="text-zinc-700 mb-4" />
-                <p className="font-bold text-on-surface-variant mb-2">No sessions yet</p>
-                <p className="text-sm text-zinc-500 mb-6">Book your first mentorship session to get started.</p>
-                <button onClick={() => setActiveTab('mentors')} className="bg-primary-container text-white font-bold py-3 px-8 rounded-full text-sm hover:brightness-110 transition-all">
-                  Find a Mentor
-                </button>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {mySessions.map((s) => {
-                  const statusMeta = {
-                    upcoming: { color: 'text-blue-400 bg-blue-500/10', label: 'Upcoming' },
-                    completed: { color: 'text-green-400 bg-green-500/10', label: 'Completed' },
-                    cancelled: { color: 'text-zinc-500 bg-zinc-500/10', label: 'Cancelled' },
-                  };
-                  const meta = statusMeta[s.status];
+        <AnimatePresence mode="wait">
+          {/* Tab: Mentors */}
+          {activeTab === 'mentors' && (
+            <motion.div key="mentors" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
+              {/* Tag filter */}
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 24 }}>
+                {allTags.slice(0, 12).map((tag) => {
+                  const active = filterTag === tag;
                   return (
-                    <div key={s.id} className="bg-surface-container rounded-xl p-6 flex items-center gap-4 flex-wrap">
-                      <div className="w-11 h-11 bg-surface-container-high rounded-xl flex items-center justify-center flex-shrink-0 text-lg font-black text-on-surface">
-                        {s.mentorName[0]}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-bold text-on-surface">{s.mentorName}</p>
-                        <p className="text-sm text-zinc-500">{s.type}</p>
-                        {s.notes && <p className="text-xs text-zinc-600 mt-1 truncate">Goal: {s.notes}</p>}
-                      </div>
-                      <div className="text-right flex-shrink-0">
-                        <p className="text-xs text-zinc-400 mb-1">{new Date(s.scheduledAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</p>
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${meta.color}`}>{meta.label}</span>
-                      </div>
-                    </div>
+                    <button
+                      key={tag}
+                      onClick={() => setFilterTag(tag)}
+                      style={{ padding: '6px 14px', borderRadius: 999, fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', cursor: 'pointer', border: 'none', transition: 'all 0.15s', background: active ? 'rgba(232,33,39,0.14)' : 'rgba(255,255,255,0.04)', color: active ? '#E82127' : '#71717a', boxShadow: active ? '0 0 12px rgba(232,33,39,0.18)' : 'none' }}
+                    >
+                      {tag}
+                    </button>
                   );
                 })}
               </div>
-            )}
-          </div>
-        )}
 
-        {/* Tab: Become a Mentor */}
-        {activeTab === 'become' && (
-          <div className="max-w-2xl">
-            {becomeSubmitted ? (
-              <div className="text-center py-16">
-                <div className="w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Icon name="check_circle" className="text-green-400" size={32} filled />
-                </div>
-                <h2 className="text-2xl font-black mb-2">Application Submitted!</h2>
-                <p className="text-on-surface-variant mb-2">We'll review your profile and reach out within 3-5 business days.</p>
-                <p className="text-sm text-primary-container font-bold">+50 XP for applying to mentor!</p>
-              </div>
-            ) : (
-              <div>
-                <div className="bg-surface-container rounded-2xl p-8 mb-6">
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="w-12 h-12 bg-yellow-500/10 rounded-xl flex items-center justify-center">
-                      <Icon name="workspace_premium" className="text-yellow-400" size={24} />
-                    </div>
-                    <div>
-                      <h2 className="text-xl font-black">Become a Mentor</h2>
-                      <p className="text-sm text-zinc-500">Share your expertise. Help the next generation of engineers.</p>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                    {[
-                      { icon: 'bolt', label: 'Earn XP', desc: 'Get XP for each session you host' },
-                      { icon: 'groups', label: 'Build Community', desc: 'Connect with motivated engineers' },
-                      { icon: 'workspace_premium', label: 'Mentor Badge', desc: 'Exclusive profile badge + perks' },
-                    ].map((b) => (
-                      <div key={b.label} className="bg-surface-container-high rounded-xl p-4 text-center">
-                        <Icon name={b.icon} className="text-yellow-400 mb-2 mx-auto" size={24} />
-                        <p className="font-bold text-sm mb-1">{b.label}</p>
-                        <p className="text-xs text-zinc-500">{b.desc}</p>
+              {/* Featured mentor */}
+              {filterTag === 'all' && (() => {
+                const featured = filteredMentors.find((m) => m.featured);
+                if (!featured) return null;
+                return (
+                  <motion.div
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    style={{ ...GLASS, borderRadius: 20, padding: 32, marginBottom: 24, borderLeft: '4px solid #E82127', position: 'relative', overflow: 'hidden' }}
+                  >
+                    <div style={{ position: 'absolute', top: 0, right: 0, width: 288, height: 288, background: 'rgba(232,33,39,0.04)', filter: 'blur(80px)', borderRadius: '50%', pointerEvents: 'none' }} />
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 24, flexWrap: 'wrap' }}>
+                      <div style={{ width: 80, height: 80, borderRadius: '50%', background: featured.avatarColor, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 32, fontWeight: 900, color: '#fff', flexShrink: 0 }}>
+                        {featured.name[0]}
                       </div>
-                    ))}
-                  </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 4, flexWrap: 'wrap' }}>
+                          <h2 style={{ fontSize: 22, fontWeight: 900, color: '#e4e4e7' }}>{featured.name}</h2>
+                          <span style={{ padding: '3px 10px', background: 'rgba(232,33,39,0.12)', border: '1px solid rgba(232,33,39,0.25)', borderRadius: 999, fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#E82127' }}>Featured</span>
+                          <span style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#facc15', fontSize: 13, fontWeight: 700 }}>
+                            <Icon name="star" size={14} filled /> {featured.rating} · {featured.sessionCount} sessions
+                          </span>
+                        </div>
+                        <p style={{ color: '#71717a', fontSize: 13, marginBottom: 12 }}>{featured.role} at {featured.company}</p>
+                        <p style={{ fontSize: 14, color: '#a1a1aa', lineHeight: 1.7, marginBottom: 16, maxWidth: 480 }}>{featured.bio}</p>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 20 }}>
+                          {featured.tags.map((t) => (
+                            <span key={t} style={{ padding: '4px 12px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 999, fontSize: 11, fontWeight: 700, color: '#d4d4d8' }}>{t}</span>
+                          ))}
+                        </div>
+                        <motion.button
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => setBookingMentor(featured)}
+                          style={{ background: '#E82127', color: '#fff', fontWeight: 700, padding: '12px 28px', borderRadius: 999, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.1em', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, boxShadow: '0 0 24px rgba(232,33,39,0.3)' }}
+                        >
+                          <Icon name="calendar_today" size={14} /> Book Session
+                        </motion.button>
+                      </div>
+                    </div>
+                  </motion.div>
+                );
+              })()}
 
-                  <div className="space-y-4">
-                    <div>
-                      <label htmlFor="mentor-bio" className="block text-xs font-bold text-zinc-400 mb-2">Your Bio *</label>
-                      <textarea
-                        id="mentor-bio"
-                        value={becomeForm.bio}
-                        onChange={(e) => setBecomeForm((p) => ({ ...p, bio: e.target.value }))}
-                        placeholder="Tell potential mentees about your background, experience, and what you're excited to help with..."
-                        rows={4}
-                        className="w-full bg-surface-container-highest border border-outline-variant/20 rounded-xl p-4 text-sm text-on-surface focus:outline-none focus:border-primary-container/40 resize-none"
-                      />
+              {/* Mentor grid */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 20 }}>
+                {filteredMentors.filter((m) => !m.featured || filterTag !== 'all').map((m, i) => (
+                  <motion.div
+                    key={m.id}
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.05 }}
+                    style={{ ...GLASS, borderRadius: 16, padding: 24, display: 'flex', flexDirection: 'column' }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 16 }}>
+                      <div style={{ width: 48, height: 48, borderRadius: '50%', background: m.avatarColor, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, fontWeight: 900, color: '#fff', flexShrink: 0 }}>
+                        {m.name[0]}
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <h3 style={{ fontWeight: 700, color: '#e4e4e7', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.name}</h3>
+                          <span style={{ width: 8, height: 8, borderRadius: '50%', background: m.available ? '#22c55e' : '#52525b', flexShrink: 0 }} title={m.available ? 'Available' : 'Unavailable'} />
+                        </div>
+                        <p style={{ fontSize: 12, color: '#71717a' }}>{m.role}</p>
+                        <p style={{ fontSize: 12, fontWeight: 700, color: '#E82127' }}>{m.company}</p>
+                      </div>
                     </div>
-                    <div>
-                      <label htmlFor="mentor-spec" className="block text-xs font-bold text-zinc-400 mb-2">Specializations * (comma-separated)</label>
-                      <input
-                        id="mentor-spec"
-                        type="text"
-                        value={becomeForm.specializations}
-                        onChange={(e) => setBecomeForm((p) => ({ ...p, specializations: e.target.value }))}
-                        placeholder="e.g. DSA, System Design, Python, AWS"
-                        className="w-full bg-surface-container-highest border border-outline-variant/20 rounded-xl px-4 py-3 text-sm text-on-surface focus:outline-none focus:border-primary-container/40"
-                      />
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 12, color: '#71717a', marginBottom: 12 }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#facc15', fontWeight: 700 }}>
+                        <Icon name="star" size={12} filled />{m.rating}
+                      </span>
+                      <span>{m.sessionCount} sessions</span>
                     </div>
-                    <div>
-                      <label htmlFor="mentor-exp" className="block text-xs font-bold text-zinc-400 mb-2">Years of Experience</label>
-                      <input
-                        id="mentor-exp"
-                        type="number"
-                        value={becomeForm.yearsExp}
-                        onChange={(e) => setBecomeForm((p) => ({ ...p, yearsExp: e.target.value }))}
-                        placeholder="e.g. 3"
-                        min={0}
-                        className="w-full bg-surface-container-highest border border-outline-variant/20 rounded-xl px-4 py-3 text-sm text-on-surface focus:outline-none focus:border-primary-container/40"
-                      />
+
+                    <p style={{ fontSize: 12, color: '#71717a', lineHeight: 1.7, marginBottom: 16, flex: 1 }}>{m.bio}</p>
+
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 20 }}>
+                      {m.tags.map((t) => (
+                        <span key={t} style={{ padding: '3px 10px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 999, fontSize: 10, fontWeight: 700, color: '#71717a' }}>{t}</span>
+                      ))}
                     </div>
+
                     <button
-                      onClick={submitBecome}
-                      disabled={submittingBecome || !becomeForm.bio || !becomeForm.specializations}
-                      className="w-full bg-primary-container text-white font-bold py-3.5 rounded-full hover:brightness-110 transition-all disabled:opacity-40 flex items-center justify-center gap-2"
+                      onClick={() => { if (m.available) setBookingMentor(m); }}
+                      disabled={!m.available}
+                      style={{ width: '100%', padding: '10px 0', borderRadius: 999, fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', cursor: m.available ? 'pointer' : 'not-allowed', border: `1px solid ${m.available ? 'rgba(232,33,39,0.3)' : 'rgba(255,255,255,0.06)'}`, background: m.available ? 'rgba(232,33,39,0.06)' : 'transparent', color: m.available ? '#E82127' : '#52525b', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
                     >
-                      {submittingBecome ? <Icon name="hourglass_empty" size={16} /> : <Icon name="send" size={16} />}
-                      Submit Application · +50 XP
+                      <Icon name={m.available ? 'calendar_today' : 'event_busy'} size={13} />
+                      {m.available ? 'Book Session' : 'Unavailable'}
                     </button>
-                  </div>
-                </div>
+                  </motion.div>
+                ))}
               </div>
-            )}
-          </div>
-        )}
+            </motion.div>
+          )}
+
+          {/* Tab: Study Groups */}
+          {activeTab === 'groups' && (
+            <motion.div key="groups" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
+              <p style={{ fontSize: 14, color: '#71717a', marginBottom: 24 }}>Join a study group to stay consistent. All groups meet virtually over Discord/Meet.</p>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 20 }}>
+                {groups.map((g, i) => {
+                  const badge = LEVEL_META[g.level];
+                  const full = g.memberCount >= g.maxMembers && !g.joined;
+                  return (
+                    <motion.div
+                      key={g.id}
+                      initial={{ opacity: 0, y: 12 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.05 }}
+                      style={{ ...GLASS, borderRadius: 16, padding: 24, display: 'flex', flexDirection: 'column', gap: 16, border: g.joined ? '1px solid rgba(34,197,94,0.25)' : '1px solid rgba(255,255,255,0.07)' }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                          <div style={{ width: 44, height: 44, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                            <Icon name={g.icon} size={22} style={{ color: g.color }} />
+                          </div>
+                          <div>
+                            <h3 style={{ fontWeight: 700, color: '#e4e4e7' }}>{g.name}</h3>
+                            <p style={{ fontSize: 12, color: '#71717a' }}>{g.topic}</p>
+                          </div>
+                        </div>
+                        <span style={{ padding: '3px 10px', background: badge.bg, borderRadius: 999, fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: badge.color, flexShrink: 0 }}>
+                          {badge.label}
+                        </span>
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 16, fontSize: 12, color: '#71717a' }}>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><Icon name="schedule" size={12} />{g.schedule}</span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><Icon name="group" size={12} />{g.memberCount}/{g.maxMembers}</span>
+                      </div>
+
+                      <div style={{ height: 4, background: 'rgba(255,255,255,0.06)', borderRadius: 999, overflow: 'hidden' }}>
+                        <div style={{ height: '100%', borderRadius: 999, background: g.memberCount / g.maxMembers > 0.8 ? '#f87171' : '#4ade80', width: `${(g.memberCount / g.maxMembers) * 100}%`, transition: 'width 0.5s' }} />
+                      </div>
+
+                      <button
+                        onClick={() => toggleGroup(g.id)}
+                        disabled={full}
+                        style={{ width: '100%', padding: '10px 0', borderRadius: 999, fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', cursor: full ? 'not-allowed' : 'pointer', border: g.joined ? '1px solid rgba(34,197,94,0.25)' : 'none', background: g.joined ? 'rgba(34,197,94,0.1)' : full ? 'rgba(255,255,255,0.03)' : '#E82127', color: g.joined ? '#4ade80' : full ? '#52525b' : '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: (!g.joined && !full) ? '0 0 16px rgba(232,33,39,0.2)' : 'none' }}
+                      >
+                        <Icon name={g.joined ? 'check_circle' : full ? 'group_off' : 'group_add'} size={14} />
+                        {g.joined ? 'Joined · Leave' : full ? 'Group Full' : 'Join Group'}
+                      </button>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            </motion.div>
+          )}
+
+          {/* Tab: My Sessions */}
+          {activeTab === 'sessions' && (
+            <motion.div key="sessions" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
+              {mySessions.length === 0 ? (
+                <div style={{ textAlign: 'center', paddingTop: 80, paddingBottom: 80 }}>
+                  <Icon name="calendar_month" size={48} style={{ color: '#3f3f46', marginBottom: 16 }} />
+                  <p style={{ fontWeight: 700, color: '#a1a1aa', marginBottom: 8 }}>No sessions yet</p>
+                  <p style={{ fontSize: 14, color: '#71717a', marginBottom: 24 }}>Book your first mentorship session to get started.</p>
+                  <button onClick={() => setActiveTab('mentors')} style={{ background: '#E82127', color: '#fff', fontWeight: 700, padding: '12px 32px', borderRadius: 999, fontSize: 13, border: 'none', cursor: 'pointer', boxShadow: '0 0 20px rgba(232,33,39,0.3)' }}>
+                    Find a Mentor
+                  </button>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  {mySessions.map((s, i) => {
+                    const meta = SESSION_STATUS_META[s.status];
+                    return (
+                      <motion.div
+                        key={s.id}
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: i * 0.04 }}
+                        style={{ ...GLASS, borderRadius: 14, padding: 24, display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}
+                      >
+                        <div style={{ width: 44, height: 44, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 18, fontWeight: 900, color: '#e4e4e7' }}>
+                          {s.mentorName[0]}
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <p style={{ fontWeight: 700, color: '#e4e4e7' }}>{s.mentorName}</p>
+                          <p style={{ fontSize: 13, color: '#71717a' }}>{s.type}</p>
+                          {s.notes && <p style={{ fontSize: 12, color: '#52525b', marginTop: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Goal: {s.notes}</p>}
+                        </div>
+                        <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                          <p style={{ fontSize: 12, color: '#71717a', marginBottom: 4 }}>{new Date(s.scheduledAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</p>
+                          <span style={{ padding: '3px 10px', background: meta.bg, borderRadius: 999, fontSize: 10, fontWeight: 700, color: meta.color }}>{meta.label}</span>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              )}
+            </motion.div>
+          )}
+
+          {/* Tab: Become a Mentor */}
+          {activeTab === 'become' && (
+            <motion.div key="become" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} style={{ maxWidth: 640 }}>
+              {becomeSubmitted ? (
+                <div style={{ textAlign: 'center', paddingTop: 64, paddingBottom: 64 }}>
+                  <div style={{ width: 64, height: 64, background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.3)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+                    <Icon name="check_circle" size={32} style={{ color: '#4ade80' }} filled />
+                  </div>
+                  <h2 style={{ fontSize: 24, fontWeight: 900, letterSpacing: '-0.03em', color: '#e4e4e7', marginBottom: 8 }}>Application Submitted!</h2>
+                  <p style={{ color: '#71717a', marginBottom: 8 }}>We'll review your profile and reach out within 3-5 business days.</p>
+                  <p style={{ fontSize: 14, fontWeight: 700, color: '#E82127' }}>+50 XP for applying to mentor!</p>
+                </div>
+              ) : (
+                <div>
+                  <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} style={{ ...GLASS, borderRadius: 20, padding: 32, marginBottom: 24 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
+                      <div style={{ width: 48, height: 48, background: 'rgba(250,204,21,0.1)', border: '1px solid rgba(250,204,21,0.2)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Icon name="workspace_premium" size={24} style={{ color: '#facc15' }} />
+                      </div>
+                      <div>
+                        <h2 style={{ fontSize: 20, fontWeight: 900, color: '#e4e4e7' }}>Become a Mentor</h2>
+                        <p style={{ fontSize: 13, color: '#71717a' }}>Share your expertise. Help the next generation of engineers.</p>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 28 }}>
+                      {[
+                        { icon: 'bolt',              label: 'Earn XP',        desc: 'Get XP for each session you host' },
+                        { icon: 'groups',            label: 'Build Community', desc: 'Connect with motivated engineers'  },
+                        { icon: 'workspace_premium', label: 'Mentor Badge',   desc: 'Exclusive profile badge + perks'   },
+                      ].map((b) => (
+                        <div key={b.label} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 12, padding: 16, textAlign: 'center' }}>
+                          <Icon name={b.icon} size={24} style={{ color: '#facc15', marginBottom: 8 }} />
+                          <p style={{ fontWeight: 700, fontSize: 13, color: '#e4e4e7', marginBottom: 4 }}>{b.label}</p>
+                          <p style={{ fontSize: 11, color: '#71717a' }}>{b.desc}</p>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                      <div>
+                        <label htmlFor="mentor-bio" style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#71717a', display: 'block', marginBottom: 8 }}>Your Bio *</label>
+                        <textarea
+                          id="mentor-bio"
+                          value={becomeForm.bio}
+                          onChange={(e) => setBecomeForm((p) => ({ ...p, bio: e.target.value }))}
+                          placeholder="Tell potential mentees about your background, experience, and what you're excited to help with..."
+                          rows={4}
+                          style={{ ...INPUT, resize: 'none' }}
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="mentor-spec" style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#71717a', display: 'block', marginBottom: 8 }}>Specializations * (comma-separated)</label>
+                        <input
+                          id="mentor-spec"
+                          type="text"
+                          value={becomeForm.specializations}
+                          onChange={(e) => setBecomeForm((p) => ({ ...p, specializations: e.target.value }))}
+                          placeholder="e.g. DSA, System Design, Python, AWS"
+                          style={INPUT}
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="mentor-exp" style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#71717a', display: 'block', marginBottom: 8 }}>Years of Experience</label>
+                        <input
+                          id="mentor-exp"
+                          type="number"
+                          value={becomeForm.yearsExp}
+                          onChange={(e) => setBecomeForm((p) => ({ ...p, yearsExp: e.target.value }))}
+                          placeholder="e.g. 3"
+                          min={0}
+                          style={INPUT}
+                        />
+                      </div>
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={submitBecome}
+                        disabled={submittingBecome || !becomeForm.bio || !becomeForm.specializations}
+                        style={{ width: '100%', background: '#E82127', color: '#fff', fontWeight: 700, padding: '14px 0', borderRadius: 999, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.1em', border: 'none', cursor: (submittingBecome || !becomeForm.bio || !becomeForm.specializations) ? 'default' : 'pointer', opacity: (submittingBecome || !becomeForm.bio || !becomeForm.specializations) ? 0.4 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: '0 0 20px rgba(232,33,39,0.3)' }}
+                      >
+                        {submittingBecome ? <Icon name="hourglass_empty" size={16} /> : <Icon name="send" size={16} />}
+                        Submit Application · +50 XP
+                      </motion.button>
+                    </div>
+                  </motion.div>
+                </div>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Booking Modal */}
-      {bookingMentor && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#131313]/80 backdrop-blur-md p-4">
-          <div className="bg-[#1B1B1B] border border-zinc-800 rounded-2xl w-full max-w-md shadow-2xl">
-            {bookingDone ? (
-              <div className="text-center py-12 px-8">
-                <div className="w-16 h-16 rounded-full bg-green-500/10 flex items-center justify-center mx-auto mb-4">
-                  <Icon name="check_circle" size={32} className="text-green-400" filled />
-                </div>
-                <h2 className="text-xl font-black tracking-tight mb-2">Session Booked!</h2>
-                <p className="text-on-surface-variant text-sm">
-                  Your session with {bookingMentor.name} is confirmed. You'll get a calendar invite shortly.
-                </p>
-                <p className="text-primary-container font-bold text-sm mt-2">+10 XP earned!</p>
-              </div>
-            ) : (
-              <div className="p-7">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-lg font-black">Book a Session</h2>
-                  <button onClick={() => setBookingMentor(null)} className="text-zinc-500 hover:text-white transition-colors">
-                    <Icon name="close" size={22} />
-                  </button>
-                </div>
-
-                <div className="flex items-center gap-3 mb-6 p-4 bg-surface-container-high rounded-xl">
-                  <div className={`w-11 h-11 rounded-full ${bookingMentor.avatarColor} flex items-center justify-center text-lg font-black text-white flex-shrink-0`}>
-                    {bookingMentor.name[0]}
+      <AnimatePresence>
+        {bookingMentor && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(8px)', padding: 16 }}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              style={{ background: '#0d0d0d', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 20, width: '100%', maxWidth: 480, boxShadow: '0 32px 80px rgba(0,0,0,0.6)' }}
+            >
+              {bookingDone ? (
+                <div style={{ textAlign: 'center', padding: '48px 32px' }}>
+                  <div style={{ width: 64, height: 64, background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.3)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+                    <Icon name="check_circle" size={32} style={{ color: '#4ade80' }} filled />
                   </div>
-                  <div>
-                    <p className="font-bold text-on-surface">{bookingMentor.name}</p>
-                    <p className="text-sm text-on-surface-variant">{bookingMentor.role} at {bookingMentor.company}</p>
+                  <h2 style={{ fontSize: 20, fontWeight: 900, letterSpacing: '-0.03em', color: '#e4e4e7', marginBottom: 8 }}>Session Booked!</h2>
+                  <p style={{ color: '#71717a', fontSize: 14 }}>Your session with {bookingMentor.name} is confirmed. You'll get a calendar invite shortly.</p>
+                  <p style={{ color: '#E82127', fontWeight: 700, fontSize: 14, marginTop: 8 }}>+10 XP earned!</p>
+                </div>
+              ) : (
+                <div style={{ padding: 28 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+                    <h2 style={{ fontSize: 18, fontWeight: 900, color: '#e4e4e7' }}>Book a Session</h2>
+                    <button onClick={() => setBookingMentor(null)} style={{ color: '#52525b', background: 'none', border: 'none', cursor: 'pointer' }}>
+                      <Icon name="close" size={22} />
+                    </button>
                   </div>
-                </div>
 
-                <div className="mb-5">
-                  <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-3">Session Type *</p>
-                  <div className="space-y-2">
-                    {SESSION_TYPES.map((t) => (
-                      <button
-                        key={t.id}
-                        type="button"
-                        onClick={() => setSessionType(t.id)}
-                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all border ${
-                          sessionType === t.id
-                            ? 'border-primary-container/50 bg-primary-container/10 text-on-surface'
-                            : 'border-zinc-800 hover:border-zinc-700 text-on-surface-variant'
-                        }`}
-                      >
-                        <Icon name={t.icon} size={16} className={sessionType === t.id ? 'text-primary-container' : 'text-zinc-500'} />
-                        <div>
-                          <p className="text-sm font-bold">{t.label}</p>
-                          <p className="text-xs text-zinc-500">{t.desc}</p>
-                        </div>
-                      </button>
-                    ))}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24, padding: 16, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 12 }}>
+                    <div style={{ width: 44, height: 44, borderRadius: '50%', background: bookingMentor.avatarColor, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, fontWeight: 900, color: '#fff', flexShrink: 0 }}>
+                      {bookingMentor.name[0]}
+                    </div>
+                    <div>
+                      <p style={{ fontWeight: 700, color: '#e4e4e7' }}>{bookingMentor.name}</p>
+                      <p style={{ fontSize: 13, color: '#71717a' }}>{bookingMentor.role} at {bookingMentor.company}</p>
+                    </div>
                   </div>
-                </div>
 
-                <div className="mb-6">
-                  <label htmlFor="session-goal" className="block text-xs font-bold text-zinc-400 uppercase tracking-widest mb-2">What's your goal for this session?</label>
-                  <textarea
-                    id="session-goal"
-                    value={sessionGoal}
-                    onChange={(e) => setSessionGoal(e.target.value)}
-                    placeholder="e.g. I want help with dynamic programming — I always get stuck on state transitions..."
-                    rows={3}
-                    className="w-full bg-surface-container border border-zinc-800 rounded-xl p-3 text-sm text-on-surface focus:outline-none focus:border-primary-container/40 resize-none"
-                  />
-                </div>
+                  <div style={{ marginBottom: 20 }}>
+                    <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#71717a', marginBottom: 12 }}>Session Type *</p>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      {SESSION_TYPES.map((t) => (
+                        <button
+                          key={t.id}
+                          type="button"
+                          onClick={() => setSessionType(t.id)}
+                          style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderRadius: 12, textAlign: 'left', cursor: 'pointer', border: `1px solid ${sessionType === t.id ? 'rgba(232,33,39,0.4)' : 'rgba(255,255,255,0.07)'}`, background: sessionType === t.id ? 'rgba(232,33,39,0.08)' : 'rgba(255,255,255,0.03)', transition: 'all 0.15s' }}
+                        >
+                          <Icon name={t.icon} size={16} style={{ color: sessionType === t.id ? '#E82127' : '#71717a' }} />
+                          <div>
+                            <p style={{ fontSize: 13, fontWeight: 700, color: '#e4e4e7' }}>{t.label}</p>
+                            <p style={{ fontSize: 12, color: '#71717a' }}>{t.desc}</p>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
 
-                <button
-                  onClick={handleBook}
-                  disabled={booking || !sessionType}
-                  className="w-full bg-primary-container text-white font-bold py-3.5 rounded-full text-[11px] uppercase tracking-widest hover:brightness-110 transition-all disabled:opacity-40 flex items-center justify-center gap-2"
-                >
-                  {booking ? <Icon name="hourglass_empty" size={16} /> : <Icon name="calendar_today" size={16} />}
-                  Confirm Booking · +10 XP
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+                  <div style={{ marginBottom: 24 }}>
+                    <label htmlFor="session-goal" style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#71717a', display: 'block', marginBottom: 8 }}>What's your goal for this session?</label>
+                    <textarea
+                      id="session-goal"
+                      value={sessionGoal}
+                      onChange={(e) => setSessionGoal(e.target.value)}
+                      placeholder="e.g. I want help with dynamic programming — I always get stuck on state transitions..."
+                      rows={3}
+                      style={{ ...INPUT, resize: 'none' }}
+                    />
+                  </div>
+
+                  <motion.button
+                    whileHover={{ scale: booking || !sessionType ? 1 : 1.02 }}
+                    whileTap={{ scale: booking || !sessionType ? 1 : 0.98 }}
+                    onClick={handleBook}
+                    disabled={booking || !sessionType}
+                    style={{ width: '100%', background: '#E82127', color: '#fff', fontWeight: 700, padding: '14px 0', borderRadius: 999, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.1em', border: 'none', cursor: booking || !sessionType ? 'default' : 'pointer', opacity: booking || !sessionType ? 0.4 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: '0 0 20px rgba(232,33,39,0.3)' }}
+                  >
+                    {booking ? <Icon name="hourglass_empty" size={16} /> : <Icon name="calendar_today" size={16} />}
+                    Confirm Booking · +10 XP
+                  </motion.button>
+                </div>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </AppShell>
   );
 }

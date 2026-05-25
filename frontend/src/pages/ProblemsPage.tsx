@@ -31,10 +31,10 @@ interface ProblemsResponse {
   };
 }
 
-const DIFF_STYLE: Record<string, string> = {
-  easy:   'text-green-400 bg-green-400/10 border-green-500/20',
-  medium: 'text-yellow-400 bg-yellow-400/10 border-yellow-500/20',
-  hard:   'text-red-400 bg-red-400/10 border-red-500/20',
+const DIFF_STYLE: Record<string, { color: string; bg: string; border: string }> = {
+  easy:   { color: '#4ade80', bg: 'rgba(74,222,128,0.1)',   border: 'rgba(74,222,128,0.2)'   },
+  medium: { color: '#facc15', bg: 'rgba(250,204,21,0.1)',   border: 'rgba(250,204,21,0.2)'   },
+  hard:   { color: '#f87171', bg: 'rgba(248,113,113,0.1)',  border: 'rgba(248,113,113,0.2)'  },
 };
 
 const TOPIC_TAGS = [
@@ -330,7 +330,7 @@ export function ProblemsPage() {
               }}>ALGORITHMS.</span>
             </motion.h1>
             <motion.p
-              className="text-on-surface-variant text-lg max-w-lg"
+              className="text-lg max-w-lg" style={{ color: '#a1a1aa' }}
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
@@ -353,7 +353,7 @@ export function ProblemsPage() {
             transition={{ duration: 0.6, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
             whileHover={{ boxShadow: '0 24px 60px rgba(0,0,0,0.7), 0 0 30px rgba(232,25,44,0.08)' }}
           >
-            <p className="text-[10px] font-bold uppercase tracking-widest text-primary-container mb-4">Your Progress</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest mb-4" style={{ color: '#E82127' }}>Your Progress</p>
             <div className="space-y-3">
               {[
                 { label: 'Easy',   solved: easySolved,   total: easyTotal,   hex: '#4ADE80' },
@@ -363,7 +363,7 @@ export function ProblemsPage() {
                 <div key={row.label}>
                   <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest mb-1">
                     <span className="text-zinc-500">{row.label}</span>
-                    <span className="text-on-surface">{row.solved}/{row.total}</span>
+                    <span style={{ color: '#e4e4e7' }}>{row.solved}/{row.total}</span>
                   </div>
                   <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
                     <motion.div
@@ -379,7 +379,7 @@ export function ProblemsPage() {
             </div>
             <div className="mt-4 pt-4 flex items-center justify-between" style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
               <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Total Solved</span>
-              <span className="text-xl font-black text-on-surface">{solvedCount}/{problems.length}</span>
+              <span className="text-xl font-black" style={{ color: '#e4e4e7' }}>{solvedCount}/{problems.length}</span>
             </div>
           </motion.div>
         </div>
@@ -562,7 +562,7 @@ export function ProblemsPage() {
           {loading && (
             <div className="space-y-1.5">
               {[0,1,2,3,4,5,6,7,8,9].map((n) => (
-                <div key={`skeleton-${n}`} className="h-14 bg-surface-container rounded-xl animate-pulse" />
+                <div key={`skeleton-${n}`} className="h-14 rounded-xl animate-pulse" style={{ background: 'rgba(255,255,255,0.04)' }} />
               ))}
             </div>
           )}
@@ -610,7 +610,7 @@ export function ProblemsPage() {
                 </div>
 
                 <div className="col-span-4">
-                  <span className="font-semibold text-sm text-on-surface group-hover:text-primary-container transition-colors">
+                  <span className="font-semibold text-sm transition-colors" style={{ color: '#e4e4e7' }}>
                     {p.title}
                   </span>
                   {p.category && (
@@ -619,7 +619,7 @@ export function ProblemsPage() {
                 </div>
 
                 <div className="col-span-2 flex justify-center">
-                  <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border ${DIFF_STYLE[p.difficulty]}`}>
+                  <span style={{ padding: '4px 10px', borderRadius: 999, fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: (DIFF_STYLE[p.difficulty] ?? DIFF_STYLE.easy).color, background: (DIFF_STYLE[p.difficulty] ?? DIFF_STYLE.easy).bg, border: `1px solid ${(DIFF_STYLE[p.difficulty] ?? DIFF_STYLE.easy).border}` }}>
                     {p.difficulty}
                   </span>
                 </div>
@@ -635,7 +635,7 @@ export function ProblemsPage() {
 
                 <div className="col-span-1 flex justify-center">
                   {(p.tags ?? []).slice(0, 1).map((tag) => (
-                    <span key={tag} className="px-2 py-0.5 bg-surface-container-highest rounded-full text-[9px] font-bold text-zinc-500 truncate max-w-[80px]">{tag}</span>
+                    <span key={tag} style={{ padding: '2px 8px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 999, fontSize: 9, fontWeight: 700, color: '#71717a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 80 }}>{tag}</span>
                   ))}
                 </div>
 
@@ -646,8 +646,8 @@ export function ProblemsPage() {
                 </div>
 
                 <div className="col-span-1 flex justify-center items-center gap-0.5">
-                  <span className="text-xs font-black text-primary-container">{xpReward}</span>
-                  <Icon name="bolt" size={12} className="text-primary-container" filled />
+                  <span className="text-xs font-black" style={{ color: '#E82127' }}>{xpReward}</span>
+                  <Icon name="bolt" size={12} style={{ color: '#E82127' }} filled />
                 </div>
               </motion.div>
             </Link>
