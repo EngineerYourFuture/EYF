@@ -386,6 +386,12 @@ kbd {
   .lg\:grid-two-col { grid-template-columns: 1fr 1fr !important; gap: 72px !important; }
 }
 
+/* Kinetic typography — suppress body scroll during marquees on iOS */
+.marquee-section { overflow: hidden; }
+
+/* Ensure Space Grotesk applied to headings */
+h1, h2, h3 { font-family: 'Space Grotesk', 'Inter', sans-serif; }
+
 .hero-display {
   font-size: clamp(52px, 8vw, 96px);
   font-weight: 800; letter-spacing: -0.045em; line-height: 0.95; color: var(--t1);

@@ -1,136 +1,30 @@
+import Marquee from 'react-fast-marquee';
 import { Link } from 'react-router-dom';
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
-import {
-  motion, useScroll, useTransform, useInView,
-  useMotionValue, useSpring, AnimatePresence,
-} from 'framer-motion';
+import { motion, useScroll, useTransform } from 'framer-motion';
 import { EYFMark } from '../components/EYFLogo';
 
-/* ── Tokens ────────────────────────────────────────────────────────────── */
+/* ── Design tokens ─────────────────────────────────────────────────────── */
 const D = {
-  bg:      '#030303',
-  surf:    '#0A0A0A',
-  elev:    '#111111',
-  border:  'rgba(255,255,255,0.07)',
-  t1:      '#F8F8F8',
-  t2:      '#C0C0C0',
-  t3:      '#888',
-  t4:      '#444',
-  red:     '#E82127',
+  bg:     '#09090B',
+  surf:   '#111113',
+  elev:   '#18181B',
+  accent: '#E82127',
+  t1:     '#FAFAFA',
+  t2:     '#A1A1AA',
+  t3:     '#71717A',
+  t4:     '#3F3F46',
+  border: '#3F3F46',
+  muted:  '#27272A',
 };
 
-/* ── SplitWords — 3D flip-up word-by-word ──────────────────────────────── */
-function SplitWords({
-  text, delay = 0, stagger = 0.07, className = '', style = {},
-}: {
-  readonly text: string; readonly delay?: number; readonly stagger?: number;
-  readonly className?: string; readonly style?: CSSProperties;
-}) {
-  const words = text.split(' ');
-  return (
-    <span
-      className={className}
-      style={{ display: 'inline-flex', flexWrap: 'wrap', gap: '0.28em', transformStyle: 'preserve-3d', perspectiveOrigin: '50% 50%', ...style }}
-    >
-      {words.map((word, i) => (
-        <motion.span
-          key={`${word}-${i}`}
-          initial={{ opacity: 0, y: 40, rotateX: 90 }}
-          whileInView={{ opacity: 1, y: 0, rotateX: 0 }}
-          viewport={{ once: true, margin: '-40px' }}
-          transition={{ duration: 0.6, delay: delay + i * stagger, ease: [0.16, 1, 0.3, 1] }}
-          style={{ display: 'inline-block', transformPerspective: 600 }}
-        >
-          {word}
-        </motion.span>
-      ))}
-    </span>
-  );
-}
-
-/* ── HorizonGrid — 3D perspective floor grid ───────────────────────────── */
-function HorizonGrid() {
-  return (
-    <div style={{
-      position: 'absolute', bottom: 0, left: 0, right: 0, height: '55%',
-      perspective: '800px', perspectiveOrigin: '50% 0%',
-      pointerEvents: 'none', zIndex: 0,
-    }}>
-      {/* Fade overlay on top */}
-      <div style={{
-        position: 'absolute', top: 0, left: 0, right: 0, height: '40%',
-        background: `linear-gradient(to bottom, ${D.bg}, transparent)`,
-        zIndex: 2,
-      }} />
-      <div style={{
-        width: '180%',
-        height: '100%',
-        marginLeft: '-40%',
-        transform: 'rotateX(72deg)',
-        backgroundImage: `linear-gradient(rgba(232,25,44,0.14) 1px, transparent 1px), linear-gradient(90deg, rgba(232,25,44,0.14) 1px, transparent 1px)`,
-        backgroundSize: '80px 80px',
-        maskImage: 'linear-gradient(to bottom, transparent, black 30%, black 70%, transparent)',
-        WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 30%, black 70%, transparent)',
-      }} />
-    </div>
-  );
-}
-
-/* ── SceneGlow — atmospheric scroll-drift glow ─────────────────────────── */
-function SceneGlow({
-  color, top, left, size = 600, scrollFactor = 0.1,
-}: {
-  readonly color: string; readonly top: number | string; readonly left: number | string;
-  readonly size?: number; readonly scrollFactor?: number;
-}) {
-  const { scrollY } = useScroll();
-  const y = useTransform(scrollY, [0, 3000], [0, 3000 * scrollFactor]);
-  return (
-    <motion.div
-      style={{ position: 'fixed', top, left, y, pointerEvents: 'none', zIndex: 0 }}
-      aria-hidden="true"
-    >
-      <div style={{
-        width: size, height: size, borderRadius: '50%',
-        background: `radial-gradient(circle, ${color} 0%, transparent 70%)`,
-        filter: 'blur(120px)',
-      }} />
-    </motion.div>
-  );
-}
-
-/* ── Cursor glow ───────────────────────────────────────────────────────── */
-function CursorGlow() {
-  const x = useMotionValue(-600);
-  const y = useMotionValue(-600);
-  const sx = useSpring(x, { stiffness: 90, damping: 22 });
-  const sy = useSpring(y, { stiffness: 90, damping: 22 });
-  useEffect(() => {
-    const fn = (e: MouseEvent) => { x.set(e.clientX - 350); y.set(e.clientY - 350); };
-    globalThis.addEventListener('mousemove', fn);
-    return () => globalThis.removeEventListener('mousemove', fn);
-  }, [x, y]);
-  return (
-    <motion.div
-      style={{ x: sx, y: sy }}
-      className="pointer-events-none fixed z-0"
-      aria-hidden="true"
-    >
-      <div style={{
-        width: 700, height: 700, borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(232,25,44,0.07) 0%, transparent 65%)',
-      }} />
-    </motion.div>
-  );
-}
-
-/* ── Film grain overlay ────────────────────────────────────────────────── */
+/* ── Film grain ─────────────────────────────────────────────────────────── */
 function Grain() {
   return (
     <div
       aria-hidden="true"
-      className="pointer-events-none fixed inset-0 z-50"
       style={{
+        position: 'fixed', inset: 0, zIndex: 50, pointerEvents: 'none',
         backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E")`,
         opacity: 0.03,
         mixBlendMode: 'overlay',
@@ -139,636 +33,414 @@ function Grain() {
   );
 }
 
-/* ── Grid overlay ──────────────────────────────────────────────────────── */
-function GridBg({ opacity = 0.025 }: { readonly opacity?: number }) {
+/* ── Structural grid ─────────────────────────────────────────────────────── */
+function GridBg() {
   return (
-    <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-0" style={{
-      backgroundImage: `linear-gradient(rgba(255,255,255,${opacity}) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,${opacity}) 1px, transparent 1px)`,
-      backgroundSize: '72px 72px',
-      maskImage: 'linear-gradient(to bottom, transparent, black 10%, black 90%, transparent)',
-      WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 10%, black 90%, transparent)',
+    <div aria-hidden style={{
+      position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none',
+      backgroundImage: `linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)`,
+      backgroundSize: '80px 80px',
+      maskImage: 'linear-gradient(to bottom, transparent, black 8%, black 92%, transparent)',
+      WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 8%, black 92%, transparent)',
     }} />
   );
 }
 
-/* ── Scroll-reveal with 3D ─────────────────────────────────────────────── */
-function Reveal({
-  children, delay = 0, className = '', style = {},
-}: {
-  readonly children: ReactNode; readonly delay?: number;
-  readonly className?: string; readonly style?: CSSProperties;
+/* ── ClipReveal — signature slide-up from hidden mask ──────────────────── */
+function ClipReveal({ children, delay = 0, duration = 0.85, style = {}, className = '' }: {
+  children: ReactNode; delay?: number; duration?: number; style?: CSSProperties; className?: string;
 }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 48, rotateX: 18, transformPerspective: 1000 }}
-      whileInView={{ opacity: 1, y: 0, rotateX: 0 }}
-      viewport={{ once: true, margin: '-50px' }}
-      transition={{ duration: 0.85, delay, ease: [0.16, 1, 0.3, 1] }}
-      className={className}
-      style={style}
-    >
-      {children}
-    </motion.div>
-  );
-}
-
-/* ── Mouse-tracked 3D tilt ─────────────────────────────────────────────── */
-function Tilt({
-  children, strength = 14, style = {}, className = '',
-}: {
-  readonly children: ReactNode; readonly strength?: number;
-  readonly style?: CSSProperties; readonly className?: string;
-}) {
-  const rx = useMotionValue(0);
-  const ry = useMotionValue(0);
-  const srx = useSpring(rx, { stiffness: 260, damping: 26 });
-  const sry = useSpring(ry, { stiffness: 260, damping: 26 });
-  return (
-    <motion.div
-      onMouseMove={(e) => {
-        const r = e.currentTarget.getBoundingClientRect();
-        rx.set(((e.clientY - r.top) / r.height - 0.5) * -strength);
-        ry.set(((e.clientX - r.left) / r.width - 0.5) * strength);
-      }}
-      onMouseLeave={() => { rx.set(0); ry.set(0); }}
-      style={{ rotateX: srx, rotateY: sry, transformPerspective: 1000, ...style }}
-      className={className}
-    >
-      {children}
-    </motion.div>
-  );
-}
-
-/* ── Animated counter ──────────────────────────────────────────────────── */
-function CountUp({ target, suffix = '' }: { readonly target: number; readonly suffix?: string }) {
-  const [val, setVal] = useState(0);
-  const [glowing, setGlowing] = useState(false);
-  const ref = useRef<HTMLSpanElement>(null);
-  const inView = useInView(ref, { once: true, margin: '-60px' });
-  useEffect(() => {
-    if (!inView) return;
-    const t0 = Date.now(), dur = 1600;
-    const tick = () => {
-      const p = Math.min((Date.now() - t0) / dur, 1);
-      setVal(Math.floor((1 - Math.pow(1 - p, 3)) * target));
-      if (p < 1) { requestAnimationFrame(tick); } else { setTimeout(() => setGlowing(true), 50); }
-    };
-    requestAnimationFrame(tick);
-  }, [inView, target]);
-  return (
-    <span ref={ref} style={{ display: 'inline-block' }}>
-      <span style={{
-        transition: 'text-shadow 0.5s ease',
-        textShadow: glowing ? '0 0 50px rgba(232,25,44,0.6), 0 0 100px rgba(232,25,44,0.3)' : '0 0 50px rgba(232,25,44,0.2)',
-      }}>
-        {val.toLocaleString()}{suffix}
-      </span>
-    </span>
-  );
-}
-
-/* ── Floating notification chip ────────────────────────────────────────── */
-function FloatingChip({
-  label, sub, color, delay, style = {},
-}: {
-  readonly label: string; readonly sub: string; readonly color: string;
-  readonly delay: number; readonly style?: CSSProperties;
-}) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.8, y: 10 }}
-      animate={{ opacity: 1, scale: 1, y: [0, -8, 0] }}
-      transition={{
-        opacity: { duration: 0.5, delay },
-        scale: { duration: 0.5, delay },
-        y: { duration: 3.5, delay: delay + 0.5, repeat: Infinity, ease: 'easeInOut' },
-      }}
-      style={{
-        position: 'absolute',
-        display: 'flex', alignItems: 'center', gap: 10,
-        padding: '8px 14px', borderRadius: 14,
-        background: 'rgba(12,12,12,0.88)',
-        border: '1px solid rgba(255,255,255,0.1)',
-        backdropFilter: 'blur(20px)',
-        boxShadow: `0 8px 32px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.04)`,
-        zIndex: 10,
-        whiteSpace: 'nowrap',
-        ...style,
-      }}
-    >
-      <div style={{
-        width: 8, height: 8, borderRadius: '50%',
-        background: color, flexShrink: 0,
-        boxShadow: `0 0 8px ${color}`,
-      }} />
-      <div>
-        <p style={{ fontSize: 12, fontWeight: 700, color: D.t1, lineHeight: 1.2 }}>{label}</p>
-        <p style={{ fontSize: 10, color: D.t3, lineHeight: 1.2 }}>{sub}</p>
-      </div>
-    </motion.div>
-  );
-}
-
-/* ── Dashboard mockup ──────────────────────────────────────────────────── */
-function DashboardMockup() {
-  return (
-    <div style={{
-      background: '#090D13',
-      border: '1px solid rgba(255,255,255,0.09)',
-      borderRadius: 22,
-      overflow: 'hidden',
-      boxShadow: '0 80px 160px rgba(0,0,0,0.8), 0 0 1px rgba(255,255,255,0.1)',
-    }}>
-      <div style={{ background: '#0F1520', borderBottom: '1px solid rgba(255,255,255,0.06)', padding: '13px 18px', display: 'flex', alignItems: 'center', gap: 8 }}>
-        {['#FF5F57','#FEBC2E','#28C840'].map((c) => (
-          <span key={c} style={{ width: 11, height: 11, borderRadius: '50%', background: c, display: 'inline-block' }} />
-        ))}
-        <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
-          <span style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 7, padding: '3px 16px', fontSize: 11, color: '#555', fontFamily: 'monospace' }}>
-            app.eyf.in/dashboard
-          </span>
-        </div>
-      </div>
-      <div style={{ display: 'flex', minHeight: 340 }}>
-        <div style={{ width: 168, background: '#080D12', borderRight: '1px solid rgba(255,255,255,0.05)', padding: '14px 10px', flexShrink: 0 }} className="hidden sm:block">
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 6px', marginBottom: 20 }}>
-            <div style={{ width: 18, height: 18, borderRadius: 4, background: '#E82127' }} />
-            <span style={{ fontSize: 12, fontWeight: 800, color: D.t1 }}>EYF</span>
-          </div>
-          {[['Dashboard',true],['DSA Problems',false],['System Design',false],['Placement',false],['Community',false]].map(([l,a]) => (
-            <div key={String(l)} style={{
-              padding: '6px 8px', borderRadius: 6, fontSize: 11,
-              fontWeight: a ? 600 : 400,
-              color: a ? D.t1 : '#3A3A3A',
-              background: a ? 'rgba(232,25,44,0.14)' : 'transparent',
-              marginBottom: 2,
-            }}>{String(l)}</div>
-          ))}
-        </div>
-        <div style={{ flex: 1, padding: 18 }}>
-          <p style={{ fontSize: 10, color: '#333', marginBottom: 2 }}>Good morning,</p>
-          <p style={{ fontSize: 13, fontWeight: 700, color: D.t1, marginBottom: 14 }}>Praneeth</p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 7, marginBottom: 10 }}>
-            {[['XP','2,840','#E82127'],['Week','+340','#4ADE80'],['Streak','14d','#FB923C'],['Badges','12','#FBBF24']].map(([l,v,c]) => (
-              <div key={String(l)} style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 10, padding: '9px 10px' }}>
-                <p style={{ fontSize: 9, color: '#333', marginBottom: 3 }}>{String(l)}</p>
-                <p style={{ fontSize: 15, fontWeight: 700, color: String(c), lineHeight: 1 }}>{String(v)}</p>
-              </div>
-            ))}
-          </div>
-          <div style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 10, padding: '10px 12px', marginBottom: 10 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9, color: '#333', marginBottom: 5 }}>
-              <span>Builder · Lv.5</span><span>660 XP to Engineer</span>
-            </div>
-            <div style={{ height: 3, background: 'rgba(255,255,255,0.06)', borderRadius: 100, overflow: 'hidden' }}>
-              <div style={{ width: '62%', height: '100%', background: '#E82127', borderRadius: 100 }} />
-            </div>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 7 }}>
-            {[['DSA',68,'#3B82F6'],['Design',41,'#22D3EE'],['OOP',55,'#A78BFA']].map(([l,p,c]) => (
-              <div key={String(l)} style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 10, padding: '9px 10px' }}>
-                <p style={{ fontSize: 9, color: '#333', marginBottom: 3 }}>{String(l)}</p>
-                <p style={{ fontSize: 13, fontWeight: 700, color: String(c), marginBottom: 5 }}>{Number(p)}%</p>
-                <div style={{ height: 2, background: 'rgba(255,255,255,0.06)', borderRadius: 100, overflow: 'hidden' }}>
-                  <div style={{ width: `${Number(p)}%`, height: '100%', background: String(c), borderRadius: 100 }} />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
+    <div style={{ overflow: 'hidden', display: 'block', ...style }} className={className}>
+      <motion.div
+        initial={{ y: '105%' }}
+        whileInView={{ y: '0%' }}
+        viewport={{ once: true, margin: '-20px' }}
+        transition={{ duration, delay, ease: [0.16, 1, 0.3, 1] }}
+      >
+        {children}
+      </motion.div>
     </div>
   );
 }
 
-/* ── Hero ──────────────────────────────────────────────────────────────── */
-function HeroSection() {
-  const { scrollY } = useScroll();
-  const rotateX   = useTransform(scrollY, [0, 700], [42, 0]);
-  const rotateY   = useTransform(scrollY, [0, 700], [-8, 0]);
-  const scale     = useTransform(scrollY, [0, 700], [0.78, 1]);
-  const mockY     = useTransform(scrollY, [0, 700], [0, 60]);
-  const scrollIndicatorOpacity = useTransform(scrollY, [0, 180], [1, 0]);
+/* ── FadeUp ─────────────────────────────────────────────────────────────── */
+function FadeUp({ children, delay = 0, style = {}, className = '' }: {
+  children: ReactNode; delay?: number; style?: CSSProperties; className?: string;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-60px' }}
+      transition={{ duration: 0.6, delay, ease: [0.16, 1, 0.3, 1] }}
+      style={style}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  );
+}
 
-  // Mouse parallax for blobs
-  const mx = useMotionValue(0);
-  const my = useMotionValue(0);
-  const bx1 = useSpring(useTransform(mx, v => v * 40), { stiffness: 50, damping: 20 });
-  const by1 = useSpring(useTransform(my, v => v * 30), { stiffness: 50, damping: 20 });
-  const bx2 = useSpring(useTransform(mx, v => v * -28), { stiffness: 40, damping: 18 });
-  const by2 = useSpring(useTransform(my, v => v * -20), { stiffness: 40, damping: 18 });
+/* ── EditorialNum ───────────────────────────────────────────────────────── */
+function EditorialNum({ n, align = 'right' }: { n: string; align?: 'left' | 'right' }) {
+  return (
+    <div aria-hidden style={{
+      position: 'absolute',
+      top: -20,
+      ...(align === 'right' ? { right: -16 } : { left: -16 }),
+      fontSize: 'clamp(120px, 20vw, 280px)',
+      fontWeight: 900,
+      fontFamily: 'Space Grotesk, sans-serif',
+      color: 'rgba(255,255,255,0.03)',
+      letterSpacing: '-0.06em',
+      lineHeight: 1,
+      pointerEvents: 'none',
+      userSelect: 'none',
+    }}>
+      {n}
+    </div>
+  );
+}
 
+/* ── LandingNav ─────────────────────────────────────────────────────────── */
+function LandingNav() {
+  const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
-    const fn = (e: MouseEvent) => {
-      mx.set((e.clientX / globalThis.innerWidth - 0.5));
-      my.set((e.clientY / globalThis.innerHeight - 0.5));
-    };
-    globalThis.addEventListener('mousemove', fn);
-    return () => globalThis.removeEventListener('mousemove', fn);
-  }, [mx, my]);
+    const fn = () => setScrolled(window.scrollY > 20);
+    window.addEventListener('scroll', fn, { passive: true });
+    return () => window.removeEventListener('scroll', fn);
+  }, []);
 
   return (
-    <section style={{
-      minHeight: '100dvh', background: D.bg,
-      position: 'relative', overflow: 'hidden',
-      display: 'flex', flexDirection: 'column',
-      justifyContent: 'center', paddingTop: 80,
+    <header style={{
+      position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
+      padding: '0 clamp(16px, 4vw, 48px)',
+      height: 64,
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      background: scrolled ? 'rgba(9,9,11,0.92)' : 'transparent',
+      backdropFilter: scrolled ? 'blur(20px)' : 'none',
+      borderBottom: scrolled ? `1px solid ${D.border}` : '1px solid transparent',
+      transition: 'all 0.3s ease',
     }}>
-      {/* 3D Horizon Grid floor */}
-      <HorizonGrid />
+      <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
+        <EYFMark size={24} />
+        <span style={{ fontFamily: 'Space Grotesk', fontWeight: 800, fontSize: 15, letterSpacing: '-0.04em', color: D.t1, textTransform: 'uppercase' }}>EYF</span>
+      </Link>
 
+      <nav className="hidden md:flex" style={{ gap: 40 }}>
+        {[['#showcase', 'Platform'], ['#curriculum', 'Curriculum'], ['#pricing', 'Pricing']].map(([href, label]) => (
+          <a key={href} href={href} style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: D.t3, textDecoration: 'none', transition: 'color 0.2s' }}
+            onMouseEnter={e => (e.currentTarget.style.color = D.t1)}
+            onMouseLeave={e => (e.currentTarget.style.color = D.t3)}
+          >{label}</a>
+        ))}
+      </nav>
+
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+        <Link to="/login" className="md:block" style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: D.t3, textDecoration: 'none', padding: '8px 16px', display: 'none' }}>Sign in</Link>
+        <Link to="/login?tab=register" style={{ fontFamily: 'Space Grotesk', fontSize: 12, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#000', background: D.accent, padding: '10px 20px', textDecoration: 'none', display: 'inline-block' }}>
+          Start free
+        </Link>
+      </div>
+    </header>
+  );
+}
+
+/* ── HeroSection ────────────────────────────────────────────────────────── */
+function HeroSection() {
+  const { scrollY } = useScroll();
+  const heroOpacity = useTransform(scrollY, [0, 500], [1, 0]);
+  const heroScale = useTransform(scrollY, [0, 600], [1, 1.08]);
+  const scrollIndicatorOpacity = useTransform(scrollY, [0, 200], [1, 0]);
+
+  return (
+    <motion.section style={{
+      minHeight: '100dvh', background: D.bg, position: 'relative', overflow: 'hidden',
+      display: 'flex', flexDirection: 'column', justifyContent: 'center',
+      paddingTop: 80, paddingBottom: 0, opacity: heroOpacity,
+    }}>
       <GridBg />
 
-      {/* Vignette */}
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-0" style={{
-        background: 'radial-gradient(ellipse 80% 80% at 50% 50%, transparent 40%, rgba(0,0,0,0.5) 100%)',
+      <div aria-hidden style={{
+        position: 'absolute', top: '20%', left: '50%', transform: 'translateX(-50%)',
+        width: 500, height: 400, borderRadius: '50%',
+        background: 'radial-gradient(ellipse, rgba(232,33,39,0.07) 0%, transparent 70%)',
+        filter: 'blur(60px)', pointerEvents: 'none', zIndex: 0,
       }} />
 
-      {/* Aurora blobs with mouse parallax */}
-      <motion.div aria-hidden="true" style={{ x: bx1, y: by1, position: 'absolute', top: '-22%', left: '-6%', zIndex: 0, pointerEvents: 'none' }}>
-        <div className="aurora-blob-a" style={{
-          width: 900, height: 700,
-          background: 'radial-gradient(ellipse, rgba(232,25,44,0.18) 0%, transparent 70%)',
-          filter: 'blur(100px)',
-        }} />
+      <motion.div style={{ scale: heroScale, position: 'relative', zIndex: 1 }}>
+        <div style={{ padding: 'clamp(16px, 5vw, 80px)', maxWidth: '95vw', margin: '0 auto' }}>
+
+          <FadeUp delay={0}>
+            <div style={{ marginBottom: 32, display: 'flex', justifyContent: 'center' }}>
+              <span style={{
+                display: 'inline-flex', alignItems: 'center', gap: 8,
+                padding: '6px 16px', border: `1px solid rgba(232,33,39,0.3)`,
+                background: 'rgba(232,33,39,0.06)',
+                fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: D.accent,
+              }}>
+                <span style={{ width: 5, height: 5, background: D.accent, borderRadius: '50%', display: 'inline-block' }} />
+                Open beta · 12,000+ students enrolled
+              </span>
+            </div>
+          </FadeUp>
+
+          <div style={{ textAlign: 'center', marginBottom: 40 }}>
+            <ClipReveal delay={0.05}>
+              <h1 style={{
+                fontFamily: 'Space Grotesk, sans-serif',
+                fontSize: 'clamp(3rem, 12vw, 14rem)',
+                fontWeight: 700, lineHeight: 0.88,
+                letterSpacing: '-0.05em',
+                textTransform: 'uppercase',
+                color: D.t1, margin: 0,
+              }}>The</h1>
+            </ClipReveal>
+            <ClipReveal delay={0.12}>
+              <h1 style={{
+                fontFamily: 'Space Grotesk, sans-serif',
+                fontSize: 'clamp(3rem, 12vw, 14rem)',
+                fontWeight: 700, lineHeight: 0.88,
+                letterSpacing: '-0.05em',
+                textTransform: 'uppercase',
+                color: D.t1, margin: 0,
+              }}>structured</h1>
+            </ClipReveal>
+            <ClipReveal delay={0.2}>
+              <h1 style={{
+                fontFamily: 'Space Grotesk, sans-serif',
+                fontSize: 'clamp(3rem, 12vw, 14rem)',
+                fontWeight: 700, lineHeight: 0.88,
+                letterSpacing: '-0.05em',
+                textTransform: 'uppercase',
+                color: D.accent, margin: 0,
+              }}>path.</h1>
+            </ClipReveal>
+          </div>
+
+          <FadeUp delay={0.5}>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 40 }}>
+              <div style={{ width: 80, height: 2, background: D.accent }} />
+            </div>
+          </FadeUp>
+
+          <FadeUp delay={0.65}>
+            <div style={{ textAlign: 'center', maxWidth: 480, margin: '0 auto' }}>
+              <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 16, color: D.t2, lineHeight: 1.7, marginBottom: 40 }}>
+                DSA, system design, core CS, and placement prep — one platform, one path to your first tech offer.
+              </p>
+              <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 28 }}>
+                <Link to="/login?tab=register" style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 8,
+                  height: 56, padding: '0 36px',
+                  background: D.accent, color: '#000',
+                  fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase',
+                  textDecoration: 'none', border: `2px solid ${D.accent}`,
+                }}>
+                  Start free →
+                </Link>
+                <a href="#showcase" style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 8,
+                  height: 56, padding: '0 36px',
+                  background: 'transparent', color: D.t1,
+                  fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase',
+                  textDecoration: 'none', border: `2px solid ${D.border}`,
+                }}>
+                  See platform
+                </a>
+              </div>
+              <div style={{ display: 'flex', gap: 24, justifyContent: 'center', flexWrap: 'wrap' }}>
+                {['No credit card', 'Free tier forever', '5 min setup'].map(t => (
+                  <span key={t} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase', color: D.t4 }}>
+                    <span style={{ color: '#4ADE80', fontWeight: 700 }}>✓</span> {t}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </FadeUp>
+
+        </div>
       </motion.div>
-      <motion.div aria-hidden="true" style={{ x: bx2, y: by2, position: 'absolute', top: '-10%', right: '-14%', zIndex: 0, pointerEvents: 'none' }}>
-        <div className="aurora-blob-b" style={{
-          width: 800, height: 700,
-          background: 'radial-gradient(ellipse, rgba(100,50,240,0.12) 0%, transparent 70%)',
-          filter: 'blur(120px)',
-        }} />
-      </motion.div>
 
-      {/* HEADLINE block */}
-      <div style={{ position: 'relative', zIndex: 1, textAlign: 'center', maxWidth: 900, margin: '0 auto', padding: '0 24px 56px' }}>
-
-        {/* Badge pill */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.45, delay: 0 }}
-          style={{ marginBottom: 28 }}
-        >
-          <span style={{
-            display: 'inline-flex', alignItems: 'center', gap: 9,
-            padding: '6px 18px', borderRadius: 100,
-            background: 'rgba(232,25,44,0.07)',
-            border: '1px solid rgba(232,25,44,0.22)',
-            color: '#FF4D5E', fontSize: 12, fontWeight: 600, letterSpacing: '0.01em',
-          }}>
-            <span className="anim-pulse" style={{ width: 6, height: 6, borderRadius: '50%', background: '#E82127', display: 'inline-block' }} />{' '}
-            Open beta · 12,000+ students enrolled
-          </span>
-        </motion.div>
-
-        {/* HERO TITLE */}
-        <h1 style={{
-          fontSize: 'clamp(48px, 9vw, 96px)',
-          fontWeight: 900, letterSpacing: '-0.05em', lineHeight: 0.94,
-          color: D.t1, marginBottom: 24,
-        }}>
-          <SplitWords text="The structured path" delay={0.1} stagger={0.06} />
-          <br />
-          <span style={{ display: 'flex', flexWrap: 'wrap', gap: '0.28em', justifyContent: 'center', marginTop: '0.04em' }}>
-            <SplitWords text="to your first" delay={0.32} stagger={0.06} />
-            {' '}
-            <SplitWords
-              text="tech offer."
-              delay={0.56}
-              stagger={0.07}
-              style={{ color: '#E82127', textShadow: '0 0 80px rgba(232,25,44,0.7), 0 0 160px rgba(232,25,44,0.3)' }}
-            />
-          </span>
-        </h1>
-
-        {/* Subtext */}
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.55, delay: 0.7 }}
-          style={{ fontSize: 17, color: D.t3, maxWidth: 500, margin: '0 auto 36px', lineHeight: 1.7 }}
-        >
-          DSA, system design, OOP, core CS, and placement prep — one platform, one path to your first tech offer.
-        </motion.p>
-
-        {/* CTA buttons */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.45, delay: 0.86 }}
-          style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 28 }}
-        >
-          <Link to="/login?tab=register" className="btn btn-primary btn-xl">
-            Start for free{' '}
-            <span className="material-symbols-rounded text-base">arrow_forward</span>
-          </Link>
-          <a href="#showcase" className="btn btn-xl"
-            style={{ background: 'rgba(255,255,255,0.05)', color: D.t1, border: '1px solid rgba(255,255,255,0.1)', backdropFilter: 'blur(12px)' }}>
-            See how it works
-          </a>
-        </motion.div>
-
-        {/* Trust chips */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.45, delay: 1.0 }}
-          style={{ display: 'flex', gap: 22, justifyContent: 'center', flexWrap: 'wrap' }}
-        >
-          {['No credit card', 'Free tier forever', 'Start in 5 minutes'].map((t) => (
-            <span key={t} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: D.t4 }}>
-              <span style={{ color: '#4ADE80', fontWeight: 700 }}>✓</span> {t}
-            </span>
-          ))}
-        </motion.div>
-      </div>
-
-      {/* 3D Mockup */}
       <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 1, delay: 0.9 }}
-        style={{ maxWidth: 960, margin: '0 auto', position: 'relative', zIndex: 1, paddingBottom: 0 }}
-        className="land-container"
+        style={{ position: 'absolute', bottom: 40, left: '50%', transform: 'translateX(-50%)', opacity: scrollIndicatorOpacity }}
+        animate={{ y: [0, 8, 0] }}
+        transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
       >
-        {/* Light cone */}
-        <div aria-hidden="true" style={{
-          position: 'absolute', top: '-20%', left: '50%', transform: 'translateX(-50%)',
-          width: 400, height: 600,
-          background: 'conic-gradient(from 180deg at 50% 0%, transparent 60deg, rgba(232,25,44,0.22) 90deg, transparent 120deg)',
-          filter: 'blur(30px)',
-          zIndex: 0, pointerEvents: 'none',
-        }} />
-
-        {/* Bottom glow */}
-        <div aria-hidden="true" style={{
-          position: 'absolute', top: '25%', left: '10%', right: '10%', bottom: '-5%',
-          background: 'radial-gradient(ellipse, rgba(232,25,44,0.22) 0%, transparent 65%)',
-          filter: 'blur(60px)', zIndex: 0, pointerEvents: 'none',
-        }} />
-
-        {/* Floating chips */}
-        <FloatingChip label="+120 XP" sub="Two Sum · Pattern solved" color="#E82127" delay={0.9}
-          style={{ top: '12%', left: '-8%' }} />
-        <FloatingChip label="🔥 14-day streak" sub="Keep it up" color="#FB923C" delay={1.3}
-          style={{ top: '6%', right: '-4%' }} />
-        <FloatingChip label="Google Round 2 ✓" sub="Prep complete" color="#4ADE80" delay={1.7}
-          style={{ bottom: '35%', right: '-10%' }} />
-        <FloatingChip label="Lv.6 Unlocked" sub="Builder → Engineer" color="#A78BFA" delay={1.1}
-          style={{ bottom: '28%', left: '-8%' }} />
-
-        {/* Actual 3D mockup */}
-        <motion.div style={{
-          transformPerspective: 1600,
-          rotateX, rotateY, scale, y: mockY,
-          position: 'relative', zIndex: 1,
-        }}>
-          <DashboardMockup />
-        </motion.div>
-
-        {/* Fade to bg */}
-        <div style={{
-          position: 'absolute', bottom: 0, left: 0, right: 0, height: '50%',
-          background: `linear-gradient(to bottom, transparent, ${D.bg})`,
-          zIndex: 2, pointerEvents: 'none',
-        }} />
+        <div style={{ width: 1, height: 48, background: `linear-gradient(to bottom, ${D.accent}, transparent)`, margin: '0 auto' }} />
       </motion.div>
+    </motion.section>
+  );
+}
 
-      {/* Scroll indicator */}
-      <motion.div
-        style={{ opacity: scrollIndicatorOpacity, position: 'absolute', bottom: 32, left: '50%', transform: 'translateX(-50%)', zIndex: 10 }}
-        aria-hidden="true"
-      >
-        <motion.div
-          animate={{ y: [0, 10, 0] }}
-          transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
-          style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}
-        >
-          <span style={{ fontSize: 10, color: D.t4, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Scroll</span>
-          <span className="material-symbols-rounded" style={{ color: D.t4, fontSize: 20 }}>keyboard_arrow_down</span>
-        </motion.div>
-      </motion.div>
+/* ── StatsMarquee ───────────────────────────────────────────────────────── */
+const STATS_ITEMS = [
+  { value: '12,400+', label: 'Students' },
+  { value: '450+',    label: 'Problems' },
+  { value: '94%',     label: 'Placement rate' },
+  { value: '60+',     label: 'Companies' },
+  { value: '#1',      label: 'Placement platform' },
+  { value: '15',      label: 'DSA patterns' },
+  { value: '4.9★',    label: 'Rating' },
+  { value: '200+',    label: 'Colleges' },
+];
+
+function StatsMarquee() {
+  return (
+    <section style={{ background: D.accent, borderTop: `2px solid ${D.accent}`, borderBottom: `2px solid ${D.accent}`, padding: '24px 0', overflow: 'hidden' }}>
+      <Marquee speed={80} gradient={false} autoFill>
+        {STATS_ITEMS.map((s, i) => (
+          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 40, marginRight: 80 }}>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 14 }}>
+              <span style={{
+                fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 'clamp(24px, 4vw, 40px)',
+                letterSpacing: '-0.04em', color: '#000', lineHeight: 1,
+              }}>{s.value}</span>
+              <span style={{
+                fontFamily: 'Space Grotesk', fontWeight: 600, fontSize: 11,
+                letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(0,0,0,0.6)',
+              }}>{s.label}</span>
+            </div>
+            {i < STATS_ITEMS.length - 1 && (
+              <span style={{ fontSize: 20, color: 'rgba(0,0,0,0.25)', fontWeight: 300 }}>×</span>
+            )}
+          </div>
+        ))}
+      </Marquee>
     </section>
   );
 }
 
-/* ── Trust bar ─────────────────────────────────────────────────────────── */
+/* ── TrustBar ───────────────────────────────────────────────────────────── */
 function TrustBar() {
   const colleges = ['IIT Delhi','IIT Bombay','NIT Trichy','BITS Pilani','VIT Vellore','IIIT Hyderabad','DTU Delhi','Manipal','Anna University','SRM','PSG Tech','NSUT'];
   return (
-    <section style={{ background: D.bg, borderTop: '1px solid rgba(255,255,255,0.05)', borderBottom: '1px solid rgba(255,255,255,0.05)', padding: '44px 0' }}>
-      <div className="land-container">
-        <p style={{ fontSize: 11, fontWeight: 600, textAlign: 'center', letterSpacing: '0.14em', textTransform: 'uppercase', color: D.t4, marginBottom: 18 }}>
-          Students preparing from
-        </p>
-        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 8 }}>
-          {colleges.map((c) => (
-            <span key={c} style={{ padding: '5px 13px', borderRadius: 8, fontSize: 12, fontWeight: 500, background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.06)', color: '#3A3A3A' }}>{c}</span>
-          ))}
-        </div>
-      </div>
+    <section style={{ background: D.bg, borderBottom: `1px solid ${D.border}`, padding: '32px 0' }}>
+      <p style={{ textAlign: 'center', fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: D.t4, marginBottom: 20 }}>Students from</p>
+      <Marquee speed={40} gradient={false} autoFill>
+        {colleges.map(c => (
+          <span key={c} style={{ marginRight: 64, fontFamily: 'Space Grotesk', fontSize: 13, fontWeight: 600, letterSpacing: '0.04em', color: D.t4 }}>{c}</span>
+        ))}
+      </Marquee>
     </section>
   );
 }
 
-/* ── How it Works — scroll-pinned 3D step sequence ─────────────────────── */
-const HOW_STEPS = [
-  { num: '01', title: 'Assess your readiness', body: 'Take the EYF readiness test. Get a precise gap analysis across DSA, system design, and placement skills.', icon: 'analytics', color: '#3B82F6' },
-  { num: '02', title: 'Follow your roadmap', body: 'A personalized, ordered curriculum built for campus placements. No more random grinding.', icon: 'route', color: '#A78BFA' },
-  { num: '03', title: 'Practice with purpose', body: '450+ problems tagged by pattern. Solve them in order, track your streaks, level up your XP.', icon: 'code', color: '#22D3EE' },
-  { num: '04', title: 'Simulate the real thing', body: 'Mock interviews, company prep kits, and ATS resume scoring. Know your weak spots before the recruiter does.', icon: 'work_history', color: '#4ADE80' },
-  { num: '05', title: 'Get the offer', body: "Track every application, prep for each company, and walk into interviews knowing you're ready.", icon: 'emoji_events', color: '#E82127' },
-] as const;
+/* ── HowItWorksSection ──────────────────────────────────────────────────── */
+const STEPS = [
+  { num: '01', label: 'Assess', title: 'KNOW WHERE\nYOU STAND.', body: 'Take the readiness test. Get a precise gap analysis across DSA, system design, and placement skills.', icon: 'analytics', color: '#3B82F6', metric: '94% accuracy' },
+  { num: '02', label: 'Plan', title: 'FOLLOW THE\nPATH.', body: 'A personalized curriculum for campus placements. Modules unlock in sequence — always know what to do next.', icon: 'route', color: '#A78BFA', metric: '3× faster prep' },
+  { num: '03', label: 'Practice', title: 'SOLVE WITH\nPURPOSE.', body: '450+ problems tagged by pattern. Track streaks, earn XP, move through tiers without hitting walls.', icon: 'code', color: '#22D3EE', metric: '450+ problems' },
+  { num: '04', label: 'Simulate', title: 'REHEARSE\nTHE REAL.', body: 'Mock interviews, company prep kits, ATS resume scoring. Know your weak spots before the recruiter does.', icon: 'work_history', color: '#4ADE80', metric: '60+ companies' },
+  { num: '05', label: 'Offer', title: 'GET THE\nOFFER.', body: "Track every application. Prep per company. Walk in knowing you're ready. The offer is the expected outcome.", icon: 'emoji_events', color: D.accent, metric: '94% placed' },
+];
 
 function HowItWorksSection() {
   const containerRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: containerRef, offset: ['start start', 'end end'] });
+  const progressHeight = useTransform(scrollYProgress, [0, 1], ['0%', '100%']);
 
-  const step0o = useTransform(scrollYProgress, [0, 0.04, 0.18, 0.22], [0, 1, 1, 0]);
-  const step0s = useTransform(scrollYProgress, [0, 0.04], [0.7, 1]);
+  const STEP_RANGES = STEPS.map((_, i) => ({
+    start: i / STEPS.length,
+    end: (i + 1) / STEPS.length,
+  }));
 
-  const step1o = useTransform(scrollYProgress, [0.18, 0.24, 0.38, 0.42], [0, 1, 1, 0]);
-  const step1s = useTransform(scrollYProgress, [0.18, 0.24], [0.7, 1]);
+  const o0 = useTransform(scrollYProgress, [STEP_RANGES[0].start, STEP_RANGES[0].start + 0.06, STEP_RANGES[0].end - 0.06, STEP_RANGES[0].end], [0,1,1,0]);
+  const o1 = useTransform(scrollYProgress, [STEP_RANGES[1].start, STEP_RANGES[1].start + 0.06, STEP_RANGES[1].end - 0.06, STEP_RANGES[1].end], [0,1,1,0]);
+  const o2 = useTransform(scrollYProgress, [STEP_RANGES[2].start, STEP_RANGES[2].start + 0.06, STEP_RANGES[2].end - 0.06, STEP_RANGES[2].end], [0,1,1,0]);
+  const o3 = useTransform(scrollYProgress, [STEP_RANGES[3].start, STEP_RANGES[3].start + 0.06, STEP_RANGES[3].end - 0.06, STEP_RANGES[3].end], [0,1,1,0]);
+  const o4 = useTransform(scrollYProgress, [STEP_RANGES[4].start, STEP_RANGES[4].start + 0.06, STEP_RANGES[4].end - 0.06, STEP_RANGES[4].end], [0,1,1,0]);
 
-  const step2o = useTransform(scrollYProgress, [0.38, 0.44, 0.58, 0.62], [0, 1, 1, 0]);
-  const step2s = useTransform(scrollYProgress, [0.38, 0.44], [0.7, 1]);
+  const y0 = useTransform(scrollYProgress, [STEP_RANGES[0].start, STEP_RANGES[0].start + 0.08], [60, 0]);
+  const y1 = useTransform(scrollYProgress, [STEP_RANGES[1].start, STEP_RANGES[1].start + 0.08], [60, 0]);
+  const y2 = useTransform(scrollYProgress, [STEP_RANGES[2].start, STEP_RANGES[2].start + 0.08], [60, 0]);
+  const y3 = useTransform(scrollYProgress, [STEP_RANGES[3].start, STEP_RANGES[3].start + 0.08], [60, 0]);
+  const y4 = useTransform(scrollYProgress, [STEP_RANGES[4].start, STEP_RANGES[4].start + 0.08], [60, 0]);
 
-  const step3o = useTransform(scrollYProgress, [0.58, 0.64, 0.78, 0.82], [0, 1, 1, 0]);
-  const step3s = useTransform(scrollYProgress, [0.58, 0.64], [0.7, 1]);
-
-  const step4o = useTransform(scrollYProgress, [0.78, 0.84, 1, 1], [0, 1, 1, 1]);
-  const step4s = useTransform(scrollYProgress, [0.78, 0.84], [0.7, 1]);
-
-  const opacities  = [step0o, step1o, step2o, step3o, step4o];
-  const scales     = [step0s, step1s, step2s, step3s, step4s];
-
-  // Active step index for background glow
-  const [activeStep, setActiveStep] = useState(0);
-  useEffect(() => {
-    const unsubscribe = scrollYProgress.on('change', (v) => {
-      if (v < 0.2) setActiveStep(0);
-      else if (v < 0.4) setActiveStep(1);
-      else if (v < 0.6) setActiveStep(2);
-      else if (v < 0.8) setActiveStep(3);
-      else setActiveStep(4);
-    });
-    return unsubscribe;
-  }, [scrollYProgress]);
+  const opacities = [o0, o1, o2, o3, o4];
+  const ys = [y0, y1, y2, y3, y4];
 
   return (
-    <div ref={containerRef} style={{ height: '500vh', position: 'relative' }}>
-      <div style={{ position: 'sticky', top: 0, height: '100vh', overflow: 'hidden', background: D.bg }}>
-        <GridBg opacity={0.018} />
-
-        {/* Background color shift glow */}
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={activeStep}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.8 }}
-            aria-hidden="true"
-            style={{
-              position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0,
-              background: `radial-gradient(ellipse 60% 60% at 70% 50%, ${HOW_STEPS[activeStep].color}16 0%, transparent 70%)`,
-            }}
-          />
-        </AnimatePresence>
-
-        {/* Section eyebrow — always visible */}
-        <div style={{ position: 'absolute', top: 80, left: '50%', transform: 'translateX(-50%)', zIndex: 10, textAlign: 'center' }}>
-          <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: D.red }}>
-            How it Works
-          </p>
+    <section ref={containerRef} style={{ height: '500vh', position: 'relative', background: D.bg }}>
+      <div style={{ position: 'sticky', top: 0, height: '100vh', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', top: 80, left: 'clamp(16px, 5vw, 80px)', zIndex: 10 }}>
+          <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: D.accent, marginBottom: 8 }}>How it works</p>
         </div>
 
-        {/* Steps */}
-        {HOW_STEPS.map((step, i) => (
-          <motion.div
-            key={step.num}
-            style={{
-              opacity: opacities[i],
-              scale: scales[i],
-              transformPerspective: 1200,
-              position: 'absolute', inset: 0,
-              display: 'flex', alignItems: 'center',
-              paddingTop: 72,
-            }}
-          >
-            <div className="land-container w-full">
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 40, alignItems: 'center' }}
-                className="lg:grid-two-col">
-                {/* Left: text */}
-                <div>
-                  <div style={{ fontSize: '10rem', fontWeight: 900, lineHeight: 1, letterSpacing: '-0.07em', color: 'rgba(255,255,255,0.04)', marginBottom: -16, userSelect: 'none' }}>
-                    {step.num}
-                  </div>
-                  <h2 style={{ fontSize: 'clamp(28px, 4vw, 52px)', fontWeight: 900, letterSpacing: '-0.04em', lineHeight: 1.05, color: D.t1, marginBottom: 16 }}>
-                    <SplitWords text={step.title} delay={0.05} stagger={0.05} />
-                  </h2>
-                  <p style={{ fontSize: 16, lineHeight: 1.7, color: D.t3, maxWidth: 420 }}>{step.body}</p>
+        <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 4, background: D.muted, zIndex: 10 }}>
+          <motion.div style={{
+            position: 'absolute', top: 0, left: 0, right: 0,
+            height: progressHeight,
+            background: D.accent,
+          }} />
+        </div>
 
-                  {/* Colored icon pill */}
-                  <div style={{
-                    display: 'inline-flex', alignItems: 'center', gap: 10,
-                    marginTop: 28, padding: '8px 16px', borderRadius: 12,
-                    background: `${step.color}12`, border: `1px solid ${step.color}30`,
-                  }}>
-                    <span className="material-symbols-rounded" style={{ color: step.color, fontSize: 18 }}>{step.icon}</span>
-                    <span style={{ fontSize: 12, fontWeight: 600, color: step.color }}>Step {step.num}</span>
-                  </div>
-                </div>
-
-                {/* Right: 3D card */}
-                <div className="hidden lg:block">
-                  <Tilt strength={10}>
-                    <div style={{
-                      padding: 40, borderRadius: 24,
-                      background: 'rgba(255,255,255,0.02)',
-                      border: `1px solid ${step.color}20`,
-                      boxShadow: `0 0 80px ${step.color}10, 0 40px 120px rgba(0,0,0,0.6)`,
-                      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20,
-                      minHeight: 280,
-                    }}>
-                      {/* Glow ring + icon */}
-                      <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <motion.div
-                          animate={{ scale: [1, 1.12, 1], opacity: [0.4, 0.8, 0.4] }}
-                          transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
-                          style={{
-                            position: 'absolute', width: 120, height: 120, borderRadius: '50%',
-                            background: `radial-gradient(circle, ${step.color}30 0%, transparent 70%)`,
-                            filter: 'blur(12px)',
-                          }}
-                        />
-                        <motion.div
-                          animate={{ scale: [1, 1.06, 1] }}
-                          transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut', delay: 0.3 }}
-                          style={{
-                            width: 80, height: 80, borderRadius: '50%',
-                            background: `${step.color}14`,
-                            border: `1px solid ${step.color}40`,
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            position: 'relative', zIndex: 1,
-                          }}
-                        >
-                          <span className="material-symbols-rounded" style={{ color: step.color, fontSize: 40 }}>{step.icon}</span>
-                        </motion.div>
-                      </div>
-
-                      <p style={{ fontSize: 14, fontWeight: 600, color: D.t2, textAlign: 'center', lineHeight: 1.5 }}>{step.title}</p>
-
-                      {/* Floating detail chips */}
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center' }}>
-                        {['Personalized','Structured','Tracked'].map((chip) => (
-                          <span key={chip} style={{
-                            padding: '4px 12px', borderRadius: 20, fontSize: 11, fontWeight: 600,
-                            background: `${step.color}10`, border: `1px solid ${step.color}25`,
-                            color: step.color,
-                          }}>{chip}</span>
-                        ))}
-                      </div>
-                    </div>
-                  </Tilt>
+        {STEPS.map((step, i) => (
+          <motion.div key={step.num} style={{
+            position: 'absolute', inset: 0, opacity: opacities[i], y: ys[i],
+            display: 'flex', alignItems: 'center',
+            padding: 'clamp(16px, 5vw, 80px)',
+            paddingTop: 120,
+          }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 40, width: '100%', maxWidth: '90vw', margin: '0 auto' }} className="lg:grid-two-col">
+              <div style={{ position: 'relative' }}>
+                <EditorialNum n={step.num} align="left" />
+                <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: step.color, marginBottom: 16, position: 'relative', zIndex: 1 }}>{step.label}</p>
+                <h2 style={{
+                  fontFamily: 'Space Grotesk', fontWeight: 700,
+                  fontSize: 'clamp(2.5rem, 7vw, 6rem)',
+                  letterSpacing: '-0.04em', lineHeight: 0.95,
+                  textTransform: 'uppercase', color: D.t1,
+                  marginBottom: 24, position: 'relative', zIndex: 1,
+                  whiteSpace: 'pre-line',
+                }}>{step.title}</h2>
+                <p style={{ fontSize: 15, color: D.t2, lineHeight: 1.7, maxWidth: 420, position: 'relative', zIndex: 1 }}>{step.body}</p>
+              </div>
+              <div className="hidden lg:flex" style={{ alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{
+                  border: `2px solid ${D.border}`, padding: '48px 40px',
+                  background: D.elev, width: '100%', maxWidth: 340,
+                  position: 'relative', overflow: 'hidden',
+                  cursor: 'default',
+                  transition: 'background 0.3s, border-color 0.3s',
+                }}
+                onMouseEnter={e => {
+                  const el = e.currentTarget as HTMLDivElement;
+                  el.style.background = D.accent;
+                  el.style.borderColor = D.accent;
+                  el.querySelectorAll('[data-invert]').forEach(c => { (c as HTMLElement).style.color = '#000'; });
+                }}
+                onMouseLeave={e => {
+                  const el = e.currentTarget as HTMLDivElement;
+                  el.style.background = D.elev;
+                  el.style.borderColor = D.border;
+                  el.querySelectorAll('[data-invert]').forEach(c => { (c as HTMLElement).style.color = ''; });
+                }}
+                >
+                  <span className="material-symbols-rounded" data-invert style={{ fontSize: 48, color: step.color, display: 'block', marginBottom: 20, transition: 'color 0.3s' }}>{step.icon}</span>
+                  <p data-invert style={{ fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 'clamp(2rem, 5vw, 3.5rem)', letterSpacing: '-0.05em', lineHeight: 1, color: D.t1, marginBottom: 8, transition: 'color 0.3s' }}>{step.metric}</p>
+                  <p data-invert style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: D.t3, transition: 'color 0.3s' }}>{step.label}</p>
                 </div>
               </div>
             </div>
           </motion.div>
         ))}
-
-        {/* Step progress dots */}
-        <div style={{ position: 'absolute', bottom: 32, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 8, zIndex: 10 }}>
-          {HOW_STEPS.map((s, i) => (
-            <motion.div
-              key={s.num}
-              animate={{ scale: activeStep === i ? 1.4 : 1, opacity: activeStep === i ? 1 : 0.3 }}
-              transition={{ duration: 0.3 }}
-              style={{
-                width: 6, height: 6, borderRadius: '50%',
-                background: activeStep === i ? s.color : D.t4,
-                boxShadow: activeStep === i ? `0 0 10px ${s.color}` : 'none',
-              }}
-            />
-          ))}
-        </div>
       </div>
-    </div>
+    </section>
   );
 }
 
-/* ── Code card ─────────────────────────────────────────────────────────── */
+/* ── CodeCard ───────────────────────────────────────────────────────────── */
 function CodeCard() {
   return (
-    <div style={{ background: '#0B0F18', border: '1px solid rgba(255,255,255,0.09)', borderRadius: 18, overflow: 'hidden', boxShadow: '0 60px 120px rgba(0,0,0,0.7)' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 18px', background: '#0F1520', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+    <div style={{ background: '#0B0F18', border: `1px solid ${D.border}`, borderRadius: 0, overflow: 'hidden' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 18px', background: '#0F1520', borderBottom: `1px solid ${D.border}` }}>
         {['#FF5F57','#FEBC2E','#28C840'].map((c) => <span key={c} style={{ width: 10, height: 10, borderRadius: '50%', background: c, display: 'inline-block' }} />)}
         <span style={{ flex: 1 }} />
-        <span style={{ fontFamily: 'monospace', fontSize: 11, padding: '2px 10px', borderRadius: 5, background: 'rgba(255,255,255,0.04)', color: '#555' }}>two_sum.py</span>
+        <span style={{ fontFamily: 'monospace', fontSize: 11, padding: '2px 10px', background: 'rgba(255,255,255,0.04)', color: '#555' }}>two_sum.py</span>
         <span style={{ flex: 1 }} />
-        <span style={{ fontSize: 9, fontWeight: 700, padding: '2px 8px', borderRadius: 4, background: 'rgba(202,138,4,0.12)', color: '#D97706', letterSpacing: '0.04em' }}>MEDIUM</span>
+        <span style={{ fontSize: 9, fontWeight: 700, padding: '2px 8px', background: 'rgba(202,138,4,0.12)', color: '#D97706', letterSpacing: '0.04em' }}>MEDIUM</span>
       </div>
       <div style={{ padding: '20px 22px', fontFamily: 'JetBrains Mono, monospace', fontSize: 13, lineHeight: 1.9, color: '#C9D1D9' }}>
         <div><span style={{ color: '#FF7B72' }}>def </span><span style={{ color: '#79C0FF' }}>two_sum</span><span style={{ color: '#555' }}>(nums: list[int], target: int):</span></div>
@@ -780,7 +452,7 @@ function CodeCard() {
         <div style={{ marginLeft: 60 }}><span style={{ color: '#FF7B72' }}>return </span><span style={{ color: '#555' }}>[seen[diff], i]</span></div>
         <div style={{ marginLeft: 40 }}><span style={{ color: '#555' }}>seen[num] = i</span></div>
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 22px', borderTop: '1px solid rgba(255,255,255,0.05)', background: 'rgba(74,222,128,0.03)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 22px', borderTop: `1px solid ${D.border}`, background: 'rgba(74,222,128,0.03)' }}>
         <span style={{ fontSize: 12, fontWeight: 600, color: '#4ADE80' }}>✓ 57/57 test cases passed</span>
         <span style={{ marginLeft: 'auto', fontSize: 11, fontFamily: 'monospace', color: '#333' }}>Runtime 34ms · 14.9MB</span>
       </div>
@@ -788,25 +460,25 @@ function CodeCard() {
   );
 }
 
-/* ── Readiness card ────────────────────────────────────────────────────── */
+/* ── ReadinessCard ──────────────────────────────────────────────────────── */
 function ReadinessCard() {
   const mods = [
-    { label: 'DSA Practice',  pct: 68, color: '#3B82F6' },
-    { label: 'System Design', pct: 41, color: '#22D3EE' },
-    { label: 'OOP & Patterns',pct: 55, color: '#A78BFA' },
-    { label: 'Core CS',       pct: 72, color: '#4ADE80' },
-    { label: 'Placement Prep',pct: 33, color: '#FB923C' },
+    { label: 'DSA Practice',   pct: 68, color: '#3B82F6' },
+    { label: 'System Design',  pct: 41, color: '#22D3EE' },
+    { label: 'OOP & Patterns', pct: 55, color: '#A78BFA' },
+    { label: 'Core CS',        pct: 72, color: '#4ADE80' },
+    { label: 'Placement Prep', pct: 33, color: '#FB923C' },
   ];
   return (
-    <div style={{ background: D.elev, border: `1px solid ${D.border}`, borderRadius: 18, overflow: 'hidden', boxShadow: '0 60px 120px rgba(0,0,0,0.7)' }}>
+    <div style={{ background: D.elev, border: `1px solid ${D.border}`, borderRadius: 0, overflow: 'hidden' }}>
       <div style={{ padding: '18px 22px', borderBottom: `1px solid ${D.border}` }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
           <span style={{ fontSize: 13, fontWeight: 700, color: D.t1 }}>Placement Readiness</span>
-          <span style={{ fontSize: 13, fontWeight: 700, color: D.red }}>54%</span>
+          <span style={{ fontSize: 13, fontWeight: 700, color: D.accent }}>54%</span>
         </div>
         <p style={{ fontSize: 11, color: D.t4, marginBottom: 12 }}>Across all technical domains</p>
-        <div style={{ height: 4, background: 'rgba(255,255,255,0.07)', borderRadius: 100, overflow: 'hidden' }}>
-          <div style={{ width: '54%', height: '100%', background: D.red, borderRadius: 100 }} />
+        <div style={{ height: 4, background: 'rgba(255,255,255,0.07)', overflow: 'hidden' }}>
+          <div style={{ width: '54%', height: '100%', background: D.accent }} />
         </div>
       </div>
       <div style={{ padding: '18px 22px' }}>
@@ -816,8 +488,8 @@ function ReadinessCard() {
               <span style={{ fontSize: 11, color: D.t3 }}>{m.label}</span>
               <span style={{ fontSize: 11, fontFamily: 'monospace', fontWeight: 700, color: m.color }}>{m.pct}%</span>
             </div>
-            <div style={{ height: 3, background: 'rgba(255,255,255,0.07)', borderRadius: 100, overflow: 'hidden' }}>
-              <div style={{ width: `${m.pct}%`, height: '100%', background: m.color, borderRadius: 100 }} />
+            <div style={{ height: 3, background: 'rgba(255,255,255,0.07)', overflow: 'hidden' }}>
+              <div style={{ width: `${m.pct}%`, height: '100%', background: m.color }} />
             </div>
           </div>
         ))}
@@ -825,31 +497,31 @@ function ReadinessCard() {
       <div style={{ padding: '13px 22px', borderTop: `1px solid ${D.border}`, background: 'rgba(255,255,255,0.015)', display: 'flex', alignItems: 'center', gap: 8 }}>
         <span style={{ fontSize: 11, color: D.t4 }}>Next:</span>
         <span style={{ fontSize: 11, fontWeight: 600, color: D.t2 }}>Complete System Design module</span>
-        <span style={{ marginLeft: 'auto', fontSize: 11, fontWeight: 700, color: D.red }}>+30 XP →</span>
+        <span style={{ marginLeft: 'auto', fontSize: 11, fontWeight: 700, color: D.accent }}>+30 XP →</span>
       </div>
     </div>
   );
 }
 
-/* ── System design card ────────────────────────────────────────────────── */
+/* ── SystemDesignCard ───────────────────────────────────────────────────── */
 function SystemDesignCard() {
   const nodes = [
-    { label: 'Client', x: 50, y: 10, color: '#3B82F6' },
-    { label: 'CDN', x: 20, y: 35, color: '#22D3EE' },
-    { label: 'API Gateway', x: 50, y: 40, color: '#A78BFA' },
+    { label: 'Client',       x: 50, y: 10, color: '#3B82F6' },
+    { label: 'CDN',          x: 20, y: 35, color: '#22D3EE' },
+    { label: 'API Gateway',  x: 50, y: 40, color: '#A78BFA' },
     { label: 'Auth Service', x: 20, y: 65, color: '#4ADE80' },
     { label: 'DB (Primary)', x: 50, y: 70, color: '#FB923C' },
-    { label: 'Cache (Redis)', x: 78, y: 55, color: '#FBBF24' },
+    { label: 'Cache (Redis)',x: 78, y: 55, color: '#FBBF24' },
   ];
   const edges: [number, number][] = [[0,1],[0,2],[2,3],[2,4],[2,5]];
   return (
-    <div style={{ background: '#0B0F18', border: '1px solid rgba(255,255,255,0.09)', borderRadius: 18, overflow: 'hidden', boxShadow: '0 60px 120px rgba(0,0,0,0.7)', padding: 28 }}>
+    <div style={{ background: '#0B0F18', border: `1px solid ${D.border}`, borderRadius: 0, overflow: 'hidden', padding: 28 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
         <div>
           <p style={{ fontSize: 13, fontWeight: 700, color: D.t1 }}>URL Shortener — System Design</p>
           <p style={{ fontSize: 11, color: D.t3 }}>HLD · Scalability · 100M requests/day</p>
         </div>
-        <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 6, background: 'rgba(59,130,246,0.12)', color: '#3B82F6' }}>HARD</span>
+        <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 10px', background: 'rgba(59,130,246,0.12)', color: '#3B82F6' }}>HARD</span>
       </div>
       <div style={{ position: 'relative', height: 200 }}>
         <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}>
@@ -865,362 +537,158 @@ function SystemDesignCard() {
           })}
         </svg>
         {nodes.map((n) => (
-          <div key={n.label} style={{
-            position: 'absolute',
-            left: `${n.x}%`, top: `${n.y}%`,
-            transform: 'translate(-50%, -50%)',
-          }}>
-            <div style={{
-              padding: '5px 10px', borderRadius: 8, fontSize: 10, fontWeight: 600,
-              background: `${n.color}14`, border: `1px solid ${n.color}30`,
-              color: n.color, whiteSpace: 'nowrap',
-              boxShadow: `0 0 12px ${n.color}20`,
-            }}>{n.label}</div>
+          <div key={n.label} style={{ position: 'absolute', left: `${n.x}%`, top: `${n.y}%`, transform: 'translate(-50%, -50%)' }}>
+            <div style={{ padding: '5px 10px', fontSize: 10, fontWeight: 600, background: `${n.color}14`, border: `1px solid ${n.color}30`, color: n.color, whiteSpace: 'nowrap' }}>{n.label}</div>
           </div>
         ))}
       </div>
       <div style={{ display: 'flex', gap: 6, marginTop: 16, flexWrap: 'wrap' }}>
         {['Horizontal scaling','Load balancing','Cache layer','DB sharding'].map((t) => (
-          <span key={t} style={{ fontSize: 10, padding: '3px 9px', borderRadius: 6, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', color: D.t3 }}>{t}</span>
+          <span key={t} style={{ fontSize: 10, padding: '3px 9px', background: 'rgba(255,255,255,0.04)', border: `1px solid ${D.border}`, color: D.t3 }}>{t}</span>
         ))}
       </div>
     </div>
   );
 }
 
-/* ── Feature Showcase — cinematic pinned scroll ─────────────────────────── */
+/* ── FeatureShowcase ────────────────────────────────────────────────────── */
 const FEATURES = [
   {
     eyebrow: 'DSA Practice',
-    eyebrowColor: '#3B82F6',
-    heading: 'Stop grinding randomly. Think in patterns.',
-    body: 'Most students solve 200+ problems and still freeze in interviews. EYF structures practice around the 15 fundamental patterns that cover 80% of real interview questions.',
-    points: ['450+ problems by pattern — not just by topic','Company filter: Google, Amazon, TCS, Infosys','In-browser editor with auto test execution','Spaced-repetition review queue'],
-    accentColor: '#4ADE80',
-    glowColor: 'rgba(74,222,128,0.08)',
+    accentColor: '#3B82F6',
+    heading: 'PATTERN-BASED\nDSA.',
+    body: 'Stop grinding randomly. 450+ problems organized by pattern — Two Pointers, Dynamic Programming, Graphs — so each problem teaches you something transferable.',
+    points: ['15 core patterns with cross-problem links', 'Difficulty tiers: warm-up → interview-ready', 'XP and streak system that keeps you consistent'],
     card: <CodeCard />,
   },
   {
-    eyebrow: 'Placement Intelligence',
-    eyebrowColor: '#A78BFA',
-    heading: "Know your readiness before the call.",
-    body: "EYF's Placement Score aggregates your DSA depth, system design fluency, and company-specific coverage into one honest metric — no surprises on interview day.",
-    points: ['Readiness score across all technical domains','Company-wise question banks with recent OA patterns','ATS resume analyzer with actionable tips','Role-specific prep plans: SDE, Data Analyst, DevOps'],
-    accentColor: '#A78BFA',
-    glowColor: 'rgba(167,139,250,0.08)',
+    eyebrow: 'Placement Readiness',
+    accentColor: '#4ADE80',
+    heading: 'KNOW YOUR\nGAPS.',
+    body: 'The readiness score shows exactly where you stand versus what recruiters actually test. Not a percentage — a real breakdown by skill area.',
+    points: ['Gap analysis across 6 skill dimensions', 'Tracks improvement over time', 'Benchmarked against successful placements'],
     card: <ReadinessCard />,
   },
   {
     eyebrow: 'System Design',
-    eyebrowColor: '#22D3EE',
-    heading: 'Design systems that scale to millions.',
-    body: 'From URL shorteners to distributed databases — EYF teaches system design through real-world architectures, trade-off analysis, and hands-on diagramming exercises.',
-    points: ['High-level & low-level design for 30+ systems','Trade-off analysis and capacity estimation','Worked solutions with annotated diagrams','Interview-format walkthroughs'],
-    accentColor: '#22D3EE',
-    glowColor: 'rgba(34,211,238,0.08)',
+    accentColor: '#A78BFA',
+    heading: 'DESIGN AT\nSCALE.',
+    body: 'HLD, LLD, real system deep-dives. Study how Netflix handles 200M users, how WhatsApp delivers 100B messages, and how to explain it all in 45 minutes.',
+    points: ['HLD + LLD frameworks', '20+ real system case studies', 'Interview-format guided walkthroughs'],
     card: <SystemDesignCard />,
   },
-] as const;
+];
 
 function FeatureShowcase() {
   const containerRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: containerRef, offset: ['start start', 'end end'] });
 
-  // Feature 1: visible 0 → 0.36
-  const f1o = useTransform(scrollYProgress, [0, 0.04, 0.3, 0.38], [0, 1, 1, 0]);
-  const f1y = useTransform(scrollYProgress, [0, 0.04, 0.3, 0.38], [50, 0, 0, -60]);
-  const f1s = useTransform(scrollYProgress, [0.3, 0.38], [1, 0.93]);
-  const f1ry = useTransform(scrollYProgress, [0, 0.04], [-6, 0]);
-  const f1rz = useTransform(scrollYProgress, [0, 0.04], [1.5, 0]);
-
-  // Feature 2: visible 0.33 → 0.70
-  const f2o = useTransform(scrollYProgress, [0.32, 0.4, 0.64, 0.72], [0, 1, 1, 0]);
-  const f2y = useTransform(scrollYProgress, [0.32, 0.4, 0.64, 0.72], [60, 0, 0, -60]);
-  const f2s = useTransform(scrollYProgress, [0.64, 0.72], [1, 0.93]);
-  const f2ry = useTransform(scrollYProgress, [0.32, 0.4], [-6, 0]);
-  const f2rz = useTransform(scrollYProgress, [0.32, 0.4], [1.5, 0]);
-
-  // Feature 3: visible 0.67 → 1.0
-  const f3o = useTransform(scrollYProgress, [0.66, 0.74, 1, 1], [0, 1, 1, 1]);
-  const f3y = useTransform(scrollYProgress, [0.66, 0.74], [60, 0]);
-  const f3ry = useTransform(scrollYProgress, [0.66, 0.74], [-6, 0]);
-  const f3rz = useTransform(scrollYProgress, [0.66, 0.74], [1.5, 0]);
-
-  // Progress bar width
-  const progressWidth = useTransform(scrollYProgress, [0, 1], ['0%', '100%']);
-
-  // Ambient glow
-  const [activeFeature, setActiveFeature] = useState(0);
-  useEffect(() => {
-    const unsub = scrollYProgress.on('change', (v) => {
-      if (v < 0.35) setActiveFeature(0);
-      else if (v < 0.68) setActiveFeature(1);
-      else setActiveFeature(2);
-    });
-    return unsub;
-  }, [scrollYProgress]);
-
-  const motions = [
-    { opacity: f1o, y: f1y, scale: f1s, rotateY: f1ry, rotateZ: f1rz },
-    { opacity: f2o, y: f2y, scale: f2s, rotateY: f2ry, rotateZ: f2rz },
-    { opacity: f3o, y: f3y, scale: useMotionValue(1), rotateY: f3ry, rotateZ: f3rz },
-  ] as const;
-
   return (
-    <div ref={containerRef} id="showcase" style={{ height: '360vh', position: 'relative' }}>
-      <div style={{ position: 'sticky', top: 0, height: '100vh', overflow: 'hidden', background: D.bg }}>
-        <GridBg opacity={0.018} />
-
-        {/* Ambient glow color shift */}
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={activeFeature}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.6 }}
-            aria-hidden="true"
-            style={{
-              position: 'absolute', top: '-20%', left: '25%',
-              width: 700, height: 700,
-              background: `radial-gradient(ellipse, ${FEATURES[activeFeature].glowColor} 0%, transparent 70%)`,
-              filter: 'blur(80px)', pointerEvents: 'none', zIndex: 0,
-            }}
-          />
-        </AnimatePresence>
-
-        {/* Thin progress line at top */}
-        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: 'rgba(255,255,255,0.06)', zIndex: 10 }}>
-          <motion.div style={{
-            height: '100%',
-            width: progressWidth,
-            background: `linear-gradient(90deg, ${D.red}, ${FEATURES[activeFeature].eyebrowColor})`,
-          }} />
+    <div id="showcase" ref={containerRef} style={{ height: '360vh', position: 'relative', background: D.bg, borderTop: `1px solid ${D.border}` }}>
+      <div style={{ position: 'sticky', top: 0, height: 0, zIndex: 20 }}>
+        <div style={{ position: 'absolute', left: 0, top: 0, width: 4, height: '100vh', background: D.muted }}>
+          <motion.div style={{ position: 'absolute', top: 0, left: 0, right: 0, background: D.accent, height: useTransform(scrollYProgress, [0,1], ['0%','100%']) }} />
         </div>
+      </div>
 
-        {/* All 3 feature panels */}
-        {FEATURES.map((feat, i) => (
-          <motion.div
-            key={feat.eyebrow}
-            style={{
-              opacity: motions[i].opacity,
-              y: motions[i].y,
-              scale: motions[i].scale,
-              rotateY: motions[i].rotateY,
-              rotateZ: motions[i].rotateZ,
-              transformPerspective: 1200,
-              position: 'absolute', inset: 0,
-              display: 'flex', alignItems: 'center',
-              paddingTop: 72,
-            }}
-          >
-            <div className="land-container w-full">
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 32, alignItems: 'center' }}
-                className="lg:grid-two-col">
-                {/* Text */}
-                <div>
-                  <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: feat.eyebrowColor, marginBottom: 16 }}>
-                    {feat.eyebrow}
-                  </p>
-                  <h2 style={{ fontSize: 'clamp(26px, 4vw, 50px)', fontWeight: 900, letterSpacing: '-0.04em', lineHeight: 1.05, color: D.t1, marginBottom: 16 }}>
-                    <SplitWords text={feat.heading} delay={0.05} stagger={0.04} />
-                  </h2>
-                  <p style={{ fontSize: 15, lineHeight: 1.7, color: D.t3, marginBottom: 22 }}>{feat.body}</p>
-                  <ul style={{ marginBottom: 28 }}>
-                    {feat.points.map((p) => (
-                      <li key={p} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, fontSize: 14, color: D.t3, marginBottom: 9 }}>
-                        <span style={{
-                          width: 16, height: 16, borderRadius: '50%',
-                          background: `${feat.accentColor}18`, color: feat.accentColor,
-                          fontSize: 9, fontWeight: 700,
-                          display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 3,
-                        }}>✓</span>
-                        {p}
-                      </li>
-                    ))}
-                  </ul>
-                  <Link to="/login?tab=register" className="btn btn-primary">Get started free</Link>
-                </div>
-                {/* Card */}
-                <div className="hidden lg:block" style={{ minWidth: 0 }}>
-                  <Tilt strength={10}>
-                    {feat.card}
-                  </Tilt>
-                </div>
+      {FEATURES.map((feat, i) => (
+        <div key={feat.eyebrow} style={{ position: 'sticky', top: 0, height: '100vh', display: 'flex', alignItems: 'center', overflow: 'hidden', background: D.bg, borderTop: i > 0 ? `1px solid ${D.border}` : 'none' }}>
+          <div style={{ padding: 'clamp(16px, 5vw, 80px)', paddingTop: 100, width: '100%', maxWidth: '95vw', margin: '0 auto' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 48, alignItems: 'center' }} className="lg:grid-two-col">
+              <div>
+                <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: feat.accentColor, marginBottom: 20 }}>{feat.eyebrow}</p>
+                <h2 style={{
+                  fontFamily: 'Space Grotesk', fontWeight: 700,
+                  fontSize: 'clamp(2.5rem, 6vw, 5rem)',
+                  letterSpacing: '-0.04em', lineHeight: 0.95,
+                  textTransform: 'uppercase',
+                  color: D.t1, marginBottom: 20,
+                  whiteSpace: 'pre-line',
+                }}>{feat.heading}</h2>
+                <p style={{ fontSize: 15, color: D.t2, lineHeight: 1.75, marginBottom: 24, maxWidth: 440 }}>{feat.body}</p>
+                <ul style={{ marginBottom: 36, padding: 0, listStyle: 'none' }}>
+                  {feat.points.map(p => (
+                    <li key={p} style={{ display: 'flex', gap: 12, fontSize: 13, color: D.t2, marginBottom: 10, alignItems: 'flex-start' }}>
+                      <span style={{ color: feat.accentColor, flexShrink: 0, marginTop: 2 }}>—</span>
+                      {p}
+                    </li>
+                  ))}
+                </ul>
+                <Link to="/login?tab=register" style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 10,
+                  height: 48, padding: '0 28px',
+                  background: 'transparent', color: D.t1,
+                  fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase',
+                  textDecoration: 'none', border: `2px solid ${D.border}`,
+                }}>Get started free</Link>
+              </div>
+              <div className="hidden lg:block" style={{ border: `1px solid ${D.border}` }}>
+                {feat.card}
               </div>
             </div>
-          </motion.div>
-        ))}
-      </div>
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
 
-/* ── Stats ─────────────────────────────────────────────────────────────── */
-function StatsSection() {
-  const stats = [
-    { value: 12400, suffix: '+', label: 'Students enrolled',      detail: 'from 200+ colleges' },
-    { value: 450,   suffix: '+', label: 'Problems & solutions',   detail: 'with pattern tags' },
-    { value: 94,    suffix: '%', label: 'Placement success rate', detail: 'among Pro users' },
-    { value: 60,    suffix: '+', label: 'Company resources',      detail: 'Google · Amazon · more' },
-  ];
-  return (
-    <section style={{ background: D.surf, padding: '100px 0', borderTop: '1px solid rgba(255,255,255,0.05)', position: 'relative', overflow: 'hidden' }}>
-      <div aria-hidden="true" style={{
-        position: 'absolute', inset: 0,
-        background: 'radial-gradient(ellipse 60% 50% at 50% 50%, rgba(232,25,44,0.06) 0%, transparent 70%)',
-        pointerEvents: 'none',
-      }} />
-      <div className="land-container" style={{ position: 'relative', zIndex: 1 }}>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
-          {stats.map((s, i) => (
-            <motion.div
-              key={s.label}
-              initial={{ opacity: 0, scale: 0.6, filter: 'blur(20px)' }}
-              whileInView={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
-              viewport={{ once: true, margin: '-50px' }}
-              transition={{ duration: 0.8, delay: i * 0.08, ease: [0.16, 1, 0.3, 1] }}
-              style={{ transformPerspective: 800 }}
-            >
-              <Tilt strength={8} style={{ padding: 24, borderRadius: 16, background: 'rgba(255,255,255,0.02)', border: `1px solid ${D.border}` }}>
-                <div style={{
-                  fontSize: 'clamp(38px, 5vw, 62px)', fontWeight: 900, letterSpacing: '-0.05em',
-                  lineHeight: 1, color: D.t1, marginBottom: 8,
-                }}>
-                  <CountUp target={s.value} suffix={s.suffix} />
-                </div>
-                <div style={{ fontSize: 13, fontWeight: 600, color: D.t3, marginBottom: 3 }}>{s.label}</div>
-                <div style={{ fontSize: 11, color: D.t4 }}>{s.detail}</div>
-              </Tilt>
-            </motion.div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
+/* ── CurriculumSection ──────────────────────────────────────────────────── */
+const MODULES = [
+  { icon: 'code',         label: 'DSA Practice',      desc: '450+ problems · 15 patterns',   color: '#3B82F6', num: '01' },
+  { icon: 'architecture', label: 'System Design',     desc: 'HLD · LLD · Real systems',      color: '#22D3EE', num: '02' },
+  { icon: 'account_tree', label: 'OOP & Design',      desc: 'SOLID · GoF · UML',             color: '#A78BFA', num: '03' },
+  { icon: 'terminal',     label: 'Core CS',           desc: 'OS · DBMS · Networks',          color: '#4ADE80', num: '04' },
+  { icon: 'shield',       label: 'Cybersecurity',     desc: 'OWASP · CTF · Web security',    color: D.accent,  num: '05' },
+  { icon: 'work_history', label: 'Placement Prep',    desc: 'Companies · Resume · Mock',     color: '#FB923C', num: '06' },
+  { icon: 'fact_check',   label: 'Skill Assessments', desc: 'Timed tests · Certificates',    color: '#FBBF24', num: '07' },
+  { icon: 'style',        label: 'Flashcards',        desc: 'Spaced repetition · Review',    color: '#F472B6', num: '08' },
+  { icon: 'forum',        label: 'Community',         desc: 'Squads · Discussion · Mentors', color: '#818CF8', num: '09' },
+];
 
-/* ── Curriculum ────────────────────────────────────────────────────────── */
 function CurriculumSection() {
-  const modules = [
-    { icon: 'code',         label: 'DSA Practice',      desc: '450+ problems · 15 patterns',   color: '#3B82F6' },
-    { icon: 'architecture', label: 'System Design',     desc: 'HLD · LLD · Real systems',      color: '#22D3EE' },
-    { icon: 'account_tree', label: 'OOP & Design',      desc: 'SOLID · GoF · UML',             color: '#A78BFA' },
-    { icon: 'terminal',     label: 'Core CS Subjects',  desc: 'OS · DBMS · Networks',          color: '#4ADE80' },
-    { icon: 'shield',       label: 'Cybersecurity',     desc: 'OWASP · CTF · Web security',    color: D.red },
-    { icon: 'work_history', label: 'Placement Prep',    desc: 'Companies · Resume · Mock',     color: '#FB923C' },
-    { icon: 'fact_check',   label: 'Skill Assessments', desc: 'Timed tests · Certificates',   color: '#FBBF24' },
-    { icon: 'style',        label: 'Flashcards',        desc: 'Spaced repetition · Review',    color: '#F472B6' },
-    { icon: 'forum',        label: 'Community',         desc: 'Squads · Discussion · Mentors', color: '#818CF8' },
-  ];
   return (
-    <section id="curriculum" style={{ background: D.bg, padding: '120px 0', borderTop: '1px solid rgba(255,255,255,0.04)' }}>
-      <div className="land-container">
-        <Reveal style={{ marginBottom: 56 }}>
-          <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
-            <div>
-              <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: D.red, marginBottom: 14 }}>Full Curriculum</p>
-              <h2 style={{ fontSize: 'clamp(30px, 4.5vw, 54px)', fontWeight: 900, letterSpacing: '-0.045em', color: D.t1, margin: 0, lineHeight: 1.05 }}>
-                Everything in one place.
-              </h2>
-            </div>
-            <Link to="/login?tab=register" className="btn btn-sm hidden md:flex"
-              style={{ background: 'rgba(255,255,255,0.04)', color: D.t2, border: `1px solid ${D.border}` }}>
-              View all modules{' '}
-              <span className="material-symbols-rounded text-sm">arrow_forward</span>
-            </Link>
-          </div>
-        </Reveal>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {modules.map((m, i) => (
-            <Reveal key={m.label} delay={i * 0.04}>
-              <Tilt strength={12} style={{
-                display: 'flex', alignItems: 'flex-start', gap: 16,
-                padding: 20, borderRadius: 14,
-                background: 'rgba(255,255,255,0.018)',
-                border: `1px solid ${D.border}`,
-              }}>
-                <div style={{ width: 40, height: 40, borderRadius: 10, background: `${m.color}16`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: `0 0 20px ${m.color}18` }}>
-                  <span className="material-symbols-rounded" style={{ color: m.color, fontSize: 20 }}>{m.icon}</span>
-                </div>
-                <div>
-                  <p style={{ fontSize: 13, fontWeight: 600, color: D.t1, marginBottom: 3 }}>{m.label}</p>
-                  <p style={{ fontSize: 11, color: D.t4 }}>{m.desc}</p>
-                </div>
-              </Tilt>
-            </Reveal>
-          ))}
+    <section id="curriculum" style={{ background: D.bg, padding: '128px 0', borderTop: `1px solid ${D.border}` }}>
+      <div style={{ padding: '0 clamp(16px, 5vw, 80px)', maxWidth: '95vw', margin: '0 auto' }}>
+        <div style={{ marginBottom: 72 }}>
+          <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: D.accent, marginBottom: 16 }}>Full curriculum</p>
+          <ClipReveal>
+            <h2 style={{ fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 'clamp(2.5rem, 6vw, 5.5rem)', letterSpacing: '-0.04em', lineHeight: 0.95, textTransform: 'uppercase', color: D.t1, margin: 0 }}>
+              Everything in<br />one place.
+            </h2>
+          </ClipReveal>
         </div>
-      </div>
-    </section>
-  );
-}
 
-/* ── Testimonials — 2-row marquee reel ─────────────────────────────────── */
-function TestimonialsSection() {
-  const allTestimonials = [
-    { quote: "I'd been grinding LeetCode randomly for months. EYF's pattern-based approach gave me a structure that actually stuck. Cracked Juspay in 3 weeks.", name: 'Arjun Mehta', role: 'SDE-1 at Juspay', college: 'NIT Warangal · 2024', initials: 'AM' },
-    { quote: "The readiness score was honestly humbling — showed massive gaps in system design. That honesty saved me from failing my first interview round.", name: 'Priya Venkataraman', role: 'Software Engineer at Freshworks', college: 'Anna University · 2024', initials: 'PV' },
-    { quote: "Finally a platform that treats DSA and placement prep as connected. The company-specific question banks are gold — I had 3 exact questions from Zoho's OA.", name: 'Rohit Sharma', role: 'Associate Engineer at Zoho', college: 'VIT Vellore · 2023', initials: 'RS' },
-    { quote: "The mock interview feature is a game-changer. I practiced 10+ rounds before my actual interviews and went in completely calm. Got into Infosys on my first try.", name: 'Sneha Patel', role: 'Software Engineer at Infosys', college: 'BITS Pilani · 2024', initials: 'SP' },
-    { quote: "EYF's curriculum map showed me exactly what I needed to study next. No more guessing. I went from 0 offers to 2 offers in 6 weeks.", name: 'Karan Nair', role: 'SDE at TCS Digital', college: 'DTU Delhi · 2024', initials: 'KN' },
-    { quote: "The XP system keeps me accountable. I hit a 30-day streak and the community kept me going. Best decision I made before placements.", name: 'Divya Krishnamurthy', role: 'Analyst at Capgemini', college: 'PSG Tech · 2023', initials: 'DK' },
-    { quote: "Pattern-based DSA practice is completely different from random grinding. I solved 200 problems on EYF and it felt like 10x the value of 500 on other platforms.", name: 'Aditya Raj', role: 'SDE at Wipro Elite', college: 'SRM · 2024', initials: 'AR' },
-    { quote: "The resume analyzer caught 7 issues in my CV that I never would have noticed. Got 3x more callbacks after fixing them. EYF is seriously underrated.", name: 'Meera Iyer', role: 'Software Engineer at HCL', college: 'VIT Chennai · 2023', initials: 'MI' },
-  ];
-
-  // Row 1: first 4, Row 2: last 4 (each row doubled for seamless loop)
-  const row1 = allTestimonials.slice(0, 4);
-  const row2 = allTestimonials.slice(4, 8);
-
-  const TestimonialCard = ({ t }: { readonly t: typeof allTestimonials[0] }) => (
-    <Tilt strength={8} style={{
-      flexShrink: 0, width: 320, padding: 26, borderRadius: 18,
-      background: 'rgba(14,14,14,0.8)',
-      border: `1px solid ${D.border}`,
-      backdropFilter: 'blur(16px)',
-      display: 'flex', flexDirection: 'column',
-    }}>
-      <div style={{ display: 'flex', gap: 2, marginBottom: 18 }}>
-        {[0,1,2,3,4].map((s) => <span key={s} style={{ color: '#FBBF24', fontSize: 14 }}>★</span>)}
-      </div>
-      <p style={{ fontSize: 13, lineHeight: 1.75, color: D.t3, marginBottom: 22, flex: 1 }}>"{t.quote}"</p>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        <div style={{ width: 36, height: 36, borderRadius: 9, background: D.red, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, flexShrink: 0, boxShadow: '0 0 16px rgba(232,25,44,0.4)' }}>{t.initials}</div>
         <div>
-          <p style={{ fontSize: 13, fontWeight: 600, color: D.t1 }}>{t.name}</p>
-          <p style={{ fontSize: 11, color: D.t3 }}>{t.role}</p>
-          <p style={{ fontSize: 10, color: D.t4 }}>{t.college}</p>
-        </div>
-      </div>
-    </Tilt>
-  );
-
-  return (
-    <section style={{ background: D.surf, padding: '120px 0', borderTop: '1px solid rgba(255,255,255,0.04)', overflow: 'hidden' }}>
-      <div className="land-container" style={{ marginBottom: 56 }}>
-        <Reveal style={{ textAlign: 'center' }}>
-          <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: D.red, marginBottom: 14 }}>Student Outcomes</p>
-          <h2 style={{ fontSize: 'clamp(30px, 4.5vw, 54px)', fontWeight: 900, letterSpacing: '-0.045em', color: D.t1, margin: 0, lineHeight: 1.05 }}>
-            From preparation to placement.
-          </h2>
-        </Reveal>
-      </div>
-
-      {/* Row 1 — scrolls left */}
-      <div style={{ marginBottom: 16, overflow: 'hidden', maskImage: 'linear-gradient(90deg, transparent, black 10%, black 90%, transparent)', WebkitMaskImage: 'linear-gradient(90deg, transparent, black 10%, black 90%, transparent)' }}>
-        <div className="marquee-track-left" style={{ display: 'flex', gap: 16, width: 'max-content' }}>
-          {[...row1, ...row1].map((t, i) => (
-            <TestimonialCard key={`r1-${i}`} t={t} />
-          ))}
-        </div>
-      </div>
-
-      {/* Row 2 — scrolls right */}
-      <div style={{ overflow: 'hidden', maskImage: 'linear-gradient(90deg, transparent, black 10%, black 90%, transparent)', WebkitMaskImage: 'linear-gradient(90deg, transparent, black 10%, black 90%, transparent)' }}>
-        <div className="marquee-track-right" style={{ display: 'flex', gap: 16, width: 'max-content', transform: 'translateX(-50%)' }}>
-          {[...row2, ...row2].map((t, i) => (
-            <TestimonialCard key={`r2-${i}`} t={t} />
+          {MODULES.map((m, i) => (
+            <FadeUp key={m.label} delay={i * 0.04}>
+              <div style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                padding: '20px 0', borderBottom: `1px solid ${D.border}`,
+                cursor: 'default', transition: 'background 0.25s, padding 0.25s',
+                gap: 16,
+              }}
+              onMouseEnter={e => {
+                const el = e.currentTarget;
+                el.style.background = D.accent;
+                el.style.padding = '20px 16px';
+                el.querySelectorAll('[data-mi]').forEach(c => { (c as HTMLElement).style.color = '#000'; });
+              }}
+              onMouseLeave={e => {
+                const el = e.currentTarget;
+                el.style.background = 'transparent';
+                el.style.padding = '20px 0';
+                el.querySelectorAll('[data-mi]').forEach(c => { (c as HTMLElement).style.color = ''; });
+              }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
+                  <span data-mi style={{ fontFamily: 'Space Grotesk', fontSize: 11, fontWeight: 700, color: D.t4, letterSpacing: '0.06em', minWidth: 28, transition: 'color 0.25s' }}>{m.num}</span>
+                  <span className="material-symbols-rounded" data-mi style={{ fontSize: 20, color: m.color, transition: 'color 0.25s' }}>{m.icon}</span>
+                  <span data-mi style={{ fontFamily: 'Space Grotesk', fontSize: 'clamp(15px, 2.5vw, 20px)', fontWeight: 700, letterSpacing: '-0.01em', textTransform: 'uppercase', color: D.t1, transition: 'color 0.25s' }}>{m.label}</span>
+                </div>
+                <span data-mi style={{ fontSize: 12, color: D.t3, letterSpacing: '0.04em', transition: 'color 0.25s', flexShrink: 0 }}>{m.desc}</span>
+              </div>
+            </FadeUp>
           ))}
         </div>
       </div>
@@ -1228,64 +696,131 @@ function TestimonialsSection() {
   );
 }
 
-/* ── Pricing ───────────────────────────────────────────────────────────── */
-function PricingSection() {
-  const plans = [
-    { name: 'Free',  price: '₹0',   period: 'forever',    desc: 'Everything to start your journey.',
-      features: ['100 DSA problems with explanations','Core CS subjects (full access)','Daily coding challenge','Community access'],
-      cta: 'Get started free', featured: false },
-    { name: 'Pro',   price: '₹499', period: 'per month',  desc: 'The full EYF experience.',
-      features: ['All 450+ DSA problems & solutions','Complete placement module','Company-wise question banks (60+)','ATS resume analyzer','Mock interview access'],
-      cta: 'Start Pro trial', featured: true, tag: 'Most popular' },
-    { name: 'Pro+',  price: '₹999', period: 'per month',  desc: 'Mentorship and expert guidance.',
-      features: ['Everything in Pro','1-on-1 mentor sessions','Resume review by experts','LinkedIn optimization','Placement guarantee support'],
-      cta: 'Contact us', featured: false },
-  ];
+/* ── TestimonialsSection ────────────────────────────────────────────────── */
+const TESTIMONIALS = [
+  { quote: "I'd been grinding LeetCode randomly for months. EYF's pattern-based approach gave me a structure that actually stuck. Cracked Juspay in 3 weeks.", name: 'Arjun Mehta', role: 'SDE-1 at Juspay', college: 'NIT Warangal · 2024' },
+  { quote: "The readiness score was honestly humbling — showed massive gaps in system design. That honesty saved me from failing my first interview round.", name: 'Priya Venkataraman', role: 'Software Engineer at Freshworks', college: 'Anna University · 2024' },
+  { quote: "Finally a platform that treats DSA and placement prep as connected. The company-specific question banks are gold — I had 3 exact questions from Zoho's OA.", name: 'Rohit Sharma', role: 'Associate Engineer at Zoho', college: 'VIT Vellore · 2023' },
+  { quote: "EYF's system design module is leagues ahead of anything else I tried. The structured walkthroughs actually helped me answer HLD questions in interviews.", name: 'Keerthana Nair', role: 'Backend Engineer at Razorpay', college: 'BITS Pilani · 2024' },
+  { quote: "The OOP module with design patterns was a game-changer. I went from barely understanding SOLID to confidently explaining it in interviews.", name: 'Vikram Iyer', role: 'SDE at Swiggy', college: 'IIT Delhi · 2023' },
+  { quote: "Loved how the roadmap adapts. When I finished the DSA track, EYF immediately suggested core subjects gaps I had no idea about.", name: 'Sneha Reddy', role: 'Engineer at Dunzo', college: 'IIIT Hyderabad · 2024' },
+];
+
+function TestimonialCard({ t }: { t: typeof TESTIMONIALS[0] }) {
   return (
-    <section id="pricing" style={{ background: D.bg, padding: '120px 0', borderTop: '1px solid rgba(255,255,255,0.04)' }}>
-      <div className="land-container">
-        <Reveal style={{ marginBottom: 56, textAlign: 'center', maxWidth: 520, marginLeft: 'auto', marginRight: 'auto' }}>
-          <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: D.red, marginBottom: 14 }}>Pricing</p>
-          <h2 style={{ fontSize: 'clamp(30px, 4.5vw, 54px)', fontWeight: 900, letterSpacing: '-0.045em', color: D.t1, marginBottom: 14, lineHeight: 1.05 }}>Honest pricing. No surprises.</h2>
-          <p style={{ fontSize: 14, color: D.t3, margin: 0 }}>Start free, upgrade when you need more. Most students get placed on the Pro plan.</p>
-        </Reveal>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
-          {plans.map((plan, i) => (
-            <Reveal key={plan.name} delay={i * 0.08}>
-              <Tilt strength={plan.featured ? 6 : 10} style={{
-                position: 'relative', padding: 28, borderRadius: 20,
-                background: plan.featured ? 'rgba(232,25,44,0.05)' : D.elev,
-                border: plan.featured ? '1px solid rgba(232,25,44,0.3)' : `1px solid ${D.border}`,
-                boxShadow: plan.featured ? '0 0 80px rgba(232,25,44,0.12), 0 0 1px rgba(232,25,44,0.2)' : 'none',
+    <div style={{
+      width: 340, flexShrink: 0, marginRight: 16,
+      border: `2px solid ${D.border}`,
+      background: D.surf, padding: 28,
+      transition: 'background 0.3s, border-color 0.3s',
+      cursor: 'default',
+    }}
+    onMouseEnter={e => {
+      const el = e.currentTarget;
+      el.style.background = D.accent;
+      el.style.borderColor = D.accent;
+      el.querySelectorAll('[data-tc]').forEach(c => { (c as HTMLElement).style.color = '#000'; });
+    }}
+    onMouseLeave={e => {
+      const el = e.currentTarget;
+      el.style.background = D.surf;
+      el.style.borderColor = D.border;
+      el.querySelectorAll('[data-tc]').forEach(c => { (c as HTMLElement).style.color = ''; });
+    }}
+    >
+      <p data-tc style={{ fontSize: 13, lineHeight: 1.7, color: D.t2, marginBottom: 20, transition: 'color 0.3s' }}>"{t.quote}"</p>
+      <p data-tc style={{ fontFamily: 'Space Grotesk', fontSize: 13, fontWeight: 700, color: D.t1, marginBottom: 2, transition: 'color 0.3s' }}>{t.name}</p>
+      <p data-tc style={{ fontSize: 11, color: D.t3, letterSpacing: '0.04em', transition: 'color 0.3s' }}>{t.role}</p>
+      <p data-tc style={{ fontSize: 10, color: D.t4, marginTop: 2, letterSpacing: '0.04em', transition: 'color 0.3s' }}>{t.college}</p>
+    </div>
+  );
+}
+
+function TestimonialsSection() {
+  const row1 = TESTIMONIALS.slice(0, 3);
+  const row2 = TESTIMONIALS.slice(3);
+
+  return (
+    <section style={{ background: D.surf, padding: '128px 0', borderTop: `1px solid ${D.border}`, overflow: 'hidden' }}>
+      <div style={{ padding: '0 clamp(16px, 5vw, 80px)', marginBottom: 64 }}>
+        <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: D.accent, marginBottom: 16 }}>Student outcomes</p>
+        <ClipReveal>
+          <h2 style={{ fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 'clamp(2.5rem, 6vw, 5rem)', letterSpacing: '-0.04em', lineHeight: 0.95, textTransform: 'uppercase', color: D.t1, margin: 0 }}>
+            From prep<br />to placement.
+          </h2>
+        </ClipReveal>
+      </div>
+
+      <div style={{ marginBottom: 16 }}>
+        <Marquee speed={40} gradient={false} autoFill direction="left">
+          {[...row1, ...row1].map((t, i) => <TestimonialCard key={i} t={t} />)}
+        </Marquee>
+      </div>
+      <Marquee speed={35} gradient={false} autoFill direction="right">
+        {[...row2, ...row2].map((t, i) => <TestimonialCard key={i} t={t} />)}
+      </Marquee>
+    </section>
+  );
+}
+
+/* ── PricingSection ─────────────────────────────────────────────────────── */
+const PLANS = [
+  { name: 'Free',  price: '₹0',   period: 'forever',  features: ['100 DSA problems','Core CS (full)','Daily challenge','Community access'], cta: 'Start free', featured: false },
+  { name: 'Pro',   price: '₹499', period: '/month',    features: ['All 450+ problems','Placement module','60+ company banks','ATS resume analyzer','Mock interviews'], cta: 'Start Pro', featured: true, tag: 'Most popular' },
+  { name: 'Pro+',  price: '₹999', period: '/month',    features: ['Everything in Pro','1-on-1 mentorship','Resume review','LinkedIn review','Placement guarantee support'], cta: 'Contact us', featured: false },
+];
+
+function PricingSection() {
+  return (
+    <section id="pricing" style={{ background: D.bg, padding: '128px 0', borderTop: `1px solid ${D.border}`, position: 'relative' }}>
+      <EditorialNum n="₹" align="right" />
+      <div style={{ padding: '0 clamp(16px, 5vw, 80px)', maxWidth: '95vw', margin: '0 auto' }}>
+        <div style={{ marginBottom: 72 }}>
+          <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: D.accent, marginBottom: 16 }}>Pricing</p>
+          <ClipReveal>
+            <h2 style={{ fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 'clamp(2.5rem, 6vw, 5.5rem)', letterSpacing: '-0.04em', lineHeight: 0.95, textTransform: 'uppercase', color: D.t1, margin: 0 }}>
+              Honest pricing.<br />No surprises.
+            </h2>
+          </ClipReveal>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 2, background: D.border }}>
+          {PLANS.map((plan, i) => (
+            <FadeUp key={plan.name} delay={i * 0.1}>
+              <div style={{
+                background: plan.featured ? D.elev : D.surf,
+                padding: '40px 32px',
+                borderLeft: plan.featured ? `4px solid ${D.accent}` : '4px solid transparent',
+                height: '100%',
+                display: 'flex', flexDirection: 'column',
               }}>
                 {'tag' in plan && plan.tag && (
-                  <div style={{ position: 'absolute', top: -14, left: '50%', transform: 'translateX(-50%)' }}>
-                    <span style={{ display: 'inline-flex', padding: '4px 14px', borderRadius: 100, fontSize: 11, fontWeight: 700, background: D.red, color: '#fff', boxShadow: '0 4px 16px rgba(232,25,44,0.4)' }}>{plan.tag}</span>
-                  </div>
+                  <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: D.accent, marginBottom: 12 }}>{plan.tag}</p>
                 )}
-                <p style={{ fontSize: 13, fontWeight: 700, color: D.t2, marginBottom: 6 }}>{plan.name}</p>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 5 }}>
-                  <span style={{ fontSize: 44, fontWeight: 900, letterSpacing: '-0.05em', lineHeight: 1, color: D.t1 }}>{plan.price}</span>
-                  <span style={{ fontSize: 12, color: D.t4 }}>/{plan.period}</span>
+                <p style={{ fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', color: D.t2, marginBottom: 8 }}>{plan.name}</p>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 32 }}>
+                  <span style={{ fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 52, letterSpacing: '-0.06em', lineHeight: 1, color: D.t1 }}>{plan.price}</span>
+                  <span style={{ fontSize: 12, color: D.t4 }}>{plan.period}</span>
                 </div>
-                <p style={{ fontSize: 12, color: D.t4, marginBottom: 22 }}>{plan.desc}</p>
-                <div style={{ height: 1, background: D.border, marginBottom: 22 }} />
-                <ul style={{ marginBottom: 28 }}>
-                  {plan.features.map((f) => (
-                    <li key={f} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, fontSize: 12, marginBottom: 11 }}>
-                      <span style={{ color: '#4ADE80', fontWeight: 700, flexShrink: 0 }}>✓</span>
-                      <span style={{ color: D.t3 }}>{f}</span>
+                <div style={{ height: 1, background: D.border, marginBottom: 28 }} />
+                <ul style={{ flex: 1, marginBottom: 32, padding: 0, listStyle: 'none' }}>
+                  {plan.features.map(f => (
+                    <li key={f} style={{ display: 'flex', gap: 10, fontSize: 13, color: D.t2, marginBottom: 10, alignItems: 'flex-start' }}>
+                      <span style={{ color: '#4ADE80', flexShrink: 0, marginTop: 1 }}>✓</span>{f}
                     </li>
                   ))}
                 </ul>
-                <Link to="/login?tab=register" className="btn w-full justify-center"
-                  style={plan.featured
-                    ? { background: D.red, color: '#fff', border: `1px solid ${D.red}`, boxShadow: '0 4px 20px rgba(232,25,44,0.35)' }
-                    : { background: 'rgba(255,255,255,0.04)', color: D.t2, border: `1px solid ${D.border}` }}>
-                  {plan.cta}
-                </Link>
-              </Tilt>
-            </Reveal>
+                <Link to="/login?tab=register" style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  height: 48,
+                  background: plan.featured ? D.accent : 'transparent',
+                  color: plan.featured ? '#000' : D.t1,
+                  border: plan.featured ? `2px solid ${D.accent}` : `2px solid ${D.border}`,
+                  fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase',
+                  textDecoration: 'none',
+                }}>{plan.cta}</Link>
+              </div>
+            </FadeUp>
           ))}
         </div>
       </div>
@@ -1293,214 +828,93 @@ function PricingSection() {
   );
 }
 
-/* ── CTA Section — cinematic convergence ───────────────────────────────── */
+/* ── CTASection ─────────────────────────────────────────────────────────── */
 function CTASection() {
   return (
-    <section style={{ minHeight: '90vh', background: '#000', position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      {/* Spotlight beams from corners */}
-      {[
-        { top: 0, left: '10%',  rotate: 20  },
-        { top: 0, right: '10%', rotate: -20 },
-        { bottom: 0, left: '10%',  rotate: -20 },
-        { bottom: 0, right: '10%', rotate: 20  },
-      ].map((beam, i) => (
-        <motion.div
-          key={i}
-          animate={{ opacity: [0.2, 0.5, 0.2] }}
-          transition={{ duration: 3, repeat: Infinity, delay: i * 0.75, ease: 'easeInOut' }}
-          aria-hidden="true"
-          style={{
-            position: 'absolute',
-            ...('top' in beam ? { top: beam.top } : {}),
-            ...('bottom' in beam ? { bottom: beam.bottom as number | string } : {}),
-            ...('left' in beam ? { left: beam.left as string } : {}),
-            ...('right' in beam ? { right: beam.right as string } : {}),
-            width: 2, height: '60vh',
-            transformOrigin: 'center bottom',
-            transform: `rotate(${beam.rotate}deg)`,
-            background: 'linear-gradient(to bottom, transparent, rgba(232,25,44,0.4))',
-            pointerEvents: 'none',
-            zIndex: 0,
-          }}
-        />
-      ))}
-
-      {/* Central explosion glow */}
+    <section style={{ background: '#000', minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center', position: 'relative', overflow: 'hidden', borderTop: `1px solid ${D.border}` }}>
       <motion.div
-        animate={{ scale: [1, 1.15, 1] }}
-        transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-        aria-hidden="true"
-        style={{
-          position: 'absolute', top: '50%', left: '50%',
-          transform: 'translate(-50%, -50%)',
-          width: 600, height: 600,
-          background: 'radial-gradient(circle, rgba(232,25,44,0.3) 0%, transparent 60%)',
-          filter: 'blur(80px)',
-          pointerEvents: 'none', zIndex: 0,
-        }}
+        initial={{ scaleX: 0 }}
+        whileInView={{ scaleX: 1 }}
+        viewport={{ once: true }}
+        transition={{ duration: 1.4, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
+        style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: D.accent, transformOrigin: 'left' }}
       />
 
-      <GridBg opacity={0.018} />
+      <motion.div
+        aria-hidden
+        animate={{ scale: [1, 1.15, 1], opacity: [0.4, 0.7, 0.4] }}
+        transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+        style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 600, height: 400, borderRadius: '50%', background: 'radial-gradient(ellipse, rgba(232,33,39,0.18) 0%, transparent 70%)', filter: 'blur(60px)', pointerEvents: 'none' }}
+      />
 
-      <div className="land-container text-center" style={{ position: 'relative', zIndex: 1 }}>
-        <Reveal>
-          <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: D.t4, marginBottom: 22 }}>Ready to start?</p>
-          <h2 style={{
-            fontSize: 'clamp(38px, 7vw, 80px)', fontWeight: 900,
-            letterSpacing: '-0.05em', lineHeight: 0.96, color: D.t1,
-            maxWidth: 720, margin: '0 auto 22px',
-          }}>
-            <SplitWords text="Join 12,000+ students" delay={0.05} stagger={0.06} style={{ justifyContent: 'center' }} />
-            <br />
-            <SplitWords text="preparing on EYF." delay={0.35} stagger={0.07} style={{ justifyContent: 'center', color: D.red, textShadow: '0 0 60px rgba(232,25,44,0.6)' }} />
-          </h2>
-          <p style={{ fontSize: 16, color: D.t4, maxWidth: 420, margin: '0 auto 44px' }}>
-            Free forever. No credit card. Start tracking your placement readiness in under 5 minutes.
-          </p>
+      <GridBg />
+
+      <div style={{ position: 'relative', zIndex: 1, maxWidth: 800, padding: '0 clamp(16px, 5vw, 48px)' }}>
+        <FadeUp>
+          <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: D.t4, marginBottom: 48 }}>Ready?</p>
+        </FadeUp>
+        <h2 style={{ fontFamily: 'Space Grotesk', fontWeight: 700, letterSpacing: '-0.05em', lineHeight: 0.88, margin: '0 0 64px' }}>
+          <ClipReveal delay={0.1}><span style={{ display: 'block', fontSize: 'clamp(3rem, 10vw, 9rem)', textTransform: 'uppercase', color: D.t1 }}>Join</span></ClipReveal>
+          <ClipReveal delay={0.22}><span style={{ display: 'block', fontSize: 'clamp(3rem, 10vw, 9rem)', textTransform: 'uppercase', color: D.t1 }}>12,000+</span></ClipReveal>
+          <ClipReveal delay={0.36}><span style={{ display: 'block', fontSize: 'clamp(3rem, 10vw, 9rem)', textTransform: 'uppercase', color: D.accent }}>on EYF.</span></ClipReveal>
+        </h2>
+        <FadeUp delay={0.6}>
+          <p style={{ fontSize: 15, color: D.t2, maxWidth: 360, margin: '0 auto 48px', lineHeight: 1.7 }}>Free forever. No credit card. Start in under 5 minutes.</p>
+        </FadeUp>
+        <FadeUp delay={0.8}>
           <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Link to="/login?tab=register" className="btn btn-primary btn-xl"
-              style={{ boxShadow: '0 8px 32px rgba(232,25,44,0.4)' }}>
-              Create free account{' '}
-              <span className="material-symbols-rounded text-base">arrow_forward</span>
+            <Link to="/login?tab=register" style={{ display: 'inline-flex', alignItems: 'center', height: 56, padding: '0 40px', background: D.accent, color: '#000', fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', textDecoration: 'none', border: `2px solid ${D.accent}` }}>
+              Create free account
             </Link>
-            <Link to="/login" className="btn btn-xl"
-              style={{ background: 'rgba(255,255,255,0.04)', color: D.t2, border: `1px solid ${D.border}`, backdropFilter: 'blur(12px)' }}>
+            <Link to="/login" style={{ display: 'inline-flex', alignItems: 'center', height: 56, padding: '0 40px', background: 'transparent', color: D.t1, fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', textDecoration: 'none', border: `2px solid ${D.border}` }}>
               Sign in
             </Link>
           </div>
-        </Reveal>
+        </FadeUp>
+      </div>
+
+      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0 }}>
+        <Marquee speed={50} gradient={false} autoFill style={{ borderTop: `1px solid rgba(255,255,255,0.06)`, padding: '14px 0' }}>
+          {['Get placed', 'Crack every interview', 'Engineer your future', 'DSA · System Design · Placement'].map((t, i) => (
+            <span key={i} style={{ marginRight: 64, fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: D.t4 }}>{t}</span>
+          ))}
+        </Marquee>
       </div>
     </section>
   );
 }
 
-/* ── Nav ───────────────────────────────────────────────────────────────── */
-function LandingNav() {
-  const [scrolled, setScrolled] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
-  useEffect(() => {
-    const fn = () => setScrolled(window.scrollY > 20);
-    window.addEventListener('scroll', fn, { passive: true });
-    return () => window.removeEventListener('scroll', fn);
-  }, []);
-  const links = [
-    { label: 'Features',   href: '#showcase' },
-    { label: 'Curriculum', href: '#curriculum' },
-    { label: 'Pricing',    href: '#pricing' },
-  ];
-  return (
-    <header className="fixed top-0 left-0 right-0 z-50 h-14" style={{
-      background: scrolled ? 'rgba(3,3,3,0.9)' : 'transparent',
-      borderBottom: scrolled ? '1px solid rgba(255,255,255,0.06)' : '1px solid transparent',
-      backdropFilter: scrolled ? 'blur(24px) saturate(180%)' : 'none',
-      transition: 'background 0.35s, border-color 0.35s',
-    }}>
-      <div className="land-container h-full flex items-center gap-8">
-        <Link to="/" className="flex items-center gap-2.5 shrink-0">
-          <EYFMark size={22} />
-          <span style={{ fontWeight: 900, letterSpacing: '-0.045em', fontSize: 15, color: D.t1 }}>EYF</span>
-        </Link>
-        <nav className="hidden md:flex items-center gap-0.5 flex-1">
-          {links.map((item) => (
-            <a key={item.label} href={item.href} className="px-3 py-1.5 rounded-lg text-sm font-medium"
-              style={{ color: D.t4, transition: 'color 0.15s' }}
-              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = D.t1; }}
-              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = D.t4; }}>
-              {item.label}
-            </a>
-          ))}
-        </nav>
-        <div className="hidden md:flex items-center gap-2 ml-auto">
-          <Link to="/login" className="btn btn-sm" style={{ background: 'transparent', color: D.t3, border: '1px solid rgba(255,255,255,0.09)' }}>Sign in</Link>
-          <Link to="/login?tab=register" className="btn btn-primary btn-sm">Get started free</Link>
-        </div>
-        <button className="md:hidden ml-auto p-1.5 rounded-lg" style={{ color: D.t3 }} onClick={() => setMenuOpen((v) => !v)} aria-label="Toggle menu">
-          <span className="material-symbols-rounded text-xl">{menuOpen ? 'close' : 'menu'}</span>
-        </button>
-      </div>
-      {menuOpen && (
-        <div style={{ background: '#060606', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-          <div className="land-container py-4 flex flex-col gap-1">
-            {links.map((item) => (
-              <a key={item.label} href={item.href} className="px-3 py-2.5 rounded-lg text-sm font-medium" style={{ color: D.t3 }} onClick={() => setMenuOpen(false)}>{item.label}</a>
-            ))}
-            <div style={{ height: 1, background: 'rgba(255,255,255,0.06)', margin: '8px 0' }} />
-            <Link to="/login" className="btn btn-sm justify-center" style={{ background: 'rgba(255,255,255,0.04)', color: D.t2, border: '1px solid rgba(255,255,255,0.08)' }}>Sign in</Link>
-            <Link to="/login?tab=register" className="btn btn-primary btn-sm mt-1 justify-center">Get started free</Link>
-          </div>
-        </div>
-      )}
-    </header>
-  );
-}
-
-/* ── Footer ────────────────────────────────────────────────────────────── */
+/* ── Footer ─────────────────────────────────────────────────────────────── */
 function Footer() {
-  const cols = [
-    { label: 'Product',   links: ['DSA Practice','System Design','OOP & Patterns','Core CS','Cybersecurity','Placement Prep'] },
-    { label: 'Resources', links: ['Daily Challenge','Flashcards','Cheat Sheets','Notes','Visualizer','Pattern Quiz'] },
-    { label: 'Community', links: ['Discussion Forum','Study Squads','Leaderboard','Weekly Contests','Expert Network'] },
-    { label: 'Company',   links: ['About','Careers','Blog','Contact','Privacy Policy','Terms of Service'] },
-  ];
   return (
-    <footer style={{ background: D.bg, borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-      <div className="land-container" style={{ padding: '64px 0 32px' }}>
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-8" style={{ marginBottom: 48 }}>
-          <div className="col-span-2 md:col-span-1">
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-              <EYFMark size={18} />
-              <span style={{ fontWeight: 900, letterSpacing: '-0.04em', fontSize: 14, color: D.t1 }}>EYF</span>
-            </div>
-            <p style={{ fontSize: 12, lineHeight: 1.7, color: D.t4, marginBottom: 16 }}>
-              Engineer Your Future. The structured placement preparation platform for India's engineering students.
-            </p>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span className="anim-pulse" style={{ width: 6, height: 6, borderRadius: '50%', background: '#4ADE80', display: 'inline-block' }} />
-              <span style={{ fontSize: 11, color: D.t4 }}>All systems operational</span>
-            </div>
-          </div>
-          {cols.map((col) => (
-            <div key={col.label}>
-              <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: D.t4, marginBottom: 16 }}>{col.label}</p>
-              <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-                {col.links.map((link) => (
-                  <li key={link} style={{ marginBottom: 10 }}>
-                    <a href="/login" style={{ fontSize: 12, color: D.t4, textDecoration: 'none', transition: 'color 0.15s' }}
-                      onMouseEnter={(e) => { (e.target as HTMLElement).style.color = D.t2; }}
-                      onMouseLeave={(e) => { (e.target as HTMLElement).style.color = D.t4; }}>
-                      {link}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
+    <footer style={{ background: '#000', borderTop: `1px solid ${D.border}`, padding: '32px clamp(16px, 5vw, 80px)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
+        <span style={{ fontFamily: 'Space Grotesk', fontSize: 12, fontWeight: 700, letterSpacing: '0.06em', color: D.t4 }}>EYF · 2026</span>
+        <div style={{ display: 'flex', gap: 32 }}>
+          {[['#showcase','Platform'],['#curriculum','Curriculum'],['#pricing','Pricing'],['/login','Sign in']].map(([href, label]) => (
+            href.startsWith('#')
+              ? <a key={href} href={href} style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: D.t4, textDecoration: 'none' }}>{label}</a>
+              : <Link key={href} to={href} style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: D.t4, textDecoration: 'none' }}>{label}</Link>
           ))}
         </div>
-        <div style={{ height: 1, background: 'rgba(255,255,255,0.04)', marginBottom: 24 }} />
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
-          <p style={{ fontSize: 11, color: D.t4 }}>© 2026 EYF — Engineer Your Future. All rights reserved.</p>
-          <p style={{ fontSize: 11, color: D.t4 }}>Made with intent for Indian engineering students.</p>
-        </div>
+        <span style={{ fontFamily: 'Space Grotesk', fontSize: 11, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: D.t4 }}>Built for placement.</span>
       </div>
     </footer>
   );
 }
 
-/* ── Export ────────────────────────────────────────────────────────────── */
+/* ── Export ─────────────────────────────────────────────────────────────── */
 export function LandingPage() {
   return (
-    <div style={{ background: D.bg, color: D.t1, minHeight: '100vh' }}>
-      <CursorGlow />
+    <div style={{ background: D.bg, color: D.t1 }}>
       <Grain />
-      <SceneGlow color="rgba(232,25,44,0.08)" top="-10%" left="-10%" size={800} scrollFactor={0.05} />
-      <SceneGlow color="rgba(100,50,240,0.06)" top="20%" left="60%" size={600} scrollFactor={-0.04} />
       <LandingNav />
       <main>
         <HeroSection />
+        <StatsMarquee />
         <TrustBar />
         <HowItWorksSection />
         <FeatureShowcase />
-        <StatsSection />
         <CurriculumSection />
         <TestimonialsSection />
         <PricingSection />
