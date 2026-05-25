@@ -1,8 +1,11 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { AppShell } from '../components/AppShell';
 import { Icon } from '../components/Icon';
 import { useUser } from '../contexts/UserContext';
+
+const GLASS = { background: 'rgba(10,10,10,0.7)', border: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(16px)' } as const;
 
 type RoleKey = 'frontend' | 'backend' | 'fullstack' | 'genai' | 'data' | 'devops';
 
@@ -35,9 +38,9 @@ const ROLE_TRACKS: RoleTrack[] = [
     key: 'frontend',
     title: 'Frontend Engineer',
     icon: 'web',
-    color: 'text-blue-400',
-    bg: 'bg-blue-500/10',
-    border: 'border-blue-500/30',
+    color: '#60a5fa',
+    bg: 'rgba(96,165,250,0.1)',
+    border: 'rgba(96,165,250,0.3)',
     tagline: 'Build the interfaces millions interact with',
     avgCTC: '₹8–30 LPA (India) · $90k–$180k (US)',
     hiringCompanies: ['Swiggy', 'Meesho', 'Razorpay', 'Atlassian', 'Flipkart', 'Google', 'Microsoft', 'Adobe'],
@@ -80,9 +83,9 @@ const ROLE_TRACKS: RoleTrack[] = [
     key: 'backend',
     title: 'Backend Engineer',
     icon: 'dns',
-    color: 'text-green-400',
-    bg: 'bg-green-500/10',
-    border: 'border-green-500/30',
+    color: '#4ade80',
+    bg: 'rgba(74,222,128,0.1)',
+    border: 'rgba(74,222,128,0.3)',
     tagline: 'Build the servers, APIs, and data pipelines',
     avgCTC: '₹10–35 LPA (India) · $100k–$200k (US)',
     hiringCompanies: ['Zepto', 'PhonePe', 'Paytm', 'Infosys', 'TCS', 'Amazon', 'Uber', 'Stripe'],
@@ -125,9 +128,9 @@ const ROLE_TRACKS: RoleTrack[] = [
     key: 'fullstack',
     title: 'Fullstack Engineer',
     icon: 'layers',
-    color: 'text-purple-400',
-    bg: 'bg-purple-500/10',
-    border: 'border-purple-500/30',
+    color: '#c084fc',
+    bg: 'rgba(192,132,252,0.1)',
+    border: 'rgba(192,132,252,0.3)',
     tagline: 'Own the complete product — frontend to database',
     avgCTC: '₹12–40 LPA (India) · $110k–$220k (US)',
     hiringCompanies: ['Razorpay', 'Freshworks', 'Postman', 'Atlassian', 'Notion', 'Linear', 'Vercel', 'GitHub'],
@@ -170,9 +173,9 @@ const ROLE_TRACKS: RoleTrack[] = [
     key: 'genai',
     title: 'GenAI Engineer',
     icon: 'auto_awesome',
-    color: 'text-amber-400',
-    bg: 'bg-amber-500/10',
-    border: 'border-amber-500/30',
+    color: '#fbbf24',
+    bg: 'rgba(251,191,36,0.1)',
+    border: 'rgba(251,191,36,0.3)',
     tagline: 'Build with LLMs, RAG, and agentic systems',
     avgCTC: '₹18–60 LPA (India) · $150k–$300k (US)',
     hiringCompanies: ['Anthropic', 'OpenAI', 'Sarvam AI', 'Krutrim', 'Microsoft', 'Google DeepMind', 'Fractal', 'MuSigma'],
@@ -215,9 +218,9 @@ const ROLE_TRACKS: RoleTrack[] = [
     key: 'data',
     title: 'Data Analyst / Data Engineer',
     icon: 'bar_chart',
-    color: 'text-cyan-400',
-    bg: 'bg-cyan-500/10',
-    border: 'border-cyan-500/30',
+    color: '#22d3ee',
+    bg: 'rgba(34,211,238,0.1)',
+    border: 'rgba(34,211,238,0.3)',
     tagline: 'Turn raw data into business decisions',
     avgCTC: '₹7–25 LPA (India) · $80k–$160k (US)',
     hiringCompanies: ['Walmart', 'Amazon', 'Juspay', 'CRED', 'Dunzo', 'Deloitte', 'EY', 'McKinsey'],
@@ -260,9 +263,9 @@ const ROLE_TRACKS: RoleTrack[] = [
     key: 'devops',
     title: 'DevOps / SRE',
     icon: 'cloud',
-    color: 'text-orange-400',
-    bg: 'bg-orange-500/10',
-    border: 'border-orange-500/30',
+    color: '#fb923c',
+    bg: 'rgba(251,146,60,0.1)',
+    border: 'rgba(251,146,60,0.3)',
     tagline: 'Ship fast, stay reliable, scale infinitely',
     avgCTC: '₹12–40 LPA (India) · $120k–$220k (US)',
     hiringCompanies: ['Cloudflare', 'Hetzner', 'Razorpay', 'Ola', 'HDFC Bank', 'Infosys', 'Google SRE', 'Datadog'],
@@ -324,150 +327,172 @@ export function CareerPathPage() {
     <AppShell>
       <div className="pt-8 max-w-7xl mx-auto">
         {/* Hero */}
-        <div className="mb-10">
-          <div className="flex items-start justify-between flex-wrap gap-4">
-            <div>
-              <h1 className="text-4xl font-black tracking-tighter mb-2">Career Tracks</h1>
-              <p className="text-zinc-400 max-w-lg">Pick your engineering role. Get a week-by-week curriculum, company targets, and direct links to every resource you need on EYF.</p>
-            </div>
+        <div style={{ marginBottom: 40 }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap' as const, gap: 16 }}>
+            <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }}>
+              <h1 style={{ fontSize: '3rem', fontWeight: 900, letterSpacing: '-0.03em', marginBottom: 8, lineHeight: 1.1 }}>
+                <span style={{ background: 'linear-gradient(135deg, #fff 40%, #E82127)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>CAREER TRACKS.</span>
+              </h1>
+              <p style={{ color: '#71717a', maxWidth: 480 }}>Pick your engineering role. Get a week-by-week curriculum, company targets, and direct links to every resource you need on EYF.</p>
+            </motion.div>
             {savedRole && (
-              <div className="flex items-center gap-2 px-4 py-2 bg-green-500/10 border border-green-500/20 rounded-xl">
-                <Icon name="check_circle" size={16} className="text-green-400" />
-                <span className="text-green-400 text-xs font-bold">Your track: {ROLE_TRACKS.find((r) => r.key === savedRole)?.title}</span>
-              </div>
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 16px', background: 'rgba(74,222,128,0.08)', border: '1px solid rgba(74,222,128,0.2)', borderRadius: 14 }}
+              >
+                <Icon name="check_circle" size={16} style={{ color: '#4ade80' }} />
+                <span style={{ color: '#4ade80', fontSize: 12, fontWeight: 700 }}>Your track: {ROLE_TRACKS.find((r) => r.key === savedRole)?.title}</span>
+              </motion.div>
             )}
           </div>
         </div>
 
         {/* Role selector */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-10">
-          {ROLE_TRACKS.map((r) => (
-            <button
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3" style={{ marginBottom: 40 }}>
+          {ROLE_TRACKS.map((r, i) => (
+            <motion.button
               key={r.key}
               type="button"
               onClick={() => { setSelectedRole(r.key); setActiveMonth(0); }}
-              className={`flex flex-col items-center gap-2 p-4 rounded-2xl border transition-all text-center ${
-                selectedRole === r.key
-                  ? `${r.bg} ${r.border}`
-                  : 'bg-[#1a1a1a] border-white/5 hover:bg-[#222] hover:border-white/10'
-              }`}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.05 }}
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.96 }}
+              style={selectedRole === r.key ? {
+                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: 16, borderRadius: 20, textAlign: 'center',
+                background: r.bg, border: `1px solid ${r.border}`, cursor: 'pointer', boxShadow: `0 0 24px ${r.bg}`,
+              } : {
+                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: 16, borderRadius: 20, textAlign: 'center',
+                background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', cursor: 'pointer',
+              }}
             >
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${selectedRole === r.key ? r.bg : 'bg-zinc-800'}`}>
-                <Icon name={r.icon} size={20} className={selectedRole === r.key ? r.color : 'text-zinc-500'} />
+              <div style={{ width: 40, height: 40, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', background: selectedRole === r.key ? r.bg : 'rgba(255,255,255,0.06)' }}>
+                <Icon name={r.icon} size={20} style={{ color: selectedRole === r.key ? r.color : '#71717a' }} />
               </div>
-              <span className={`text-[11px] font-bold leading-tight ${selectedRole === r.key ? 'text-white' : 'text-zinc-500'}`}>{r.title}</span>
-              {savedRole === r.key && <span className="text-[9px] text-green-400 font-bold">★ Saved</span>}
-            </button>
+              <span style={{ fontSize: 11, fontWeight: 700, lineHeight: 1.3, color: selectedRole === r.key ? '#fff' : '#71717a' }}>{r.title}</span>
+              {savedRole === r.key && <span style={{ fontSize: 9, color: '#4ade80', fontWeight: 700 }}>★ Saved</span>}
+            </motion.button>
           ))}
         </div>
 
         {/* Role detail */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6" style={{ marginBottom: 32 }}>
           {/* Left: role info */}
           <div className="lg:col-span-1 space-y-4">
             {/* Header card */}
-            <div className={`p-6 rounded-2xl border ${role.bg} ${role.border}`}>
-              <div className="flex items-center gap-3 mb-3">
-                <div className={`w-12 h-12 rounded-xl ${role.bg} flex items-center justify-center`}>
-                  <Icon name={role.icon} size={24} className={role.color} />
+            <motion.div
+              key={role.key}
+              initial={{ opacity: 0, x: -16 }}
+              animate={{ opacity: 1, x: 0 }}
+              style={{ padding: 24, borderRadius: 20, background: role.bg, border: `1px solid ${role.border}` }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+                <div style={{ width: 48, height: 48, borderRadius: 14, background: role.bg, border: `1px solid ${role.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Icon name={role.icon} size={24} style={{ color: role.color }} />
                 </div>
                 <div>
-                  <h2 className="text-xl font-black">{role.title}</h2>
-                  <p className={`text-xs font-bold ${role.color}`}>{role.tagline}</p>
+                  <h2 style={{ fontSize: 20, fontWeight: 900, color: '#fff' }}>{role.title}</h2>
+                  <p style={{ fontSize: 12, fontWeight: 700, color: role.color }}>{role.tagline}</p>
                 </div>
               </div>
-              <div className="mt-4 p-3 bg-black/20 rounded-xl">
-                <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1">Avg CTC</p>
-                <p className="text-sm font-bold text-white">{role.avgCTC}</p>
+              <div style={{ marginTop: 16, padding: 12, background: 'rgba(0,0,0,0.2)', borderRadius: 12 }}>
+                <p style={{ fontSize: 10, fontWeight: 700, color: '#71717a', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 4 }}>Avg CTC</p>
+                <p style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>{role.avgCTC}</p>
               </div>
               {savedRole === selectedRole ? (
-                <div className="mt-4 w-full py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest text-center text-green-400 bg-green-500/10 border border-green-500/20">
+                <div style={{ marginTop: 16, width: '100%', padding: '10px 0', borderRadius: 12, fontSize: 11, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', textAlign: 'center', color: '#4ade80', background: 'rgba(74,222,128,0.1)', border: '1px solid rgba(74,222,128,0.2)' }}>
                   ✓ Your current track
                 </div>
               ) : (
-                <button
+                <motion.button
                   onClick={saveRole}
-                  className={`mt-4 w-full py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all ${role.bg} ${role.color} border ${role.border} hover:brightness-125`}
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  style={{ marginTop: 16, width: '100%', padding: '10px 0', borderRadius: 12, fontSize: 11, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', background: role.bg, color: role.color, border: `1px solid ${role.border}`, cursor: 'pointer' }}
                 >
                   Set as My Track
-                </button>
+                </motion.button>
               )}
-            </div>
+            </motion.div>
 
             {/* Core skills */}
-            <div className="p-5 bg-[#1a1a1a] rounded-2xl border border-white/5">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-3">Core Skills</p>
-              <div className="flex flex-wrap gap-2">
+            <motion.div key={`${role.key}-skills`} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} style={{ ...GLASS, padding: 20, borderRadius: 20 }}>
+              <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#71717a', marginBottom: 12 }}>Core Skills</p>
+              <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 8 }}>
                 {role.coreSkills.map((s) => (
-                  <span key={s} className="px-2.5 py-1 bg-zinc-800 rounded-lg text-xs text-zinc-300 font-medium">{s}</span>
+                  <span key={s} style={{ padding: '4px 10px', background: 'rgba(255,255,255,0.06)', borderRadius: 8, fontSize: 12, color: '#d4d4d8', fontWeight: 500 }}>{s}</span>
                 ))}
               </div>
-            </div>
+            </motion.div>
 
             {/* Interview topics */}
-            <div className="p-5 bg-[#1a1a1a] rounded-2xl border border-white/5">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-3">Interview Topics</p>
+            <motion.div key={`${role.key}-topics`} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }} style={{ ...GLASS, padding: 20, borderRadius: 20 }}>
+              <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#71717a', marginBottom: 12 }}>Interview Topics</p>
               <ul className="space-y-1.5">
                 {role.interviewTopics.map((t) => (
-                  <li key={t} className="flex items-start gap-2 text-sm text-zinc-400">
-                    <Icon name="arrow_right" size={14} className={`${role.color} mt-0.5 flex-shrink-0`} />
+                  <li key={t} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 14, color: '#a1a1aa' }}>
+                    <Icon name="arrow_right" size={14} style={{ color: role.color, marginTop: 2, flexShrink: 0 }} />
                     {t}
                   </li>
                 ))}
               </ul>
-            </div>
+            </motion.div>
 
             {/* Companies hiring */}
-            <div className="p-5 bg-[#1a1a1a] rounded-2xl border border-white/5">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-3">Who's Hiring</p>
-              <div className="flex flex-wrap gap-2">
+            <motion.div key={`${role.key}-hiring`} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.11 }} style={{ ...GLASS, padding: 20, borderRadius: 20 }}>
+              <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#71717a', marginBottom: 12 }}>Who's Hiring</p>
+              <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 8 }}>
                 {role.hiringCompanies.map((c) => (
-                  <span key={c} className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${role.bg} ${role.color} border ${role.border}`}>{c}</span>
+                  <span key={c} style={{ padding: '2px 8px', borderRadius: 999, fontSize: 11, fontWeight: 700, background: role.bg, color: role.color, border: `1px solid ${role.border}` }}>{c}</span>
                 ))}
               </div>
-            </div>
+            </motion.div>
 
             {/* Projects to build */}
-            <div className="p-5 bg-[#1a1a1a] rounded-2xl border border-white/5">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-3">Projects to Build</p>
+            <motion.div key={`${role.key}-projects`} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.14 }} style={{ ...GLASS, padding: 20, borderRadius: 20 }}>
+              <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#71717a', marginBottom: 12 }}>Projects to Build</p>
               <ul className="space-y-2">
                 {role.projects.map((p, i) => (
-                  <li key={p} className="flex items-start gap-2 text-sm text-zinc-400">
-                    <span className={`font-black text-xs ${role.color} mt-0.5 flex-shrink-0`}>{i + 1}.</span>
+                  <li key={p} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 14, color: '#a1a1aa' }}>
+                    <span style={{ fontWeight: 900, fontSize: 12, color: role.color, marginTop: 2, flexShrink: 0 }}>{i + 1}.</span>
                     {p}
                   </li>
                 ))}
               </ul>
-            </div>
+            </motion.div>
 
             {/* India context */}
-            <div className="p-5 bg-amber-500/5 rounded-2xl border border-amber-500/15">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-lg">🇮🇳</span>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-amber-400">India Placement Context</p>
+            <motion.div key={`${role.key}-india`} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.17 }} style={{ padding: 20, borderRadius: 20, background: 'rgba(251,191,36,0.05)', border: '1px solid rgba(251,191,36,0.15)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                <span style={{ fontSize: 18 }}>🇮🇳</span>
+                <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#fbbf24' }}>India Placement Context</p>
               </div>
-              <p className="text-sm text-zinc-400 leading-relaxed">{role.indiaContext}</p>
-            </div>
+              <p style={{ fontSize: 14, color: '#a1a1aa', lineHeight: 1.6 }}>{role.indiaContext}</p>
+            </motion.div>
           </div>
 
           {/* Right: curriculum */}
           <div className="lg:col-span-2">
-            <div className="bg-[#1a1a1a] rounded-2xl border border-white/5 overflow-hidden">
-              <div className="px-6 py-4 border-b border-white/5">
-                <h3 className="text-base font-black">Week-by-Week Curriculum</h3>
-                <p className="text-xs text-zinc-500 mt-0.5">Structured {role.months.length * 4}-week path from zero to interview-ready</p>
+            <motion.div key={`${role.key}-curriculum`} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} style={{ ...GLASS, borderRadius: 20, overflow: 'hidden' }}>
+              <div style={{ padding: '16px 24px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                <h3 style={{ fontSize: 16, fontWeight: 900, color: '#fff' }}>Week-by-Week Curriculum</h3>
+                <p style={{ fontSize: 12, color: '#71717a', marginTop: 2 }}>Structured {role.months.length * 4}-week path from zero to interview-ready</p>
               </div>
 
               {/* Month tabs */}
-              <div className="flex border-b border-white/5">
+              <div style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
                 {role.months.map((month, i) => (
                   <button
                     key={month.title}
                     type="button"
                     onClick={() => setActiveMonth(i)}
-                    className={`flex-1 px-4 py-3 text-[11px] font-bold uppercase tracking-widest transition-colors border-b-2 ${
-                      activeMonth === i ? `text-white border-current ${role.color}` : 'text-zinc-600 border-transparent hover:text-zinc-400'
-                    }`}
+                    style={{
+                      flex: 1, padding: '12px 16px', fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer', background: 'transparent',
+                      color: activeMonth === i ? role.color : '#52525b',
+                      borderBottom: activeMonth === i ? `2px solid ${role.color}` : '2px solid transparent',
+                    }}
                   >
                     Month {i + 1}
                   </button>
@@ -475,81 +500,101 @@ export function CareerPathPage() {
               </div>
 
               {/* Month content */}
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-1">
-                  <h4 className="text-lg font-black">{role.months[activeMonth].title}</h4>
-                  <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${role.bg} ${role.color}`}>{role.months[activeMonth].weeks}</span>
-                </div>
-                <p className="text-xs text-zinc-600 mb-6">Focus areas for {role.months[activeMonth].weeks.toLowerCase()}</p>
-
-                <ul className="space-y-3 mb-8">
-                  {role.months[activeMonth].focus.map((item, i) => (
-                    <li key={item} className="flex items-start gap-3">
-                      <div className={`w-6 h-6 rounded-full ${role.bg} flex items-center justify-center flex-shrink-0 mt-0.5`}>
-                        <span className={`text-[10px] font-black ${role.color}`}>{i + 1}</span>
-                      </div>
-                      <span className="text-sm text-zinc-300">{item}</span>
-                    </li>
-                  ))}
-                </ul>
-
-                {/* Platform resources for this month */}
-                <div className="pt-5 border-t border-white/5">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 mb-3">Study on EYF This Month</p>
-                  <div className="flex flex-wrap gap-2">
-                    {role.months[activeMonth].resources.map((res) => (
-                      <Link
-                        key={res.path}
-                        to={res.path}
-                        className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-bold transition-all ${role.bg} ${role.color} ${role.border} hover:brightness-125`}
-                      >
-                        <Icon name="arrow_forward" size={12} />
-                        {res.label}
-                      </Link>
-                    ))}
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={`${role.key}-month-${activeMonth}`}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  style={{ padding: 24 }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                    <h4 style={{ fontSize: 18, fontWeight: 900, color: '#fff' }}>{role.months[activeMonth].title}</h4>
+                    <span style={{ fontSize: 12, fontWeight: 700, padding: '2px 10px', borderRadius: 999, background: role.bg, color: role.color }}>{role.months[activeMonth].weeks}</span>
                   </div>
-                </div>
+                  <p style={{ fontSize: 12, color: '#52525b', marginBottom: 24 }}>Focus areas for {role.months[activeMonth].weeks.toLowerCase()}</p>
 
-                {/* Navigation */}
-                <div className="flex justify-between mt-6">
-                  <button
-                    type="button"
-                    onClick={() => setActiveMonth((m) => Math.max(0, m - 1))}
-                    disabled={activeMonth === 0}
-                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-zinc-800 text-zinc-400 text-xs font-bold disabled:opacity-30 hover:bg-zinc-700 transition-colors"
-                  >
-                    <Icon name="chevron_left" size={14} /> Prev Month
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setActiveMonth((m) => Math.min(role.months.length - 1, m + 1))}
-                    disabled={activeMonth === role.months.length - 1}
-                    className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold disabled:opacity-30 transition-all ${role.bg} ${role.color} border ${role.border} hover:brightness-125`}
-                  >
-                    Next Month <Icon name="chevron_right" size={14} />
-                  </button>
-                </div>
-              </div>
-            </div>
+                  <ul className="space-y-3" style={{ marginBottom: 32 }}>
+                    {role.months[activeMonth].focus.map((item, i) => (
+                      <li key={item} style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+                        <div style={{ width: 24, height: 24, borderRadius: '50%', background: role.bg, border: `1px solid ${role.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2 }}>
+                          <span style={{ fontSize: 10, fontWeight: 900, color: role.color }}>{i + 1}</span>
+                        </div>
+                        <span style={{ fontSize: 14, color: '#d4d4d8' }}>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  {/* Platform resources for this month */}
+                  <div style={{ paddingTop: 20, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                    <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#52525b', marginBottom: 12 }}>Study on EYF This Month</p>
+                    <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 8 }}>
+                      {role.months[activeMonth].resources.map((res) => (
+                        <Link
+                          key={res.path}
+                          to={res.path}
+                          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 12, border: `1px solid ${role.border}`, fontSize: 12, fontWeight: 700, background: role.bg, color: role.color }}
+                        >
+                          <Icon name="arrow_forward" size={12} />
+                          {res.label}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Navigation */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 24 }}>
+                    <motion.button
+                      type="button"
+                      onClick={() => setActiveMonth((m) => Math.max(0, m - 1))}
+                      disabled={activeMonth === 0}
+                      whileHover={{ scale: 1.03 }}
+                      whileTap={{ scale: 0.97 }}
+                      style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 12, background: 'rgba(255,255,255,0.06)', color: '#a1a1aa', fontSize: 12, fontWeight: 700, cursor: 'pointer', opacity: activeMonth === 0 ? 0.3 : 1 }}
+                    >
+                      <Icon name="chevron_left" size={14} /> Prev Month
+                    </motion.button>
+                    <motion.button
+                      type="button"
+                      onClick={() => setActiveMonth((m) => Math.min(role.months.length - 1, m + 1))}
+                      disabled={activeMonth === role.months.length - 1}
+                      whileHover={{ scale: 1.03 }}
+                      whileTap={{ scale: 0.97 }}
+                      style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 12, background: role.bg, color: role.color, border: `1px solid ${role.border}`, fontSize: 12, fontWeight: 700, cursor: 'pointer', opacity: activeMonth === role.months.length - 1 ? 0.3 : 1 }}
+                    >
+                      Next Month <Icon name="chevron_right" size={14} />
+                    </motion.button>
+                  </div>
+                </motion.div>
+              </AnimatePresence>
+            </motion.div>
 
             {/* Quick links to company prep */}
-            <div className="mt-4 p-5 bg-[#1a1a1a] rounded-2xl border border-white/5">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-3">Jump to Targeted Prep</p>
-              <div className="flex flex-wrap gap-3">
-                <Link to="/app/companies" className="flex items-center gap-1.5 px-3 py-2 bg-zinc-800 rounded-xl text-xs font-bold text-zinc-300 hover:text-white transition-colors">
-                  <Icon name="business" size={13} /> Company Prep
-                </Link>
-                <Link to="/app/readiness" className="flex items-center gap-1.5 px-3 py-2 bg-zinc-800 rounded-xl text-xs font-bold text-zinc-300 hover:text-white transition-colors">
-                  <Icon name="speed" size={13} /> Readiness Score
-                </Link>
-                <Link to="/app/roadmap" className="flex items-center gap-1.5 px-3 py-2 bg-zinc-800 rounded-xl text-xs font-bold text-zinc-300 hover:text-white transition-colors">
-                  <Icon name="map" size={13} /> Interview Roadmap
-                </Link>
-                <Link to="/app/mock-interview" className="flex items-center gap-1.5 px-3 py-2 bg-zinc-800 rounded-xl text-xs font-bold text-zinc-300 hover:text-white transition-colors">
-                  <Icon name="record_voice_over" size={13} /> Mock Interview
-                </Link>
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              style={{ ...GLASS, padding: 20, borderRadius: 20, marginTop: 16 }}
+            >
+              <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#52525b', marginBottom: 12 }}>Jump to Targeted Prep</p>
+              <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 12 }}>
+                {[
+                  { to: '/app/companies', icon: 'business', label: 'Company Prep' },
+                  { to: '/app/readiness', icon: 'speed', label: 'Readiness Score' },
+                  { to: '/app/roadmap', icon: 'map', label: 'Interview Roadmap' },
+                  { to: '/app/mock-interview', icon: 'record_voice_over', label: 'Mock Interview' },
+                ].map((link) => (
+                  <Link
+                    key={link.to}
+                    to={link.to}
+                    style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', background: 'rgba(255,255,255,0.06)', borderRadius: 12, fontSize: 12, fontWeight: 700, color: '#d4d4d8', border: '1px solid rgba(255,255,255,0.08)' }}
+                  >
+                    <Icon name={link.icon} size={13} />
+                    {link.label}
+                  </Link>
+                ))}
               </div>
-            </div>
+            </motion.div>
           </div>
         </div>
       </div>
