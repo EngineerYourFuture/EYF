@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import {
   motion, useScroll, useTransform, useInView,
-  useMotionValue, useSpring,
+  useMotionValue, useSpring, AnimatePresence,
 } from 'framer-motion';
 import { EYFMark } from '../components/EYFLogo';
 
@@ -18,6 +18,86 @@ const D = {
   t4:      '#444',
   red:     '#E82127',
 };
+
+/* ── SplitWords — 3D flip-up word-by-word ──────────────────────────────── */
+function SplitWords({
+  text, delay = 0, stagger = 0.07, className = '', style = {},
+}: {
+  readonly text: string; readonly delay?: number; readonly stagger?: number;
+  readonly className?: string; readonly style?: CSSProperties;
+}) {
+  const words = text.split(' ');
+  return (
+    <span
+      className={className}
+      style={{ display: 'inline-flex', flexWrap: 'wrap', gap: '0.28em', transformStyle: 'preserve-3d', perspectiveOrigin: '50% 50%', ...style }}
+    >
+      {words.map((word, i) => (
+        <motion.span
+          key={`${word}-${i}`}
+          initial={{ opacity: 0, y: 40, rotateX: 90 }}
+          whileInView={{ opacity: 1, y: 0, rotateX: 0 }}
+          viewport={{ once: true, margin: '-40px' }}
+          transition={{ duration: 0.6, delay: delay + i * stagger, ease: [0.16, 1, 0.3, 1] }}
+          style={{ display: 'inline-block', transformPerspective: 600 }}
+        >
+          {word}
+        </motion.span>
+      ))}
+    </span>
+  );
+}
+
+/* ── HorizonGrid — 3D perspective floor grid ───────────────────────────── */
+function HorizonGrid() {
+  return (
+    <div style={{
+      position: 'absolute', bottom: 0, left: 0, right: 0, height: '55%',
+      perspective: '800px', perspectiveOrigin: '50% 0%',
+      pointerEvents: 'none', zIndex: 0,
+    }}>
+      {/* Fade overlay on top */}
+      <div style={{
+        position: 'absolute', top: 0, left: 0, right: 0, height: '40%',
+        background: `linear-gradient(to bottom, ${D.bg}, transparent)`,
+        zIndex: 2,
+      }} />
+      <div style={{
+        width: '180%',
+        height: '100%',
+        marginLeft: '-40%',
+        transform: 'rotateX(72deg)',
+        backgroundImage: `linear-gradient(rgba(232,25,44,0.14) 1px, transparent 1px), linear-gradient(90deg, rgba(232,25,44,0.14) 1px, transparent 1px)`,
+        backgroundSize: '80px 80px',
+        maskImage: 'linear-gradient(to bottom, transparent, black 30%, black 70%, transparent)',
+        WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 30%, black 70%, transparent)',
+      }} />
+    </div>
+  );
+}
+
+/* ── SceneGlow — atmospheric scroll-drift glow ─────────────────────────── */
+function SceneGlow({
+  color, top, left, size = 600, scrollFactor = 0.1,
+}: {
+  readonly color: string; readonly top: number | string; readonly left: number | string;
+  readonly size?: number; readonly scrollFactor?: number;
+}) {
+  const { scrollY } = useScroll();
+  const y = useTransform(scrollY, [0, 3000], [0, 3000 * scrollFactor]);
+  return (
+    <motion.div
+      style={{ position: 'fixed', top, left, y, pointerEvents: 'none', zIndex: 0 }}
+      aria-hidden="true"
+    >
+      <div style={{
+        width: size, height: size, borderRadius: '50%',
+        background: `radial-gradient(circle, ${color} 0%, transparent 70%)`,
+        filter: 'blur(120px)',
+      }} />
+    </motion.div>
+  );
+}
 
 /* ── Cursor glow ───────────────────────────────────────────────────────── */
 function CursorGlow() {
@@ -67,6 +147,7 @@ function GridBg({ opacity = 0.025 }: { readonly opacity?: number }) {
         linear-gradient(90deg, rgba(255,255,255,${opacity}) 1px, transparent 1px)`,
       backgroundSize: '72px 72px',
       maskImage: 'linear-gradient(to bottom, transparent, black 10%, black 90%, transparent)',
+      WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 10%, black 90%, transparent)',
     }} />
   );
 }
@@ -122,6 +203,7 @@ function Tilt({
 /* ── Animated counter ──────────────────────────────────────────────────── */
 function CountUp({ target, suffix = '' }: { readonly target: number; readonly suffix?: string }) {
   const [val, setVal] = useState(0);
+  const [glowing, setGlowing] = useState(false);
   const ref = useRef<HTMLSpanElement>(null);
   const inView = useInView(ref, { once: true, margin: '-60px' });
   useEffect(() => {
@@ -130,11 +212,20 @@ function CountUp({ target, suffix = '' }: { readonly target: number; readonly su
     const tick = () => {
       const p = Math.min((Date.now() - t0) / dur, 1);
       setVal(Math.floor((1 - Math.pow(1 - p, 3)) * target));
-      if (p < 1) requestAnimationFrame(tick);
+      if (p < 1) { requestAnimationFrame(tick); } else { setTimeout(() => setGlowing(true), 50); }
     };
     requestAnimationFrame(tick);
   }, [inView, target]);
-  return <span ref={ref}>{val.toLocaleString()}{suffix}</span>;
+  return (
+    <span ref={ref} style={{ display: 'inline-block' }}>
+      <span style={{
+        transition: 'text-shadow 0.5s ease',
+        textShadow: glowing ? '0 0 50px rgba(232,25,44,0.6), 0 0 100px rgba(232,25,44,0.3)' : '0 0 50px rgba(232,25,44,0.2)',
+      }}>
+        {val.toLocaleString()}{suffix}
+      </span>
+    </span>
+  );
 }
 
 /* ── Floating notification chip ────────────────────────────────────────── */
@@ -254,10 +345,11 @@ function DashboardMockup() {
 /* ── Hero ──────────────────────────────────────────────────────────────── */
 function HeroSection() {
   const { scrollY } = useScroll();
-  const rotateX  = useTransform(scrollY, [0, 560], [38, 0]);
-  const rotateY  = useTransform(scrollY, [0, 560], [-6, 0]);
-  const scale    = useTransform(scrollY, [0, 560], [0.82, 1]);
-  const mockY    = useTransform(scrollY, [0, 560], [0, 40]);
+  const rotateX   = useTransform(scrollY, [0, 700], [42, 0]);
+  const rotateY   = useTransform(scrollY, [0, 700], [-8, 0]);
+  const scale     = useTransform(scrollY, [0, 700], [0.78, 1]);
+  const mockY     = useTransform(scrollY, [0, 700], [0, 60]);
+  const scrollIndicatorOpacity = useTransform(scrollY, [0, 180], [1, 0]);
 
   // Mouse parallax for blobs
   const mx = useMotionValue(0);
@@ -278,10 +370,14 @@ function HeroSection() {
 
   return (
     <section style={{
-      background: D.bg, minHeight: '100dvh', position: 'relative',
-      overflow: 'hidden', display: 'flex', flexDirection: 'column',
-      justifyContent: 'center', paddingTop: 80, paddingBottom: 0,
+      minHeight: '100dvh', background: D.bg,
+      position: 'relative', overflow: 'hidden',
+      display: 'flex', flexDirection: 'column',
+      justifyContent: 'center', paddingTop: 80,
     }}>
+      {/* 3D Horizon Grid floor */}
+      <HorizonGrid />
+
       <GridBg />
 
       {/* Vignette */}
@@ -289,7 +385,7 @@ function HeroSection() {
         background: 'radial-gradient(ellipse 80% 80% at 50% 50%, transparent 40%, rgba(0,0,0,0.5) 100%)',
       }} />
 
-      {/* Aurora blobs with parallax */}
+      {/* Aurora blobs with mouse parallax */}
       <motion.div aria-hidden="true" style={{ x: bx1, y: by1, position: 'absolute', top: '-22%', left: '-6%', zIndex: 0, pointerEvents: 'none' }}>
         <div className="aurora-blob-a" style={{
           width: 900, height: 700,
@@ -305,120 +401,155 @@ function HeroSection() {
         }} />
       </motion.div>
 
-      <div className="land-container" style={{ position: 'relative', zIndex: 1 }}>
-        {/* Headline block */}
-        <div className="text-center" style={{ maxWidth: 860, margin: '0 auto 56px' }}>
-          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }} style={{ marginBottom: 28 }}>
-            <span style={{
-              display: 'inline-flex', alignItems: 'center', gap: 9,
-              padding: '6px 18px', borderRadius: 100,
-              background: 'rgba(232,25,44,0.07)',
-              border: '1px solid rgba(232,25,44,0.22)',
-              color: '#FF4D5E', fontSize: 12, fontWeight: 600, letterSpacing: '0.01em',
-            }}>
-              <span className="anim-pulse" style={{ width: 6, height: 6, borderRadius: '50%', background: '#E82127', display: 'inline-block' }} />{' '}
-              Open beta · 12,000+ students enrolled
-            </span>
-          </motion.div>
+      {/* HEADLINE block */}
+      <div style={{ position: 'relative', zIndex: 1, textAlign: 'center', maxWidth: 900, margin: '0 auto', padding: '0 24px 56px' }}>
 
-          <motion.h1
-            initial={{ opacity: 0, y: 32 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.07, ease: [0.16, 1, 0.3, 1] }}
-            style={{
-              fontSize: 'clamp(44px, 8vw, 88px)',
-              fontWeight: 900, letterSpacing: '-0.05em', lineHeight: 0.96,
-              color: D.t1, marginBottom: 22,
-            }}
-          >
-            The structured path<br />
-            to your first{' '}
-            <span style={{
-              color: '#E82127',
-              textShadow: '0 0 60px rgba(232,25,44,0.6), 0 0 120px rgba(232,25,44,0.3)',
-            }}>
-              tech offer.
-            </span>
-          </motion.h1>
-
-          <motion.p
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.55, delay: 0.16 }}
-            style={{ fontSize: 17, color: D.t3, maxWidth: 500, margin: '0 auto 36px', lineHeight: 1.7 }}
-          >
-            DSA, system design, OOP, core CS, and placement prep — one platform, one path to your first tech offer.
-          </motion.p>
-
-          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45, delay: 0.24 }}
-            style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 28 }}>
-            <Link to="/login?tab=register" className="btn btn-primary btn-xl">
-              Start for free{' '}
-              <span className="material-symbols-rounded text-base">arrow_forward</span>
-            </Link>
-            <a href="#showcase" className="btn btn-xl"
-              style={{ background: 'rgba(255,255,255,0.05)', color: D.t1, border: '1px solid rgba(255,255,255,0.1)', backdropFilter: 'blur(12px)' }}>
-              See how it works
-            </a>
-          </motion.div>
-
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.45, delay: 0.32 }}
-            style={{ display: 'flex', gap: 22, justifyContent: 'center', flexWrap: 'wrap' }}>
-            {['No credit card', 'Free tier forever', 'Start in 5 minutes'].map((t) => (
-              <span key={t} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: D.t4 }}>
-                <span style={{ color: '#4ADE80', fontWeight: 700 }}>✓</span> {t}
-              </span>
-            ))}
-          </motion.div>
-        </div>
-
-        {/* 3D Mockup with floating chips */}
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1, delay: 0.38 }}
-          style={{ maxWidth: 960, margin: '0 auto', position: 'relative' }}>
-
-          {/* Light cone behind mockup */}
-          <div aria-hidden="true" style={{
-            position: 'absolute', top: '-20%', left: '50%', transform: 'translateX(-50%)',
-            width: 400, height: 600,
-            background: 'conic-gradient(from 180deg at 50% 0%, transparent 60deg, rgba(232,25,44,0.22) 90deg, transparent 120deg)',
-            filter: 'blur(30px)',
-            zIndex: 0, pointerEvents: 'none',
-          }} />
-
-          {/* Bottom glow */}
-          <div aria-hidden="true" style={{
-            position: 'absolute', top: '25%', left: '10%', right: '10%', bottom: '-5%',
-            background: 'radial-gradient(ellipse, rgba(232,25,44,0.22) 0%, transparent 65%)',
-            filter: 'blur(60px)', zIndex: 0, pointerEvents: 'none',
-          }} />
-
-          {/* Floating chips */}
-          <FloatingChip label="+120 XP" sub="Two Sum · Pattern solved" color="#E82127" delay={0.9}
-            style={{ top: '12%', left: '-8%' }} />
-          <FloatingChip label="🔥 14-day streak" sub="Keep it up" color="#FB923C" delay={1.3}
-            style={{ top: '6%', right: '-4%' }} />
-          <FloatingChip label="Google Round 2 ✓" sub="Prep complete" color="#4ADE80" delay={1.7}
-            style={{ bottom: '35%', right: '-10%' }} />
-          <FloatingChip label="Lv.6 Unlocked" sub="Builder → Engineer" color="#A78BFA" delay={1.1}
-            style={{ bottom: '28%', left: '-8%' }} />
-
-          {/* Actual 3D mockup */}
-          <motion.div style={{
-            transformPerspective: 1600,
-            rotateX, rotateY, scale, y: mockY,
-            position: 'relative', zIndex: 1,
+        {/* Badge pill */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, delay: 0 }}
+          style={{ marginBottom: 28 }}
+        >
+          <span style={{
+            display: 'inline-flex', alignItems: 'center', gap: 9,
+            padding: '6px 18px', borderRadius: 100,
+            background: 'rgba(232,25,44,0.07)',
+            border: '1px solid rgba(232,25,44,0.22)',
+            color: '#FF4D5E', fontSize: 12, fontWeight: 600, letterSpacing: '0.01em',
           }}>
-            <DashboardMockup />
-          </motion.div>
+            <span className="anim-pulse" style={{ width: 6, height: 6, borderRadius: '50%', background: '#E82127', display: 'inline-block' }} />{' '}
+            Open beta · 12,000+ students enrolled
+          </span>
+        </motion.div>
 
-          {/* Fade to bg */}
-          <div style={{
-            position: 'absolute', bottom: 0, left: 0, right: 0, height: '50%',
-            background: `linear-gradient(to bottom, transparent, ${D.bg})`,
-            zIndex: 2, pointerEvents: 'none',
-          }} />
+        {/* HERO TITLE */}
+        <h1 style={{
+          fontSize: 'clamp(48px, 9vw, 96px)',
+          fontWeight: 900, letterSpacing: '-0.05em', lineHeight: 0.94,
+          color: D.t1, marginBottom: 24,
+        }}>
+          <SplitWords text="The structured path" delay={0.1} stagger={0.06} />
+          <br />
+          <span style={{ display: 'flex', flexWrap: 'wrap', gap: '0.28em', justifyContent: 'center', marginTop: '0.04em' }}>
+            <SplitWords text="to your first" delay={0.32} stagger={0.06} />
+            {' '}
+            <SplitWords
+              text="tech offer."
+              delay={0.56}
+              stagger={0.07}
+              style={{ color: '#E82127', textShadow: '0 0 80px rgba(232,25,44,0.7), 0 0 160px rgba(232,25,44,0.3)' }}
+            />
+          </span>
+        </h1>
+
+        {/* Subtext */}
+        <motion.p
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.55, delay: 0.7 }}
+          style={{ fontSize: 17, color: D.t3, maxWidth: 500, margin: '0 auto 36px', lineHeight: 1.7 }}
+        >
+          DSA, system design, OOP, core CS, and placement prep — one platform, one path to your first tech offer.
+        </motion.p>
+
+        {/* CTA buttons */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, delay: 0.86 }}
+          style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 28 }}
+        >
+          <Link to="/login?tab=register" className="btn btn-primary btn-xl">
+            Start for free{' '}
+            <span className="material-symbols-rounded text-base">arrow_forward</span>
+          </Link>
+          <a href="#showcase" className="btn btn-xl"
+            style={{ background: 'rgba(255,255,255,0.05)', color: D.t1, border: '1px solid rgba(255,255,255,0.1)', backdropFilter: 'blur(12px)' }}>
+            See how it works
+          </a>
+        </motion.div>
+
+        {/* Trust chips */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.45, delay: 1.0 }}
+          style={{ display: 'flex', gap: 22, justifyContent: 'center', flexWrap: 'wrap' }}
+        >
+          {['No credit card', 'Free tier forever', 'Start in 5 minutes'].map((t) => (
+            <span key={t} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: D.t4 }}>
+              <span style={{ color: '#4ADE80', fontWeight: 700 }}>✓</span> {t}
+            </span>
+          ))}
         </motion.div>
       </div>
+
+      {/* 3D Mockup */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1, delay: 0.9 }}
+        style={{ maxWidth: 960, margin: '0 auto', position: 'relative', zIndex: 1, paddingBottom: 0 }}
+        className="land-container"
+      >
+        {/* Light cone */}
+        <div aria-hidden="true" style={{
+          position: 'absolute', top: '-20%', left: '50%', transform: 'translateX(-50%)',
+          width: 400, height: 600,
+          background: 'conic-gradient(from 180deg at 50% 0%, transparent 60deg, rgba(232,25,44,0.22) 90deg, transparent 120deg)',
+          filter: 'blur(30px)',
+          zIndex: 0, pointerEvents: 'none',
+        }} />
+
+        {/* Bottom glow */}
+        <div aria-hidden="true" style={{
+          position: 'absolute', top: '25%', left: '10%', right: '10%', bottom: '-5%',
+          background: 'radial-gradient(ellipse, rgba(232,25,44,0.22) 0%, transparent 65%)',
+          filter: 'blur(60px)', zIndex: 0, pointerEvents: 'none',
+        }} />
+
+        {/* Floating chips */}
+        <FloatingChip label="+120 XP" sub="Two Sum · Pattern solved" color="#E82127" delay={0.9}
+          style={{ top: '12%', left: '-8%' }} />
+        <FloatingChip label="🔥 14-day streak" sub="Keep it up" color="#FB923C" delay={1.3}
+          style={{ top: '6%', right: '-4%' }} />
+        <FloatingChip label="Google Round 2 ✓" sub="Prep complete" color="#4ADE80" delay={1.7}
+          style={{ bottom: '35%', right: '-10%' }} />
+        <FloatingChip label="Lv.6 Unlocked" sub="Builder → Engineer" color="#A78BFA" delay={1.1}
+          style={{ bottom: '28%', left: '-8%' }} />
+
+        {/* Actual 3D mockup */}
+        <motion.div style={{
+          transformPerspective: 1600,
+          rotateX, rotateY, scale, y: mockY,
+          position: 'relative', zIndex: 1,
+        }}>
+          <DashboardMockup />
+        </motion.div>
+
+        {/* Fade to bg */}
+        <div style={{
+          position: 'absolute', bottom: 0, left: 0, right: 0, height: '50%',
+          background: `linear-gradient(to bottom, transparent, ${D.bg})`,
+          zIndex: 2, pointerEvents: 'none',
+        }} />
+      </motion.div>
+
+      {/* Scroll indicator */}
+      <motion.div
+        style={{ opacity: scrollIndicatorOpacity, position: 'absolute', bottom: 32, left: '50%', transform: 'translateX(-50%)', zIndex: 10 }}
+        aria-hidden="true"
+      >
+        <motion.div
+          animate={{ y: [0, 10, 0] }}
+          transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
+          style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}
+        >
+          <span style={{ fontSize: 10, color: D.t4, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Scroll</span>
+          <span className="material-symbols-rounded" style={{ color: D.t4, fontSize: 20 }}>keyboard_arrow_down</span>
+        </motion.div>
+      </motion.div>
     </section>
   );
 }
@@ -439,6 +570,192 @@ function TrustBar() {
         </div>
       </div>
     </section>
+  );
+}
+
+/* ── How it Works — scroll-pinned 3D step sequence ─────────────────────── */
+const HOW_STEPS = [
+  { num: '01', title: 'Assess your readiness', body: 'Take the EYF readiness test. Get a precise gap analysis across DSA, system design, and placement skills.', icon: 'analytics', color: '#3B82F6' },
+  { num: '02', title: 'Follow your roadmap', body: 'A personalized, ordered curriculum built for campus placements. No more random grinding.', icon: 'route', color: '#A78BFA' },
+  { num: '03', title: 'Practice with purpose', body: '450+ problems tagged by pattern. Solve them in order, track your streaks, level up your XP.', icon: 'code', color: '#22D3EE' },
+  { num: '04', title: 'Simulate the real thing', body: 'Mock interviews, company prep kits, and ATS resume scoring. Know your weak spots before the recruiter does.', icon: 'work_history', color: '#4ADE80' },
+  { num: '05', title: 'Get the offer', body: "Track every application, prep for each company, and walk into interviews knowing you're ready.", icon: 'emoji_events', color: '#E82127' },
+] as const;
+
+function HowItWorksSection() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({ target: containerRef, offset: ['start start', 'end end'] });
+
+  const step0o = useTransform(scrollYProgress, [0, 0.04, 0.18, 0.22], [0, 1, 1, 0]);
+  const step0s = useTransform(scrollYProgress, [0, 0.04], [0.7, 1]);
+
+  const step1o = useTransform(scrollYProgress, [0.18, 0.24, 0.38, 0.42], [0, 1, 1, 0]);
+  const step1s = useTransform(scrollYProgress, [0.18, 0.24], [0.7, 1]);
+
+  const step2o = useTransform(scrollYProgress, [0.38, 0.44, 0.58, 0.62], [0, 1, 1, 0]);
+  const step2s = useTransform(scrollYProgress, [0.38, 0.44], [0.7, 1]);
+
+  const step3o = useTransform(scrollYProgress, [0.58, 0.64, 0.78, 0.82], [0, 1, 1, 0]);
+  const step3s = useTransform(scrollYProgress, [0.58, 0.64], [0.7, 1]);
+
+  const step4o = useTransform(scrollYProgress, [0.78, 0.84, 1, 1], [0, 1, 1, 1]);
+  const step4s = useTransform(scrollYProgress, [0.78, 0.84], [0.7, 1]);
+
+  const opacities  = [step0o, step1o, step2o, step3o, step4o];
+  const scales     = [step0s, step1s, step2s, step3s, step4s];
+
+  // Active step index for background glow
+  const [activeStep, setActiveStep] = useState(0);
+  useEffect(() => {
+    const unsubscribe = scrollYProgress.on('change', (v) => {
+      if (v < 0.2) setActiveStep(0);
+      else if (v < 0.4) setActiveStep(1);
+      else if (v < 0.6) setActiveStep(2);
+      else if (v < 0.8) setActiveStep(3);
+      else setActiveStep(4);
+    });
+    return unsubscribe;
+  }, [scrollYProgress]);
+
+  return (
+    <div ref={containerRef} style={{ height: '500vh', position: 'relative' }}>
+      <div style={{ position: 'sticky', top: 0, height: '100vh', overflow: 'hidden', background: D.bg }}>
+        <GridBg opacity={0.018} />
+
+        {/* Background color shift glow */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeStep}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.8 }}
+            aria-hidden="true"
+            style={{
+              position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0,
+              background: `radial-gradient(ellipse 60% 60% at 70% 50%, ${HOW_STEPS[activeStep].color}16 0%, transparent 70%)`,
+            }}
+          />
+        </AnimatePresence>
+
+        {/* Section eyebrow — always visible */}
+        <div style={{ position: 'absolute', top: 80, left: '50%', transform: 'translateX(-50%)', zIndex: 10, textAlign: 'center' }}>
+          <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: D.red }}>
+            How it Works
+          </p>
+        </div>
+
+        {/* Steps */}
+        {HOW_STEPS.map((step, i) => (
+          <motion.div
+            key={step.num}
+            style={{
+              opacity: opacities[i],
+              scale: scales[i],
+              transformPerspective: 1200,
+              position: 'absolute', inset: 0,
+              display: 'flex', alignItems: 'center',
+              paddingTop: 72,
+            }}
+          >
+            <div className="land-container w-full">
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 40, alignItems: 'center' }}
+                className="lg:grid-two-col">
+                {/* Left: text */}
+                <div>
+                  <div style={{ fontSize: '10rem', fontWeight: 900, lineHeight: 1, letterSpacing: '-0.07em', color: 'rgba(255,255,255,0.04)', marginBottom: -16, userSelect: 'none' }}>
+                    {step.num}
+                  </div>
+                  <h2 style={{ fontSize: 'clamp(28px, 4vw, 52px)', fontWeight: 900, letterSpacing: '-0.04em', lineHeight: 1.05, color: D.t1, marginBottom: 16 }}>
+                    <SplitWords text={step.title} delay={0.05} stagger={0.05} />
+                  </h2>
+                  <p style={{ fontSize: 16, lineHeight: 1.7, color: D.t3, maxWidth: 420 }}>{step.body}</p>
+
+                  {/* Colored icon pill */}
+                  <div style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 10,
+                    marginTop: 28, padding: '8px 16px', borderRadius: 12,
+                    background: `${step.color}12`, border: `1px solid ${step.color}30`,
+                  }}>
+                    <span className="material-symbols-rounded" style={{ color: step.color, fontSize: 18 }}>{step.icon}</span>
+                    <span style={{ fontSize: 12, fontWeight: 600, color: step.color }}>Step {step.num}</span>
+                  </div>
+                </div>
+
+                {/* Right: 3D card */}
+                <div className="hidden lg:block">
+                  <Tilt strength={10}>
+                    <div style={{
+                      padding: 40, borderRadius: 24,
+                      background: 'rgba(255,255,255,0.02)',
+                      border: `1px solid ${step.color}20`,
+                      boxShadow: `0 0 80px ${step.color}10, 0 40px 120px rgba(0,0,0,0.6)`,
+                      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20,
+                      minHeight: 280,
+                    }}>
+                      {/* Glow ring + icon */}
+                      <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <motion.div
+                          animate={{ scale: [1, 1.12, 1], opacity: [0.4, 0.8, 0.4] }}
+                          transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+                          style={{
+                            position: 'absolute', width: 120, height: 120, borderRadius: '50%',
+                            background: `radial-gradient(circle, ${step.color}30 0%, transparent 70%)`,
+                            filter: 'blur(12px)',
+                          }}
+                        />
+                        <motion.div
+                          animate={{ scale: [1, 1.06, 1] }}
+                          transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut', delay: 0.3 }}
+                          style={{
+                            width: 80, height: 80, borderRadius: '50%',
+                            background: `${step.color}14`,
+                            border: `1px solid ${step.color}40`,
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            position: 'relative', zIndex: 1,
+                          }}
+                        >
+                          <span className="material-symbols-rounded" style={{ color: step.color, fontSize: 40 }}>{step.icon}</span>
+                        </motion.div>
+                      </div>
+
+                      <p style={{ fontSize: 14, fontWeight: 600, color: D.t2, textAlign: 'center', lineHeight: 1.5 }}>{step.title}</p>
+
+                      {/* Floating detail chips */}
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center' }}>
+                        {['Personalized','Structured','Tracked'].map((chip) => (
+                          <span key={chip} style={{
+                            padding: '4px 12px', borderRadius: 20, fontSize: 11, fontWeight: 600,
+                            background: `${step.color}10`, border: `1px solid ${step.color}25`,
+                            color: step.color,
+                          }}>{chip}</span>
+                        ))}
+                      </div>
+                    </div>
+                  </Tilt>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        ))}
+
+        {/* Step progress dots */}
+        <div style={{ position: 'absolute', bottom: 32, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 8, zIndex: 10 }}>
+          {HOW_STEPS.map((s, i) => (
+            <motion.div
+              key={s.num}
+              animate={{ scale: activeStep === i ? 1.4 : 1, opacity: activeStep === i ? 1 : 0.3 }}
+              transition={{ duration: 0.3 }}
+              style={{
+                width: 6, height: 6, borderRadius: '50%',
+                background: activeStep === i ? s.color : D.t4,
+                boxShadow: activeStep === i ? `0 0 10px ${s.color}` : 'none',
+              }}
+            />
+          ))}
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -571,33 +888,36 @@ function SystemDesignCard() {
   );
 }
 
-/* ── Cinematic feature showcase (pinned scroll) ────────────────────────── */
+/* ── Feature Showcase — cinematic pinned scroll ─────────────────────────── */
 const FEATURES = [
   {
     eyebrow: 'DSA Practice',
     eyebrowColor: '#3B82F6',
-    heading: <>Stop grinding randomly.<br />Think in patterns.</>,
+    heading: 'Stop grinding randomly. Think in patterns.',
     body: 'Most students solve 200+ problems and still freeze in interviews. EYF structures practice around the 15 fundamental patterns that cover 80% of real interview questions.',
     points: ['450+ problems by pattern — not just by topic','Company filter: Google, Amazon, TCS, Infosys','In-browser editor with auto test execution','Spaced-repetition review queue'],
     accentColor: '#4ADE80',
+    glowColor: 'rgba(74,222,128,0.08)',
     card: <CodeCard />,
   },
   {
     eyebrow: 'Placement Intelligence',
     eyebrowColor: '#A78BFA',
-    heading: <>Know your readiness<br />before the call.</>,
+    heading: "Know your readiness before the call.",
     body: "EYF's Placement Score aggregates your DSA depth, system design fluency, and company-specific coverage into one honest metric — no surprises on interview day.",
     points: ['Readiness score across all technical domains','Company-wise question banks with recent OA patterns','ATS resume analyzer with actionable tips','Role-specific prep plans: SDE, Data Analyst, DevOps'],
     accentColor: '#A78BFA',
+    glowColor: 'rgba(167,139,250,0.08)',
     card: <ReadinessCard />,
   },
   {
     eyebrow: 'System Design',
     eyebrowColor: '#22D3EE',
-    heading: <>Design systems that<br />scale to millions.</>,
+    heading: 'Design systems that scale to millions.',
     body: 'From URL shorteners to distributed databases — EYF teaches system design through real-world architectures, trade-off analysis, and hands-on diagramming exercises.',
     points: ['High-level & low-level design for 30+ systems','Trade-off analysis and capacity estimation','Worked solutions with annotated diagrams','Interview-format walkthroughs'],
     accentColor: '#22D3EE',
+    glowColor: 'rgba(34,211,238,0.08)',
     card: <SystemDesignCard />,
   },
 ] as const;
@@ -611,57 +931,74 @@ function FeatureShowcase() {
   const f1y = useTransform(scrollYProgress, [0, 0.04, 0.3, 0.38], [50, 0, 0, -60]);
   const f1s = useTransform(scrollYProgress, [0.3, 0.38], [1, 0.93]);
   const f1ry = useTransform(scrollYProgress, [0, 0.04], [-6, 0]);
+  const f1rz = useTransform(scrollYProgress, [0, 0.04], [1.5, 0]);
 
   // Feature 2: visible 0.33 → 0.70
   const f2o = useTransform(scrollYProgress, [0.32, 0.4, 0.64, 0.72], [0, 1, 1, 0]);
   const f2y = useTransform(scrollYProgress, [0.32, 0.4, 0.64, 0.72], [60, 0, 0, -60]);
   const f2s = useTransform(scrollYProgress, [0.64, 0.72], [1, 0.93]);
   const f2ry = useTransform(scrollYProgress, [0.32, 0.4], [-6, 0]);
+  const f2rz = useTransform(scrollYProgress, [0.32, 0.4], [1.5, 0]);
 
   // Feature 3: visible 0.67 → 1.0
   const f3o = useTransform(scrollYProgress, [0.66, 0.74, 1, 1], [0, 1, 1, 1]);
   const f3y = useTransform(scrollYProgress, [0.66, 0.74], [60, 0]);
   const f3ry = useTransform(scrollYProgress, [0.66, 0.74], [-6, 0]);
+  const f3rz = useTransform(scrollYProgress, [0.66, 0.74], [1.5, 0]);
 
-  // Dot progress indicator
-  const dot0 = useTransform(scrollYProgress, [0, 0.33], [1, 0]);
-  const dot1mid = useTransform(scrollYProgress, [0.33, 0.66], [0, 1]);
-  const dot2 = useTransform(scrollYProgress, [0.66, 1], [0, 1]);
+  // Progress bar width
+  const progressWidth = useTransform(scrollYProgress, [0, 1], ['0%', '100%']);
+
+  // Ambient glow
+  const [activeFeature, setActiveFeature] = useState(0);
+  useEffect(() => {
+    const unsub = scrollYProgress.on('change', (v) => {
+      if (v < 0.35) setActiveFeature(0);
+      else if (v < 0.68) setActiveFeature(1);
+      else setActiveFeature(2);
+    });
+    return unsub;
+  }, [scrollYProgress]);
 
   const motions = [
-    { opacity: f1o, y: f1y, scale: f1s, rotateY: f1ry },
-    { opacity: f2o, y: f2y, scale: f2s, rotateY: f2ry },
-    { opacity: f3o, y: f3y, scale: useMotionValue(1), rotateY: f3ry },
+    { opacity: f1o, y: f1y, scale: f1s, rotateY: f1ry, rotateZ: f1rz },
+    { opacity: f2o, y: f2y, scale: f2s, rotateY: f2ry, rotateZ: f2rz },
+    { opacity: f3o, y: f3y, scale: useMotionValue(1), rotateY: f3ry, rotateZ: f3rz },
   ] as const;
-
-  const dots = [dot0, dot1mid, dot2] as const;
 
   return (
     <div ref={containerRef} id="showcase" style={{ height: '360vh', position: 'relative' }}>
       <div style={{ position: 'sticky', top: 0, height: '100vh', overflow: 'hidden', background: D.bg }}>
         <GridBg opacity={0.018} />
 
-        {/* Ambient glow */}
-        <div aria-hidden="true" className="aurora-blob-c" style={{
-          position: 'absolute', top: '-20%', left: '30%',
-          width: 700, height: 700,
-          background: 'radial-gradient(ellipse, rgba(232,25,44,0.08) 0%, transparent 70%)',
-          filter: 'blur(80px)', pointerEvents: 'none', zIndex: 0,
-        }} />
+        {/* Ambient glow color shift */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeFeature}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.6 }}
+            aria-hidden="true"
+            style={{
+              position: 'absolute', top: '-20%', left: '25%',
+              width: 700, height: 700,
+              background: `radial-gradient(ellipse, ${FEATURES[activeFeature].glowColor} 0%, transparent 70%)`,
+              filter: 'blur(80px)', pointerEvents: 'none', zIndex: 0,
+            }}
+          />
+        </AnimatePresence>
 
-        {/* Progress dots */}
-        <div style={{ position: 'absolute', top: 32, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 8, zIndex: 10 }}>
-          {dots.map((dot, i) => (
-            <motion.div key={`dot-${i}`} style={{
-              width: 6, height: 6, borderRadius: '50%',
-              background: '#E82127',
-              opacity: dot,
-              boxShadow: '0 0 8px #E82127',
-            }} />
-          ))}
+        {/* Thin progress line at top */}
+        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: 'rgba(255,255,255,0.06)', zIndex: 10 }}>
+          <motion.div style={{
+            height: '100%',
+            width: progressWidth,
+            background: `linear-gradient(90deg, ${D.red}, ${FEATURES[activeFeature].eyebrowColor})`,
+          }} />
         </div>
 
-        {/* All 3 feature panels stacked, each absolutely positioned */}
+        {/* All 3 feature panels */}
         {FEATURES.map((feat, i) => (
           <motion.div
             key={feat.eyebrow}
@@ -670,10 +1007,11 @@ function FeatureShowcase() {
               y: motions[i].y,
               scale: motions[i].scale,
               rotateY: motions[i].rotateY,
+              rotateZ: motions[i].rotateZ,
               transformPerspective: 1200,
               position: 'absolute', inset: 0,
               display: 'flex', alignItems: 'center',
-              paddingTop: 72, // clear fixed navbar
+              paddingTop: 72,
             }}
           >
             <div className="land-container w-full">
@@ -685,7 +1023,7 @@ function FeatureShowcase() {
                     {feat.eyebrow}
                   </p>
                   <h2 style={{ fontSize: 'clamp(26px, 4vw, 50px)', fontWeight: 900, letterSpacing: '-0.04em', lineHeight: 1.05, color: D.t1, marginBottom: 16 }}>
-                    {feat.heading}
+                    <SplitWords text={feat.heading} delay={0.05} stagger={0.04} />
                   </h2>
                   <p style={{ fontSize: 15, lineHeight: 1.7, color: D.t3, marginBottom: 22 }}>{feat.body}</p>
                   <ul style={{ marginBottom: 28 }}>
@@ -703,7 +1041,7 @@ function FeatureShowcase() {
                   </ul>
                   <Link to="/login?tab=register" className="btn btn-primary">Get started free</Link>
                 </div>
-                {/* Card — hidden on mobile to prevent overflow in pinned section */}
+                {/* Card */}
                 <div className="hidden lg:block" style={{ minWidth: 0 }}>
                   <Tilt strength={10}>
                     {feat.card}
@@ -736,19 +1074,25 @@ function StatsSection() {
       <div className="land-container" style={{ position: 'relative', zIndex: 1 }}>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
           {stats.map((s, i) => (
-            <Reveal key={s.label} delay={i * 0.08}>
+            <motion.div
+              key={s.label}
+              initial={{ opacity: 0, scale: 0.6, filter: 'blur(20px)' }}
+              whileInView={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
+              viewport={{ once: true, margin: '-50px' }}
+              transition={{ duration: 0.8, delay: i * 0.08, ease: [0.16, 1, 0.3, 1] }}
+              style={{ transformPerspective: 800 }}
+            >
               <Tilt strength={8} style={{ padding: 24, borderRadius: 16, background: 'rgba(255,255,255,0.02)', border: `1px solid ${D.border}` }}>
                 <div style={{
                   fontSize: 'clamp(38px, 5vw, 62px)', fontWeight: 900, letterSpacing: '-0.05em',
                   lineHeight: 1, color: D.t1, marginBottom: 8,
-                  textShadow: '0 0 50px rgba(232,25,44,0.4)',
                 }}>
                   <CountUp target={s.value} suffix={s.suffix} />
                 </div>
                 <div style={{ fontSize: 13, fontWeight: 600, color: D.t3, marginBottom: 3 }}>{s.label}</div>
                 <div style={{ fontSize: 11, color: D.t4 }}>{s.detail}</div>
               </Tilt>
-            </Reveal>
+            </motion.div>
           ))}
         </div>
       </div>
@@ -812,44 +1156,71 @@ function CurriculumSection() {
   );
 }
 
-/* ── Testimonials ──────────────────────────────────────────────────────── */
+/* ── Testimonials — 2-row marquee reel ─────────────────────────────────── */
 function TestimonialsSection() {
-  const testimonials = [
+  const allTestimonials = [
     { quote: "I'd been grinding LeetCode randomly for months. EYF's pattern-based approach gave me a structure that actually stuck. Cracked Juspay in 3 weeks.", name: 'Arjun Mehta', role: 'SDE-1 at Juspay', college: 'NIT Warangal · 2024', initials: 'AM' },
     { quote: "The readiness score was honestly humbling — showed massive gaps in system design. That honesty saved me from failing my first interview round.", name: 'Priya Venkataraman', role: 'Software Engineer at Freshworks', college: 'Anna University · 2024', initials: 'PV' },
     { quote: "Finally a platform that treats DSA and placement prep as connected. The company-specific question banks are gold — I had 3 exact questions from Zoho's OA.", name: 'Rohit Sharma', role: 'Associate Engineer at Zoho', college: 'VIT Vellore · 2023', initials: 'RS' },
+    { quote: "The mock interview feature is a game-changer. I practiced 10+ rounds before my actual interviews and went in completely calm. Got into Infosys on my first try.", name: 'Sneha Patel', role: 'Software Engineer at Infosys', college: 'BITS Pilani · 2024', initials: 'SP' },
+    { quote: "EYF's curriculum map showed me exactly what I needed to study next. No more guessing. I went from 0 offers to 2 offers in 6 weeks.", name: 'Karan Nair', role: 'SDE at TCS Digital', college: 'DTU Delhi · 2024', initials: 'KN' },
+    { quote: "The XP system keeps me accountable. I hit a 30-day streak and the community kept me going. Best decision I made before placements.", name: 'Divya Krishnamurthy', role: 'Analyst at Capgemini', college: 'PSG Tech · 2023', initials: 'DK' },
+    { quote: "Pattern-based DSA practice is completely different from random grinding. I solved 200 problems on EYF and it felt like 10x the value of 500 on other platforms.", name: 'Aditya Raj', role: 'SDE at Wipro Elite', college: 'SRM · 2024', initials: 'AR' },
+    { quote: "The resume analyzer caught 7 issues in my CV that I never would have noticed. Got 3x more callbacks after fixing them. EYF is seriously underrated.", name: 'Meera Iyer', role: 'Software Engineer at HCL', college: 'VIT Chennai · 2023', initials: 'MI' },
   ];
+
+  // Row 1: first 4, Row 2: last 4 (each row doubled for seamless loop)
+  const row1 = allTestimonials.slice(0, 4);
+  const row2 = allTestimonials.slice(4, 8);
+
+  const TestimonialCard = ({ t }: { readonly t: typeof allTestimonials[0] }) => (
+    <Tilt strength={8} style={{
+      flexShrink: 0, width: 320, padding: 26, borderRadius: 18,
+      background: 'rgba(14,14,14,0.8)',
+      border: `1px solid ${D.border}`,
+      backdropFilter: 'blur(16px)',
+      display: 'flex', flexDirection: 'column',
+    }}>
+      <div style={{ display: 'flex', gap: 2, marginBottom: 18 }}>
+        {[0,1,2,3,4].map((s) => <span key={s} style={{ color: '#FBBF24', fontSize: 14 }}>★</span>)}
+      </div>
+      <p style={{ fontSize: 13, lineHeight: 1.75, color: D.t3, marginBottom: 22, flex: 1 }}>"{t.quote}"</p>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div style={{ width: 36, height: 36, borderRadius: 9, background: D.red, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, flexShrink: 0, boxShadow: '0 0 16px rgba(232,25,44,0.4)' }}>{t.initials}</div>
+        <div>
+          <p style={{ fontSize: 13, fontWeight: 600, color: D.t1 }}>{t.name}</p>
+          <p style={{ fontSize: 11, color: D.t3 }}>{t.role}</p>
+          <p style={{ fontSize: 10, color: D.t4 }}>{t.college}</p>
+        </div>
+      </div>
+    </Tilt>
+  );
+
   return (
-    <section style={{ background: D.surf, padding: '120px 0', borderTop: '1px solid rgba(255,255,255,0.04)' }}>
-      <div className="land-container">
-        <Reveal style={{ marginBottom: 56, textAlign: 'center' }}>
+    <section style={{ background: D.surf, padding: '120px 0', borderTop: '1px solid rgba(255,255,255,0.04)', overflow: 'hidden' }}>
+      <div className="land-container" style={{ marginBottom: 56 }}>
+        <Reveal style={{ textAlign: 'center' }}>
           <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: D.red, marginBottom: 14 }}>Student Outcomes</p>
           <h2 style={{ fontSize: 'clamp(30px, 4.5vw, 54px)', fontWeight: 900, letterSpacing: '-0.045em', color: D.t1, margin: 0, lineHeight: 1.05 }}>
             From preparation to placement.
           </h2>
         </Reveal>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {testimonials.map((t, i) => (
-            <Reveal key={t.name} delay={i * 0.09}>
-              <Tilt strength={10} style={{
-                padding: 26, borderRadius: 18,
-                background: D.elev, border: `1px solid ${D.border}`,
-                display: 'flex', flexDirection: 'column', height: '100%',
-              }}>
-                <div style={{ display: 'flex', gap: 2, marginBottom: 18 }}>
-                  {[0,1,2,3,4].map((s) => <span key={s} style={{ color: '#FBBF24', fontSize: 14 }}>★</span>)}
-                </div>
-                <p style={{ fontSize: 13, lineHeight: 1.75, color: D.t3, marginBottom: 22, flex: 1 }}>"{t.quote}"</p>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <div style={{ width: 36, height: 36, borderRadius: 9, background: D.red, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, flexShrink: 0, boxShadow: '0 0 16px rgba(232,25,44,0.4)' }}>{t.initials}</div>
-                  <div>
-                    <p style={{ fontSize: 13, fontWeight: 600, color: D.t1 }}>{t.name}</p>
-                    <p style={{ fontSize: 11, color: D.t3 }}>{t.role}</p>
-                    <p style={{ fontSize: 10, color: D.t4 }}>{t.college}</p>
-                  </div>
-                </div>
-              </Tilt>
-            </Reveal>
+      </div>
+
+      {/* Row 1 — scrolls left */}
+      <div style={{ marginBottom: 16, overflow: 'hidden', maskImage: 'linear-gradient(90deg, transparent, black 10%, black 90%, transparent)', WebkitMaskImage: 'linear-gradient(90deg, transparent, black 10%, black 90%, transparent)' }}>
+        <div className="marquee-track-left" style={{ display: 'flex', gap: 16, width: 'max-content' }}>
+          {[...row1, ...row1].map((t, i) => (
+            <TestimonialCard key={`r1-${i}`} t={t} />
+          ))}
+        </div>
+      </div>
+
+      {/* Row 2 — scrolls right */}
+      <div style={{ overflow: 'hidden', maskImage: 'linear-gradient(90deg, transparent, black 10%, black 90%, transparent)', WebkitMaskImage: 'linear-gradient(90deg, transparent, black 10%, black 90%, transparent)' }}>
+        <div className="marquee-track-right" style={{ display: 'flex', gap: 16, width: 'max-content', transform: 'translateX(-50%)' }}>
+          {[...row2, ...row2].map((t, i) => (
+            <TestimonialCard key={`r2-${i}`} t={t} />
           ))}
         </div>
       </div>
@@ -922,16 +1293,55 @@ function PricingSection() {
   );
 }
 
-/* ── CTA ───────────────────────────────────────────────────────────────── */
+/* ── CTA Section — cinematic convergence ───────────────────────────────── */
 function CTASection() {
   return (
-    <section style={{ background: D.surf, padding: '140px 0', borderTop: '1px solid rgba(255,255,255,0.04)', position: 'relative', overflow: 'hidden' }}>
-      <div aria-hidden="true" style={{
-        position: 'absolute', top: '-50%', left: '10%', right: '10%', height: '200%',
-        background: 'radial-gradient(ellipse, rgba(232,25,44,0.13) 0%, transparent 65%)',
-        filter: 'blur(80px)', pointerEvents: 'none',
-      }} />
+    <section style={{ minHeight: '90vh', background: '#000', position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      {/* Spotlight beams from corners */}
+      {[
+        { top: 0, left: '10%',  rotate: 20  },
+        { top: 0, right: '10%', rotate: -20 },
+        { bottom: 0, left: '10%',  rotate: -20 },
+        { bottom: 0, right: '10%', rotate: 20  },
+      ].map((beam, i) => (
+        <motion.div
+          key={i}
+          animate={{ opacity: [0.2, 0.5, 0.2] }}
+          transition={{ duration: 3, repeat: Infinity, delay: i * 0.75, ease: 'easeInOut' }}
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            ...('top' in beam ? { top: beam.top } : {}),
+            ...('bottom' in beam ? { bottom: beam.bottom as number | string } : {}),
+            ...('left' in beam ? { left: beam.left as string } : {}),
+            ...('right' in beam ? { right: beam.right as string } : {}),
+            width: 2, height: '60vh',
+            transformOrigin: 'center bottom',
+            transform: `rotate(${beam.rotate}deg)`,
+            background: 'linear-gradient(to bottom, transparent, rgba(232,25,44,0.4))',
+            pointerEvents: 'none',
+            zIndex: 0,
+          }}
+        />
+      ))}
+
+      {/* Central explosion glow */}
+      <motion.div
+        animate={{ scale: [1, 1.15, 1] }}
+        transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+        aria-hidden="true"
+        style={{
+          position: 'absolute', top: '50%', left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: 600, height: 600,
+          background: 'radial-gradient(circle, rgba(232,25,44,0.3) 0%, transparent 60%)',
+          filter: 'blur(80px)',
+          pointerEvents: 'none', zIndex: 0,
+        }}
+      />
+
       <GridBg opacity={0.018} />
+
       <div className="land-container text-center" style={{ position: 'relative', zIndex: 1 }}>
         <Reveal>
           <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: D.t4, marginBottom: 22 }}>Ready to start?</p>
@@ -939,9 +1349,10 @@ function CTASection() {
             fontSize: 'clamp(38px, 7vw, 80px)', fontWeight: 900,
             letterSpacing: '-0.05em', lineHeight: 0.96, color: D.t1,
             maxWidth: 720, margin: '0 auto 22px',
-            textShadow: '0 0 80px rgba(232,25,44,0.2)',
           }}>
-            Join 12,000+ students<br />preparing on EYF.
+            <SplitWords text="Join 12,000+ students" delay={0.05} stagger={0.06} style={{ justifyContent: 'center' }} />
+            <br />
+            <SplitWords text="preparing on EYF." delay={0.35} stagger={0.07} style={{ justifyContent: 'center', color: D.red, textShadow: '0 0 60px rgba(232,25,44,0.6)' }} />
           </h2>
           <p style={{ fontSize: 16, color: D.t4, maxWidth: 420, margin: '0 auto 44px' }}>
             Free forever. No credit card. Start tracking your placement readiness in under 5 minutes.
@@ -1081,10 +1492,13 @@ export function LandingPage() {
     <div style={{ background: D.bg, color: D.t1, minHeight: '100vh' }}>
       <CursorGlow />
       <Grain />
+      <SceneGlow color="rgba(232,25,44,0.08)" top="-10%" left="-10%" size={800} scrollFactor={0.05} />
+      <SceneGlow color="rgba(100,50,240,0.06)" top="20%" left="60%" size={600} scrollFactor={-0.04} />
       <LandingNav />
       <main>
         <HeroSection />
         <TrustBar />
+        <HowItWorksSection />
         <FeatureShowcase />
         <StatsSection />
         <CurriculumSection />
