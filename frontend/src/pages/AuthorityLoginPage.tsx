@@ -24,9 +24,9 @@ export function AuthorityLoginPage() {
     setLoading(true);
     setError(null);
     try {
-      const result = await apiRequest<AuthorityLoginResponse>('/authority/login', {
+      const result = await apiRequest<AuthorityLoginResponse>('/auth/login', {
         method: 'POST',
-        body: { email, password },
+        body: { email, password, zone: 'authority' },
       });
       setSession({ accessToken: result.accessToken, role: result.user.role, zone: 'authority', email: result.user.email });
       navigate('/authority/dashboard', { replace: true });
