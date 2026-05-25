@@ -38,7 +38,7 @@ export function AuthorityLoginPage() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: '#080808', color: '#e4e4e7', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, overflow: 'hidden' }}>
+    <div style={{ minHeight: '100vh', background: '#080808', color: 'var(--t1)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, overflow: 'hidden' }}>
       {/* Background glows */}
       <div style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none' }}>
         <div style={{ position: 'absolute', top: '-10%', right: '-10%', width: '60%', height: '60%', borderRadius: '50%', background: 'rgba(232,33,39,0.04)', filter: 'blur(120px)' }} />
@@ -56,13 +56,13 @@ export function AuthorityLoginPage() {
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 48 }}>
               <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#E82127' }} />
-              <span style={{ fontSize: 18, fontWeight: 900, letterSpacing: '-0.04em', textTransform: 'uppercase', color: '#e4e4e7' }}>EYF PLATFORM</span>
+              <span style={{ fontSize: 18, fontWeight: 900, letterSpacing: '-0.04em', textTransform: 'uppercase', color: 'var(--t1)' }}>EYF PLATFORM</span>
             </div>
-            <h1 style={{ fontSize: '3rem', fontWeight: 900, letterSpacing: '-0.04em', lineHeight: 1.1, color: '#e4e4e7' }}>
+            <h1 style={{ fontSize: '3rem', fontWeight: 900, letterSpacing: '-0.04em', lineHeight: 1.1, color: 'var(--t1)' }}>
               Authority<br />
               <span style={{ color: '#E82127' }}>Gateway.</span>
             </h1>
-            <p style={{ color: '#71717a', fontSize: 14, lineHeight: 1.7, marginTop: 16, maxWidth: 280 }}>
+            <p style={{ color: 'var(--t3)', fontSize: 14, lineHeight: 1.7, marginTop: 16, maxWidth: 280 }}>
               Restricted access for authorized EYF Platform operators, staff, and administrators.
             </p>
           </div>
@@ -74,8 +74,8 @@ export function AuthorityLoginPage() {
             ].map((item) => (
               <div key={item.label} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <Icon name={item.icon} size={16} style={{ color: '#71717a' }} />
-                  <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#71717a' }}>{item.label}</span>
+                  <Icon name={item.icon} size={16} style={{ color: 'var(--t3)' }} />
+                  <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--t3)' }}>{item.label}</span>
                 </div>
                 <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#E82127' }}>{item.value}</span>
               </div>
@@ -86,13 +86,13 @@ export function AuthorityLoginPage() {
         {/* Right form panel */}
         <div className="lg:col-span-7" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: 48 }}>
           <div style={{ marginBottom: 48 }}>
-            <h2 style={{ fontSize: 28, fontWeight: 900, letterSpacing: '-0.03em', color: '#e4e4e7', marginBottom: 8 }}>Secure Login</h2>
-            <p style={{ color: '#71717a', fontSize: 14 }}>Enter your authority credentials to access the operator dashboard.</p>
+            <h2 style={{ fontSize: 28, fontWeight: 900, letterSpacing: '-0.03em', color: 'var(--t1)', marginBottom: 8 }}>Secure Login</h2>
+            <p style={{ color: 'var(--t3)', fontSize: 14 }}>Enter your authority credentials to access the operator dashboard.</p>
           </div>
 
           <form onSubmit={onLogin} className="space-y-8">
             <div className="space-y-3">
-              <label htmlFor="auth-email" style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#71717a', display: 'block' }}>
+              <label htmlFor="auth-email" style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--t3)', display: 'block' }}>
                 Authority Email
               </label>
               <div style={{ position: 'relative' }}>
@@ -101,18 +101,18 @@ export function AuthorityLoginPage() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '14px 48px 14px 20px', color: '#e4e4e7', fontSize: 14, outline: 'none', boxSizing: 'border-box' }}
+                  style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '14px 48px 14px 20px', color: 'var(--t1)', fontSize: 14, outline: 'none', boxSizing: 'border-box' }}
                   placeholder="authority@eyf.platform"
                   required
                 />
-                <div style={{ position: 'absolute', right: 20, top: '50%', transform: 'translateY(-50%)', color: '#52525b' }}>
+                <div style={{ position: 'absolute', right: 20, top: '50%', transform: 'translateY(-50%)', color: 'var(--t4)' }}>
                   <Icon name="badge" size={20} />
                 </div>
               </div>
             </div>
 
             <div className="space-y-3">
-              <label htmlFor="auth-token" style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#71717a', display: 'block' }}>
+              <label htmlFor="auth-token" style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--t3)', display: 'block' }}>
                 Security Token
               </label>
               <div style={{ position: 'relative' }}>
@@ -121,11 +121,11 @@ export function AuthorityLoginPage() {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '14px 48px 14px 20px', color: '#e4e4e7', fontSize: 14, outline: 'none', boxSizing: 'border-box' }}
+                  style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '14px 48px 14px 20px', color: 'var(--t1)', fontSize: 14, outline: 'none', boxSizing: 'border-box' }}
                   placeholder="••••••••••••"
                   required
                 />
-                <div style={{ position: 'absolute', right: 20, top: '50%', transform: 'translateY(-50%)', color: '#52525b' }}>
+                <div style={{ position: 'absolute', right: 20, top: '50%', transform: 'translateY(-50%)', color: 'var(--t4)' }}>
                   <Icon name="key" size={20} />
                 </div>
               </div>
@@ -149,7 +149,7 @@ export function AuthorityLoginPage() {
                 <Icon name="arrow_forward" size={20} />
               </motion.button>
               <div style={{ textAlign: 'center' }}>
-                <Link to="/login" style={{ fontSize: 12, color: '#71717a', textDecoration: 'none' }}>
+                <Link to="/login" style={{ fontSize: 12, color: 'var(--t3)', textDecoration: 'none' }}>
                   ← Return to User Login
                 </Link>
               </div>

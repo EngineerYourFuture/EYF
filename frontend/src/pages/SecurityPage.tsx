@@ -9,7 +9,7 @@ import { getSession, setSession } from '../lib/session';
 import { useUser } from '../contexts/UserContext';
 
 const GLASS = { background: 'rgba(10,10,10,0.7)', border: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(16px)' } as const;
-const INPUT = { width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '12px 16px', fontSize: 14, color: '#e4e4e7', outline: 'none', boxSizing: 'border-box' } as const;
+const INPUT = { width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '12px 16px', fontSize: 14, color: 'var(--t1)', outline: 'none', boxSizing: 'border-box' } as const;
 
 interface SecuritySettings {
   totpEnabled: boolean;
@@ -167,13 +167,13 @@ export function SecurityPage() {
 
   return (
     <AppShell>
-      <div className="pt-8 max-w-3xl space-y-6">
+      <div className="pt-8 max-w-3xl mx-auto space-y-6">
         {/* Hero */}
         <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }}>
           <h1 style={{ fontSize: '2.5rem', fontWeight: 900, letterSpacing: '-0.03em', marginBottom: 6, lineHeight: 1.1 }}>
             <span style={{ background: 'linear-gradient(135deg, #fff 40%, #E82127)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>PROFILE & SECURITY.</span>
           </h1>
-          <p style={{ color: '#71717a', fontSize: 14 }}>Manage your account, security, and active sessions.</p>
+          <p style={{ color: 'var(--t3)', fontSize: 14 }}>Manage your account, security, and active sessions.</p>
         </motion.div>
 
         {/* Profile card */}
@@ -183,12 +183,12 @@ export function SecurityPage() {
               {(displayName || session?.email || '?')[0].toUpperCase()}
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <p style={{ color: '#e4e4e7', fontWeight: 900, fontSize: 18, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{displayName || session?.email}</p>
-              <p style={{ color: '#71717a', fontSize: 12 }}>{session?.email}</p>
+              <p style={{ color: 'var(--t1)', fontWeight: 900, fontSize: 18, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{displayName || session?.email}</p>
+              <p style={{ color: 'var(--t3)', fontSize: 12 }}>{session?.email}</p>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 6, flexWrap: 'wrap' }}>
                 <span style={{ background: 'rgba(232,33,39,0.12)', color: '#E82127', fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', padding: '2px 8px', borderRadius: 999 }}>{planLabel}</span>
-                <span style={{ color: '#52525b', fontSize: 10, fontWeight: 700 }}>Lv.{level} {LEVEL_NAMES[level]}</span>
-                <span style={{ color: '#52525b', fontSize: 10, fontWeight: 700 }}>{xp.toLocaleString()} XP</span>
+                <span style={{ color: 'var(--t4)', fontSize: 10, fontWeight: 700 }}>Lv.{level} {LEVEL_NAMES[level]}</span>
+                <span style={{ color: 'var(--t4)', fontSize: 10, fontWeight: 700 }}>{xp.toLocaleString()} XP</span>
               </div>
             </div>
             {plan === 'free' && (
@@ -212,14 +212,14 @@ export function SecurityPage() {
               <button type="submit" disabled={nameLoading} style={{ background: '#E82127', color: '#fff', padding: '10px 16px', borderRadius: 12, fontSize: 12, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', border: 'none', cursor: 'pointer', opacity: nameLoading ? 0.6 : 1 }}>
                 {nameLoading ? '...' : 'Save'}
               </button>
-              <button type="button" onClick={() => { setNameEdit(false); setNameVal(displayName); }} style={{ color: '#71717a', padding: '10px 12px', borderRadius: 12, fontSize: 12, fontWeight: 700, background: 'none', border: 'none', cursor: 'pointer' }}>
+              <button type="button" onClick={() => { setNameEdit(false); setNameVal(displayName); }} style={{ color: 'var(--t3)', padding: '10px 12px', borderRadius: 12, fontSize: 12, fontWeight: 700, background: 'none', border: 'none', cursor: 'pointer' }}>
                 Cancel
               </button>
             </form>
           ) : (
             <button
               onClick={() => setNameEdit(true)}
-              style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#71717a', fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', background: 'none', border: 'none', cursor: 'pointer' }}
+              style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--t3)', fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', background: 'none', border: 'none', cursor: 'pointer' }}
             >
               <Icon name="edit" size={14} /> Edit display name
             </button>
@@ -231,7 +231,7 @@ export function SecurityPage() {
 
         {/* Change password */}
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }} style={{ ...GLASS, borderRadius: 16, padding: 24 }}>
-          <h2 style={{ fontWeight: 900, color: '#e4e4e7', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <h2 style={{ fontWeight: 900, color: 'var(--t1)', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 8 }}>
             <Icon name="lock" size={18} style={{ color: '#E82127' }} /> Change Password
           </h2>
           <form onSubmit={changePw} className="space-y-4">
@@ -241,7 +241,7 @@ export function SecurityPage() {
               { label: 'Confirm New',      value: confirmPw, setter: setConfirmPw },
             ].map((f) => (
               <div key={f.label}>
-                <label style={{ fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#52525b', display: 'block', marginBottom: 6 }}>{f.label}</label>
+                <label style={{ fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--t4)', display: 'block', marginBottom: 6 }}>{f.label}</label>
                 <input
                   type="password"
                   value={f.value}
@@ -269,8 +269,8 @@ export function SecurityPage() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
             <Icon name="security" size={18} style={{ color: '#E82127' }} />
             <div style={{ flex: 1 }}>
-              <h2 style={{ fontWeight: 900, color: '#e4e4e7', fontSize: 14 }}>Two-Factor Authentication</h2>
-              <p style={{ color: '#71717a', fontSize: 12 }}>Protect your account with a TOTP authenticator app.</p>
+              <h2 style={{ fontWeight: 900, color: 'var(--t1)', fontSize: 14 }}>Two-Factor Authentication</h2>
+              <p style={{ color: 'var(--t3)', fontSize: 12 }}>Protect your account with a TOTP authenticator app.</p>
             </div>
             <span style={{ fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', padding: '4px 12px', borderRadius: 999, color: security?.totpEnabled ? '#4ade80' : '#71717a', background: security?.totpEnabled ? 'rgba(74,222,128,0.1)' : 'rgba(113,113,122,0.1)' }}>
               {security?.totpEnabled ? 'Enabled' : 'Disabled'}
@@ -283,7 +283,7 @@ export function SecurityPage() {
               disabled={twoFALoading}
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
-              style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.06)', color: '#e4e4e7', fontWeight: 700, fontSize: 12, padding: '10px 16px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.08)', cursor: 'pointer', opacity: twoFALoading ? 0.6 : 1 }}
+              style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.06)', color: 'var(--t1)', fontWeight: 700, fontSize: 12, padding: '10px 16px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.08)', cursor: 'pointer', opacity: twoFALoading ? 0.6 : 1 }}
             >
               <Icon name="qr_code" size={14} /> Set up 2FA
             </motion.button>
@@ -291,11 +291,11 @@ export function SecurityPage() {
 
           {totp2FASecret && (
             <div className="space-y-4">
-              <p style={{ color: '#a1a1aa', fontSize: 12 }}>Scan this QR code with Google Authenticator, Authy, or any TOTP app:</p>
+              <p style={{ color: 'var(--t2)', fontSize: 12 }}>Scan this QR code with Google Authenticator, Authy, or any TOTP app:</p>
               <div style={{ background: '#fff', padding: 12, borderRadius: 12, width: 'fit-content' }}>
                 <img src={totp2FASecret.qr} alt="2FA QR code" style={{ width: 160, height: 160 }} />
               </div>
-              <p style={{ color: '#71717a', fontSize: 12 }}>Or enter this key manually: <code style={{ background: 'rgba(255,255,255,0.06)', padding: '2px 8px', borderRadius: 6, color: '#d4d4d8', fontFamily: 'monospace', fontSize: 11 }}>{totp2FASecret.secret}</code></p>
+              <p style={{ color: 'var(--t3)', fontSize: 12 }}>Or enter this key manually: <code style={{ background: 'rgba(255,255,255,0.06)', padding: '2px 8px', borderRadius: 6, color: '#d4d4d8', fontFamily: 'monospace', fontSize: 11 }}>{totp2FASecret.secret}</code></p>
               <form onSubmit={verify2FA} style={{ display: 'flex', gap: 12 }}>
                 <input
                   type="text"
@@ -339,17 +339,17 @@ export function SecurityPage() {
         {/* Login history */}
         {security?.loginEvents && security.loginEvents.length > 0 && (
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.24 }} style={{ ...GLASS, borderRadius: 16, padding: 24 }}>
-            <h2 style={{ fontWeight: 900, color: '#e4e4e7', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8, fontSize: 14 }}>
-              <Icon name="history" size={18} style={{ color: '#71717a' }} /> Recent Login Activity
+            <h2 style={{ fontWeight: 900, color: 'var(--t1)', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8, fontSize: 14 }}>
+              <Icon name="history" size={18} style={{ color: 'var(--t3)' }} /> Recent Login Activity
             </h2>
             <div className="space-y-2">
               {security.loginEvents.slice(0, 5).map((e) => (
                 <div key={e.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 12, padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <Icon name={e.device?.toLowerCase().includes('mobile') ? 'smartphone' : 'laptop'} size={14} style={{ color: '#52525b' }} />
+                    <Icon name={e.device?.toLowerCase().includes('mobile') ? 'smartphone' : 'laptop'} size={14} style={{ color: 'var(--t4)' }} />
                     <div>
                       <p style={{ color: '#d4d4d8' }}>{e.device || 'Unknown device'}</p>
-                      <p style={{ color: '#52525b' }}>{e.ip} · {new Date(e.createdAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}</p>
+                      <p style={{ color: 'var(--t4)' }}>{e.ip} · {new Date(e.createdAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}</p>
                     </div>
                   </div>
                   <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', padding: '2px 8px', borderRadius: 999, color: e.outcome === 'allowed' ? '#4ade80' : '#f87171', background: e.outcome === 'allowed' ? 'rgba(74,222,128,0.1)' : 'rgba(248,113,113,0.1)' }}>
@@ -363,20 +363,20 @@ export function SecurityPage() {
 
         {/* Sessions */}
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} style={{ ...GLASS, borderRadius: 16, padding: 24 }}>
-          <h2 style={{ fontWeight: 900, color: '#e4e4e7', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8, fontSize: 14 }}>
-            <Icon name="devices" size={18} style={{ color: '#71717a' }} /> Active Sessions
+          <h2 style={{ fontWeight: 900, color: 'var(--t1)', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8, fontSize: 14 }}>
+            <Icon name="devices" size={18} style={{ color: 'var(--t3)' }} /> Active Sessions
           </h2>
           {sessions.length === 0 ? (
-            <p style={{ color: '#52525b', fontSize: 12 }}>No session data available.</p>
+            <p style={{ color: 'var(--t4)', fontSize: 12 }}>No session data available.</p>
           ) : (
             <div className="space-y-2">
               {sessions.map((s) => (
                 <div key={s.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255,255,255,0.03)', borderRadius: 12, padding: 16 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <Icon name={s.device?.toLowerCase().includes('mobile') ? 'smartphone' : 'laptop'} size={18} style={{ color: '#71717a' }} />
+                    <Icon name={s.device?.toLowerCase().includes('mobile') ? 'smartphone' : 'laptop'} size={18} style={{ color: 'var(--t3)' }} />
                     <div>
-                      <p style={{ fontSize: 14, color: '#e4e4e7', fontWeight: 500 }}>{s.device || 'Unknown device'}</p>
-                      <p style={{ fontSize: 12, color: '#52525b' }}>{s.ip} · {new Date(s.createdAt).toLocaleDateString()}</p>
+                      <p style={{ fontSize: 14, color: 'var(--t1)', fontWeight: 500 }}>{s.device || 'Unknown device'}</p>
+                      <p style={{ fontSize: 12, color: 'var(--t4)' }}>{s.ip} · {new Date(s.createdAt).toLocaleDateString()}</p>
                     </div>
                   </div>
                   <button

@@ -331,9 +331,9 @@ function CompanyPanel({ guide, onClose }: CompanyPanelProps) {
                 {guide.difficulty}
               </span>
             </div>
-            <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.75rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{guide.tagline}</p>
+            <p style={{ color: 'var(--t3)', fontSize: '0.75rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{guide.tagline}</p>
           </div>
-          <button onClick={onClose} style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.4)', border: 'none', cursor: 'pointer', flexShrink: 0 }}>
+          <button onClick={onClose} style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--t2)', border: 'none', cursor: 'pointer', flexShrink: 0 }}>
             <Icon name="close" size={18} />
           </button>
         </div>
@@ -374,12 +374,12 @@ function CompanyPanel({ guide, onClose }: CompanyPanelProps) {
               {guide.process.map((step, i) => (
                 <div key={step.step} style={{ display: 'flex', gap: 16 }}>
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                    <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.625rem', fontWeight: 900, color: 'rgba(255,255,255,0.4)', flexShrink: 0 }}>{i + 1}</div>
+                    <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.625rem', fontWeight: 900, color: 'var(--t2)', flexShrink: 0 }}>{i + 1}</div>
                     {i < guide.process.length - 1 && <div style={{ width: 1, flex: 1, background: 'rgba(255,255,255,0.06)', marginTop: 4 }} />}
                   </div>
                   <div style={{ paddingBottom: 16, minWidth: 0 }}>
                     <p style={{ fontSize: '0.875rem', fontWeight: 700, color: '#fff' }}>{step.step}</p>
-                    <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.35)', marginTop: 2, lineHeight: 1.6 }}>{step.desc}</p>
+                    <p style={{ fontSize: '0.75rem', color: 'var(--t2)', marginTop: 2, lineHeight: 1.6 }}>{step.desc}</p>
                   </div>
                 </div>
               ))}
@@ -628,7 +628,7 @@ const BEHAVIORAL_QUESTIONS: BehavioralQ[] = [
 ];
 
 const APP_STATUS: Record<Application['status'], { label: string; color: string; bg: string; dot: string }> = {
-  applied:   { label: 'Applied',   color: '#a1a1aa', bg: 'rgba(161,161,170,0.08)', dot: '#a1a1aa' },
+  applied:   { label: 'Applied',   color: 'var(--t2)', bg: 'rgba(161,161,170,0.08)', dot: '#a1a1aa' },
   oa:        { label: 'OA',        color: '#60a5fa', bg: 'rgba(96,165,250,0.08)',  dot: '#60a5fa' },
   interview: { label: 'Interview', color: '#facc15', bg: 'rgba(250,204,21,0.08)',  dot: '#facc15' },
   offer:     { label: 'Offer 🎉',  color: '#4ade80', bg: 'rgba(74,222,128,0.08)',  dot: '#4ade80' },
@@ -676,10 +676,10 @@ function renderDailyQuestionAction(
           onChange={(e) => setDailyResponse(e.target.value)}
           placeholder="Write your answer using STAR format..."
           rows={4}
-          style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: 12, fontSize: 14, color: '#e4e4e7', outline: 'none', resize: 'none', marginBottom: 12, boxSizing: 'border-box' }}
+          style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: 12, fontSize: 14, color: 'var(--t1)', outline: 'none', resize: 'none', marginBottom: 12, boxSizing: 'border-box' }}
         />
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-          <button onClick={() => setShowDailyInput(false)} style={{ fontSize: 14, color: '#71717a', padding: '8px 12px', borderRadius: 999, background: 'transparent', border: 'none', cursor: 'pointer' }}>Cancel</button>
+          <button onClick={() => setShowDailyInput(false)} style={{ fontSize: 14, color: 'var(--t3)', padding: '8px 12px', borderRadius: 999, background: 'transparent', border: 'none', cursor: 'pointer' }}>Cancel</button>
           <button
             onClick={submitDailyAnswer}
             disabled={dailyResponse.length < 20}
@@ -858,10 +858,10 @@ export function PlacementPage() {
   if (selectedBQ) {
     return (
       <AppShell>
-        <div className="pt-8 max-w-3xl">
+        <div className="pt-8 max-w-3xl mx-auto">
           <motion.button onClick={() => { setSelectedBQ(null); setBqResponse(''); }}
             initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}
-            style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.875rem', fontWeight: 700, color: 'rgba(255,255,255,0.3)', marginBottom: 24, background: 'transparent', border: 'none', cursor: 'pointer' }}
+            style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.875rem', fontWeight: 700, color: 'var(--t3)', marginBottom: 24, background: 'transparent', border: 'none', cursor: 'pointer' }}
             whileHover={{ color: '#fff' } as never}>
             <Icon name="arrow_back" size={16} />Back to behavioral questions
           </motion.button>
@@ -894,7 +894,7 @@ export function PlacementPage() {
                   <div key={s.label} style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 12, padding: 10, textAlign: 'center' }}>
                     <p style={{ fontSize: '1.125rem', fontWeight: 900, color: '#E82127' }}>{s.label}</p>
                     <p style={{ fontWeight: 700, color: '#fff', fontSize: '0.75rem' }}>{s.name}</p>
-                    <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.625rem' }}>{s.desc}</p>
+                    <p style={{ color: 'var(--t3)', fontSize: '0.625rem' }}>{s.desc}</p>
                   </div>
                 ))}
               </div>
@@ -915,7 +915,7 @@ export function PlacementPage() {
               <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.2)' }}>{bqResponse.length} characters · ~{Math.ceil(bqResponse.split(' ').length / 130)} min read</p>
               <div style={{ display: 'flex', gap: 12 }}>
                 <button onClick={() => { setSelectedBQ(null); setBqResponse(''); }}
-                  style={{ fontSize: '0.875rem', color: 'rgba(255,255,255,0.3)', padding: '8px 16px', borderRadius: 9999, background: 'transparent', border: 'none', cursor: 'pointer' }}>Cancel</button>
+                  style={{ fontSize: '0.875rem', color: 'var(--t3)', padding: '8px 16px', borderRadius: 9999, background: 'transparent', border: 'none', cursor: 'pointer' }}>Cancel</button>
                 <motion.button onClick={saveBehavioral} disabled={savingBQ || bqResponse.length < 10}
                   whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
                   style={{ background: 'linear-gradient(135deg,#E82127,#ff6b35)', color: '#fff', fontWeight: 700, padding: '10px 24px', borderRadius: 9999, fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: 8, boxShadow: '0 0 20px rgba(232,33,39,0.3)', cursor: (savingBQ || bqResponse.length < 10) ? 'default' : 'pointer', opacity: (savingBQ || bqResponse.length < 10) ? 0.4 : 1 }}>
@@ -933,10 +933,10 @@ export function PlacementPage() {
   return (
     <AppShell>
       {selectedCompany && <CompanyPanel guide={selectedCompany} onClose={() => setSelectedCompany(null)} />}
-      <div className="pt-8 max-w-6xl">
+      <div className="pt-8 max-w-6xl mx-auto">
         {/* Hero */}
         <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} className="mb-10">
-          <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.2em', color: 'rgba(255,255,255,0.3)', marginBottom: 8, textTransform: 'uppercase' }}>
+          <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.2em', color: 'var(--t3)', marginBottom: 8, textTransform: 'uppercase' }}>
             EYF · Career Prep
           </p>
           <h1 style={{
@@ -946,7 +946,7 @@ export function PlacementPage() {
           }}>
             PLACEMENT PREP.
           </h1>
-          <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: '1rem' }}>FAANG-level interview preparation, engineered for precision.</p>
+          <p style={{ color: 'var(--t2)', fontSize: '1rem' }}>FAANG-level interview preparation, engineered for precision.</p>
         </motion.div>
 
         {/* Stats row */}
@@ -981,7 +981,7 @@ export function PlacementPage() {
               <p style={{ fontFamily: 'Inter, sans-serif', letterSpacing: '0.2em', fontSize: '0.625rem', fontWeight: 700, color: 'rgba(255,255,255,0.25)', marginBottom: 16, textTransform: 'uppercase' }}>FAANG Readiness</p>
               <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, marginBottom: 12 }}>
                 <span style={{ fontSize: '3rem', fontWeight: 900, color: '#fff' }}>{readiness}</span>
-                <span style={{ fontSize: '1.5rem', fontWeight: 900, color: 'rgba(255,255,255,0.3)', marginBottom: 4 }}>/100</span>
+                <span style={{ fontSize: '1.5rem', fontWeight: 900, color: 'var(--t3)', marginBottom: 4 }}>/100</span>
               </div>
               <div style={{ height: 8, background: 'rgba(255,255,255,0.06)', borderRadius: 999, overflow: 'hidden', marginBottom: 8 }}>
                 <motion.div
@@ -990,7 +990,7 @@ export function PlacementPage() {
                   transition={{ duration: 0.7 }}
                 />
               </div>
-              <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.35)' }}>{readinessMsg}</p>
+              <p style={{ fontSize: '0.75rem', color: 'var(--t2)' }}>{readinessMsg}</p>
             </div>
             <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 6 }}>
               {[
@@ -1024,7 +1024,7 @@ export function PlacementPage() {
             </div>
 
             <p style={{ fontSize: '1rem', fontWeight: 700, lineHeight: 1.6, marginBottom: 12, color: 'rgba(255,255,255,0.85)' }}>{DAILY_QUESTION.question}</p>
-            <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.3)', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 6 }}>
+            <p style={{ fontSize: '0.75rem', color: 'var(--t3)', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 6 }}>
               <Icon name="tips_and_updates" size={12} style={{ color: '#facc15' }} />
               {DAILY_QUESTION.tip}
             </p>
@@ -1069,12 +1069,12 @@ export function PlacementPage() {
                     <div style={{ width: 52, height: 52, background: `${t.color}15`, border: `1px solid ${t.color}30`, borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 0 16px ${t.glow}` }}>
                       <Icon name={t.icon} size={24} style={{ color: t.color }} />
                     </div>
-                    <span style={{ padding: '4px 12px', background: 'rgba(255,255,255,0.05)', borderRadius: 9999, fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)' }}>
+                    <span style={{ padding: '4px 12px', background: 'rgba(255,255,255,0.05)', borderRadius: 9999, fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--t2)' }}>
                       {t.company}
                     </span>
                   </div>
                   <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#fff', marginBottom: 4 }}>{t.title}</h3>
-                  <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.3)', marginBottom: 20 }}>{completed}/{total} topics covered</p>
+                  <p style={{ fontSize: '0.75rem', color: 'var(--t3)', marginBottom: 20 }}>{completed}/{total} topics covered</p>
 
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.25)', marginBottom: 6 }}>
                     <span>Progress</span><span style={{ color: t.color }}>{progress}%</span>
@@ -1100,7 +1100,7 @@ export function PlacementPage() {
         {activeTab === 'behavioral' && (
           <div>
             <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
-              <p className="text-sm" style={{ color: '#71717a' }}>{practiceCount} of {BEHAVIORAL_QUESTIONS.length} questions practiced</p>
+              <p className="text-sm" style={{ color: 'var(--t3)' }}>{practiceCount} of {BEHAVIORAL_QUESTIONS.length} questions practiced</p>
               <div className="flex gap-2 flex-wrap">
                 {bqCategories.map((cat) => (
                   <motion.button
@@ -1123,7 +1123,7 @@ export function PlacementPage() {
                     } : {
                       background: 'rgba(255,255,255,0.04)',
                       border: '1px solid rgba(255,255,255,0.07)',
-                      color: '#71717a',
+                      color: 'var(--t3)',
                       padding: '6px 14px',
                       borderRadius: 999,
                       fontSize: 10,
@@ -1162,15 +1162,15 @@ export function PlacementPage() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap' as const }}>
                       <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: 'rgba(232,33,39,0.7)' }}>{q.category}</span>
                       {q.lastPracticed && (
-                        <span style={{ fontSize: 10, color: '#52525b' }}>Practiced {new Date(q.lastPracticed).toLocaleDateString()}</span>
+                        <span style={{ fontSize: 10, color: 'var(--t4)' }}>Practiced {new Date(q.lastPracticed).toLocaleDateString()}</span>
                       )}
                     </div>
-                    <p style={{ fontSize: 14, fontWeight: 500, color: '#e4e4e7' }}>{q.question}</p>
+                    <p style={{ fontSize: 14, fontWeight: 500, color: 'var(--t1)' }}>{q.question}</p>
                     {q.response && (
-                      <p style={{ fontSize: 12, color: '#71717a', marginTop: 4, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical' as const }}>{q.response}</p>
+                      <p style={{ fontSize: 12, color: 'var(--t3)', marginTop: 4, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical' as const }}>{q.response}</p>
                     )}
                   </div>
-                  <Icon name="chevron_right" size={18} style={{ color: '#52525b', flexShrink: 0, marginTop: 2 }} />
+                  <Icon name="chevron_right" size={18} style={{ color: 'var(--t4)', flexShrink: 0, marginTop: 2 }} />
                 </motion.button>
               ))}
             </div>
@@ -1203,7 +1203,7 @@ export function PlacementPage() {
                     } : {
                       background: 'rgba(255,255,255,0.04)',
                       border: '1px solid rgba(255,255,255,0.07)',
-                      color: '#71717a',
+                      color: 'var(--t3)',
                       padding: '6px 14px',
                       borderRadius: 999,
                       fontSize: 10,
@@ -1233,7 +1233,7 @@ export function PlacementPage() {
                 animate={{ opacity: 1, y: 0 }}
                 style={{ ...GLASS, borderRadius: 20, padding: 24, marginBottom: 24, border: '1px solid rgba(232,33,39,0.2)' }}
               >
-                <h3 style={{ fontWeight: 700, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8, color: '#e4e4e7' }}>
+                <h3 style={{ fontWeight: 700, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8, color: 'var(--t1)' }}>
                   <Icon name="work" size={16} style={{ color: '#E82127' }} />
                   Add Application
                 </h3>
@@ -1249,13 +1249,13 @@ export function PlacementPage() {
                       value={field.value}
                       onChange={field.onChange}
                       placeholder={field.placeholder}
-                      style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, padding: '10px 16px', fontSize: 14, color: '#e4e4e7', outline: 'none' }}
+                      style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, padding: '10px 16px', fontSize: 14, color: 'var(--t1)', outline: 'none' }}
                     />
                   ))}
                   <select
                     value={newApp.status}
                     onChange={(e) => setNewApp((p) => ({ ...p, status: e.target.value as Application['status'] }))}
-                    style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, padding: '10px 16px', fontSize: 14, color: '#e4e4e7', outline: 'none' }}
+                    style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, padding: '10px 16px', fontSize: 14, color: 'var(--t1)', outline: 'none' }}
                   >
                     {Object.entries(APP_STATUS).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
                   </select>
@@ -1263,12 +1263,12 @@ export function PlacementPage() {
                     type="date"
                     value={newApp.nextStepDate}
                     onChange={(e) => setNewApp((p) => ({ ...p, nextStepDate: e.target.value }))}
-                    style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, padding: '10px 16px', fontSize: 14, color: '#e4e4e7', outline: 'none' }}
+                    style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, padding: '10px 16px', fontSize: 14, color: 'var(--t1)', outline: 'none' }}
                     className="md:col-span-2"
                   />
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12 }}>
-                  <button onClick={() => setShowAddApp(false)} style={{ fontSize: 14, color: '#71717a', padding: '8px 16px', borderRadius: 999, background: 'transparent', cursor: 'pointer' }}>Cancel</button>
+                  <button onClick={() => setShowAddApp(false)} style={{ fontSize: 14, color: 'var(--t3)', padding: '8px 16px', borderRadius: 999, background: 'transparent', cursor: 'pointer' }}>Cancel</button>
                   <motion.button
                     onClick={addApplication}
                     disabled={addingApp || !newApp.company || !newApp.role}
@@ -1285,8 +1285,8 @@ export function PlacementPage() {
             {filteredApps.length === 0 ? (
               <div style={{ textAlign: 'center', paddingTop: 80, paddingBottom: 80 }}>
                 <Icon name="work_outline" size={48} style={{ color: '#3f3f46', marginBottom: 16 }} />
-                <p style={{ fontWeight: 700, color: '#a1a1aa', marginBottom: 8 }}>No applications tracked yet</p>
-                <p style={{ fontSize: 14, color: '#71717a' }}>Track every application to stay organized and never miss a follow-up.</p>
+                <p style={{ fontWeight: 700, color: 'var(--t2)', marginBottom: 8 }}>No applications tracked yet</p>
+                <p style={{ fontSize: 14, color: 'var(--t3)' }}>Track every application to stay organized and never miss a follow-up.</p>
               </div>
             ) : (
               <div className="space-y-3">
@@ -1302,11 +1302,11 @@ export function PlacementPage() {
                     >
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                          <p style={{ fontWeight: 700, color: '#e4e4e7' }}>{app.company}</p>
-                          <span style={{ color: '#52525b' }}>·</span>
-                          <p style={{ fontSize: 14, color: '#a1a1aa' }}>{app.role}</p>
+                          <p style={{ fontWeight: 700, color: 'var(--t1)' }}>{app.company}</p>
+                          <span style={{ color: 'var(--t4)' }}>·</span>
+                          <p style={{ fontSize: 14, color: 'var(--t2)' }}>{app.role}</p>
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 12, color: '#71717a', flexWrap: 'wrap' as const }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 12, color: 'var(--t3)', flexWrap: 'wrap' as const }}>
                           <span>Applied {new Date(app.appliedAt).toLocaleDateString()}</span>
                           {app.nextStep && (
                             <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -1334,7 +1334,7 @@ export function PlacementPage() {
         {/* Tab: Companies */}
         {activeTab === 'companies' && (
           <div>
-            <p style={{ fontSize: 14, color: '#a1a1aa', marginBottom: 24 }}>
+            <p style={{ fontSize: 14, color: 'var(--t2)', marginBottom: 24 }}>
               Click any company to see a tailored guide: interview process, key DSA topics, culture tips, and insider prep advice.
             </p>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
@@ -1357,10 +1357,10 @@ export function PlacementPage() {
                       {c.logo}
                     </div>
                     <div>
-                      <p style={{ fontWeight: 700, color: '#e4e4e7', fontSize: 14, marginBottom: 2 }}>{c.name}</p>
+                      <p style={{ fontWeight: 700, color: 'var(--t1)', fontSize: 14, marginBottom: 2 }}>{c.name}</p>
                       <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: diff.color }}>{c.difficulty}</span>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 9, color: '#52525b', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' as const }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 9, color: 'var(--t4)', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' as const }}>
                       <Icon name="menu_book" size={11} />
                       {c.process.length} rounds · {c.prepWeeks}w prep
                     </div>
@@ -1376,13 +1376,13 @@ export function PlacementPage() {
               viewport={{ once: true }}
               style={{ ...GLASS, borderRadius: 20, padding: 24, marginTop: 32 }}
             >
-              <p style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#52525b', marginBottom: 16 }}>Quick Comparison</p>
+              <p style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--t4)', marginBottom: 16 }}>Quick Comparison</p>
               <div style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
                   <thead>
                     <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
                       {['Company', 'Difficulty', 'Rounds', 'Prep (weeks)'].map((h) => (
-                        <th key={h} style={{ textAlign: 'left', color: '#52525b', fontWeight: 700, paddingBottom: 8, paddingRight: 16 }}>{h}</th>
+                        <th key={h} style={{ textAlign: 'left', color: 'var(--t4)', fontWeight: 700, paddingBottom: 8, paddingRight: 16 }}>{h}</th>
                       ))}
                     </tr>
                   </thead>
@@ -1395,10 +1395,10 @@ export function PlacementPage() {
                           style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', cursor: 'pointer' }}
                           onClick={() => setSelectedCompany(c)}
                         >
-                          <td style={{ padding: '8px 16px 8px 0', fontWeight: 700, color: '#e4e4e7' }}>{c.name}</td>
+                          <td style={{ padding: '8px 16px 8px 0', fontWeight: 700, color: 'var(--t1)' }}>{c.name}</td>
                           <td style={{ padding: '8px 16px 8px 0', fontWeight: 700, color: diff.color }}>{c.difficulty}</td>
-                          <td style={{ padding: '8px 16px 8px 0', color: '#a1a1aa' }}>{c.process.length}</td>
-                          <td style={{ padding: '8px 0', color: '#a1a1aa' }}>{c.prepWeeks}</td>
+                          <td style={{ padding: '8px 16px 8px 0', color: 'var(--t2)' }}>{c.process.length}</td>
+                          <td style={{ padding: '8px 0', color: 'var(--t2)' }}>{c.prepWeeks}</td>
                         </tr>
                       );
                     })}
@@ -1420,14 +1420,14 @@ export function PlacementPage() {
                 <span style={{ fontSize: 20 }}>🇮🇳</span>
                 <h2 style={{ fontWeight: 900, color: '#fbbf24' }}>India Service Company Placement Prep</h2>
               </div>
-              <p style={{ fontSize: 14, color: '#a1a1aa' }}>TCS, Infosys, Wipro, Accenture hire 50,000+ freshers per year. The patterns are predictable — learn them and clear the OA on your first attempt.</p>
+              <p style={{ fontSize: 14, color: 'var(--t2)' }}>TCS, Infosys, Wipro, Accenture hire 50,000+ freshers per year. The patterns are predictable — learn them and clear the OA on your first attempt.</p>
             </motion.div>
 
             {selectedServiceCo ? (
               <div>
                 <button
                   onClick={() => setSelectedServiceCo(null)}
-                  style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#71717a', fontSize: 14, marginBottom: 20, background: 'transparent', cursor: 'pointer' }}
+                  style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--t3)', fontSize: 14, marginBottom: 20, background: 'transparent', cursor: 'pointer' }}
                 >
                   <Icon name="arrow_back" size={16} /> Back to all companies
                 </button>
@@ -1456,7 +1456,7 @@ export function PlacementPage() {
 
                 {/* OA sections */}
                 <div style={{ marginBottom: 24 }}>
-                  <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#52525b', marginBottom: 16 }}>Online Assessment Sections</p>
+                  <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--t4)', marginBottom: 16 }}>Online Assessment Sections</p>
                   <div className="space-y-3">
                     {selectedServiceCo.sections.map((section, i) => (
                       <motion.div
@@ -1468,7 +1468,7 @@ export function PlacementPage() {
                       >
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, flexWrap: 'wrap' as const, gap: 8 }}>
                           <h3 style={{ fontWeight: 700, color: '#fff' }}>{section.name}</h3>
-                          <div style={{ display: 'flex', gap: 12, fontSize: 10, fontWeight: 700, color: '#71717a', letterSpacing: '0.08em', textTransform: 'uppercase' as const }}>
+                          <div style={{ display: 'flex', gap: 12, fontSize: 10, fontWeight: 700, color: 'var(--t3)', letterSpacing: '0.08em', textTransform: 'uppercase' as const }}>
                             <span>{section.questions} questions</span>
                             <span>·</span>
                             <span>{section.time}</span>
@@ -1491,7 +1491,7 @@ export function PlacementPage() {
                     </p>
                     <ul className="space-y-2">
                       {selectedServiceCo.aptitudeTips.map((tip, i) => (
-                        <li key={tip} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 14, color: '#a1a1aa' }}>
+                        <li key={tip} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 14, color: 'var(--t2)' }}>
                           <span style={{ color: '#fbbf24', fontWeight: 900, flexShrink: 0, marginTop: 2 }}>{i + 1}.</span>
                           {tip}
                         </li>
@@ -1505,7 +1505,7 @@ export function PlacementPage() {
                     </p>
                     <ul className="space-y-2">
                       {selectedServiceCo.technicalTopics.map((t) => (
-                        <li key={t} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: '#a1a1aa' }}>
+                        <li key={t} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: 'var(--t2)' }}>
                           <Icon name="arrow_right" size={13} style={{ color: '#60a5fa', flexShrink: 0 }} />
                           {t}
                         </li>
@@ -1540,7 +1540,7 @@ export function PlacementPage() {
                     <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#4ade80', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
                       <Icon name="verified" size={12} /> Recommended Certifications
                     </p>
-                    <p style={{ fontSize: 14, color: '#a1a1aa' }}>{selectedServiceCo.certifications}</p>
+                    <p style={{ fontSize: 14, color: 'var(--t2)' }}>{selectedServiceCo.certifications}</p>
                   </motion.div>
                 )}
               </div>
@@ -1566,13 +1566,13 @@ export function PlacementPage() {
                         </div>
                         <div>
                           <h3 style={{ fontWeight: 900, color: '#fff' }}>{co.name}</h3>
-                          <p style={{ fontSize: 10, fontWeight: 700, color: '#52525b', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Service Company</p>
+                          <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--t4)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Service Company</p>
                         </div>
                       </div>
-                      <p style={{ fontSize: 12, color: '#71717a', marginBottom: 12, lineHeight: 1.6 }}>{co.tagline}</p>
+                      <p style={{ fontSize: 12, color: 'var(--t3)', marginBottom: 12, lineHeight: 1.6 }}>{co.tagline}</p>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <span style={{ fontSize: 10, fontWeight: 700, color: '#4ade80' }}>{co.ctc}</span>
-                        <span style={{ fontSize: 10, color: '#52525b', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' as const, display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <span style={{ fontSize: 10, color: 'var(--t4)', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' as const, display: 'flex', alignItems: 'center', gap: 4 }}>
                           {co.sections.length} sections <Icon name="arrow_forward" size={10} />
                         </span>
                       </div>
@@ -1586,7 +1586,7 @@ export function PlacementPage() {
                   viewport={{ once: true }}
                   style={{ ...GLASS, borderRadius: 20, padding: 24, marginTop: 32 }}
                 >
-                  <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#52525b', marginBottom: 16 }}>Universal Service Company Tips</p>
+                  <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--t4)', marginBottom: 16 }}>Universal Service Company Tips</p>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {[
                       { icon: 'timer', color: '#60a5fa', tip: 'Time management beats perfection — 60% accuracy with full attempt beats 80% accuracy with 30% skipped' },
@@ -1596,7 +1596,7 @@ export function PlacementPage() {
                     ].map((item) => (
                       <div key={item.icon} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, background: 'rgba(255,255,255,0.03)', borderRadius: 14, padding: 16 }}>
                         <Icon name={item.icon} size={18} style={{ color: item.color, flexShrink: 0, marginTop: 2 }} />
-                        <p style={{ fontSize: 14, color: '#a1a1aa', lineHeight: 1.6 }}>{item.tip}</p>
+                        <p style={{ fontSize: 14, color: 'var(--t2)', lineHeight: 1.6 }}>{item.tip}</p>
                       </div>
                     ))}
                   </div>

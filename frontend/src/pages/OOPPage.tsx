@@ -939,7 +939,7 @@ interface PatternPanelProps {
 function PatternPanel({ pattern, onClose, onComplete }: PatternPanelProps) {
   const code = PATTERN_CODE[pattern.patternKey] ?? `// ${pattern.name} pattern\n// Content coming soon...`;
   const useCases = PATTERN_USE_CASES[pattern.patternKey];
-  const catMeta = CATEGORY_META[pattern.category] ?? { icon: 'category', color: '#a1a1aa', glow: 'rgba(161,161,170,0.1)', label: pattern.category };
+  const catMeta = CATEGORY_META[pattern.category] ?? { icon: 'category', color: 'var(--t2)', glow: 'rgba(161,161,170,0.1)', label: pattern.category };
   const isDone = pattern.status === 'completed';
   const [tab, setTab] = useState<'overview' | 'code' | 'usage'>('overview');
 
@@ -1007,7 +1007,7 @@ function PatternPanel({ pattern, onClose, onComplete }: PatternPanelProps) {
               <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.72)', lineHeight: 1.75 }}>{pattern.description}</p>
               {PATTERN_USE_CASES[pattern.patternKey] && (
                 <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, padding: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  <p style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', marginBottom: 4 }}>Common Use Cases</p>
+                  <p style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--t3)', marginBottom: 4 }}>Common Use Cases</p>
                   {PATTERN_USE_CASES[pattern.patternKey].when.slice(0, 4).map((c) => (
                     <div key={c} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 13, color: 'rgba(255,255,255,0.6)' }}>
                       <Icon name="check_circle" size={13} style={{ color: '#4ade80', flexShrink: 0, marginTop: 2 }} filled />
@@ -1018,7 +1018,7 @@ function PatternPanel({ pattern, onClose, onComplete }: PatternPanelProps) {
               )}
               {PATTERN_USE_CASES[pattern.patternKey] && (
                 <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, padding: 16 }}>
-                  <p style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', marginBottom: 12 }}>Real-World Examples</p>
+                  <p style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--t3)', marginBottom: 12 }}>Real-World Examples</p>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                     {PATTERN_USE_CASES[pattern.patternKey].realWorld.map((r) => (
                       <span key={r} style={{ background: catMeta.glow, border: `1px solid ${catMeta.color}25`, color: catMeta.color, fontSize: 11, fontWeight: 600, padding: '4px 10px', borderRadius: 999 }}>{r}</span>
@@ -1179,7 +1179,7 @@ export function OOPPage() {
           transition={{ duration: 0.5 }}
           style={{ paddingTop: 56, paddingBottom: 48 }}
         >
-          <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.18em', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', marginBottom: 8 }}>
+          <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.18em', color: 'var(--t3)', textTransform: 'uppercase', marginBottom: 8 }}>
             Software Engineering
           </p>
           <h1 style={{
@@ -1189,7 +1189,7 @@ export function OOPPage() {
           }}>
             OOP & PATTERNS.
           </h1>
-          <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.4)', fontWeight: 500 }}>
+          <p style={{ fontSize: 15, color: 'var(--t2)', fontWeight: 500 }}>
             Master design patterns, SOLID principles, and software architecture.
           </p>
 
@@ -1204,7 +1204,7 @@ export function OOPPage() {
                 padding: '20px 36px',
                 borderRight: i < 2 ? '1px solid rgba(255,255,255,0.07)' : 'none',
               }}>
-                <p style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', marginBottom: 6 }}>{stat.label}</p>
+                <p style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--t3)', marginBottom: 6 }}>{stat.label}</p>
                 <p style={{ fontSize: 26, fontWeight: 900, color: '#fff' }}>{stat.value}</p>
               </div>
             ))}
@@ -1225,12 +1225,12 @@ export function OOPPage() {
 
         {/* ── SOLID Principles ── */}
         <section style={{ marginBottom: 56 }}>
-          <p style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', marginBottom: 20 }}>
+          <p style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'var(--t3)', marginBottom: 20 }}>
             SOLID Principles
           </p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 14 }}>
             {solid.map((s, i) => {
-              const meta = SOLID_META[s.letter] ?? { color: '#a1a1aa', tagline: '' };
+              const meta = SOLID_META[s.letter] ?? { color: 'var(--t2)', tagline: '' };
               return (
                 <motion.div
                   key={s.id}
@@ -1256,7 +1256,7 @@ export function OOPPage() {
         {/* ── Design Patterns ── */}
         <section style={{ marginBottom: 56 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
-            <p style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)' }}>
+            <p style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'var(--t3)' }}>
               GoF Design Patterns
             </p>
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
@@ -1288,7 +1288,7 @@ export function OOPPage() {
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 14 }}>
             {filtered.map((p, i) => {
-              const catMeta = CATEGORY_META[p.category] ?? { icon: 'category', color: '#a1a1aa', glow: 'rgba(161,161,170,0.1)', label: p.category };
+              const catMeta = CATEGORY_META[p.category] ?? { icon: 'category', color: 'var(--t2)', glow: 'rgba(161,161,170,0.1)', label: p.category };
               const locked = p.planAccess === 'pro' || p.planAccess === 'elite';
               const done = p.status === 'completed';
               return (
@@ -1324,7 +1324,7 @@ export function OOPPage() {
                   </p>
                   {locked ? (
                     <Link to="/plans" onClick={(e) => e.stopPropagation()} style={{ textDecoration: 'none' }}>
-                      <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: 'rgba(255,255,255,0.3)', display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: 'var(--t3)', display: 'flex', alignItems: 'center', gap: 4 }}>
                         <Icon name="upgrade" size={12} />Upgrade to access
                       </span>
                     </Link>
@@ -1341,7 +1341,7 @@ export function OOPPage() {
 
         {/* ── Resources ── */}
         <section style={{ marginBottom: 56 }}>
-          <p style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', marginBottom: 20 }}>
+          <p style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'var(--t3)', marginBottom: 20 }}>
             Additional Resources
           </p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 14 }}>

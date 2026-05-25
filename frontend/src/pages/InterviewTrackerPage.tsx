@@ -43,13 +43,13 @@ interface Application {
 // ─── Static state helpers ─────────────────────────────────────────────────────
 
 const STATUS_META: Record<AppStatus, { label: string; color: string; glow: string; bg: string; icon: string; order: number }> = {
-  applied:   { label: 'Applied',   color: '#a1a1aa', glow: 'rgba(161,161,170,0.15)', bg: 'rgba(161,161,170,0.08)', icon: 'send',           order: 0 },
+  applied:   { label: 'Applied',   color: 'var(--t2)', glow: 'rgba(161,161,170,0.15)', bg: 'rgba(161,161,170,0.08)', icon: 'send',           order: 0 },
   oa:        { label: 'OA',        color: '#60a5fa', glow: 'rgba(96,165,250,0.15)',  bg: 'rgba(96,165,250,0.08)',  icon: 'code',           order: 1 },
   phone:     { label: 'Phone',     color: '#22d3ee', glow: 'rgba(34,211,238,0.15)',  bg: 'rgba(34,211,238,0.08)', icon: 'call',           order: 2 },
   onsite:    { label: 'Onsite',    color: '#fb923c', glow: 'rgba(251,146,60,0.15)',  bg: 'rgba(251,146,60,0.08)', icon: 'corporate_fare', order: 3 },
   offer:     { label: 'Offer 🎉',  color: '#4ade80', glow: 'rgba(74,222,128,0.15)',  bg: 'rgba(74,222,128,0.08)', icon: 'celebration',    order: 4 },
   rejected:  { label: 'Rejected',  color: '#f87171', glow: 'rgba(248,113,113,0.15)', bg: 'rgba(248,113,113,0.08)',icon: 'cancel',         order: 5 },
-  withdrawn: { label: 'Withdrawn', color: '#52525b', glow: 'rgba(82,82,91,0.15)',    bg: 'rgba(82,82,91,0.08)',   icon: 'exit_to_app',    order: 6 },
+  withdrawn: { label: 'Withdrawn', color: 'var(--t4)', glow: 'rgba(82,82,91,0.15)',    bg: 'rgba(82,82,91,0.08)',   icon: 'exit_to_app',    order: 6 },
 };
 
 const DIFF_META: Record<Difficulty, { color: string; bg: string }> = {
@@ -246,12 +246,12 @@ export function InterviewTrackerPage() {
     const selMeta = STATUS_META[selected.status];
     return (
       <AppShell>
-        <div className="pt-8 max-w-3xl">
+        <div className="pt-8 max-w-3xl mx-auto">
           <motion.button
             onClick={() => setSelected(null)}
             initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}
             className="flex items-center gap-2 mb-8 text-sm font-bold uppercase tracking-widest transition-colors"
-            style={{ color: 'rgba(255,255,255,0.35)' }}
+            style={{ color: 'var(--t2)' }}
             whileHover={{ color: '#fff' } as never}
           >
             <Icon name="arrow_back" size={16} /> Back to tracker
@@ -348,7 +348,7 @@ export function InterviewTrackerPage() {
                       style={{ display: 'flex', alignItems: 'flex-start', gap: 16, padding: 16, background: 'rgba(255,255,255,0.03)', borderRadius: 14, border: '1px solid rgba(255,255,255,0.05)' }}
                     >
                       <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                        <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 700, color: 'rgba(255,255,255,0.4)' }}>{i + 1}</div>
+                        <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 700, color: 'var(--t2)' }}>{i + 1}</div>
                         {i < selected.rounds.length - 1 && <div style={{ width: 1, height: 32, background: 'rgba(255,255,255,0.06)', marginTop: 4 }} />}
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
@@ -423,7 +423,7 @@ export function InterviewTrackerPage() {
                       Save Round
                     </motion.button>
                     <button onClick={() => setShowAddRound(false)}
-                      style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.75rem', padding: '8px 16px', borderRadius: 9999, cursor: 'pointer', background: 'transparent', border: 'none' }}>
+                      style={{ color: 'var(--t3)', fontSize: '0.75rem', padding: '8px 16px', borderRadius: 9999, cursor: 'pointer', background: 'transparent', border: 'none' }}>
                       Cancel
                     </button>
                   </div>
@@ -460,11 +460,11 @@ export function InterviewTrackerPage() {
 
   return (
     <AppShell>
-      <div className="pt-8 max-w-7xl">
+      <div className="pt-8 max-w-7xl mx-auto">
 
         {/* Hero */}
         <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} className="mb-10">
-          <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.2em', color: 'rgba(255,255,255,0.3)', marginBottom: 8, textTransform: 'uppercase' }}>
+          <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.2em', color: 'var(--t3)', marginBottom: 8, textTransform: 'uppercase' }}>
             EYF · Application Tracking
           </p>
           <div className="flex items-start justify-between flex-wrap gap-4">
@@ -476,7 +476,7 @@ export function InterviewTrackerPage() {
               }}>
                 INTERVIEW TRACKER.
               </h1>
-              <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: '0.875rem', marginTop: 8 }}>
+              <p style={{ color: 'var(--t2)', fontSize: '0.875rem', marginTop: 8 }}>
                 Log applications, track rounds, land that offer.
               </p>
             </div>
@@ -496,7 +496,7 @@ export function InterviewTrackerPage() {
         {/* Stats */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
           {[
-            { label: 'Total Applied', value: total,       icon: 'send',        color: '#a1a1aa', glow: 'rgba(161,161,170,0.15)' },
+            { label: 'Total Applied', value: total,       icon: 'send',        color: 'var(--t2)', glow: 'rgba(161,161,170,0.15)' },
             { label: 'Active',        value: active,      icon: 'trending_up', color: '#60a5fa', glow: 'rgba(96,165,250,0.15)'  },
             { label: 'Offers',        value: offers,      icon: 'celebration', color: '#4ade80', glow: 'rgba(74,222,128,0.15)'  },
             { label: 'Offer Rate',    value: `${offerRate}%`, icon: 'percent', color: '#facc15', glow: 'rgba(250,204,21,0.15)'  },
@@ -565,7 +565,7 @@ export function InterviewTrackerPage() {
                   Add Application
                 </motion.button>
                 <button onClick={() => setShowAdd(false)}
-                  style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.875rem', padding: '10px 16px', borderRadius: 9999, cursor: 'pointer', background: 'transparent', border: 'none' }}>
+                  style={{ color: 'var(--t3)', fontSize: '0.875rem', padding: '10px 16px', borderRadius: 9999, cursor: 'pointer', background: 'transparent', border: 'none' }}>
                   Cancel
                 </button>
               </div>
@@ -648,7 +648,7 @@ export function InterviewTrackerPage() {
                           <p style={{ fontSize: '0.75rem', fontWeight: 700, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{app.company}</p>
                           {app.starred && <Icon name="star" size={12} style={{ color: '#facc15', flexShrink: 0 }} filled />}
                         </div>
-                        <p style={{ fontSize: '0.625rem', color: 'rgba(255,255,255,0.3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{app.role}</p>
+                        <p style={{ fontSize: '0.625rem', color: 'var(--t3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{app.role}</p>
                         {app.rounds.length > 0 && (
                           <p style={{ fontSize: '0.5625rem', color: 'rgba(255,255,255,0.2)', marginTop: 4 }}>{app.rounds.length} round{app.rounds.length > 1 ? 's' : ''}</p>
                         )}
@@ -675,7 +675,7 @@ export function InterviewTrackerPage() {
                     <p style={{ fontSize: '0.75rem', fontWeight: 700, color: '#fff' }}>{app.company}</p>
                     <StatusBadge status={app.status} />
                   </div>
-                  <p style={{ fontSize: '0.625rem', color: 'rgba(255,255,255,0.3)' }}>{app.role}</p>
+                  <p style={{ fontSize: '0.625rem', color: 'var(--t3)' }}>{app.role}</p>
                 </motion.button>
               ))}
             </div>
@@ -704,7 +704,7 @@ export function InterviewTrackerPage() {
                         <p style={{ fontSize: '0.875rem', fontWeight: 700, color: '#fff' }}>{app.company}</p>
                         {app.starred && <Icon name="star" size={14} style={{ color: '#facc15' }} filled />}
                       </div>
-                      <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.35)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{app.role} · {app.location}</p>
+                      <p style={{ fontSize: '0.75rem', color: 'var(--t2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{app.role} · {app.location}</p>
                     </div>
                     <div className="hidden sm:flex items-center gap-4 flex-shrink-0">
                       <p style={{ fontSize: '0.625rem', color: 'rgba(255,255,255,0.2)' }}>{new Date(app.appliedDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</p>
@@ -743,7 +743,7 @@ export function InterviewTrackerPage() {
                 className="flex items-start gap-2"
               >
                 <div style={{ width: 4, height: 4, borderRadius: '50%', background: '#E82127', marginTop: 8, flexShrink: 0 }} />
-                <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.35)', lineHeight: 1.7 }}>{tip}</p>
+                <p style={{ fontSize: '0.75rem', color: 'var(--t2)', lineHeight: 1.7 }}>{tip}</p>
               </motion.div>
             ))}
           </div>

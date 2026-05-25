@@ -157,7 +157,7 @@ export function CoreSubjectsPage() {
 
   return (
     <AppShell>
-      <div className="pt-8 max-w-6xl">
+      <div className="pt-8 max-w-6xl mx-auto">
         {/* Hero */}
         <div className="mb-10 flex items-end justify-between flex-wrap gap-6">
           <div>
@@ -177,7 +177,7 @@ export function CoreSubjectsPage() {
             </motion.h1>
             <motion.p
               className="text-lg max-w-md"
-              style={{ color: 'rgba(255,255,255,0.4)' }}
+              style={{ color: 'var(--t2)' }}
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
@@ -191,7 +191,7 @@ export function CoreSubjectsPage() {
         {!loading && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
             {[
-              { icon: 'school',    label: 'Overall Mastery',  value: `${masteryScore}%`,           color: '#E8192C', glow: 'rgba(232,25,44,0.15)' },
+              { icon: 'school',    label: 'Overall Mastery',  value: `${masteryScore}%`,           color: '#E82127', glow: 'rgba(232,25,44,0.15)' },
               { icon: 'task_alt',  label: 'Topics Done',      value: `${completedTotal}/${totalTopics}`, color: '#4ade80', glow: 'rgba(74,222,128,0.15)' },
               { icon: 'schedule',  label: 'Hours Remaining',  value: `~${totalHoursLeft}h`,         color: '#facc15', glow: 'rgba(250,204,21,0.15)' },
               { icon: 'bolt',      label: "Today's Goal",     value: `${topicsToday}/${dailyGoal}`, color: '#60a5fa', glow: 'rgba(96,165,250,0.15)' },
@@ -210,7 +210,7 @@ export function CoreSubjectsPage() {
                 </div>
                 <div>
                   <p className="text-xl font-black" style={{ color: s.color }}>{s.value}</p>
-                  <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.28)' }}>{s.label}</p>
+                  <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--t3)' }}>{s.label}</p>
                 </div>
               </motion.div>
             ))}
@@ -228,15 +228,15 @@ export function CoreSubjectsPage() {
           >
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
-                <Icon name="workspace_premium" size={18} filled style={{ color: '#E8192C' }} />
+                <Icon name="workspace_premium" size={18} filled style={{ color: '#E82127' }} />
                 <span className="text-sm font-bold" style={{ color: 'rgba(255,255,255,0.75)' }}>CS Mastery Progress</span>
               </div>
-              <span className="text-xs font-bold" style={{ color: '#E8192C' }}>{masteryScore}%</span>
+              <span className="text-xs font-bold" style={{ color: '#E82127' }}>{masteryScore}%</span>
             </div>
             <div className="h-2 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.05)' }}>
               <motion.div
                 className="h-full rounded-full"
-                style={{ background: 'linear-gradient(90deg, #E8192C, #ff5566)', boxShadow: '0 0 12px rgba(232,25,44,0.4)' }}
+                style={{ background: 'linear-gradient(90deg, #E82127, #ff5566)', boxShadow: '0 0 12px rgba(232,25,44,0.4)' }}
                 initial={{ width: 0 }}
                 animate={{ width: `${masteryScore}%` }}
                 transition={{ duration: 1.2, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
@@ -272,7 +272,7 @@ export function CoreSubjectsPage() {
                   </div>
                   <div className="flex-1">
                     <p className="font-bold text-sm" style={{ color: 'rgba(255,255,255,0.85)' }}>{lastActive.title}</p>
-                    <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.3)' }}>{progressMap[lastActive.id]?.completedTopics} of {lastActive.topicCount} topics done</p>
+                    <p className="text-xs mt-0.5" style={{ color: 'var(--t3)' }}>{progressMap[lastActive.id]?.completedTopics} of {lastActive.topicCount} topics done</p>
                   </div>
                   <div className="w-12 h-12 relative flex-shrink-0">
                     <svg className="w-12 h-12 -rotate-90" viewBox="0 0 36 36">
@@ -302,8 +302,8 @@ export function CoreSubjectsPage() {
                 transition={{ duration: 0.15 }}
               >
                 <div className="flex items-center gap-2 mb-3">
-                  <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.3)' }}>Recommended Next</span>
-                  <Icon name="recommend" size={12} filled style={{ color: 'rgba(255,255,255,0.3)' }} />
+                  <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--t3)' }}>Recommended Next</span>
+                  <Icon name="recommend" size={12} filled style={{ color: 'var(--t3)' }} />
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: nextSubject.glow }}>
@@ -311,10 +311,10 @@ export function CoreSubjectsPage() {
                   </div>
                   <div className="flex-1">
                     <p className="font-bold text-sm" style={{ color: 'rgba(255,255,255,0.85)' }}>{nextSubject.title}</p>
-                    <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.3)' }}>~{nextSubject.estimatedHours}h · {nextSubject.difficulty}</p>
+                    <p className="text-xs mt-0.5" style={{ color: 'var(--t3)' }}>~{nextSubject.estimatedHours}h · {nextSubject.difficulty}</p>
                   </div>
                   <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(232,25,44,0.12)', border: '1px solid rgba(232,25,44,0.2)' }}>
-                    <Icon name="play_arrow" size={16} filled style={{ color: '#E8192C' }} />
+                    <Icon name="play_arrow" size={16} filled style={{ color: '#E82127' }} />
                   </div>
                 </div>
               </motion.button>
@@ -324,8 +324,8 @@ export function CoreSubjectsPage() {
 
         {/* Study path hint */}
         <div className="rounded-xl p-4 mb-8 flex items-center gap-3" style={GLASS}>
-          <Icon name="route" size={18} style={{ color: '#E8192C' }} />
-          <p className="text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>
+          <Icon name="route" size={18} style={{ color: '#E82127' }} />
+          <p className="text-sm" style={{ color: 'var(--t2)' }}>
             <span className="font-bold" style={{ color: 'rgba(255,255,255,0.75)' }}>Recommended path: </span>
             {STUDY_PATH.map((id) => SUBJECTS.find((s) => s.id === id)?.title).filter(Boolean).join(' → ')}
           </p>
@@ -359,7 +359,7 @@ export function CoreSubjectsPage() {
               </button>
             ))}
           </div>
-          <span className="text-[10px] font-bold ml-auto" style={{ color: 'rgba(255,255,255,0.28)' }}>{filtered.length} subject{filtered.length === 1 ? '' : 's'}</span>
+          <span className="text-[10px] font-bold ml-auto" style={{ color: 'var(--t3)' }}>{filtered.length} subject{filtered.length === 1 ? '' : 's'}</span>
         </div>
 
         {/* Subject grid */}
@@ -404,7 +404,7 @@ export function CoreSubjectsPage() {
                     </div>
                     <div className="flex items-center gap-2">
                       {sub.recommended && !isInProgress && !isCompleted && (
-                        <span className="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full" style={{ color: '#E8192C', background: 'rgba(232,25,44,0.1)', border: '1px solid rgba(232,25,44,0.2)' }}>
+                        <span className="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full" style={{ color: '#E82127', background: 'rgba(232,25,44,0.1)', border: '1px solid rgba(232,25,44,0.2)' }}>
                           Recommended
                         </span>
                       )}
@@ -427,14 +427,14 @@ export function CoreSubjectsPage() {
                   {/* Tags */}
                   <div className="flex flex-wrap gap-1.5 mb-5">
                     {sub.tags.map((tag) => (
-                      <span key={tag} className="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full" style={{ color: 'rgba(255,255,255,0.3)', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                      <span key={tag} className="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full" style={{ color: 'var(--t3)', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.07)' }}>
                         {tag}
                       </span>
                     ))}
                   </div>
 
                   {/* Meta row */}
-                  <div className="flex items-center gap-3 mb-4 text-[10px] font-bold" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                  <div className="flex items-center gap-3 mb-4 text-[10px] font-bold" style={{ color: 'var(--t3)' }}>
                     <span className="px-2 py-0.5 rounded-full" style={{ color: diffStyle.color, background: diffStyle.bg }}>{sub.difficulty}</span>
                     <span className="flex items-center gap-1"><Icon name="schedule" size={11} />~{sub.estimatedHours}h</span>
                     <span className="flex items-center gap-1"><Icon name="topic" size={11} />{sub.topicCount} topics</span>
@@ -443,7 +443,7 @@ export function CoreSubjectsPage() {
                   {/* Progress bar */}
                   <div className="mb-4">
                     <div className="flex justify-between text-[10px] font-bold mb-1.5">
-                      <span style={{ color: 'rgba(255,255,255,0.28)' }}>{done}/{sub.topicCount} completed</span>
+                      <span style={{ color: 'var(--t3)' }}>{done}/{sub.topicCount} completed</span>
                       <span style={{ color: prog > 0 ? sub.color : 'rgba(255,255,255,0.28)' }}>{prog}%</span>
                     </div>
                     <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.05)' }}>
@@ -473,7 +473,7 @@ export function CoreSubjectsPage() {
         {!loading && filtered.length === 0 && (
           <div className="text-center py-16">
             <Icon name="school" size={48} style={{ color: 'rgba(255,255,255,0.1)' }} />
-            <p className="font-bold mt-3" style={{ color: 'rgba(255,255,255,0.3)' }}>No subjects match this filter.</p>
+            <p className="font-bold mt-3" style={{ color: 'var(--t3)' }}>No subjects match this filter.</p>
           </div>
         )}
       </div>

@@ -203,7 +203,7 @@ const COMPANIES: CompanyData[] = [
     id: 'uber',
     name: 'Uber',
     logo: 'U',
-    color: '#e4e4e7',
+    color: 'var(--t1)',
     gradient: 'linear-gradient(135deg, rgba(113,113,122,0.2), rgba(63,63,70,0.2))',
     roles: ['SWE I', 'SWE II', 'Senior SWE', 'Staff SWE'],
     interviewRounds: ['HackerRank OA', 'Technical Phone Screen', '4–5× Onsite (DSA + System Design + Behavioral)'],
@@ -442,7 +442,7 @@ function CompanyDetail({ company }: { readonly company: CompanyData }) {
                 <h2 style={{ fontSize: 20, fontWeight: 700, color: '#fff' }}>{company.name}</h2>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 2 }}>
                   <DifficultyStars n={company.difficulty} />
-                  <span style={{ fontSize: 12, color: '#71717a' }}>Interview difficulty</span>
+                  <span style={{ fontSize: 12, color: 'var(--t3)' }}>Interview difficulty</span>
                 </div>
               </div>
             </div>
@@ -453,16 +453,16 @@ function CompanyDetail({ company }: { readonly company: CompanyData }) {
             </div>
           </div>
           <div style={{ textAlign: 'right', flexShrink: 0 }}>
-            <div style={{ fontSize: 10, color: '#71717a', marginBottom: 4, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Typical CTC</div>
-            <div style={{ fontSize: 12, color: '#a1a1aa' }}>SDE I: <span style={{ color: '#fff', fontWeight: 600 }}>{company.ctc.sde1}</span></div>
-            <div style={{ fontSize: 12, color: '#a1a1aa' }}>SDE II: <span style={{ color: '#fff', fontWeight: 600 }}>{company.ctc.sde2}</span></div>
-            <div style={{ fontSize: 12, color: '#a1a1aa' }}>Intern: <span style={{ color: '#fff', fontWeight: 600 }}>{company.ctc.intern}</span></div>
+            <div style={{ fontSize: 10, color: 'var(--t3)', marginBottom: 4, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Typical CTC</div>
+            <div style={{ fontSize: 12, color: 'var(--t2)' }}>SDE I: <span style={{ color: '#fff', fontWeight: 600 }}>{company.ctc.sde1}</span></div>
+            <div style={{ fontSize: 12, color: 'var(--t2)' }}>SDE II: <span style={{ color: '#fff', fontWeight: 600 }}>{company.ctc.sde2}</span></div>
+            <div style={{ fontSize: 12, color: 'var(--t2)' }}>Intern: <span style={{ color: '#fff', fontWeight: 600 }}>{company.ctc.intern}</span></div>
           </div>
         </div>
 
         {/* Rounds */}
         <div style={{ marginTop: 16 }}>
-          <div style={{ fontSize: 10, color: '#71717a', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 8 }}>Interview Rounds</div>
+          <div style={{ fontSize: 10, color: 'var(--t3)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 8 }}>Interview Rounds</div>
           <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 8 }}>
             {company.interviewRounds.map((r) => (
               <span key={r} style={{ fontSize: 12, background: 'rgba(0,0,0,0.3)', color: '#d4d4d8', padding: '4px 12px', borderRadius: 999, border: '1px solid rgba(255,255,255,0.1)' }}>{r}</span>
@@ -482,7 +482,7 @@ function CompanyDetail({ company }: { readonly company: CompanyData }) {
             style={tab === t ? {
               flex: 1, padding: '8px 0', borderRadius: 10, fontSize: 12, fontWeight: 600, background: 'rgba(255,255,255,0.08)', color: '#fff', cursor: 'pointer',
             } : {
-              flex: 1, padding: '8px 0', borderRadius: 10, fontSize: 12, fontWeight: 600, background: 'transparent', color: '#71717a', cursor: 'pointer',
+              flex: 1, padding: '8px 0', borderRadius: 10, fontSize: 12, fontWeight: 600, background: 'transparent', color: 'var(--t3)', cursor: 'pointer',
             }}
           >
             {TAB_LABELS[t]}
@@ -496,7 +496,7 @@ function CompanyDetail({ company }: { readonly company: CompanyData }) {
           <motion.div key="overview" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-4">
             {company.focusTopics.map((section) => (
               <div key={section.category} style={{ ...GLASS, borderRadius: 20, padding: 16 }}>
-                <div style={{ fontSize: 10, color: '#71717a', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 12 }}>{section.category}</div>
+                <div style={{ fontSize: 10, color: 'var(--t3)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 12 }}>{section.category}</div>
                 <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 8 }}>
                   {section.items.map((item) => (
                     <span key={item} style={{ fontSize: 12, background: 'rgba(255,255,255,0.05)', color: '#d4d4d8', padding: '6px 12px', borderRadius: 999, border: '1px solid rgba(255,255,255,0.1)' }}>{item}</span>
@@ -523,9 +523,9 @@ function CompanyDetail({ company }: { readonly company: CompanyData }) {
                   to="/app/problems"
                   style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 12, borderRadius: 14, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', textDecoration: 'none' }}
                 >
-                  <span style={{ color: '#52525b', fontSize: 12, width: 20, flexShrink: 0 }}>{i + 1}.</span>
-                  <span style={{ flex: 1, fontSize: 14, color: '#e4e4e7' }}>{prob.title}</span>
-                  <span style={{ fontSize: 10, color: '#71717a' }}>{prob.pattern}</span>
+                  <span style={{ color: 'var(--t4)', fontSize: 12, width: 20, flexShrink: 0 }}>{i + 1}.</span>
+                  <span style={{ flex: 1, fontSize: 14, color: 'var(--t1)' }}>{prob.title}</span>
+                  <span style={{ fontSize: 10, color: 'var(--t3)' }}>{prob.pattern}</span>
                   <span style={{ fontSize: 10, fontWeight: 600, padding: '2px 8px', borderRadius: 999, border: `1px solid ${dm.border}`, background: dm.bg, color: dm.color }}>{dm.label}</span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, width: 80, justifyContent: 'flex-end' }}>
                     <span style={{ width: 6, height: 6, borderRadius: '50%', background: fm.dot, flexShrink: 0 }} />
@@ -536,7 +536,7 @@ function CompanyDetail({ company }: { readonly company: CompanyData }) {
             })}
             <Link
               to="/app/problems"
-              style={{ display: 'block', textAlign: 'center', fontSize: 12, color: '#71717a', paddingTop: 8, textDecoration: 'none' }}
+              style={{ display: 'block', textAlign: 'center', fontSize: 12, color: 'var(--t3)', paddingTop: 8, textDecoration: 'none' }}
             >
               View all problems with {company.name} filter →
             </Link>
@@ -578,7 +578,7 @@ export function CompanyPrepPage() {
           <h1 style={{ fontSize: '3rem', fontWeight: 900, letterSpacing: '-0.03em', marginBottom: 8, lineHeight: 1.1 }}>
             <span style={{ background: 'linear-gradient(135deg, #fff 40%, #E82127)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>COMPANY PREP.</span>
           </h1>
-          <p style={{ fontSize: 14, color: '#71717a', display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' as const }}>
+          <p style={{ fontSize: 14, color: 'var(--t3)', display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' as const }}>
             Tailored prep for top companies — focus topics, most-asked problems, interview rounds, tips, and CTC data.
             <span style={{ fontSize: 10, fontWeight: 700, color: '#E82127', background: 'rgba(232,33,39,0.1)', padding: '2px 8px', borderRadius: 999, border: '1px solid rgba(232,33,39,0.2)' }}>
               FREE · Company-filtered problems are ₹2500/mo on LeetCode
@@ -589,7 +589,7 @@ export function CompanyPrepPage() {
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Sidebar: company list */}
           <div className="lg:w-52 shrink-0">
-            <div style={{ fontSize: 10, color: '#52525b', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 12, paddingLeft: 4 }}>Select Company</div>
+            <div style={{ fontSize: 10, color: 'var(--t4)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 12, paddingLeft: 4 }}>Select Company</div>
             <div className="space-y-2">
               {COMPANIES.map((c) => (
                 <CompanyCard

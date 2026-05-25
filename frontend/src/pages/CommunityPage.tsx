@@ -252,7 +252,7 @@ function PostDetailView({ selected, newReply, setNewReply, posting, onVote, onSu
             <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: catMeta.colorHex }}>{selected.category}</span>
           </div>
           <h1 className="text-2xl font-bold mb-3">{selected.title}</h1>
-          <p className="leading-relaxed mb-6" style={{ color: '#a1a1aa' }}>{selected.body}</p>
+          <p className="leading-relaxed mb-6" style={{ color: 'var(--t2)' }}>{selected.body}</p>
           <div className="flex items-center justify-between flex-wrap gap-3">
             <div className="flex items-center gap-3 text-xs text-zinc-500">
               <span className="font-bold text-zinc-400">{selected.author}</span>
@@ -278,7 +278,7 @@ function PostDetailView({ selected, newReply, setNewReply, posting, onVote, onSu
           ) : (
             selected.replies.map((r) => (
               <div key={r.id} style={{ background: 'rgba(10,10,10,0.7)', border: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(16px)', borderRadius: 12, padding: 20, marginLeft: 16, borderLeft: '2px solid rgba(255,255,255,0.1)' }}>
-                <p className="text-sm leading-relaxed mb-3" style={{ color: '#e4e4e7' }}>{r.body}</p>
+                <p className="text-sm leading-relaxed mb-3" style={{ color: 'var(--t1)' }}>{r.body}</p>
                 <div className="flex items-center justify-between">
                   <div className="text-xs text-zinc-500">
                     <span className="font-bold text-zinc-400 mr-2">{r.author}</span>{timeAgo(r.createdAt)}
@@ -299,7 +299,7 @@ function PostDetailView({ selected, newReply, setNewReply, posting, onVote, onSu
             onChange={(e) => setNewReply(e.target.value)}
             placeholder="Share your thoughts..."
             rows={4}
-            style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, padding: 12, fontSize: 14, color: '#e4e4e7', outline: 'none', resize: 'none', boxSizing: 'border-box' }}
+            style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, padding: 12, fontSize: 14, color: 'var(--t1)', outline: 'none', resize: 'none', boxSizing: 'border-box' }}
           />
           <div className="flex justify-end mt-3">
             <button onClick={onSubmitReply} disabled={posting || !newReply}
@@ -360,7 +360,7 @@ function SquadsSection({ squads, selectedSquad, setSelectedSquad, showCreateSqua
                 </button>
               ) : (
                 <button onClick={() => onJoin(selectedSquad.id)} disabled={selectedSquad.members >= selectedSquad.maxMembers}
-                  className="px-4 py-2 rounded-xl bg-[#E82127] text-white text-xs font-bold hover:brightness-110 transition-all disabled:opacity-40">
+                  className="px-4 py-2 rounded-full bg-[#E82127] text-white text-xs font-bold hover:brightness-110 transition-all disabled:opacity-40">
                   {selectedSquad.members >= selectedSquad.maxMembers ? 'Full' : 'Join Squad'}
                 </button>
               )}
@@ -676,7 +676,7 @@ export function CommunityPage() {
         <div className="mb-8 flex items-start justify-between flex-wrap gap-4">
           <div>
             <h1 className="text-4xl font-black tracking-tighter mb-1">Community</h1>
-            <p style={{ color: '#a1a1aa' }}>Discuss, ask questions, and share knowledge with other engineers</p>
+            <p style={{ color: 'var(--t2)' }}>Discuss, ask questions, and share knowledge with other engineers</p>
           </div>
           <button onClick={() => setShowCompose(!showCompose)}
             style={{ background: '#E82127', color: '#fff', fontWeight: 700, padding: '12px 24px', borderRadius: 999, fontSize: 14, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -739,20 +739,20 @@ export function CommunityPage() {
                 value={newPost.title}
                 onChange={(e) => setNewPost((p) => ({ ...p, title: e.target.value }))}
                 placeholder="Post title..."
-                style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, padding: '10px 16px', fontSize: 14, color: '#e4e4e7', outline: 'none', boxSizing: 'border-box' }}
+                style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, padding: '10px 16px', fontSize: 14, color: 'var(--t1)', outline: 'none', boxSizing: 'border-box' }}
               />
               <textarea
                 value={newPost.body}
                 onChange={(e) => setNewPost((p) => ({ ...p, body: e.target.value }))}
                 placeholder="What's on your mind? Share a question, insight, or experience..."
                 rows={5}
-                style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, padding: 12, fontSize: 14, color: '#e4e4e7', outline: 'none', resize: 'none', boxSizing: 'border-box' }}
+                style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, padding: 12, fontSize: 14, color: 'var(--t1)', outline: 'none', resize: 'none', boxSizing: 'border-box' }}
               />
               <div className="flex gap-3">
                 <select
                   value={newPost.category}
                   onChange={(e) => setNewPost((p) => ({ ...p, category: e.target.value }))}
-                  style={{ flex: 1, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, padding: '10px 16px', fontSize: 14, color: '#e4e4e7', outline: 'none' }}
+                  style={{ flex: 1, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, padding: '10px 16px', fontSize: 14, color: 'var(--t1)', outline: 'none' }}
                 >
                   {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
                 </select>
@@ -761,7 +761,7 @@ export function CommunityPage() {
                   value={newPost.tags}
                   onChange={(e) => setNewPost((p) => ({ ...p, tags: e.target.value }))}
                   placeholder="Tags (comma-separated)"
-                  style={{ flex: 1, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, padding: '10px 16px', fontSize: 14, color: '#e4e4e7', outline: 'none', boxSizing: 'border-box' }}
+                  style={{ flex: 1, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, padding: '10px 16px', fontSize: 14, color: 'var(--t1)', outline: 'none', boxSizing: 'border-box' }}
                 />
               </div>
               <div className="flex justify-end gap-3">
@@ -823,11 +823,11 @@ export function CommunityPage() {
                         <span className="text-[10px] font-bold uppercase tracking-widest">{post.category.replace('-', ' ')}</span>
                       </div>
                       {post.tags.map((t) => (
-                        <span key={t} style={{ fontSize: 10, background: 'rgba(255,255,255,0.04)', padding: '2px 8px', borderRadius: 999, color: '#71717a' }}>{t}</span>
+                        <span key={t} style={{ fontSize: 10, background: 'rgba(255,255,255,0.04)', padding: '2px 8px', borderRadius: 999, color: 'var(--t3)' }}>{t}</span>
                       ))}
                     </div>
                     {post.title && <h3 className="text-base font-bold mb-1">{post.title}</h3>}
-                    <p className="text-sm line-clamp-2 mb-3" style={{ color: '#a1a1aa' }}>{post.body}</p>
+                    <p className="text-sm line-clamp-2 mb-3" style={{ color: 'var(--t2)' }}>{post.body}</p>
                     <div className="flex items-center gap-3 text-xs text-zinc-500">
                       <span className="font-bold text-zinc-400">{post.author}</span>
                       <span>{timeAgo(post.createdAt)}</span>
@@ -844,7 +844,7 @@ export function CommunityPage() {
           {filtered.length === 0 && (
             <div className="text-center py-16">
               <Icon name="forum" className="text-zinc-700 mb-3" size={40} />
-              <p style={{ color: '#a1a1aa' }}>No posts in this category yet. Start the conversation!</p>
+              <p style={{ color: 'var(--t2)' }}>No posts in this category yet. Start the conversation!</p>
             </div>
           )}
         </div>

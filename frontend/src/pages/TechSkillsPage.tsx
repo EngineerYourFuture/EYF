@@ -80,7 +80,7 @@ function SkillBar({ skill, onRate }: { readonly skill: Skill; readonly onRate: (
     <div>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 14, fontWeight: 700, color: '#e4e4e7' }}>{skill.name}</span>
+          <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--t1)' }}>{skill.name}</span>
           {skill.source === 'computed' && (
             <span style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#60a5fa', background: 'rgba(96,165,250,0.1)', padding: '2px 6px', borderRadius: 999 }}>from problems</span>
           )}
@@ -180,17 +180,17 @@ export function TechSkillsPage() {
 
   return (
     <AppShell>
-      <div className="pt-8 max-w-6xl">
+      <div className="pt-8 max-w-6xl mx-auto">
         {/* Hero */}
         <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} style={{ marginBottom: 40, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
           <div>
             <h1 style={{ fontSize: '3rem', fontWeight: 900, letterSpacing: '-0.03em', marginBottom: 8, lineHeight: 1.1 }}>
               <span style={{ background: 'linear-gradient(135deg, #fff 40%, #E82127)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>TECH SKILLS.</span>
             </h1>
-            <p style={{ color: '#71717a', fontSize: 16 }}>Rate yourself honestly. Track gaps. Get recommendations.</p>
+            <p style={{ color: 'var(--t3)', fontSize: 16 }}>Rate yourself honestly. Track gaps. Get recommendations.</p>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            {lastSaved && <p style={{ fontSize: 12, color: '#71717a' }}>Saved {lastSaved.toLocaleTimeString()}</p>}
+            {lastSaved && <p style={{ fontSize: 12, color: 'var(--t3)' }}>Saved {lastSaved.toLocaleTimeString()}</p>}
             <motion.button
               onClick={saveSkills}
               disabled={saving}
@@ -217,8 +217,8 @@ export function TechSkillsPage() {
                 <Icon name={s.icon} size={20} style={{ color: s.color }} />
               </div>
               <div>
-                <p style={{ fontSize: 18, fontWeight: 900, color: '#e4e4e7' }}>{s.value}</p>
-                <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#71717a' }}>{s.label}</p>
+                <p style={{ fontSize: 18, fontWeight: 900, color: 'var(--t1)' }}>{s.value}</p>
+                <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--t3)' }}>{s.label}</p>
               </div>
             </motion.div>
           ))}
@@ -261,8 +261,8 @@ export function TechSkillsPage() {
               })}
             </div>
 
-            <p style={{ fontSize: 12, color: '#71717a', marginBottom: 24, display: 'flex', alignItems: 'center', gap: 4 }}>
-              <Icon name="info" size={12} style={{ color: '#52525b' }} />
+            <p style={{ fontSize: 12, color: 'var(--t3)', marginBottom: 24, display: 'flex', alignItems: 'center', gap: 4 }}>
+              <Icon name="info" size={12} style={{ color: 'var(--t4)' }} />
               Click the bars to rate your proficiency: 1 = Beginner → 5 = Expert
             </p>
 
@@ -279,8 +279,8 @@ export function TechSkillsPage() {
                         <Icon name={cat.icon} size={20} style={{ color: cat.color }} />
                       </div>
                       <div>
-                        <h2 style={{ fontSize: 18, fontWeight: 900, color: '#e4e4e7' }}>{cat.name}</h2>
-                        <p style={{ fontSize: 10, color: '#71717a', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                        <h2 style={{ fontSize: 18, fontWeight: 900, color: 'var(--t1)' }}>{cat.name}</h2>
+                        <p style={{ fontSize: 10, color: 'var(--t3)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
                           {cat.skills.filter((s) => s.level > 0).length}/{cat.skills.length} rated
                         </p>
                       </div>
@@ -306,8 +306,8 @@ export function TechSkillsPage() {
                   <Icon name="warning" size={20} style={{ color: '#fb923c' }} />
                 </div>
                 <div>
-                  <h3 style={{ fontWeight: 700, color: '#e4e4e7' }}>FAANG Skill Gap Analysis</h3>
-                  <p style={{ fontSize: 12, color: '#71717a' }}>Skills that top tech companies require — where you stand.</p>
+                  <h3 style={{ fontWeight: 700, color: 'var(--t1)' }}>FAANG Skill Gap Analysis</h3>
+                  <p style={{ fontSize: 12, color: 'var(--t3)' }}>Skills that top tech companies require — where you stand.</p>
                 </div>
               </div>
 
@@ -319,7 +319,7 @@ export function TechSkillsPage() {
                   return (
                     <div key={name}>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-                        <span style={{ fontSize: 14, fontWeight: 700, color: '#e4e4e7' }}>{name}</span>
+                        <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--t1)' }}>{name}</span>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                           <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: LEVEL_COLORS[level] }}>
                             {level > 0 ? LEVEL_LABELS[level] : 'Not rated'}
@@ -342,7 +342,7 @@ export function TechSkillsPage() {
                         <div style={{ position: 'absolute', top: 0, bottom: 0, width: 2, background: 'rgba(251,146,60,0.5)', left: '80%' }} />
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 2 }}>
-                        <span style={{ fontSize: 9, color: '#52525b' }}>Your level</span>
+                        <span style={{ fontSize: 9, color: 'var(--t4)' }}>Your level</span>
                         <span style={{ fontSize: 9, color: 'rgba(251,146,60,0.7)' }}>FAANG target →</span>
                       </div>
                     </div>
@@ -353,7 +353,7 @@ export function TechSkillsPage() {
 
             {weakSkills.length > 0 && (
               <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} style={{ ...GLASS, borderRadius: 16, padding: 24 }}>
-                <h3 style={{ fontWeight: 700, color: '#e4e4e7', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <h3 style={{ fontWeight: 700, color: 'var(--t1)', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
                   <Icon name="trending_up" size={18} style={{ color: '#E82127' }} />
                   Skills Needing Improvement
                 </h3>
@@ -364,7 +364,7 @@ export function TechSkillsPage() {
                         <Icon name="school" size={16} style={{ color: '#fb923c' }} />
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <p style={{ fontSize: 14, fontWeight: 700, color: '#e4e4e7' }}>{s.name}</p>
+                        <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--t1)' }}>{s.name}</p>
                         <p style={{ fontSize: 10, color: '#fb923c', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>{LEVEL_LABELS[s.level]} · Level {s.level}/5</p>
                       </div>
                       <button onClick={() => setActiveTab('skills')} style={{ fontSize: 10, fontWeight: 700, color: '#E82127', background: 'none', border: 'none', cursor: 'pointer', flexShrink: 0 }}>
@@ -381,7 +381,7 @@ export function TechSkillsPage() {
         {/* Tab: Recommendations */}
         {activeTab === 'recommendations' && (
           <div className="space-y-4">
-            <p style={{ fontSize: 14, color: '#71717a', marginBottom: 24 }}>Personalized actions to accelerate your growth based on your current skill profile.</p>
+            <p style={{ fontSize: 14, color: 'var(--t3)', marginBottom: 24 }}>Personalized actions to accelerate your growth based on your current skill profile.</p>
             {RECOMMENDATIONS.map((rec, i) => (
               <motion.a
                 key={rec.title}
@@ -397,17 +397,17 @@ export function TechSkillsPage() {
                     <Icon name={rec.icon} size={22} style={{ color: rec.color }} />
                   </div>
                   <div style={{ flex: 1 }}>
-                    <h3 style={{ fontWeight: 700, color: '#e4e4e7', marginBottom: 4 }}>{rec.title}</h3>
-                    <p style={{ fontSize: 14, color: '#a1a1aa', lineHeight: 1.6 }}>{rec.desc}</p>
+                    <h3 style={{ fontWeight: 700, color: 'var(--t1)', marginBottom: 4 }}>{rec.title}</h3>
+                    <p style={{ fontSize: 14, color: 'var(--t2)', lineHeight: 1.6 }}>{rec.desc}</p>
                   </div>
-                  <Icon name="arrow_forward" size={18} style={{ color: '#52525b', flexShrink: 0, marginTop: 2 }} />
+                  <Icon name="arrow_forward" size={18} style={{ color: 'var(--t4)', flexShrink: 0, marginTop: 2 }} />
                 </div>
               </motion.a>
             ))}
 
             {strongSkills.length > 0 && (
               <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }} style={{ ...GLASS, borderRadius: 14, padding: 24, marginTop: 24 }}>
-                <h3 style={{ fontWeight: 700, color: '#e4e4e7', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <h3 style={{ fontWeight: 700, color: 'var(--t1)', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
                   <Icon name="star" size={16} filled style={{ color: '#facc15' }} />
                   Your Strong Suits
                 </h3>
@@ -418,7 +418,7 @@ export function TechSkillsPage() {
                     </span>
                   ))}
                 </div>
-                <p style={{ fontSize: 12, color: '#71717a', marginTop: 16 }}>These are your interview talking points. Lead with them in your answers.</p>
+                <p style={{ fontSize: 12, color: 'var(--t3)', marginTop: 16 }}>These are your interview talking points. Lead with them in your answers.</p>
               </motion.div>
             )}
           </div>

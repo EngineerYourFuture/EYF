@@ -18,7 +18,7 @@ const MODULE_CONFIG: Record<string, { icon: string; title: string; path: string;
   dsa:              { icon: 'code',              title: 'DSA',           path: '/app/problems',       hex: '#2563EB' },
   'core-subjects':  { icon: 'terminal',          title: 'Core CS',       path: '/app/subjects',       hex: '#16A34A' },
   oop:              { icon: 'account_tree',       title: 'OOP',           path: '/app/oop',            hex: '#7C3AED' },
-  security:         { icon: 'shield',             title: 'Security',      path: '/app/cybersecurity',  hex: '#E8192C' },
+  security:         { icon: 'shield',             title: 'Security',      path: '/app/cybersecurity',  hex: '#E82127' },
   'system-design':  { icon: 'architecture',       title: 'Sys Design',    path: '/app/system-design',  hex: '#0891B2' },
   placement:        { icon: 'work_history',        title: 'Placement',     path: '/app/placement',      hex: '#EA580C' },
   'resume-builder': { icon: 'description',         title: 'Resume',        path: '/app/resume',         hex: '#CA8A04' },
@@ -39,7 +39,7 @@ const ENGINEERING_INSIGHTS = [
   { tip: "When interviewing at Amazon, every behavioral answer must map to at least one Leadership Principle. Name it explicitly — it signals pattern recognition.", category: 'Career', icon: 'work', hex: '#EA580C' },
   { tip: "In system design, state your assumptions out loud. Interviewers can't see your mental model — saying 'I'll assume 100M DAU' shows senior thinking.", category: 'System Design', icon: 'architecture', hex: '#0891B2' },
   { tip: "The sliding window pattern applies any time you need the 'best contiguous subarray'. Trigger words: 'subarray/substring', 'at most K', 'contiguous'.", category: 'DSA', icon: 'code', hex: '#2563EB' },
-  { tip: "Don't store raw passwords, ever. Use bcrypt (cost ≥ 12), Argon2id, or scrypt. MD5 and SHA-256 are NOT password hashing algorithms — they're too fast.", category: 'Security', icon: 'shield', hex: '#E8192C' },
+  { tip: "Don't store raw passwords, ever. Use bcrypt (cost ≥ 12), Argon2id, or scrypt. MD5 and SHA-256 are NOT password hashing algorithms — they're too fast.", category: 'Security', icon: 'shield', hex: '#E82127' },
   { tip: "BFS = shortest path (unweighted). Dijkstra = weighted (non-negative). Bellman-Ford = negative edges. Floyd-Warshall = all-pairs shortest paths.", category: 'DSA', icon: 'code', hex: '#2563EB' },
   { tip: "Rate limiting: token bucket (bursty, smooth average), sliding window log (precise), fixed window counter (simple, edge-case spikes at boundaries).", category: 'System Design', icon: 'architecture', hex: '#0891B2' },
   { tip: "Page faults are expensive — each is a trip to disk (µs → ms). If active pages exceed RAM, performance collapses through thrashing.", category: 'OS', icon: 'terminal', hex: '#16A34A' },
@@ -177,7 +177,7 @@ function DailyChallengeCard() {
   const today = POOL[day % POOL.length];
 
   return (
-    <TiltCard glowColor="#E8192C" style={{ borderRadius: 16 }}>
+    <TiltCard glowColor="#E82127" style={{ borderRadius: 16 }}>
       <div className="stat-tile">
         <div className="flex items-center gap-2 mb-4">
           <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: 'var(--red-muted)' }}>
@@ -330,7 +330,7 @@ export function HomePage() {
   const recs = buildRecommendations(xp, streak, moduleList);
 
   const STAT_TILES = [
-    { label: 'Total XP',  value: xp.toLocaleString(),            sub: `Lv.${level} · ${levelName}`, color: '#E8192C',  glow: '#E8192C' },
+    { label: 'Total XP',  value: xp.toLocaleString(),            sub: `Lv.${level} · ${levelName}`, color: '#E82127',  glow: '#E82127' },
     { label: 'This Week', value: `+${weeklyXp.toLocaleString()}`, sub: 'XP earned',                  color: '#16A34A',  glow: '#16A34A' },
     { label: 'Streak',    value: `${streak}d`,                    sub: streak >= 7 ? '🔥 On fire' : 'Keep going',       color: '#EA580C', glow: '#EA580C' },
     { label: 'Badges',    value: String(achievementsEarned),      sub: 'earned',                     color: '#CA8A04',  glow: '#CA8A04' },
@@ -521,7 +521,7 @@ export function HomePage() {
                 {[
                   { label: 'DSA',         icon: 'code',              path: '/app/problems',       hex: '#2563EB' },
                   { label: 'Design',      icon: 'architecture',      path: '/app/system-design',  hex: '#0891B2' },
-                  { label: 'Companies',   icon: 'business',          path: '/app/companies',      hex: '#E8192C' },
+                  { label: 'Companies',   icon: 'business',          path: '/app/companies',      hex: '#E82127' },
                   { label: 'Community',   icon: 'forum',             path: '/app/community',      hex: '#6366F1' },
                   { label: 'Mock',        icon: 'record_voice_over', path: '/app/mock-interview', hex: '#EA580C' },
                   { label: 'Flashcards',  icon: 'style',             path: '/app/flashcards',     hex: '#9333EA' },

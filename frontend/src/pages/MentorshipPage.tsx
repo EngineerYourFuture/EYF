@@ -7,7 +7,7 @@ import { getSession } from '../lib/session';
 import { useUser } from '../contexts/UserContext';
 
 const GLASS = { background: 'rgba(10,10,10,0.7)', border: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(16px)' } as const;
-const INPUT = { width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '12px 16px', fontSize: 14, color: '#e4e4e7', outline: 'none', boxSizing: 'border-box' } as const;
+const INPUT = { width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '12px 16px', fontSize: 14, color: 'var(--t1)', outline: 'none', boxSizing: 'border-box' } as const;
 
 interface Mentor {
   id: string;
@@ -86,7 +86,7 @@ const LEVEL_META: Record<StudyGroup['level'], { label: string; color: string; bg
 const SESSION_STATUS_META = {
   upcoming:  { label: 'Upcoming',  color: '#60a5fa', bg: 'rgba(96,165,250,0.1)'  },
   completed: { label: 'Completed', color: '#4ade80', bg: 'rgba(74,222,128,0.1)'  },
-  cancelled: { label: 'Cancelled', color: '#71717a', bg: 'rgba(113,113,122,0.1)' },
+  cancelled: { label: 'Cancelled', color: 'var(--t3)', bg: 'rgba(113,113,122,0.1)' },
 };
 
 export function MentorshipPage() {
@@ -193,14 +193,14 @@ export function MentorshipPage() {
 
   return (
     <AppShell>
-      <div style={{ paddingTop: 32, maxWidth: 1152 }}>
+      <div style={{ paddingTop: 32, maxWidth: 1152, margin: '0 auto' }}>
         {/* Hero */}
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} style={{ marginBottom: 40 }}>
           <h1 style={{ fontSize: 48, fontWeight: 900, letterSpacing: '-0.04em', lineHeight: 1.05, marginBottom: 8 }}>
             Mentorship{' '}
             <span style={{ background: 'linear-gradient(135deg, #E82127, #ff4d52)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Network.</span>
           </h1>
-          <p style={{ color: '#71717a', fontSize: 16, maxWidth: 480 }}>
+          <p style={{ color: 'var(--t3)', fontSize: 16, maxWidth: 480 }}>
             Learn faster with guidance from engineers who've done it. 1:1 sessions, study groups, and peer mentorship.
           </p>
         </motion.div>
@@ -224,8 +224,8 @@ export function MentorshipPage() {
                 <Icon name={s.icon} size={20} style={{ color: s.color }} />
               </div>
               <div>
-                <p style={{ fontSize: 24, fontWeight: 900, color: '#e4e4e7', letterSpacing: '-0.03em' }}>{s.value}</p>
-                <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#52525b' }}>{s.label}</p>
+                <p style={{ fontSize: 24, fontWeight: 900, color: 'var(--t1)', letterSpacing: '-0.03em' }}>{s.value}</p>
+                <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--t4)' }}>{s.label}</p>
               </div>
             </motion.div>
           ))}
@@ -287,14 +287,14 @@ export function MentorshipPage() {
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 4, flexWrap: 'wrap' }}>
-                          <h2 style={{ fontSize: 22, fontWeight: 900, color: '#e4e4e7' }}>{featured.name}</h2>
+                          <h2 style={{ fontSize: 22, fontWeight: 900, color: 'var(--t1)' }}>{featured.name}</h2>
                           <span style={{ padding: '3px 10px', background: 'rgba(232,33,39,0.12)', border: '1px solid rgba(232,33,39,0.25)', borderRadius: 999, fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#E82127' }}>Featured</span>
                           <span style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#facc15', fontSize: 13, fontWeight: 700 }}>
                             <Icon name="star" size={14} filled /> {featured.rating} · {featured.sessionCount} sessions
                           </span>
                         </div>
-                        <p style={{ color: '#71717a', fontSize: 13, marginBottom: 12 }}>{featured.role} at {featured.company}</p>
-                        <p style={{ fontSize: 14, color: '#a1a1aa', lineHeight: 1.7, marginBottom: 16, maxWidth: 480 }}>{featured.bio}</p>
+                        <p style={{ color: 'var(--t3)', fontSize: 13, marginBottom: 12 }}>{featured.role} at {featured.company}</p>
+                        <p style={{ fontSize: 14, color: 'var(--t2)', lineHeight: 1.7, marginBottom: 16, maxWidth: 480 }}>{featured.bio}</p>
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 20 }}>
                           {featured.tags.map((t) => (
                             <span key={t} style={{ padding: '4px 12px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 999, fontSize: 11, fontWeight: 700, color: '#d4d4d8' }}>{t}</span>
@@ -330,26 +330,26 @@ export function MentorshipPage() {
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                          <h3 style={{ fontWeight: 700, color: '#e4e4e7', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.name}</h3>
+                          <h3 style={{ fontWeight: 700, color: 'var(--t1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.name}</h3>
                           <span style={{ width: 8, height: 8, borderRadius: '50%', background: m.available ? '#22c55e' : '#52525b', flexShrink: 0 }} title={m.available ? 'Available' : 'Unavailable'} />
                         </div>
-                        <p style={{ fontSize: 12, color: '#71717a' }}>{m.role}</p>
+                        <p style={{ fontSize: 12, color: 'var(--t3)' }}>{m.role}</p>
                         <p style={{ fontSize: 12, fontWeight: 700, color: '#E82127' }}>{m.company}</p>
                       </div>
                     </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 12, color: '#71717a', marginBottom: 12 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 12, color: 'var(--t3)', marginBottom: 12 }}>
                       <span style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#facc15', fontWeight: 700 }}>
                         <Icon name="star" size={12} filled />{m.rating}
                       </span>
                       <span>{m.sessionCount} sessions</span>
                     </div>
 
-                    <p style={{ fontSize: 12, color: '#71717a', lineHeight: 1.7, marginBottom: 16, flex: 1 }}>{m.bio}</p>
+                    <p style={{ fontSize: 12, color: 'var(--t3)', lineHeight: 1.7, marginBottom: 16, flex: 1 }}>{m.bio}</p>
 
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 20 }}>
                       {m.tags.map((t) => (
-                        <span key={t} style={{ padding: '3px 10px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 999, fontSize: 10, fontWeight: 700, color: '#71717a' }}>{t}</span>
+                        <span key={t} style={{ padding: '3px 10px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 999, fontSize: 10, fontWeight: 700, color: 'var(--t3)' }}>{t}</span>
                       ))}
                     </div>
 
@@ -370,7 +370,7 @@ export function MentorshipPage() {
           {/* Tab: Study Groups */}
           {activeTab === 'groups' && (
             <motion.div key="groups" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
-              <p style={{ fontSize: 14, color: '#71717a', marginBottom: 24 }}>Join a study group to stay consistent. All groups meet virtually over Discord/Meet.</p>
+              <p style={{ fontSize: 14, color: 'var(--t3)', marginBottom: 24 }}>Join a study group to stay consistent. All groups meet virtually over Discord/Meet.</p>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 20 }}>
                 {groups.map((g, i) => {
                   const badge = LEVEL_META[g.level];
@@ -389,8 +389,8 @@ export function MentorshipPage() {
                             <Icon name={g.icon} size={22} style={{ color: g.color }} />
                           </div>
                           <div>
-                            <h3 style={{ fontWeight: 700, color: '#e4e4e7' }}>{g.name}</h3>
-                            <p style={{ fontSize: 12, color: '#71717a' }}>{g.topic}</p>
+                            <h3 style={{ fontWeight: 700, color: 'var(--t1)' }}>{g.name}</h3>
+                            <p style={{ fontSize: 12, color: 'var(--t3)' }}>{g.topic}</p>
                           </div>
                         </div>
                         <span style={{ padding: '3px 10px', background: badge.bg, borderRadius: 999, fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: badge.color, flexShrink: 0 }}>
@@ -398,7 +398,7 @@ export function MentorshipPage() {
                         </span>
                       </div>
 
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 16, fontSize: 12, color: '#71717a' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 16, fontSize: 12, color: 'var(--t3)' }}>
                         <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><Icon name="schedule" size={12} />{g.schedule}</span>
                         <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><Icon name="group" size={12} />{g.memberCount}/{g.maxMembers}</span>
                       </div>
@@ -428,8 +428,8 @@ export function MentorshipPage() {
               {mySessions.length === 0 ? (
                 <div style={{ textAlign: 'center', paddingTop: 80, paddingBottom: 80 }}>
                   <Icon name="calendar_month" size={48} style={{ color: '#3f3f46', marginBottom: 16 }} />
-                  <p style={{ fontWeight: 700, color: '#a1a1aa', marginBottom: 8 }}>No sessions yet</p>
-                  <p style={{ fontSize: 14, color: '#71717a', marginBottom: 24 }}>Book your first mentorship session to get started.</p>
+                  <p style={{ fontWeight: 700, color: 'var(--t2)', marginBottom: 8 }}>No sessions yet</p>
+                  <p style={{ fontSize: 14, color: 'var(--t3)', marginBottom: 24 }}>Book your first mentorship session to get started.</p>
                   <button onClick={() => setActiveTab('mentors')} style={{ background: '#E82127', color: '#fff', fontWeight: 700, padding: '12px 32px', borderRadius: 999, fontSize: 13, border: 'none', cursor: 'pointer', boxShadow: '0 0 20px rgba(232,33,39,0.3)' }}>
                     Find a Mentor
                   </button>
@@ -446,16 +446,16 @@ export function MentorshipPage() {
                         transition={{ delay: i * 0.04 }}
                         style={{ ...GLASS, borderRadius: 14, padding: 24, display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}
                       >
-                        <div style={{ width: 44, height: 44, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 18, fontWeight: 900, color: '#e4e4e7' }}>
+                        <div style={{ width: 44, height: 44, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 18, fontWeight: 900, color: 'var(--t1)' }}>
                           {s.mentorName[0]}
                         </div>
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <p style={{ fontWeight: 700, color: '#e4e4e7' }}>{s.mentorName}</p>
-                          <p style={{ fontSize: 13, color: '#71717a' }}>{s.type}</p>
-                          {s.notes && <p style={{ fontSize: 12, color: '#52525b', marginTop: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Goal: {s.notes}</p>}
+                          <p style={{ fontWeight: 700, color: 'var(--t1)' }}>{s.mentorName}</p>
+                          <p style={{ fontSize: 13, color: 'var(--t3)' }}>{s.type}</p>
+                          {s.notes && <p style={{ fontSize: 12, color: 'var(--t4)', marginTop: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Goal: {s.notes}</p>}
                         </div>
                         <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                          <p style={{ fontSize: 12, color: '#71717a', marginBottom: 4 }}>{new Date(s.scheduledAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</p>
+                          <p style={{ fontSize: 12, color: 'var(--t3)', marginBottom: 4 }}>{new Date(s.scheduledAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</p>
                           <span style={{ padding: '3px 10px', background: meta.bg, borderRadius: 999, fontSize: 10, fontWeight: 700, color: meta.color }}>{meta.label}</span>
                         </div>
                       </motion.div>
@@ -474,8 +474,8 @@ export function MentorshipPage() {
                   <div style={{ width: 64, height: 64, background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.3)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
                     <Icon name="check_circle" size={32} style={{ color: '#4ade80' }} filled />
                   </div>
-                  <h2 style={{ fontSize: 24, fontWeight: 900, letterSpacing: '-0.03em', color: '#e4e4e7', marginBottom: 8 }}>Application Submitted!</h2>
-                  <p style={{ color: '#71717a', marginBottom: 8 }}>We'll review your profile and reach out within 3-5 business days.</p>
+                  <h2 style={{ fontSize: 24, fontWeight: 900, letterSpacing: '-0.03em', color: 'var(--t1)', marginBottom: 8 }}>Application Submitted!</h2>
+                  <p style={{ color: 'var(--t3)', marginBottom: 8 }}>We'll review your profile and reach out within 3-5 business days.</p>
                   <p style={{ fontSize: 14, fontWeight: 700, color: '#E82127' }}>+50 XP for applying to mentor!</p>
                 </div>
               ) : (
@@ -486,8 +486,8 @@ export function MentorshipPage() {
                         <Icon name="workspace_premium" size={24} style={{ color: '#facc15' }} />
                       </div>
                       <div>
-                        <h2 style={{ fontSize: 20, fontWeight: 900, color: '#e4e4e7' }}>Become a Mentor</h2>
-                        <p style={{ fontSize: 13, color: '#71717a' }}>Share your expertise. Help the next generation of engineers.</p>
+                        <h2 style={{ fontSize: 20, fontWeight: 900, color: 'var(--t1)' }}>Become a Mentor</h2>
+                        <p style={{ fontSize: 13, color: 'var(--t3)' }}>Share your expertise. Help the next generation of engineers.</p>
                       </div>
                     </div>
 
@@ -499,15 +499,15 @@ export function MentorshipPage() {
                       ].map((b) => (
                         <div key={b.label} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 12, padding: 16, textAlign: 'center' }}>
                           <Icon name={b.icon} size={24} style={{ color: '#facc15', marginBottom: 8 }} />
-                          <p style={{ fontWeight: 700, fontSize: 13, color: '#e4e4e7', marginBottom: 4 }}>{b.label}</p>
-                          <p style={{ fontSize: 11, color: '#71717a' }}>{b.desc}</p>
+                          <p style={{ fontWeight: 700, fontSize: 13, color: 'var(--t1)', marginBottom: 4 }}>{b.label}</p>
+                          <p style={{ fontSize: 11, color: 'var(--t3)' }}>{b.desc}</p>
                         </div>
                       ))}
                     </div>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                       <div>
-                        <label htmlFor="mentor-bio" style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#71717a', display: 'block', marginBottom: 8 }}>Your Bio *</label>
+                        <label htmlFor="mentor-bio" style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--t3)', display: 'block', marginBottom: 8 }}>Your Bio *</label>
                         <textarea
                           id="mentor-bio"
                           value={becomeForm.bio}
@@ -518,7 +518,7 @@ export function MentorshipPage() {
                         />
                       </div>
                       <div>
-                        <label htmlFor="mentor-spec" style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#71717a', display: 'block', marginBottom: 8 }}>Specializations * (comma-separated)</label>
+                        <label htmlFor="mentor-spec" style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--t3)', display: 'block', marginBottom: 8 }}>Specializations * (comma-separated)</label>
                         <input
                           id="mentor-spec"
                           type="text"
@@ -529,7 +529,7 @@ export function MentorshipPage() {
                         />
                       </div>
                       <div>
-                        <label htmlFor="mentor-exp" style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#71717a', display: 'block', marginBottom: 8 }}>Years of Experience</label>
+                        <label htmlFor="mentor-exp" style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--t3)', display: 'block', marginBottom: 8 }}>Years of Experience</label>
                         <input
                           id="mentor-exp"
                           type="number"
@@ -579,15 +579,15 @@ export function MentorshipPage() {
                   <div style={{ width: 64, height: 64, background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.3)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
                     <Icon name="check_circle" size={32} style={{ color: '#4ade80' }} filled />
                   </div>
-                  <h2 style={{ fontSize: 20, fontWeight: 900, letterSpacing: '-0.03em', color: '#e4e4e7', marginBottom: 8 }}>Session Booked!</h2>
-                  <p style={{ color: '#71717a', fontSize: 14 }}>Your session with {bookingMentor.name} is confirmed. You'll get a calendar invite shortly.</p>
+                  <h2 style={{ fontSize: 20, fontWeight: 900, letterSpacing: '-0.03em', color: 'var(--t1)', marginBottom: 8 }}>Session Booked!</h2>
+                  <p style={{ color: 'var(--t3)', fontSize: 14 }}>Your session with {bookingMentor.name} is confirmed. You'll get a calendar invite shortly.</p>
                   <p style={{ color: '#E82127', fontWeight: 700, fontSize: 14, marginTop: 8 }}>+10 XP earned!</p>
                 </div>
               ) : (
                 <div style={{ padding: 28 }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
-                    <h2 style={{ fontSize: 18, fontWeight: 900, color: '#e4e4e7' }}>Book a Session</h2>
-                    <button onClick={() => setBookingMentor(null)} style={{ color: '#52525b', background: 'none', border: 'none', cursor: 'pointer' }}>
+                    <h2 style={{ fontSize: 18, fontWeight: 900, color: 'var(--t1)' }}>Book a Session</h2>
+                    <button onClick={() => setBookingMentor(null)} style={{ color: 'var(--t4)', background: 'none', border: 'none', cursor: 'pointer' }}>
                       <Icon name="close" size={22} />
                     </button>
                   </div>
@@ -597,13 +597,13 @@ export function MentorshipPage() {
                       {bookingMentor.name[0]}
                     </div>
                     <div>
-                      <p style={{ fontWeight: 700, color: '#e4e4e7' }}>{bookingMentor.name}</p>
-                      <p style={{ fontSize: 13, color: '#71717a' }}>{bookingMentor.role} at {bookingMentor.company}</p>
+                      <p style={{ fontWeight: 700, color: 'var(--t1)' }}>{bookingMentor.name}</p>
+                      <p style={{ fontSize: 13, color: 'var(--t3)' }}>{bookingMentor.role} at {bookingMentor.company}</p>
                     </div>
                   </div>
 
                   <div style={{ marginBottom: 20 }}>
-                    <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#71717a', marginBottom: 12 }}>Session Type *</p>
+                    <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--t3)', marginBottom: 12 }}>Session Type *</p>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                       {SESSION_TYPES.map((t) => (
                         <button
@@ -614,8 +614,8 @@ export function MentorshipPage() {
                         >
                           <Icon name={t.icon} size={16} style={{ color: sessionType === t.id ? '#E82127' : '#71717a' }} />
                           <div>
-                            <p style={{ fontSize: 13, fontWeight: 700, color: '#e4e4e7' }}>{t.label}</p>
-                            <p style={{ fontSize: 12, color: '#71717a' }}>{t.desc}</p>
+                            <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--t1)' }}>{t.label}</p>
+                            <p style={{ fontSize: 12, color: 'var(--t3)' }}>{t.desc}</p>
                           </div>
                         </button>
                       ))}
@@ -623,7 +623,7 @@ export function MentorshipPage() {
                   </div>
 
                   <div style={{ marginBottom: 24 }}>
-                    <label htmlFor="session-goal" style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#71717a', display: 'block', marginBottom: 8 }}>What's your goal for this session?</label>
+                    <label htmlFor="session-goal" style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--t3)', display: 'block', marginBottom: 8 }}>What's your goal for this session?</label>
                     <textarea
                       id="session-goal"
                       value={sessionGoal}

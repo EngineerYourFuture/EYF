@@ -88,7 +88,7 @@ const TESTIMONIALS = [
 function FeatureValue({ value }: { readonly value: boolean | string }) {
   if (value === true) return <Icon name="check_circle" size={18} filled style={{ color: '#4ade80', display: 'block', margin: '0 auto' }} />;
   if (value === false) return <Icon name="remove" size={18} style={{ color: '#3f3f46', display: 'block', margin: '0 auto' }} />;
-  return <span style={{ fontSize: 12, fontWeight: 700, color: '#e4e4e7' }}>{value}</span>;
+  return <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--t1)' }}>{value}</span>;
 }
 
 export function BillingPage() {
@@ -145,7 +145,7 @@ export function BillingPage() {
           <h1 style={{ fontSize: '3rem', fontWeight: 900, letterSpacing: '-0.03em', marginBottom: 12, lineHeight: 1.1 }}>
             <span style={{ background: 'linear-gradient(135deg, #fff 40%, #E82127)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>CHOOSE YOUR PLAN.</span>
           </h1>
-          <p style={{ color: '#a1a1aa', fontSize: 18, maxWidth: 480, margin: '0 auto 24px' }}>
+          <p style={{ color: 'var(--t2)', fontSize: 18, maxWidth: 480, margin: '0 auto 24px' }}>
             Everything you need to go from beginner to FAANG-ready.
           </p>
 
@@ -197,8 +197,8 @@ export function BillingPage() {
               ? { background: 'rgba(10,10,10,0.7)', border: '2px solid rgba(255,255,255,0.15)', backdropFilter: 'blur(16px)' }
               : GLASS;
 
-            let btnStyle: React.CSSProperties = { background: 'rgba(255,255,255,0.06)', color: '#e4e4e7', border: '1px solid rgba(255,255,255,0.12)', cursor: 'pointer' };
-            if (isCurrent) btnStyle = { background: 'rgba(255,255,255,0.04)', color: '#52525b', border: '1px solid rgba(255,255,255,0.06)', cursor: 'default' };
+            let btnStyle: React.CSSProperties = { background: 'rgba(255,255,255,0.06)', color: 'var(--t1)', border: '1px solid rgba(255,255,255,0.12)', cursor: 'pointer' };
+            if (isCurrent) btnStyle = { background: 'rgba(255,255,255,0.04)', color: 'var(--t4)', border: '1px solid rgba(255,255,255,0.06)', cursor: 'default' };
             else if (isPopular) btnStyle = { background: '#E82127', color: '#fff', border: 'none', cursor: 'pointer', boxShadow: '0 0 24px rgba(232,33,39,0.3)' };
 
             let btnLabel: ReactNode = `Get ${plan.name}`;
@@ -232,23 +232,23 @@ export function BillingPage() {
 
                 {/* Price */}
                 <div style={{ marginBottom: 24, paddingTop: 8 }}>
-                  <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#71717a', marginBottom: 12 }}>{plan.name}</p>
+                  <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--t3)', marginBottom: 12 }}>{plan.name}</p>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-                    <span style={{ fontSize: 48, fontWeight: 900, color: '#e4e4e7', lineHeight: 1 }}>${price}</span>
-                    <span style={{ color: '#71717a', fontSize: 14 }}>/mo</span>
+                    <span style={{ fontSize: 48, fontWeight: 900, color: 'var(--t1)', lineHeight: 1 }}>${price}</span>
+                    <span style={{ color: 'var(--t3)', fontSize: 14 }}>/mo</span>
                     {billing === 'annual' && savings && (
                       <span style={{ fontSize: 10, fontWeight: 700, color: '#4ade80', background: 'rgba(74,222,128,0.1)', padding: '2px 8px', borderRadius: 999 }}>{savings}% off</span>
                     )}
                   </div>
                   {billing === 'annual' && plan.annualPrice && (
-                    <p style={{ fontSize: 10, color: '#71717a', marginTop: 4 }}>Billed as ${plan.annualPrice * 12}/year</p>
+                    <p style={{ fontSize: 10, color: 'var(--t3)', marginTop: 4 }}>Billed as ${plan.annualPrice * 12}/year</p>
                   )}
                 </div>
 
                 {/* Features */}
                 <ul style={{ flex: 1, marginBottom: 32 }} className="space-y-2.5">
                   {plan.features.map((f) => (
-                    <li key={f} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, fontSize: 14, color: '#a1a1aa' }}>
+                    <li key={f} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, fontSize: 14, color: 'var(--t2)' }}>
                       <Icon name="check" size={15} style={{ flexShrink: 0, marginTop: 2, color: isPopular ? '#E82127' : '#4ade80' }} />
                       {f}
                     </li>
@@ -270,7 +270,7 @@ export function BillingPage() {
           })}
         </div>
 
-        <p style={{ textAlign: 'center', color: '#52525b', fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 700, marginBottom: 48 }}>
+        <p style={{ textAlign: 'center', color: 'var(--t4)', fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 700, marginBottom: 48 }}>
           7-day free trial on Pro & Elite · Cancel anytime · No hidden fees
         </p>
 
@@ -279,7 +279,7 @@ export function BillingPage() {
           <motion.button
             onClick={() => setShowComparison(!showComparison)}
             whileHover={{ scale: 1.03 }}
-            style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 700, color: '#a1a1aa', background: 'none', border: 'none', cursor: 'pointer', margin: '0 auto' }}
+            style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 700, color: 'var(--t2)', background: 'none', border: 'none', cursor: 'pointer', margin: '0 auto' }}
           >
             <Icon name="table_chart" size={16} />
             {showComparison ? 'Hide' : 'Show'} Full Feature Comparison
@@ -293,7 +293,7 @@ export function BillingPage() {
             <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} style={{ maxWidth: 800, margin: '0 auto', marginBottom: 64, ...GLASS, borderRadius: 20, overflow: 'hidden' }}>
               <div className="grid grid-cols-4 gap-0 text-center">
                 <div style={{ padding: 20, borderBottom: '1px solid rgba(255,255,255,0.06)', borderRight: '1px solid rgba(255,255,255,0.06)', textAlign: 'left' }}>
-                  <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#52525b' }}>Feature</p>
+                  <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--t4)' }}>Feature</p>
                 </div>
                 {['Free', 'Pro', 'Elite'].map((name, i) => (
                   <div key={name} style={{ padding: 20, borderBottom: '1px solid rgba(255,255,255,0.06)', borderRight: i < 2 ? '1px solid rgba(255,255,255,0.06)' : 'none', background: name === 'Pro' ? 'rgba(232,33,39,0.04)' : 'transparent' }}>
@@ -303,7 +303,7 @@ export function BillingPage() {
                 {COMPARISON_FEATURES.map((feature, rowIdx) => (
                   <>
                     <div key={`${feature.label}-label`} style={{ padding: 16, textAlign: 'left', borderRight: '1px solid rgba(255,255,255,0.04)', borderBottom: rowIdx < COMPARISON_FEATURES.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
-                      <span style={{ fontSize: 14, color: '#a1a1aa' }}>{feature.label}</span>
+                      <span style={{ fontSize: 14, color: 'var(--t2)' }}>{feature.label}</span>
                     </div>
                     {(['free', 'pro', 'elite'] as const).map((col, i) => (
                       <div
@@ -322,7 +322,7 @@ export function BillingPage() {
 
         {/* Testimonials */}
         <div style={{ maxWidth: 800, margin: '0 auto', marginBottom: 48 }}>
-          <p style={{ textAlign: 'center', fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.3em', color: '#52525b', marginBottom: 32 }}>What Our Engineers Say</p>
+          <p style={{ textAlign: 'center', fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.3em', color: 'var(--t4)', marginBottom: 32 }}>What Our Engineers Say</p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {TESTIMONIALS.map((t, i) => (
               <motion.div key={t.name} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }} style={{ ...GLASS, borderRadius: 16, padding: 24 }}>
@@ -331,12 +331,12 @@ export function BillingPage() {
                     {t.avatar}
                   </div>
                   <div>
-                    <p style={{ fontWeight: 700, fontSize: 14, color: '#e4e4e7' }}>{t.name}</p>
-                    <p style={{ fontSize: 12, color: '#71717a' }}>{t.role}</p>
+                    <p style={{ fontWeight: 700, fontSize: 14, color: 'var(--t1)' }}>{t.name}</p>
+                    <p style={{ fontSize: 12, color: 'var(--t3)' }}>{t.role}</p>
                     <span style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#E82127' }}>{t.plan} Plan</span>
                   </div>
                 </div>
-                <p style={{ fontSize: 14, color: '#a1a1aa', lineHeight: 1.7 }}>"{t.text}"</p>
+                <p style={{ fontSize: 14, color: 'var(--t2)', lineHeight: 1.7 }}>"{t.text}"</p>
               </motion.div>
             ))}
           </div>
@@ -344,7 +344,7 @@ export function BillingPage() {
 
         {/* FAQ */}
         <div style={{ maxWidth: 600, margin: '0 auto', marginBottom: 64 }}>
-          <p style={{ textAlign: 'center', fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.3em', color: '#52525b', marginBottom: 32 }}>Frequently Asked</p>
+          <p style={{ textAlign: 'center', fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.3em', color: 'var(--t4)', marginBottom: 32 }}>Frequently Asked</p>
           <div className="space-y-3">
             {[
               { q: 'Is there a free trial?',                       a: "Yes. Pro and Elite plans include a 7-day free trial. You won't be charged until the trial ends." },
@@ -353,8 +353,8 @@ export function BillingPage() {
               { q: 'Do you support Indian payment methods?',       a: 'Yes. We support UPI, Paytm, RazorPay, and all Indian debit/credit cards. Pricing is also available in INR on checkout.' },
             ].map((faq, i) => (
               <motion.div key={faq.q} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }} style={{ ...GLASS, borderRadius: 14, padding: 24 }}>
-                <p style={{ fontWeight: 700, fontSize: 14, color: '#e4e4e7', marginBottom: 8 }}>{faq.q}</p>
-                <p style={{ fontSize: 14, color: '#a1a1aa', lineHeight: 1.7 }}>{faq.a}</p>
+                <p style={{ fontWeight: 700, fontSize: 14, color: 'var(--t1)', marginBottom: 8 }}>{faq.q}</p>
+                <p style={{ fontSize: 14, color: 'var(--t2)', lineHeight: 1.7 }}>{faq.a}</p>
               </motion.div>
             ))}
           </div>

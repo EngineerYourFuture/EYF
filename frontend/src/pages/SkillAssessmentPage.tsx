@@ -903,7 +903,7 @@ function QuizView({ skill, questionIndex, answers, timeLeft, showExplanation, on
         {chosen != null && (
           <button
             onClick={onNext}
-            className="w-full bg-[#E82127] hover:bg-red-600 text-white font-semibold py-3 rounded-xl transition-colors"
+            className="w-full bg-[#E82127] hover:bg-red-600 text-white font-semibold py-3 rounded-full transition-colors"
           >
             {questionIndex < skill.questions.length - 1 ? 'Next Question →' : 'See Results →'}
           </button>
@@ -977,7 +977,7 @@ function ResultView({ skill, answers, score, grade, onRetake, onBack }: ResultVi
           </button>
           <button
             onClick={onBack}
-            className="flex-1 bg-[#E82127] hover:bg-red-600 text-white font-semibold py-3 rounded-xl transition-colors text-sm"
+            className="flex-1 bg-[#E82127] hover:bg-red-600 text-white font-semibold py-3 rounded-full transition-colors text-sm"
           >
             All Assessments
           </button>
@@ -1084,8 +1084,8 @@ export function SkillAssessmentPage() {
       <AppShell>
         <div className="max-w-5xl mx-auto px-4 py-8">
           <div className="mb-8">
-            <h1 className="text-2xl font-bold text-white mb-1">Skill Assessments</h1>
-            <p className="text-sm text-zinc-500">
+            <h1 style={{ fontSize: "2.25rem", fontWeight: 900, letterSpacing: "-0.03em", lineHeight: 1.1, marginBottom: 4, color: "var(--t1)" }}>Skill <span style={{ background: "linear-gradient(135deg, #4ade80, #22d3ee)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Assessments.</span></h1>
+            <p style={{ fontSize: 14, color: "var(--t3)", marginTop: 4 }}>
               10-question timed tests with instant feedback. Earn a grade badge and XP.{' '}
               <span className="ml-2 text-[10px] font-bold text-[#E82127] bg-[#E82127]/10 px-2 py-0.5 rounded-full border border-[#E82127]/20">
                 FREE · No subscription unlike HackerRank certifications

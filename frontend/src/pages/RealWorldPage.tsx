@@ -894,12 +894,12 @@ export function RealWorldPage() {
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
-            <h1 className="text-2xl font-bold text-white">Real-World Challenges</h1>
+            <h1 style={{ fontSize: "2.25rem", fontWeight: 900, letterSpacing: "-0.03em", lineHeight: 1.1, color: "var(--t1)" }}>Real-World <span style={{ background: "linear-gradient(135deg, #2dd4bf, #60a5fa)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Challenges.</span></h1>
             <span className="text-[10px] font-bold text-[#E82127] bg-[#E82127]/10 px-2 py-1 rounded-full border border-[#E82127]/20">
               EYF EXCLUSIVE
             </span>
           </div>
-          <p className="text-sm text-zinc-500 max-w-2xl">
+          <p style={{ fontSize: 14, color: "var(--t3)", maxWidth: 680, marginTop: 8 }}>
             Debug broken production code, design APIs, fix database anti-patterns, and solve real engineering scenarios.
             Not just DSA — the skills that actually matter in your first job.
           </p>

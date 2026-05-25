@@ -331,7 +331,7 @@ export function PatternQuizPage() {
               {/* ambient glow */}
               <div style={{ position: 'absolute', top: -80, right: -80, width: 280, height: 280, background: 'rgba(99,102,241,0.08)', borderRadius: '50%', filter: 'blur(60px)', pointerEvents: 'none' }} />
 
-              <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.2em', color: 'rgba(255,255,255,0.3)', marginBottom: 8, textTransform: 'uppercase', position: 'relative' }}>
+              <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.2em', color: 'var(--t3)', marginBottom: 8, textTransform: 'uppercase', position: 'relative' }}>
                 EYF · Pattern Recognition
               </p>
               <h1 style={{
@@ -433,12 +433,12 @@ export function PatternQuizPage() {
             {/* Progress header */}
             <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
               <div className="flex items-center justify-between mb-2">
-                <span style={{ fontSize: '0.625rem', fontWeight: 700, color: 'rgba(255,255,255,0.3)', letterSpacing: '0.1em' }}>
+                <span style={{ fontSize: '0.625rem', fontWeight: 700, color: 'var(--t3)', letterSpacing: '0.1em' }}>
                   {current + 1} / {questions.length}
                 </span>
                 <div className="flex items-center gap-4">
                   {timedMode && (
-                    <span style={{ fontSize: '0.625rem', fontWeight: 700, color: 'rgba(255,255,255,0.3)', display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <span style={{ fontSize: '0.625rem', fontWeight: 700, color: 'var(--t3)', display: 'flex', alignItems: 'center', gap: 4 }}>
                       <Icon name="timer" size={11} />
                       {Math.floor(timer / 60)}:{String(timer % 60).padStart(2, '0')}
                     </span>
@@ -540,7 +540,7 @@ export function PatternQuizPage() {
                         {selected === q.correct ? '✓ Correct!' : `✗ Correct answer: ${q.correct}`}
                       </p>
                       <p style={{ fontSize: '0.875rem', color: 'rgba(255,255,255,0.6)', lineHeight: 1.7, marginBottom: 12 }}>{q.explanation}</p>
-                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: '0.75rem', color: 'rgba(255,255,255,0.35)', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: 12 }}>
+                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: '0.75rem', color: 'var(--t2)', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: 12 }}>
                         <Icon name="lightbulb" size={13} style={{ color: '#facc15', flexShrink: 0, marginTop: 2 }} />
                         <p style={{ lineHeight: 1.6 }}>{q.followUp}</p>
                       </div>
@@ -583,7 +583,7 @@ export function PatternQuizPage() {
               }}>
                 {score} / {questions.length}
               </h2>
-              <p style={{ color: 'rgba(255,255,255,0.35)', marginBottom: 24 }}>
+              <p style={{ color: 'var(--t2)', marginBottom: 24 }}>
                 {accuracy}% accuracy
                 {timedMode && <span style={{ marginLeft: 8 }}>· {Math.floor(timer / 60)}:{String(timer % 60).padStart(2, '0')}</span>}
               </p>
@@ -595,13 +595,13 @@ export function PatternQuizPage() {
                   { label: 'XP Earned',value: `+${score * 10}`,    color: '#818cf8', bg: 'rgba(99,102,241,0.08)',   border: 'rgba(99,102,241,0.2)'   },
                 ].map((s) => (
                   <div key={s.label} style={{ padding: '12px 20px', borderRadius: 16, background: s.bg, border: `1px solid ${s.border}` }}>
-                    <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', marginBottom: 4 }}>{s.label}</p>
+                    <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--t3)', marginBottom: 4 }}>{s.label}</p>
                     <p style={{ fontSize: '1.5rem', fontWeight: 900, color: s.color }}>{s.value}</p>
                   </div>
                 ))}
               </div>
 
-              <p style={{ fontSize: '0.875rem', color: 'rgba(255,255,255,0.4)', maxWidth: 380, margin: '0 auto' }}>{resultMsg}</p>
+              <p style={{ fontSize: '0.875rem', color: 'var(--t2)', maxWidth: 380, margin: '0 auto' }}>{resultMsg}</p>
             </motion.div>
 
             {/* Review */}
@@ -630,7 +630,7 @@ export function PatternQuizPage() {
                         )}
                       </div>
                       {!a.correct && (
-                        <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.3)', marginTop: 8, lineHeight: 1.6 }}>{a.question.explanation}</p>
+                        <p style={{ fontSize: '0.75rem', color: 'var(--t3)', marginTop: 8, lineHeight: 1.6 }}>{a.question.explanation}</p>
                       )}
                     </div>
                   </div>

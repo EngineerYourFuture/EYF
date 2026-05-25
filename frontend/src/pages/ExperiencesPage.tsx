@@ -555,8 +555,8 @@ export function ExperiencesPage() {
 
         {/* Header */}
         <div>
-          <h1 className="text-2xl font-bold text-zinc-100">Interview Experiences</h1>
-          <p className="text-zinc-400 text-sm mt-1">
+          <h1 style={{ fontSize: "2.25rem", fontWeight: 900, letterSpacing: "-0.03em", lineHeight: 1.1, marginBottom: 4, color: "var(--t1)" }}>Interview <span style={{ background: "linear-gradient(135deg, #60a5fa, #c084fc)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Experiences.</span></h1>
+          <p style={{ fontSize: 14, color: "var(--t3)", marginTop: 6 }}>
             Real interview reports from engineers who got offers. Learn what to expect, what was asked, and how to prepare.
           </p>
         </div>
@@ -568,7 +568,7 @@ export function ExperiencesPage() {
             { label: 'Offers Documented', value: EXPERIENCES.filter(e => e.outcome === 'offer').length, icon: 'check_circle', color: 'text-green-400' },
             { label: 'Companies', value: COMPANIES.length, icon: 'business', color: 'text-purple-400' },
           ].map(s => (
-            <div key={s.label} className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 text-center">
+            <div key={s.label} className="card" style={{ textAlign: "center" }}>
               <span className={`material-symbols-outlined text-2xl ${s.color}`}>{s.icon}</span>
               <p className={`text-2xl font-black ${s.color} mt-1`}>{s.value}</p>
               <p className="text-xs text-zinc-500">{s.label}</p>
@@ -585,7 +585,7 @@ export function ExperiencesPage() {
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Search company, role, tags…"
-              className="w-full bg-zinc-900 border border-zinc-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-zinc-600"
+              className="field-input" style={{ paddingLeft: 40 }}
             />
           </div>
 
@@ -593,7 +593,7 @@ export function ExperiencesPage() {
           <select
             value={selectedCompany}
             onChange={e => setSelectedCompany(e.target.value)}
-            className="bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2.5 text-sm text-zinc-300 focus:outline-none focus:border-zinc-600"
+            className="field-input" style={{ width: "auto" }}
           >
             <option value="all">All Companies</option>
             {COMPANIES.map(c => <option key={c} value={c}>{c}</option>)}
@@ -603,7 +603,7 @@ export function ExperiencesPage() {
           <select
             value={selectedOutcome}
             onChange={e => setSelectedOutcome(e.target.value)}
-            className="bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2.5 text-sm text-zinc-300 focus:outline-none focus:border-zinc-600"
+            className="field-input" style={{ width: "auto" }}
           >
             <option value="all">All Outcomes</option>
             <option value="offer">Offer</option>
@@ -620,14 +620,14 @@ export function ExperiencesPage() {
             const isOpen = expanded === exp.id;
 
             return (
-              <div key={exp.id} className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
+              <div key={exp.id} className="card" style={{ padding: 0, overflow: "hidden" }}>
                 {/* Card header */}
                 <button
-                  className="w-full flex items-start gap-4 p-5 hover:bg-zinc-800/30 transition-colors text-left"
+                  className="w-full flex items-start gap-4 p-5 text-left" style={{ background: "transparent", border: "none", cursor: "pointer", transition: "background 0.12s" }} onMouseEnter={(e)=>{(e.currentTarget as HTMLElement).style.background="rgba(255,255,255,0.03)"}} onMouseLeave={(e)=>{(e.currentTarget as HTMLElement).style.background="transparent"}}
                   onClick={() => setExpanded(isOpen ? null : exp.id)}
                 >
                   {/* Company initial */}
-                  <div className="w-10 h-10 rounded-xl bg-zinc-800 flex items-center justify-center flex-shrink-0 font-black text-zinc-300 text-sm">
+                  <div className="avatar avatar-md" style={{ fontWeight: 900, fontSize: 14, borderRadius: 10 }}>
                     {exp.company[0]}
                   </div>
 
@@ -649,7 +649,7 @@ export function ExperiencesPage() {
                     </div>
                     <div className="flex items-center gap-2 mt-2 flex-wrap">
                       {exp.tags.map(t => (
-                        <span key={t} className="text-[10px] font-bold text-zinc-500 bg-zinc-800 px-2 py-0.5 rounded">{t}</span>
+                        <span key={t} style={{ fontSize: 10, fontWeight: 700, color: "var(--t3)", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", padding: "2px 8px", borderRadius: 4 }}>{t}</span>
                       ))}
                       <span className="text-xs text-zinc-600 ml-auto">{exp.rounds.length} rounds</span>
                     </div>
@@ -668,13 +668,13 @@ export function ExperiencesPage() {
 
                 {/* Expanded content */}
                 {isOpen && (
-                  <div className="border-t border-zinc-800 p-5 space-y-6">
+                  <div className="p-5 space-y-6" style={{ borderTop: "1px solid rgba(255,255,255,0.07)" }}>
 
                     {/* Rounds */}
                     <div className="space-y-4">
                       <p className="text-xs font-bold uppercase tracking-wider text-zinc-500">Interview Rounds</p>
                       {exp.rounds.map((round) => (
-                        <div key={round.label} className="bg-zinc-800/50 rounded-xl p-4 border border-zinc-700/50">
+                        <div key={round.label} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, padding: 16 }}>
                           <div className="flex items-center gap-2 mb-3">
                             <span className="material-symbols-outlined text-lg text-zinc-400">{ROUND_ICONS[round.type]}</span>
                             <span className="font-semibold text-zinc-200 text-sm">{round.label}</span>

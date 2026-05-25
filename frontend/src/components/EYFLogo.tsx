@@ -8,11 +8,11 @@ interface Props {
 export function EYFMark({ size = 32, className = '' }: { readonly size?: number; readonly className?: string }) {
   return (
     <svg width={size} height={size} viewBox="230 75 220 260" xmlns="http://www.w3.org/2000/svg" className={className}>
-      <rect x="322" y="235" width="36" height="90" rx="18" fill="#E8192C"/>
-      <path d="M 322,235 L 322,195 L 250,105 L 286,105 L 340,187 Z" fill="#E8192C"/>
-      <path d="M 358,235 L 358,195 L 430,105 L 394,105 L 340,187 Z" fill="#E8192C"/>
-      <rect x="244" y="85" width="58" height="28" rx="12" fill="#E8192C"/>
-      <rect x="378" y="85" width="58" height="28" rx="12" fill="#E8192C"/>
+      <rect x="322" y="235" width="36" height="90" rx="18" fill="#E82127"/>
+      <path d="M 322,235 L 322,195 L 250,105 L 286,105 L 340,187 Z" fill="#E82127"/>
+      <path d="M 358,235 L 358,195 L 430,105 L 394,105 L 340,187 Z" fill="#E82127"/>
+      <rect x="244" y="85" width="58" height="28" rx="12" fill="#E82127"/>
+      <rect x="378" y="85" width="58" height="28" rx="12" fill="#E82127"/>
       <circle cx="340" cy="193" r="13" fill="currentColor"/>
       <circle cx="340" cy="193" r="7" fill="#ffffff"/>
     </svg>
@@ -46,19 +46,19 @@ export function EYFLogo({ animated = false, size = 200, className = '' }: Props)
       )}
       <svg width={size} viewBox="0 0 680 390" xmlns="http://www.w3.org/2000/svg" className={className}>
         <g className={animated ? 'eyf-stem' : ''}>
-          <rect x="322" y="235" width="36" height="90" rx="18" fill="#E8192C"/>
+          <rect x="322" y="235" width="36" height="90" rx="18" fill="#E82127"/>
         </g>
         <g className={animated ? 'eyf-arm-l' : ''}>
-          <path d="M 322,235 L 322,195 L 250,105 L 286,105 L 340,187 Z" fill="#E8192C"/>
+          <path d="M 322,235 L 322,195 L 250,105 L 286,105 L 340,187 Z" fill="#E82127"/>
         </g>
         <g className={animated ? 'eyf-arm-r' : ''}>
-          <path d="M 358,235 L 358,195 L 430,105 L 394,105 L 340,187 Z" fill="#E8192C"/>
+          <path d="M 358,235 L 358,195 L 430,105 L 394,105 L 340,187 Z" fill="#E82127"/>
         </g>
         <g className={animated ? 'eyf-cap-l' : ''}>
-          <rect x="244" y="85" width="58" height="28" rx="12" fill="#E8192C"/>
+          <rect x="244" y="85" width="58" height="28" rx="12" fill="#E82127"/>
         </g>
         <g className={animated ? 'eyf-cap-r' : ''}>
-          <rect x="378" y="85" width="58" height="28" rx="12" fill="#E8192C"/>
+          <rect x="378" y="85" width="58" height="28" rx="12" fill="#E82127"/>
         </g>
         <circle cx="340" cy="193" r="13" fill="#0E0E0E" className={animated ? 'eyf-dot-o' : ''}/>
         <circle cx="340" cy="193" r="7" fill="#ffffff" className={animated ? 'eyf-dot-i' : ''}/>

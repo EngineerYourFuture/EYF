@@ -55,8 +55,8 @@ export function XPLineChart({ weeklyHistory }: { readonly weeklyHistory?: number
       <svg ref={ref} viewBox={`0 0 ${W} ${H}`} className="w-full overflow-visible" style={{ height: 110 }}>
         <defs>
           <linearGradient id="xp-area" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%"   stopColor="#E8192C" stopOpacity="0.12" />
-            <stop offset="100%" stopColor="#E8192C" stopOpacity="0" />
+            <stop offset="0%"   stopColor="#E82127" stopOpacity="0.12" />
+            <stop offset="100%" stopColor="#E82127" stopOpacity="0" />
           </linearGradient>
           <clipPath id="xp-clip">
             <motion.rect
@@ -85,7 +85,7 @@ export function XPLineChart({ weeklyHistory }: { readonly weeklyHistory?: number
         {/* Line */}
         <motion.path
           d={line} fill="none"
-          stroke="#E8192C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+          stroke="#E82127" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
           initial={{ pathLength: 0, opacity: 0 }}
           animate={{ pathLength: inView ? 1 : 0, opacity: inView ? 1 : 0 }}
           transition={{ duration: 1.4, ease: [0.16, 1, 0.3, 1] }}
@@ -95,8 +95,8 @@ export function XPLineChart({ weeklyHistory }: { readonly weeklyHistory?: number
         {pts.map(([x, y], i) => (
           <motion.circle
             key={labels[i]} cx={x} cy={y} r={hover === i ? 5 : 3}
-            fill={hover === i ? '#E8192C' : '#fff'}
-            stroke="#E8192C" strokeWidth="2"
+            fill={hover === i ? '#E82127' : '#fff'}
+            stroke="#E82127" strokeWidth="2"
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: inView ? 1 : 0, opacity: inView ? 1 : 0 }}
             transition={{ delay: 1.2 + i * 0.05, duration: 0.25 }}
@@ -161,7 +161,7 @@ export function SkillsRadar({ skills }: { readonly skills?: Skill[] }) {
     { label: 'Design',   value: 0.41, color: '#0891B2' },
     { label: 'OOP',      value: 0.55, color: '#7C3AED' },
     { label: 'Core CS',  value: 0.72, color: '#16A34A' },
-    { label: 'Security', value: 0.3,  color: '#E8192C' },
+    { label: 'Security', value: 0.3,  color: '#E82127' },
     { label: 'Career',   value: 0.45, color: '#EA580C' },
   ];
   const data = skills ?? defaultSkills;
@@ -209,7 +209,7 @@ export function SkillsRadar({ skills }: { readonly skills?: Skill[] }) {
         <motion.polygon
           points={dataPts}
           fill="rgba(232,25,44,0.08)"
-          stroke="#E8192C" strokeWidth="1.5"
+          stroke="#E82127" strokeWidth="1.5"
           initial={{ opacity: 0, scale: 0 }}
           animate={{ opacity: inView ? 1 : 0, scale: inView ? 1 : 0 }}
           transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
@@ -268,7 +268,7 @@ export function SkillsRadar({ skills }: { readonly skills?: Skill[] }) {
 function gaugeColor(pct: number): string {
   if (pct >= 70) return '#16A34A';
   if (pct >= 40) return '#EA580C';
-  return '#E8192C';
+  return '#E82127';
 }
 
 function gaugeBadgeBg(pct: number): string {
@@ -356,7 +356,7 @@ export function ReadinessGauge({ value }: { readonly value: number }) {
    ───────────────────────────────────────────────────────────────────────────── */
 
 function barFill(isToday: boolean, hasActivity: boolean): string {
-  if (isToday) return '#E8192C';
+  if (isToday) return '#E82127';
   if (hasActivity) return 'rgba(232,25,44,0.35)';
   return 'var(--bg-elevated)';
 }

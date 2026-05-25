@@ -344,7 +344,7 @@ export function StudyPlanPage() {
     borderRadius: 12, padding: '12px 16px', fontSize: 13, color: '#fff', outline: 'none', cursor: 'pointer',
   };
   const labelStyle: React.CSSProperties = {
-    fontSize: 10, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', display: 'block', marginBottom: 8,
+    fontSize: 10, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--t3)', display: 'block', marginBottom: 8,
   };
 
   return (
@@ -353,7 +353,7 @@ export function StudyPlanPage() {
 
         {/* ── Hero + config ── */}
         <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} style={{ paddingTop: 56, marginBottom: 32 }}>
-          <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', marginBottom: 8 }}>
+          <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--t3)', marginBottom: 8 }}>
             Personalized Prep
           </p>
           <h1 style={{
@@ -363,7 +363,7 @@ export function StudyPlanPage() {
           }}>
             STUDY PLAN.
           </h1>
-          <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.4)', marginBottom: 28 }}>
+          <p style={{ fontSize: 15, color: 'var(--t2)', marginBottom: 28 }}>
             Personalized day-by-day prep schedule based on your target company, role, and interview date.
           </p>
 
@@ -428,7 +428,7 @@ export function StudyPlanPage() {
               <div style={{ ...GLASS, borderRadius: 18, padding: '18px 24px', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap' }}>
                 <div style={{ flex: 1, minWidth: 200 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                    <span style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.4)' }}>Overall Progress</span>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--t2)' }}>Overall Progress</span>
                     <span style={{ fontSize: 11, fontWeight: 700, color: '#818cf8' }}>{completedCount}/{totalTasks} tasks · {progressPct}%</span>
                   </div>
                   <div style={{ height: 4, background: 'rgba(255,255,255,0.05)', borderRadius: 4, overflow: 'hidden' }}>
@@ -445,7 +445,7 @@ export function StudyPlanPage() {
                     { label: 'Done',   value: String(completedCount), color: '#818cf8' },
                   ].map((s, i) => (
                     <div key={s.label} style={{ padding: '12px 20px', borderRight: i < 2 ? '1px solid rgba(255,255,255,0.07)' : 'none', textAlign: 'center' }}>
-                      <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.14em', color: 'rgba(255,255,255,0.3)' }}>{s.label}</p>
+                      <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.14em', color: 'var(--t3)' }}>{s.label}</p>
                       <p style={{ fontSize: 18, fontWeight: 900, color: s.color ?? '#fff' }}>{s.value}</p>
                     </div>
                   ))}
@@ -481,7 +481,7 @@ export function StudyPlanPage() {
                     </div>
                     <div>
                       <h2 style={{ fontSize: 16, fontWeight: 900, color: '#fff' }}>{currentWeek.theme}</h2>
-                      <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)' }}>
+                      <p style={{ fontSize: 11, color: 'var(--t2)' }}>
                         {config.company} · {config.role.toUpperCase()} · {currentWeek.days[0]?.label} – {currentWeek.days[6]?.label}
                       </p>
                     </div>
@@ -538,7 +538,7 @@ export function StudyPlanPage() {
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 2 }}>
                               <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.2)' }}>{day.tasks.reduce((s, t) => s + t.duration, 0)}m total</span>
                               {day.tasks[0]?.link && (
-                                <Link to={day.tasks[0].link} style={{ fontSize: 9, color: 'rgba(255,255,255,0.3)', display: 'flex', alignItems: 'center', gap: 2, textDecoration: 'none' }}>
+                                <Link to={day.tasks[0].link} style={{ fontSize: 9, color: 'var(--t3)', display: 'flex', alignItems: 'center', gap: 2, textDecoration: 'none' }}>
                                   Go <Icon name="arrow_forward" size={9} />
                                 </Link>
                               )}
@@ -553,7 +553,7 @@ export function StudyPlanPage() {
 
               {/* Legend */}
               <div style={{ ...GLASS, borderRadius: 18, padding: '18px 22px', marginTop: 24 }}>
-                <p style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', marginBottom: 12 }}>Legend</p>
+                <p style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--t3)', marginBottom: 12 }}>Legend</p>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                   {(Object.entries(TYPE_LABELS) as Array<[DayTask['type'], string]>).map(([type, label]) => {
                     const tc = TYPE_COLORS[type];
@@ -564,7 +564,7 @@ export function StudyPlanPage() {
                       </div>
                     );
                   })}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 12px', borderRadius: 999, border: '1px solid rgba(255,255,255,0.08)', fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.4)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 12px', borderRadius: 999, border: '1px solid rgba(255,255,255,0.08)', fontSize: 11, fontWeight: 700, color: 'var(--t2)' }}>
                     <Icon name="check_circle" size={11} style={{ color: '#4ade80' }} filled />
                     Click to mark done
                   </div>
@@ -584,7 +584,7 @@ export function StudyPlanPage() {
               <Icon name="calendar_month" size={28} style={{ color: '#818cf8' }} />
             </div>
             <h3 style={{ fontSize: 20, fontWeight: 900, color: '#fff' }}>Build your personalized roadmap</h3>
-            <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)', maxWidth: 460, lineHeight: 1.7 }}>
+            <p style={{ fontSize: 14, color: 'var(--t2)', maxWidth: 460, lineHeight: 1.7 }}>
               Select your target company and interview date above. EYF generates a day-by-day study plan weighted for that company's interview style.
             </p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8, justifyContent: 'center' }}>

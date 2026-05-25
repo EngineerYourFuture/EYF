@@ -119,15 +119,15 @@ export function SystemDesignPage() {
   };
 
   if (selected) {
-    const catMeta = CATEGORY_META[selected.category] ?? { icon: 'design_services', color: '#a1a1aa', glow: 'rgba(161,161,170,0.1)' };
-    const diffStyle = DIFF_STYLE[selected.difficulty] ?? { color: '#a1a1aa', bg: 'rgba(161,161,170,0.1)' };
+    const catMeta = CATEGORY_META[selected.category] ?? { icon: 'design_services', color: 'var(--t2)', glow: 'rgba(161,161,170,0.1)' };
+    const diffStyle = DIFF_STYLE[selected.difficulty] ?? { color: 'var(--t2)', bg: 'rgba(161,161,170,0.1)' };
     return (
       <AppShell>
         <div className="pt-8 max-w-4xl mx-auto">
           <motion.button
             onClick={() => { setSelected(null); setResponse(''); setSubmitted(false); }}
             className="flex items-center gap-2 text-sm mb-8 transition-colors"
-            style={{ color: 'rgba(255,255,255,0.35)' }}
+            style={{ color: 'var(--t2)' }}
             whileHover={{ color: 'rgba(255,255,255,0.8)', x: -2 }}
             transition={{ duration: 0.15 }}
           >
@@ -188,7 +188,7 @@ export function SystemDesignPage() {
                 </div>
               </div>
               <div>
-                <label htmlFor="sd-response" className="block text-sm font-bold mb-2" style={{ color: 'rgba(255,255,255,0.4)' }}>Your Design Response</label>
+                <label htmlFor="sd-response" className="block text-sm font-bold mb-2" style={{ color: 'var(--t2)' }}>Your Design Response</label>
                 <textarea
                   id="sd-response"
                   value={response}
@@ -209,7 +209,7 @@ export function SystemDesignPage() {
                 disabled={submitting || response.length < 10}
                 className="font-bold py-3 px-8 rounded-full flex items-center gap-2 disabled:opacity-40"
                 style={{
-                  background: 'linear-gradient(135deg, #E8192C, #FF5566)',
+                  background: 'linear-gradient(135deg, #E82127, #FF5566)',
                   color: 'white',
                   boxShadow: '0 4px 24px rgba(232,25,44,0.3)',
                 }}
@@ -248,7 +248,7 @@ export function SystemDesignPage() {
             </motion.h1>
             <motion.p
               className="text-lg max-w-md"
-              style={{ color: 'rgba(255,255,255,0.4)' }}
+              style={{ color: 'var(--t2)' }}
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
@@ -267,11 +267,11 @@ export function SystemDesignPage() {
             whileHover={{ boxShadow: '0 24px 60px rgba(0,0,0,0.7), 0 0 30px rgba(192,132,252,0.08)' }}
           >
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: 'rgba(255,255,255,0.28)' }}>Questions</p>
+              <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: 'var(--t3)' }}>Questions</p>
               <p className="text-2xl font-black" style={{ color: 'rgba(255,255,255,0.9)' }}>{stats.total}</p>
             </div>
             <div style={{ borderLeft: '1px solid rgba(255,255,255,0.07)', paddingLeft: 28 }}>
-              <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: 'rgba(255,255,255,0.28)' }}>Attempted</p>
+              <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: 'var(--t3)' }}>Attempted</p>
               <p className="text-2xl font-black" style={{ color: '#c084fc' }}>{stats.attempted}</p>
             </div>
           </motion.div>
@@ -342,8 +342,8 @@ export function SystemDesignPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {filtered.map((q, i) => {
-              const catMeta = CATEGORY_META[q.category] ?? { icon: 'design_services', color: '#a1a1aa', glow: 'rgba(161,161,170,0.1)' };
-              const diffStyle = DIFF_STYLE[q.difficulty] ?? { color: '#a1a1aa', bg: 'rgba(161,161,170,0.1)' };
+              const catMeta = CATEGORY_META[q.category] ?? { icon: 'design_services', color: 'var(--t2)', glow: 'rgba(161,161,170,0.1)' };
+              const diffStyle = DIFF_STYLE[q.difficulty] ?? { color: 'var(--t2)', bg: 'rgba(161,161,170,0.1)' };
               const locked = q.planAccess === 'pro' || q.planAccess === 'elite';
               return (
                 <motion.button

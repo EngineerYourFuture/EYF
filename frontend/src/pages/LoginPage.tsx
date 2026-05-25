@@ -74,12 +74,12 @@ function AnimStat({ stat, label, delay }: { readonly stat: string; readonly labe
       <span
         className="text-2xl font-black"
         style={{
-          color: '#E8192C',
+          color: '#E82127',
           letterSpacing: '-0.04em',
           textShadow: '0 0 20px rgba(232,25,44,0.5)',
         }}
       >{stat}</span>
-      <span className="text-sm" style={{ color: 'rgba(255,255,255,0.3)' }}>{label}</span>
+      <span className="text-sm" style={{ color: 'var(--t3)' }}>{label}</span>
     </motion.div>
   );
 }
@@ -222,7 +222,7 @@ export function LoginPage() {
           >
             "The structured path<br />to your first<br />
             <span style={{
-              color: '#E8192C',
+              color: '#E82127',
               textShadow: '0 0 30px rgba(232,25,44,0.5)',
             }}>tech offer.</span>"
           </motion.blockquote>

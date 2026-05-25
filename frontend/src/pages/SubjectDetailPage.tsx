@@ -16,7 +16,7 @@ export function SubjectDetailPage() {
     return (
       <AppShell>
         <div style={{ paddingTop: 32, textAlign: 'center' }}>
-          <p style={{ color: '#71717a', fontSize: 18 }}>Subject not found.</p>
+          <p style={{ color: 'var(--t3)', fontSize: 18 }}>Subject not found.</p>
           <button
             onClick={() => navigate('/app/subjects')}
             style={{ marginTop: 24, color: '#E82127', fontWeight: 700, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.1em', background: 'none', border: 'none', cursor: 'pointer' }}
@@ -34,13 +34,13 @@ export function SubjectDetailPage() {
 
   return (
     <AppShell>
-      <div style={{ paddingTop: 32, maxWidth: 768 }}>
+      <div style={{ paddingTop: 32, maxWidth: 768, margin: '0 auto' }}>
         {/* Back */}
         <motion.button
           initial={{ opacity: 0, x: -8 }}
           animate={{ opacity: 1, x: 0 }}
           onClick={() => navigate('/app/subjects')}
-          style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#71717a', fontWeight: 700, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 40, background: 'none', border: 'none', cursor: 'pointer' }}
+          style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--t3)', fontWeight: 700, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 40, background: 'none', border: 'none', cursor: 'pointer' }}
         >
           <Icon name="arrow_back" size={16} />
           Core Subjects
@@ -56,12 +56,12 @@ export function SubjectDetailPage() {
             <Icon name={subject.icon} size={40} style={{ color: '#E82127' }} />
           </div>
           <div style={{ flex: 1 }}>
-            <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#52525b', marginBottom: 4 }}>Core Subject</p>
-            <h1 style={{ fontSize: 30, fontWeight: 900, letterSpacing: '-0.04em', color: '#e4e4e7', marginBottom: 8 }}>{subject.title}</h1>
+            <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--t4)', marginBottom: 4 }}>Core Subject</p>
+            <h1 style={{ fontSize: 30, fontWeight: 900, letterSpacing: '-0.04em', color: 'var(--t1)', marginBottom: 8 }}>{subject.title}</h1>
             <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 12 }}>
-              <span style={{ fontSize: 14, color: '#71717a' }}>{allTopics.length} topics</span>
+              <span style={{ fontSize: 14, color: 'var(--t3)' }}>{allTopics.length} topics</span>
               <span style={{ color: '#3f3f46' }}>·</span>
-              <span style={{ fontSize: 14, color: '#71717a' }}>{doneCount} completed</span>
+              <span style={{ fontSize: 14, color: 'var(--t3)' }}>{doneCount} completed</span>
             </div>
             <div style={{ height: 6, background: 'rgba(255,255,255,0.06)', borderRadius: 999, overflow: 'hidden', maxWidth: 320 }}>
               <motion.div
@@ -83,7 +83,7 @@ export function SubjectDetailPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: si * 0.08 }}
             >
-              <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#52525b', marginBottom: 16 }}>
+              <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--t4)', marginBottom: 16 }}>
                 {section.title}
               </p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -107,9 +107,9 @@ export function SubjectDetailPage() {
                       {topic.done && <Icon name="check" size={14} style={{ color: '#fff' }} />}
                     </div>
 
-                    <span style={{ flex: 1, fontWeight: 600, fontSize: 14, color: '#e4e4e7' }}>{topic.title}</span>
+                    <span style={{ flex: 1, fontWeight: 600, fontSize: 14, color: 'var(--t1)' }}>{topic.title}</span>
 
-                    <span style={{ padding: '4px 12px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 999, fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#52525b' }}>
+                    <span style={{ padding: '4px 12px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 999, fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--t4)' }}>
                       {topic.duration}
                     </span>
 
@@ -117,7 +117,7 @@ export function SubjectDetailPage() {
                       {topic.done ? 'Review' : 'Start'}
                     </span>
 
-                    <Icon name="chevron_right" size={18} style={{ color: '#52525b' }} />
+                    <Icon name="chevron_right" size={18} style={{ color: 'var(--t4)' }} />
                   </motion.button>
                 ))}
               </div>

@@ -55,7 +55,7 @@ export function AdminOperationsPage() {
           <h1 style={{ fontSize: '3rem', fontWeight: 900, letterSpacing: '-0.03em', marginBottom: 8, lineHeight: 1.1 }}>
             <span style={{ background: 'linear-gradient(135deg, #fff 40%, #E82127)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>ADMIN OPERATIONS.</span>
           </h1>
-          <p style={{ color: '#71717a' }}>System overview and platform management.</p>
+          <p style={{ color: 'var(--t3)' }}>System overview and platform management.</p>
         </motion.div>
 
         {/* Stats */}
@@ -71,8 +71,8 @@ export function AdminOperationsPage() {
               <div style={{ width: 48, height: 48, borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16, background: s.bg, border: `1px solid ${s.color}30` }}>
                 <Icon name={s.icon} size={24} style={{ color: s.color }} />
               </div>
-              <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#71717a', marginBottom: 8 }}>{s.label}</p>
-              <p style={{ fontSize: 28, fontWeight: 900, color: '#e4e4e7' }}>{String(s.value)}</p>
+              <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--t3)', marginBottom: 8 }}>{s.label}</p>
+              <p style={{ fontSize: 28, fontWeight: 900, color: 'var(--t1)' }}>{String(s.value)}</p>
             </motion.div>
           ))}
         </div>
@@ -93,19 +93,19 @@ export function AdminOperationsPage() {
             >
               <div style={{ width: 12, height: 12, borderRadius: '50%', background: s.color, boxShadow: `0 0 8px ${s.color}`, flexShrink: 0 }} />
               <div style={{ flex: 1 }}>
-                <p style={{ fontWeight: 600, color: '#e4e4e7' }}>{s.label}</p>
+                <p style={{ fontWeight: 600, color: 'var(--t1)' }}>{s.label}</p>
                 <p style={{ fontSize: 12, fontWeight: 700, color: s.color }}>{s.status}</p>
               </div>
-              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#71717a' }}>{s.uptime}</span>
+              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--t3)' }}>{s.uptime}</span>
             </motion.div>
           ))}
         </div>
 
         {/* Recent activity */}
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} style={{ ...GLASS, borderRadius: 16, padding: 32 }}>
-          <h2 style={{ fontSize: 18, fontWeight: 900, letterSpacing: '-0.02em', marginBottom: 24, color: '#e4e4e7' }}>Recent Activity</h2>
-          {loading && <div style={{ color: '#71717a', textAlign: 'center', padding: 32 }}>Loading...</div>}
-          {!loading && activity.length === 0 && <div style={{ color: '#71717a', textAlign: 'center', padding: 32 }}>No recent activity.</div>}
+          <h2 style={{ fontSize: 18, fontWeight: 900, letterSpacing: '-0.02em', marginBottom: 24, color: 'var(--t1)' }}>Recent Activity</h2>
+          {loading && <div style={{ color: 'var(--t3)', textAlign: 'center', padding: 32 }}>Loading...</div>}
+          {!loading && activity.length === 0 && <div style={{ color: 'var(--t3)', textAlign: 'center', padding: 32 }}>No recent activity.</div>}
           {!loading && activity.length > 0 && (
             <div className="space-y-3">
               {activity.slice(0, 10).map((a, i) => (
@@ -120,10 +120,10 @@ export function AdminOperationsPage() {
                     <Icon name="history" size={16} style={{ color: '#E82127' }} />
                   </div>
                   <div style={{ flex: 1 }}>
-                    <p style={{ color: '#e4e4e7', fontSize: 14 }}>{a.action}</p>
-                    {a.user && <p style={{ color: '#71717a', fontSize: 12 }}>{a.user}</p>}
+                    <p style={{ color: 'var(--t1)', fontSize: 14 }}>{a.action}</p>
+                    {a.user && <p style={{ color: 'var(--t3)', fontSize: 12 }}>{a.user}</p>}
                   </div>
-                  <span style={{ color: '#52525b', fontSize: 12 }}>{new Date(a.createdAt).toLocaleString()}</span>
+                  <span style={{ color: 'var(--t4)', fontSize: 12 }}>{new Date(a.createdAt).toLocaleString()}</span>
                 </motion.div>
               ))}
             </div>

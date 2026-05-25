@@ -781,7 +781,7 @@ export function DailyChallengePage() {
         >
           <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', flexWrap: 'wrap', gap: 20 }}>
             <div>
-              <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.18em', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', marginBottom: 8 }}>
+              <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.18em', color: 'var(--t3)', textTransform: 'uppercase', marginBottom: 8 }}>
                 {now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
               </p>
               <h1 style={{
@@ -818,7 +818,7 @@ export function DailyChallengePage() {
                 </motion.div>
               )}
               <div style={{ textAlign: 'right' }}>
-                <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.15em', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase' }}>
+                <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.15em', color: 'var(--t3)', textTransform: 'uppercase' }}>
                   Next in
                 </p>
                 <p style={{ fontWeight: 900, color: '#fff', fontSize: 18 }}>{hoursTil}h {minsTil}m</p>
@@ -909,7 +909,7 @@ export function DailyChallengePage() {
                 <span key={tag} style={{
                   padding: '4px 10px', borderRadius: 999,
                   background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
-                  fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.1em',
+                  fontSize: 10, fontWeight: 700, color: 'var(--t2)', textTransform: 'uppercase', letterSpacing: '0.1em',
                 }}>
                   {tag}
                 </span>
@@ -920,7 +920,7 @@ export function DailyChallengePage() {
           {/* Answer area */}
           {!submitted && (
             <div style={{ padding: '20px 24px 24px' }}>
-              <label htmlFor="daily-answer" style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', display: 'block', marginBottom: 8 }}>
+              <label htmlFor="daily-answer" style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--t3)', display: 'block', marginBottom: 8 }}>
                 Your Answer / Approach
               </label>
               <textarea
@@ -961,7 +961,7 @@ export function DailyChallengePage() {
                   style={{
                     background: 'none', border: 'none', cursor: 'pointer',
                     display: 'flex', alignItems: 'center', gap: 6,
-                    fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,0.35)',
+                    fontSize: 12, fontWeight: 700, color: 'var(--t2)',
                     transition: 'color 0.2s',
                   }}
                 >
@@ -1020,7 +1020,7 @@ export function DailyChallengePage() {
                 </pre>
               </div>
               <div style={{ padding: '0 24px 24px' }}>
-                <p style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', marginBottom: 12 }}>
+                <p style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--t3)', marginBottom: 12 }}>
                   Discussion Points
                 </p>
                 <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -1052,7 +1052,7 @@ export function DailyChallengePage() {
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
             <h3 style={{ fontWeight: 900, color: '#fff', fontSize: 15 }}>Recent Challenges</h3>
-            <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.14em' }}>
+            <span style={{ fontSize: 10, color: 'var(--t3)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.14em' }}>
               Last 7 days
             </span>
           </div>
@@ -1088,7 +1088,7 @@ export function DailyChallengePage() {
                     <p style={{ fontSize: 13, fontWeight: 700, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {dayChallenge.title}
                     </p>
-                    <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)' }}>
+                    <p style={{ fontSize: 10, color: 'var(--t3)' }}>
                       {d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })} · {m.label}
                     </p>
                   </div>

@@ -5,7 +5,7 @@ import { apiPost } from '../lib/api';
 import { Icon } from '../components/Icon';
 
 const GLASS = { background: 'rgba(10,10,10,0.7)', border: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(16px)' } as const;
-const INPUT = { width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '14px 20px', color: '#e4e4e7', fontSize: 14, outline: 'none', boxSizing: 'border-box' } as const;
+const INPUT = { width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '14px 20px', color: 'var(--t1)', fontSize: 14, outline: 'none', boxSizing: 'border-box' } as const;
 
 export function ResetPasswordPage() {
   const [params] = useSearchParams();
@@ -39,7 +39,7 @@ export function ResetPasswordPage() {
     return (
       <div style={{ minHeight: '100vh', background: '#0a0a0a', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 16px' }}>
         <div style={{ textAlign: 'center' }}>
-          <p style={{ color: '#a1a1aa', marginBottom: 16 }}>Invalid reset link.</p>
+          <p style={{ color: 'var(--t2)', marginBottom: 16 }}>Invalid reset link.</p>
           <Link to="/forgot-password" style={{ color: '#E82127', fontSize: 14, textDecoration: 'none', fontWeight: 700 }}>Request a new one</Link>
         </div>
       </div>
@@ -55,11 +55,11 @@ export function ResetPasswordPage() {
       <div style={{ width: '100%', maxWidth: 440, position: 'relative', zIndex: 1 }}>
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} style={{ ...GLASS, borderRadius: 20, padding: 40 }}>
           <div style={{ marginBottom: 32 }}>
-            <span style={{ fontWeight: 900, fontSize: 22, letterSpacing: '-0.04em', color: '#e4e4e7' }}>
+            <span style={{ fontWeight: 900, fontSize: 22, letterSpacing: '-0.04em', color: 'var(--t1)' }}>
               EY<span style={{ color: '#E82127' }}>F</span>
             </span>
-            <h1 style={{ fontSize: 24, fontWeight: 900, letterSpacing: '-0.03em', marginTop: 16, marginBottom: 8, color: '#e4e4e7' }}>Reset password</h1>
-            <p style={{ color: '#71717a', fontSize: 14 }}>Choose a strong new password for your account.</p>
+            <h1 style={{ fontSize: 24, fontWeight: 900, letterSpacing: '-0.03em', marginTop: 16, marginBottom: 8, color: 'var(--t1)' }}>Reset password</h1>
+            <p style={{ color: 'var(--t3)', fontSize: 14 }}>Choose a strong new password for your account.</p>
           </div>
 
           {done ? (
@@ -67,8 +67,8 @@ export function ResetPasswordPage() {
               <div style={{ width: 56, height: 56, background: 'rgba(74,222,128,0.1)', border: '1px solid rgba(74,222,128,0.3)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
                 <Icon name="check_circle" size={28} style={{ color: '#4ade80' }} />
               </div>
-              <p style={{ fontWeight: 700, color: '#e4e4e7', marginBottom: 8 }}>Password updated!</p>
-              <p style={{ color: '#71717a', fontSize: 14 }}>Redirecting to login…</p>
+              <p style={{ fontWeight: 700, color: 'var(--t1)', marginBottom: 8 }}>Password updated!</p>
+              <p style={{ color: 'var(--t3)', fontSize: 14 }}>Redirecting to login…</p>
             </div>
           ) : (
             <form onSubmit={submit} className="space-y-5">
@@ -77,7 +77,7 @@ export function ResetPasswordPage() {
                 { id: 'rp-confirm', label: 'Confirm Password', value: confirm,  setter: setConfirm },
               ].map((f) => (
                 <div key={f.id}>
-                  <label htmlFor={f.id} style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#71717a', display: 'block', marginBottom: 8 }}>{f.label}</label>
+                  <label htmlFor={f.id} style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--t3)', display: 'block', marginBottom: 8 }}>{f.label}</label>
                   <input
                     id={f.id}
                     type="password"
@@ -90,7 +90,7 @@ export function ResetPasswordPage() {
                 </div>
               ))}
 
-              <p style={{ color: '#52525b', fontSize: 12 }}>8+ chars · uppercase · lowercase · digit · special char</p>
+              <p style={{ color: 'var(--t4)', fontSize: 12 }}>8+ chars · uppercase · lowercase · digit · special char</p>
 
               {error && <p style={{ color: '#f87171', fontSize: 14 }}>{error}</p>}
 

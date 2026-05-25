@@ -424,7 +424,7 @@ export function PlacementTrackPage() {
 
   return (
     <AppShell>
-      <div className="pt-6 pb-12 max-w-4xl">
+      <div className="pt-6 pb-12 max-w-4xl mx-auto">
         {/* Back */}
         <button
           onClick={() => navigate('/app/placement')}

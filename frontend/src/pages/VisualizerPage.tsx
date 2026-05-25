@@ -296,7 +296,7 @@ export function VisualizerPage() {
       {/* Navbar */}
       <header style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50, height: 64, background: 'rgba(8,8,8,0.85)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 2rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <Link to="/app/dashboard" style={{ display: 'flex', alignItems: 'center', color: 'rgba(255,255,255,0.3)', transition: 'color 0.2s' }}>
+          <Link to="/app/dashboard" style={{ display: 'flex', alignItems: 'center', color: 'var(--t3)', transition: 'color 0.2s' }}>
             <Icon name="arrow_back" size={20} />
           </Link>
           <span style={{ fontSize: '1.5rem', fontWeight: 900, letterSpacing: '-0.04em', color: '#E82127' }}>EYF</span>
@@ -343,7 +343,7 @@ export function VisualizerPage() {
         )}
         {tab === 'guide' && sessionStarted && (
           <button type="button" onClick={resetGuide}
-            style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.6875rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', background: 'transparent', border: 'none', transition: 'color 0.2s' }}>
+            style={{ color: 'var(--t3)', fontSize: '0.6875rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', background: 'transparent', border: 'none', transition: 'color 0.2s' }}>
             <Icon name="restart_alt" size={16} />
             New Problem
           </button>
@@ -360,7 +360,7 @@ export function VisualizerPage() {
               <p style={{ fontFamily: 'Inter, sans-serif', letterSpacing: '0.12em', fontSize: '0.625rem', fontWeight: 700, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase' }}>Input Data</p>
             </div>
             <textarea value={code} onChange={(e) => setCode(e.target.value)}
-              style={{ flex: 1, background: 'rgba(0,0,0,0.3)', color: '#e4e4e7', fontFamily: 'monospace', fontSize: '0.875rem', padding: 24, resize: 'none', outline: 'none', border: 'none' }}
+              style={{ flex: 1, background: 'rgba(0,0,0,0.3)', color: 'var(--t1)', fontFamily: 'monospace', fontSize: '0.875rem', padding: 24, resize: 'none', outline: 'none', border: 'none' }}
               placeholder="Enter input data (array, graph, etc.)" />
             {traceError && (
               <div style={{ padding: 16, color: '#f87171', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: 8, borderTop: '1px solid rgba(255,255,255,0.05)' }}>
@@ -393,7 +393,7 @@ export function VisualizerPage() {
               <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <div style={{ textAlign: 'center' }}>
                   <Icon name="play_circle" size={64} style={{ color: 'rgba(255,255,255,0.1)', display: 'block', margin: '0 auto 16px' }} />
-                  <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.875rem' }}>Run a trace to see step-by-step visualization</p>
+                  <p style={{ color: 'var(--t3)', fontSize: '0.875rem' }}>Run a trace to see step-by-step visualization</p>
                 </div>
               </div>
             )}
@@ -510,7 +510,7 @@ export function VisualizerPage() {
                       </div>
                       <textarea value={studentCode} onChange={(e) => setStudentCode(e.target.value)}
                         rows={8} placeholder="// Start writing your solution here…"
-                        style={{ width: '100%', background: 'rgba(0,0,0,0.3)', color: '#e4e4e7', fontFamily: 'monospace', fontSize: '0.75rem', padding: 16, resize: 'none', outline: 'none', border: 'none' }}
+                        style={{ width: '100%', background: 'rgba(0,0,0,0.3)', color: 'var(--t1)', fontFamily: 'monospace', fontSize: '0.75rem', padding: 16, resize: 'none', outline: 'none', border: 'none' }}
                         spellCheck={false} />
                     </div>
                   )}
@@ -518,12 +518,12 @@ export function VisualizerPage() {
               ) : (
                 <>
                   <textarea value={problem} onChange={(e) => setProblem(e.target.value)}
-                    style={{ flex: 1, background: 'rgba(0,0,0,0.3)', color: '#e4e4e7', fontFamily: 'monospace', fontSize: '0.875rem', padding: 20, resize: 'none', outline: 'none', border: 'none' }}
+                    style={{ flex: 1, background: 'rgba(0,0,0,0.3)', color: 'var(--t1)', fontFamily: 'monospace', fontSize: '0.875rem', padding: 20, resize: 'none', outline: 'none', border: 'none' }}
                     placeholder={`Paste any DSA problem here…\n\nExample:\n"Given an integer array nums and an integer target, return indices of the two numbers such that they add up to target."`} />
                   {!problem.trim() && (
                     <div style={{ padding: 20, borderTop: '1px solid rgba(255,255,255,0.05)', display: 'flex', flexDirection: 'column', gap: 8 }}>
                       {['Paste any DSA problem above', 'AI asks you guiding questions — not answers', 'Discover the logic yourself, then write the code'].map((tip) => (
-                        <div key={tip} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: '0.6875rem', color: 'rgba(255,255,255,0.3)' }}>
+                        <div key={tip} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: '0.6875rem', color: 'var(--t3)' }}>
                           <span style={{ color: '#818cf8', flexShrink: 0, marginTop: 1 }}>→</span>{tip}
                         </div>
                       ))}
@@ -578,7 +578,7 @@ export function VisualizerPage() {
                     <div style={{ width: 64, height: 64, background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.2)', borderRadius: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
                       <Icon name="psychology" size={32} style={{ color: '#818cf8' }} />
                     </div>
-                    <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.875rem', lineHeight: 1.8 }}>
+                    <p style={{ color: 'var(--t2)', fontSize: '0.875rem', lineHeight: 1.8 }}>
                       Paste a problem on the left, then hit{' '}
                       <span style={{ color: '#818cf8', fontWeight: 700 }}>Guide Me</span>.
                       <br /><br />
@@ -619,7 +619,7 @@ function ActiveGuidanceCard({ turn, stageMeta }: Readonly<{
         </div>
         <div style={{ flex: 1 }}>
           <p style={{ fontSize: '0.75rem', fontWeight: 900, letterSpacing: '0.06em', textTransform: 'uppercase', color: stageMeta.color }}>{stageMeta.label}</p>
-          <p style={{ fontSize: '0.625rem', color: 'rgba(255,255,255,0.3)', marginTop: 2 }}>{stageMeta.desc}</p>
+          <p style={{ fontSize: '0.625rem', color: 'var(--t3)', marginTop: 2 }}>{stageMeta.desc}</p>
         </div>
         <span style={{ padding: '3px 10px', borderRadius: 9999, fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', background: `${stageMeta.color}15`, color: stageMeta.color }}>
           Stage {STAGES.findIndex(s => s.key === stageMeta.key) + 1} / {STAGES.length}

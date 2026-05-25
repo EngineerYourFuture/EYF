@@ -113,7 +113,7 @@ export function ExpertsPage() {
     return (
       <AppShell>
         <div className="pt-8 max-w-3xl mx-auto">
-          <button onClick={() => setSelected(null)} style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#71717a', fontSize: 14, marginBottom: 24, background: 'none', border: 'none', cursor: 'pointer' }}>
+          <button onClick={() => setSelected(null)} style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--t3)', fontSize: 14, marginBottom: 24, background: 'none', border: 'none', cursor: 'pointer' }}>
             <Icon name="arrow_back" size={16} />Back to experts
           </button>
 
@@ -125,8 +125,8 @@ export function ExpertsPage() {
               <div style={{ flex: 1 }}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
                   <div>
-                    <h1 style={{ fontSize: 24, fontWeight: 700, color: '#e4e4e7', marginBottom: 2 }}>{selected.displayName}</h1>
-                    <p style={{ color: '#a1a1aa' }}>{selected.title}{selected.company && ` @ ${selected.company}`}</p>
+                    <h1 style={{ fontSize: 24, fontWeight: 700, color: 'var(--t1)', marginBottom: 2 }}>{selected.displayName}</h1>
+                    <p style={{ color: 'var(--t2)' }}>{selected.title}{selected.company && ` @ ${selected.company}`}</p>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8 }}>
                     <span style={{ fontSize: 10, fontWeight: 700, padding: '4px 12px', borderRadius: 999, color: selected.available ? '#4ade80' : '#71717a', background: selected.available ? 'rgba(74,222,128,0.1)' : 'rgba(113,113,122,0.1)' }}>
@@ -139,13 +139,13 @@ export function ExpertsPage() {
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 12 }}>
                   <StarRating rating={selected.rating} />
-                  <span style={{ fontSize: 14, fontWeight: 700, color: '#e4e4e7' }}>{selected.rating}</span>
-                  <span style={{ fontSize: 12, color: '#71717a' }}>({selected.reviewCount} reviews)</span>
-                  <span style={{ fontSize: 12, color: '#71717a' }}>· {selected.yearsExperience} yrs exp</span>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--t1)' }}>{selected.rating}</span>
+                  <span style={{ fontSize: 12, color: 'var(--t3)' }}>({selected.reviewCount} reviews)</span>
+                  <span style={{ fontSize: 12, color: 'var(--t3)' }}>· {selected.yearsExperience} yrs exp</span>
                 </div>
               </div>
             </div>
-            <p style={{ fontSize: 14, color: '#a1a1aa', lineHeight: 1.7, marginBottom: 20 }}>{selected.bio}</p>
+            <p style={{ fontSize: 14, color: 'var(--t2)', lineHeight: 1.7, marginBottom: 20 }}>{selected.bio}</p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 20 }}>
               {selected.specializations.map((s) => (
                 <span key={s} style={{ fontSize: 10, fontWeight: 700, padding: '4px 12px', borderRadius: 999, background: 'rgba(255,255,255,0.06)', color: '#d4d4d8' }}>{s}</span>
@@ -162,7 +162,7 @@ export function ExpertsPage() {
                 <Icon name="calendar_add_on" size={16} />Book a Session
               </motion.button>
             ) : (
-              <button disabled style={{ background: 'rgba(255,255,255,0.04)', color: '#71717a', fontWeight: 700, padding: '12px 32px', borderRadius: 999, border: '1px solid rgba(255,255,255,0.06)', cursor: 'not-allowed', display: 'flex', alignItems: 'center', gap: 8, fontSize: 14 }}>
+              <button disabled style={{ background: 'rgba(255,255,255,0.04)', color: 'var(--t3)', fontWeight: 700, padding: '12px 32px', borderRadius: 999, border: '1px solid rgba(255,255,255,0.06)', cursor: 'not-allowed', display: 'flex', alignItems: 'center', gap: 8, fontSize: 14 }}>
                 <Icon name="event_busy" size={16} />Currently Unavailable
               </button>
             )}
@@ -170,9 +170,9 @@ export function ExpertsPage() {
 
           {/* Review form */}
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} style={{ ...GLASS, borderRadius: 16, padding: 24, marginBottom: 16 }}>
-            <h3 style={{ fontWeight: 700, color: '#e4e4e7', marginBottom: 16 }}>Leave a Review</h3>
+            <h3 style={{ fontWeight: 700, color: 'var(--t1)', marginBottom: 16 }}>Leave a Review</h3>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-              <span style={{ fontSize: 14, color: '#a1a1aa' }}>Rating:</span>
+              <span style={{ fontSize: 14, color: 'var(--t2)' }}>Rating:</span>
               <div style={{ display: 'flex', gap: 4 }}>
                 {[1, 2, 3, 4, 5].map((s) => (
                   <button key={s} onClick={() => setRating(s)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2 }}>
@@ -186,7 +186,7 @@ export function ExpertsPage() {
               onChange={(e) => setComment(e.target.value)}
               placeholder="Share your experience with this mentor..."
               rows={3}
-              style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '12px 16px', fontSize: 14, color: '#e4e4e7', outline: 'none', resize: 'none', marginBottom: 12, boxSizing: 'border-box' }}
+              style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '12px 16px', fontSize: 14, color: 'var(--t1)', outline: 'none', resize: 'none', marginBottom: 12, boxSizing: 'border-box' }}
             />
             <motion.button
               onClick={submitReview}
@@ -201,18 +201,18 @@ export function ExpertsPage() {
 
           <div className="space-y-3">
             {selected.reviews.length === 0 ? (
-              <p style={{ fontSize: 14, color: '#71717a', textAlign: 'center', padding: '24px 0' }}>No reviews yet.</p>
+              <p style={{ fontSize: 14, color: 'var(--t3)', textAlign: 'center', padding: '24px 0' }}>No reviews yet.</p>
             ) : (
               selected.reviews.map((r, i) => (
                 <motion.div key={r.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }} style={{ ...GLASS, borderRadius: 14, padding: 20 }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span style={{ fontSize: 14, fontWeight: 700, color: '#e4e4e7' }}>{r.reviewer}</span>
+                      <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--t1)' }}>{r.reviewer}</span>
                       <StarRating rating={r.rating} />
                     </div>
-                    <span style={{ fontSize: 12, color: '#71717a' }}>{new Date(r.createdAt).toLocaleDateString()}</span>
+                    <span style={{ fontSize: 12, color: 'var(--t3)' }}>{new Date(r.createdAt).toLocaleDateString()}</span>
                   </div>
-                  {r.comment && <p style={{ fontSize: 14, color: '#a1a1aa' }}>{r.comment}</p>}
+                  {r.comment && <p style={{ fontSize: 14, color: 'var(--t2)' }}>{r.comment}</p>}
                 </motion.div>
               ))
             )}
@@ -233,7 +233,7 @@ export function ExpertsPage() {
               <h1 style={{ fontSize: '2.5rem', fontWeight: 900, letterSpacing: '-0.03em', marginBottom: 8, lineHeight: 1.1 }}>
                 <span style={{ background: 'linear-gradient(135deg, #fff 40%, #E82127)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>EXPERT NETWORK.</span>
               </h1>
-              <p style={{ color: '#a1a1aa', maxWidth: 400, lineHeight: 1.6 }}>1:1 sessions with engineers from Google, Meta, Netflix, Microsoft and top startups. Accelerate your growth with personalized mentorship.</p>
+              <p style={{ color: 'var(--t2)', maxWidth: 400, lineHeight: 1.6 }}>1:1 sessions with engineers from Google, Meta, Netflix, Microsoft and top startups. Accelerate your growth with personalized mentorship.</p>
               <div style={{ display: 'flex', gap: 24, marginTop: 32 }}>
                 {[
                   { label: 'Experts',   value: String(experts.length) },
@@ -241,7 +241,7 @@ export function ExpertsPage() {
                   { label: 'Companies', value: '20+' },
                 ].map((stat, i) => (
                   <div key={stat.label} style={{ paddingLeft: i > 0 ? 24 : 0, borderLeft: i > 0 ? '1px solid rgba(255,255,255,0.08)' : 'none' }}>
-                    <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#71717a', marginBottom: 4 }}>{stat.label}</p>
+                    <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--t3)', marginBottom: 4 }}>{stat.label}</p>
                     <p style={{ fontSize: 24, fontWeight: 700, color: stat.color ?? '#e4e4e7' }}>{stat.value}</p>
                   </div>
                 ))}
@@ -275,17 +275,17 @@ export function ExpertsPage() {
                 onClick={(e) => e.stopPropagation()}
                 style={{ ...GLASS, borderRadius: 20, padding: 32, maxWidth: 448, width: '100%' }}
               >
-                <h3 style={{ fontSize: 20, fontWeight: 700, color: '#e4e4e7', marginBottom: 8 }}>Become an EYF Expert</h3>
-                <p style={{ fontSize: 14, color: '#a1a1aa', marginBottom: 24, lineHeight: 1.6 }}>Share your expertise, earn income, and help engineers grow. We vet all expert applications.</p>
+                <h3 style={{ fontSize: 20, fontWeight: 700, color: 'var(--t1)', marginBottom: 8 }}>Become an EYF Expert</h3>
+                <p style={{ fontSize: 14, color: 'var(--t2)', marginBottom: 24, lineHeight: 1.6 }}>Share your expertise, earn income, and help engineers grow. We vet all expert applications.</p>
                 <div style={{ marginBottom: 24 }} className="space-y-2">
                   {['3+ years of industry experience', 'Active in your field', 'Commitment to 2+ sessions/month', 'Profile review within 48 hours'].map((r) => (
-                    <div key={r} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: '#a1a1aa' }}>
+                    <div key={r} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: 'var(--t2)' }}>
                       <Icon name="check_circle" size={14} filled style={{ color: '#4ade80' }} />{r}
                     </div>
                   ))}
                 </div>
                 <div style={{ display: 'flex', gap: 12 }}>
-                  <button onClick={() => setShowBecomeExpert(false)} style={{ flex: 1, border: '1px solid rgba(255,255,255,0.1)', color: '#a1a1aa', fontWeight: 700, padding: '10px 0', borderRadius: 999, fontSize: 14, background: 'transparent', cursor: 'pointer' }}>
+                  <button onClick={() => setShowBecomeExpert(false)} style={{ flex: 1, border: '1px solid rgba(255,255,255,0.1)', color: 'var(--t2)', fontWeight: 700, padding: '10px 0', borderRadius: 999, fontSize: 14, background: 'transparent', cursor: 'pointer' }}>
                     Cancel
                   </button>
                   <motion.button
@@ -344,43 +344,43 @@ export function ExpertsPage() {
                   {expert.displayName[0]}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <h3 style={{ fontWeight: 700, color: '#e4e4e7', marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{expert.displayName}</h3>
-                  <p style={{ fontSize: 12, color: '#a1a1aa', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{expert.title}{expert.company && ` @ ${expert.company}`}</p>
+                  <h3 style={{ fontWeight: 700, color: 'var(--t1)', marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{expert.displayName}</h3>
+                  <p style={{ fontSize: 12, color: 'var(--t2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{expert.title}{expert.company && ` @ ${expert.company}`}</p>
                 </div>
                 <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 999, flexShrink: 0, color: expert.available ? '#4ade80' : '#71717a', background: expert.available ? 'rgba(74,222,128,0.1)' : 'rgba(113,113,122,0.1)' }}>
                   {expert.available ? '●' : '○'}
                 </span>
               </div>
 
-              <p style={{ fontSize: 12, color: '#a1a1aa', lineHeight: 1.6, marginBottom: 16, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{expert.bio}</p>
+              <p style={{ fontSize: 12, color: 'var(--t2)', lineHeight: 1.6, marginBottom: 16, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{expert.bio}</p>
 
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 16 }}>
                 {expert.specializations.slice(0, 3).map((s) => (
-                  <span key={s} style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 999, background: 'rgba(255,255,255,0.06)', color: '#a1a1aa' }}>{s}</span>
+                  <span key={s} style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 999, background: 'rgba(255,255,255,0.06)', color: 'var(--t2)' }}>{s}</span>
                 ))}
                 {expert.specializations.length > 3 && (
-                  <span style={{ fontSize: 10, color: '#52525b' }}>+{expert.specializations.length - 3}</span>
+                  <span style={{ fontSize: 10, color: 'var(--t4)' }}>+{expert.specializations.length - 3}</span>
                 )}
               </div>
 
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <StarRating rating={expert.rating} />
-                  <span style={{ fontSize: 12, fontWeight: 700, color: '#e4e4e7' }}>{expert.rating}</span>
-                  <span style={{ fontSize: 10, color: '#71717a' }}>({expert.reviewCount})</span>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--t1)' }}>{expert.rating}</span>
+                  <span style={{ fontSize: 10, color: 'var(--t3)' }}>({expert.reviewCount})</span>
                 </div>
                 {expert.hourlyRate && (
                   <span style={{ fontSize: 12, fontWeight: 700, color: '#facc15' }}>${expert.hourlyRate}/hr</span>
                 )}
               </div>
 
-              <div style={{ fontSize: 10, color: '#52525b', marginTop: 8 }}>{expert.yearsExperience} years experience</div>
+              <div style={{ fontSize: 10, color: 'var(--t4)', marginTop: 8 }}>{expert.yearsExperience} years experience</div>
             </motion.button>
           ))}
           {filtered.length === 0 && (
             <div className="col-span-3" style={{ textAlign: 'center', padding: '64px 0' }}>
               <Icon name="groups" size={40} style={{ color: '#3f3f46', display: 'block', margin: '0 auto 12px' }} />
-              <p style={{ color: '#a1a1aa' }}>No experts match your filters.</p>
+              <p style={{ color: 'var(--t2)' }}>No experts match your filters.</p>
             </div>
           )}
         </div>

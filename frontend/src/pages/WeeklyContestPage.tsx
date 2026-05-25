@@ -264,7 +264,7 @@ function ContestCard({
           {contest.status === 'live' ? (
             <Link
               to={`/app/problems/${contest.problems[0].id}`}
-              className="inline-flex items-center gap-2 bg-[#E82127] hover:bg-red-600 text-white text-sm font-semibold px-5 py-2 rounded-xl transition-colors"
+              className="btn btn-primary btn-sm"
             >
               <Icon name="play_arrow" className="text-lg" />
               Enter Contest
@@ -399,8 +399,8 @@ export function WeeklyContestPage() {
         {/* Header */}
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-white mb-1">Weekly Contests</h1>
-            <p className="text-sm text-zinc-500">
+            <h1 style={{ fontSize: "2.25rem", fontWeight: 900, letterSpacing: "-0.03em", lineHeight: 1.1, marginBottom: 4, color: "var(--t1)" }}>Weekly <span style={{ background: "linear-gradient(135deg, #facc15, #fb923c)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Contests.</span></h1>
+            <p style={{ fontSize: 14, color: "var(--t3)", marginTop: 4 }}>
               90-minute timed contests every Sunday — 4 problems, global leaderboard, XP rewards.{' '}
               <span className="ml-2 text-[10px] font-bold text-[#E82127] bg-[#E82127]/10 px-2 py-0.5 rounded-full border border-[#E82127]/20">
                 FREE · No paywall

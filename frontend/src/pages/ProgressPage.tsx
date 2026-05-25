@@ -159,7 +159,7 @@ function StatCard({ icon, label, value, sub, color, glow, delay = 0 }: {
       whileHover={{ boxShadow: `0 8px 32px ${glow}` }}
     >
       <div className="flex items-start justify-between">
-        <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.28)' }}>{label}</p>
+        <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--t3)' }}>{label}</p>
         <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: glow }}>
           <Icon name={icon} size={16} style={{ color }} />
         </div>
@@ -187,7 +187,7 @@ function WeeklyXPChart({ days }: { readonly days: DailyActivity[] }) {
       viewport={{ once: true }}
       transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
     >
-      <p className="text-[10px] font-bold uppercase tracking-widest mb-4" style={{ color: 'rgba(255,255,255,0.28)' }}>XP — Last 14 Days</p>
+      <p className="text-[10px] font-bold uppercase tracking-widest mb-4" style={{ color: 'var(--t3)' }}>XP — Last 14 Days</p>
       <div className="flex items-end gap-1" style={{ height: 80 }}>
         {last14.map((day) => {
           const pct = (day.xp / maxXP) * 100;
@@ -247,7 +247,7 @@ function ActivityHeatmap({ days }: { readonly days: DailyActivity[] }) {
       transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
     >
       <div className="flex items-center justify-between mb-4">
-        <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.28)' }}>Activity Heatmap — Last 52 Weeks</p>
+        <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--t3)' }}>Activity Heatmap — Last 52 Weeks</p>
         <p className="text-[10px]" style={{ color: 'rgba(255,255,255,0.22)' }}>{activeDays} active days · {totalXP.toLocaleString()} total XP</p>
       </div>
 
@@ -313,7 +313,7 @@ function SubjectProgressPanel({ subjects }: { readonly subjects: SubjectProgress
       viewport={{ once: true }}
       transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
     >
-      <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.28)' }}>Subject Completion</p>
+      <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--t3)' }}>Subject Completion</p>
       {subjects.map((s, i) => {
         const pct = s.total > 0 ? Math.round((s.completed / s.total) * 100) : 0;
         return (
@@ -323,7 +323,7 @@ function SubjectProgressPanel({ subjects }: { readonly subjects: SubjectProgress
                 <Icon name={s.icon} size={15} style={{ color: s.color }} />
                 <span className="text-sm font-semibold transition-colors" style={{ color: 'rgba(255,255,255,0.65)' }}>{s.title}</span>
               </div>
-              <span className="text-[10px] font-bold" style={{ color: 'rgba(255,255,255,0.28)' }}>{s.completed}/{s.total}</span>
+              <span className="text-[10px] font-bold" style={{ color: 'var(--t3)' }}>{s.completed}/{s.total}</span>
             </div>
             <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.05)' }}>
               <motion.div
@@ -358,7 +358,7 @@ function RankCard({ percentile, streak, longestStreak }: {
       viewport={{ once: true }}
       transition={{ duration: 0.45, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
     >
-      <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.28)' }}>Your Standing</p>
+      <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--t3)' }}>Your Standing</p>
       <div className="text-center py-2">
         <motion.p
           className="text-4xl font-black"
@@ -370,7 +370,7 @@ function RankCard({ percentile, streak, longestStreak }: {
         >
           Top {100 - percentile}%
         </motion.p>
-        <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.28)' }}>among all EYF users this week</p>
+        <p className="text-xs mt-1" style={{ color: 'var(--t3)' }}>among all EYF users this week</p>
       </div>
       <div className="grid grid-cols-2 gap-3">
         {[
@@ -379,11 +379,11 @@ function RankCard({ percentile, streak, longestStreak }: {
         ].map((item) => (
           <div key={item.label} className="rounded-lg p-3 text-center" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
             <p className="text-xl font-black" style={{ color: item.color }}>{item.value}</p>
-            <p className="text-[11px] mt-0.5" style={{ color: 'rgba(255,255,255,0.3)' }}>{item.label}</p>
+            <p className="text-[11px] mt-0.5" style={{ color: 'var(--t3)' }}>{item.label}</p>
           </div>
         ))}
       </div>
-      <Link to="/app/leaderboard" className="flex items-center justify-center gap-2 text-xs font-bold pt-1 transition-colors" style={{ color: 'rgba(255,255,255,0.3)' }}>
+      <Link to="/app/leaderboard" className="flex items-center justify-center gap-2 text-xs font-bold pt-1 transition-colors" style={{ color: 'var(--t3)' }}>
         <Icon name="leaderboard" size={14} />View Full Leaderboard
       </Link>
     </motion.div>
@@ -411,7 +411,7 @@ export function ProgressPage() {
 
   return (
     <AppShell>
-      <div className="pt-8 max-w-5xl space-y-6">
+      <div className="pt-8 max-w-5xl mx-auto space-y-6">
 
         {/* Header */}
         <div className="flex items-end justify-between flex-wrap gap-4">
@@ -431,7 +431,7 @@ export function ProgressPage() {
             </motion.h1>
             <motion.p
               className="mt-2 text-sm"
-              style={{ color: 'rgba(255,255,255,0.35)' }}
+              style={{ color: 'var(--t2)' }}
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
@@ -444,7 +444,7 @@ export function ProgressPage() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
           >
-            <Link to="/app/achievements" className="flex items-center gap-2 text-sm font-bold transition-colors" style={{ color: 'rgba(255,255,255,0.35)' }}>
+            <Link to="/app/achievements" className="flex items-center gap-2 text-sm font-bold transition-colors" style={{ color: 'var(--t2)' }}>
               <Icon name="emoji_events" size={18} />Achievements
             </Link>
           </motion.div>
@@ -474,10 +474,10 @@ export function ProgressPage() {
                   Level {stats.level} · {LEVEL_NAMES[stats.level] ?? 'Legend'}
                 </span>
               </div>
-              <p className="text-sm" style={{ color: 'rgba(255,255,255,0.35)' }}>{stats.xpToNext} XP to Level {stats.level + 1} · {LEVEL_NAMES[stats.level + 1] ?? 'Max'}</p>
+              <p className="text-sm" style={{ color: 'var(--t2)' }}>{stats.xpToNext} XP to Level {stats.level + 1} · {LEVEL_NAMES[stats.level + 1] ?? 'Max'}</p>
             </div>
             <div className="text-right">
-              <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: 'rgba(255,255,255,0.28)' }}>This Week</p>
+              <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: 'var(--t3)' }}>This Week</p>
               <p className="text-xl font-black" style={{ color: '#4ade80' }}>+{stats.weeklyXP} XP</p>
             </div>
           </div>
@@ -537,7 +537,7 @@ export function ProgressPage() {
                 </div>
                 <div>
                   <p className="text-sm font-bold" style={{ color: 'rgba(255,255,255,0.8)' }}>{cta.label}</p>
-                  <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.3)' }}>{cta.desc}</p>
+                  <p className="text-xs mt-0.5" style={{ color: 'var(--t3)' }}>{cta.desc}</p>
                 </div>
               </Link>
             </motion.div>

@@ -143,7 +143,7 @@ export function NotificationsPanel({ notifications, onClose, onMarkAllRead, onMa
                       {!n.read && (
                         <motion.div
                           className="w-2 h-2 rounded-full flex-shrink-0 mt-1"
-                          style={{ background: '#E8192C' }}
+                          style={{ background: '#E82127' }}
                           animate={{ boxShadow: ['0 0 0px rgba(232,25,44,0)', '0 0 8px rgba(232,25,44,0.7)', '0 0 0px rgba(232,25,44,0)'] }}
                           transition={{ repeat: Infinity, duration: 2 }}
                         />

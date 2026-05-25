@@ -312,7 +312,7 @@ export function FlashcardsPage() {
   if (!selectedDeck || (!sessionCards.length && !sessionDone)) {
     return (
       <AppShell>
-        <div className="pt-6 pb-12 max-w-4xl">
+        <div className="pt-6 pb-12 max-w-4xl mx-auto">
           {/* Header */}
           <div className="mb-8">
             <motion.h1
@@ -330,7 +330,7 @@ export function FlashcardsPage() {
             </motion.h1>
             <motion.p
               className="text-sm"
-              style={{ color: 'rgba(255,255,255,0.35)' }}
+              style={{ color: 'var(--t2)' }}
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.12, ease: [0.16, 1, 0.3, 1] }}
@@ -346,7 +346,7 @@ export function FlashcardsPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
               >
-                <Icon name="notifications_active" size={18} style={{ color: '#E8192C', flexShrink: 0 }} />
+                <Icon name="notifications_active" size={18} style={{ color: '#E82127', flexShrink: 0 }} />
                 <p className="text-sm" style={{ color: 'rgba(255,255,255,0.6)' }}>
                   <span className="font-bold" style={{ color: 'rgba(255,255,255,0.9)' }}>{totalDue} cards</span> are due for review across all decks.
                 </p>
@@ -549,7 +549,7 @@ export function FlashcardsPage() {
               <button
                 type="button"
                 onClick={() => startDeck(selectedDeck)}
-                className="w-full bg-[#E82127] text-white font-bold py-3 rounded-xl text-sm hover:brightness-110 transition-all"
+                className="btn btn-primary w-full justify-center"
               >
                 Review Again
               </button>
@@ -578,7 +578,7 @@ export function FlashcardsPage() {
 
   return (
     <AppShell>
-      <div className="pt-6 pb-12 max-w-2xl">
+      <div className="pt-6 pb-12 max-w-2xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <button
@@ -680,7 +680,7 @@ export function FlashcardsPage() {
             <button
               type="button"
               onClick={() => setFlipped(true)}
-              className="bg-[#E82127] text-white font-bold py-3 px-8 rounded-2xl text-sm hover:brightness-110 transition-all active:scale-95"
+              className="btn btn-primary btn-lg"
             >
               Reveal Answer
             </button>

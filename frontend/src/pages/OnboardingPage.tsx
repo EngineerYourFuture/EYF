@@ -56,7 +56,7 @@ const DAILY_GOALS = [
 
 const TOTAL_STEPS = 5;
 const GLASS = { background: 'rgba(10,10,10,0.7)', border: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(16px)' } as const;
-const INPUT_STYLE = { width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '16px 20px', fontSize: 18, fontWeight: 700, color: '#e4e4e7', outline: 'none', boxSizing: 'border-box' } as const;
+const INPUT_STYLE = { width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '16px 20px', fontSize: 18, fontWeight: 700, color: 'var(--t1)', outline: 'none', boxSizing: 'border-box' } as const;
 
 export function OnboardingPage() {
   const navigate = useNavigate();
@@ -116,16 +116,16 @@ export function OnboardingPage() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: '#0a0a0a', color: '#e4e4e7', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ minHeight: '100vh', background: '#0a0a0a', color: 'var(--t1)', display: 'flex', flexDirection: 'column' }}>
       {/* Top bar */}
       <div style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 24px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <EYFMark size={32} style={{ color: '#E82127' }} />
-          <span style={{ fontWeight: 900, letterSpacing: '-0.04em', color: '#e4e4e7' }}>EYF</span>
+          <span style={{ fontWeight: 900, letterSpacing: '-0.04em', color: 'var(--t1)' }}>EYF</span>
         </div>
         <button
           onClick={() => navigate('/app/dashboard', { replace: true })}
-          style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#52525b', background: 'none', border: 'none', cursor: 'pointer' }}
+          style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--t4)', background: 'none', border: 'none', cursor: 'pointer' }}
         >
           Skip
         </button>
@@ -134,7 +134,7 @@ export function OnboardingPage() {
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 16px' }}>
         {/* Progress bar */}
         <div style={{ width: '100%', maxWidth: 576, marginBottom: 32 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#52525b', marginBottom: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--t4)', marginBottom: 8 }}>
             <span>Setup</span>
             <span>Step {step} of {TOTAL_STEPS}</span>
           </div>
@@ -155,10 +155,10 @@ export function OnboardingPage() {
                 <Icon name="waving_hand" size={36} style={{ color: '#E82127' }} />
               </div>
               <h1 style={{ fontSize: '2.5rem', fontWeight: 900, letterSpacing: '-0.03em', marginBottom: 12 }}>Welcome to EYF!</h1>
-              <p style={{ color: '#71717a', marginBottom: 40 }}>Let's set up your profile. It takes 2 minutes and personalizes your entire experience.</p>
+              <p style={{ color: 'var(--t3)', marginBottom: 40 }}>Let's set up your profile. It takes 2 minutes and personalizes your entire experience.</p>
 
               <div style={{ textAlign: 'left' }}>
-                <label htmlFor="onboarding-name" style={{ display: 'block', fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#a1a1aa', marginBottom: 12 }}>What should we call you?</label>
+                <label htmlFor="onboarding-name" style={{ display: 'block', fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--t2)', marginBottom: 12 }}>What should we call you?</label>
                 <input
                   id="onboarding-name"
                   type="text"
@@ -178,7 +178,7 @@ export function OnboardingPage() {
               <h2 style={{ fontSize: '2rem', fontWeight: 900, letterSpacing: '-0.03em', marginBottom: 8 }}>
                 Hey {data.name.split(' ')[0]}! 👋
               </h2>
-              <p style={{ color: '#71717a', marginBottom: 32 }}>Which best describes where you are right now?</p>
+              <p style={{ color: 'var(--t3)', marginBottom: 32 }}>Which best describes where you are right now?</p>
 
               <div className="space-y-3">
                 {TRACKS.map((track) => {
@@ -196,7 +196,7 @@ export function OnboardingPage() {
                       </div>
                       <div>
                         <p style={{ fontWeight: 700, fontSize: 16, color: active ? track.color : '#e4e4e7' }}>{track.title}</p>
-                        <p style={{ fontSize: 14, color: '#71717a' }}>{track.desc}</p>
+                        <p style={{ fontSize: 14, color: 'var(--t3)' }}>{track.desc}</p>
                       </div>
                       {active && <Icon name="check_circle" size={22} filled style={{ color: track.color, marginLeft: 'auto', flexShrink: 0 }} />}
                     </motion.button>
@@ -210,7 +210,7 @@ export function OnboardingPage() {
           {step === 3 && (
             <motion.div key="step3" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
               <h2 style={{ fontSize: '2rem', fontWeight: 900, letterSpacing: '-0.03em', marginBottom: 8 }}>What's your target?</h2>
-              <p style={{ color: '#71717a', marginBottom: 32 }}>This helps us recommend the right learning path for you.</p>
+              <p style={{ color: 'var(--t3)', marginBottom: 32 }}>This helps us recommend the right learning path for you.</p>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2" style={{ marginBottom: 32 }}>
                 {TARGET_ROLES.map((role) => {
@@ -230,7 +230,7 @@ export function OnboardingPage() {
               </div>
 
               <div>
-                <p style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#a1a1aa', marginBottom: 12 }}>Years of experience</p>
+                <p style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--t2)', marginBottom: 12 }}>Years of experience</p>
                 <div style={{ display: 'flex', gap: 8 }}>
                   {[0, 1, 2, 3, 5, 7, 10].map((yr) => {
                     const label = yr === 0 ? 'None' : yr === 10 ? '10+' : `${yr}yr`;
@@ -255,8 +255,8 @@ export function OnboardingPage() {
           {step === 4 && (
             <motion.div key="step4" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
               <h2 style={{ fontSize: '2rem', fontWeight: 900, letterSpacing: '-0.03em', marginBottom: 8 }}>Dream companies?</h2>
-              <p style={{ color: '#71717a', marginBottom: 4 }}>Pick up to 4 companies you're targeting.</p>
-              <p style={{ fontSize: 11, color: '#52525b', marginBottom: 32 }}>{data.targetCompanies.length}/4 selected</p>
+              <p style={{ color: 'var(--t3)', marginBottom: 4 }}>Pick up to 4 companies you're targeting.</p>
+              <p style={{ fontSize: 11, color: 'var(--t4)', marginBottom: 32 }}>{data.targetCompanies.length}/4 selected</p>
 
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
                 {COMPANIES.map((c) => {
@@ -283,7 +283,7 @@ export function OnboardingPage() {
           {step === 5 && (
             <motion.div key="step5" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
               <h2 style={{ fontSize: '2rem', fontWeight: 900, letterSpacing: '-0.03em', marginBottom: 8 }}>Almost there!</h2>
-              <p style={{ color: '#71717a', marginBottom: 32 }}>What do you want to focus on? Pick up to 4 areas.</p>
+              <p style={{ color: 'var(--t3)', marginBottom: 32 }}>What do you want to focus on? Pick up to 4 areas.</p>
 
               <div className="grid grid-cols-2 gap-2" style={{ marginBottom: 32 }}>
                 {FOCUS_AREAS.map((f) => {
@@ -306,7 +306,7 @@ export function OnboardingPage() {
               </div>
 
               <div>
-                <p style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#a1a1aa', marginBottom: 12 }}>Daily study goal</p>
+                <p style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--t2)', marginBottom: 12 }}>Daily study goal</p>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                   {DAILY_GOALS.map((g) => {
                     const active = data.dailyGoalMinutes === g.minutes;
@@ -319,7 +319,7 @@ export function OnboardingPage() {
                         style={{ padding: 12, borderRadius: 12, textAlign: 'center', cursor: 'pointer', border: active ? '1px solid rgba(232,33,39,0.4)' : '1px solid rgba(255,255,255,0.08)', background: active ? 'rgba(232,33,39,0.1)' : 'rgba(255,255,255,0.03)' }}
                       >
                         <p style={{ fontSize: 14, fontWeight: 700, color: active ? '#e4e4e7' : '#a1a1aa' }}>{g.label}</p>
-                        <p style={{ fontSize: 10, color: '#71717a' }}>{g.desc}</p>
+                        <p style={{ fontSize: 10, color: 'var(--t3)' }}>{g.desc}</p>
                       </motion.button>
                     );
                   })}
@@ -331,11 +331,11 @@ export function OnboardingPage() {
           {/* Navigation */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 40 }}>
             {step > 1 ? (
-              <motion.button onClick={back} whileHover={{ x: -2 }} style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#71717a', fontWeight: 700, fontSize: 14, background: 'none', border: 'none', cursor: 'pointer' }}>
+              <motion.button onClick={back} whileHover={{ x: -2 }} style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--t3)', fontWeight: 700, fontSize: 14, background: 'none', border: 'none', cursor: 'pointer' }}>
                 <Icon name="arrow_back" size={16} />Back
               </motion.button>
             ) : (
-              <button onClick={() => navigate('/app/dashboard', { replace: true })} style={{ color: '#52525b', fontSize: 14, fontWeight: 700, background: 'none', border: 'none', cursor: 'pointer' }}>
+              <button onClick={() => navigate('/app/dashboard', { replace: true })} style={{ color: 'var(--t4)', fontSize: 14, fontWeight: 700, background: 'none', border: 'none', cursor: 'pointer' }}>
                 Skip for now
               </button>
             )}

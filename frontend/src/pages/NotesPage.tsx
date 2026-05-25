@@ -245,7 +245,7 @@ function NoteEditor({
             <button
               onClick={handleSave}
               disabled={!title.trim()}
-              className="bg-[#E82127] hover:bg-red-600 disabled:opacity-40 text-white text-sm font-semibold px-5 py-2 rounded-xl transition-colors"
+              className="btn btn-primary btn-sm transition-colors"
             >
               {isNew ? 'Create Note' : 'Save Changes'}
             </button>
@@ -389,31 +389,31 @@ export function NotesPage() {
         {/* Header */}
         <div className="flex items-start justify-between gap-4 mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-white mb-1">My Notes</h1>
-            <p className="text-sm text-zinc-500">
+            <h1 style={{ fontSize: "2.25rem", fontWeight: 900, letterSpacing: "-0.03em", lineHeight: 1.1, marginBottom: 4, color: "var(--t1)" }}>My <span style={{ background: "linear-gradient(135deg, #E82127, #ff4d52)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Notes.</span></h1>
+            <p style={{ fontSize: 14, color: "var(--t3)", marginTop: 4 }}>
               Personal study notes saved locally in your browser.{' '}
               <span className="ml-1 text-[10px] text-zinc-700">{notes.length} note{notes.length === 1 ? '' : 's'}</span>
             </p>
           </div>
           <button
             onClick={() => setEditing('new')}
-            className="flex items-center gap-2 bg-[#E82127] hover:bg-red-600 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors shrink-0"
+            className="btn btn-primary btn-sm flex-shrink-0"
           >
-            <Icon name="add" className="text-lg" />
+            <Icon name="add" size={15} />
             New Note
           </button>
         </div>
 
         {/* Search + filter */}
         <div className="flex items-center gap-3 mb-6 flex-wrap gap-y-2">
-          <div className="flex items-center gap-2 bg-[#1a1a1a] border border-white/5 rounded-xl px-3 py-2 flex-1 min-w-48">
-            <Icon name="search" className="text-sm text-zinc-600" />
+          <div className="field-input flex items-center gap-2 flex-1 min-w-48" style={{ padding: '8px 12px' }}>
+            <Icon name="search" size={15} style={{ color: 'var(--t4)', flexShrink: 0 }} />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search notes..."
-              className="bg-transparent text-sm text-zinc-300 placeholder-zinc-700 outline-none flex-1"
+              style={{ background: 'transparent', border: 'none', outline: 'none', flex: 1, fontSize: 14, color: 'var(--t1)' }}
             />
             {search && (
               <button onClick={() => setSearch('')} className="text-zinc-700 hover:text-zinc-500">

@@ -89,7 +89,7 @@ function NavLink({ item, isActive }: { readonly item: NavItem; readonly isActive
       <Icon
         name={item.icon}
         size={15}
-        className={`flex-shrink-0 nav-icon transition-colors ${isActive ? 'text-[#E8192C]' : ''}`}
+        className={`flex-shrink-0 nav-icon transition-colors ${isActive ? 'text-[#E82127]' : ''}`}
       />
       <span>{item.label}</span>
     </Link>
@@ -540,7 +540,7 @@ export function AppShell({ children }: { readonly children: ReactNode }) {
               {unreadCount > 0 && (
                 <span
                   className="absolute top-1 right-1 w-2 h-2 rounded-full"
-                  style={{ background: '#E8192C', border: '1.5px solid #040404', boxShadow: '0 0 6px rgba(232,25,44,0.6)' }}
+                  style={{ background: '#E82127', border: '1.5px solid #040404', boxShadow: '0 0 6px rgba(232,25,44,0.6)' }}
                 />
               )}
             </button>
@@ -604,13 +604,13 @@ export function AppShell({ children }: { readonly children: ReactNode }) {
               key={item.path}
               to={item.path}
               className="flex-1 flex flex-col items-center justify-center gap-0.5 transition-colors relative"
-              style={{ color: isActive ? '#E8192C' : 'var(--t4)' }}
+              style={{ color: isActive ? '#E82127' : 'var(--t4)' }}
             >
               {isActive && (
                 <motion.div
                   layoutId="mobile-tab-indicator"
                   className="absolute top-0 left-1/2 -translate-x-1/2"
-                  style={{ width: 24, height: 2, background: '#E8192C', borderRadius: '0 0 3px 3px', boxShadow: '0 2px 8px rgba(232,25,44,0.6)' }}
+                  style={{ width: 24, height: 2, background: '#E82127', borderRadius: '0 0 3px 3px', boxShadow: '0 2px 8px rgba(232,25,44,0.6)' }}
                   transition={{ type: 'spring', stiffness: 500, damping: 35 }}
                 />
               )}

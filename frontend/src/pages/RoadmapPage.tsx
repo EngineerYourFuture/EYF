@@ -548,7 +548,7 @@ export function RoadmapPage() {
 
         {/* ── Hero ── */}
         <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} style={{ paddingTop: 56, paddingBottom: 40 }}>
-          <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', marginBottom: 8 }}>
+          <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--t3)', marginBottom: 8 }}>
             Prep Strategy
           </p>
           <h1 style={{
@@ -558,7 +558,7 @@ export function RoadmapPage() {
           }}>
             ROADMAP.
           </h1>
-          <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.4)' }}>
+          <p style={{ fontSize: 15, color: 'var(--t2)' }}>
             Structured week-by-week plan for your target role. Check off tasks, earn XP every step.
           </p>
         </motion.div>
@@ -588,7 +588,7 @@ export function RoadmapPage() {
                   <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.14em', color: tc.color }}>{r.duration}</span>
                 </div>
                 <p style={{ fontSize: 14, fontWeight: 700, color: '#fff', marginBottom: 4 }}>{r.label}</p>
-                <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>{r.targetRole}</p>
+                <p style={{ fontSize: 11, color: 'var(--t2)' }}>{r.targetRole}</p>
               </motion.button>
             );
           })}
@@ -602,7 +602,7 @@ export function RoadmapPage() {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
             <div>
               <p style={{ fontSize: 13, fontWeight: 700, color: '#fff' }}>{track.label} — Overall Progress</p>
-              <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', marginTop: 2 }}>{doneTasks} / {totalTasks} tasks · {earnedXP} / {totalXP} XP</p>
+              <p style={{ fontSize: 11, color: 'var(--t2)', marginTop: 2 }}>{doneTasks} / {totalTasks} tasks · {earnedXP} / {totalXP} XP</p>
             </div>
             <span style={{ fontSize: 26, fontWeight: 900, color: trackColors.color }}>{progressPct}%</span>
           </div>
@@ -664,7 +664,7 @@ export function RoadmapPage() {
                       <div style={{ width: 120, height: 3, background: 'rgba(255,255,255,0.05)', borderRadius: 3, overflow: 'hidden' }}>
                         <div style={{ height: '100%', background: isComplete ? '#4ade80' : wc.color, borderRadius: 3, width: `${weekPct}%`, transition: 'width 0.4s' }} />
                       </div>
-                      <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)' }}>{done}/{count}</span>
+                      <span style={{ fontSize: 11, color: 'var(--t3)' }}>{done}/{count}</span>
                     </div>
                   </div>
 
@@ -761,7 +761,7 @@ export function RoadmapPage() {
           style={{ marginTop: 28, borderRadius: 20, padding: '28px 32px', textAlign: 'center', background: 'linear-gradient(135deg, rgba(232,33,39,0.08), rgba(192,132,252,0.08))', border: '1px solid rgba(232,33,39,0.15)' }}
         >
           <p style={{ fontSize: 15, fontWeight: 700, color: '#fff', marginBottom: 6 }}>Want a personalized daily schedule?</p>
-          <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', marginBottom: 18 }}>The Study Plan generator turns this roadmap into day-by-day tasks tailored to your target date.</p>
+          <p style={{ fontSize: 13, color: 'var(--t2)', marginBottom: 18 }}>The Study Plan generator turns this roadmap into day-by-day tasks tailored to your target date.</p>
           <Link to="/app/study-plan" style={{ textDecoration: 'none' }}>
             <motion.span
               whileHover={{ scale: 1.04, boxShadow: '0 0 24px rgba(232,33,39,0.35)' }}

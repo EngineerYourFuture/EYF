@@ -20,7 +20,7 @@ interface ProblemsResponse {
 }
 
 const GLASS = { background: 'rgba(10,10,10,0.7)', border: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(16px)' } as const;
-const INPUT = { width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '12px 16px', fontSize: 14, color: '#e4e4e7', outline: 'none', boxSizing: 'border-box' } as const;
+const INPUT = { width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '12px 16px', fontSize: 14, color: 'var(--t1)', outline: 'none', boxSizing: 'border-box' } as const;
 
 const DIFF_COLOR: Record<string, string> = { easy: '#4ade80', medium: '#facc15', hard: '#f87171' };
 
@@ -88,7 +88,7 @@ export function AdminProblemsPage() {
               Problem{' '}
               <span style={{ background: 'linear-gradient(135deg, #E82127, #ff4d52)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Management.</span>
             </h1>
-            <p style={{ color: '#71717a', fontSize: 15 }}>Create, edit, and manage the problem database.</p>
+            <p style={{ color: 'var(--t3)', fontSize: 15 }}>Create, edit, and manage the problem database.</p>
           </div>
           <motion.button
             whileHover={{ scale: 1.02 }}
@@ -102,7 +102,7 @@ export function AdminProblemsPage() {
         </div>
 
         {/* Table header */}
-        <div style={{ display: 'grid', gridTemplateColumns: '5fr 2fr 2fr 2fr 1fr', gap: 16, padding: '12px 32px', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#52525b', marginBottom: 8 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '5fr 2fr 2fr 2fr 1fr', gap: 16, padding: '12px 32px', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--t4)', marginBottom: 8 }}>
           <div>Title</div>
           <div style={{ textAlign: 'center' }}>Difficulty</div>
           <div style={{ textAlign: 'center' }}>Category</div>
@@ -110,8 +110,8 @@ export function AdminProblemsPage() {
           <div style={{ textAlign: 'right' }}>Actions</div>
         </div>
 
-        {loading && <div style={{ textAlign: 'center', padding: '80px 0', color: '#52525b' }}>Loading problems...</div>}
-        {!loading && problems.length === 0 && <div style={{ textAlign: 'center', padding: '80px 0', color: '#52525b' }}>No problems yet.</div>}
+        {loading && <div style={{ textAlign: 'center', padding: '80px 0', color: 'var(--t4)' }}>Loading problems...</div>}
+        {!loading && problems.length === 0 && <div style={{ textAlign: 'center', padding: '80px 0', color: 'var(--t4)' }}>No problems yet.</div>}
         {!loading && problems.length > 0 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {problems.map((p, i) => (
@@ -122,12 +122,12 @@ export function AdminProblemsPage() {
                 transition={{ delay: i * 0.03 }}
                 style={{ ...GLASS, borderRadius: 12, padding: '20px 32px', display: 'grid', gridTemplateColumns: '5fr 2fr 2fr 2fr 1fr', gap: 16, alignItems: 'center' }}
               >
-                <div style={{ fontWeight: 600, fontSize: 14, color: '#e4e4e7' }}>{p.title}</div>
+                <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--t1)' }}>{p.title}</div>
                 <div style={{ textAlign: 'center' }}>
                   <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: DIFF_COLOR[p.difficulty] ?? '#e4e4e7' }}>{p.difficulty}</span>
                 </div>
                 <div style={{ textAlign: 'center' }}>
-                  <span style={{ padding: '4px 12px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 999, fontSize: 10, fontWeight: 700, color: '#71717a' }}>
+                  <span style={{ padding: '4px 12px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 999, fontSize: 10, fontWeight: 700, color: 'var(--t3)' }}>
                     {p.category ?? 'General'}
                   </span>
                 </div>
@@ -139,13 +139,13 @@ export function AdminProblemsPage() {
                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
                   <button
                     onClick={() => openEdit(p)}
-                    style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#71717a', cursor: 'pointer' }}
+                    style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--t3)', cursor: 'pointer' }}
                   >
                     <Icon name="edit" size={16} />
                   </button>
                   <button
                     onClick={() => deleteProblem(p.id)}
-                    style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#71717a', cursor: 'pointer' }}
+                    style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--t3)', cursor: 'pointer' }}
                   >
                     <Icon name="delete" size={16} />
                   </button>
@@ -164,14 +164,14 @@ export function AdminProblemsPage() {
               style={{ ...GLASS, borderRadius: 20, padding: 40, width: '100%', maxWidth: 440 }}
             >
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 32 }}>
-                <h2 style={{ fontSize: 22, fontWeight: 900, letterSpacing: '-0.03em', color: '#e4e4e7' }}>{editingProblem ? 'Edit Problem' : 'Add Problem'}</h2>
-                <button onClick={() => setShowModal(false)} style={{ color: '#52525b', background: 'none', border: 'none', cursor: 'pointer' }}>
+                <h2 style={{ fontSize: 22, fontWeight: 900, letterSpacing: '-0.03em', color: 'var(--t1)' }}>{editingProblem ? 'Edit Problem' : 'Add Problem'}</h2>
+                <button onClick={() => setShowModal(false)} style={{ color: 'var(--t4)', background: 'none', border: 'none', cursor: 'pointer' }}>
                   <Icon name="close" size={24} />
                 </button>
               </div>
               <form onSubmit={addProblem} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
                 <div>
-                  <label htmlFor="prob-title" style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#71717a', display: 'block', marginBottom: 8 }}>Title</label>
+                  <label htmlFor="prob-title" style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--t3)', display: 'block', marginBottom: 8 }}>Title</label>
                   <input
                     id="prob-title"
                     value={newTitle}
@@ -182,7 +182,7 @@ export function AdminProblemsPage() {
                   />
                 </div>
                 <div>
-                  <label htmlFor="prob-diff" style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#71717a', display: 'block', marginBottom: 8 }}>Difficulty</label>
+                  <label htmlFor="prob-diff" style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--t3)', display: 'block', marginBottom: 8 }}>Difficulty</label>
                   <select
                     id="prob-diff"
                     value={newDiff}
@@ -195,7 +195,7 @@ export function AdminProblemsPage() {
                   </select>
                 </div>
                 <div>
-                  <label htmlFor="prob-cat" style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#71717a', display: 'block', marginBottom: 8 }}>Category</label>
+                  <label htmlFor="prob-cat" style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--t3)', display: 'block', marginBottom: 8 }}>Category</label>
                   <input
                     id="prob-cat"
                     value={newCat}

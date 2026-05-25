@@ -307,7 +307,7 @@ export function ProblemsPage() {
 
   return (
     <AppShell>
-      <div className="pt-8 max-w-7xl">
+      <div className="pt-8 max-w-7xl mx-auto">
         {/* Hero */}
         <div className="mb-10 flex items-end justify-between flex-wrap gap-6">
           <div>
@@ -324,13 +324,13 @@ export function ProblemsPage() {
             >
               MASTER THE<br />
               <span style={{
-                background: 'linear-gradient(135deg, #E8192C, #FF5566)',
+                background: 'linear-gradient(135deg, #E82127, #FF5566)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
               }}>ALGORITHMS.</span>
             </motion.h1>
             <motion.p
-              className="text-lg max-w-lg" style={{ color: '#a1a1aa' }}
+              className="text-lg max-w-lg" style={{ color: 'var(--t2)' }}
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
@@ -363,7 +363,7 @@ export function ProblemsPage() {
                 <div key={row.label}>
                   <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest mb-1">
                     <span className="text-zinc-500">{row.label}</span>
-                    <span style={{ color: '#e4e4e7' }}>{row.solved}/{row.total}</span>
+                    <span style={{ color: 'var(--t1)' }}>{row.solved}/{row.total}</span>
                   </div>
                   <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
                     <motion.div
@@ -379,7 +379,7 @@ export function ProblemsPage() {
             </div>
             <div className="mt-4 pt-4 flex items-center justify-between" style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
               <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Total Solved</span>
-              <span className="text-xl font-black" style={{ color: '#e4e4e7' }}>{solvedCount}/{problems.length}</span>
+              <span className="text-xl font-black" style={{ color: 'var(--t1)' }}>{solvedCount}/{problems.length}</span>
             </div>
           </motion.div>
         </div>
@@ -387,7 +387,7 @@ export function ProblemsPage() {
         {/* Company Tags */}
         <div className="mb-4">
           <div className="flex items-center gap-2 mb-3">
-            <p className="text-[10px] font-bold uppercase tracking-[0.3em]" style={{ color: 'rgba(255,255,255,0.28)' }}>Company</p>
+            <p className="text-[10px] font-bold uppercase tracking-[0.3em]" style={{ color: 'var(--t3)' }}>Company</p>
             <span className="text-[9px] font-bold" style={{ color: 'var(--red)', background: 'rgba(232,25,44,0.08)', border: '1px solid rgba(232,25,44,0.18)', padding: '2px 8px', borderRadius: 999 }}>FREE on EYF · Premium on LeetCode</span>
           </div>
           <div className="flex gap-1.5 flex-wrap">
@@ -424,7 +424,7 @@ export function ProblemsPage() {
 
         {/* Topic Tags */}
         <div className="mb-6">
-          <p className="text-[10px] font-bold uppercase tracking-[0.3em] mb-3" style={{ color: 'rgba(255,255,255,0.28)' }}>Topic</p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.3em] mb-3" style={{ color: 'var(--t3)' }}>Topic</p>
           <div className="flex gap-1.5 flex-wrap">
             {(['all', ...TOPIC_TAGS]).map((tag) => {
               const active = selectedTag === tag;
@@ -516,7 +516,7 @@ export function ProblemsPage() {
 
           {/* Search */}
           <div className="relative flex-1 min-w-[200px] max-w-sm">
-            <Icon name="search" size={16} className="absolute left-4 top-1/2 -translate-y-1/2" style={{ color: 'rgba(255,255,255,0.28)' }} />
+            <Icon name="search" size={16} className="absolute left-4 top-1/2 -translate-y-1/2" style={{ color: 'var(--t3)' }} />
             <input
               type="text"
               value={search}
@@ -531,7 +531,7 @@ export function ProblemsPage() {
             />
           </div>
 
-          <span className="text-[10px] font-bold ml-auto" style={{ color: 'rgba(255,255,255,0.28)' }}>
+          <span className="text-[10px] font-bold ml-auto" style={{ color: 'var(--t3)' }}>
             {filtered.length} problem{filtered.length === 1 ? '' : 's'}
           </span>
         </div>
@@ -610,7 +610,7 @@ export function ProblemsPage() {
                 </div>
 
                 <div className="col-span-4">
-                  <span className="font-semibold text-sm transition-colors" style={{ color: '#e4e4e7' }}>
+                  <span className="font-semibold text-sm transition-colors" style={{ color: 'var(--t1)' }}>
                     {p.title}
                   </span>
                   {p.category && (
@@ -635,7 +635,7 @@ export function ProblemsPage() {
 
                 <div className="col-span-1 flex justify-center">
                   {(p.tags ?? []).slice(0, 1).map((tag) => (
-                    <span key={tag} style={{ padding: '2px 8px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 999, fontSize: 9, fontWeight: 700, color: '#71717a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 80 }}>{tag}</span>
+                    <span key={tag} style={{ padding: '2px 8px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 999, fontSize: 9, fontWeight: 700, color: 'var(--t3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 80 }}>{tag}</span>
                   ))}
                 </div>
 

@@ -4129,7 +4129,7 @@ export function SubjectTopicPage() {
     return (
       <AppShell>
         <div style={{ paddingTop: 32, textAlign: 'center' }}>
-          <p style={{ color: '#71717a', fontSize: 18 }}>Topic not found.</p>
+          <p style={{ color: 'var(--t3)', fontSize: 18 }}>Topic not found.</p>
           <button
             onClick={() => navigate(`/app/subjects/${subjectId}`)}
             style={{ marginTop: 24, color: '#E82127', fontWeight: 700, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.1em', background: 'none', border: 'none', cursor: 'pointer' }}
@@ -4166,7 +4166,7 @@ export function SubjectTopicPage() {
 
   return (
     <AppShell>
-      <div style={{ paddingTop: 32, maxWidth: 768 }}>
+      <div style={{ paddingTop: 32, maxWidth: 768, margin: '0 auto' }}>
         {/* Progress bar */}
         <div style={{ height: 4, background: 'rgba(255,255,255,0.06)', borderRadius: 999, overflow: 'hidden', marginBottom: 32 }}>
           <motion.div
@@ -4185,13 +4185,13 @@ export function SubjectTopicPage() {
         >
           <button
             onClick={() => navigate(`/app/subjects/${subjectId}`)}
-            style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#71717a', fontWeight: 700, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.1em', background: 'none', border: 'none', cursor: 'pointer' }}
+            style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--t3)', fontWeight: 700, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.1em', background: 'none', border: 'none', cursor: 'pointer' }}
           >
             <Icon name="arrow_back" size={16} />
             {subject.title}
           </button>
           <span style={{ color: '#3f3f46' }}>›</span>
-          <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#52525b' }}>
+          <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--t4)' }}>
             {currentIdx + 1} / {allTopics.length}
           </span>
         </motion.div>
@@ -4202,13 +4202,13 @@ export function SubjectTopicPage() {
           animate={{ opacity: 1, y: 0 }}
           style={{ marginBottom: 40 }}
         >
-          <h1 style={{ fontSize: 36, fontWeight: 900, letterSpacing: '-0.04em', color: '#e4e4e7', marginBottom: 12 }}>{topic.title}</h1>
+          <h1 style={{ fontSize: 36, fontWeight: 900, letterSpacing: '-0.04em', color: 'var(--t1)', marginBottom: 12 }}>{topic.title}</h1>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#E82127' }}>
               {subject.title}
             </span>
             <span style={{ color: '#3f3f46' }}>·</span>
-            <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#52525b' }}>
+            <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--t4)' }}>
               {topic.duration}
             </span>
             {isDone && (
@@ -4231,9 +4231,9 @@ export function SubjectTopicPage() {
             transition={{ delay: 0.06 }}
             style={{ ...GLASS, borderRadius: 16, padding: 32 }}
           >
-            <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#52525b', marginBottom: 16 }}>Overview</p>
+            <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--t4)', marginBottom: 16 }}>Overview</p>
             {content.overview.split('\n\n').map((para) => (
-              <p key={para.slice(0, 40)} style={{ color: '#a1a1aa', lineHeight: 1.75, marginBottom: 16, fontSize: 14 }}>{para}</p>
+              <p key={para.slice(0, 40)} style={{ color: 'var(--t2)', lineHeight: 1.75, marginBottom: 16, fontSize: 14 }}>{para}</p>
             ))}
           </motion.div>
 
@@ -4244,14 +4244,14 @@ export function SubjectTopicPage() {
             transition={{ delay: 0.12 }}
             style={{ ...GLASS, borderRadius: 16, padding: 32 }}
           >
-            <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#52525b', marginBottom: 16 }}>Key Concepts</p>
+            <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--t4)', marginBottom: 16 }}>Key Concepts</p>
             <ul style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {content.keyPoints.map((point) => (
                 <li key={point.slice(0, 40)} style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
                   <div style={{ width: 20, height: 20, borderRadius: '50%', background: 'rgba(232,33,39,0.12)', border: '1px solid rgba(232,33,39,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2 }}>
                     <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#E82127' }} />
                   </div>
-                  <span style={{ color: '#a1a1aa', fontSize: 14, lineHeight: 1.7 }}>{point}</span>
+                  <span style={{ color: 'var(--t2)', fontSize: 14, lineHeight: 1.7 }}>{point}</span>
                 </li>
               ))}
             </ul>
@@ -4265,7 +4265,7 @@ export function SubjectTopicPage() {
             style={{ ...GLASS, borderRadius: 16, overflow: 'hidden' }}
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 24px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-              <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#52525b' }}>Example</p>
+              <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--t4)' }}>Example</p>
               <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#3f3f46' }}>{content.codeLang}</span>
             </div>
             <pre style={{ padding: 24, overflowX: 'auto' }}>
@@ -4284,7 +4284,7 @@ export function SubjectTopicPage() {
               <Icon name="lightbulb" size={18} style={{ color: '#E82127' }} />
               <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#E82127' }}>Summary</p>
             </div>
-            <p style={{ color: '#a1a1aa', lineHeight: 1.75, fontSize: 14 }}>{content.summary}</p>
+            <p style={{ color: 'var(--t2)', lineHeight: 1.75, fontSize: 14 }}>{content.summary}</p>
           </motion.div>
         </div>
 
@@ -4295,7 +4295,7 @@ export function SubjectTopicPage() {
             whileTap={{ scale: prevTopic ? 0.98 : 1 }}
             onClick={() => prevTopic && navigate(`/app/subjects/${subjectId}/${prevTopic.id}`)}
             disabled={!prevTopic}
-            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 24px', borderRadius: 999, fontWeight: 700, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.1em', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#a1a1aa', cursor: prevTopic ? 'pointer' : 'not-allowed', opacity: prevTopic ? 1 : 0.3 }}
+            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 24px', borderRadius: 999, fontWeight: 700, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.1em', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: 'var(--t2)', cursor: prevTopic ? 'pointer' : 'not-allowed', opacity: prevTopic ? 1 : 0.3 }}
           >
             <Icon name="arrow_back" size={16} />
             Previous

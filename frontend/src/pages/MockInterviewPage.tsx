@@ -195,7 +195,7 @@ export function MockInterviewPage() {
   const XP_PER_ANS: Record<string, number> = { system_design: 20, dsa: 15 };
 
   const categoryChip = (cat: string) => {
-    const c = DIFF_COLOR[cat] ?? { color: 'rgba(255,255,255,0.4)', bg: 'rgba(255,255,255,0.06)' };
+    const c = DIFF_COLOR[cat] ?? { color: 'var(--t2)', bg: 'rgba(255,255,255,0.06)' };
     return (
       <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', padding: '3px 10px', borderRadius: 999, color: c.color, background: c.bg }}>
         {cat}
@@ -209,7 +209,7 @@ export function MockInterviewPage() {
         <div style={{ maxWidth: 900, margin: '0 auto', padding: '0 24px 80px' }}>
           {/* Hero */}
           <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} style={{ paddingTop: 56, paddingBottom: 40 }}>
-            <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', marginBottom: 8 }}>
+            <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--t3)', marginBottom: 8 }}>
               Interview Prep
             </p>
             <h1 style={{
@@ -219,7 +219,7 @@ export function MockInterviewPage() {
             }}>
               MOCK INTERVIEW.
             </h1>
-            <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.4)', maxWidth: 520, lineHeight: 1.65 }}>
+            <p style={{ fontSize: 15, color: 'var(--t2)', maxWidth: 520, lineHeight: 1.65 }}>
               Practice FAANG-level interviews with timed questions, hints, and structured response tracking.
             </p>
           </motion.div>
@@ -267,10 +267,10 @@ export function MockInterviewPage() {
                   <h3 style={{ fontSize: 16, fontWeight: 700, color: '#fff', marginBottom: 6 }}>{meta.label}</h3>
                   <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)', lineHeight: 1.65, marginBottom: 14 }}>{meta.desc}</p>
                   <div style={{ display: 'flex', gap: 16 }}>
-                    <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: 'rgba(255,255,255,0.3)', display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: 'var(--t3)', display: 'flex', alignItems: 'center', gap: 4 }}>
                       <Icon name="schedule" size={11} /> {meta.duration}
                     </span>
-                    <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: 'rgba(255,255,255,0.3)', display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: 'var(--t3)', display: 'flex', alignItems: 'center', gap: 4 }}>
                       <Icon name="quiz" size={11} /> {ALL_QUESTIONS[key].length} questions
                     </span>
                   </div>
@@ -281,7 +281,7 @@ export function MockInterviewPage() {
 
           {/* What to expect */}
           <div style={{ marginBottom: 32 }}>
-            <p style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', marginBottom: 16 }}>What to Expect</p>
+            <p style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--t3)', marginBottom: 16 }}>What to Expect</p>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 12 }}>
               {[
                 { icon: 'timer',    title: 'Timed Responses', desc: 'Each question has a recommended time limit, just like real interviews.', color: '#f87171' },
@@ -294,7 +294,7 @@ export function MockInterviewPage() {
                   </div>
                   <div>
                     <p style={{ fontSize: 13, fontWeight: 700, color: '#fff', marginBottom: 4 }}>{item.title}</p>
-                    <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', lineHeight: 1.6 }}>{item.desc}</p>
+                    <p style={{ fontSize: 11, color: 'var(--t2)', lineHeight: 1.6 }}>{item.desc}</p>
                   </div>
                 </div>
               ))}
@@ -345,14 +345,14 @@ export function MockInterviewPage() {
               ].map((s, i) => (
                 <div key={s.label} style={{ padding: '18px 32px', borderRight: i < 2 ? '1px solid rgba(255,255,255,0.07)' : 'none' }}>
                   <p style={{ fontSize: 26, fontWeight: 900, color: s.color }}>{s.value}</p>
-                  <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.14em', color: 'rgba(255,255,255,0.3)' }}>{s.label}</p>
+                  <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.14em', color: 'var(--t3)' }}>{s.label}</p>
                 </div>
               ))}
             </div>
           </motion.div>
 
           {/* Review answers */}
-          <p style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', marginBottom: 14 }}>Your Responses</p>
+          <p style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--t3)', marginBottom: 14 }}>Your Responses</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 24 }}>
             {questions.map((q, i) => (
               <motion.div
@@ -362,7 +362,7 @@ export function MockInterviewPage() {
                 style={{ ...GLASS, borderRadius: 16, padding: 20 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-                  <span style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.3)' }}>Q{i + 1}</span>
+                  <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--t3)' }}>Q{i + 1}</span>
                   {categoryChip(q.category)}
                 </div>
                 <p style={{ fontSize: 13, fontWeight: 700, color: '#fff', marginBottom: 12, lineHeight: 1.65, whiteSpace: 'pre-line' }}>{q.text}</p>
@@ -381,7 +381,7 @@ export function MockInterviewPage() {
               <Icon name="rate_review" size={16} style={{ color: '#ff4d5a' }} />
               Self-Assessment
             </h3>
-            <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', marginBottom: 12 }}>How did the interview feel? What would you do differently? (Optional)</p>
+            <p style={{ fontSize: 12, color: 'var(--t2)', marginBottom: 12 }}>How did the interview feel? What would you do differently? (Optional)</p>
             <textarea
               value={feedback}
               onChange={(e) => setFeedback(e.target.value)}
@@ -452,7 +452,7 @@ export function MockInterviewPage() {
               <span style={{ fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.15em', color: TYPE_META[selectedType].color }}>
                 {TYPE_META[selectedType].label}
               </span>
-              <span style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.3)' }}>
+              <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--t3)' }}>
                 Q{qIdx + 1} of {questions.length}
               </span>
             </div>
@@ -476,7 +476,7 @@ export function MockInterviewPage() {
               <Icon name={TYPE_META[currentQ.type].icon} size={17} style={{ color: TYPE_META[currentQ.type].color }} />
             </div>
             {categoryChip(currentQ.category)}
-            <span style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.3)', marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 4 }}>
+            <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--t3)', marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 4 }}>
               <Icon name="schedule" size={11} /> {Math.round(currentQ.timeSeconds / 60)} min suggested
             </span>
           </div>
@@ -512,7 +512,7 @@ export function MockInterviewPage() {
         {/* Response area */}
         <div style={{ ...GLASS, borderRadius: 18, overflow: 'hidden', marginBottom: 18 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 20px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-            <p style={{ fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.15em', color: 'rgba(255,255,255,0.3)' }}>
+            <p style={{ fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.15em', color: 'var(--t3)' }}>
               {answerLabel}
             </p>
             <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.2)' }}>{(answers[currentQ.id] ?? '').length} chars</span>
@@ -532,7 +532,7 @@ export function MockInterviewPage() {
             type="button"
             onClick={() => { setTimerActive(false); setPhase('done'); }}
             whileHover={{ color: '#fff' }}
-            style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, transition: 'color 0.2s' }}
+            style={{ background: 'none', border: 'none', color: 'var(--t3)', fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, transition: 'color 0.2s' }}
           >
             <Icon name="stop" size={15} /> End Interview
           </motion.button>

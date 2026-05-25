@@ -333,7 +333,7 @@ export function CareerPathPage() {
               <h1 style={{ fontSize: '3rem', fontWeight: 900, letterSpacing: '-0.03em', marginBottom: 8, lineHeight: 1.1 }}>
                 <span style={{ background: 'linear-gradient(135deg, #fff 40%, #E82127)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>CAREER TRACKS.</span>
               </h1>
-              <p style={{ color: '#71717a', maxWidth: 480 }}>Pick your engineering role. Get a week-by-week curriculum, company targets, and direct links to every resource you need on EYF.</p>
+              <p style={{ color: 'var(--t3)', maxWidth: 480 }}>Pick your engineering role. Get a week-by-week curriculum, company targets, and direct links to every resource you need on EYF.</p>
             </motion.div>
             {savedRole && (
               <motion.div
@@ -398,7 +398,7 @@ export function CareerPathPage() {
                 </div>
               </div>
               <div style={{ marginTop: 16, padding: 12, background: 'rgba(0,0,0,0.2)', borderRadius: 12 }}>
-                <p style={{ fontSize: 10, fontWeight: 700, color: '#71717a', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 4 }}>Avg CTC</p>
+                <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--t3)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 4 }}>Avg CTC</p>
                 <p style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>{role.avgCTC}</p>
               </div>
               {savedRole === selectedRole ? (
@@ -419,7 +419,7 @@ export function CareerPathPage() {
 
             {/* Core skills */}
             <motion.div key={`${role.key}-skills`} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} style={{ ...GLASS, padding: 20, borderRadius: 20 }}>
-              <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#71717a', marginBottom: 12 }}>Core Skills</p>
+              <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--t3)', marginBottom: 12 }}>Core Skills</p>
               <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 8 }}>
                 {role.coreSkills.map((s) => (
                   <span key={s} style={{ padding: '4px 10px', background: 'rgba(255,255,255,0.06)', borderRadius: 8, fontSize: 12, color: '#d4d4d8', fontWeight: 500 }}>{s}</span>
@@ -429,10 +429,10 @@ export function CareerPathPage() {
 
             {/* Interview topics */}
             <motion.div key={`${role.key}-topics`} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }} style={{ ...GLASS, padding: 20, borderRadius: 20 }}>
-              <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#71717a', marginBottom: 12 }}>Interview Topics</p>
+              <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--t3)', marginBottom: 12 }}>Interview Topics</p>
               <ul className="space-y-1.5">
                 {role.interviewTopics.map((t) => (
-                  <li key={t} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 14, color: '#a1a1aa' }}>
+                  <li key={t} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 14, color: 'var(--t2)' }}>
                     <Icon name="arrow_right" size={14} style={{ color: role.color, marginTop: 2, flexShrink: 0 }} />
                     {t}
                   </li>
@@ -442,7 +442,7 @@ export function CareerPathPage() {
 
             {/* Companies hiring */}
             <motion.div key={`${role.key}-hiring`} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.11 }} style={{ ...GLASS, padding: 20, borderRadius: 20 }}>
-              <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#71717a', marginBottom: 12 }}>Who's Hiring</p>
+              <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--t3)', marginBottom: 12 }}>Who's Hiring</p>
               <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 8 }}>
                 {role.hiringCompanies.map((c) => (
                   <span key={c} style={{ padding: '2px 8px', borderRadius: 999, fontSize: 11, fontWeight: 700, background: role.bg, color: role.color, border: `1px solid ${role.border}` }}>{c}</span>
@@ -452,10 +452,10 @@ export function CareerPathPage() {
 
             {/* Projects to build */}
             <motion.div key={`${role.key}-projects`} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.14 }} style={{ ...GLASS, padding: 20, borderRadius: 20 }}>
-              <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#71717a', marginBottom: 12 }}>Projects to Build</p>
+              <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--t3)', marginBottom: 12 }}>Projects to Build</p>
               <ul className="space-y-2">
                 {role.projects.map((p, i) => (
-                  <li key={p} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 14, color: '#a1a1aa' }}>
+                  <li key={p} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 14, color: 'var(--t2)' }}>
                     <span style={{ fontWeight: 900, fontSize: 12, color: role.color, marginTop: 2, flexShrink: 0 }}>{i + 1}.</span>
                     {p}
                   </li>
@@ -469,7 +469,7 @@ export function CareerPathPage() {
                 <span style={{ fontSize: 18 }}>🇮🇳</span>
                 <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#fbbf24' }}>India Placement Context</p>
               </div>
-              <p style={{ fontSize: 14, color: '#a1a1aa', lineHeight: 1.6 }}>{role.indiaContext}</p>
+              <p style={{ fontSize: 14, color: 'var(--t2)', lineHeight: 1.6 }}>{role.indiaContext}</p>
             </motion.div>
           </div>
 
@@ -478,7 +478,7 @@ export function CareerPathPage() {
             <motion.div key={`${role.key}-curriculum`} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} style={{ ...GLASS, borderRadius: 20, overflow: 'hidden' }}>
               <div style={{ padding: '16px 24px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
                 <h3 style={{ fontSize: 16, fontWeight: 900, color: '#fff' }}>Week-by-Week Curriculum</h3>
-                <p style={{ fontSize: 12, color: '#71717a', marginTop: 2 }}>Structured {role.months.length * 4}-week path from zero to interview-ready</p>
+                <p style={{ fontSize: 12, color: 'var(--t3)', marginTop: 2 }}>Structured {role.months.length * 4}-week path from zero to interview-ready</p>
               </div>
 
               {/* Month tabs */}
@@ -512,7 +512,7 @@ export function CareerPathPage() {
                     <h4 style={{ fontSize: 18, fontWeight: 900, color: '#fff' }}>{role.months[activeMonth].title}</h4>
                     <span style={{ fontSize: 12, fontWeight: 700, padding: '2px 10px', borderRadius: 999, background: role.bg, color: role.color }}>{role.months[activeMonth].weeks}</span>
                   </div>
-                  <p style={{ fontSize: 12, color: '#52525b', marginBottom: 24 }}>Focus areas for {role.months[activeMonth].weeks.toLowerCase()}</p>
+                  <p style={{ fontSize: 12, color: 'var(--t4)', marginBottom: 24 }}>Focus areas for {role.months[activeMonth].weeks.toLowerCase()}</p>
 
                   <ul className="space-y-3" style={{ marginBottom: 32 }}>
                     {role.months[activeMonth].focus.map((item, i) => (
@@ -527,7 +527,7 @@ export function CareerPathPage() {
 
                   {/* Platform resources for this month */}
                   <div style={{ paddingTop: 20, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-                    <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#52525b', marginBottom: 12 }}>Study on EYF This Month</p>
+                    <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--t4)', marginBottom: 12 }}>Study on EYF This Month</p>
                     <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 8 }}>
                       {role.months[activeMonth].resources.map((res) => (
                         <Link
@@ -550,7 +550,7 @@ export function CareerPathPage() {
                       disabled={activeMonth === 0}
                       whileHover={{ scale: 1.03 }}
                       whileTap={{ scale: 0.97 }}
-                      style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 12, background: 'rgba(255,255,255,0.06)', color: '#a1a1aa', fontSize: 12, fontWeight: 700, cursor: 'pointer', opacity: activeMonth === 0 ? 0.3 : 1 }}
+                      style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 12, background: 'rgba(255,255,255,0.06)', color: 'var(--t2)', fontSize: 12, fontWeight: 700, cursor: 'pointer', opacity: activeMonth === 0 ? 0.3 : 1 }}
                     >
                       <Icon name="chevron_left" size={14} /> Prev Month
                     </motion.button>
@@ -576,7 +576,7 @@ export function CareerPathPage() {
               viewport={{ once: true }}
               style={{ ...GLASS, padding: 20, borderRadius: 20, marginTop: 16 }}
             >
-              <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#52525b', marginBottom: 12 }}>Jump to Targeted Prep</p>
+              <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--t4)', marginBottom: 12 }}>Jump to Targeted Prep</p>
               <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 12 }}>
                 {[
                   { to: '/app/companies', icon: 'business', label: 'Company Prep' },

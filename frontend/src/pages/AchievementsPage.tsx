@@ -117,14 +117,14 @@ function AchievementCard({ a, i }: { readonly a: Achievement; readonly i: number
       </div>
 
       <h3 className="font-bold text-sm mb-1" style={{ color: 'rgba(255,255,255,0.88)' }}>{a.name}</h3>
-      <p className="text-xs leading-relaxed mb-3" style={{ color: 'rgba(255,255,255,0.4)' }}>{a.description}</p>
+      <p className="text-xs leading-relaxed mb-3" style={{ color: 'var(--t2)' }}>{a.description}</p>
 
       <div className="flex items-center justify-between">
         <span className="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full" style={{ color: r.badge, background: r.badgeBg }}>
           {r.label}
         </span>
-        <span className="text-[10px] font-bold flex items-center gap-0.5" style={{ color: '#E8192C' }}>
-          +{a.xpReward} <Icon name="bolt" size={12} filled style={{ color: '#E8192C' }} />
+        <span className="text-[10px] font-bold flex items-center gap-0.5" style={{ color: '#E82127' }}>
+          +{a.xpReward} <Icon name="bolt" size={12} filled style={{ color: '#E82127' }} />
         </span>
       </div>
 
@@ -169,7 +169,7 @@ export function AchievementsPage() {
 
   return (
     <AppShell>
-      <div className="pt-8 max-w-6xl">
+      <div className="pt-8 max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-10">
           <motion.h1
@@ -187,7 +187,7 @@ export function AchievementsPage() {
           </motion.h1>
           <motion.p
             className="text-sm"
-            style={{ color: 'rgba(255,255,255,0.35)' }}
+            style={{ color: 'var(--t2)' }}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.12, ease: [0.16, 1, 0.3, 1] }}
@@ -215,25 +215,25 @@ export function AchievementsPage() {
           <div className="flex items-center gap-4 flex-shrink-0">
             <div
               className="w-14 h-14 rounded-2xl flex items-center justify-center font-black text-xl"
-              style={{ background: 'linear-gradient(135deg, #E8192C, #ff5566)', color: 'white', boxShadow: '0 8px 24px rgba(232,25,44,0.4)' }}
+              style={{ background: 'linear-gradient(135deg, #E82127, #ff5566)', color: 'white', boxShadow: '0 8px 24px rgba(232,25,44,0.4)' }}
             >
               {level}
             </div>
             <div>
-              <p className="font-bold uppercase tracking-[0.2em] text-[9px]" style={{ color: 'rgba(255,255,255,0.3)' }}>Level {level}</p>
+              <p className="font-bold uppercase tracking-[0.2em] text-[9px]" style={{ color: 'var(--t3)' }}>Level {level}</p>
               <p className="text-xl font-black" style={{ color: 'rgba(255,255,255,0.9)' }}>{LEVEL_NAMES[level] ?? 'Legend'}</p>
             </div>
           </div>
 
           <div className="flex-1">
-            <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: 'rgba(255,255,255,0.28)' }}>
+            <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: 'var(--t3)' }}>
               <span>{xp.toLocaleString()} XP</span>
               <span>{nextThreshold.toLocaleString()} XP</span>
             </div>
             <div className="h-2 w-full rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.05)' }}>
               <motion.div
                 className="h-full rounded-full"
-                style={{ background: 'linear-gradient(90deg, #E8192C, #ff5566)', boxShadow: '0 0 12px rgba(232,25,44,0.5)' }}
+                style={{ background: 'linear-gradient(90deg, #E82127, #ff5566)', boxShadow: '0 0 12px rgba(232,25,44,0.5)' }}
                 initial={{ width: 0 }}
                 animate={{ width: `${xpPct}%` }}
                 transition={{ duration: 1.2, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
@@ -252,7 +252,7 @@ export function AchievementsPage() {
             ].map((s, i) => (
               <div key={s.label} className="text-center" style={i > 0 ? { borderLeft: '1px solid rgba(255,255,255,0.07)', paddingLeft: 24 } : {}}>
                 <p className="text-2xl font-black" style={{ color: 'rgba(255,255,255,0.9)' }}>{s.value}</p>
-                <p className="text-[9px] font-bold uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.28)' }}>{s.label}</p>
+                <p className="text-[9px] font-bold uppercase tracking-widest" style={{ color: 'var(--t3)' }}>{s.label}</p>
               </div>
             ))}
           </div>

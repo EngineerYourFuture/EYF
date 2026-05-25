@@ -16,7 +16,7 @@ const D = {
   t2:      '#C0C0C0',
   t3:      '#888',
   t4:      '#444',
-  red:     '#E8192C',
+  red:     '#E82127',
 };
 
 /* ── Cursor glow ───────────────────────────────────────────────────────── */
@@ -202,7 +202,7 @@ function DashboardMockup() {
       <div style={{ display: 'flex', minHeight: 340 }}>
         <div style={{ width: 168, background: '#080D12', borderRight: '1px solid rgba(255,255,255,0.05)', padding: '14px 10px', flexShrink: 0 }} className="hidden sm:block">
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 6px', marginBottom: 20 }}>
-            <div style={{ width: 18, height: 18, borderRadius: 4, background: '#E8192C' }} />
+            <div style={{ width: 18, height: 18, borderRadius: 4, background: '#E82127' }} />
             <span style={{ fontSize: 12, fontWeight: 800, color: D.t1 }}>EYF</span>
           </div>
           {[['Dashboard',true],['DSA Problems',false],['System Design',false],['Placement',false],['Community',false]].map(([l,a]) => (
@@ -219,7 +219,7 @@ function DashboardMockup() {
           <p style={{ fontSize: 10, color: '#333', marginBottom: 2 }}>Good morning,</p>
           <p style={{ fontSize: 13, fontWeight: 700, color: D.t1, marginBottom: 14 }}>Praneeth</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 7, marginBottom: 10 }}>
-            {[['XP','2,840','#E8192C'],['Week','+340','#4ADE80'],['Streak','14d','#FB923C'],['Badges','12','#FBBF24']].map(([l,v,c]) => (
+            {[['XP','2,840','#E82127'],['Week','+340','#4ADE80'],['Streak','14d','#FB923C'],['Badges','12','#FBBF24']].map(([l,v,c]) => (
               <div key={String(l)} style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 10, padding: '9px 10px' }}>
                 <p style={{ fontSize: 9, color: '#333', marginBottom: 3 }}>{String(l)}</p>
                 <p style={{ fontSize: 15, fontWeight: 700, color: String(c), lineHeight: 1 }}>{String(v)}</p>
@@ -231,7 +231,7 @@ function DashboardMockup() {
               <span>Builder · Lv.5</span><span>660 XP to Engineer</span>
             </div>
             <div style={{ height: 3, background: 'rgba(255,255,255,0.06)', borderRadius: 100, overflow: 'hidden' }}>
-              <div style={{ width: '62%', height: '100%', background: '#E8192C', borderRadius: 100 }} />
+              <div style={{ width: '62%', height: '100%', background: '#E82127', borderRadius: 100 }} />
             </div>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 7 }}>
@@ -316,7 +316,7 @@ function HeroSection() {
               border: '1px solid rgba(232,25,44,0.22)',
               color: '#FF4D5E', fontSize: 12, fontWeight: 600, letterSpacing: '0.01em',
             }}>
-              <span className="anim-pulse" style={{ width: 6, height: 6, borderRadius: '50%', background: '#E8192C', display: 'inline-block' }} />
+              <span className="anim-pulse" style={{ width: 6, height: 6, borderRadius: '50%', background: '#E82127', display: 'inline-block' }} />
               Open beta · 12,000+ students enrolled
             </span>
           </motion.div>
@@ -334,7 +334,7 @@ function HeroSection() {
             The structured path<br />
             to your first{' '}
             <span style={{
-              color: '#E8192C',
+              color: '#E82127',
               textShadow: '0 0 60px rgba(232,25,44,0.6), 0 0 120px rgba(232,25,44,0.3)',
             }}>
               tech offer.
@@ -393,7 +393,7 @@ function HeroSection() {
           }} />
 
           {/* Floating chips */}
-          <FloatingChip label="+120 XP" sub="Two Sum · Pattern solved" color="#E8192C" delay={0.9}
+          <FloatingChip label="+120 XP" sub="Two Sum · Pattern solved" color="#E82127" delay={0.9}
             style={{ top: '12%', left: '-8%' }} />
           <FloatingChip label="🔥 14-day streak" sub="Keep it up" color="#FB923C" delay={1.3}
             style={{ top: '6%', right: '-4%' }} />
@@ -654,9 +654,9 @@ function FeatureShowcase() {
           {dots.map((dot, i) => (
             <motion.div key={i} style={{
               width: 6, height: 6, borderRadius: '50%',
-              background: '#E8192C',
+              background: '#E82127',
               opacity: dot,
-              boxShadow: '0 0 8px #E8192C',
+              boxShadow: '0 0 8px #E82127',
             }} />
           ))}
         </div>

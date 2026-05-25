@@ -402,7 +402,7 @@ export function ResumePage() {
             <h1 style={{ fontSize: '3rem', fontWeight: 900, letterSpacing: '-0.03em', marginBottom: 4, lineHeight: 1.1 }}>
               <span style={{ background: 'linear-gradient(135deg, #fff 40%, #E82127)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>RESUME BUILDER.</span>
             </h1>
-            <p style={{ color: '#71717a' }}>ATS-optimized. Export to PDF anytime.</p>
+            <p style={{ color: 'var(--t3)' }}>ATS-optimized. Export to PDF anytime.</p>
           </motion.div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' as const }}>
             <motion.button
@@ -414,7 +414,7 @@ export function ResumePage() {
             >
               <div style={{ width: 8, height: 8, borderRadius: '50%', background: atsHex }} />
               ATS Score: {atsScore}%
-              <Icon name={showAts ? 'expand_less' : 'expand_more'} size={16} style={{ color: '#71717a' }} />
+              <Icon name={showAts ? 'expand_less' : 'expand_more'} size={16} style={{ color: 'var(--t3)' }} />
             </motion.button>
             <motion.button
               type="button"
@@ -454,7 +454,7 @@ export function ResumePage() {
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <span style={{ fontSize: 14, fontWeight: 700, color: '#e4e4e7' }}>ATS Checklist</span>
+                <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--t1)' }}>ATS Checklist</span>
                 <span style={{ fontSize: 12, fontWeight: 700, padding: '2px 8px', borderRadius: 999, color: atsHex, background: atsBgRgba }}>{atsScore}%</span>
               </div>
               <div style={{ flex: 1, margin: '0 24px', height: 6, background: 'rgba(255,255,255,0.06)', borderRadius: 999, overflow: 'hidden' }}>
@@ -464,7 +464,7 @@ export function ResumePage() {
                   style={{ height: '100%', borderRadius: 999, background: atsHex }}
                 />
               </div>
-              <span style={{ fontSize: 12, color: '#71717a' }}>{atsTips.filter((t) => t.ok).length}/{atsTips.length} checks</span>
+              <span style={{ fontSize: 12, color: 'var(--t3)' }}>{atsTips.filter((t) => t.ok).length}/{atsTips.length} checks</span>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
               {atsTips.map((tip) => (
@@ -486,7 +486,7 @@ export function ResumePage() {
           <div>
             {/* Template selector */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
-              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#71717a' }}>Template</span>
+              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--t3)' }}>Template</span>
               <div style={{ display: 'flex', alignItems: 'center', padding: 4, background: 'rgba(255,255,255,0.04)', borderRadius: 999, border: '1px solid rgba(255,255,255,0.07)' }}>
                 {(['minimal', 'modern'] as const).map((t) => (
                   <motion.button
@@ -498,7 +498,7 @@ export function ResumePage() {
                     style={template === t ? {
                       padding: '6px 16px', borderRadius: 999, fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', background: '#E82127', color: '#fff', cursor: 'pointer', boxShadow: '0 0 12px rgba(232,33,39,0.3)',
                     } : {
-                      padding: '6px 16px', borderRadius: 999, fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', background: 'transparent', color: '#71717a', cursor: 'pointer',
+                      padding: '6px 16px', borderRadius: 999, fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', background: 'transparent', color: 'var(--t3)', cursor: 'pointer',
                     }}
                   >
                     {t}
@@ -519,7 +519,7 @@ export function ResumePage() {
                   style={section === s.key ? {
                     display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 14, fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', background: 'rgba(232,33,39,0.14)', border: '1px solid rgba(232,33,39,0.4)', color: '#fff', cursor: 'pointer',
                   } : {
-                    display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 14, fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', background: 'transparent', border: '1px solid transparent', color: '#71717a', cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 14, fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', background: 'transparent', border: '1px solid transparent', color: 'var(--t3)', cursor: 'pointer',
                   }}
                 >
                   <Icon name={s.icon} size={13} />
@@ -541,19 +541,19 @@ export function ResumePage() {
                     { label: 'GitHub URL', key: 'github' as const, type: 'url', placeholder: 'github.com/john' },
                   ] as Array<{ label: string; key: keyof ResumeData; type: string; placeholder: string }>).map((f) => (
                     <div key={f.key}>
-                      <label style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: '#71717a', display: 'block', marginBottom: 6 }}>{f.label}</label>
+                      <label style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: 'var(--t3)', display: 'block', marginBottom: 6 }}>{f.label}</label>
                       <input
                         type={f.type}
                         value={data[f.key] as string}
                         placeholder={f.placeholder}
                         onChange={(e) => update(f.key, e.target.value as ResumeData[typeof f.key])}
-                        style={{ width: '100%', background: 'rgba(255,255,255,0.04)', borderRadius: 12, padding: '10px 16px', fontSize: 14, color: '#e4e4e7', border: '1px solid rgba(255,255,255,0.08)', outline: 'none', boxSizing: 'border-box' as const }}
+                        style={{ width: '100%', background: 'rgba(255,255,255,0.04)', borderRadius: 12, padding: '10px 16px', fontSize: 14, color: 'var(--t1)', border: '1px solid rgba(255,255,255,0.08)', outline: 'none', boxSizing: 'border-box' as const }}
                       />
                     </div>
                   ))}
                 </div>
                 <div>
-                  <label htmlFor="resume-summary" style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: '#71717a', display: 'block', marginBottom: 6 }}>
+                  <label htmlFor="resume-summary" style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: 'var(--t3)', display: 'block', marginBottom: 6 }}>
                     Professional Summary
                   </label>
                   <textarea
@@ -562,9 +562,9 @@ export function ResumePage() {
                     placeholder="Full-stack engineer with 3+ years building scalable distributed systems. Passionate about performance optimization and developer experience."
                     onChange={(e) => update('summary', e.target.value)}
                     rows={4}
-                    style={{ width: '100%', background: 'rgba(255,255,255,0.04)', borderRadius: 12, padding: '10px 16px', fontSize: 14, color: '#e4e4e7', border: '1px solid rgba(255,255,255,0.08)', outline: 'none', resize: 'none', boxSizing: 'border-box' as const }}
+                    style={{ width: '100%', background: 'rgba(255,255,255,0.04)', borderRadius: 12, padding: '10px 16px', fontSize: 14, color: 'var(--t1)', border: '1px solid rgba(255,255,255,0.08)', outline: 'none', resize: 'none', boxSizing: 'border-box' as const }}
                   />
-                  <p style={{ fontSize: 10, color: '#52525b', marginTop: 4 }}>{data.summary.trim().split(/\s+/).filter(Boolean).length} words — aim for 30-50</p>
+                  <p style={{ fontSize: 10, color: 'var(--t4)', marginTop: 4 }}>{data.summary.trim().split(/\s+/).filter(Boolean).length} words — aim for 30-50</p>
                 </div>
               </motion.div>
             )}
@@ -573,7 +573,7 @@ export function ResumePage() {
             {section === 'skills' && (
               <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} style={{ ...GLASS, borderRadius: 16, padding: 24 }} className="space-y-4">
                 <div>
-                  <label htmlFor="resume-add-skill" style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: '#71717a', display: 'block', marginBottom: 8 }}>Add Skills</label>
+                  <label htmlFor="resume-add-skill" style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: 'var(--t3)', display: 'block', marginBottom: 8 }}>Add Skills</label>
                   <div style={{ display: 'flex', gap: 8 }}>
                     <input
                       id="resume-add-skill"
@@ -582,7 +582,7 @@ export function ResumePage() {
                       placeholder="e.g. TypeScript, React, PostgreSQL"
                       onChange={(e) => setSkillInput(e.target.value)}
                       onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addSkill(); } }}
-                      style={{ flex: 1, background: 'rgba(255,255,255,0.04)', borderRadius: 12, padding: '10px 16px', fontSize: 14, color: '#e4e4e7', border: '1px solid rgba(255,255,255,0.08)', outline: 'none' }}
+                      style={{ flex: 1, background: 'rgba(255,255,255,0.04)', borderRadius: 12, padding: '10px 16px', fontSize: 14, color: 'var(--t1)', border: '1px solid rgba(255,255,255,0.08)', outline: 'none' }}
                     />
                     <motion.button
                       type="button"
@@ -594,17 +594,17 @@ export function ResumePage() {
                       Add
                     </motion.button>
                   </div>
-                  <p style={{ fontSize: 10, color: '#52525b', marginTop: 4 }}>Press Enter or click Add. Aim for 8-15 relevant skills.</p>
+                  <p style={{ fontSize: 10, color: 'var(--t4)', marginTop: 4 }}>Press Enter or click Add. Aim for 8-15 relevant skills.</p>
                 </div>
                 <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 8, minHeight: 60 }}>
-                  {data.skills.length === 0 && <p style={{ color: '#52525b', fontSize: 14 }}>No skills added yet.</p>}
+                  {data.skills.length === 0 && <p style={{ color: 'var(--t4)', fontSize: 14 }}>No skills added yet.</p>}
                   {data.skills.map((s) => (
                     <div key={s} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', background: 'rgba(255,255,255,0.06)', borderRadius: 999, border: '1px solid rgba(255,255,255,0.08)' }}>
-                      <span style={{ fontSize: 12, fontWeight: 700, color: '#e4e4e7' }}>{s}</span>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--t1)' }}>{s}</span>
                       <button
                         type="button"
                         onClick={() => update('skills', data.skills.filter((sk) => sk !== s))}
-                        style={{ color: '#71717a', background: 'transparent', cursor: 'pointer', display: 'flex' }}
+                        style={{ color: 'var(--t3)', background: 'transparent', cursor: 'pointer', display: 'flex' }}
                       >
                         <Icon name="close" size={12} />
                       </button>
@@ -612,7 +612,7 @@ export function ResumePage() {
                   ))}
                 </div>
                 <div>
-                  <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: '#71717a', marginBottom: 8 }}>Quick Add</p>
+                  <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: 'var(--t3)', marginBottom: 8 }}>Quick Add</p>
                   <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 6 }}>
                     {['Python', 'JavaScript', 'TypeScript', 'Java', 'Go', 'Rust', 'C++', 'React', 'Node.js', 'AWS', 'Docker', 'Kubernetes', 'PostgreSQL', 'Redis', 'GraphQL'].filter((s) => !data.skills.includes(s)).slice(0, 10).map((s) => (
                       <motion.button
@@ -621,7 +621,7 @@ export function ResumePage() {
                         onClick={() => update('skills', [...data.skills, s])}
                         whileHover={{ scale: 1.06 }}
                         whileTap={{ scale: 0.96 }}
-                        style={{ fontSize: 10, fontWeight: 700, padding: '4px 12px', borderRadius: 999, border: '1px solid rgba(255,255,255,0.1)', color: '#a1a1aa', background: 'transparent', cursor: 'pointer' }}
+                        style={{ fontSize: 10, fontWeight: 700, padding: '4px 12px', borderRadius: 999, border: '1px solid rgba(255,255,255,0.1)', color: 'var(--t2)', background: 'transparent', cursor: 'pointer' }}
                       >
                         + {s}
                       </motion.button>
@@ -637,8 +637,8 @@ export function ResumePage() {
                 {data.education.map((edu, i) => (
                   <motion.div key={`edu-form-${String(i)}`} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} style={{ ...GLASS, borderRadius: 16, padding: 24 }} className="space-y-3">
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-                      <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: '#71717a' }}>Entry {i + 1}</span>
-                      <button type="button" onClick={() => update('education', data.education.filter((_, j) => j !== i))} style={{ color: '#52525b', background: 'transparent', cursor: 'pointer', display: 'flex' }}>
+                      <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: 'var(--t3)' }}>Entry {i + 1}</span>
+                      <button type="button" onClick={() => update('education', data.education.filter((_, j) => j !== i))} style={{ color: 'var(--t4)', background: 'transparent', cursor: 'pointer', display: 'flex' }}>
                         <Icon name="delete" size={16} />
                       </button>
                     </div>
@@ -651,7 +651,7 @@ export function ResumePage() {
                         { label: 'GPA (optional)', f: 'gpa', placeholder: '8.5/10' },
                       ] as Array<{ label: string; f: keyof typeof edu; placeholder: string }>).map((field) => (
                         <div key={field.f} className={field.f === 'school' || field.f === 'field' ? 'col-span-2' : ''}>
-                          <label style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: '#71717a', display: 'block', marginBottom: 4 }}>{field.label}</label>
+                          <label style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: 'var(--t3)', display: 'block', marginBottom: 4 }}>{field.label}</label>
                           <input
                             type="text"
                             value={edu[field.f] ?? ''}
@@ -661,7 +661,7 @@ export function ResumePage() {
                               updated[i] = { ...updated[i], [field.f]: e.target.value };
                               update('education', updated);
                             }}
-                            style={{ width: '100%', background: 'rgba(255,255,255,0.04)', borderRadius: 12, padding: '10px 16px', fontSize: 14, color: '#e4e4e7', border: '1px solid rgba(255,255,255,0.08)', outline: 'none', boxSizing: 'border-box' as const }}
+                            style={{ width: '100%', background: 'rgba(255,255,255,0.04)', borderRadius: 12, padding: '10px 16px', fontSize: 14, color: 'var(--t1)', border: '1px solid rgba(255,255,255,0.08)', outline: 'none', boxSizing: 'border-box' as const }}
                           />
                         </div>
                       ))}
@@ -671,7 +671,7 @@ export function ResumePage() {
                 <button
                   type="button"
                   onClick={() => update('education', [...data.education, { school: '', degree: '', field: 'Computer Science', year: '', gpa: '' }])}
-                  style={{ width: '100%', border: '1px dashed rgba(255,255,255,0.15)', borderRadius: 14, padding: '12px 0', color: '#71717a', background: 'transparent', fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, cursor: 'pointer' }}
+                  style={{ width: '100%', border: '1px dashed rgba(255,255,255,0.15)', borderRadius: 14, padding: '12px 0', color: 'var(--t3)', background: 'transparent', fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, cursor: 'pointer' }}
                 >
                   <Icon name="add" size={16} /> Add Education
                 </button>
@@ -684,8 +684,8 @@ export function ResumePage() {
                 {data.experience.map((exp, i) => (
                   <motion.div key={`exp-form-${String(i)}`} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} style={{ ...GLASS, borderRadius: 16, padding: 24 }} className="space-y-3">
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-                      <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: '#71717a' }}>Role {i + 1}</span>
-                      <button type="button" onClick={() => update('experience', data.experience.filter((_, j) => j !== i))} style={{ color: '#52525b', background: 'transparent', cursor: 'pointer', display: 'flex' }}>
+                      <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: 'var(--t3)' }}>Role {i + 1}</span>
+                      <button type="button" onClick={() => update('experience', data.experience.filter((_, j) => j !== i))} style={{ color: 'var(--t4)', background: 'transparent', cursor: 'pointer', display: 'flex' }}>
                         <Icon name="delete" size={16} />
                       </button>
                     </div>
@@ -697,7 +697,7 @@ export function ResumePage() {
                         { label: 'Location', f: 'location', placeholder: 'Bengaluru, India (Remote)' },
                       ] as Array<{ label: string; f: keyof typeof exp; placeholder: string }>).map((field) => (
                         <div key={field.f}>
-                          <label style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: '#71717a', display: 'block', marginBottom: 4 }}>{field.label}</label>
+                          <label style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: 'var(--t3)', display: 'block', marginBottom: 4 }}>{field.label}</label>
                           <input
                             type="text"
                             value={exp[field.f] as string}
@@ -707,30 +707,30 @@ export function ResumePage() {
                               updated[i] = { ...updated[i], [field.f]: e.target.value };
                               update('experience', updated);
                             }}
-                            style={{ width: '100%', background: 'rgba(255,255,255,0.04)', borderRadius: 12, padding: '10px 16px', fontSize: 14, color: '#e4e4e7', border: '1px solid rgba(255,255,255,0.08)', outline: 'none', boxSizing: 'border-box' as const }}
+                            style={{ width: '100%', background: 'rgba(255,255,255,0.04)', borderRadius: 12, padding: '10px 16px', fontSize: 14, color: 'var(--t1)', border: '1px solid rgba(255,255,255,0.08)', outline: 'none', boxSizing: 'border-box' as const }}
                           />
                         </div>
                       ))}
                     </div>
                     <div>
-                      <label htmlFor={`exp-bullet-${i}-0`} style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: '#71717a', display: 'block', marginBottom: 4 }}>
+                      <label htmlFor={`exp-bullet-${i}-0`} style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: 'var(--t3)', display: 'block', marginBottom: 4 }}>
                         Impact Bullets — use numbers & results
                       </label>
                       {exp.bullets.map((bullet, j) => (
                         <div key={`bullet-${String(j)}`} style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
-                          <span style={{ color: '#52525b', fontSize: 14, marginTop: 10, flexShrink: 0 }}>•</span>
+                          <span style={{ color: 'var(--t4)', fontSize: 14, marginTop: 10, flexShrink: 0 }}>•</span>
                           <input
                             id={`exp-bullet-${i}-${j}`}
                             type="text"
                             value={bullet}
                             placeholder={j === 0 ? 'Reduced API latency by 42% via Redis caching, saving $8k/month in infra costs.' : 'Add another impact bullet…'}
                             onChange={(e) => updateExpBullet(i, j, e.target.value)}
-                            style={{ flex: 1, background: 'rgba(255,255,255,0.04)', borderRadius: 12, padding: '8px 16px', fontSize: 14, color: '#e4e4e7', border: '1px solid rgba(255,255,255,0.08)', outline: 'none' }}
+                            style={{ flex: 1, background: 'rgba(255,255,255,0.04)', borderRadius: 12, padding: '8px 16px', fontSize: 14, color: 'var(--t1)', border: '1px solid rgba(255,255,255,0.08)', outline: 'none' }}
                           />
                           <button
                             type="button"
                             onClick={() => removeExpBullet(i, j)}
-                            style={{ color: '#52525b', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', flexShrink: 0, marginTop: 4 }}
+                            style={{ color: 'var(--t4)', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', flexShrink: 0, marginTop: 4 }}
                           >
                             <Icon name="remove" size={14} />
                           </button>
@@ -743,7 +743,7 @@ export function ResumePage() {
                           updated[i] = { ...updated[i], bullets: [...updated[i].bullets, ''] };
                           update('experience', updated);
                         }}
-                        style={{ fontSize: 10, color: '#71717a', background: 'transparent', display: 'flex', alignItems: 'center', gap: 4, marginTop: 4, cursor: 'pointer' }}
+                        style={{ fontSize: 10, color: 'var(--t3)', background: 'transparent', display: 'flex', alignItems: 'center', gap: 4, marginTop: 4, cursor: 'pointer' }}
                       >
                         <Icon name="add" size={12} /> Add bullet
                       </button>
@@ -753,7 +753,7 @@ export function ResumePage() {
                 <button
                   type="button"
                   onClick={() => update('experience', [...data.experience, { company: '', role: '', duration: '', location: '', bullets: ['', '', ''] }])}
-                  style={{ width: '100%', border: '1px dashed rgba(255,255,255,0.15)', borderRadius: 14, padding: '12px 0', color: '#71717a', background: 'transparent', fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, cursor: 'pointer' }}
+                  style={{ width: '100%', border: '1px dashed rgba(255,255,255,0.15)', borderRadius: 14, padding: '12px 0', color: 'var(--t3)', background: 'transparent', fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, cursor: 'pointer' }}
                 >
                   <Icon name="add" size={16} /> Add Experience
                 </button>
@@ -766,8 +766,8 @@ export function ResumePage() {
                 {data.projects.map((proj, i) => (
                   <motion.div key={`proj-form-${String(i)}`} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} style={{ ...GLASS, borderRadius: 16, padding: 24 }} className="space-y-3">
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-                      <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: '#71717a' }}>Project {i + 1}</span>
-                      <button type="button" onClick={() => update('projects', data.projects.filter((_, j) => j !== i))} style={{ color: '#52525b', background: 'transparent', cursor: 'pointer', display: 'flex' }}>
+                      <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: 'var(--t3)' }}>Project {i + 1}</span>
+                      <button type="button" onClick={() => update('projects', data.projects.filter((_, j) => j !== i))} style={{ color: 'var(--t4)', background: 'transparent', cursor: 'pointer', display: 'flex' }}>
                         <Icon name="delete" size={16} />
                       </button>
                     </div>
@@ -778,7 +778,7 @@ export function ResumePage() {
                       { label: 'Link (GitHub / Demo)', f: 'link', placeholder: 'github.com/you/project' },
                     ] as Array<{ label: string; f: keyof typeof proj; placeholder: string }>).map((field) => (
                       <div key={field.f}>
-                        <label style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: '#71717a', display: 'block', marginBottom: 4 }}>{field.label}</label>
+                        <label style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: 'var(--t3)', display: 'block', marginBottom: 4 }}>{field.label}</label>
                         <input
                           type="text"
                           value={proj[field.f] ?? ''}
@@ -788,7 +788,7 @@ export function ResumePage() {
                             updated[i] = { ...updated[i], [field.f]: e.target.value };
                             update('projects', updated);
                           }}
-                          style={{ width: '100%', background: 'rgba(255,255,255,0.04)', borderRadius: 12, padding: '10px 16px', fontSize: 14, color: '#e4e4e7', border: '1px solid rgba(255,255,255,0.08)', outline: 'none', boxSizing: 'border-box' as const }}
+                          style={{ width: '100%', background: 'rgba(255,255,255,0.04)', borderRadius: 12, padding: '10px 16px', fontSize: 14, color: 'var(--t1)', border: '1px solid rgba(255,255,255,0.08)', outline: 'none', boxSizing: 'border-box' as const }}
                         />
                       </div>
                     ))}
@@ -797,7 +797,7 @@ export function ResumePage() {
                 <button
                   type="button"
                   onClick={() => update('projects', [...data.projects, { name: '', desc: '', stack: '', link: '' }])}
-                  style={{ width: '100%', border: '1px dashed rgba(255,255,255,0.15)', borderRadius: 14, padding: '12px 0', color: '#71717a', background: 'transparent', fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, cursor: 'pointer' }}
+                  style={{ width: '100%', border: '1px dashed rgba(255,255,255,0.15)', borderRadius: 14, padding: '12px 0', color: 'var(--t3)', background: 'transparent', fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, cursor: 'pointer' }}
                 >
                   <Icon name="add" size={16} /> Add Project
                 </button>
@@ -810,15 +810,15 @@ export function ResumePage() {
                 {data.certifications.length === 0 && (
                   <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} style={{ ...GLASS, borderRadius: 16, padding: 32, textAlign: 'center' }}>
                     <Icon name="verified" size={32} style={{ color: '#3f3f46', marginBottom: 12 }} />
-                    <p style={{ color: '#71717a', fontSize: 14, marginBottom: 8 }}>No certifications added yet.</p>
-                    <p style={{ color: '#52525b', fontSize: 12 }}>Add AWS, Google Cloud, Azure, or any professional certification.</p>
+                    <p style={{ color: 'var(--t3)', fontSize: 14, marginBottom: 8 }}>No certifications added yet.</p>
+                    <p style={{ color: 'var(--t4)', fontSize: 12 }}>Add AWS, Google Cloud, Azure, or any professional certification.</p>
                   </motion.div>
                 )}
                 {data.certifications.map((cert, i) => (
                   <motion.div key={`cert-form-${String(i)}`} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} style={{ ...GLASS, borderRadius: 16, padding: 24 }} className="space-y-3">
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-                      <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: '#71717a' }}>Cert {i + 1}</span>
-                      <button type="button" onClick={() => update('certifications', data.certifications.filter((_, j) => j !== i))} style={{ color: '#52525b', background: 'transparent', cursor: 'pointer', display: 'flex' }}>
+                      <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: 'var(--t3)' }}>Cert {i + 1}</span>
+                      <button type="button" onClick={() => update('certifications', data.certifications.filter((_, j) => j !== i))} style={{ color: 'var(--t4)', background: 'transparent', cursor: 'pointer', display: 'flex' }}>
                         <Icon name="delete" size={16} />
                       </button>
                     </div>
@@ -829,7 +829,7 @@ export function ResumePage() {
                         { label: 'Year', f: 'year', placeholder: '2024' },
                       ] as Array<{ label: string; f: keyof typeof cert; placeholder: string }>).map((field) => (
                         <div key={field.f} className={field.f === 'name' ? 'col-span-3' : ''}>
-                          <label style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: '#71717a', display: 'block', marginBottom: 4 }}>{field.label}</label>
+                          <label style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: 'var(--t3)', display: 'block', marginBottom: 4 }}>{field.label}</label>
                           <input
                             type="text"
                             value={cert[field.f]}
@@ -839,7 +839,7 @@ export function ResumePage() {
                               updated[i] = { ...updated[i], [field.f]: e.target.value };
                               update('certifications', updated);
                             }}
-                            style={{ width: '100%', background: 'rgba(255,255,255,0.04)', borderRadius: 12, padding: '10px 16px', fontSize: 14, color: '#e4e4e7', border: '1px solid rgba(255,255,255,0.08)', outline: 'none', boxSizing: 'border-box' as const }}
+                            style={{ width: '100%', background: 'rgba(255,255,255,0.04)', borderRadius: 12, padding: '10px 16px', fontSize: 14, color: 'var(--t1)', border: '1px solid rgba(255,255,255,0.08)', outline: 'none', boxSizing: 'border-box' as const }}
                           />
                         </div>
                       ))}
@@ -849,7 +849,7 @@ export function ResumePage() {
                 <button
                   type="button"
                   onClick={() => update('certifications', [...data.certifications, { name: '', issuer: '', year: '' }])}
-                  style={{ width: '100%', border: '1px dashed rgba(255,255,255,0.15)', borderRadius: 14, padding: '12px 0', color: '#71717a', background: 'transparent', fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, cursor: 'pointer' }}
+                  style={{ width: '100%', border: '1px dashed rgba(255,255,255,0.15)', borderRadius: 14, padding: '12px 0', color: 'var(--t3)', background: 'transparent', fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, cursor: 'pointer' }}
                 >
                   <Icon name="add" size={16} /> Add Certification
                 </button>
@@ -860,7 +860,7 @@ export function ResumePage() {
           {/* Right: Live preview */}
           <div style={{ position: 'sticky', top: 96, maxHeight: 'calc(100vh - 8rem)', overflowY: 'auto', borderRadius: 16, boxShadow: '0 24px 48px rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.08)' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 16px', background: 'rgba(10,10,10,0.9)', borderBottom: '1px solid rgba(255,255,255,0.06)', borderRadius: '16px 16px 0 0' }}>
-              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#52525b' }}>Live Preview — {template}</span>
+              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--t4)' }}>Live Preview — {template}</span>
               <div style={{ display: 'flex', gap: 6 }}>
                 <div style={{ width: 12, height: 12, borderRadius: '50%', background: 'rgba(248,113,113,0.5)' }} />
                 <div style={{ width: 12, height: 12, borderRadius: '50%', background: 'rgba(250,204,21,0.5)' }} />
@@ -890,8 +890,8 @@ export function ResumePage() {
                 <Icon name={tip.icon} size={18} style={{ color: '#E82127' }} />
               </div>
               <div>
-                <p style={{ fontWeight: 700, fontSize: 14, color: '#e4e4e7', marginBottom: 4 }}>{tip.title}</p>
-                <p style={{ fontSize: 12, color: '#71717a', lineHeight: 1.6 }}>{tip.body}</p>
+                <p style={{ fontWeight: 700, fontSize: 14, color: 'var(--t1)', marginBottom: 4 }}>{tip.title}</p>
+                <p style={{ fontSize: 12, color: 'var(--t3)', lineHeight: 1.6 }}>{tip.body}</p>
               </div>
             </motion.div>
           ))}

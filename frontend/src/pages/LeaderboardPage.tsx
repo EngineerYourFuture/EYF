@@ -105,12 +105,12 @@ function EntryRow({ entry, i }: { readonly entry: LeaderboardEntry; readonly i: 
 
       <div className="flex items-center gap-1 flex-shrink-0">
         <Icon name="local_fire_department" size={14} filled style={{ color: '#fb923c' }} />
-        <span className="text-xs font-bold" style={{ color: 'rgba(255,255,255,0.4)' }}>{entry.streak}d</span>
+        <span className="text-xs font-bold" style={{ color: 'var(--t2)' }}>{entry.streak}d</span>
       </div>
 
       <div className="flex items-center gap-1 flex-shrink-0">
         <span className="text-base font-black" style={{ color: 'rgba(255,255,255,0.9)' }}>{entry.xp.toLocaleString()}</span>
-        <Icon name="bolt" size={16} filled style={{ color: '#E8192C' }} />
+        <Icon name="bolt" size={16} filled style={{ color: '#E82127' }} />
       </div>
     </motion.div>
   );
@@ -136,7 +136,7 @@ export function LeaderboardPage() {
 
   return (
     <AppShell>
-      <div className="pt-8 max-w-3xl">
+      <div className="pt-8 max-w-3xl mx-auto">
         {/* Header */}
         <div className="flex items-end justify-between mb-10 gap-4 flex-wrap">
           <div>
@@ -155,7 +155,7 @@ export function LeaderboardPage() {
             </motion.h1>
             <motion.p
               className="mt-2 text-sm"
-              style={{ color: 'rgba(255,255,255,0.35)' }}
+              style={{ color: 'var(--t2)' }}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.12, ease: [0.16, 1, 0.3, 1] }}
@@ -201,7 +201,7 @@ export function LeaderboardPage() {
                     {entry.name[0]?.toUpperCase()}
                   </div>
                   <p className="text-xs font-bold text-center truncate w-full" style={{ color: 'rgba(255,255,255,0.75)' }}>{entry.name}</p>
-                  <p className="text-[10px] font-bold" style={{ color: '#E8192C' }}>{entry.xp.toLocaleString()} XP</p>
+                  <p className="text-[10px] font-bold" style={{ color: '#E82127' }}>{entry.xp.toLocaleString()} XP</p>
                   <div
                     className="w-full rounded-t-xl flex items-center justify-center text-2xl"
                     style={{
@@ -247,7 +247,7 @@ export function LeaderboardPage() {
         {!loading && (!data || data.entries.length === 0) && (
           <div className="text-center py-16">
             <Icon name="emoji_events" size={48} style={{ color: 'rgba(255,255,255,0.1)' }} />
-            <p className="font-bold mt-4" style={{ color: 'rgba(255,255,255,0.3)' }}>No data yet. Start solving to appear here!</p>
+            <p className="font-bold mt-4" style={{ color: 'var(--t3)' }}>No data yet. Start solving to appear here!</p>
           </div>
         )}
 
@@ -264,7 +264,7 @@ export function LeaderboardPage() {
             style={{ height: 1, marginBottom: 24, background: 'linear-gradient(90deg, transparent, rgba(232,25,44,0.6) 40%, rgba(232,25,44,0.3) 70%, transparent)' }}
           />
           <div className="flex items-center gap-3 mb-6">
-            <Icon name="bolt" size={20} filled style={{ color: '#E8192C' }} />
+            <Icon name="bolt" size={20} filled style={{ color: '#E82127' }} />
             <h2 className="font-black text-lg" style={{ color: 'rgba(255,255,255,0.88)' }}>This Week's XP Challenges</h2>
             <span className="ml-auto text-[10px] font-bold uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.2)' }}>Resets Sunday</span>
           </div>
@@ -311,7 +311,7 @@ export function LeaderboardPage() {
               { action: 'Log an offer received',      xp: '+100 XP' },
             ].map((item) => (
               <div key={item.action} className="flex items-center justify-between py-1.5 text-xs" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                <span style={{ color: 'rgba(255,255,255,0.4)' }}>{item.action}</span>
+                <span style={{ color: 'var(--t2)' }}>{item.action}</span>
                 <span className="font-black" style={{ color: '#4ade80' }}>{item.xp}</span>
               </div>
             ))}

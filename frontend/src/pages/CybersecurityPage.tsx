@@ -139,7 +139,7 @@ export function CybersecurityPage() {
 
   return (
     <AppShell>
-      <div className="pt-8 max-w-7xl">
+      <div className="pt-8 max-w-7xl mx-auto">
         {/* Hero */}
         <div className="mb-10 flex items-end justify-between flex-wrap gap-6">
           <div>
@@ -159,7 +159,7 @@ export function CybersecurityPage() {
             </motion.h1>
             <motion.p
               className="text-lg max-w-md"
-              style={{ color: 'rgba(255,255,255,0.4)' }}
+              style={{ color: 'var(--t2)' }}
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
@@ -183,7 +183,7 @@ export function CybersecurityPage() {
                 { label: 'CTF Points',   value: String(progress?.ctf.points ?? 0),                                       color: '#facc15' },
               ].map((s, i) => (
                 <div key={s.label} style={i > 0 ? { borderLeft: '1px solid rgba(255,255,255,0.07)', paddingLeft: 28 } : {}}>
-                  <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: 'rgba(255,255,255,0.28)' }}>{s.label}</p>
+                  <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: 'var(--t3)' }}>{s.label}</p>
                   <p className="text-2xl font-black" style={{ color: s.color }}>{s.value}</p>
                 </div>
               ))}
@@ -245,8 +245,8 @@ export function CybersecurityPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {filteredLessons.map((lesson, i) => {
-                const catMeta = CATEGORY_META[lesson.category] ?? { icon: 'security', color: '#a1a1aa', glow: 'rgba(161,161,170,0.1)', label: lesson.category };
-                const diffStyle = DIFF_STYLE[lesson.difficulty] ?? { color: '#a1a1aa', bg: 'rgba(161,161,170,0.1)' };
+                const catMeta = CATEGORY_META[lesson.category] ?? { icon: 'security', color: 'var(--t2)', glow: 'rgba(161,161,170,0.1)', label: lesson.category };
+                const diffStyle = DIFF_STYLE[lesson.difficulty] ?? { color: 'var(--t2)', bg: 'rgba(161,161,170,0.1)' };
                 const locked = lesson.planAccess === 'pro' || lesson.planAccess === 'elite';
                 return (
                   <motion.div
@@ -267,19 +267,19 @@ export function CybersecurityPage() {
                         <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: catMeta.color }}>{catMeta.label}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        {locked && <span className="text-[9px] font-bold px-2 py-0.5 rounded-full" style={{ color: '#E8192C', background: 'rgba(232,25,44,0.1)' }}>Pro</span>}
+                        {locked && <span className="text-[9px] font-bold px-2 py-0.5 rounded-full" style={{ color: '#E82127', background: 'rgba(232,25,44,0.1)' }}>Pro</span>}
                         <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ color: diffStyle.color, background: diffStyle.bg }}>{lesson.difficulty}</span>
                       </div>
                     </div>
                     <h3 className="text-base font-bold mb-2" style={{ color: 'rgba(255,255,255,0.88)' }}>{lesson.title}</h3>
-                    <p className="text-xs leading-relaxed mb-4 line-clamp-2" style={{ color: 'rgba(255,255,255,0.4)' }}>{lesson.description}</p>
+                    <p className="text-xs leading-relaxed mb-4 line-clamp-2" style={{ color: 'var(--t2)' }}>{lesson.description}</p>
                     {lesson.status === 'completed' && (
                       <div className="flex items-center gap-1 text-[10px] font-bold mb-2" style={{ color: '#4ade80' }}>
                         <Icon name="check_circle" size={12} filled /> Completed
                       </div>
                     )}
                     {locked ? (
-                      <Link to="/plans" className="text-[10px] font-bold uppercase tracking-widest flex items-center gap-1 transition-colors" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                      <Link to="/plans" className="text-[10px] font-bold uppercase tracking-widest flex items-center gap-1 transition-colors" style={{ color: 'var(--t3)' }}>
                         <Icon name="upgrade" size={12} />Upgrade to unlock
                       </Link>
                     ) : (
@@ -305,8 +305,8 @@ export function CybersecurityPage() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
               {ctf.map((c, i) => {
-                const catMeta = CATEGORY_META[c.category] ?? { icon: 'bug_report', color: '#a1a1aa', glow: 'rgba(161,161,170,0.1)', label: c.category };
-                const diffStyle = DIFF_STYLE[c.difficulty] ?? { color: '#a1a1aa', bg: 'rgba(161,161,170,0.1)' };
+                const catMeta = CATEGORY_META[c.category] ?? { icon: 'bug_report', color: 'var(--t2)', glow: 'rgba(161,161,170,0.1)', label: c.category };
+                const diffStyle = DIFF_STYLE[c.difficulty] ?? { color: 'var(--t2)', bg: 'rgba(161,161,170,0.1)' };
                 return (
                   <motion.div
                     key={c.id}
@@ -329,7 +329,7 @@ export function CybersecurityPage() {
                     </div>
                     <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: catMeta.color }}>{catMeta.label}</span>
                     <h3 className="text-base font-bold mt-1 mb-2" style={{ color: 'rgba(255,255,255,0.88)' }}>{c.title}</h3>
-                    <p className="text-xs leading-relaxed mb-4 line-clamp-2" style={{ color: 'rgba(255,255,255,0.4)' }}>{c.description}</p>
+                    <p className="text-xs leading-relaxed mb-4 line-clamp-2" style={{ color: 'var(--t2)' }}>{c.description}</p>
                     <div className="flex items-center justify-between mb-3">
                       <span className="font-bold text-sm" style={{ color: '#facc15' }}>{c.points} pts</span>
                       {c.solved && (
@@ -354,7 +354,7 @@ export function CybersecurityPage() {
                             onClick={() => void submitFlag(c)}
                             disabled={submittingFlag === c.id || !flagInput[c.id]?.trim()}
                             className="px-3 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all flex-shrink-0 disabled:opacity-40"
-                            style={{ background: 'linear-gradient(135deg, #E8192C, #ff5566)', color: 'white' }}
+                            style={{ background: 'linear-gradient(135deg, #E82127, #ff5566)', color: 'white' }}
                           >
                             {submittingFlag === c.id ? '…' : 'Submit'}
                           </button>
@@ -379,7 +379,7 @@ export function CybersecurityPage() {
         {/* Certifications Tab */}
         {activeTab === 'certs' && (
           <div>
-            <p className="text-sm mb-8 max-w-2xl" style={{ color: 'rgba(255,255,255,0.4)' }}>
+            <p className="text-sm mb-8 max-w-2xl" style={{ color: 'var(--t2)' }}>
               EYF maps its curriculum directly to industry certifications. Each track includes relevant lessons, practice labs, and exam prep resources.
             </p>
             <div className="space-y-3">
@@ -401,12 +401,12 @@ export function CybersecurityPage() {
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2 flex-wrap">
                         <h3 className="text-lg font-bold" style={{ color: 'rgba(255,255,255,0.88)' }}>{cert.cert}</h3>
-                        <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full" style={{ color: 'rgba(255,255,255,0.4)', background: 'rgba(255,255,255,0.06)' }}>{cert.level}</span>
-                        <span className="text-[10px] font-bold" style={{ color: 'rgba(255,255,255,0.3)' }}>{cert.months} months prep</span>
+                        <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full" style={{ color: 'var(--t2)', background: 'rgba(255,255,255,0.06)' }}>{cert.level}</span>
+                        <span className="text-[10px] font-bold" style={{ color: 'var(--t3)' }}>{cert.months} months prep</span>
                       </div>
                       <p className="text-sm" style={{ color: 'rgba(255,255,255,0.45)' }}>{cert.focus}</p>
                     </div>
-                    <button className="flex-shrink-0 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                    <button className="flex-shrink-0 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1" style={{ color: 'var(--t3)' }}>
                       View Path <Icon name="arrow_forward" size={12} />
                     </button>
                   </div>

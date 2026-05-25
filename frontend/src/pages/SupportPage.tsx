@@ -59,10 +59,10 @@ const STATUS_META: Record<Ticket['status'], { label: string; color: string; bg: 
   open:        { label: 'Open',        color: '#60a5fa', bg: 'rgba(96,165,250,0.1)'  },
   in_progress: { label: 'In Progress', color: '#facc15', bg: 'rgba(250,204,21,0.1)'  },
   resolved:    { label: 'Resolved',    color: '#4ade80', bg: 'rgba(74,222,128,0.1)'  },
-  closed:      { label: 'Closed',      color: '#71717a', bg: 'rgba(113,113,122,0.1)' },
+  closed:      { label: 'Closed',      color: 'var(--t3)', bg: 'rgba(113,113,122,0.1)' },
 };
 
-const INPUT_STYLE = { width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '12px 16px', fontSize: 14, color: '#e4e4e7', outline: 'none', boxSizing: 'border-box' } as const;
+const INPUT_STYLE = { width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '12px 16px', fontSize: 14, color: 'var(--t1)', outline: 'none', boxSizing: 'border-box' } as const;
 
 export function SupportPage() {
   const session = getSession();
@@ -114,13 +114,13 @@ export function SupportPage() {
 
   return (
     <AppShell>
-      <div className="pt-8 max-w-3xl">
+      <div className="pt-8 max-w-3xl mx-auto">
         {/* Hero */}
         <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} style={{ marginBottom: 40 }}>
           <h1 style={{ fontSize: '3rem', fontWeight: 900, letterSpacing: '-0.03em', marginBottom: 8, lineHeight: 1.1 }}>
             <span style={{ background: 'linear-gradient(135deg, #fff 40%, #E82127)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>HELP & SUPPORT.</span>
           </h1>
-          <p style={{ color: '#71717a' }}>We're here to help you engineer your future.</p>
+          <p style={{ color: 'var(--t3)' }}>We're here to help you engineer your future.</p>
         </motion.div>
 
         {/* Contact channels */}
@@ -135,8 +135,8 @@ export function SupportPage() {
                 <Icon name={item.icon} size={20} style={{ color: item.iconColor }} />
               </div>
               <div>
-                <p style={{ fontWeight: 700, color: '#e4e4e7', fontSize: 14, marginBottom: 2 }}>{item.title}</p>
-                <p style={{ fontSize: 12, color: '#71717a', marginBottom: 8 }}>{item.desc}</p>
+                <p style={{ fontWeight: 700, color: 'var(--t1)', fontSize: 14, marginBottom: 2 }}>{item.title}</p>
+                <p style={{ fontSize: 12, color: 'var(--t3)', marginBottom: 8 }}>{item.desc}</p>
                 <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 999, color: item.badgeColor, background: item.badgeBg }}>{item.badge}</span>
               </div>
             </motion.div>
@@ -168,7 +168,7 @@ export function SupportPage() {
             <motion.div key="faq" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="space-y-8">
               {FAQS.map((section) => (
                 <div key={section.category}>
-                  <p style={{ fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.3em', color: '#52525b', marginBottom: 16 }}>{section.category}</p>
+                  <p style={{ fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.3em', color: 'var(--t4)', marginBottom: 16 }}>{section.category}</p>
                   <div className="space-y-2">
                     {section.questions.map((faq) => {
                       const key = `${section.category}-${faq.q}`;
@@ -180,14 +180,14 @@ export function SupportPage() {
                             onClick={() => setOpenFaq(isOpen ? null : key)}
                             style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer' }}
                           >
-                            <span style={{ fontWeight: 700, fontSize: 14, color: '#e4e4e7', paddingRight: 16 }}>{faq.q}</span>
-                            <Icon name="expand_more" size={20} style={{ color: '#71717a', flexShrink: 0, transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }} />
+                            <span style={{ fontWeight: 700, fontSize: 14, color: 'var(--t1)', paddingRight: 16 }}>{faq.q}</span>
+                            <Icon name="expand_more" size={20} style={{ color: 'var(--t3)', flexShrink: 0, transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }} />
                           </button>
                           <AnimatePresence>
                             {isOpen && (
                               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }} style={{ overflow: 'hidden' }}>
                                 <div style={{ padding: '0 24px 20px', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: 16 }}>
-                                  <p style={{ fontSize: 14, color: '#a1a1aa', lineHeight: 1.7 }}>{faq.a}</p>
+                                  <p style={{ fontSize: 14, color: 'var(--t2)', lineHeight: 1.7 }}>{faq.a}</p>
                                 </div>
                               </motion.div>
                             )}
@@ -201,8 +201,8 @@ export function SupportPage() {
 
               <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} style={{ background: 'rgba(232,33,39,0.05)', border: '1px solid rgba(232,33,39,0.15)', borderRadius: 16, padding: 24, textAlign: 'center' }}>
                 <Icon name="help_outline" size={28} style={{ color: '#E82127', display: 'block', margin: '0 auto 12px' }} />
-                <p style={{ fontWeight: 700, color: '#e4e4e7', marginBottom: 4 }}>Didn't find what you're looking for?</p>
-                <p style={{ fontSize: 14, color: '#71717a', marginBottom: 16 }}>Our support team typically responds within 24 hours.</p>
+                <p style={{ fontWeight: 700, color: 'var(--t1)', marginBottom: 4 }}>Didn't find what you're looking for?</p>
+                <p style={{ fontSize: 14, color: 'var(--t3)', marginBottom: 16 }}>Our support team typically responds within 24 hours.</p>
                 <motion.button
                   onClick={() => setActiveTab('new')}
                   whileHover={{ scale: 1.04 }}
@@ -218,15 +218,15 @@ export function SupportPage() {
           {/* Tab: New Ticket */}
           {activeTab === 'new' && (
             <motion.div key="new" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} style={{ ...GLASS, borderRadius: 16, padding: 32 }}>
-              <h2 style={{ fontSize: 18, fontWeight: 900, letterSpacing: '-0.02em', marginBottom: 24, color: '#e4e4e7' }}>Submit a Support Ticket</h2>
+              <h2 style={{ fontSize: 18, fontWeight: 900, letterSpacing: '-0.02em', marginBottom: 24, color: 'var(--t1)' }}>Submit a Support Ticket</h2>
 
               {submitted ? (
                 <div style={{ textAlign: 'center', padding: '40px 0' }}>
                   <div style={{ width: 64, height: 64, background: 'rgba(74,222,128,0.1)', border: '1px solid rgba(74,222,128,0.3)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
                     <Icon name="check_circle" size={32} style={{ color: '#4ade80' }} filled />
                   </div>
-                  <h3 style={{ fontSize: 20, fontWeight: 900, color: '#e4e4e7', marginBottom: 8 }}>Ticket Submitted!</h3>
-                  <p style={{ color: '#a1a1aa', fontSize: 14, marginBottom: 16 }}>We'll get back to you within 24 hours. You can track your ticket under "My Tickets".</p>
+                  <h3 style={{ fontSize: 20, fontWeight: 900, color: 'var(--t1)', marginBottom: 8 }}>Ticket Submitted!</h3>
+                  <p style={{ color: 'var(--t2)', fontSize: 14, marginBottom: 16 }}>We'll get back to you within 24 hours. You can track your ticket under "My Tickets".</p>
                   <button onClick={() => { setSubmitted(false); setActiveTab('history'); }} style={{ color: '#E82127', fontWeight: 700, fontSize: 14, background: 'none', border: 'none', cursor: 'pointer' }}>
                     View My Tickets →
                   </button>
@@ -235,7 +235,7 @@ export function SupportPage() {
                 <form onSubmit={handleSubmit} className="space-y-5">
                   {/* Category */}
                   <div>
-                    <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#a1a1aa', marginBottom: 12 }}>Category</p>
+                    <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--t2)', marginBottom: 12 }}>Category</p>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                       {CATEGORIES.map((cat) => {
                         const active = category === cat.id;
@@ -256,7 +256,7 @@ export function SupportPage() {
 
                   {/* Priority */}
                   <div>
-                    <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#a1a1aa', marginBottom: 12 }}>Priority</p>
+                    <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--t2)', marginBottom: 12 }}>Priority</p>
                     <div style={{ display: 'flex', gap: 8 }}>
                       {([
                         { id: 'low',    label: 'Low',    color: '#4ade80', bg: 'rgba(74,222,128,0.1)'  },
@@ -280,7 +280,7 @@ export function SupportPage() {
 
                   {/* Subject */}
                   <div>
-                    <label htmlFor="ticket-subject" style={{ display: 'block', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#a1a1aa', marginBottom: 8 }}>Subject *</label>
+                    <label htmlFor="ticket-subject" style={{ display: 'block', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--t2)', marginBottom: 8 }}>Subject *</label>
                     <input
                       id="ticket-subject"
                       value={ticketTitle}
@@ -293,7 +293,7 @@ export function SupportPage() {
 
                   {/* Description */}
                   <div>
-                    <label htmlFor="ticket-desc" style={{ display: 'block', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#a1a1aa', marginBottom: 8 }}>Description *</label>
+                    <label htmlFor="ticket-desc" style={{ display: 'block', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--t2)', marginBottom: 8 }}>Description *</label>
                     <textarea
                       id="ticket-desc"
                       value={ticketDesc}
@@ -303,7 +303,7 @@ export function SupportPage() {
                       placeholder="Please describe your issue in detail. Include steps to reproduce if it's a bug, or your use case if it's a feature request..."
                       required
                     />
-                    <p style={{ fontSize: 12, color: '#52525b', marginTop: 4 }}>{ticketDesc.length}/2000</p>
+                    <p style={{ fontSize: 12, color: 'var(--t4)', marginTop: 4 }}>{ticketDesc.length}/2000</p>
                   </div>
 
                   {submitError && (
@@ -333,8 +333,8 @@ export function SupportPage() {
               {tickets.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '64px 0' }}>
                   <Icon name="receipt_long" size={40} style={{ color: '#3f3f46', display: 'block', margin: '0 auto 16px' }} />
-                  <p style={{ fontWeight: 700, color: '#a1a1aa', marginBottom: 8 }}>No tickets yet</p>
-                  <p style={{ fontSize: 14, color: '#71717a', marginBottom: 24 }}>Your support tickets will appear here.</p>
+                  <p style={{ fontWeight: 700, color: 'var(--t2)', marginBottom: 8 }}>No tickets yet</p>
+                  <p style={{ fontSize: 14, color: 'var(--t3)', marginBottom: 24 }}>Your support tickets will appear here.</p>
                   <motion.button
                     onClick={() => setActiveTab('new')}
                     whileHover={{ scale: 1.04 }}
@@ -352,11 +352,11 @@ export function SupportPage() {
                     return (
                       <motion.div key={ticket.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }} style={{ ...GLASS, borderRadius: 14, padding: 20, display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
                         <div style={{ width: 40, height: 40, background: 'rgba(255,255,255,0.05)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                          <Icon name={cat?.icon ?? 'help'} size={18} style={{ color: '#a1a1aa' }} />
+                          <Icon name={cat?.icon ?? 'help'} size={18} style={{ color: 'var(--t2)' }} />
                         </div>
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <p style={{ fontWeight: 700, fontSize: 14, color: '#e4e4e7' }}>{ticket.title}</p>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 12, color: '#71717a', marginTop: 2 }}>
+                          <p style={{ fontWeight: 700, fontSize: 14, color: 'var(--t1)' }}>{ticket.title}</p>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 12, color: 'var(--t3)', marginTop: 2 }}>
                             <span>{cat?.label ?? ticket.category}</span>
                             <span>·</span>
                             <span>{new Date(ticket.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>

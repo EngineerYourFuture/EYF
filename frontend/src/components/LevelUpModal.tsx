@@ -65,7 +65,7 @@ export function LevelUpModal({ level, onClose }: Props) {
                   position: 'absolute',
                   width: p.size, height: p.size,
                   borderRadius: '50%',
-                  background: i % 3 === 0 ? '#E8192C' : i % 3 === 1 ? '#FF8C00' : '#FFD700',
+                  background: i % 3 === 0 ? '#E82127' : i % 3 === 1 ? '#FF8C00' : '#FFD700',
                   boxShadow: `0 0 6px currentColor`,
                 }}
                 initial={{ x: 0, y: 0, opacity: 1, scale: 0 }}
@@ -130,7 +130,7 @@ export function LevelUpModal({ level, onClose }: Props) {
 
           <motion.p
             className="text-[10px] font-black uppercase tracking-[0.3em] mb-2"
-            style={{ color: '#E8192C', textShadow: '0 0 16px rgba(232,25,44,0.5)' }}
+            style={{ color: '#E82127', textShadow: '0 0 16px rgba(232,25,44,0.5)' }}
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.25 }}
@@ -165,7 +165,7 @@ export function LevelUpModal({ level, onClose }: Props) {
             onClick={onClose}
             className="w-full text-white font-black uppercase tracking-widest text-sm py-4 rounded-full transition-all"
             style={{
-              background: 'linear-gradient(135deg, #E8192C, #FF2D42)',
+              background: 'linear-gradient(135deg, #E82127, #FF2D42)',
               boxShadow: '0 4px 24px rgba(232,25,44,0.5), 0 1px 0 rgba(255,255,255,0.1) inset',
             }}
             initial={{ opacity: 0, y: 8 }}

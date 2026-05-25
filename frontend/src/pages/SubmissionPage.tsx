@@ -31,10 +31,10 @@ const VERDICT_META: Record<string, { label: string; color: string; bg: string; i
   time_limit_exceeded:   { label: 'TLE',          color: '#facc15', bg: 'rgba(250,204,21,0.1)',  icon: 'timer_off' },
   memory_limit_exceeded: { label: 'MLE',          color: '#fb923c', bg: 'rgba(251,146,60,0.1)',  icon: 'memory' },
   runtime_error:         { label: 'Runtime Error', color: '#f472b6', bg: 'rgba(244,114,182,0.1)', icon: 'error' },
-  compilation_error:     { label: 'Compile Error', color: '#a1a1aa', bg: 'rgba(161,161,170,0.1)', icon: 'code_off' },
+  compilation_error:     { label: 'Compile Error', color: 'var(--t2)', bg: 'rgba(161,161,170,0.1)', icon: 'code_off' },
 };
 
-const DEFAULT_VERDICT_META = { label: 'Unknown', color: '#a1a1aa', bg: 'rgba(161,161,170,0.1)', icon: 'help' };
+const DEFAULT_VERDICT_META = { label: 'Unknown', color: 'var(--t2)', bg: 'rgba(161,161,170,0.1)', icon: 'help' };
 
 const LANG_COLORS: Record<string, { color: string; bg: string }> = {
   python:     { color: '#60a5fa', bg: 'rgba(96,165,250,0.1)'  },
@@ -45,7 +45,7 @@ const LANG_COLORS: Record<string, { color: string; bg: string }> = {
   go:         { color: '#67e8f9', bg: 'rgba(103,232,249,0.1)' },
   rust:       { color: '#fdba74', bg: 'rgba(253,186,116,0.1)' },
 };
-const DEFAULT_LANG = { color: '#a1a1aa', bg: 'rgba(161,161,170,0.1)' };
+const DEFAULT_LANG = { color: 'var(--t2)', bg: 'rgba(161,161,170,0.1)' };
 
 export function SubmissionPage() {
   const session = getSession();
@@ -88,10 +88,10 @@ export function SubmissionPage() {
     const meta = VERDICT_META[selected.verdict] ?? DEFAULT_VERDICT_META;
     return (
       <AppShell>
-        <div className="pt-8 max-w-4xl">
+        <div className="pt-8 max-w-4xl mx-auto">
           <button
             onClick={() => { setSelected(null); setShowCode(false); }}
-            style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#71717a', fontSize: 14, marginBottom: 24, background: 'none', border: 'none', cursor: 'pointer' }}
+            style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--t3)', fontSize: 14, marginBottom: 24, background: 'none', border: 'none', cursor: 'pointer' }}
           >
             <Icon name="arrow_back" size={16} />Back to submissions
           </button>
@@ -99,15 +99,15 @@ export function SubmissionPage() {
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} style={{ ...GLASS, borderRadius: 16, padding: 32, marginBottom: 24 }}>
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16, marginBottom: 24 }}>
               <div>
-                <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#71717a', marginBottom: 4 }}>Submission</p>
+                <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--t3)', marginBottom: 4 }}>Submission</p>
                 {selected.problemTitle && selected.problemId ? (
-                  <Link to={`/app/problems/${selected.problemId}`} style={{ fontSize: 20, fontWeight: 700, color: '#e4e4e7', textDecoration: 'none' }}>
+                  <Link to={`/app/problems/${selected.problemId}`} style={{ fontSize: 20, fontWeight: 700, color: 'var(--t1)', textDecoration: 'none' }}>
                     {selected.problemTitle}
                   </Link>
                 ) : (
-                  <h2 style={{ fontSize: 20, fontWeight: 700, color: '#e4e4e7' }}>{selected.problemTitle ?? `Problem ${selected.problemId}`}</h2>
+                  <h2 style={{ fontSize: 20, fontWeight: 700, color: 'var(--t1)' }}>{selected.problemTitle ?? `Problem ${selected.problemId}`}</h2>
                 )}
-                <p style={{ fontSize: 12, color: '#71717a', marginTop: 4 }}>{new Date(selected.createdAt).toLocaleString('en-IN')}</p>
+                <p style={{ fontSize: 12, color: 'var(--t3)', marginTop: 4 }}>{new Date(selected.createdAt).toLocaleString('en-IN')}</p>
               </div>
               <span style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 999, fontSize: 12, fontWeight: 700, color: meta.color, background: meta.bg, border: `1px solid ${meta.color}40` }}>
                 <Icon name={meta.icon} size={16} filled />
@@ -122,9 +122,9 @@ export function SubmissionPage() {
                 { label: 'Memory', value: selected.memory ?? '—', icon: 'memory' },
               ].map((stat) => (
                 <div key={stat.label} style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 12, padding: 16, textAlign: 'center' }}>
-                  <Icon name={stat.icon} size={16} style={{ color: '#71717a', display: 'block', margin: '0 auto 4px' }} />
-                  <p style={{ fontSize: 14, fontWeight: 700, color: '#e4e4e7' }}>{stat.value}</p>
-                  <p style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#71717a', fontWeight: 700 }}>{stat.label}</p>
+                  <Icon name={stat.icon} size={16} style={{ color: 'var(--t3)', display: 'block', margin: '0 auto 4px' }} />
+                  <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--t1)' }}>{stat.value}</p>
+                  <p style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--t3)', fontWeight: 700 }}>{stat.label}</p>
                 </div>
               ))}
             </div>
@@ -140,23 +140,23 @@ export function SubmissionPage() {
           {selected.code ? (
             <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} style={{ ...GLASS, borderRadius: 16, overflow: 'hidden' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-                <p style={{ fontSize: 14, fontWeight: 700, color: '#a1a1aa' }}>Submitted Code</p>
+                <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--t2)' }}>Submitted Code</p>
                 <button
                   type="button"
                   onClick={() => navigator.clipboard.writeText(selected.code ?? '')}
-                  style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#71717a', background: 'none', border: 'none', cursor: 'pointer' }}
+                  style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--t3)', background: 'none', border: 'none', cursor: 'pointer' }}
                 >
                   <Icon name="content_copy" size={14} />Copy
                 </button>
               </div>
-              <pre style={{ padding: 24, fontSize: 12, fontFamily: 'monospace', color: '#e4e4e7', overflowX: 'auto', maxHeight: 500, overflowY: 'auto', lineHeight: 1.6 }}>
+              <pre style={{ padding: 24, fontSize: 12, fontFamily: 'monospace', color: 'var(--t1)', overflowX: 'auto', maxHeight: 500, overflowY: 'auto', lineHeight: 1.6 }}>
                 <code>{selected.code}</code>
               </pre>
             </motion.div>
           ) : (
             <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} style={{ ...GLASS, borderRadius: 16, padding: 32, textAlign: 'center' }}>
               <Icon name="code_off" size={32} style={{ color: '#3f3f46', display: 'block', margin: '0 auto 12px' }} />
-              <p style={{ color: '#71717a', fontSize: 14 }}>Code not available for this submission.</p>
+              <p style={{ color: 'var(--t3)', fontSize: 14 }}>Code not available for this submission.</p>
             </motion.div>
           )}
         </div>
@@ -166,13 +166,13 @@ export function SubmissionPage() {
 
   return (
     <AppShell>
-      <div className="pt-8 max-w-6xl">
+      <div className="pt-8 max-w-6xl mx-auto">
         {/* Hero */}
         <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} style={{ marginBottom: 40 }}>
           <h1 style={{ fontSize: '3rem', fontWeight: 900, letterSpacing: '-0.03em', marginBottom: 8, lineHeight: 1.1 }}>
             <span style={{ background: 'linear-gradient(135deg, #fff 40%, #E82127)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>SUBMISSIONS LOG.</span>
           </h1>
-          <p style={{ color: '#71717a' }}>Your complete submission history and verdicts.</p>
+          <p style={{ color: 'var(--t3)' }}>Your complete submission history and verdicts.</p>
         </motion.div>
 
         {/* Stats */}
@@ -189,8 +189,8 @@ export function SubmissionPage() {
                   <Icon name={s.icon} size={20} filled={s.icon === 'bolt'} style={{ color: s.color }} />
                 </div>
                 <div>
-                  <p style={{ fontSize: 20, fontWeight: 900, color: '#e4e4e7' }}>{s.value}</p>
-                  <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#71717a' }}>{s.label}</p>
+                  <p style={{ fontSize: 20, fontWeight: 900, color: 'var(--t1)' }}>{s.value}</p>
+                  <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--t3)' }}>{s.label}</p>
                 </div>
               </motion.div>
             ))}
@@ -223,13 +223,13 @@ export function SubmissionPage() {
               </div>
             )}
 
-            <span style={{ fontSize: 12, color: '#71717a', fontWeight: 700, alignSelf: 'center', marginLeft: 'auto' }}>{filtered.length} result{filtered.length === 1 ? '' : 's'}</span>
+            <span style={{ fontSize: 12, color: 'var(--t3)', fontWeight: 700, alignSelf: 'center', marginLeft: 'auto' }}>{filtered.length} result{filtered.length === 1 ? '' : 's'}</span>
           </div>
         )}
 
         {/* Table header */}
         {!loading && submissions.length > 0 && (
-          <div className="grid grid-cols-12 gap-4" style={{ padding: '0 24px 8px', fontSize: 10, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#52525b' }}>
+          <div className="grid grid-cols-12 gap-4" style={{ padding: '0 24px 8px', fontSize: 10, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--t4)' }}>
             <div className="col-span-5">Problem</div>
             <div className="col-span-2 text-center">Verdict</div>
             <div className="col-span-2 text-center">Language</div>
@@ -251,8 +251,8 @@ export function SubmissionPage() {
         {!loading && submissions.length === 0 && (
           <div style={{ textAlign: 'center', padding: '80px 0' }}>
             <Icon name="inbox" size={48} style={{ color: '#3f3f46', display: 'block', margin: '0 auto 16px' }} />
-            <p style={{ fontWeight: 700, color: '#a1a1aa', marginBottom: 8 }}>No submissions yet</p>
-            <p style={{ fontSize: 14, color: '#71717a', marginBottom: 24 }}>Start solving problems to see your submission history here.</p>
+            <p style={{ fontWeight: 700, color: 'var(--t2)', marginBottom: 8 }}>No submissions yet</p>
+            <p style={{ fontSize: 14, color: 'var(--t3)', marginBottom: 24 }}>Start solving problems to see your submission history here.</p>
             <Link to="/app/problems" style={{ background: '#E82127', color: '#fff', fontWeight: 700, padding: '12px 32px', borderRadius: 999, fontSize: 14, textDecoration: 'none', boxShadow: '0 0 20px rgba(232,33,39,0.3)' }}>
               Browse Problems
             </Link>
@@ -278,7 +278,7 @@ export function SubmissionPage() {
                   style={{ ...GLASS, borderRadius: 12, padding: '16px 24px', cursor: 'pointer' }}
                 >
                   <div className="col-span-5">
-                    <span style={{ fontWeight: 600, fontSize: 14, color: '#e4e4e7' }}>
+                    <span style={{ fontWeight: 600, fontSize: 14, color: 'var(--t1)' }}>
                       {s.problemTitle ?? `Problem ${s.problemId}`}
                     </span>
                     {s.xpEarned && s.xpEarned > 0 && s.verdict === 'accepted' && (
@@ -296,10 +296,10 @@ export function SubmissionPage() {
                       {s.language}
                     </span>
                   </div>
-                  <div className="col-span-1 text-center" style={{ fontSize: 12, color: '#71717a' }}>{s.runtime ?? '—'}</div>
-                  <div className="col-span-2 text-center" style={{ fontSize: 12, color: '#71717a' }}>
+                  <div className="col-span-1 text-center" style={{ fontSize: 12, color: 'var(--t3)' }}>{s.runtime ?? '—'}</div>
+                  <div className="col-span-2 text-center" style={{ fontSize: 12, color: 'var(--t3)' }}>
                     {new Date(s.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
-                    <span style={{ display: 'block', color: '#52525b', fontSize: 11 }}>{new Date(s.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</span>
+                    <span style={{ display: 'block', color: 'var(--t4)', fontSize: 11 }}>{new Date(s.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</span>
                   </div>
                 </motion.button>
               );
@@ -310,7 +310,7 @@ export function SubmissionPage() {
         {!loading && filtered.length === 0 && submissions.length > 0 && (
           <div style={{ textAlign: 'center', padding: '48px 0' }}>
             <Icon name="filter_list_off" size={36} style={{ color: '#3f3f46', display: 'block', margin: '0 auto 12px' }} />
-            <p style={{ color: '#71717a', fontWeight: 700 }}>No submissions match your filters.</p>
+            <p style={{ color: 'var(--t3)', fontWeight: 700 }}>No submissions match your filters.</p>
           </div>
         )}
       </div>
