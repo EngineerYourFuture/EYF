@@ -1,11 +1,14 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { AppShell } from '../components/AppShell';
 import { Icon } from '../components/Icon';
 import { SUBJECT_DATA, findTopic } from '../data/subjects';
 import { apiRequest } from '../lib/api';
 import { getSession } from '../lib/session';
 import { useUser } from '../contexts/UserContext';
+
+const GLASS = { background: 'rgba(10,10,10,0.7)', border: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(16px)' } as const;
 
 /* ------------------------------------------------------------------ */
 /* Static topic content keyed by topic id                              */
@@ -4125,11 +4128,11 @@ export function SubjectTopicPage() {
   if (!result || !subject) {
     return (
       <AppShell>
-        <div className="pt-8 text-center">
-          <p className="text-zinc-500 text-lg">Topic not found.</p>
+        <div style={{ paddingTop: 32, textAlign: 'center' }}>
+          <p style={{ color: '#71717a', fontSize: 18 }}>Topic not found.</p>
           <button
             onClick={() => navigate(`/app/subjects/${subjectId}`)}
-            className="mt-6 text-primary-container font-bold text-[11px] uppercase tracking-widest"
+            style={{ marginTop: 24, color: '#E82127', fontWeight: 700, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.1em', background: 'none', border: 'none', cursor: 'pointer' }}
           >
             ← Back
           </button>
@@ -4159,121 +4162,153 @@ export function SubjectTopicPage() {
     }
   };
 
+  const isDone = topic.done || completed;
+
   return (
     <AppShell>
-      <div className="pt-8 max-w-3xl">
+      <div style={{ paddingTop: 32, maxWidth: 768 }}>
         {/* Progress bar */}
-        <div className="h-1 bg-surface-container rounded-full overflow-hidden mb-8">
-          <div
-            className="h-full bg-primary-container rounded-full transition-all duration-500"
-            style={{ width: `${progress}%` }}
+        <div style={{ height: 4, background: 'rgba(255,255,255,0.06)', borderRadius: 999, overflow: 'hidden', marginBottom: 32 }}>
+          <motion.div
+            initial={{ width: 0 }}
+            animate={{ width: `${progress}%` }}
+            transition={{ duration: 0.6, ease: 'easeOut' }}
+            style={{ height: '100%', background: 'linear-gradient(90deg, #E82127, #ff4d52)', borderRadius: 999 }}
           />
         </div>
 
         {/* Back + breadcrumb */}
-        <div className="flex items-center gap-3 mb-8">
+        <motion.div
+          initial={{ opacity: 0, x: -8 }}
+          animate={{ opacity: 1, x: 0 }}
+          style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 32 }}
+        >
           <button
             onClick={() => navigate(`/app/subjects/${subjectId}`)}
-            className="flex items-center gap-2 text-zinc-500 hover:text-on-surface transition-colors font-bold text-[11px] uppercase tracking-widest"
+            style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#71717a', fontWeight: 700, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.1em', background: 'none', border: 'none', cursor: 'pointer' }}
           >
             <Icon name="arrow_back" size={16} />
             {subject.title}
           </button>
-          <span className="text-zinc-700">›</span>
-          <span className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-zinc-500">
+          <span style={{ color: '#3f3f46' }}>›</span>
+          <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#52525b' }}>
             {currentIdx + 1} / {allTopics.length}
           </span>
-        </div>
+        </motion.div>
 
         {/* Title */}
-        <div className="mb-10">
-          <h1 className="text-4xl font-black tracking-tighter mb-2">{topic.title}</h1>
-          <div className="flex items-center gap-3">
-            <span className={`font-['Inter'] uppercase tracking-widest text-[10px] font-bold ${subject.color}`}>
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          style={{ marginBottom: 40 }}
+        >
+          <h1 style={{ fontSize: 36, fontWeight: 900, letterSpacing: '-0.04em', color: '#e4e4e7', marginBottom: 12 }}>{topic.title}</h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#E82127' }}>
               {subject.title}
             </span>
-            <span className="text-zinc-700">·</span>
-            <span className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-zinc-500">
+            <span style={{ color: '#3f3f46' }}>·</span>
+            <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#52525b' }}>
               {topic.duration}
             </span>
-            {(topic.done || completed) && (
+            {isDone && (
               <>
-                <span className="text-zinc-700">·</span>
-                <span className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-green-400">
+                <span style={{ color: '#3f3f46' }}>·</span>
+                <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#4ade80' }}>
                   Completed
                 </span>
               </>
             )}
           </div>
-        </div>
+        </motion.div>
 
         {/* Content */}
-        <div className="space-y-8">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
           {/* Overview */}
-          <div className="bg-surface-container rounded-xl p-8">
-            <p className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-zinc-500 mb-4">Overview</p>
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.06 }}
+            style={{ ...GLASS, borderRadius: 16, padding: 32 }}
+          >
+            <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#52525b', marginBottom: 16 }}>Overview</p>
             {content.overview.split('\n\n').map((para) => (
-              <p key={para.slice(0, 40)} className="text-on-surface-variant leading-relaxed mb-4 last:mb-0">{para}</p>
+              <p key={para.slice(0, 40)} style={{ color: '#a1a1aa', lineHeight: 1.75, marginBottom: 16, fontSize: 14 }}>{para}</p>
             ))}
-          </div>
+          </motion.div>
 
           {/* Key Points */}
-          <div className="bg-surface-container rounded-xl p-8">
-            <p className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-zinc-500 mb-4">Key Concepts</p>
-            <ul className="space-y-3">
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.12 }}
+            style={{ ...GLASS, borderRadius: 16, padding: 32 }}
+          >
+            <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#52525b', marginBottom: 16 }}>Key Concepts</p>
+            <ul style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {content.keyPoints.map((point) => (
-                <li key={point.slice(0, 40)} className="flex items-start gap-3">
-                  <div className="w-5 h-5 rounded-full bg-primary-container/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <div className="w-1.5 h-1.5 rounded-full bg-primary-container" />
+                <li key={point.slice(0, 40)} style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+                  <div style={{ width: 20, height: 20, borderRadius: '50%', background: 'rgba(232,33,39,0.12)', border: '1px solid rgba(232,33,39,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2 }}>
+                    <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#E82127' }} />
                   </div>
-                  <span className="text-on-surface-variant text-sm leading-relaxed">{point}</span>
+                  <span style={{ color: '#a1a1aa', fontSize: 14, lineHeight: 1.7 }}>{point}</span>
                 </li>
               ))}
             </ul>
-          </div>
+          </motion.div>
 
           {/* Code Block */}
-          <div className="bg-surface-container rounded-xl overflow-hidden">
-            <div className="flex items-center justify-between px-6 py-3 border-b border-white/5">
-              <p className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-zinc-500">Example</p>
-              <span className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-zinc-600">{content.codeLang}</span>
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.18 }}
+            style={{ ...GLASS, borderRadius: 16, overflow: 'hidden' }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 24px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+              <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#52525b' }}>Example</p>
+              <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#3f3f46' }}>{content.codeLang}</span>
             </div>
-            <pre className="p-6 overflow-x-auto">
-              <code className="text-sm text-green-300 font-mono leading-relaxed whitespace-pre">{content.code}</code>
+            <pre style={{ padding: 24, overflowX: 'auto' }}>
+              <code style={{ fontSize: 13, color: '#4ade80', fontFamily: 'monospace', lineHeight: 1.7, whiteSpace: 'pre' }}>{content.code}</code>
             </pre>
-          </div>
+          </motion.div>
 
           {/* Summary */}
-          <div className="bg-primary-container/10 border border-primary-container/20 rounded-xl p-8">
-            <div className="flex items-center gap-3 mb-3">
-              <Icon name="lightbulb" size={18} className="text-primary-container" />
-              <p className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-primary-container">Summary</p>
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.24 }}
+            style={{ background: 'rgba(232,33,39,0.06)', border: '1px solid rgba(232,33,39,0.2)', borderRadius: 16, padding: 32 }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+              <Icon name="lightbulb" size={18} style={{ color: '#E82127' }} />
+              <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#E82127' }}>Summary</p>
             </div>
-            <p className="text-on-surface-variant leading-relaxed text-sm">{content.summary}</p>
-          </div>
+            <p style={{ color: '#a1a1aa', lineHeight: 1.75, fontSize: 14 }}>{content.summary}</p>
+          </motion.div>
         </div>
 
         {/* Bottom navigation */}
-        <div className="flex items-center justify-between mt-12 pt-8 border-t border-white/5">
-          <button
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 48, paddingTop: 32, borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+          <motion.button
+            whileHover={{ scale: prevTopic ? 1.02 : 1 }}
+            whileTap={{ scale: prevTopic ? 0.98 : 1 }}
             onClick={() => prevTopic && navigate(`/app/subjects/${subjectId}/${prevTopic.id}`)}
             disabled={!prevTopic}
-            className="flex items-center gap-2 px-6 py-3 rounded-full font-bold text-[11px] uppercase tracking-widest transition-all disabled:opacity-30 disabled:cursor-not-allowed bg-surface-container hover:bg-surface-container-high text-on-surface"
+            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 24px', borderRadius: 999, fontWeight: 700, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.1em', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#a1a1aa', cursor: prevTopic ? 'pointer' : 'not-allowed', opacity: prevTopic ? 1 : 0.3 }}
           >
             <Icon name="arrow_back" size={16} />
             Previous
-          </button>
+          </motion.button>
 
-          <button
+          <motion.button
+            whileHover={{ scale: isDone ? 1 : 1.02 }}
+            whileTap={{ scale: isDone ? 1 : 0.98 }}
             onClick={handleMarkComplete}
-            disabled={topic.done || completed}
-            className={`flex items-center gap-2 px-8 py-3 rounded-full font-bold text-[11px] uppercase tracking-widest transition-all active:scale-95 ${
-              topic.done || completed
-                ? 'bg-green-500/20 text-green-400 cursor-default'
-                : 'bg-primary-container text-white hover:brightness-110'
-            }`}
+            disabled={isDone}
+            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 32px', borderRadius: 999, fontWeight: 700, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.1em', border: 'none', cursor: isDone ? 'default' : 'pointer', background: isDone ? 'rgba(34,197,94,0.15)' : '#E82127', color: isDone ? '#4ade80' : '#fff', boxShadow: isDone ? 'none' : '0 0 24px rgba(232,33,39,0.35)' }}
           >
-            {topic.done || completed ? (
+            {isDone ? (
               <>
                 <Icon name="check_circle" size={16} />
                 Completed
@@ -4284,7 +4319,7 @@ export function SubjectTopicPage() {
                 <Icon name="arrow_forward" size={16} />
               </>
             )}
-          </button>
+          </motion.button>
         </div>
       </div>
     </AppShell>

@@ -1,7 +1,10 @@
 import { useNavigate, useParams } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { AppShell } from '../components/AppShell';
 import { Icon } from '../components/Icon';
 import { SUBJECT_DATA } from '../data/subjects';
+
+const GLASS = { background: 'rgba(10,10,10,0.7)', border: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(16px)' } as const;
 
 export function SubjectDetailPage() {
   const { subjectId } = useParams<{ subjectId: string }>();
@@ -12,11 +15,11 @@ export function SubjectDetailPage() {
   if (!subject) {
     return (
       <AppShell>
-        <div className="pt-8 text-center">
-          <p className="text-zinc-500 text-lg">Subject not found.</p>
+        <div style={{ paddingTop: 32, textAlign: 'center' }}>
+          <p style={{ color: '#71717a', fontSize: 18 }}>Subject not found.</p>
           <button
             onClick={() => navigate('/app/subjects')}
-            className="mt-6 text-primary-container font-bold text-[11px] uppercase tracking-widest"
+            style={{ marginTop: 24, color: '#E82127', fontWeight: 700, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.1em', background: 'none', border: 'none', cursor: 'pointer' }}
           >
             ← Back to Subjects
           </button>
@@ -27,88 +30,98 @@ export function SubjectDetailPage() {
 
   const allTopics = subject.sections.flatMap((s) => s.topics);
   const doneCount = allTopics.filter((t) => t.done).length;
+  const pct = allTopics.length ? (doneCount / allTopics.length) * 100 : 0;
 
   return (
     <AppShell>
-      <div className="pt-8 max-w-3xl">
+      <div style={{ paddingTop: 32, maxWidth: 768 }}>
         {/* Back */}
-        <button
+        <motion.button
+          initial={{ opacity: 0, x: -8 }}
+          animate={{ opacity: 1, x: 0 }}
           onClick={() => navigate('/app/subjects')}
-          className="flex items-center gap-2 text-zinc-500 hover:text-on-surface transition-colors font-bold text-[11px] uppercase tracking-widest mb-10"
+          style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#71717a', fontWeight: 700, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 40, background: 'none', border: 'none', cursor: 'pointer' }}
         >
           <Icon name="arrow_back" size={16} />
           Core Subjects
-        </button>
+        </motion.button>
 
-        {/* Header */}
-        <div className="bg-surface-container rounded-xl p-8 mb-10 flex items-center gap-8">
-          <div className={`w-20 h-20 bg-surface-container-high rounded-2xl flex items-center justify-center flex-shrink-0 ${subject.color}`}>
-            <Icon name={subject.icon} size={40} />
+        {/* Header card */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          style={{ ...GLASS, borderRadius: 16, padding: 32, marginBottom: 40, display: 'flex', alignItems: 'center', gap: 32 }}
+        >
+          <div style={{ width: 80, height: 80, background: 'rgba(232,33,39,0.12)', border: '1px solid rgba(232,33,39,0.25)', borderRadius: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <Icon name={subject.icon} size={40} style={{ color: '#E82127' }} />
           </div>
-          <div className="flex-1">
-            <p className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-zinc-500 mb-1">Core Subject</p>
-            <h1 className="text-3xl font-black tracking-tighter mb-2">{subject.title}</h1>
-            <div className="flex items-center gap-4">
-              <span className="text-sm text-zinc-400">{allTopics.length} topics</span>
-              <span className="text-sm text-zinc-400">·</span>
-              <span className="text-sm text-zinc-400">{doneCount} completed</span>
+          <div style={{ flex: 1 }}>
+            <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#52525b', marginBottom: 4 }}>Core Subject</p>
+            <h1 style={{ fontSize: 30, fontWeight: 900, letterSpacing: '-0.04em', color: '#e4e4e7', marginBottom: 8 }}>{subject.title}</h1>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 12 }}>
+              <span style={{ fontSize: 14, color: '#71717a' }}>{allTopics.length} topics</span>
+              <span style={{ color: '#3f3f46' }}>·</span>
+              <span style={{ fontSize: 14, color: '#71717a' }}>{doneCount} completed</span>
             </div>
-            <div className="mt-3 h-1.5 bg-surface-container-highest rounded-full overflow-hidden max-w-xs">
-              <div
-                className="h-full bg-primary-container rounded-full"
-                style={{ width: `${allTopics.length ? (doneCount / allTopics.length) * 100 : 0}%` }}
+            <div style={{ height: 6, background: 'rgba(255,255,255,0.06)', borderRadius: 999, overflow: 'hidden', maxWidth: 320 }}>
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${pct}%` }}
+                transition={{ duration: 0.8, ease: 'easeOut' }}
+                style={{ height: '100%', background: 'linear-gradient(90deg, #E82127, #ff4d52)', borderRadius: 999 }}
               />
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Sections */}
-        <div className="space-y-10">
-          {subject.sections.map((section) => (
-            <div key={section.title}>
-              <p className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-zinc-500 mb-4">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 40 }}>
+          {subject.sections.map((section, si) => (
+            <motion.div
+              key={section.title}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: si * 0.08 }}
+            >
+              <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#52525b', marginBottom: 16 }}>
                 {section.title}
               </p>
-              <div className="space-y-2">
-                {section.topics.map((topic) => (
-                  <button
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {section.topics.map((topic, ti) => (
+                  <motion.button
                     key={topic.id}
+                    initial={{ opacity: 0, x: -8 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: si * 0.08 + ti * 0.04 }}
+                    whileHover={{ x: 4 }}
                     type="button"
                     onClick={() => navigate(`/app/subjects/${subjectId}/${topic.id}`)}
-                    className="w-full bg-surface-container rounded-xl px-6 py-4 flex items-center gap-4 hover:bg-surface-container-high transition-colors group cursor-pointer text-left"
+                    style={{ ...GLASS, borderRadius: 12, padding: '16px 24px', display: 'flex', alignItems: 'center', gap: 16, cursor: 'pointer', textAlign: 'left', width: '100%' }}
                   >
                     {/* Completion circle */}
-                    <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 border-2 transition-colors ${
-                      topic.done
-                        ? 'bg-green-500 border-green-500'
-                        : 'border-zinc-600 group-hover:border-zinc-400'
-                    }`}>
-                      {topic.done && <Icon name="check" size={14} className="text-white" />}
+                    <div style={{
+                      width: 28, height: 28, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      background: topic.done ? '#22c55e' : 'transparent',
+                      border: topic.done ? '2px solid #22c55e' : '2px solid rgba(255,255,255,0.15)',
+                    }}>
+                      {topic.done && <Icon name="check" size={14} style={{ color: '#fff' }} />}
                     </div>
 
-                    {/* Title */}
-                    <span className="flex-1 font-semibold text-on-surface group-hover:text-white transition-colors">
-                      {topic.title}
-                    </span>
+                    <span style={{ flex: 1, fontWeight: 600, fontSize: 14, color: '#e4e4e7' }}>{topic.title}</span>
 
-                    {/* Duration */}
-                    <span className="px-3 py-1 bg-surface-container-highest rounded-full text-[10px] font-bold uppercase tracking-widest text-zinc-500">
+                    <span style={{ padding: '4px 12px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 999, fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#52525b' }}>
                       {topic.duration}
                     </span>
 
-                    {/* Start button */}
-                    <button
-                      onClick={(e) => { e.stopPropagation(); navigate(`/app/subjects/${subjectId}/${topic.id}`); }}
-                      className="px-4 py-1.5 bg-surface-container-high group-hover:bg-primary-container text-zinc-400 group-hover:text-white rounded-full text-[10px] font-bold uppercase tracking-widest transition-all"
-                    >
+                    <span style={{ padding: '6px 16px', background: topic.done ? 'rgba(34,197,94,0.1)' : 'rgba(232,33,39,0.1)', border: `1px solid ${topic.done ? 'rgba(34,197,94,0.25)' : 'rgba(232,33,39,0.25)'}`, borderRadius: 999, fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: topic.done ? '#4ade80' : '#E82127' }}>
                       {topic.done ? 'Review' : 'Start'}
-                    </button>
+                    </span>
 
-                    <Icon name="chevron_right" size={18} className="text-zinc-600 group-hover:text-zinc-300 transition-colors" />
-                  </button>
+                    <Icon name="chevron_right" size={18} style={{ color: '#52525b' }} />
+                  </motion.button>
                 ))}
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
       </div>
