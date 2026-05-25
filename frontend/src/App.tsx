@@ -55,6 +55,7 @@ import { PlaygroundPage } from './pages/PlaygroundPage';
 import { NotesPage } from './pages/NotesPage';
 import { ReadinessPage } from './pages/ReadinessPage';
 import { RealWorldPage } from './pages/RealWorldPage';
+import { InvestorPage } from './pages/InvestorPage';
 
 export default function App() {
   return (
@@ -64,6 +65,7 @@ export default function App() {
       {/* Public routes */}
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/investor" element={<InvestorPage />} />
       <Route path="/auth/login" element={<Navigate to="/login" replace />} />
       <Route path="/auth/register" element={<Navigate to="/login?tab=register" replace />} />
       <Route path="/authority/login" element={<AuthorityLoginPage />} />

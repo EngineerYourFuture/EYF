@@ -135,6 +135,10 @@ function LandingNav() {
             onMouseLeave={e => (e.currentTarget.style.color = D.t3)}
           >{label}</a>
         ))}
+        <Link to="/investor" style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: D.t3, textDecoration: 'none', transition: 'color 0.2s' }}
+          onMouseEnter={e => (e.currentTarget.style.color = D.t1)}
+          onMouseLeave={e => (e.currentTarget.style.color = D.t3)}
+        >Investors</Link>
       </nav>
 
       <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
@@ -891,7 +895,7 @@ function Footer() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
         <span style={{ fontFamily: 'Space Grotesk', fontSize: 12, fontWeight: 700, letterSpacing: '0.06em', color: D.t4 }}>EYF · 2026</span>
         <div style={{ display: 'flex', gap: 32 }}>
-          {[['#showcase','Platform'],['#curriculum','Curriculum'],['#pricing','Pricing'],['/login','Sign in']].map(([href, label]) => (
+          {[['#showcase','Platform'],['#curriculum','Curriculum'],['#pricing','Pricing'],['/investor','Investors'],['/login','Sign in']].map(([href, label]) => (
             href.startsWith('#')
               ? <a key={href} href={href} style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: D.t4, textDecoration: 'none' }}>{label}</a>
               : <Link key={href} to={href} style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: D.t4, textDecoration: 'none' }}>{label}</Link>
