@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { AppShell } from '../components/AppShell';
 import { Icon } from '../components/Icon';
 import { apiRequest } from '../lib/api';
 import { getSession } from '../lib/session';
 import { useUser } from '../contexts/UserContext';
+
+const GLASS = { background: 'rgba(10,10,10,0.7)', border: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(16px)' } as const;
 
 interface Expert {
   id: string;
@@ -24,19 +27,19 @@ interface ExpertDetail extends Expert {
 }
 
 const STATIC_EXPERTS: Expert[] = [
-  { id: 'e1', displayName: 'Arjun Nair', title: 'Staff Software Engineer', company: 'Google', bio: '8 years at Google working on distributed systems and infrastructure. Helped 200+ engineers crack FAANG interviews. Specialized in system design and advanced algorithms.', specializations: ['System Design', 'Distributed Systems', 'DSA', 'FAANG Prep'], yearsExperience: 8, available: true, hourlyRate: 150, rating: 4.9, reviewCount: 87 },
-  { id: 'e2', displayName: 'Priya Sharma', title: 'Principal Security Engineer', company: 'Microsoft', bio: 'OSCP-certified security engineer with 10 years in AppSec. Specializes in secure code review, threat modeling, and building security programs from scratch.', specializations: ['Cybersecurity', 'AppSec', 'Threat Modeling', 'OWASP'], yearsExperience: 10, available: true, hourlyRate: 180, rating: 4.8, reviewCount: 62 },
-  { id: 'e3', displayName: 'Rahul Mehta', title: 'Engineering Manager', company: 'Meta', bio: 'Former SDE3 turned EM at Meta. Expert in career transitions, technical leadership, and navigating promotion cycles at large tech companies.', specializations: ['Career Growth', 'Leadership', 'System Design', 'OOP'], yearsExperience: 12, available: false, hourlyRate: 200, rating: 4.7, reviewCount: 44 },
-  { id: 'e4', displayName: 'Sneha Patel', title: 'ML Engineer', company: 'Netflix', bio: 'Working on recommendation systems and MLOps at Netflix. Passionate about teaching ML fundamentals and practical production ML engineering.', specializations: ['Machine Learning', 'MLOps', 'Python', 'System Design'], yearsExperience: 6, available: true, hourlyRate: 130, rating: 4.8, reviewCount: 39 },
-  { id: 'e5', displayName: 'Vikram Das', title: 'Full Stack Architect', company: 'Razorpay', bio: 'Architect at Razorpay building payment infrastructure at scale. Expert in Node.js, React, PostgreSQL, and microservices architecture.', specializations: ['Full Stack', 'Microservices', 'Node.js', 'Architecture'], yearsExperience: 9, available: true, hourlyRate: 100, rating: 4.6, reviewCount: 55 },
-  { id: 'e6', displayName: 'Kavya Reddy', title: 'DevOps/SRE Lead', company: 'Flipkart', bio: 'SRE lead managing Flipkart\'s 99.99% uptime infrastructure. Deep expertise in Kubernetes, observability, incident management, and reliability engineering.', specializations: ['DevOps', 'SRE', 'Kubernetes', 'Observability'], yearsExperience: 7, available: true, hourlyRate: 120, rating: 4.7, reviewCount: 31 },
+  { id: 'e1', displayName: 'Arjun Nair',   title: 'Staff Software Engineer',    company: 'Google',    bio: '8 years at Google working on distributed systems and infrastructure. Helped 200+ engineers crack FAANG interviews. Specialized in system design and advanced algorithms.', specializations: ['System Design', 'Distributed Systems', 'DSA', 'FAANG Prep'], yearsExperience: 8,  available: true,  hourlyRate: 150, rating: 4.9, reviewCount: 87 },
+  { id: 'e2', displayName: 'Priya Sharma',  title: 'Principal Security Engineer', company: 'Microsoft', bio: 'OSCP-certified security engineer with 10 years in AppSec. Specializes in secure code review, threat modeling, and building security programs from scratch.',               specializations: ['Cybersecurity', 'AppSec', 'Threat Modeling', 'OWASP'],        yearsExperience: 10, available: true,  hourlyRate: 180, rating: 4.8, reviewCount: 62 },
+  { id: 'e3', displayName: 'Rahul Mehta',   title: 'Engineering Manager',         company: 'Meta',      bio: 'Former SDE3 turned EM at Meta. Expert in career transitions, technical leadership, and navigating promotion cycles at large tech companies.',                          specializations: ['Career Growth', 'Leadership', 'System Design', 'OOP'],         yearsExperience: 12, available: false, hourlyRate: 200, rating: 4.7, reviewCount: 44 },
+  { id: 'e4', displayName: 'Sneha Patel',   title: 'ML Engineer',                 company: 'Netflix',   bio: 'Working on recommendation systems and MLOps at Netflix. Passionate about teaching ML fundamentals and practical production ML engineering.',                           specializations: ['Machine Learning', 'MLOps', 'Python', 'System Design'],        yearsExperience: 6,  available: true,  hourlyRate: 130, rating: 4.8, reviewCount: 39 },
+  { id: 'e5', displayName: 'Vikram Das',    title: 'Full Stack Architect',        company: 'Razorpay',  bio: 'Architect at Razorpay building payment infrastructure at scale. Expert in Node.js, React, PostgreSQL, and microservices architecture.',                               specializations: ['Full Stack', 'Microservices', 'Node.js', 'Architecture'],       yearsExperience: 9,  available: true,  hourlyRate: 100, rating: 4.6, reviewCount: 55 },
+  { id: 'e6', displayName: 'Kavya Reddy',   title: 'DevOps/SRE Lead',             company: 'Flipkart',  bio: "SRE lead managing Flipkart's 99.99% uptime infrastructure. Deep expertise in Kubernetes, observability, incident management, and reliability engineering.",          specializations: ['DevOps', 'SRE', 'Kubernetes', 'Observability'],                 yearsExperience: 7,  available: true,  hourlyRate: 120, rating: 4.7, reviewCount: 31 },
 ];
 
 function StarRating({ rating }: { readonly rating: number }) {
   return (
-    <div className="flex items-center gap-0.5">
+    <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
       {[1, 2, 3, 4, 5].map((s) => (
-        <Icon key={s} name="star" size={12} className={s <= Math.round(rating) ? 'text-yellow-400' : 'text-zinc-700'} filled />
+        <Icon key={s} name="star" size={12} filled style={{ color: s <= Math.round(rating) ? '#facc15' : '#3f3f46' }} />
       ))}
     </div>
   );
@@ -110,68 +113,70 @@ export function ExpertsPage() {
     return (
       <AppShell>
         <div className="pt-8 max-w-3xl mx-auto">
-          <button onClick={() => setSelected(null)} className="flex items-center gap-2 text-zinc-500 hover:text-zinc-300 text-sm mb-6 transition-colors">
+          <button onClick={() => setSelected(null)} style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#71717a', fontSize: 14, marginBottom: 24, background: 'none', border: 'none', cursor: 'pointer' }}>
             <Icon name="arrow_back" size={16} />Back to experts
           </button>
 
-          <div className="bg-surface-container rounded-2xl p-8 mb-6">
-            <div className="flex items-start gap-6 mb-6">
-              <div className="w-16 h-16 rounded-2xl bg-primary-container flex items-center justify-center text-white text-2xl font-black flex-shrink-0">
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} style={{ ...GLASS, borderRadius: 16, padding: 32, marginBottom: 24 }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 24, marginBottom: 24 }}>
+              <div style={{ width: 64, height: 64, borderRadius: 18, background: 'rgba(232,33,39,0.15)', border: '1px solid rgba(232,33,39,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#E82127', fontSize: 24, fontWeight: 900, flexShrink: 0 }}>
                 {selected.displayName[0]}
               </div>
-              <div className="flex-1">
-                <div className="flex items-start justify-between flex-wrap gap-3">
+              <div style={{ flex: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
                   <div>
-                    <h1 className="text-2xl font-bold">{selected.displayName}</h1>
-                    <p className="text-on-surface-variant">{selected.title}{selected.company && ` @ ${selected.company}`}</p>
+                    <h1 style={{ fontSize: 24, fontWeight: 700, color: '#e4e4e7', marginBottom: 2 }}>{selected.displayName}</h1>
+                    <p style={{ color: '#a1a1aa' }}>{selected.title}{selected.company && ` @ ${selected.company}`}</p>
                   </div>
-                  <div className="flex flex-col items-end gap-2">
-                    <span className={`text-[10px] font-bold px-3 py-1 rounded-full ${selected.available ? 'bg-green-500/10 text-green-400' : 'bg-zinc-500/10 text-zinc-500'}`}>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8 }}>
+                    <span style={{ fontSize: 10, fontWeight: 700, padding: '4px 12px', borderRadius: 999, color: selected.available ? '#4ade80' : '#71717a', background: selected.available ? 'rgba(74,222,128,0.1)' : 'rgba(113,113,122,0.1)' }}>
                       {selected.available ? '● Available' : '● Unavailable'}
                     </span>
                     {selected.hourlyRate && (
-                      <span className="text-sm font-bold text-yellow-400">${selected.hourlyRate}/hr</span>
+                      <span style={{ fontSize: 14, fontWeight: 700, color: '#facc15' }}>${selected.hourlyRate}/hr</span>
                     )}
                   </div>
                 </div>
-                <div className="flex items-center gap-3 mt-3">
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 12 }}>
                   <StarRating rating={selected.rating} />
-                  <span className="text-sm font-bold">{selected.rating}</span>
-                  <span className="text-xs text-zinc-500">({selected.reviewCount} reviews)</span>
-                  <span className="text-xs text-zinc-500">· {selected.yearsExperience} yrs exp</span>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: '#e4e4e7' }}>{selected.rating}</span>
+                  <span style={{ fontSize: 12, color: '#71717a' }}>({selected.reviewCount} reviews)</span>
+                  <span style={{ fontSize: 12, color: '#71717a' }}>· {selected.yearsExperience} yrs exp</span>
                 </div>
               </div>
             </div>
-            <p className="text-sm text-on-surface-variant leading-relaxed mb-5">{selected.bio}</p>
-            <div className="flex flex-wrap gap-2 mb-5">
+            <p style={{ fontSize: 14, color: '#a1a1aa', lineHeight: 1.7, marginBottom: 20 }}>{selected.bio}</p>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 20 }}>
               {selected.specializations.map((s) => (
-                <span key={s} className="text-[10px] font-bold bg-surface-container-highest px-3 py-1 rounded-full text-zinc-300">{s}</span>
+                <span key={s} style={{ fontSize: 10, fontWeight: 700, padding: '4px 12px', borderRadius: 999, background: 'rgba(255,255,255,0.06)', color: '#d4d4d8' }}>{s}</span>
               ))}
             </div>
             {selected.available ? (
-              <button
+              <motion.button
                 type="button"
                 onClick={() => fireXP(30, 'Mentorship session booked!')}
-                className="bg-primary-container text-white font-bold py-3 px-8 rounded-full hover:brightness-110 transition-all flex items-center gap-2"
+                whileHover={{ scale: 1.04 }}
+                whileTap={{ scale: 0.96 }}
+                style={{ background: '#E82127', color: '#fff', fontWeight: 700, padding: '12px 32px', borderRadius: 999, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, boxShadow: '0 0 20px rgba(232,33,39,0.3)' }}
               >
                 <Icon name="calendar_add_on" size={16} />Book a Session
-              </button>
+              </motion.button>
             ) : (
-              <button disabled className="bg-surface-container-highest text-zinc-500 font-bold py-3 px-8 rounded-full cursor-not-allowed flex items-center gap-2">
+              <button disabled style={{ background: 'rgba(255,255,255,0.04)', color: '#71717a', fontWeight: 700, padding: '12px 32px', borderRadius: 999, border: '1px solid rgba(255,255,255,0.06)', cursor: 'not-allowed', display: 'flex', alignItems: 'center', gap: 8, fontSize: 14 }}>
                 <Icon name="event_busy" size={16} />Currently Unavailable
               </button>
             )}
-          </div>
+          </motion.div>
 
-          {/* Reviews */}
-          <div className="bg-surface-container rounded-xl p-6 mb-4">
-            <h3 className="font-bold mb-4">Leave a Review</h3>
-            <div className="flex items-center gap-3 mb-3">
-              <span className="text-sm text-zinc-400">Rating:</span>
-              <div className="flex gap-1">
+          {/* Review form */}
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} style={{ ...GLASS, borderRadius: 16, padding: 24, marginBottom: 16 }}>
+            <h3 style={{ fontWeight: 700, color: '#e4e4e7', marginBottom: 16 }}>Leave a Review</h3>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+              <span style={{ fontSize: 14, color: '#a1a1aa' }}>Rating:</span>
+              <div style={{ display: 'flex', gap: 4 }}>
                 {[1, 2, 3, 4, 5].map((s) => (
-                  <button key={s} onClick={() => setRating(s)}>
-                    <Icon name="star" size={20} className={s <= rating ? 'text-yellow-400' : 'text-zinc-700'} filled />
+                  <button key={s} onClick={() => setRating(s)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2 }}>
+                    <Icon name="star" size={20} filled style={{ color: s <= rating ? '#facc15' : '#3f3f46' }} />
                   </button>
                 ))}
               </div>
@@ -181,29 +186,34 @@ export function ExpertsPage() {
               onChange={(e) => setComment(e.target.value)}
               placeholder="Share your experience with this mentor..."
               rows={3}
-              className="w-full bg-surface-container-highest border border-outline-variant/20 rounded-lg p-3 text-sm focus:outline-none resize-none mb-3"
+              style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '12px 16px', fontSize: 14, color: '#e4e4e7', outline: 'none', resize: 'none', marginBottom: 12, boxSizing: 'border-box' }}
             />
-            <button onClick={submitReview} disabled={submittingReview}
-              className="bg-primary-container text-white font-bold py-2 px-5 rounded-full text-sm hover:brightness-110 transition-all disabled:opacity-40">
+            <motion.button
+              onClick={submitReview}
+              disabled={submittingReview}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              style={{ background: 'rgba(232,33,39,0.14)', color: '#fff', fontWeight: 700, padding: '8px 20px', borderRadius: 999, border: '1px solid rgba(232,33,39,0.3)', cursor: 'pointer', fontSize: 14, opacity: submittingReview ? 0.5 : 1 }}
+            >
               Submit Review
-            </button>
-          </div>
+            </motion.button>
+          </motion.div>
 
           <div className="space-y-3">
             {selected.reviews.length === 0 ? (
-              <p className="text-sm text-zinc-500 text-center py-6">No reviews yet.</p>
+              <p style={{ fontSize: 14, color: '#71717a', textAlign: 'center', padding: '24px 0' }}>No reviews yet.</p>
             ) : (
-              selected.reviews.map((r) => (
-                <div key={r.id} className="bg-surface-container rounded-xl p-5">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-bold">{r.reviewer}</span>
+              selected.reviews.map((r, i) => (
+                <motion.div key={r.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }} style={{ ...GLASS, borderRadius: 14, padding: 20 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ fontSize: 14, fontWeight: 700, color: '#e4e4e7' }}>{r.reviewer}</span>
                       <StarRating rating={r.rating} />
                     </div>
-                    <span className="text-xs text-zinc-500">{new Date(r.createdAt).toLocaleDateString()}</span>
+                    <span style={{ fontSize: 12, color: '#71717a' }}>{new Date(r.createdAt).toLocaleDateString()}</span>
                   </div>
-                  {r.comment && <p className="text-sm text-on-surface-variant">{r.comment}</p>}
-                </div>
+                  {r.comment && <p style={{ fontSize: 14, color: '#a1a1aa' }}>{r.comment}</p>}
+                </motion.div>
               ))
             )}
           </div>
@@ -216,121 +226,161 @@ export function ExpertsPage() {
     <AppShell>
       <div className="pt-8 max-w-7xl mx-auto">
         {/* Hero */}
-        <div className="mb-10 p-10 bg-surface-container rounded-2xl relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-72 h-72 bg-yellow-500/5 blur-[80px] rounded-full -mr-20 -mt-20" />
-          <div className="flex items-start justify-between flex-wrap gap-6">
+        <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} style={{ ...GLASS, borderRadius: 20, padding: 40, marginBottom: 40, position: 'relative', overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', top: 0, right: 0, width: 288, height: 288, background: 'rgba(250,204,21,0.03)', filter: 'blur(80px)', borderRadius: '50%', marginTop: -80, marginRight: -80 }} />
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 24 }}>
             <div>
-              <h1 className="text-4xl font-black tracking-tighter mb-2">Expert Network</h1>
-              <p className="text-on-surface-variant max-w-md">1:1 sessions with engineers from Google, Meta, Netflix, Microsoft and top startups. Accelerate your growth with personalized mentorship.</p>
-              <div className="flex gap-6 mt-8">
-                <div><p className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-on-surface-variant mb-1">Experts</p><p className="text-2xl font-bold">{experts.length}</p></div>
-                <div className="border-l border-outline-variant/20 pl-6"><p className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-on-surface-variant mb-1">Avg Rating</p><p className="text-2xl font-bold text-yellow-400">4.8</p></div>
-                <div className="border-l border-outline-variant/20 pl-6"><p className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-on-surface-variant mb-1">Companies</p><p className="text-2xl font-bold">20+</p></div>
-              </div>
-            </div>
-            <button onClick={() => setShowBecomeExpert(true)}
-              className="border border-yellow-500/30 bg-yellow-500/10 text-yellow-400 font-bold py-3 px-6 rounded-full hover:bg-yellow-500/20 transition-all flex items-center gap-2 text-sm">
-              <Icon name="workspace_premium" size={16} />Become an Expert
-            </button>
-          </div>
-        </div>
-
-        {/* Become Expert Modal */}
-        {showBecomeExpert && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-            <div className="bg-[#1B1B1B] rounded-2xl p-8 max-w-md w-full border border-white/10">
-              <h3 className="text-xl font-bold mb-2">Become an EYF Expert</h3>
-              <p className="text-sm text-on-surface-variant mb-6">Share your expertise, earn income, and help engineers grow. We vet all expert applications.</p>
-              <div className="space-y-2 mb-6">
-                {['3+ years of industry experience', 'Active in your field', 'Commitment to 2+ sessions/month', 'Profile review within 48 hours'].map((r) => (
-                  <div key={r} className="flex items-center gap-2 text-sm text-zinc-400">
-                    <Icon name="check_circle" className="text-green-400" size={14} filled />{r}
+              <h1 style={{ fontSize: '2.5rem', fontWeight: 900, letterSpacing: '-0.03em', marginBottom: 8, lineHeight: 1.1 }}>
+                <span style={{ background: 'linear-gradient(135deg, #fff 40%, #E82127)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>EXPERT NETWORK.</span>
+              </h1>
+              <p style={{ color: '#a1a1aa', maxWidth: 400, lineHeight: 1.6 }}>1:1 sessions with engineers from Google, Meta, Netflix, Microsoft and top startups. Accelerate your growth with personalized mentorship.</p>
+              <div style={{ display: 'flex', gap: 24, marginTop: 32 }}>
+                {[
+                  { label: 'Experts',   value: String(experts.length) },
+                  { label: 'Avg Rating', value: '4.8', color: '#facc15' },
+                  { label: 'Companies', value: '20+' },
+                ].map((stat, i) => (
+                  <div key={stat.label} style={{ paddingLeft: i > 0 ? 24 : 0, borderLeft: i > 0 ? '1px solid rgba(255,255,255,0.08)' : 'none' }}>
+                    <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#71717a', marginBottom: 4 }}>{stat.label}</p>
+                    <p style={{ fontSize: 24, fontWeight: 700, color: stat.color ?? '#e4e4e7' }}>{stat.value}</p>
                   </div>
                 ))}
               </div>
-              <div className="flex gap-3">
-                <button onClick={() => setShowBecomeExpert(false)} className="flex-1 border border-outline-variant/30 text-zinc-400 font-bold py-2.5 rounded-full text-sm hover:bg-surface-container transition-all">
-                  Cancel
-                </button>
-                <button className="flex-1 bg-yellow-500/20 border border-yellow-500/30 text-yellow-400 font-bold py-2.5 rounded-full text-sm hover:bg-yellow-500/30 transition-all">
-                  Apply Now
-                </button>
-              </div>
             </div>
+            <motion.button
+              onClick={() => setShowBecomeExpert(true)}
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.96 }}
+              style={{ border: '1px solid rgba(250,204,21,0.3)', background: 'rgba(250,204,21,0.08)', color: '#facc15', fontWeight: 700, padding: '12px 24px', borderRadius: 999, display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, cursor: 'pointer' }}
+            >
+              <Icon name="workspace_premium" size={16} />Become an Expert
+            </motion.button>
           </div>
-        )}
+        </motion.div>
+
+        {/* Become Expert Modal */}
+        <AnimatePresence>
+          {showBecomeExpert && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)', padding: 16 }}
+              onClick={() => setShowBecomeExpert(false)}
+            >
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                onClick={(e) => e.stopPropagation()}
+                style={{ ...GLASS, borderRadius: 20, padding: 32, maxWidth: 448, width: '100%' }}
+              >
+                <h3 style={{ fontSize: 20, fontWeight: 700, color: '#e4e4e7', marginBottom: 8 }}>Become an EYF Expert</h3>
+                <p style={{ fontSize: 14, color: '#a1a1aa', marginBottom: 24, lineHeight: 1.6 }}>Share your expertise, earn income, and help engineers grow. We vet all expert applications.</p>
+                <div style={{ marginBottom: 24 }} className="space-y-2">
+                  {['3+ years of industry experience', 'Active in your field', 'Commitment to 2+ sessions/month', 'Profile review within 48 hours'].map((r) => (
+                    <div key={r} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: '#a1a1aa' }}>
+                      <Icon name="check_circle" size={14} filled style={{ color: '#4ade80' }} />{r}
+                    </div>
+                  ))}
+                </div>
+                <div style={{ display: 'flex', gap: 12 }}>
+                  <button onClick={() => setShowBecomeExpert(false)} style={{ flex: 1, border: '1px solid rgba(255,255,255,0.1)', color: '#a1a1aa', fontWeight: 700, padding: '10px 0', borderRadius: 999, fontSize: 14, background: 'transparent', cursor: 'pointer' }}>
+                    Cancel
+                  </button>
+                  <motion.button
+                    whileHover={{ scale: 1.04 }}
+                    whileTap={{ scale: 0.96 }}
+                    style={{ flex: 1, border: '1px solid rgba(250,204,21,0.3)', background: 'rgba(250,204,21,0.12)', color: '#facc15', fontWeight: 700, padding: '10px 0', borderRadius: 999, fontSize: 14, cursor: 'pointer' }}
+                  >
+                    Apply Now
+                  </motion.button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Filters */}
-        <div className="flex items-center gap-3 mb-6 flex-wrap">
-          <button
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24, flexWrap: 'wrap' }}>
+          <motion.button
             onClick={() => setFilterAvailable(!filterAvailable)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all border ${
-              filterAvailable ? 'bg-green-500/10 text-green-400 border-green-500/30' : 'text-zinc-500 border-zinc-800/50 hover:text-zinc-300'
-            }`}>
-            <div className={`w-1.5 h-1.5 rounded-full ${filterAvailable ? 'bg-green-400' : 'bg-zinc-600'}`} />
+            whileHover={{ scale: 1.04 }}
+            whileTap={{ scale: 0.96 }}
+            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 16px', borderRadius: 999, fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', cursor: 'pointer', border: filterAvailable ? '1px solid rgba(74,222,128,0.3)' : '1px solid rgba(255,255,255,0.08)', background: filterAvailable ? 'rgba(74,222,128,0.1)' : 'transparent', color: filterAvailable ? '#4ade80' : '#71717a' }}
+          >
+            <div style={{ width: 6, height: 6, borderRadius: '50%', background: filterAvailable ? '#4ade80' : '#52525b' }} />
             Available Only
-          </button>
-          {ALL_SPECS.map((spec) => (
-            <button key={spec} onClick={() => setFilterSpec(spec)}
-              className={`px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all border ${
-                filterSpec === spec ? 'bg-primary-container/20 text-primary-container border-primary-container/30' : 'text-zinc-500 border-zinc-800/50 hover:text-zinc-300'
-              }`}>
-              {spec}
-            </button>
-          ))}
+          </motion.button>
+          {ALL_SPECS.map((spec) => {
+            const active = filterSpec === spec;
+            return (
+              <motion.button key={spec} onClick={() => setFilterSpec(spec)} whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
+                style={{ padding: '6px 12px', borderRadius: 999, fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', cursor: 'pointer', border: active ? '1px solid rgba(232,33,39,0.4)' : '1px solid rgba(255,255,255,0.08)', background: active ? 'rgba(232,33,39,0.14)' : 'transparent', color: active ? '#fff' : '#71717a' }}
+              >
+                {spec}
+              </motion.button>
+            );
+          })}
         </div>
 
         {/* Expert Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {filtered.map((expert) => (
-            <button
+          {filtered.map((expert, i) => (
+            <motion.button
               key={expert.id}
               type="button"
               onClick={() => openExpert(expert.id)}
-              className="w-full text-left bg-surface-container rounded-2xl p-7 hover:bg-surface-container-high transition-all cursor-pointer group"
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.06 }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="w-full text-left"
+              style={{ ...GLASS, borderRadius: 20, padding: 28, cursor: 'pointer' }}
             >
-              <div className="flex items-start gap-4 mb-4">
-                <div className="w-12 h-12 rounded-xl bg-primary-container flex items-center justify-center text-white text-lg font-black flex-shrink-0">
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16, marginBottom: 16 }}>
+                <div style={{ width: 48, height: 48, borderRadius: 14, background: 'rgba(232,33,39,0.12)', border: '1px solid rgba(232,33,39,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#E82127', fontSize: 18, fontWeight: 900, flexShrink: 0 }}>
                   {expert.displayName[0]}
                 </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-bold group-hover:text-primary-container transition-colors truncate">{expert.displayName}</h3>
-                  <p className="text-xs text-on-surface-variant truncate">{expert.title}{expert.company && ` @ ${expert.company}`}</p>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <h3 style={{ fontWeight: 700, color: '#e4e4e7', marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{expert.displayName}</h3>
+                  <p style={{ fontSize: 12, color: '#a1a1aa', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{expert.title}{expert.company && ` @ ${expert.company}`}</p>
                 </div>
-                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0 ${expert.available ? 'bg-green-500/10 text-green-400' : 'bg-zinc-500/10 text-zinc-500'}`}>
+                <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 999, flexShrink: 0, color: expert.available ? '#4ade80' : '#71717a', background: expert.available ? 'rgba(74,222,128,0.1)' : 'rgba(113,113,122,0.1)' }}>
                   {expert.available ? '●' : '○'}
                 </span>
               </div>
 
-              <p className="text-xs text-on-surface-variant leading-relaxed mb-4 line-clamp-2">{expert.bio}</p>
+              <p style={{ fontSize: 12, color: '#a1a1aa', lineHeight: 1.6, marginBottom: 16, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{expert.bio}</p>
 
-              <div className="flex flex-wrap gap-1.5 mb-4">
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 16 }}>
                 {expert.specializations.slice(0, 3).map((s) => (
-                  <span key={s} className="text-[10px] font-bold bg-surface-container-highest px-2 py-0.5 rounded-full text-zinc-400">{s}</span>
+                  <span key={s} style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 999, background: 'rgba(255,255,255,0.06)', color: '#a1a1aa' }}>{s}</span>
                 ))}
                 {expert.specializations.length > 3 && (
-                  <span className="text-[10px] text-zinc-600">+{expert.specializations.length - 3}</span>
+                  <span style={{ fontSize: 10, color: '#52525b' }}>+{expert.specializations.length - 3}</span>
                 )}
               </div>
 
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1.5">
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <StarRating rating={expert.rating} />
-                  <span className="text-xs font-bold">{expert.rating}</span>
-                  <span className="text-[10px] text-zinc-500">({expert.reviewCount})</span>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: '#e4e4e7' }}>{expert.rating}</span>
+                  <span style={{ fontSize: 10, color: '#71717a' }}>({expert.reviewCount})</span>
                 </div>
                 {expert.hourlyRate && (
-                  <span className="text-xs font-bold text-yellow-400">${expert.hourlyRate}/hr</span>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: '#facc15' }}>${expert.hourlyRate}/hr</span>
                 )}
               </div>
 
-              <div className="text-[10px] text-zinc-600 mt-2">{expert.yearsExperience} years experience</div>
-            </button>
+              <div style={{ fontSize: 10, color: '#52525b', marginTop: 8 }}>{expert.yearsExperience} years experience</div>
+            </motion.button>
           ))}
           {filtered.length === 0 && (
-            <div className="col-span-3 text-center py-16">
-              <Icon name="groups" className="text-zinc-700 mb-3" size={40} />
-              <p className="text-on-surface-variant">No experts match your filters.</p>
+            <div className="col-span-3" style={{ textAlign: 'center', padding: '64px 0' }}>
+              <Icon name="groups" size={40} style={{ color: '#3f3f46', display: 'block', margin: '0 auto 12px' }} />
+              <p style={{ color: '#a1a1aa' }}>No experts match your filters.</p>
             </div>
           )}
         </div>
