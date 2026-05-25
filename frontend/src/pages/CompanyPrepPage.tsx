@@ -1,7 +1,10 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { AppShell } from '../components/AppShell';
 import { Icon } from '../components/Icon';
+
+const GLASS = { background: 'rgba(10,10,10,0.7)', border: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(16px)' } as const;
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -40,8 +43,8 @@ const COMPANIES: CompanyData[] = [
     id: 'google',
     name: 'Google',
     logo: 'G',
-    color: 'text-blue-400',
-    gradient: 'from-blue-500/20 to-green-500/20',
+    color: '#60a5fa',
+    gradient: 'linear-gradient(135deg, rgba(96,165,250,0.2), rgba(74,222,128,0.2))',
     roles: ['SWE', 'SWE II', 'Senior SWE', 'Staff SWE', 'L3–L7'],
     interviewRounds: ['Online Assessment', 'Phone Screen', '5× Onsite (DSA + System Design + Behavioral)'],
     difficulty: 5,
@@ -80,8 +83,8 @@ const COMPANIES: CompanyData[] = [
     id: 'amazon',
     name: 'Amazon',
     logo: 'A',
-    color: 'text-amber-400',
-    gradient: 'from-amber-500/20 to-orange-500/20',
+    color: '#fbbf24',
+    gradient: 'linear-gradient(135deg, rgba(251,191,36,0.2), rgba(249,115,22,0.2))',
     roles: ['SDE I', 'SDE II', 'SDE III', 'Principal SDE'],
     interviewRounds: ['Online Assessment (2 DSA + Work Simulation)', '4–5× Interviews (DSA + System Design + LP×2)'],
     difficulty: 4,
@@ -120,8 +123,8 @@ const COMPANIES: CompanyData[] = [
     id: 'meta',
     name: 'Meta',
     logo: 'M',
-    color: 'text-blue-500',
-    gradient: 'from-blue-600/20 to-indigo-500/20',
+    color: '#3b82f6',
+    gradient: 'linear-gradient(135deg, rgba(37,99,235,0.2), rgba(99,102,241,0.2))',
     roles: ['E3', 'E4', 'E5', 'E6', 'E7 (Staff)'],
     interviewRounds: ['Technical Screen (45 min DSA)', '2× Coding + 1× System Design + 1× Behavioral'],
     difficulty: 5,
@@ -160,8 +163,8 @@ const COMPANIES: CompanyData[] = [
     id: 'microsoft',
     name: 'Microsoft',
     logo: '⊞',
-    color: 'text-cyan-400',
-    gradient: 'from-cyan-500/20 to-blue-500/20',
+    color: '#22d3ee',
+    gradient: 'linear-gradient(135deg, rgba(6,182,212,0.2), rgba(59,130,246,0.2))',
     roles: ['SWE', 'SDE 59/60/61/62/63', 'Principal SDE', 'Partner'],
     interviewRounds: ['Phone Screen (DSA)', '4× Loop (DSA + System Design + Behavioral + PM-style)'],
     difficulty: 3,
@@ -200,8 +203,8 @@ const COMPANIES: CompanyData[] = [
     id: 'uber',
     name: 'Uber',
     logo: 'U',
-    color: 'text-white',
-    gradient: 'from-zinc-500/20 to-zinc-700/20',
+    color: '#e4e4e7',
+    gradient: 'linear-gradient(135deg, rgba(113,113,122,0.2), rgba(63,63,70,0.2))',
     roles: ['SWE I', 'SWE II', 'Senior SWE', 'Staff SWE'],
     interviewRounds: ['HackerRank OA', 'Technical Phone Screen', '4–5× Onsite (DSA + System Design + Behavioral)'],
     difficulty: 4,
@@ -240,8 +243,8 @@ const COMPANIES: CompanyData[] = [
     id: 'flipkart',
     name: 'Flipkart',
     logo: 'F',
-    color: 'text-yellow-400',
-    gradient: 'from-yellow-500/20 to-amber-500/20',
+    color: '#facc15',
+    gradient: 'linear-gradient(135deg, rgba(234,179,8,0.2), rgba(245,158,11,0.2))',
     roles: ['SDE I', 'SDE II', 'SDE III', 'Senior SDE'],
     interviewRounds: ['Online Test (DSA + MCQ)', '2–3× Technical (DSA)', '1× System Design', '1× Managerial'],
     difficulty: 3,
@@ -280,8 +283,8 @@ const COMPANIES: CompanyData[] = [
     id: 'adobe',
     name: 'Adobe',
     logo: 'Ai',
-    color: 'text-red-500',
-    gradient: 'from-red-500/20 to-orange-500/20',
+    color: '#ef4444',
+    gradient: 'linear-gradient(135deg, rgba(239,68,68,0.2), rgba(249,115,22,0.2))',
     roles: ['MTS I/II', 'Computer Scientist I/II/III', 'Senior'],
     interviewRounds: ['Online Coding', '3–4× Technical (DSA + Design)', '1× Managerial/HR'],
     difficulty: 3,
@@ -320,8 +323,8 @@ const COMPANIES: CompanyData[] = [
     id: 'atlassian',
     name: 'Atlassian',
     logo: 'At',
-    color: 'text-blue-400',
-    gradient: 'from-blue-500/20 to-teal-500/20',
+    color: '#60a5fa',
+    gradient: 'linear-gradient(135deg, rgba(96,165,250,0.2), rgba(20,184,166,0.2))',
     roles: ['SWE I/II', 'Senior SWE', 'Principal SWE', 'Staff SWE'],
     interviewRounds: ['HackerRank OA', 'Karat Interview (automated)', '3× Technical + 1× Values'],
     difficulty: 3,
@@ -361,22 +364,22 @@ const COMPANIES: CompanyData[] = [
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 const FREQ_META = {
-  'very-high': { label: 'Very High',  dot: 'bg-red-500',    text: 'text-red-400' },
-  'high':      { label: 'High',       dot: 'bg-amber-400',  text: 'text-amber-400' },
-  'medium':    { label: 'Medium',     dot: 'bg-blue-400',   text: 'text-blue-400' },
+  'very-high': { label: 'Very High',  dot: '#ef4444',  color: '#f87171' },
+  'high':      { label: 'High',       dot: '#fbbf24',  color: '#fbbf24' },
+  'medium':    { label: 'Medium',     dot: '#60a5fa',  color: '#60a5fa' },
 };
 
 const DIFF_META = {
-  easy:   { label: 'Easy',   cls: 'text-emerald-400 border-emerald-400/20 bg-emerald-400/10' },
-  medium: { label: 'Medium', cls: 'text-amber-400   border-amber-400/20   bg-amber-400/10' },
-  hard:   { label: 'Hard',   cls: 'text-red-400     border-red-400/20     bg-red-400/10' },
+  easy:   { label: 'Easy',   color: '#34d399', bg: 'rgba(52,211,153,0.08)',  border: 'rgba(52,211,153,0.25)' },
+  medium: { label: 'Medium', color: '#fbbf24', bg: 'rgba(251,191,36,0.08)', border: 'rgba(251,191,36,0.25)' },
+  hard:   { label: 'Hard',   color: '#f87171', bg: 'rgba(248,113,113,0.08)', border: 'rgba(248,113,113,0.25)' },
 };
 
 function DifficultyStars({ n }: { readonly n: number }) {
   return (
-    <div className="flex gap-0.5">
+    <div style={{ display: 'flex', gap: 2 }}>
       {[1, 2, 3, 4, 5].map((i) => (
-        <span key={i} className={`text-xs ${i <= n ? 'text-amber-400' : 'text-zinc-700'}`}>★</span>
+        <span key={i} style={{ fontSize: 12, color: i <= n ? '#fbbf24' : '#3f3f46' }}>★</span>
       ))}
     </div>
   );
@@ -390,25 +393,27 @@ function CompanyCard({ company, selected, onSelect }: {
   readonly onSelect: () => void;
 }) {
   return (
-    <button
+    <motion.button
       onClick={onSelect}
-      className={`w-full text-left p-4 rounded-2xl border transition-all ${
-        selected
-          ? 'bg-[#1f1f1f] border-white/20 shadow-lg'
-          : 'bg-[#181818] border-white/5 hover:border-white/10 hover:bg-[#1a1a1a]'
-      }`}
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.97 }}
+      style={selected ? {
+        width: '100%', textAlign: 'left', padding: 16, borderRadius: 20, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.15)', boxShadow: '0 4px 20px rgba(0,0,0,0.3)', cursor: 'pointer',
+      } : {
+        width: '100%', textAlign: 'left', padding: 16, borderRadius: 20, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', cursor: 'pointer',
+      }}
     >
-      <div className="flex items-center gap-3">
-        <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${company.gradient} flex items-center justify-center font-bold text-sm ${company.color} border border-white/10`}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div style={{ width: 40, height: 40, borderRadius: 12, background: company.gradient, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 14, color: company.color, border: '1px solid rgba(255,255,255,0.1)', flexShrink: 0 }}>
           {company.logo}
         </div>
-        <div className="flex-1 min-w-0">
-          <div className="font-semibold text-white text-sm">{company.name}</div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontWeight: 600, color: '#fff', fontSize: 14 }}>{company.name}</div>
           <DifficultyStars n={company.difficulty} />
         </div>
-        {selected && <Icon name="check_circle" className="text-emerald-400 text-lg shrink-0" />}
+        {selected && <Icon name="check_circle" style={{ color: '#34d399', fontSize: 20, flexShrink: 0 }} />}
       </div>
-    </button>
+    </motion.button>
   );
 }
 
@@ -416,131 +421,145 @@ function CompanyCard({ company, selected, onSelect }: {
 
 function CompanyDetail({ company }: { readonly company: CompanyData }) {
   const [tab, setTab] = useState<'overview' | 'problems' | 'tips'>('overview');
+  const TAB_LABELS: Record<string, string> = { overview: 'Focus Topics', problems: 'Top Problems', tips: 'Tips' };
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className={`bg-gradient-to-r ${company.gradient} rounded-2xl border border-white/10 p-6`}>
-        <div className="flex items-start justify-between gap-4">
+      <motion.div
+        key={company.id}
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        style={{ background: company.gradient, borderRadius: 20, border: '1px solid rgba(255,255,255,0.1)', padding: 24 }}
+      >
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 }}>
           <div>
-            <div className="flex items-center gap-3 mb-2">
-              <div className={`w-12 h-12 rounded-2xl bg-[#121212]/60 flex items-center justify-center font-bold text-lg ${company.color} border border-white/10`}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
+              <div style={{ width: 48, height: 48, borderRadius: 16, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 18, color: company.color, border: '1px solid rgba(255,255,255,0.1)', flexShrink: 0 }}>
                 {company.logo}
               </div>
               <div>
-                <h2 className="text-xl font-bold text-white">{company.name}</h2>
-                <div className="flex items-center gap-2 mt-0.5">
+                <h2 style={{ fontSize: 20, fontWeight: 700, color: '#fff' }}>{company.name}</h2>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 2 }}>
                   <DifficultyStars n={company.difficulty} />
-                  <span className="text-xs text-zinc-500">Interview difficulty</span>
+                  <span style={{ fontSize: 12, color: '#71717a' }}>Interview difficulty</span>
                 </div>
               </div>
             </div>
-            <div className="flex flex-wrap gap-2">
+            <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 8 }}>
               {company.roles.map((r) => (
-                <span key={r} className="text-[11px] bg-white/10 text-zinc-300 px-2 py-0.5 rounded-full">{r}</span>
+                <span key={r} style={{ fontSize: 11, background: 'rgba(255,255,255,0.1)', color: '#d4d4d8', padding: '2px 8px', borderRadius: 999 }}>{r}</span>
               ))}
             </div>
           </div>
-          <div className="text-right shrink-0">
-            <div className="text-[10px] text-zinc-500 mb-1 uppercase tracking-wider">Typical CTC</div>
-            <div className="text-xs text-zinc-400">SDE I: <span className="text-white font-semibold">{company.ctc.sde1}</span></div>
-            <div className="text-xs text-zinc-400">SDE II: <span className="text-white font-semibold">{company.ctc.sde2}</span></div>
-            <div className="text-xs text-zinc-400">Intern: <span className="text-white font-semibold">{company.ctc.intern}</span></div>
+          <div style={{ textAlign: 'right', flexShrink: 0 }}>
+            <div style={{ fontSize: 10, color: '#71717a', marginBottom: 4, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Typical CTC</div>
+            <div style={{ fontSize: 12, color: '#a1a1aa' }}>SDE I: <span style={{ color: '#fff', fontWeight: 600 }}>{company.ctc.sde1}</span></div>
+            <div style={{ fontSize: 12, color: '#a1a1aa' }}>SDE II: <span style={{ color: '#fff', fontWeight: 600 }}>{company.ctc.sde2}</span></div>
+            <div style={{ fontSize: 12, color: '#a1a1aa' }}>Intern: <span style={{ color: '#fff', fontWeight: 600 }}>{company.ctc.intern}</span></div>
           </div>
         </div>
 
         {/* Rounds */}
-        <div className="mt-4">
-          <div className="text-[10px] text-zinc-500 uppercase tracking-wider mb-2">Interview Rounds</div>
-          <div className="flex flex-wrap gap-2">
+        <div style={{ marginTop: 16 }}>
+          <div style={{ fontSize: 10, color: '#71717a', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 8 }}>Interview Rounds</div>
+          <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 8 }}>
             {company.interviewRounds.map((r) => (
-              <span key={r} className="text-xs bg-black/30 text-zinc-300 px-3 py-1 rounded-full border border-white/10">{r}</span>
+              <span key={r} style={{ fontSize: 12, background: 'rgba(0,0,0,0.3)', color: '#d4d4d8', padding: '4px 12px', borderRadius: 999, border: '1px solid rgba(255,255,255,0.1)' }}>{r}</span>
             ))}
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Tabs */}
-      <div className="flex gap-1 bg-[#181818] rounded-xl p-1 border border-white/5">
-        {(['overview', 'problems', 'tips'] as const).map((t) => {
-          const TAB_LABELS: Record<string, string> = { overview: 'Focus Topics', problems: 'Top Problems', tips: 'Tips' };
-          const tabLabel = TAB_LABELS[t];
-          return (
-            <button
-              key={t}
-              onClick={() => setTab(t)}
-              className={`flex-1 py-2 rounded-lg text-xs font-semibold capitalize transition-colors ${
-                tab === t ? 'bg-white/10 text-white' : 'text-zinc-500 hover:text-zinc-300'
-              }`}
-            >
-              {tabLabel}
-            </button>
-          );
-        })}
+      <div style={{ display: 'flex', gap: 4, background: 'rgba(255,255,255,0.03)', borderRadius: 14, padding: 4, border: '1px solid rgba(255,255,255,0.06)' }}>
+        {(['overview', 'problems', 'tips'] as const).map((t) => (
+          <motion.button
+            key={t}
+            onClick={() => setTab(t)}
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
+            style={tab === t ? {
+              flex: 1, padding: '8px 0', borderRadius: 10, fontSize: 12, fontWeight: 600, background: 'rgba(255,255,255,0.08)', color: '#fff', cursor: 'pointer',
+            } : {
+              flex: 1, padding: '8px 0', borderRadius: 10, fontSize: 12, fontWeight: 600, background: 'transparent', color: '#71717a', cursor: 'pointer',
+            }}
+          >
+            {TAB_LABELS[t]}
+          </motion.button>
+        ))}
       </div>
 
       {/* Tab Content */}
-      {tab === 'overview' && (
-        <div className="space-y-4">
-          {company.focusTopics.map((section) => (
-            <div key={section.category} className="bg-[#1a1a1a] rounded-2xl border border-white/5 p-4">
-              <div className="text-[10px] text-zinc-500 uppercase tracking-widest mb-3">{section.category}</div>
-              <div className="flex flex-wrap gap-2">
-                {section.items.map((item) => (
-                  <span key={item} className="text-xs bg-white/5 text-zinc-300 px-3 py-1.5 rounded-full border border-white/10">{item}</span>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {tab === 'problems' && (
-        <div className="space-y-2">
-          <div className="flex items-center gap-2 mb-3">
-            <span className="text-[10px] font-bold text-[#E82127] bg-[#E82127]/10 px-2 py-0.5 rounded-full border border-[#E82127]/20">
-              FREE on EYF · Company-filtered problems are paywalled on LeetCode
-            </span>
-          </div>
-          {company.topProblems.map((prob, i) => {
-            const dm = DIFF_META[prob.difficulty];
-            const fm = FREQ_META[prob.frequency];
-            return (
-              <Link
-                key={prob.id}
-                to="/app/problems"
-                className="flex items-center gap-3 p-3 rounded-xl bg-[#1a1a1a] border border-white/5 hover:border-white/10 hover:bg-[#202020] transition-all group"
-              >
-                <span className="text-zinc-600 text-xs w-5 shrink-0">{i + 1}.</span>
-                <span className="flex-1 text-sm text-zinc-200 group-hover:text-white transition-colors">{prob.title}</span>
-                <span className="text-[10px] text-zinc-500">{prob.pattern}</span>
-                <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${dm.cls}`}>{dm.label}</span>
-                <div className="flex items-center gap-1.5 w-20 justify-end">
-                  <span className={`w-1.5 h-1.5 rounded-full ${fm.dot}`} />
-                  <span className={`text-[10px] ${fm.text}`}>{fm.label}</span>
+      <AnimatePresence mode="wait">
+        {tab === 'overview' && (
+          <motion.div key="overview" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-4">
+            {company.focusTopics.map((section) => (
+              <div key={section.category} style={{ ...GLASS, borderRadius: 20, padding: 16 }}>
+                <div style={{ fontSize: 10, color: '#71717a', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 12 }}>{section.category}</div>
+                <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 8 }}>
+                  {section.items.map((item) => (
+                    <span key={item} style={{ fontSize: 12, background: 'rgba(255,255,255,0.05)', color: '#d4d4d8', padding: '6px 12px', borderRadius: 999, border: '1px solid rgba(255,255,255,0.1)' }}>{item}</span>
+                  ))}
                 </div>
-              </Link>
-            );
-          })}
-          <Link
-            to="/app/problems"
-            className="block text-center text-xs text-zinc-500 hover:text-zinc-300 transition-colors pt-2"
-          >
-            View all problems with {company.name} filter →
-          </Link>
-        </div>
-      )}
+              </div>
+            ))}
+          </motion.div>
+        )}
 
-      {tab === 'tips' && (
-        <div className="space-y-3">
-          {company.tips.map((tip) => (
-            <div key={tip} className="flex gap-3 p-4 bg-[#1a1a1a] rounded-xl border border-white/5">
-              <Icon name="lightbulb" className="text-amber-400 text-lg shrink-0 mt-0.5" />
-              <p className="text-sm text-zinc-300 leading-relaxed">{tip}</p>
+        {tab === 'problems' && (
+          <motion.div key="problems" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-2">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+              <span style={{ fontSize: 10, fontWeight: 700, color: '#E82127', background: 'rgba(232,33,39,0.1)', padding: '2px 8px', borderRadius: 999, border: '1px solid rgba(232,33,39,0.2)' }}>
+                FREE on EYF · Company-filtered problems are paywalled on LeetCode
+              </span>
             </div>
-          ))}
-        </div>
-      )}
+            {company.topProblems.map((prob, i) => {
+              const dm = DIFF_META[prob.difficulty];
+              const fm = FREQ_META[prob.frequency];
+              return (
+                <Link
+                  key={prob.id}
+                  to="/app/problems"
+                  style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 12, borderRadius: 14, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', textDecoration: 'none' }}
+                >
+                  <span style={{ color: '#52525b', fontSize: 12, width: 20, flexShrink: 0 }}>{i + 1}.</span>
+                  <span style={{ flex: 1, fontSize: 14, color: '#e4e4e7' }}>{prob.title}</span>
+                  <span style={{ fontSize: 10, color: '#71717a' }}>{prob.pattern}</span>
+                  <span style={{ fontSize: 10, fontWeight: 600, padding: '2px 8px', borderRadius: 999, border: `1px solid ${dm.border}`, background: dm.bg, color: dm.color }}>{dm.label}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, width: 80, justifyContent: 'flex-end' }}>
+                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: fm.dot, flexShrink: 0 }} />
+                    <span style={{ fontSize: 10, color: fm.color }}>{fm.label}</span>
+                  </div>
+                </Link>
+              );
+            })}
+            <Link
+              to="/app/problems"
+              style={{ display: 'block', textAlign: 'center', fontSize: 12, color: '#71717a', paddingTop: 8, textDecoration: 'none' }}
+            >
+              View all problems with {company.name} filter →
+            </Link>
+          </motion.div>
+        )}
+
+        {tab === 'tips' && (
+          <motion.div key="tips" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-3">
+            {company.tips.map((tip, i) => (
+              <motion.div
+                key={tip}
+                initial={{ opacity: 0, x: -8 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: i * 0.06 }}
+                style={{ display: 'flex', gap: 12, padding: 16, ...GLASS, borderRadius: 14 }}
+              >
+                <Icon name="lightbulb" style={{ color: '#fbbf24', fontSize: 20, flexShrink: 0, marginTop: 2 }} />
+                <p style={{ fontSize: 14, color: '#d4d4d8', lineHeight: 1.6 }}>{tip}</p>
+              </motion.div>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -555,20 +574,22 @@ export function CompanyPrepPage() {
     <AppShell>
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-white mb-1">Company-Specific Prep</h1>
-          <p className="text-sm text-zinc-500">
-            Tailored prep for top companies — focus topics, most-asked problems, interview rounds, tips, and CTC data.{' '}
-            <span className="ml-2 text-[10px] font-bold text-[#E82127] bg-[#E82127]/10 px-2 py-0.5 rounded-full border border-[#E82127]/20">
+        <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} style={{ marginBottom: 32 }}>
+          <h1 style={{ fontSize: '3rem', fontWeight: 900, letterSpacing: '-0.03em', marginBottom: 8, lineHeight: 1.1 }}>
+            <span style={{ background: 'linear-gradient(135deg, #fff 40%, #E82127)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>COMPANY PREP.</span>
+          </h1>
+          <p style={{ fontSize: 14, color: '#71717a', display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' as const }}>
+            Tailored prep for top companies — focus topics, most-asked problems, interview rounds, tips, and CTC data.
+            <span style={{ fontSize: 10, fontWeight: 700, color: '#E82127', background: 'rgba(232,33,39,0.1)', padding: '2px 8px', borderRadius: 999, border: '1px solid rgba(232,33,39,0.2)' }}>
               FREE · Company-filtered problems are ₹2500/mo on LeetCode
             </span>
           </p>
-        </div>
+        </motion.div>
 
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Sidebar: company list */}
           <div className="lg:w-52 shrink-0">
-            <div className="text-[10px] text-zinc-600 uppercase tracking-wider mb-3 px-1">Select Company</div>
+            <div style={{ fontSize: 10, color: '#52525b', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 12, paddingLeft: 4 }}>Select Company</div>
             <div className="space-y-2">
               {COMPANIES.map((c) => (
                 <CompanyCard
