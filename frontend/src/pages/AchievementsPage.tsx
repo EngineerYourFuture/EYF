@@ -80,11 +80,6 @@ const CATEGORY_ICONS: Record<string, string> = {
 const LEVEL_NAMES = ['Newcomer','Learner','Explorer','Builder','Practitioner','Engineer','Senior','Lead','Architect','Expert','Legend'];
 const LEVEL_THRESHOLDS = [0,100,300,700,1500,3000,6000,12000,25000,50000,100000];
 
-const GLASS = {
-  background: 'rgba(10,10,10,0.7)',
-  border: '1px solid rgba(255,255,255,0.07)',
-  backdropFilter: 'blur(16px)',
-} as const;
 
 function AchievementCard({ a, i }: { readonly a: Achievement; readonly i: number }) {
   const r = RARITY[a.rarity] ?? RARITY.common;

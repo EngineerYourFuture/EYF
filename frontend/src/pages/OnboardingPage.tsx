@@ -55,7 +55,6 @@ const DAILY_GOALS = [
 ];
 
 const TOTAL_STEPS = 5;
-const GLASS = { background: 'rgba(10,10,10,0.7)', border: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(16px)' } as const;
 const INPUT_STYLE = { width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '16px 20px', fontSize: 18, fontWeight: 700, color: 'var(--t1)', outline: 'none', boxSizing: 'border-box' } as const;
 
 export function OnboardingPage() {
@@ -120,7 +119,7 @@ export function OnboardingPage() {
       {/* Top bar */}
       <div style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 24px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <EYFMark size={32} style={{ color: '#E82127' }} />
+          <EYFMark size={32} className="text-red-600" />
           <span style={{ fontWeight: 900, letterSpacing: '-0.04em', color: 'var(--t1)' }}>EYF</span>
         </div>
         <button

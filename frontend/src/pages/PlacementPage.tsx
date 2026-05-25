@@ -642,9 +642,6 @@ const DAILY_QUESTION = {
   category: 'Adaptability',
 };
 
-function getReadinessBarClass(_readiness: number): string {
-  return '';
-}
 
 function getReadinessMsg(readiness: number): string {
   if (readiness < 40) return "Keep practicing — you're building momentum!";
@@ -844,7 +841,6 @@ export function PlacementPage() {
     (stats.readinessScore || 25)
   ));
 
-  const readinessBarClass = getReadinessBarClass(readiness);
   const readinessMsg = getReadinessMsg(readiness);
 
   const TABS = [
