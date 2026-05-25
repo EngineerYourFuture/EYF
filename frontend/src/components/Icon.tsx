@@ -11,7 +11,7 @@ interface IconProps {
 export function Icon({ name, className = '', filled = false, size = 24, style }: IconProps) {
   return (
     <span
-      className={`material-symbols-outlined select-none ${className}`}
+      className={`material-symbols-rounded select-none ${className}`}
       style={{
         fontVariationSettings: `'FILL' ${filled ? 1 : 0}, 'wght' 200, 'GRAD' 0, 'opsz' ${size}`,
         fontSize: `${size}px`,
