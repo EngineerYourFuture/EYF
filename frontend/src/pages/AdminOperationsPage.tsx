@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
 import { AuthorityShell } from '../components/AuthorityShell';
 import { Icon } from '../components/Icon';
 import { apiRequest } from '../lib/api';
 import { getSession } from '../lib/session';
+
+const GLASS = { background: 'rgba(10,10,10,0.7)', border: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(16px)' } as const;
 
 interface OpsStats {
   totalUsers?: number;
@@ -39,73 +42,93 @@ export function AdminOperationsPage() {
   const activity = data.recentActivity ?? [];
 
   const STAT_CARDS = [
-    { icon: 'group', label: 'Total Users', value: stats?.totalUsers ?? '—', color: 'text-blue-400 bg-blue-400/10' },
-    { icon: 'card_membership', label: 'Active Plans', value: stats?.activePlans ?? '—', color: 'text-green-400 bg-green-400/10' },
-    { icon: 'attach_money', label: 'Revenue', value: stats?.revenue ? `$${stats.revenue.toLocaleString()}` : '—', color: 'text-yellow-400 bg-yellow-400/10' },
-    { icon: 'support_agent', label: 'Open Tickets', value: stats?.openTickets ?? '—', color: 'text-red-400 bg-red-400/10' },
+    { icon: 'group',           label: 'Total Users',   value: stats?.totalUsers ?? '—',                                    color: '#60a5fa', bg: 'rgba(96,165,250,0.1)'  },
+    { icon: 'card_membership', label: 'Active Plans',  value: stats?.activePlans ?? '—',                                   color: '#4ade80', bg: 'rgba(74,222,128,0.1)'  },
+    { icon: 'attach_money',    label: 'Revenue',       value: stats?.revenue ? `$${stats.revenue.toLocaleString()}` : '—', color: '#facc15', bg: 'rgba(250,204,21,0.1)'  },
+    { icon: 'support_agent',   label: 'Open Tickets',  value: stats?.openTickets ?? '—',                                   color: '#f87171', bg: 'rgba(248,113,113,0.1)' },
   ];
 
   return (
     <AuthorityShell>
       <div className="pt-8">
-        <div className="mb-12">
-          <h1 className="text-5xl font-black tracking-tighter mb-3">Admin <span className="text-primary-container">Operations.</span></h1>
-          <p className="text-on-surface-variant">System overview and platform management.</p>
-        </div>
+        <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} style={{ marginBottom: 48 }}>
+          <h1 style={{ fontSize: '3rem', fontWeight: 900, letterSpacing: '-0.03em', marginBottom: 8, lineHeight: 1.1 }}>
+            <span style={{ background: 'linear-gradient(135deg, #fff 40%, #E82127)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>ADMIN OPERATIONS.</span>
+          </h1>
+          <p style={{ color: '#71717a' }}>System overview and platform management.</p>
+        </motion.div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-          {STAT_CARDS.map((s) => (
-            <div key={s.label} className="bg-surface-container rounded-xl p-8">
-              <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${s.color}`}>
-                <Icon name={s.icon} size={24} />
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6" style={{ marginBottom: 48 }}>
+          {STAT_CARDS.map((s, i) => (
+            <motion.div
+              key={s.label}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.06 }}
+              style={{ ...GLASS, borderRadius: 16, padding: 32 }}
+            >
+              <div style={{ width: 48, height: 48, borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16, background: s.bg, border: `1px solid ${s.color}30` }}>
+                <Icon name={s.icon} size={24} style={{ color: s.color }} />
               </div>
-              <p className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-zinc-500 mb-2">{s.label}</p>
-              <p className="text-3xl font-black text-on-surface">{s.value}</p>
-            </div>
+              <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#71717a', marginBottom: 8 }}>{s.label}</p>
+              <p style={{ fontSize: 28, fontWeight: 900, color: '#e4e4e7' }}>{String(s.value)}</p>
+            </motion.div>
           ))}
         </div>
 
         {/* System health */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6" style={{ marginBottom: 48 }}>
           {[
-            { label: 'API Gateway', status: 'Operational', uptime: '99.9%', color: 'text-green-400' },
-            { label: 'Database', status: 'Operational', uptime: '100%', color: 'text-green-400' },
-            { label: 'Judge System', status: 'Operational', uptime: '99.7%', color: 'text-green-400' },
-          ].map((s) => (
-            <div key={s.label} className="bg-surface-container rounded-xl p-6 flex items-center gap-4">
-              <div className={`w-3 h-3 rounded-full ${s.color.replace('text-', 'bg-')}`} />
-              <div className="flex-1">
-                <p className="font-semibold text-on-surface">{s.label}</p>
-                <p className={`text-xs font-bold ${s.color}`}>{s.status}</p>
+            { label: 'API Gateway',   status: 'Operational', uptime: '99.9%', color: '#4ade80' },
+            { label: 'Database',      status: 'Operational', uptime: '100%',  color: '#4ade80' },
+            { label: 'Judge System',  status: 'Operational', uptime: '99.7%', color: '#4ade80' },
+          ].map((s, i) => (
+            <motion.div
+              key={s.label}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.24 + i * 0.06 }}
+              style={{ ...GLASS, borderRadius: 16, padding: 24, display: 'flex', alignItems: 'center', gap: 16 }}
+            >
+              <div style={{ width: 12, height: 12, borderRadius: '50%', background: s.color, boxShadow: `0 0 8px ${s.color}`, flexShrink: 0 }} />
+              <div style={{ flex: 1 }}>
+                <p style={{ fontWeight: 600, color: '#e4e4e7' }}>{s.label}</p>
+                <p style={{ fontSize: 12, fontWeight: 700, color: s.color }}>{s.status}</p>
               </div>
-              <span className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-zinc-500">{s.uptime}</span>
-            </div>
+              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#71717a' }}>{s.uptime}</span>
+            </motion.div>
           ))}
         </div>
 
         {/* Recent activity */}
-        <div className="bg-surface-container rounded-xl p-8">
-          <h2 className="text-lg font-black tracking-tight mb-6">Recent Activity</h2>
-          {loading && <div className="text-zinc-500 text-center py-8">Loading...</div>}
-          {!loading && activity.length === 0 && <div className="text-zinc-500 text-center py-8">No recent activity.</div>}
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} style={{ ...GLASS, borderRadius: 16, padding: 32 }}>
+          <h2 style={{ fontSize: 18, fontWeight: 900, letterSpacing: '-0.02em', marginBottom: 24, color: '#e4e4e7' }}>Recent Activity</h2>
+          {loading && <div style={{ color: '#71717a', textAlign: 'center', padding: 32 }}>Loading...</div>}
+          {!loading && activity.length === 0 && <div style={{ color: '#71717a', textAlign: 'center', padding: 32 }}>No recent activity.</div>}
           {!loading && activity.length > 0 && (
             <div className="space-y-3">
-              {activity.slice(0, 10).map((a) => (
-                <div key={a.id} className="flex items-center gap-4 bg-surface-container-low rounded-xl px-6 py-4">
-                  <div className="w-8 h-8 rounded-full bg-primary-container/20 flex items-center justify-center">
-                    <Icon name="history" size={16} className="text-primary-container" />
+              {activity.slice(0, 10).map((a, i) => (
+                <motion.div
+                  key={a.id}
+                  initial={{ opacity: 0, x: -8 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.04 }}
+                  style={{ display: 'flex', alignItems: 'center', gap: 16, background: 'rgba(255,255,255,0.03)', borderRadius: 12, padding: '16px 24px', border: '1px solid rgba(255,255,255,0.05)' }}
+                >
+                  <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(232,33,39,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <Icon name="history" size={16} style={{ color: '#E82127' }} />
                   </div>
-                  <div className="flex-1">
-                    <p className="text-on-surface text-sm">{a.action}</p>
-                    {a.user && <p className="text-zinc-500 text-xs">{a.user}</p>}
+                  <div style={{ flex: 1 }}>
+                    <p style={{ color: '#e4e4e7', fontSize: 14 }}>{a.action}</p>
+                    {a.user && <p style={{ color: '#71717a', fontSize: 12 }}>{a.user}</p>}
                   </div>
-                  <span className="text-zinc-600 text-xs">{new Date(a.createdAt).toLocaleString()}</span>
-                </div>
+                  <span style={{ color: '#52525b', fontSize: 12 }}>{new Date(a.createdAt).toLocaleString()}</span>
+                </motion.div>
               ))}
             </div>
           )}
-        </div>
+        </motion.div>
       </div>
     </AuthorityShell>
   );

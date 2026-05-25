@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
 import { AuthorityShell } from '../components/AuthorityShell';
 import { Icon } from '../components/Icon';
 import { apiRequest } from '../lib/api';
 import { getSession } from '../lib/session';
+
+const GLASS = { background: 'rgba(10,10,10,0.7)', border: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(16px)' } as const;
 
 interface Application {
   id: string;
@@ -17,11 +20,11 @@ interface QueueResponse {
   items: Application[];
 }
 
-const statusColor = (s: string) => {
-  if (s === 'approved') return 'text-green-400 bg-green-400/10';
-  if (s === 'rejected') return 'text-red-400 bg-red-400/10';
-  if (s === 'reviewing') return 'text-yellow-400 bg-yellow-400/10';
-  return 'text-zinc-400 bg-zinc-400/10';
+const STATUS_STYLE: Record<string, { color: string; bg: string }> = {
+  approved:  { color: '#4ade80', bg: 'rgba(74,222,128,0.1)' },
+  rejected:  { color: '#f87171', bg: 'rgba(248,113,113,0.1)' },
+  reviewing: { color: '#facc15', bg: 'rgba(250,204,21,0.1)' },
+  pending:   { color: '#a1a1aa', bg: 'rgba(161,161,170,0.1)' },
 };
 
 export function AuthorityQueuePage() {
@@ -55,19 +58,19 @@ export function AuthorityQueuePage() {
   return (
     <AuthorityShell>
       <div className="pt-8">
-        <div className="mb-12 flex items-center justify-between">
-          <div>
-            <h1 className="text-5xl font-black tracking-tighter mb-3">Applications <span className="text-primary-container">Queue.</span></h1>
-            <p className="text-on-surface-variant">Review and process incoming applications.</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="px-4 py-2 bg-surface-container rounded-full text-sm font-bold text-zinc-300">
-              {items.filter((i) => i.status === 'pending').length} Pending
-            </span>
+        <div style={{ marginBottom: 48, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }}>
+            <h1 style={{ fontSize: '3rem', fontWeight: 900, letterSpacing: '-0.03em', marginBottom: 8, lineHeight: 1.1 }}>
+              <span style={{ background: 'linear-gradient(135deg, #fff 40%, #E82127)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>APPLICATIONS QUEUE.</span>
+            </h1>
+            <p style={{ color: '#71717a' }}>Review and process incoming applications.</p>
+          </motion.div>
+          <div style={{ ...GLASS, padding: '8px 16px', borderRadius: 999, fontSize: 14, fontWeight: 700, color: '#d4d4d8' }}>
+            {items.filter((i) => i.status === 'pending').length} Pending
           </div>
         </div>
 
-        <div className="grid grid-cols-12 gap-4 px-8 py-4 font-['Inter'] uppercase tracking-widest text-[10px] font-black text-zinc-500 mb-2">
+        <div className="grid grid-cols-12 gap-4" style={{ padding: '0 32px 8px', fontSize: 10, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#52525b' }}>
           <div className="col-span-3">Email / ID</div>
           <div className="col-span-2">Type</div>
           <div className="col-span-2 text-center">Status</div>
@@ -75,58 +78,72 @@ export function AuthorityQueuePage() {
           <div className="col-span-3 text-right">Actions</div>
         </div>
 
-        {loading && <div className="text-center py-20 text-zinc-500">Loading queue...</div>}
+        {loading && <div style={{ textAlign: 'center', padding: '80px 0', color: '#71717a' }}>Loading queue...</div>}
         {!loading && items.length === 0 && (
-          <div className="text-center py-20">
-            <Icon name="done_all" size={48} className="text-green-400/40 mx-auto mb-4" />
-            <p className="text-zinc-500">Queue is empty. All caught up!</p>
+          <div style={{ textAlign: 'center', padding: '80px 0' }}>
+            <Icon name="done_all" size={48} style={{ color: 'rgba(74,222,128,0.4)', marginBottom: 16 }} />
+            <p style={{ color: '#71717a' }}>Queue is empty. All caught up!</p>
           </div>
         )}
         {!loading && items.length > 0 && (
           <div className="space-y-2">
-            {items.map((item) => (
-              <div key={item.id} className="grid grid-cols-12 gap-4 bg-surface-container rounded-xl px-8 py-5 hover:bg-surface-container-high transition-colors items-center">
-                <div className="col-span-3">
-                  <p className="font-semibold text-on-surface text-sm">{item.email ?? item.userId ?? item.id}</p>
-                </div>
-                <div className="col-span-2">
-                  <span className="px-3 py-1 bg-surface-container-highest rounded-full text-[10px] font-bold uppercase tracking-widest text-zinc-400">
-                    {item.type}
-                  </span>
-                </div>
-                <div className="col-span-2 flex justify-center">
-                  <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${statusColor(item.status)}`}>
-                    {item.status}
-                  </span>
-                </div>
-                <div className="col-span-2 text-zinc-500 text-xs">
-                  {new Date(item.createdAt).toLocaleDateString()}
-                </div>
-                <div className="col-span-3 flex items-center gap-2 justify-end">
-                  {item.status === 'pending' && (
-                    <>
-                      <button
-                        onClick={() => action(item.id, 'approve')}
-                        disabled={actionLoading !== null}
-                        className="px-4 py-2 bg-green-400/10 text-green-400 rounded-full text-[10px] font-bold uppercase tracking-widest hover:bg-green-400/20 transition-colors disabled:opacity-50"
-                      >
-                        {actionLoading === `${item.id}-approve` ? '…' : 'Approve'}
-                      </button>
-                      <button
-                        onClick={() => action(item.id, 'reject')}
-                        disabled={actionLoading !== null}
-                        className="px-4 py-2 bg-red-400/10 text-red-400 rounded-full text-[10px] font-bold uppercase tracking-widest hover:bg-red-400/20 transition-colors disabled:opacity-50"
-                      >
-                        {actionLoading === `${item.id}-reject` ? '…' : 'Reject'}
-                      </button>
-                    </>
-                  )}
-                  {item.status !== 'pending' && (
-                    <span className="text-zinc-600 text-[10px] font-bold uppercase tracking-widest">Processed</span>
-                  )}
-                </div>
-              </div>
-            ))}
+            {items.map((item, i) => {
+              const ss = STATUS_STYLE[item.status] ?? STATUS_STYLE.pending;
+              return (
+                <motion.div
+                  key={item.id}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.04 }}
+                  className="grid grid-cols-12 gap-4 items-center"
+                  style={{ ...GLASS, borderRadius: 14, padding: '20px 32px' }}
+                >
+                  <div className="col-span-3">
+                    <p style={{ fontWeight: 600, color: '#e4e4e7', fontSize: 14 }}>{item.email ?? item.userId ?? item.id}</p>
+                  </div>
+                  <div className="col-span-2">
+                    <span style={{ padding: '4px 12px', background: 'rgba(255,255,255,0.06)', borderRadius: 999, fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#a1a1aa' }}>
+                      {item.type}
+                    </span>
+                  </div>
+                  <div className="col-span-2 flex justify-center">
+                    <span style={{ padding: '4px 12px', borderRadius: 999, fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: ss.color, background: ss.bg }}>
+                      {item.status}
+                    </span>
+                  </div>
+                  <div className="col-span-2" style={{ color: '#71717a', fontSize: 12 }}>
+                    {new Date(item.createdAt).toLocaleDateString()}
+                  </div>
+                  <div className="col-span-3 flex items-center gap-2 justify-end">
+                    {item.status === 'pending' && (
+                      <>
+                        <motion.button
+                          onClick={() => action(item.id, 'approve')}
+                          disabled={actionLoading !== null}
+                          whileHover={{ scale: 1.04 }}
+                          whileTap={{ scale: 0.96 }}
+                          style={{ padding: '8px 16px', background: 'rgba(74,222,128,0.1)', color: '#4ade80', borderRadius: 999, fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer', opacity: actionLoading !== null ? 0.5 : 1, border: '1px solid rgba(74,222,128,0.2)' }}
+                        >
+                          {actionLoading === `${item.id}-approve` ? '…' : 'Approve'}
+                        </motion.button>
+                        <motion.button
+                          onClick={() => action(item.id, 'reject')}
+                          disabled={actionLoading !== null}
+                          whileHover={{ scale: 1.04 }}
+                          whileTap={{ scale: 0.96 }}
+                          style={{ padding: '8px 16px', background: 'rgba(248,113,113,0.1)', color: '#f87171', borderRadius: 999, fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer', opacity: actionLoading !== null ? 0.5 : 1, border: '1px solid rgba(248,113,113,0.2)' }}
+                        >
+                          {actionLoading === `${item.id}-reject` ? '…' : 'Reject'}
+                        </motion.button>
+                      </>
+                    )}
+                    {item.status !== 'pending' && (
+                      <span style={{ color: '#52525b', fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Processed</span>
+                    )}
+                  </div>
+                </motion.div>
+              );
+            })}
           </div>
         )}
       </div>
