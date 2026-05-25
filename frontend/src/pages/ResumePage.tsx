@@ -1,9 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
+import { motion } from 'framer-motion';
 import { AppShell } from '../components/AppShell';
 import { Icon } from '../components/Icon';
 import { apiRequest } from '../lib/api';
 import { getSession } from '../lib/session';
 import { useUser } from '../contexts/UserContext';
+
+const GLASS = { background: 'rgba(10,10,10,0.7)', border: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(16px)' } as const;
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? '/api';
 
@@ -373,12 +376,9 @@ export function ResumePage() {
     update('experience', updated);
   }
 
-  let atsColor = 'text-red-400';
-  if (atsScore >= 80) atsColor = 'text-green-400';
-  else if (atsScore >= 50) atsColor = 'text-yellow-400';
-  let atsBg = 'bg-red-400';
-  if (atsScore >= 80) atsBg = 'bg-green-400';
-  else if (atsScore >= 50) atsBg = 'bg-yellow-400';
+  const atsHex = atsScore >= 80 ? '#4ade80' : atsScore >= 50 ? '#facc15' : '#f87171';
+  const atsBgRgba = atsScore >= 80 ? 'rgba(74,222,128,0.1)' : atsScore >= 50 ? 'rgba(250,204,21,0.1)' : 'rgba(248,113,113,0.1)';
+  const atsBorderColor = atsScore >= 80 ? 'rgba(74,222,128,0.4)' : atsScore >= 50 ? 'rgba(250,204,21,0.4)' : 'rgba(248,113,113,0.4)';
 
   const SECTIONS: { key: Section; label: string; icon: string }[] = [
     { key: 'personal',       label: 'Personal',       icon: 'person' },
@@ -389,13 +389,6 @@ export function ResumePage() {
     { key: 'certifications', label: 'Certs',          icon: 'verified' },
   ];
 
-  let atsBorderBg = 'border-red-500/40 bg-red-500/10';
-  if (atsScore >= 80) atsBorderBg = 'border-green-500/40 bg-green-500/10';
-  else if (atsScore >= 50) atsBorderBg = 'border-yellow-500/40 bg-yellow-500/10';
-  let atsBadge = `${atsColor} bg-red-400/10`;
-  if (atsScore >= 80) atsBadge = `${atsColor} bg-green-400/10`;
-  else if (atsScore >= 50) atsBadge = `${atsColor} bg-yellow-400/10`;
-
   let saveLabel = 'Save';
   if (saving) saveLabel = 'Saving…';
   else if (saved) saveLabel = 'Saved!';
@@ -405,116 +398,139 @@ export function ResumePage() {
       <div className="pt-8">
         {/* Header */}
         <div className="flex items-start justify-between mb-8 gap-4 flex-wrap">
-          <div>
-            <h1 className="text-5xl font-black tracking-tighter mb-1">
-              Resume <span className="text-primary-container">Builder.</span>
+          <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }}>
+            <h1 style={{ fontSize: '3rem', fontWeight: 900, letterSpacing: '-0.03em', marginBottom: 4, lineHeight: 1.1 }}>
+              <span style={{ background: 'linear-gradient(135deg, #fff 40%, #E82127)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>RESUME BUILDER.</span>
             </h1>
-            <p className="text-on-surface-variant">ATS-optimized. Export to PDF anytime.</p>
-          </div>
-          <div className="flex items-center gap-3">
-            {/* ATS Score pill */}
-            <button
+            <p style={{ color: '#71717a' }}>ATS-optimized. Export to PDF anytime.</p>
+          </motion.div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' as const }}>
+            <motion.button
               type="button"
               onClick={() => setShowAts((v) => !v)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-full border font-bold text-sm transition-all ${atsBorderBg}`}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 16px', borderRadius: 999, border: `1px solid ${atsBorderColor}`, background: atsBgRgba, fontWeight: 700, fontSize: 14, color: atsHex, cursor: 'pointer' }}
             >
-              <div className={`w-2 h-2 rounded-full ${atsBg}`} />
-              <span className={atsColor}>ATS Score: {atsScore}%</span>
-              <Icon name={showAts ? 'expand_less' : 'expand_more'} size={16} className="text-zinc-500" />
-            </button>
-            {/* Save */}
-            <button
+              <div style={{ width: 8, height: 8, borderRadius: '50%', background: atsHex }} />
+              ATS Score: {atsScore}%
+              <Icon name={showAts ? 'expand_less' : 'expand_more'} size={16} style={{ color: '#71717a' }} />
+            </motion.button>
+            <motion.button
               type="button"
               onClick={saveResume}
               disabled={saving}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-surface-container text-zinc-300 font-bold text-sm hover:bg-surface-container-high transition-all disabled:opacity-60"
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              style={{ ...GLASS, display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', borderRadius: 999, color: saved ? '#4ade80' : '#d4d4d8', fontWeight: 700, fontSize: 14, cursor: 'pointer', opacity: saving ? 0.6 : 1 }}
             >
-              <Icon name={saved ? 'check' : 'save'} size={16} className={saved ? 'text-green-400' : ''} />
+              <Icon name={saved ? 'check' : 'save'} size={16} style={{ color: saved ? '#4ade80' : undefined }} />
               {saveLabel}
-            </button>
-            {/* Export */}
-            <button
+            </motion.button>
+            <motion.button
               type="button"
               onClick={exportPdf}
               disabled={exporting}
-              className="flex items-center gap-2 bg-primary-container text-white font-bold px-6 py-2.5 rounded-full text-sm hover:brightness-110 transition-all active:scale-95 disabled:opacity-60"
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.96 }}
+              style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#E82127', color: '#fff', fontWeight: 700, padding: '10px 24px', borderRadius: 999, fontSize: 14, cursor: 'pointer', boxShadow: '0 0 20px rgba(232,33,39,0.35)', opacity: exporting ? 0.6 : 1 }}
             >
               <Icon name="download" size={16} />
               {exporting ? 'Generating…' : 'Export PDF'}
-            </button>
+            </motion.button>
           </div>
         </div>
 
         {saveError && (
-          <div className="mb-4 bg-red-500/10 border border-red-500/30 text-red-400 text-sm px-4 py-3 rounded-xl">{saveError}</div>
+          <div style={{ marginBottom: 16, background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.3)', color: '#f87171', fontSize: 14, padding: '12px 16px', borderRadius: 14 }}>{saveError}</div>
         )}
 
         {/* ATS tips panel */}
         {showAts && (
-          <div className="bg-surface-container rounded-xl p-5 mb-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <span className="text-sm font-bold text-on-surface">ATS Checklist</span>
-                <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${atsBadge}`}>{atsScore}%</span>
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            style={{ ...GLASS, borderRadius: 16, padding: 20, marginBottom: 24 }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <span style={{ fontSize: 14, fontWeight: 700, color: '#e4e4e7' }}>ATS Checklist</span>
+                <span style={{ fontSize: 12, fontWeight: 700, padding: '2px 8px', borderRadius: 999, color: atsHex, background: atsBgRgba }}>{atsScore}%</span>
               </div>
-              <div className="flex-1 mx-6 h-1.5 bg-surface-container-highest rounded-full overflow-hidden">
-                <div className={`h-full rounded-full transition-all duration-500 ${atsBg}`} style={{ width: `${atsScore}%` }} />
+              <div style={{ flex: 1, margin: '0 24px', height: 6, background: 'rgba(255,255,255,0.06)', borderRadius: 999, overflow: 'hidden' }}>
+                <motion.div
+                  animate={{ width: `${atsScore}%` }}
+                  transition={{ duration: 0.5 }}
+                  style={{ height: '100%', borderRadius: 999, background: atsHex }}
+                />
               </div>
-              <span className="text-xs text-zinc-500">{atsTips.filter((t) => t.ok).length}/{atsTips.length} checks</span>
+              <span style={{ fontSize: 12, color: '#71717a' }}>{atsTips.filter((t) => t.ok).length}/{atsTips.length} checks</span>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
               {atsTips.map((tip) => (
                 <div
                   key={tip.label}
                   title={tip.ok ? '' : tip.tip}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold ${tip.ok ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400 cursor-help'}`}
+                  style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 10, fontSize: 10, fontWeight: 700, cursor: tip.ok ? 'default' : 'help', background: tip.ok ? 'rgba(74,222,128,0.08)' : 'rgba(248,113,113,0.08)', color: tip.ok ? '#4ade80' : '#f87171', border: `1px solid ${tip.ok ? 'rgba(74,222,128,0.2)' : 'rgba(248,113,113,0.2)'}` }}
                 >
                   <Icon name={tip.ok ? 'check_circle' : 'cancel'} size={12} filled={tip.ok} />
                   {tip.label}
                 </div>
               ))}
             </div>
-          </div>
+          </motion.div>
         )}
 
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
           {/* Left: Editor */}
           <div>
             {/* Template selector */}
-            <div className="flex items-center gap-3 mb-5">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Template</span>
-              <div className="flex items-center p-1 bg-surface-container rounded-full">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#71717a' }}>Template</span>
+              <div style={{ display: 'flex', alignItems: 'center', padding: 4, background: 'rgba(255,255,255,0.04)', borderRadius: 999, border: '1px solid rgba(255,255,255,0.07)' }}>
                 {(['minimal', 'modern'] as const).map((t) => (
-                  <button
+                  <motion.button
                     key={t}
                     type="button"
                     onClick={() => setTemplate(t)}
-                    className={`px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all capitalize ${template === t ? 'bg-primary-container text-white' : 'text-zinc-500 hover:text-zinc-200'}`}
+                    whileHover={{ scale: 1.04 }}
+                    whileTap={{ scale: 0.96 }}
+                    style={template === t ? {
+                      padding: '6px 16px', borderRadius: 999, fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', background: '#E82127', color: '#fff', cursor: 'pointer', boxShadow: '0 0 12px rgba(232,33,39,0.3)',
+                    } : {
+                      padding: '6px 16px', borderRadius: 999, fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', background: 'transparent', color: '#71717a', cursor: 'pointer',
+                    }}
                   >
                     {t}
-                  </button>
+                  </motion.button>
                 ))}
               </div>
             </div>
 
             {/* Section tabs */}
-            <div className="flex flex-wrap gap-1.5 p-1.5 bg-surface-container rounded-2xl mb-5">
+            <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 6, padding: 6, background: 'rgba(255,255,255,0.03)', borderRadius: 20, border: '1px solid rgba(255,255,255,0.06)', marginBottom: 20 }}>
               {SECTIONS.map((s) => (
-                <button
+                <motion.button
                   key={s.key}
                   type="button"
                   onClick={() => setSection(s.key)}
-                  className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${section === s.key ? 'bg-primary-container text-white' : 'text-zinc-500 hover:text-zinc-200'}`}
+                  whileHover={{ scale: 1.04 }}
+                  whileTap={{ scale: 0.96 }}
+                  style={section === s.key ? {
+                    display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 14, fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', background: 'rgba(232,33,39,0.14)', border: '1px solid rgba(232,33,39,0.4)', color: '#fff', cursor: 'pointer',
+                  } : {
+                    display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 14, fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', background: 'transparent', border: '1px solid transparent', color: '#71717a', cursor: 'pointer',
+                  }}
                 >
                   <Icon name={s.icon} size={13} />
                   {s.label}
-                </button>
+                </motion.button>
               ))}
             </div>
 
             {/* Personal section */}
             {section === 'personal' && (
-              <div className="bg-surface-container rounded-xl p-6 space-y-4">
+              <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} style={{ ...GLASS, borderRadius: 16, padding: 24 }} className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   {([
                     { label: 'Full Name', key: 'name' as const, type: 'text', placeholder: 'John Engineer' },
@@ -525,19 +541,19 @@ export function ResumePage() {
                     { label: 'GitHub URL', key: 'github' as const, type: 'url', placeholder: 'github.com/john' },
                   ] as Array<{ label: string; key: keyof ResumeData; type: string; placeholder: string }>).map((f) => (
                     <div key={f.key}>
-                      <label className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-zinc-500 block mb-1.5">{f.label}</label>
+                      <label style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: '#71717a', display: 'block', marginBottom: 6 }}>{f.label}</label>
                       <input
                         type={f.type}
                         value={data[f.key] as string}
                         placeholder={f.placeholder}
                         onChange={(e) => update(f.key, e.target.value as ResumeData[typeof f.key])}
-                        className="w-full bg-surface-container-low rounded-xl px-4 py-2.5 text-on-surface text-sm border border-transparent focus:border-primary-container/40 focus:outline-none transition-colors placeholder-zinc-700"
+                        style={{ width: '100%', background: 'rgba(255,255,255,0.04)', borderRadius: 12, padding: '10px 16px', fontSize: 14, color: '#e4e4e7', border: '1px solid rgba(255,255,255,0.08)', outline: 'none', boxSizing: 'border-box' as const }}
                       />
                     </div>
                   ))}
                 </div>
                 <div>
-                  <label htmlFor="resume-summary" className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-zinc-500 block mb-1.5">
+                  <label htmlFor="resume-summary" style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: '#71717a', display: 'block', marginBottom: 6 }}>
                     Professional Summary
                   </label>
                   <textarea
@@ -546,19 +562,19 @@ export function ResumePage() {
                     placeholder="Full-stack engineer with 3+ years building scalable distributed systems. Passionate about performance optimization and developer experience."
                     onChange={(e) => update('summary', e.target.value)}
                     rows={4}
-                    className="w-full bg-surface-container-low rounded-xl px-4 py-2.5 text-on-surface text-sm border border-transparent focus:border-primary-container/40 focus:outline-none resize-none transition-colors placeholder-zinc-700"
+                    style={{ width: '100%', background: 'rgba(255,255,255,0.04)', borderRadius: 12, padding: '10px 16px', fontSize: 14, color: '#e4e4e7', border: '1px solid rgba(255,255,255,0.08)', outline: 'none', resize: 'none', boxSizing: 'border-box' as const }}
                   />
-                  <p className="text-[10px] text-zinc-600 mt-1">{data.summary.trim().split(/\s+/).filter(Boolean).length} words — aim for 30-50</p>
+                  <p style={{ fontSize: 10, color: '#52525b', marginTop: 4 }}>{data.summary.trim().split(/\s+/).filter(Boolean).length} words — aim for 30-50</p>
                 </div>
-              </div>
+              </motion.div>
             )}
 
             {/* Skills section */}
             {section === 'skills' && (
-              <div className="bg-surface-container rounded-xl p-6 space-y-4">
+              <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} style={{ ...GLASS, borderRadius: 16, padding: 24 }} className="space-y-4">
                 <div>
-                  <label htmlFor="resume-add-skill" className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-zinc-500 block mb-2">Add Skills</label>
-                  <div className="flex gap-2">
+                  <label htmlFor="resume-add-skill" style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: '#71717a', display: 'block', marginBottom: 8 }}>Add Skills</label>
+                  <div style={{ display: 'flex', gap: 8 }}>
                     <input
                       id="resume-add-skill"
                       type="text"
@@ -566,27 +582,29 @@ export function ResumePage() {
                       placeholder="e.g. TypeScript, React, PostgreSQL"
                       onChange={(e) => setSkillInput(e.target.value)}
                       onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addSkill(); } }}
-                      className="flex-1 bg-surface-container-low rounded-xl px-4 py-2.5 text-on-surface text-sm border border-transparent focus:border-primary-container/40 focus:outline-none placeholder-zinc-700"
+                      style={{ flex: 1, background: 'rgba(255,255,255,0.04)', borderRadius: 12, padding: '10px 16px', fontSize: 14, color: '#e4e4e7', border: '1px solid rgba(255,255,255,0.08)', outline: 'none' }}
                     />
-                    <button
+                    <motion.button
                       type="button"
                       onClick={addSkill}
-                      className="bg-primary-container text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:brightness-110 transition-all"
+                      whileHover={{ scale: 1.04 }}
+                      whileTap={{ scale: 0.96 }}
+                      style={{ background: '#E82127', color: '#fff', padding: '10px 20px', borderRadius: 12, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}
                     >
                       Add
-                    </button>
+                    </motion.button>
                   </div>
-                  <p className="text-[10px] text-zinc-600 mt-1">Press Enter or click Add. Aim for 8-15 relevant skills.</p>
+                  <p style={{ fontSize: 10, color: '#52525b', marginTop: 4 }}>Press Enter or click Add. Aim for 8-15 relevant skills.</p>
                 </div>
-                <div className="flex flex-wrap gap-2 min-h-[60px]">
-                  {data.skills.length === 0 && <p className="text-zinc-600 text-sm">No skills added yet.</p>}
+                <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 8, minHeight: 60 }}>
+                  {data.skills.length === 0 && <p style={{ color: '#52525b', fontSize: 14 }}>No skills added yet.</p>}
                   {data.skills.map((s) => (
-                    <div key={s} className="flex items-center gap-1.5 px-3 py-1.5 bg-surface-container-highest rounded-full">
-                      <span className="text-xs font-bold text-on-surface">{s}</span>
+                    <div key={s} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', background: 'rgba(255,255,255,0.06)', borderRadius: 999, border: '1px solid rgba(255,255,255,0.08)' }}>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: '#e4e4e7' }}>{s}</span>
                       <button
                         type="button"
                         onClick={() => update('skills', data.skills.filter((sk) => sk !== s))}
-                        className="text-zinc-600 hover:text-red-400 transition-colors"
+                        style={{ color: '#71717a', background: 'transparent', cursor: 'pointer', display: 'flex' }}
                       >
                         <Icon name="close" size={12} />
                       </button>
@@ -594,31 +612,33 @@ export function ResumePage() {
                   ))}
                 </div>
                 <div>
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2">Quick Add</p>
-                  <div className="flex flex-wrap gap-1.5">
+                  <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: '#71717a', marginBottom: 8 }}>Quick Add</p>
+                  <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 6 }}>
                     {['Python', 'JavaScript', 'TypeScript', 'Java', 'Go', 'Rust', 'C++', 'React', 'Node.js', 'AWS', 'Docker', 'Kubernetes', 'PostgreSQL', 'Redis', 'GraphQL'].filter((s) => !data.skills.includes(s)).slice(0, 10).map((s) => (
-                      <button
+                      <motion.button
                         key={s}
                         type="button"
                         onClick={() => update('skills', [...data.skills, s])}
-                        className="text-[10px] font-bold px-3 py-1 rounded-full border border-zinc-700 text-zinc-400 hover:border-primary-container/50 hover:text-primary-container transition-all"
+                        whileHover={{ scale: 1.06 }}
+                        whileTap={{ scale: 0.96 }}
+                        style={{ fontSize: 10, fontWeight: 700, padding: '4px 12px', borderRadius: 999, border: '1px solid rgba(255,255,255,0.1)', color: '#a1a1aa', background: 'transparent', cursor: 'pointer' }}
                       >
                         + {s}
-                      </button>
+                      </motion.button>
                     ))}
                   </div>
                 </div>
-              </div>
+              </motion.div>
             )}
 
             {/* Education section */}
             {section === 'education' && (
               <div className="space-y-4">
                 {data.education.map((edu, i) => (
-                  <div key={`edu-form-${String(i)}`} className="bg-surface-container rounded-xl p-6 space-y-3">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-zinc-500">Entry {i + 1}</span>
-                      <button type="button" onClick={() => update('education', data.education.filter((_, j) => j !== i))} className="text-zinc-600 hover:text-red-400 transition-colors">
+                  <motion.div key={`edu-form-${String(i)}`} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} style={{ ...GLASS, borderRadius: 16, padding: 24 }} className="space-y-3">
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                      <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: '#71717a' }}>Entry {i + 1}</span>
+                      <button type="button" onClick={() => update('education', data.education.filter((_, j) => j !== i))} style={{ color: '#52525b', background: 'transparent', cursor: 'pointer', display: 'flex' }}>
                         <Icon name="delete" size={16} />
                       </button>
                     </div>
@@ -631,7 +651,7 @@ export function ResumePage() {
                         { label: 'GPA (optional)', f: 'gpa', placeholder: '8.5/10' },
                       ] as Array<{ label: string; f: keyof typeof edu; placeholder: string }>).map((field) => (
                         <div key={field.f} className={field.f === 'school' || field.f === 'field' ? 'col-span-2' : ''}>
-                          <label className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-zinc-500 block mb-1">{field.label}</label>
+                          <label style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: '#71717a', display: 'block', marginBottom: 4 }}>{field.label}</label>
                           <input
                             type="text"
                             value={edu[field.f] ?? ''}
@@ -641,17 +661,17 @@ export function ResumePage() {
                               updated[i] = { ...updated[i], [field.f]: e.target.value };
                               update('education', updated);
                             }}
-                            className="w-full bg-surface-container-low rounded-xl px-4 py-2.5 text-on-surface text-sm border border-transparent focus:border-primary-container/40 focus:outline-none placeholder-zinc-700"
+                            style={{ width: '100%', background: 'rgba(255,255,255,0.04)', borderRadius: 12, padding: '10px 16px', fontSize: 14, color: '#e4e4e7', border: '1px solid rgba(255,255,255,0.08)', outline: 'none', boxSizing: 'border-box' as const }}
                           />
                         </div>
                       ))}
                     </div>
-                  </div>
+                  </motion.div>
                 ))}
                 <button
                   type="button"
                   onClick={() => update('education', [...data.education, { school: '', degree: '', field: 'Computer Science', year: '', gpa: '' }])}
-                  className="w-full border border-dashed border-zinc-700 rounded-xl py-3 text-zinc-500 hover:text-zinc-300 hover:border-zinc-500 transition-all text-sm flex items-center justify-center gap-2"
+                  style={{ width: '100%', border: '1px dashed rgba(255,255,255,0.15)', borderRadius: 14, padding: '12px 0', color: '#71717a', background: 'transparent', fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, cursor: 'pointer' }}
                 >
                   <Icon name="add" size={16} /> Add Education
                 </button>
@@ -662,10 +682,10 @@ export function ResumePage() {
             {section === 'experience' && (
               <div className="space-y-4">
                 {data.experience.map((exp, i) => (
-                  <div key={`exp-form-${String(i)}`} className="bg-surface-container rounded-xl p-6 space-y-3">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-zinc-500">Role {i + 1}</span>
-                      <button type="button" onClick={() => update('experience', data.experience.filter((_, j) => j !== i))} className="text-zinc-600 hover:text-red-400 transition-colors">
+                  <motion.div key={`exp-form-${String(i)}`} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} style={{ ...GLASS, borderRadius: 16, padding: 24 }} className="space-y-3">
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                      <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: '#71717a' }}>Role {i + 1}</span>
+                      <button type="button" onClick={() => update('experience', data.experience.filter((_, j) => j !== i))} style={{ color: '#52525b', background: 'transparent', cursor: 'pointer', display: 'flex' }}>
                         <Icon name="delete" size={16} />
                       </button>
                     </div>
@@ -677,7 +697,7 @@ export function ResumePage() {
                         { label: 'Location', f: 'location', placeholder: 'Bengaluru, India (Remote)' },
                       ] as Array<{ label: string; f: keyof typeof exp; placeholder: string }>).map((field) => (
                         <div key={field.f}>
-                          <label className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-zinc-500 block mb-1">{field.label}</label>
+                          <label style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: '#71717a', display: 'block', marginBottom: 4 }}>{field.label}</label>
                           <input
                             type="text"
                             value={exp[field.f] as string}
@@ -687,30 +707,30 @@ export function ResumePage() {
                               updated[i] = { ...updated[i], [field.f]: e.target.value };
                               update('experience', updated);
                             }}
-                            className="w-full bg-surface-container-low rounded-xl px-4 py-2.5 text-on-surface text-sm border border-transparent focus:border-primary-container/40 focus:outline-none placeholder-zinc-700"
+                            style={{ width: '100%', background: 'rgba(255,255,255,0.04)', borderRadius: 12, padding: '10px 16px', fontSize: 14, color: '#e4e4e7', border: '1px solid rgba(255,255,255,0.08)', outline: 'none', boxSizing: 'border-box' as const }}
                           />
                         </div>
                       ))}
                     </div>
                     <div>
-                      <label htmlFor={`exp-bullet-${i}-0`} className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-zinc-500 block mb-1">
+                      <label htmlFor={`exp-bullet-${i}-0`} style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: '#71717a', display: 'block', marginBottom: 4 }}>
                         Impact Bullets — use numbers & results
                       </label>
                       {exp.bullets.map((bullet, j) => (
-                        <div key={`bullet-${String(j)}`} className="flex gap-2 mb-2">
-                          <span className="text-zinc-600 text-sm mt-2.5 flex-shrink-0">•</span>
+                        <div key={`bullet-${String(j)}`} style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+                          <span style={{ color: '#52525b', fontSize: 14, marginTop: 10, flexShrink: 0 }}>•</span>
                           <input
                             id={`exp-bullet-${i}-${j}`}
                             type="text"
                             value={bullet}
                             placeholder={j === 0 ? 'Reduced API latency by 42% via Redis caching, saving $8k/month in infra costs.' : 'Add another impact bullet…'}
                             onChange={(e) => updateExpBullet(i, j, e.target.value)}
-                            className="flex-1 bg-surface-container-low rounded-xl px-4 py-2 text-on-surface text-sm border border-transparent focus:border-primary-container/40 focus:outline-none placeholder-zinc-700"
+                            style={{ flex: 1, background: 'rgba(255,255,255,0.04)', borderRadius: 12, padding: '8px 16px', fontSize: 14, color: '#e4e4e7', border: '1px solid rgba(255,255,255,0.08)', outline: 'none' }}
                           />
                           <button
                             type="button"
                             onClick={() => removeExpBullet(i, j)}
-                            className="text-zinc-700 hover:text-red-400 transition-colors mt-1 flex-shrink-0"
+                            style={{ color: '#52525b', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', flexShrink: 0, marginTop: 4 }}
                           >
                             <Icon name="remove" size={14} />
                           </button>
@@ -723,17 +743,17 @@ export function ResumePage() {
                           updated[i] = { ...updated[i], bullets: [...updated[i].bullets, ''] };
                           update('experience', updated);
                         }}
-                        className="text-[10px] text-zinc-500 hover:text-zinc-300 flex items-center gap-1 mt-1 transition-colors"
+                        style={{ fontSize: 10, color: '#71717a', background: 'transparent', display: 'flex', alignItems: 'center', gap: 4, marginTop: 4, cursor: 'pointer' }}
                       >
                         <Icon name="add" size={12} /> Add bullet
                       </button>
                     </div>
-                  </div>
+                  </motion.div>
                 ))}
                 <button
                   type="button"
                   onClick={() => update('experience', [...data.experience, { company: '', role: '', duration: '', location: '', bullets: ['', '', ''] }])}
-                  className="w-full border border-dashed border-zinc-700 rounded-xl py-3 text-zinc-500 hover:text-zinc-300 hover:border-zinc-500 transition-all text-sm flex items-center justify-center gap-2"
+                  style={{ width: '100%', border: '1px dashed rgba(255,255,255,0.15)', borderRadius: 14, padding: '12px 0', color: '#71717a', background: 'transparent', fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, cursor: 'pointer' }}
                 >
                   <Icon name="add" size={16} /> Add Experience
                 </button>
@@ -744,10 +764,10 @@ export function ResumePage() {
             {section === 'projects' && (
               <div className="space-y-4">
                 {data.projects.map((proj, i) => (
-                  <div key={`proj-form-${String(i)}`} className="bg-surface-container rounded-xl p-6 space-y-3">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-zinc-500">Project {i + 1}</span>
-                      <button type="button" onClick={() => update('projects', data.projects.filter((_, j) => j !== i))} className="text-zinc-600 hover:text-red-400 transition-colors">
+                  <motion.div key={`proj-form-${String(i)}`} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} style={{ ...GLASS, borderRadius: 16, padding: 24 }} className="space-y-3">
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                      <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: '#71717a' }}>Project {i + 1}</span>
+                      <button type="button" onClick={() => update('projects', data.projects.filter((_, j) => j !== i))} style={{ color: '#52525b', background: 'transparent', cursor: 'pointer', display: 'flex' }}>
                         <Icon name="delete" size={16} />
                       </button>
                     </div>
@@ -758,7 +778,7 @@ export function ResumePage() {
                       { label: 'Link (GitHub / Demo)', f: 'link', placeholder: 'github.com/you/project' },
                     ] as Array<{ label: string; f: keyof typeof proj; placeholder: string }>).map((field) => (
                       <div key={field.f}>
-                        <label className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-zinc-500 block mb-1">{field.label}</label>
+                        <label style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: '#71717a', display: 'block', marginBottom: 4 }}>{field.label}</label>
                         <input
                           type="text"
                           value={proj[field.f] ?? ''}
@@ -768,16 +788,16 @@ export function ResumePage() {
                             updated[i] = { ...updated[i], [field.f]: e.target.value };
                             update('projects', updated);
                           }}
-                          className="w-full bg-surface-container-low rounded-xl px-4 py-2.5 text-on-surface text-sm border border-transparent focus:border-primary-container/40 focus:outline-none placeholder-zinc-700"
+                          style={{ width: '100%', background: 'rgba(255,255,255,0.04)', borderRadius: 12, padding: '10px 16px', fontSize: 14, color: '#e4e4e7', border: '1px solid rgba(255,255,255,0.08)', outline: 'none', boxSizing: 'border-box' as const }}
                         />
                       </div>
                     ))}
-                  </div>
+                  </motion.div>
                 ))}
                 <button
                   type="button"
                   onClick={() => update('projects', [...data.projects, { name: '', desc: '', stack: '', link: '' }])}
-                  className="w-full border border-dashed border-zinc-700 rounded-xl py-3 text-zinc-500 hover:text-zinc-300 hover:border-zinc-500 transition-all text-sm flex items-center justify-center gap-2"
+                  style={{ width: '100%', border: '1px dashed rgba(255,255,255,0.15)', borderRadius: 14, padding: '12px 0', color: '#71717a', background: 'transparent', fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, cursor: 'pointer' }}
                 >
                   <Icon name="add" size={16} /> Add Project
                 </button>
@@ -788,17 +808,17 @@ export function ResumePage() {
             {section === 'certifications' && (
               <div className="space-y-4">
                 {data.certifications.length === 0 && (
-                  <div className="bg-surface-container rounded-xl p-8 text-center">
-                    <Icon name="verified" size={32} className="text-zinc-700 mx-auto mb-3" />
-                    <p className="text-zinc-500 text-sm mb-4">No certifications added yet.</p>
-                    <p className="text-zinc-600 text-xs">Add AWS, Google Cloud, Azure, or any professional certification.</p>
-                  </div>
+                  <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} style={{ ...GLASS, borderRadius: 16, padding: 32, textAlign: 'center' }}>
+                    <Icon name="verified" size={32} style={{ color: '#3f3f46', marginBottom: 12 }} />
+                    <p style={{ color: '#71717a', fontSize: 14, marginBottom: 8 }}>No certifications added yet.</p>
+                    <p style={{ color: '#52525b', fontSize: 12 }}>Add AWS, Google Cloud, Azure, or any professional certification.</p>
+                  </motion.div>
                 )}
                 {data.certifications.map((cert, i) => (
-                  <div key={`cert-form-${String(i)}`} className="bg-surface-container rounded-xl p-6 space-y-3">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-zinc-500">Cert {i + 1}</span>
-                      <button type="button" onClick={() => update('certifications', data.certifications.filter((_, j) => j !== i))} className="text-zinc-600 hover:text-red-400 transition-colors">
+                  <motion.div key={`cert-form-${String(i)}`} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} style={{ ...GLASS, borderRadius: 16, padding: 24 }} className="space-y-3">
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                      <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: '#71717a' }}>Cert {i + 1}</span>
+                      <button type="button" onClick={() => update('certifications', data.certifications.filter((_, j) => j !== i))} style={{ color: '#52525b', background: 'transparent', cursor: 'pointer', display: 'flex' }}>
                         <Icon name="delete" size={16} />
                       </button>
                     </div>
@@ -809,7 +829,7 @@ export function ResumePage() {
                         { label: 'Year', f: 'year', placeholder: '2024' },
                       ] as Array<{ label: string; f: keyof typeof cert; placeholder: string }>).map((field) => (
                         <div key={field.f} className={field.f === 'name' ? 'col-span-3' : ''}>
-                          <label className="font-['Inter'] uppercase tracking-widest text-[10px] font-bold text-zinc-500 block mb-1">{field.label}</label>
+                          <label style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: '#71717a', display: 'block', marginBottom: 4 }}>{field.label}</label>
                           <input
                             type="text"
                             value={cert[field.f]}
@@ -819,17 +839,17 @@ export function ResumePage() {
                               updated[i] = { ...updated[i], [field.f]: e.target.value };
                               update('certifications', updated);
                             }}
-                            className="w-full bg-surface-container-low rounded-xl px-4 py-2.5 text-on-surface text-sm border border-transparent focus:border-primary-container/40 focus:outline-none placeholder-zinc-700"
+                            style={{ width: '100%', background: 'rgba(255,255,255,0.04)', borderRadius: 12, padding: '10px 16px', fontSize: 14, color: '#e4e4e7', border: '1px solid rgba(255,255,255,0.08)', outline: 'none', boxSizing: 'border-box' as const }}
                           />
                         </div>
                       ))}
                     </div>
-                  </div>
+                  </motion.div>
                 ))}
                 <button
                   type="button"
                   onClick={() => update('certifications', [...data.certifications, { name: '', issuer: '', year: '' }])}
-                  className="w-full border border-dashed border-zinc-700 rounded-xl py-3 text-zinc-500 hover:text-zinc-300 hover:border-zinc-500 transition-all text-sm flex items-center justify-center gap-2"
+                  style={{ width: '100%', border: '1px dashed rgba(255,255,255,0.15)', borderRadius: 14, padding: '12px 0', color: '#71717a', background: 'transparent', fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, cursor: 'pointer' }}
                 >
                   <Icon name="add" size={16} /> Add Certification
                 </button>
@@ -838,13 +858,13 @@ export function ResumePage() {
           </div>
 
           {/* Right: Live preview */}
-          <div className="sticky top-24 max-h-[calc(100vh-8rem)] overflow-y-auto rounded-xl shadow-2xl border border-zinc-800">
-            <div className="flex items-center justify-between px-4 py-2.5 bg-surface-container border-b border-zinc-800 rounded-t-xl">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Live Preview — {template}</span>
-              <div className="flex gap-1.5">
-                <div className="w-3 h-3 rounded-full bg-red-500/50" />
-                <div className="w-3 h-3 rounded-full bg-yellow-500/50" />
-                <div className="w-3 h-3 rounded-full bg-green-500/50" />
+          <div style={{ position: 'sticky', top: 96, maxHeight: 'calc(100vh - 8rem)', overflowY: 'auto', borderRadius: 16, boxShadow: '0 24px 48px rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.08)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 16px', background: 'rgba(10,10,10,0.9)', borderBottom: '1px solid rgba(255,255,255,0.06)', borderRadius: '16px 16px 0 0' }}>
+              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#52525b' }}>Live Preview — {template}</span>
+              <div style={{ display: 'flex', gap: 6 }}>
+                <div style={{ width: 12, height: 12, borderRadius: '50%', background: 'rgba(248,113,113,0.5)' }} />
+                <div style={{ width: 12, height: 12, borderRadius: '50%', background: 'rgba(250,204,21,0.5)' }} />
+                <div style={{ width: 12, height: 12, borderRadius: '50%', background: 'rgba(74,222,128,0.5)' }} />
               </div>
             </div>
             {template === 'minimal' ? <PreviewMinimal data={data} /> : <PreviewModern data={data} />}
@@ -857,16 +877,23 @@ export function ResumePage() {
             { icon: 'format_list_bulleted', title: 'Use Action Verbs', body: 'Start every bullet with a strong verb: Built, Reduced, Scaled, Architected, Led, Shipped.' },
             { icon: 'bar_chart', title: 'Quantify Everything', body: 'Numbers catch recruiter eyes. "40% latency reduction" beats "improved performance" every time.' },
             { icon: 'target', title: 'Tailor Per Role', body: 'Mirror keywords from the JD. ATS systems scan for exact matches before a human ever reads your resume.' },
-          ].map((tip) => (
-            <div key={tip.title} className="bg-surface-container rounded-xl p-5 flex gap-4">
-              <div className="w-9 h-9 bg-primary-container/10 rounded-xl flex items-center justify-center flex-shrink-0">
-                <Icon name={tip.icon} size={18} className="text-primary-container" />
+          ].map((tip, i) => (
+            <motion.div
+              key={tip.title}
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-20px' }}
+              transition={{ delay: i * 0.07 }}
+              style={{ ...GLASS, borderRadius: 16, padding: 20, display: 'flex', gap: 16 }}
+            >
+              <div style={{ width: 36, height: 36, background: 'rgba(232,33,39,0.1)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, border: '1px solid rgba(232,33,39,0.2)' }}>
+                <Icon name={tip.icon} size={18} style={{ color: '#E82127' }} />
               </div>
               <div>
-                <p className="font-bold text-sm text-on-surface mb-1">{tip.title}</p>
-                <p className="text-xs text-zinc-500 leading-relaxed">{tip.body}</p>
+                <p style={{ fontWeight: 700, fontSize: 14, color: '#e4e4e7', marginBottom: 4 }}>{tip.title}</p>
+                <p style={{ fontSize: 12, color: '#71717a', lineHeight: 1.6 }}>{tip.body}</p>
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
       </div>
