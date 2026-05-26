@@ -3,7 +3,7 @@ import MarqueeLib from 'react-fast-marquee';
 const Marquee = ((MarqueeLib as any).default ?? MarqueeLib) as typeof MarqueeLib;
 import { Link } from 'react-router-dom';
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
-import { motion, useScroll, useTransform, useMotionValue, useSpring } from 'framer-motion';
+import { motion, useScroll, useTransform, useMotionValue, useSpring, useInView, animate } from 'framer-motion';
 import { EYFMark } from '../components/EYFLogo';
 
 /* ── Design tokens ─────────────────────────────────────────────────────── */
@@ -155,6 +155,103 @@ function FloatingDashboardPreview() {
   );
 }
 
+/* ── TextScramble — Matrix-style character reveal ───────────────────────── */
+const SCRAMBLE_CHARS = '!<>-_\\/[]{}—=+*^?#@&$%';
+
+function useTextScramble(text: string, active: boolean, delayS = 0) {
+  const [out, setOut] = useState(active ? '' : text);
+  useEffect(() => {
+    if (!active) return;
+    let frame = 0;
+    let rafId = 0;
+    const total = text.length * 5;
+    const tick = () => {
+      setOut(
+        text.split('').map((ch, i) => {
+          if (ch === ' ') return ' ';
+          if (frame / 5 >= i + 1) return ch;
+          return SCRAMBLE_CHARS[Math.floor(Math.random() * SCRAMBLE_CHARS.length)];
+        }).join(''),
+      );
+      frame++;
+      if (frame <= total) rafId = requestAnimationFrame(tick);
+    };
+    const t = setTimeout(() => { rafId = requestAnimationFrame(tick); }, delayS * 1000);
+    return () => { clearTimeout(t); cancelAnimationFrame(rafId); };
+  }, [active, text, delayS]);
+  return out;
+}
+
+/* ── CountUp — number animates from 0 when entering viewport ──────────── */
+function CountUp({ to, duration = 1.8, suffix = '' }: { to: number; duration?: number; suffix?: string }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const inView = useInView(ref, { once: true, margin: '-60px' });
+  const val = useMotionValue(0);
+  const [display, setDisplay] = useState('0');
+
+  useEffect(() => {
+    if (!inView) return;
+    const ctrl = animate(val, to, {
+      duration,
+      ease: [0.16, 1, 0.3, 1],
+      onUpdate: v => setDisplay(Math.round(v).toLocaleString()),
+    });
+    return ctrl.stop;
+  }, [inView, to, duration, val]);
+
+  return <span ref={ref}>{display}{suffix}</span>;
+}
+
+/* ── Magnetic — button follows cursor with spring physics ───────────────── */
+function Magnetic({ children, strength = 0.35 }: { children: ReactNode; strength?: number }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const sx = useSpring(x, { stiffness: 180, damping: 14 });
+  const sy = useSpring(y, { stiffness: 180, damping: 14 });
+
+  return (
+    <motion.div
+      ref={ref}
+      style={{ x: sx, y: sy, display: 'inline-block' }}
+      onMouseMove={e => {
+        const r = ref.current!.getBoundingClientRect();
+        x.set((e.clientX - r.left - r.width / 2) * strength);
+        y.set((e.clientY - r.top - r.height / 2) * strength);
+      }}
+      onMouseLeave={() => { x.set(0); y.set(0); }}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+/* ── CursorGlow — subtle red radial follows the cursor ──────────────────── */
+function CursorGlow() {
+  const x = useMotionValue(-400);
+  const y = useMotionValue(-400);
+  const sx = useSpring(x, { stiffness: 80, damping: 22 });
+  const sy = useSpring(y, { stiffness: 80, damping: 22 });
+
+  useEffect(() => {
+    const fn = (e: MouseEvent) => { x.set(e.clientX - 250); y.set(e.clientY - 250); };
+    window.addEventListener('mousemove', fn, { passive: true });
+    return () => window.removeEventListener('mousemove', fn);
+  }, [x, y]);
+
+  return (
+    <motion.div
+      aria-hidden
+      style={{
+        position: 'fixed', top: 0, left: 0, zIndex: 1, pointerEvents: 'none',
+        width: 500, height: 500, borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(232,33,39,0.055) 0%, transparent 60%)',
+        filter: 'blur(40px)', x: sx, y: sy, willChange: 'transform',
+      }}
+    />
+  );
+}
+
 /* ── Film grain ─────────────────────────────────────────────────────────── */
 function Grain() {
   return (
@@ -293,9 +390,11 @@ function LandingNav() {
 
       <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
         <Link to="/login" className="md:block" style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: D.t3, textDecoration: 'none', padding: '8px 16px', display: 'none' }}>Sign in</Link>
-        <Link to="/login?tab=register" style={{ fontFamily: 'Space Grotesk', fontSize: 12, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#000', background: D.accent, padding: '10px 20px', textDecoration: 'none', display: 'inline-block' }}>
-          Start free
-        </Link>
+        <Magnetic strength={0.3}>
+          <Link to="/login?tab=register" style={{ fontFamily: 'Space Grotesk', fontSize: 12, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#000', background: D.accent, padding: '10px 20px', borderRadius: 10, textDecoration: 'none', display: 'inline-block', boxShadow: '0 4px 20px rgba(232,33,39,0.3)' }}>
+            Start free
+          </Link>
+        </Magnetic>
       </div>
     </header>
   );
@@ -304,8 +403,16 @@ function LandingNav() {
 /* ── HeroSection ────────────────────────────────────────────────────────── */
 function HeroSection() {
   const { scrollY } = useScroll();
-  const heroOpacity = useTransform(scrollY, [0, 500], [1, 0]);
-  const scrollIndicatorOpacity = useTransform(scrollY, [0, 200], [1, 0]);
+  const heroOpacity = useTransform(scrollY, [0, 520], [1, 0]);
+  const heroScale  = useTransform(scrollY, [0, 520], [1, 0.93]);
+  const heroBlur   = useTransform(scrollY, [0, 380], [0, 8]);
+  const heroY      = useTransform(scrollY, [0, 520], [0, -60]);
+  const scrollIndicatorOpacity = useTransform(scrollY, [0, 180], [1, 0]);
+
+  /* Text scramble on "future." — fires once, 300ms after mount */
+  const [scrambleActive, setScrambleActive] = useState(false);
+  useEffect(() => { const t = setTimeout(() => setScrambleActive(true), 600); return () => clearTimeout(t); }, []);
+  const scrambledFuture = useTextScramble('future.', scrambleActive, 0);
 
   return (
     <motion.section style={{
@@ -329,7 +436,12 @@ function HeroSection() {
         filter: 'blur(80px)', pointerEvents: 'none', zIndex: 0,
       }} />
 
-      <div style={{ position: 'relative', zIndex: 1, padding: 'clamp(16px, 5vw, 80px)', maxWidth: '100%', margin: '0 auto' }}>
+      <motion.div style={{
+        position: 'relative', zIndex: 1,
+        padding: 'clamp(16px, 5vw, 80px)', maxWidth: '100%', margin: '0 auto',
+        scale: heroScale, y: heroY,
+        filter: useTransform(heroBlur, v => `blur(${v}px)`),
+      }}>
 
         {/* Beta pill */}
         <HeroReveal delay={0}>
@@ -341,7 +453,7 @@ function HeroSection() {
               fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: D.accent,
             }}>
               <span style={{ width: 5, height: 5, background: D.accent, borderRadius: '50%', display: 'inline-block', animation: 'pulse-dot 2s ease-in-out infinite' }} />
-              Open beta · 12,000+ students enrolled
+              Open beta · <CountUp to={12000} duration={2} suffix="+" /> students enrolled
             </span>
           </div>
         </HeroReveal>
@@ -380,7 +492,8 @@ function HeroSection() {
                   letterSpacing: '-0.05em',
                   textTransform: 'uppercase',
                   color: D.accent, margin: 0,
-                }}>future.</h1>
+                  fontVariantNumeric: 'tabular-nums',
+                }}>{scrambledFuture || 'future.'}</h1>
               </HeroReveal>
             </div>
 
@@ -392,26 +505,31 @@ function HeroSection() {
 
             <FadeUp delay={0.55}>
               <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 28 }}>
-                <Link to="/login?tab=register" style={{
-                  display: 'inline-flex', alignItems: 'center', gap: 8,
-                  height: 52, padding: '0 32px',
-                  background: D.accent, color: '#000',
-                  fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase',
-                  textDecoration: 'none', borderRadius: 12,
-                  boxShadow: '0 8px 32px rgba(232,33,39,0.35)',
-                }}>
-                  Start free →
-                </Link>
-                <a href="#showcase" style={{
-                  display: 'inline-flex', alignItems: 'center', gap: 8,
-                  height: 52, padding: '0 32px',
-                  background: 'rgba(255,255,255,0.05)', color: D.t1,
-                  fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase',
-                  textDecoration: 'none', border: `1px solid rgba(255,255,255,0.12)`, borderRadius: 12,
-                  backdropFilter: 'blur(12px)',
-                }}>
-                  See platform
-                </a>
+                <Magnetic strength={0.28}>
+                  <Link to="/login?tab=register" style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 8,
+                    height: 52, padding: '0 32px',
+                    background: D.accent, color: '#000',
+                    fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase',
+                    textDecoration: 'none', borderRadius: 12,
+                    boxShadow: '0 8px 32px rgba(232,33,39,0.35)',
+                    transition: 'box-shadow 0.2s',
+                  }}>
+                    Start free →
+                  </Link>
+                </Magnetic>
+                <Magnetic strength={0.22}>
+                  <a href="#showcase" style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 8,
+                    height: 52, padding: '0 32px',
+                    background: 'rgba(255,255,255,0.05)', color: D.t1,
+                    fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase',
+                    textDecoration: 'none', border: `1px solid rgba(255,255,255,0.12)`, borderRadius: 12,
+                    backdropFilter: 'blur(12px)',
+                  }}>
+                    See platform
+                  </a>
+                </Magnetic>
               </div>
               <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
                 {['No credit card', 'Free tier forever', '5 min setup'].map(t => (
@@ -428,7 +546,7 @@ function HeroSection() {
             <FloatingDashboardPreview />
           </div>
         </div>
-      </div>
+      </motion.div>
 
       <motion.div
         style={{ position: 'absolute', bottom: 36, left: '50%', transform: 'translateX(-50%)', opacity: scrollIndicatorOpacity }}
@@ -1045,12 +1163,16 @@ function CTASection() {
         </FadeUp>
         <FadeUp delay={0.8}>
           <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Link to="/login?tab=register" style={{ display: 'inline-flex', alignItems: 'center', height: 56, padding: '0 40px', background: D.accent, color: '#000', fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', textDecoration: 'none', border: `2px solid ${D.accent}` }}>
-              Create free account
-            </Link>
-            <Link to="/login" style={{ display: 'inline-flex', alignItems: 'center', height: 56, padding: '0 40px', background: 'transparent', color: D.t1, fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', textDecoration: 'none', border: `2px solid ${D.border}` }}>
-              Sign in
-            </Link>
+            <Magnetic strength={0.25}>
+              <Link to="/login?tab=register" style={{ display: 'inline-flex', alignItems: 'center', height: 56, padding: '0 40px', background: D.accent, color: '#000', fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', textDecoration: 'none', borderRadius: 14, boxShadow: '0 8px 40px rgba(232,33,39,0.4)' }}>
+                Create free account
+              </Link>
+            </Magnetic>
+            <Magnetic strength={0.2}>
+              <Link to="/login" style={{ display: 'inline-flex', alignItems: 'center', height: 56, padding: '0 40px', background: 'rgba(255,255,255,0.05)', color: D.t1, fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', textDecoration: 'none', border: `1px solid rgba(255,255,255,0.14)`, borderRadius: 14, backdropFilter: 'blur(12px)' }}>
+                Sign in
+              </Link>
+            </Magnetic>
           </div>
         </FadeUp>
       </div>
@@ -1089,6 +1211,7 @@ function Footer() {
 export function LandingPage() {
   return (
     <div style={{ background: D.bg, color: D.t1 }}>
+      <CursorGlow />
       <Grain />
       <LandingNav />
       <main>
