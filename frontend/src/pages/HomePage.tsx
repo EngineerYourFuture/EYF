@@ -118,6 +118,18 @@ function buildRecommendations(xp: number, streak: number, modules: ModItem[]) {
   return recs.toSorted((a, b) => b.priority - a.priority).slice(0, 4);
 }
 
+/* ── Section label ────────────────────────────────────────────────────────── */
+function SectionLabel({ children }: { readonly children: string }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+      <div style={{ width: 2, height: 14, background: '#E82127', flexShrink: 0, boxShadow: '0 0 6px rgba(232,25,44,0.5)' }} />
+      <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.14em', color: 'var(--t3)', fontFamily: 'Space Grotesk' }}>
+        {children}
+      </span>
+    </div>
+  );
+}
+
 /* ── Fade-up wrapper ──────────────────────────────────────────────────────── */
 function FadeUp({ children, delay = 0, className }: {
   readonly children: React.ReactNode;
@@ -357,20 +369,20 @@ export function HomePage() {
         ═══════════════════════════════════════════════════════════════ */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
           {[
-            { label: 'Total XP',   value: xp.toLocaleString(),             icon: 'bolt',               color: '#E82127', glow: '#E82127', bg: 'rgba(232,25,44,0.08)'   },
-            { label: 'This Week',  value: `+${weeklyXp.toLocaleString()}`,  icon: 'trending_up',        color: '#22C55E', glow: '#22C55E', bg: 'rgba(34,197,94,0.07)'   },
-            { label: 'Streak',     value: `${streak}d`,                     icon: 'local_fire_department', color: '#F97316', glow: '#F97316', bg: 'rgba(249,115,22,0.07)' },
-            { label: 'Badges',     value: String(achievementsEarned),       icon: 'emoji_events',       color: '#EAB308', glow: '#EAB308', bg: 'rgba(234,179,8,0.07)'   },
+            { label: 'Total XP',   value: xp.toLocaleString(),             icon: 'bolt',               color: '#E82127', glow: '#E82127', bg: 'rgba(232,25,44,0.12)'   },
+            { label: 'This Week',  value: `+${weeklyXp.toLocaleString()}`,  icon: 'trending_up',        color: '#22C55E', glow: '#22C55E', bg: 'rgba(34,197,94,0.11)'   },
+            { label: 'Streak',     value: `${streak}d`,                     icon: 'local_fire_department', color: '#F97316', glow: '#F97316', bg: 'rgba(249,115,22,0.11)' },
+            { label: 'Badges',     value: String(achievementsEarned),       icon: 'emoji_events',       color: '#EAB308', glow: '#EAB308', bg: 'rgba(234,179,8,0.11)'   },
           ].map(({ label, value, icon, color, glow, bg }, i) => (
             <motion.div
               key={label}
               initial={{ opacity: 0, y: 16, filter: 'blur(4px)' }}
               animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
               transition={{ duration: 0.5, delay: 0.08 + i * 0.06, ease: [0.16, 1, 0.3, 1] }}
-              whileHover={{ y: -3, boxShadow: `0 0 32px ${glow}18, 0 8px 32px rgba(0,0,0,0.5)` }}
+              whileHover={{ y: -3, boxShadow: `0 0 32px ${glow}28, 0 8px 32px rgba(0,0,0,0.3)` }}
               style={{
                 background: bg,
-                border: `1px solid ${glow}22`,
+                border: `1px solid ${glow}35`,
                 backdropFilter: 'blur(16px)',
                 padding: '18px 20px',
                 position: 'relative',
@@ -379,10 +391,10 @@ export function HomePage() {
               }}
             >
               {/* Corner glow */}
-              <div style={{ position: 'absolute', top: 0, right: 0, width: 60, height: 60, background: `radial-gradient(circle at top right, ${glow}20, transparent 70%)`, pointerEvents: 'none' }} />
+              <div style={{ position: 'absolute', top: 0, right: 0, width: 60, height: 60, background: `radial-gradient(circle at top right, ${glow}30, transparent 70%)`, pointerEvents: 'none' }} />
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
-                <span className="material-symbols-rounded" style={{ fontSize: 14, color, opacity: 0.8 }}>{icon}</span>
-                <span style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: `${glow}99`, fontFamily: 'Space Grotesk' }}>{label}</span>
+                <span className="material-symbols-rounded" style={{ fontSize: 14, color, opacity: 0.9 }}>{icon}</span>
+                <span style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color, opacity: 0.6, fontFamily: 'Space Grotesk' }}>{label}</span>
               </div>
               <p style={{ fontFamily: 'Space Grotesk', fontWeight: 800, fontSize: 'clamp(1.4rem, 3vw, 2rem)', letterSpacing: '-0.03em', lineHeight: 1, color, marginBottom: 0 }}>
                 {value}
@@ -429,13 +441,13 @@ export function HomePage() {
                 <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, background: 'linear-gradient(90deg, rgba(232,25,44,0.6), rgba(232,25,44,0.2) 60%, transparent)' }} />
 
                 <div className="flex items-center justify-between mb-auto">
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <div style={{ width: 6, height: 6, borderRadius: '50%', background: challengeDone ? '#22C55E' : '#E82127', boxShadow: challengeDone ? '0 0 8px rgba(34,197,94,0.8)' : '0 0 8px rgba(232,25,44,0.8)', animation: challengeDone ? 'none' : 'pulse-dot 2s ease-in-out infinite' }} />
-                    <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,200,200,0.6)', fontFamily: 'Space Grotesk' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                    <div style={{ width: 7, height: 7, borderRadius: '50%', background: challengeDone ? '#22C55E' : '#E82127', boxShadow: challengeDone ? '0 0 8px rgba(34,197,94,0.8)' : '0 0 8px rgba(232,25,44,0.8)', animation: challengeDone ? 'none' : 'pulse-dot 2s ease-in-out infinite', flexShrink: 0 }} />
+                    <span style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.12em', color: 'rgba(255,255,255,0.55)', fontFamily: 'Space Grotesk' }}>
                       Daily Challenge
                     </span>
                   </div>
-                  <span style={{ fontSize: 10, fontWeight: 700, color: '#EAB308', background: 'rgba(234,179,8,0.12)', border: '1px solid rgba(234,179,8,0.2)', padding: '2px 8px', fontFamily: 'Space Grotesk', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                  <span style={{ fontSize: 10, fontWeight: 800, color: '#FCD34D', background: 'rgba(234,179,8,0.15)', border: '1px solid rgba(234,179,8,0.3)', padding: '3px 10px', fontFamily: 'Space Grotesk', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                     +50 XP
                   </span>
                 </div>
@@ -475,18 +487,17 @@ export function HomePage() {
             {/* Recommendations */}
             <FadeUp delay={0.1}>
               <GlassCard style={{ padding: '18px 20px' }}>
-                <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: 'var(--t4)', fontFamily: 'Space Grotesk', marginBottom: 12 }}>
-                  Recommended next
-                </p>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <SectionLabel>Recommended next</SectionLabel>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                   {recs.map((rec, i) => (
-                    <Link key={rec.path} to={rec.path}>
+                    <Link key={rec.path} to={rec.path} style={{ textDecoration: 'none' }}>
                       <motion.div
                         className="flex items-center gap-3"
                         style={{
-                          padding: '10px 12px',
-                          background: 'var(--bg-surface)',
-                          border: '1px solid var(--border)',
+                          padding: '11px 12px',
+                          background: 'transparent',
+                          borderLeft: `2px solid transparent`,
+                          borderTop: '1px solid var(--border)',
                           cursor: 'pointer',
                           transition: 'all 0.18s',
                         }}
@@ -494,19 +505,28 @@ export function HomePage() {
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.15 + i * 0.06 }}
                         whileHover={{
-                          background: `${rec.hex}0A`,
-                          borderColor: `${rec.hex}22`,
-                          x: 2,
+                          background: `${rec.hex}08`,
+                          borderLeftColor: rec.hex,
+                          x: 3,
                         }}
                       >
-                        <div style={{ width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, background: `${rec.hex}15` }}>
-                          <span className="material-symbols-rounded" style={{ fontSize: 14, color: rec.hex }}>{rec.icon}</span>
+                        <div style={{
+                          width: 34, height: 34, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          flexShrink: 0, background: `${rec.hex}18`, border: `1px solid ${rec.hex}30`,
+                        }}>
+                          <span className="material-symbols-rounded" style={{ fontSize: 16, color: rec.hex }}>{rec.icon}</span>
                         </div>
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--t1)', fontFamily: 'Space Grotesk', marginBottom: 1 }}>{rec.title}</p>
-                          <p style={{ fontSize: 10, color: 'var(--t4)' }} className="truncate">{rec.reason}</p>
+                          <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--t1)', fontFamily: 'Space Grotesk', marginBottom: 2, letterSpacing: '-0.01em' }}>{rec.title}</p>
+                          <p style={{ fontSize: 10, color: 'var(--t4)', lineHeight: 1.4 }} className="truncate">{rec.reason}</p>
                         </div>
-                        <span style={{ fontSize: 9, fontWeight: 700, color: '#22C55E', background: 'rgba(34,197,94,0.08)', padding: '2px 7px', fontFamily: 'Space Grotesk', textTransform: 'uppercase', letterSpacing: '0.04em', whiteSpace: 'nowrap', flexShrink: 0 }}>{rec.xpLabel}</span>
+                        <span style={{
+                          fontSize: 9, fontWeight: 700, color: '#22C55E',
+                          background: 'rgba(34,197,94,0.12)', border: '1px solid rgba(34,197,94,0.2)',
+                          padding: '3px 8px', fontFamily: 'Space Grotesk',
+                          textTransform: 'uppercase', letterSpacing: '0.04em',
+                          whiteSpace: 'nowrap', flexShrink: 0,
+                        }}>{rec.xpLabel}</span>
                       </motion.div>
                     </Link>
                   ))}
@@ -530,7 +550,7 @@ export function HomePage() {
                       <div style={{ width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', background: `${insight.hex}15` }}>
                         <span className="material-symbols-rounded" style={{ fontSize: 12, color: insight.hex }}>{insight.icon}</span>
                       </div>
-                      <span style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: `${insight.hex}99`, fontFamily: 'Space Grotesk' }}>{insight.category}</span>
+                      <span style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: insight.hex, opacity: 0.75, fontFamily: 'Space Grotesk' }}>{insight.category}</span>
                     </div>
                     <button
                       onClick={() => { setInsightDismissed(true); localStorage.setItem('eyf.insightDay', String(dayOfYear)); }}
@@ -555,9 +575,7 @@ export function HomePage() {
           {/* Quick access (2/3) */}
           <FadeUp delay={0.12} className="lg:col-span-2">
             <GlassCard style={{ padding: '18px 20px' }}>
-              <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: 'var(--t4)', fontFamily: 'Space Grotesk', marginBottom: 12 }}>
-                Quick access
-              </p>
+              <SectionLabel>Quick access</SectionLabel>
               <div className="grid grid-cols-4 sm:grid-cols-8 gap-2">
                 {[
                   { label: 'DSA',        icon: 'code',              path: '/app/problems',       hex: '#3B82F6' },
@@ -573,8 +591,8 @@ export function HomePage() {
                     <motion.div
                       className="flex flex-col items-center gap-2 py-3"
                       style={{
-                        background: `${a.hex}0C`,
-                        border: `1px solid ${a.hex}20`,
+                        background: `${a.hex}15`,
+                        border: `1px solid ${a.hex}35`,
                         cursor: 'pointer',
                         backdropFilter: 'blur(8px)',
                       }}
@@ -582,10 +600,10 @@ export function HomePage() {
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ delay: 0.18 + i * 0.03, duration: 0.35 }}
                       whileHover={{
-                        background: `${a.hex}18`,
-                        borderColor: `${a.hex}40`,
+                        background: `${a.hex}25`,
+                        borderColor: `${a.hex}55`,
                         y: -3,
-                        boxShadow: `0 4px 20px ${a.hex}20`,
+                        boxShadow: `0 4px 20px ${a.hex}30`,
                       }}
                       whileTap={{ scale: 0.96 }}
                     >
@@ -625,7 +643,7 @@ export function HomePage() {
             {recentAchievements.length > 0 && (
               <GlassCard style={{ padding: '16px 18px', flex: 1 }}>
                 <div className="flex items-center justify-between mb-3">
-                  <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--t4)', fontFamily: 'Space Grotesk' }}>Badges</p>
+                  <SectionLabel>Badges</SectionLabel>
                   <Link to="/app/achievements" style={{ fontSize: 10, color: 'var(--red)', fontWeight: 600 }}>
                     {achievementsEarned} total →
                   </Link>
@@ -650,10 +668,8 @@ export function HomePage() {
         ═══════════════════════════════════════════════════════════════ */}
         <FadeUp>
           <div className="flex items-center justify-between mb-3">
-            <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: 'var(--t4)', fontFamily: 'Space Grotesk' }}>
-              Modules
-            </p>
-            <Link to="/app/career" className="btn btn-ghost btn-sm">View all →</Link>
+            <SectionLabel>Modules</SectionLabel>
+            <Link to="/app/career" className="btn btn-ghost btn-sm" style={{ marginBottom: 12 }}>View all →</Link>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 gap-3">
             {moduleList.slice(0, 8).map((mod, i) => {
@@ -672,8 +688,8 @@ export function HomePage() {
                   <Link to={cfg.path}>
                     <motion.div
                       style={{
-                        background: `${cfg.hex}08`,
-                        border: `1px solid ${cfg.hex}18`,
+                        background: `${cfg.hex}12`,
+                        border: `1px solid ${cfg.hex}30`,
                         backdropFilter: 'blur(12px)',
                         padding: '14px',
                         cursor: 'pointer',
@@ -682,10 +698,10 @@ export function HomePage() {
                         transition: 'all 0.2s',
                       }}
                       whileHover={{
-                        background: `${cfg.hex}14`,
-                        borderColor: `${cfg.hex}35`,
+                        background: `${cfg.hex}20`,
+                        borderColor: `${cfg.hex}50`,
                         y: -3,
-                        boxShadow: `0 6px 24px ${cfg.hex}16, 0 0 0 1px ${cfg.hex}20`,
+                        boxShadow: `0 6px 24px ${cfg.hex}25, 0 0 0 1px ${cfg.hex}35`,
                       }}
                     >
                       <div style={{ position: 'absolute', top: 0, right: 0, width: 40, height: 40, background: `radial-gradient(circle at top right, ${cfg.hex}15, transparent 70%)`, pointerEvents: 'none' }} />
@@ -695,8 +711,8 @@ export function HomePage() {
                         </div>
                         <ProgressRing pct={pct} hex={cfg.hex} />
                       </div>
-                      <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--t1)', marginBottom: 2, fontFamily: 'Space Grotesk', letterSpacing: '-0.01em' }} className="truncate">{cfg.title}</p>
-                      <p style={{ fontSize: 10, fontWeight: 600, color: cfg.hex, opacity: 0.8 }}>{mod.cta || 'Start'}</p>
+                      <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--t1)', marginBottom: 3, fontFamily: 'Space Grotesk', letterSpacing: '-0.01em' }} className="truncate">{cfg.title}</p>
+                      <p style={{ fontSize: 9, fontWeight: 700, color: cfg.hex, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{mod.cta || 'Start'}</p>
                     </motion.div>
                   </Link>
                 </motion.div>

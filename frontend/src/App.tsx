@@ -3,6 +3,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import { RequireAuth } from './components/RequireAuth';
 import { UserProvider } from './contexts/UserContext';
 import { XPToastContainer } from './components/XPToast';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 /* ── Page chunks — each becomes its own JS chunk ──────────────────────────── */
 const lazy$ = <T extends Record<string, unknown>>(
@@ -61,6 +62,7 @@ const PlaygroundPage          = lazy$(() => import('./pages/PlaygroundPage'),   
 const NotesPage               = lazy$(() => import('./pages/NotesPage'),               'NotesPage');
 const ReadinessPage           = lazy$(() => import('./pages/ReadinessPage'),           'ReadinessPage');
 const RealWorldPage           = lazy$(() => import('./pages/RealWorldPage'),           'RealWorldPage');
+const NotFoundPage            = lazy$(() => import('./pages/NotFoundPage'),            'NotFoundPage');
 
 const AuthorityQueuePage             = lazy$(() => import('./pages/AuthorityQueuePage'),             'AuthorityQueuePage');
 const AuthorityApplicationDetailPage = lazy$(() => import('./pages/AuthorityApplicationDetailPage'), 'AuthorityApplicationDetailPage');
@@ -71,20 +73,21 @@ const AdminBillingPage               = lazy$(() => import('./pages/AdminBillingP
 /* ── Page loading fallback ──────────────────────────────────────────────────── */
 function PageLoader() {
   return (
-    <div
-      style={{
-        minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
-        background: 'var(--bg)',
-      }}
-    >
-      <div
-        style={{
-          width: 32, height: 32, borderRadius: '50%',
-          border: '2px solid rgba(255,255,255,0.08)',
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)', gap: 20 }}>
+      <div style={{ position: 'relative', width: 40, height: 40 }}>
+        <div style={{
+          position: 'absolute', inset: 0, borderRadius: '50%',
+          border: '2px solid var(--border)',
           borderTopColor: '#E82127',
-          animation: 'spin 0.7s linear infinite',
-        }}
-      />
+          animation: 'spin 0.75s linear infinite',
+        }} />
+        <div style={{
+          position: 'absolute', inset: 6, borderRadius: '50%',
+          border: '1.5px solid transparent',
+          borderTopColor: 'rgba(232,25,44,0.4)',
+          animation: 'spin 1.5s linear infinite reverse',
+        }} />
+      </div>
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
   );
@@ -93,9 +96,10 @@ function PageLoader() {
 /* ── App ────────────────────────────────────────────────────────────────────── */
 export default function App() {
   return (
-    <UserProvider>
-      <XPToastContainer />
-      <Suspense fallback={<PageLoader />}>
+    <ErrorBoundary>
+      <UserProvider>
+        <XPToastContainer />
+        <Suspense fallback={<PageLoader />}>
         <Routes>
           {/* Public routes */}
           <Route path="/" element={<LandingPage />} />
@@ -169,9 +173,10 @@ export default function App() {
           <Route path="/authority/admin/problems"    element={<Navigate to="/authority/problems" replace />} />
           <Route path="/authority/admin/billing"     element={<RequireAuth zone="authority" allowedRoles={['admin']}><AdminBillingPage /></RequireAuth>} />
 
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </Suspense>
     </UserProvider>
+    </ErrorBoundary>
   );
 }

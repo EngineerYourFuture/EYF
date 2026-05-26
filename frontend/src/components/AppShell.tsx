@@ -11,11 +11,11 @@ import { apiRequest } from '../lib/api';
 import { getTheme, toggleTheme, type ThemeMode } from '../lib/theme';
 
 interface NavItem  { path: string; label: string; icon: string }
-interface NavGroup { label: string; items: NavItem[] }
+interface NavGroup { label: string; icon: string; items: NavItem[] }
 
 const NAV_GROUPS: NavGroup[] = [
   {
-    label: 'Home',
+    label: 'Home', icon: 'home',
     items: [
       { path: '/app/dashboard', label: 'Dashboard',       icon: 'home' },
       { path: '/app/daily',     label: 'Daily Challenge', icon: 'today' },
@@ -23,7 +23,7 @@ const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
-    label: 'Learn',
+    label: 'Learn', icon: 'auto_stories',
     items: [
       { path: '/app/problems',      label: 'DSA Problems',      icon: 'code' },
       { path: '/app/subjects',      label: 'Core Subjects',     icon: 'auto_stories' },
@@ -41,7 +41,7 @@ const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
-    label: 'Career',
+    label: 'Career', icon: 'business',
     items: [
       { path: '/app/companies',      label: 'Company Prep',      icon: 'business' },
       { path: '/app/placement',      label: 'Placement',         icon: 'work' },
@@ -54,7 +54,7 @@ const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
-    label: 'Community',
+    label: 'Community', icon: 'forum',
     items: [
       { path: '/app/community',   label: 'Community',             icon: 'forum' },
       { path: '/app/leaderboard', label: 'Leaderboard',           icon: 'leaderboard' },
@@ -63,7 +63,7 @@ const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
-    label: 'Progress',
+    label: 'Progress', icon: 'insights',
     items: [
       { path: '/app/readiness',    label: 'Readiness Score', icon: 'speed' },
       { path: '/app/progress',     label: 'Progress',        icon: 'insights' },
@@ -73,7 +73,6 @@ const NAV_GROUPS: NavGroup[] = [
   },
 ];
 
-const ALL_NAV_ITEMS = NAV_GROUPS.flatMap((g) => g.items);
 const ALL_GROUPS_OPEN = Object.fromEntries(NAV_GROUPS.map((g) => [g.label, true]));
 
 const LEVEL_NAMES      = ['Newcomer','Learner','Explorer','Builder','Practitioner','Engineer','Senior','Lead','Architect','Expert','Legend'];
@@ -183,42 +182,77 @@ function CollapsedRail({ location, onExpand }: CollapsedRailProps) {
   return (
     <>
       <div style={{ height: 1, background: 'linear-gradient(90deg, transparent, rgba(232,25,44,0.6) 40%, rgba(232,25,44,0.6) 60%, transparent)', flexShrink: 0 }} />
-      <div className="flex items-center justify-center py-3.5" style={{ borderBottom: '1px solid var(--sidebar-border)' }}>
+
+      {/* Logo */}
+      <div
+        className="flex items-center justify-center"
+        style={{ height: 56, borderBottom: '1px solid var(--sidebar-border)', flexShrink: 0 }}
+      >
         <div style={{ filter: 'drop-shadow(0 0 6px rgba(232,25,44,0.5))' }}>
-          <EYFMark size={18} />
+          <EYFMark size={20} />
         </div>
       </div>
 
-      <nav className="flex-1 overflow-y-auto py-2 flex flex-col items-center gap-0.5">
-        {ALL_NAV_ITEMS.map((item) => {
-          const isActive = location.pathname === item.path || location.pathname.startsWith(item.path + '/');
+      {/* 5 group icons — one per section */}
+      <nav className="flex-1 flex flex-col items-center justify-center gap-1 py-4">
+        {NAV_GROUPS.map((group) => {
+          const isGroupActive = group.items.some(
+            (item) => location.pathname === item.path || location.pathname.startsWith(item.path + '/'),
+          );
           return (
-            <Link
-              key={item.path}
-              to={item.path}
-              title={item.label}
-              className="w-10 h-9 flex items-center justify-center transition-all"
-              style={{ color: isActive ? '#E82127' : 'var(--t3)' }}
-              onMouseEnter={(e) => { if (!isActive) (e.currentTarget as HTMLElement).style.color = 'var(--t1)'; }}
-              onMouseLeave={(e) => { if (!isActive) (e.currentTarget as HTMLElement).style.color = 'var(--t3)'; }}
+            <button
+              key={group.label}
+              type="button"
+              onClick={onExpand}
+              title={group.label}
+              className="relative flex items-center justify-center transition-all"
+              style={{
+                width: 40, height: 40,
+                color: isGroupActive ? '#E82127' : 'var(--t3)',
+                background: isGroupActive ? 'rgba(232,25,44,0.1)' : 'transparent',
+                border: isGroupActive ? '1px solid rgba(232,25,44,0.25)' : '1px solid transparent',
+              }}
+              onMouseEnter={(e) => {
+                if (!isGroupActive) {
+                  (e.currentTarget as HTMLElement).style.color = 'var(--t1)';
+                  (e.currentTarget as HTMLElement).style.background = 'var(--bg-surface)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isGroupActive) {
+                  (e.currentTarget as HTMLElement).style.color = 'var(--t3)';
+                  (e.currentTarget as HTMLElement).style.background = 'transparent';
+                }
+              }}
             >
-              <Icon name={item.icon} size={16} />
-            </Link>
+              {isGroupActive && (
+                <div style={{
+                  position: 'absolute', left: 0, top: '50%', transform: 'translateY(-50%)',
+                  width: 2, height: 20, background: '#E82127',
+                  boxShadow: '2px 0 8px rgba(232,25,44,0.6)',
+                }} />
+              )}
+              <Icon name={group.icon} size={18} />
+            </button>
           );
         })}
       </nav>
 
-      <div className="flex justify-center py-3" style={{ borderTop: '1px solid var(--sidebar-border)' }}>
+      {/* Expand button */}
+      <div
+        className="flex items-center justify-center py-3"
+        style={{ borderTop: '1px solid var(--sidebar-border)', flexShrink: 0 }}
+      >
         <button
           type="button"
           onClick={onExpand}
-          className="w-10 h-9 flex items-center justify-center transition-all"
-          style={{ color: 'var(--t3)' }}
+          className="flex items-center justify-center transition-all"
+          style={{ width: 40, height: 36, color: 'var(--t4)' }}
           title="Expand sidebar"
           onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = 'var(--t1)'; }}
-          onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = 'var(--t3)'; }}
+          onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = 'var(--t4)'; }}
         >
-          <Icon name="chevron_right" size={18} />
+          <Icon name="chevron_right" size={17} />
         </button>
       </div>
 
