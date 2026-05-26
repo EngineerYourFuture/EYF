@@ -3,7 +3,7 @@ import MarqueeLib from 'react-fast-marquee';
 const Marquee = ((MarqueeLib as any).default ?? MarqueeLib) as typeof MarqueeLib;
 import { Link } from 'react-router-dom';
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { motion, useScroll, useTransform, useMotionValue, useSpring } from 'framer-motion';
 import { EYFMark } from '../components/EYFLogo';
 
 /* ── Design tokens ─────────────────────────────────────────────────────── */
@@ -19,6 +19,141 @@ const D = {
   border: '#3F3F46',
   muted:  '#27272A',
 };
+
+/* ── TiltCard — Apple-style 3D perspective hover ───────────────────────── */
+function TiltCard({ children, style, className, maxTilt = 10 }: {
+  children: ReactNode; style?: CSSProperties; className?: string; maxTilt?: number;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const rawX = useMotionValue(0);
+  const rawY = useMotionValue(0);
+  const rotateX = useSpring(useTransform(rawY, [-0.5, 0.5], [maxTilt, -maxTilt]), { stiffness: 400, damping: 30 });
+  const rotateY = useSpring(useTransform(rawX, [-0.5, 0.5], [-maxTilt, maxTilt]), { stiffness: 400, damping: 30 });
+
+  function onMove(e: React.MouseEvent) {
+    const rect = ref.current!.getBoundingClientRect();
+    rawX.set((e.clientX - rect.left) / rect.width - 0.5);
+    rawY.set((e.clientY - rect.top) / rect.height - 0.5);
+  }
+  function onLeave() { rawX.set(0); rawY.set(0); }
+
+  return (
+    <motion.div
+      ref={ref}
+      onMouseMove={onMove}
+      onMouseLeave={onLeave}
+      style={{ perspective: 900, rotateX, rotateY, transformStyle: 'preserve-3d', ...style }}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+/* ── FloatingDashboardPreview ────────────────────────────────────────────── */
+function FloatingDashboardPreview() {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 48, rotateX: 14 }}
+      animate={{ opacity: 1, y: 0, rotateX: 4 }}
+      transition={{ duration: 1.2, delay: 0.7, ease: [0.16, 1, 0.3, 1] }}
+      style={{ perspective: 1200, transformStyle: 'preserve-3d', width: '100%', maxWidth: 420 }}
+    >
+      {/* Main glass card */}
+      <div style={{
+        background: 'rgba(14,15,28,0.88)',
+        border: '1px solid rgba(255,255,255,0.12)',
+        borderRadius: 20,
+        padding: '22px',
+        backdropFilter: 'blur(28px) saturate(200%)',
+        boxShadow: '0 40px 100px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.06), inset 0 1px 0 rgba(255,255,255,0.1)',
+        position: 'relative',
+        overflow: 'hidden',
+      }}>
+        {/* Top shimmer */}
+        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.18) 50%, transparent)' }} />
+
+        {/* Header row */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 18 }}>
+          <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#E82127', boxShadow: '0 0 8px rgba(232,25,44,0.9)', animation: 'pulse-dot 2s ease-in-out infinite', flexShrink: 0 }} />
+          <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', flex: 1 }}>Daily Challenge</span>
+          <span style={{ fontSize: 10, fontWeight: 800, color: '#FCD34D', background: 'rgba(234,179,8,0.14)', border: '1px solid rgba(234,179,8,0.3)', padding: '2px 9px', borderRadius: 100, fontFamily: 'Space Grotesk' }}>+50 XP</span>
+        </div>
+
+        {/* Difficulty + title */}
+        <div style={{ marginBottom: 16 }}>
+          <span style={{ fontSize: 10, fontWeight: 700, color: '#FCC93A', background: 'rgba(251,191,36,0.12)', padding: '2px 8px', borderRadius: 6, textTransform: 'uppercase', letterSpacing: '0.06em', fontFamily: 'Space Grotesk', marginRight: 8 }}>Medium</span>
+          <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)' }}>Array · HashMap</span>
+          <p style={{ fontFamily: 'Space Grotesk', fontWeight: 800, fontSize: 18, letterSpacing: '-0.02em', color: '#fff', marginTop: 8, marginBottom: 0, lineHeight: 1.2 }}>Two Sum</p>
+        </div>
+
+        {/* Code snippet */}
+        <div style={{
+          background: 'rgba(0,0,0,0.45)',
+          borderRadius: 12,
+          padding: '14px 16px',
+          marginBottom: 16,
+          fontFamily: 'JetBrains Mono, monospace',
+          fontSize: 11.5,
+          lineHeight: 1.75,
+          border: '1px solid rgba(255,255,255,0.06)',
+        }}>
+          <div><span style={{ color: '#FF7B72' }}>def </span><span style={{ color: '#79C0FF' }}>two_sum</span><span style={{ color: 'rgba(255,255,255,0.3)' }}>(nums, target):</span></div>
+          <div style={{ paddingLeft: 14 }}><span style={{ color: 'rgba(255,255,255,0.25)' }}>seen = {'{}'}</span></div>
+          <div style={{ paddingLeft: 14 }}><span style={{ color: '#FF7B72' }}>for </span><span style={{ color: '#FFA657' }}>i, n </span><span style={{ color: '#FF7B72' }}>in </span><span style={{ color: '#79C0FF' }}>enumerate</span><span style={{ color: 'rgba(255,255,255,0.3)' }}>(nums):</span></div>
+          <div style={{ paddingLeft: 28 }}><span style={{ color: '#FFA657' }}>diff</span><span style={{ color: 'rgba(255,255,255,0.3)' }}> = target - n</span></div>
+        </div>
+
+        {/* XP progress */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+          <div style={{ flex: 1, height: 4, background: 'rgba(255,255,255,0.07)', borderRadius: 100, overflow: 'hidden' }}>
+            <motion.div
+              initial={{ width: 0 }}
+              animate={{ width: '68%' }}
+              transition={{ duration: 1.5, delay: 1.2, ease: [0.16, 1, 0.3, 1] }}
+              style={{ height: '100%', background: 'linear-gradient(90deg, #E82127, #FF6B7A)', borderRadius: 100, boxShadow: '0 0 10px rgba(232,25,44,0.6)' }}
+            />
+          </div>
+          <span style={{ fontSize: 10, fontWeight: 700, color: '#E82127', fontFamily: 'Space Grotesk', whiteSpace: 'nowrap' }}>2,400 XP</span>
+        </div>
+
+        {/* Stat pills row */}
+        <div style={{ display: 'flex', gap: 6 }}>
+          {[
+            { label: '68% solved', color: '#3B82F6' },
+            { label: '12d streak', color: '#F97316' },
+            { label: 'Rank #847', color: '#22C55E' },
+          ].map(({ label, color }) => (
+            <span key={label} style={{ fontSize: 9, fontWeight: 700, color, background: `${color}14`, border: `1px solid ${color}28`, padding: '3px 8px', borderRadius: 100, letterSpacing: '0.04em', fontFamily: 'Space Grotesk', whiteSpace: 'nowrap' }}>{label}</span>
+          ))}
+        </div>
+      </div>
+
+      {/* Floating badge — modules count */}
+      <motion.div
+        initial={{ opacity: 0, x: 20, y: -10 }}
+        animate={{ opacity: 1, x: 0, y: 0 }}
+        transition={{ duration: 0.8, delay: 1.4, ease: [0.16, 1, 0.3, 1] }}
+        style={{
+          position: 'absolute', top: -16, right: -16,
+          background: 'rgba(14,15,28,0.95)',
+          border: '1px solid rgba(255,255,255,0.14)',
+          borderRadius: 12,
+          padding: '8px 14px',
+          backdropFilter: 'blur(20px)',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+          display: 'flex', alignItems: 'center', gap: 8,
+        }}
+      >
+        <span style={{ fontSize: 16 }}>🏆</span>
+        <div>
+          <p style={{ fontFamily: 'Space Grotesk', fontWeight: 800, fontSize: 14, letterSpacing: '-0.02em', color: '#fff', margin: 0, lineHeight: 1 }}>94%</p>
+          <p style={{ fontSize: 9, color: 'rgba(255,255,255,0.4)', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', margin: 0 }}>Placement rate</p>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
 
 /* ── Film grain ─────────────────────────────────────────────────────────── */
 function Grain() {
@@ -170,120 +305,133 @@ function LandingNav() {
 function HeroSection() {
   const { scrollY } = useScroll();
   const heroOpacity = useTransform(scrollY, [0, 500], [1, 0]);
-  const heroScale = useTransform(scrollY, [0, 600], [1, 1.08]);
   const scrollIndicatorOpacity = useTransform(scrollY, [0, 200], [1, 0]);
 
   return (
     <motion.section style={{
       minHeight: '100dvh', background: D.bg, position: 'relative', overflow: 'hidden',
       display: 'flex', flexDirection: 'column', justifyContent: 'center',
-      paddingTop: 80, paddingBottom: 0, opacity: heroOpacity,
+      paddingTop: 80, opacity: heroOpacity,
     }}>
       <GridBg />
 
+      {/* Ambient red glow */}
       <div aria-hidden style={{
-        position: 'absolute', top: '20%', left: '50%', transform: 'translateX(-50%)',
-        width: 500, height: 400, borderRadius: '50%',
-        background: 'radial-gradient(ellipse, rgba(232,33,39,0.07) 0%, transparent 70%)',
-        filter: 'blur(60px)', pointerEvents: 'none', zIndex: 0,
+        position: 'absolute', top: '15%', left: '55%', transform: 'translateX(-50%)',
+        width: 600, height: 500, borderRadius: '50%',
+        background: 'radial-gradient(ellipse, rgba(232,33,39,0.08) 0%, transparent 65%)',
+        filter: 'blur(80px)', pointerEvents: 'none', zIndex: 0,
+      }} />
+      <div aria-hidden style={{
+        position: 'absolute', bottom: '10%', left: '10%',
+        width: 400, height: 300, borderRadius: '50%',
+        background: 'radial-gradient(ellipse, rgba(99,102,241,0.05) 0%, transparent 70%)',
+        filter: 'blur(80px)', pointerEvents: 'none', zIndex: 0,
       }} />
 
-      <motion.div style={{ scale: heroScale, position: 'relative', zIndex: 1 }}>
-        <div style={{ padding: 'clamp(16px, 5vw, 80px)', maxWidth: '95vw', margin: '0 auto' }}>
+      <div style={{ position: 'relative', zIndex: 1, padding: 'clamp(16px, 5vw, 80px)', maxWidth: '100%', margin: '0 auto' }}>
 
-          <FadeUp delay={0}>
-            <div style={{ marginBottom: 32, display: 'flex', justifyContent: 'center' }}>
-              <span style={{
-                display: 'inline-flex', alignItems: 'center', gap: 8,
-                padding: '6px 16px', border: `1px solid rgba(232,33,39,0.3)`,
-                background: 'rgba(232,33,39,0.06)',
-                fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: D.accent,
-              }}>
-                <span style={{ width: 5, height: 5, background: D.accent, borderRadius: '50%', display: 'inline-block' }} />
-                Open beta · 12,000+ students enrolled
-              </span>
-            </div>
-          </FadeUp>
-
-          <div style={{ textAlign: 'center', marginBottom: 40 }}>
-            <HeroReveal delay={0.05}>
-              <h1 style={{
-                fontFamily: 'Space Grotesk, sans-serif',
-                fontSize: 'clamp(3rem, 12vw, 14rem)',
-                fontWeight: 700, lineHeight: 0.88,
-                letterSpacing: '-0.05em',
-                textTransform: 'uppercase',
-                color: D.t1, margin: 0,
-              }}>The</h1>
-            </HeroReveal>
-            <HeroReveal delay={0.12}>
-              <h1 style={{
-                fontFamily: 'Space Grotesk, sans-serif',
-                fontSize: 'clamp(3rem, 12vw, 14rem)',
-                fontWeight: 700, lineHeight: 0.88,
-                letterSpacing: '-0.05em',
-                textTransform: 'uppercase',
-                color: D.t1, margin: 0,
-              }}>structured</h1>
-            </HeroReveal>
-            <HeroReveal delay={0.2}>
-              <h1 style={{
-                fontFamily: 'Space Grotesk, sans-serif',
-                fontSize: 'clamp(3rem, 12vw, 14rem)',
-                fontWeight: 700, lineHeight: 0.88,
-                letterSpacing: '-0.05em',
-                textTransform: 'uppercase',
-                color: D.accent, margin: 0,
-              }}>path.</h1>
-            </HeroReveal>
+        {/* Beta pill */}
+        <HeroReveal delay={0}>
+          <div style={{ marginBottom: 40 }}>
+            <span style={{
+              display: 'inline-flex', alignItems: 'center', gap: 8,
+              padding: '6px 18px', border: `1px solid rgba(232,33,39,0.3)`,
+              background: 'rgba(232,33,39,0.07)', borderRadius: 100,
+              fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: D.accent,
+            }}>
+              <span style={{ width: 5, height: 5, background: D.accent, borderRadius: '50%', display: 'inline-block', animation: 'pulse-dot 2s ease-in-out infinite' }} />
+              Open beta · 12,000+ students enrolled
+            </span>
           </div>
+        </HeroReveal>
 
-          <FadeUp delay={0.5}>
-            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 40 }}>
-              <div style={{ width: 80, height: 2, background: D.accent }} />
+        {/* Two-column layout */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 48, alignItems: 'center' }} className="lg:grid-two-col">
+
+          {/* Left — text */}
+          <div>
+            <div style={{ marginBottom: 32 }}>
+              <HeroReveal delay={0.05}>
+                <h1 style={{
+                  fontFamily: 'Space Grotesk, sans-serif',
+                  fontSize: 'clamp(3.2rem, 9vw, 8rem)',
+                  fontWeight: 800, lineHeight: 0.9,
+                  letterSpacing: '-0.05em',
+                  textTransform: 'uppercase',
+                  color: D.t1, margin: 0,
+                }}>Engineer</h1>
+              </HeroReveal>
+              <HeroReveal delay={0.1}>
+                <h1 style={{
+                  fontFamily: 'Space Grotesk, sans-serif',
+                  fontSize: 'clamp(3.2rem, 9vw, 8rem)',
+                  fontWeight: 800, lineHeight: 0.9,
+                  letterSpacing: '-0.05em',
+                  textTransform: 'uppercase',
+                  color: D.t1, margin: 0,
+                }}>your</h1>
+              </HeroReveal>
+              <HeroReveal delay={0.17}>
+                <h1 style={{
+                  fontFamily: 'Space Grotesk, sans-serif',
+                  fontSize: 'clamp(3.2rem, 9vw, 8rem)',
+                  fontWeight: 800, lineHeight: 0.9,
+                  letterSpacing: '-0.05em',
+                  textTransform: 'uppercase',
+                  color: D.accent, margin: 0,
+                }}>future.</h1>
+              </HeroReveal>
             </div>
-          </FadeUp>
 
-          <FadeUp delay={0.65}>
-            <div style={{ textAlign: 'center', maxWidth: 480, margin: '0 auto' }}>
-              <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 16, color: D.t2, lineHeight: 1.7, marginBottom: 40 }}>
-                DSA, system design, core CS, and placement prep — one platform, one path to your first tech offer.
+            <FadeUp delay={0.45}>
+              <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 16, color: D.t2, lineHeight: 1.75, maxWidth: 460, marginBottom: 36 }}>
+                DSA, system design, core CS, and placement prep — one platform, one structured path to your first tech offer.
               </p>
-              <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 28 }}>
+            </FadeUp>
+
+            <FadeUp delay={0.55}>
+              <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 28 }}>
                 <Link to="/login?tab=register" style={{
                   display: 'inline-flex', alignItems: 'center', gap: 8,
-                  height: 56, padding: '0 36px',
+                  height: 52, padding: '0 32px',
                   background: D.accent, color: '#000',
-                  fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase',
-                  textDecoration: 'none', border: `2px solid ${D.accent}`,
+                  fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase',
+                  textDecoration: 'none', borderRadius: 12,
+                  boxShadow: '0 8px 32px rgba(232,33,39,0.35)',
                 }}>
                   Start free →
                 </Link>
                 <a href="#showcase" style={{
                   display: 'inline-flex', alignItems: 'center', gap: 8,
-                  height: 56, padding: '0 36px',
-                  background: 'transparent', color: D.t1,
-                  fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase',
-                  textDecoration: 'none', border: `2px solid ${D.border}`,
+                  height: 52, padding: '0 32px',
+                  background: 'rgba(255,255,255,0.05)', color: D.t1,
+                  fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase',
+                  textDecoration: 'none', border: `1px solid rgba(255,255,255,0.12)`, borderRadius: 12,
+                  backdropFilter: 'blur(12px)',
                 }}>
                   See platform
                 </a>
               </div>
-              <div style={{ display: 'flex', gap: 24, justifyContent: 'center', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
                 {['No credit card', 'Free tier forever', '5 min setup'].map(t => (
-                  <span key={t} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase', color: D.t4 }}>
-                    <span style={{ color: '#4ADE80', fontWeight: 700 }}>✓</span> {t}
+                  <span key={t} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, letterSpacing: '0.04em', color: D.t4 }}>
+                    <span style={{ color: '#4ADE80', fontWeight: 700, fontSize: 13 }}>✓</span> {t}
                   </span>
                 ))}
               </div>
-            </div>
-          </FadeUp>
+            </FadeUp>
+          </div>
 
+          {/* Right — floating product preview */}
+          <div className="hidden lg:flex" style={{ justifyContent: 'flex-end', position: 'relative' }}>
+            <FloatingDashboardPreview />
+          </div>
         </div>
-      </motion.div>
+      </div>
 
       <motion.div
-        style={{ position: 'absolute', bottom: 40, left: '50%', transform: 'translateX(-50%)', opacity: scrollIndicatorOpacity }}
+        style={{ position: 'absolute', bottom: 36, left: '50%', transform: 'translateX(-50%)', opacity: scrollIndicatorOpacity }}
         animate={{ y: [0, 8, 0] }}
         transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
       >
@@ -417,12 +565,16 @@ function HowItWorksSection() {
                 <p style={{ fontSize: 15, color: D.t2, lineHeight: 1.7, maxWidth: 420, position: 'relative', zIndex: 1 }}>{step.body}</p>
               </div>
               <div className="hidden lg:flex" style={{ alignItems: 'center', justifyContent: 'center' }}>
+                <TiltCard maxTilt={8} style={{ width: '100%', maxWidth: 340 }}>
                 <div style={{
-                  border: `2px solid ${D.border}`, padding: '48px 40px',
-                  background: D.elev, width: '100%', maxWidth: 340,
+                  border: `1px solid rgba(255,255,255,0.1)`, padding: '48px 40px',
+                  background: 'rgba(21,22,39,0.9)', borderRadius: 20,
+                  width: '100%',
                   position: 'relative', overflow: 'hidden',
                   cursor: 'default',
                   transition: 'background 0.3s, border-color 0.3s',
+                  backdropFilter: 'blur(20px)',
+                  boxShadow: '0 20px 60px rgba(0,0,0,0.4)',
                 }}
                 onMouseEnter={e => {
                   const el = e.currentTarget as HTMLDivElement;
@@ -441,6 +593,7 @@ function HowItWorksSection() {
                   <p data-invert style={{ fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 'clamp(2rem, 5vw, 3.5rem)', letterSpacing: '-0.05em', lineHeight: 1, color: D.t1, marginBottom: 8, transition: 'color 0.3s' }}>{step.metric}</p>
                   <p data-invert style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: D.t3, transition: 'color 0.3s' }}>{step.label}</p>
                 </div>
+                </TiltCard>
               </div>
             </div>
           </motion.div>
@@ -453,8 +606,8 @@ function HowItWorksSection() {
 /* ── CodeCard ───────────────────────────────────────────────────────────── */
 function CodeCard() {
   return (
-    <div style={{ background: '#0B0F18', border: `1px solid ${D.border}`, borderRadius: 0, overflow: 'hidden' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 18px', background: '#0F1520', borderBottom: `1px solid ${D.border}` }}>
+    <div style={{ background: '#0B0F18', overflow: 'hidden' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 18px', background: '#0F1520', borderBottom: `1px solid rgba(255,255,255,0.07)` }}>
         {['#FF5F57','#FEBC2E','#28C840'].map((c) => <span key={c} style={{ width: 10, height: 10, borderRadius: '50%', background: c, display: 'inline-block' }} />)}
         <span style={{ flex: 1 }} />
         <span style={{ fontFamily: 'monospace', fontSize: 11, padding: '2px 10px', background: 'rgba(255,255,255,0.04)', color: '#555' }}>two_sum.py</span>
@@ -641,9 +794,11 @@ function FeatureShowcase() {
                   textDecoration: 'none', border: `2px solid ${D.border}`,
                 }}>Get started free</Link>
               </div>
-              <div className="hidden lg:block" style={{ border: `1px solid ${D.border}` }}>
-                {feat.card}
-              </div>
+              <TiltCard maxTilt={5} className="hidden lg:block">
+                <div style={{ border: `1px solid rgba(255,255,255,0.1)`, borderRadius: 16, overflow: 'hidden', boxShadow: '0 24px 80px rgba(0,0,0,0.4)' }}>
+                  {feat.card}
+                </div>
+              </TiltCard>
             </div>
           </div>
         </div>
@@ -729,8 +884,9 @@ function TestimonialCard({ t }: { t: typeof TESTIMONIALS[0] }) {
   return (
     <div style={{
       width: 340, flexShrink: 0, marginRight: 16,
-      border: `2px solid ${D.border}`,
-      background: D.surf, padding: 28,
+      border: `1px solid rgba(255,255,255,0.09)`,
+      background: 'rgba(14,15,28,0.9)', padding: 28, borderRadius: 16,
+      backdropFilter: 'blur(16px)',
       transition: 'background 0.3s, border-color 0.3s',
       cursor: 'default',
     }}
@@ -803,15 +959,20 @@ function PricingSection() {
           </ClipReveal>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 2, background: D.border }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16 }}>
           {PLANS.map((plan, i) => (
             <FadeUp key={plan.name} delay={i * 0.1}>
+              <TiltCard maxTilt={6} style={{ height: '100%' }}>
               <div style={{
-                background: plan.featured ? D.elev : D.surf,
+                background: plan.featured ? 'rgba(21,22,39,0.95)' : 'rgba(14,15,28,0.85)',
                 padding: '40px 32px',
-                borderLeft: plan.featured ? `4px solid ${D.accent}` : '4px solid transparent',
+                borderRadius: 20,
+                border: plan.featured ? `1px solid rgba(232,33,39,0.35)` : `1px solid rgba(255,255,255,0.09)`,
+                boxShadow: plan.featured ? '0 0 60px rgba(232,33,39,0.12), 0 24px 64px rgba(0,0,0,0.5)' : '0 12px 40px rgba(0,0,0,0.35)',
+                backdropFilter: 'blur(20px)',
                 height: '100%',
                 display: 'flex', flexDirection: 'column',
+                transformStyle: 'preserve-3d',
               }}>
                 {'tag' in plan && plan.tag && (
                   <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: D.accent, marginBottom: 12 }}>{plan.tag}</p>
@@ -831,14 +992,16 @@ function PricingSection() {
                 </ul>
                 <Link to="/login?tab=register" style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  height: 48,
-                  background: plan.featured ? D.accent : 'transparent',
+                  height: 48, borderRadius: 10,
+                  background: plan.featured ? D.accent : 'rgba(255,255,255,0.06)',
                   color: plan.featured ? '#000' : D.t1,
-                  border: plan.featured ? `2px solid ${D.accent}` : `2px solid ${D.border}`,
+                  border: plan.featured ? `1px solid ${D.accent}` : `1px solid rgba(255,255,255,0.12)`,
                   fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase',
                   textDecoration: 'none',
+                  boxShadow: plan.featured ? '0 4px 20px rgba(232,33,39,0.35)' : 'none',
                 }}>{plan.cta}</Link>
               </div>
+              </TiltCard>
             </FadeUp>
           ))}
         </div>

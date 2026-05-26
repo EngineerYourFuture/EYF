@@ -58,11 +58,12 @@ function GlassCard({ children, style, className, glow }: {
       style={{
         background: 'var(--glass-bg)',
         border: '1px solid var(--glass-border)',
-        backdropFilter: 'blur(20px) saturate(180%)',
-        WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+        borderRadius: 16,
+        backdropFilter: 'blur(20px) saturate(200%)',
+        WebkitBackdropFilter: 'blur(20px) saturate(200%)',
         boxShadow: glow
-          ? `0 0 40px ${glow}12, inset 0 1px 0 rgba(255,255,255,0.06), 0 4px 24px rgba(0,0,0,0.4)`
-          : `inset 0 1px 0 rgba(255,255,255,0.05), 0 4px 20px rgba(0,0,0,0.35)`,
+          ? `0 0 40px ${glow}12, inset 0 1px 0 rgba(255,255,255,0.07), 0 8px 32px rgba(0,0,0,0.4)`
+          : `inset 0 1px 0 rgba(255,255,255,0.06), 0 8px 28px rgba(0,0,0,0.35)`,
         position: 'relative',
         overflow: 'hidden',
         ...style,
@@ -369,32 +370,36 @@ export function HomePage() {
         ═══════════════════════════════════════════════════════════════ */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
           {[
-            { label: 'Total XP',   value: xp.toLocaleString(),             icon: 'bolt',               color: '#E82127', glow: '#E82127', bg: 'rgba(232,25,44,0.07)'   },
-            { label: 'This Week',  value: `+${weeklyXp.toLocaleString()}`,  icon: 'trending_up',        color: '#22C55E', glow: '#22C55E', bg: 'rgba(34,197,94,0.07)'   },
-            { label: 'Streak',     value: `${streak}d`,                     icon: 'local_fire_department', color: '#F97316', glow: '#F97316', bg: 'rgba(249,115,22,0.07)' },
-            { label: 'Badges',     value: String(achievementsEarned),       icon: 'emoji_events',       color: '#EAB308', glow: '#EAB308', bg: 'rgba(234,179,8,0.07)'   },
-          ].map(({ label, value, icon, color, glow, bg }, i) => (
+            { label: 'Total XP',  value: xp.toLocaleString(),            icon: 'bolt',                  color: '#E82127' },
+            { label: 'This Week', value: `+${weeklyXp.toLocaleString()}`, icon: 'trending_up',           color: '#22C55E' },
+            { label: 'Streak',    value: `${streak}d`,                    icon: 'local_fire_department', color: '#F97316' },
+            { label: 'Badges',    value: String(achievementsEarned),      icon: 'emoji_events',          color: '#EAB308' },
+          ].map(({ label, value, icon, color }, i) => (
             <motion.div
               key={label}
               initial={{ opacity: 0, y: 16, filter: 'blur(4px)' }}
               animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
               transition={{ duration: 0.5, delay: 0.08 + i * 0.06, ease: [0.16, 1, 0.3, 1] }}
-              whileHover={{ y: -3, boxShadow: `0 0 24px ${glow}20, 0 8px 24px rgba(0,0,0,0.35)` }}
+              whileHover={{ y: -2, boxShadow: `0 12px 40px rgba(0,0,0,0.4)` }}
               style={{
-                background: bg,
-                border: `1px solid ${glow}25`,
+                background: 'var(--bg-elevated)',
+                border: '1px solid var(--border)',
+                borderRadius: 14,
                 backdropFilter: 'blur(16px)',
                 padding: '18px 20px',
                 position: 'relative',
                 overflow: 'hidden',
                 transition: 'transform 0.2s, box-shadow 0.2s',
+                boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
               }}
             >
-              {/* Corner glow — subtle */}
-              <div style={{ position: 'absolute', top: 0, right: 0, width: 80, height: 80, background: `radial-gradient(circle at top right, ${glow}18, transparent 70%)`, pointerEvents: 'none' }} />
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
-                <span className="material-symbols-rounded" style={{ fontSize: 14, color, opacity: 0.9 }}>{icon}</span>
-                <span style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color, opacity: 0.6, fontFamily: 'Space Grotesk' }}>{label}</span>
+              {/* Top shimmer */}
+              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.08) 50%, transparent)', pointerEvents: 'none' }} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
+                <div style={{ width: 28, height: 28, borderRadius: 8, background: `${color}14`, border: `1px solid ${color}28`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <span className="material-symbols-rounded" style={{ fontSize: 14, color }}>{icon}</span>
+                </div>
+                <span style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--t4)', fontFamily: 'Space Grotesk' }}>{label}</span>
               </div>
               <p style={{ fontFamily: 'Space Grotesk', fontWeight: 800, fontSize: 'clamp(1.4rem, 3vw, 2rem)', letterSpacing: '-0.03em', lineHeight: 1, color, marginBottom: 0 }}>
                 {value}
@@ -419,6 +424,7 @@ export function HomePage() {
                   minHeight: 260,
                   background: `linear-gradient(145deg, rgba(80,8,14,0.7) 0%, rgba(14,10,22,0.9) 55%, rgba(9,10,20,0.95) 100%)`,
                   border: '1px solid rgba(232,25,44,0.22)',
+                  borderRadius: 16,
                   backdropFilter: 'blur(24px)',
                   padding: '24px',
                   position: 'relative',
@@ -591,8 +597,9 @@ export function HomePage() {
                     <motion.div
                       className="flex flex-col items-center gap-2 py-3"
                       style={{
-                        background: `${a.hex}15`,
-                        border: `1px solid ${a.hex}35`,
+                        background: 'var(--bg-elevated)',
+                        border: '1px solid var(--border)',
+                        borderRadius: 12,
                         cursor: 'pointer',
                         backdropFilter: 'blur(8px)',
                       }}
@@ -600,10 +607,10 @@ export function HomePage() {
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ delay: 0.18 + i * 0.03, duration: 0.35 }}
                       whileHover={{
-                        background: `${a.hex}25`,
-                        borderColor: `${a.hex}55`,
+                        background: `${a.hex}12`,
+                        borderColor: `${a.hex}35`,
                         y: -3,
-                        boxShadow: `0 4px 20px ${a.hex}30`,
+                        boxShadow: `0 8px 24px rgba(0,0,0,0.3)`,
                       }}
                       whileTap={{ scale: 0.96 }}
                     >
@@ -688,20 +695,22 @@ export function HomePage() {
                   <Link to={cfg.path}>
                     <motion.div
                       style={{
-                        background: `${cfg.hex}12`,
-                        border: `1px solid ${cfg.hex}30`,
+                        background: 'var(--bg-elevated)',
+                        border: '1px solid var(--border)',
+                        borderRadius: 14,
                         backdropFilter: 'blur(12px)',
                         padding: '14px',
                         cursor: 'pointer',
                         position: 'relative',
                         overflow: 'hidden',
                         transition: 'all 0.2s',
+                        boxShadow: '0 2px 12px rgba(0,0,0,0.25)',
                       }}
                       whileHover={{
-                        background: `${cfg.hex}20`,
-                        borderColor: `${cfg.hex}50`,
+                        background: `${cfg.hex}0d`,
+                        borderColor: `${cfg.hex}30`,
                         y: -3,
-                        boxShadow: `0 6px 24px ${cfg.hex}25, 0 0 0 1px ${cfg.hex}35`,
+                        boxShadow: `0 12px 40px rgba(0,0,0,0.4)`,
                       }}
                     >
                       <div style={{ position: 'absolute', top: 0, right: 0, width: 40, height: 40, background: `radial-gradient(circle at top right, ${cfg.hex}15, transparent 70%)`, pointerEvents: 'none' }} />

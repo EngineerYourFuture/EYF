@@ -19,6 +19,14 @@
 :root {
   color-scheme: dark;
 
+  /* Border radius scale */
+  --r-xs:   6px;
+  --r-sm:   10px;
+  --r-md:   14px;
+  --r-lg:   20px;
+  --r-xl:   28px;
+  --r-pill: 100px;
+
   /* Surfaces — deep navy, never pure black */
   --bg:           #090a14;
   --bg-surface:   #0e0f1c;
@@ -41,11 +49,11 @@
   --red-muted:  rgba(232,33,39,0.1);
   --red-border: rgba(232,33,39,0.28);
 
-  /* Shadows — deeper for visible elevation */
-  --shadow-xs: 0 1px 3px rgba(0,0,0,0.7);
-  --shadow-sm: 0 2px 8px rgba(0,0,0,0.65), 0 1px 2px rgba(0,0,0,0.5);
-  --shadow-md: 0 8px 28px rgba(0,0,0,0.75), 0 3px 8px rgba(0,0,0,0.5);
-  --shadow-lg: 0 32px 80px rgba(0,0,0,0.85), 0 12px 32px rgba(0,0,0,0.6);
+  /* Shadows — Apple-style multi-layer */
+  --shadow-xs: 0 2px 8px rgba(0,0,0,0.35), 0 1px 2px rgba(0,0,0,0.25);
+  --shadow-sm: 0 4px 20px rgba(0,0,0,0.45), 0 2px 6px rgba(0,0,0,0.3);
+  --shadow-md: 0 12px 48px rgba(0,0,0,0.55), 0 4px 16px rgba(0,0,0,0.35), 0 1px 4px rgba(0,0,0,0.25);
+  --shadow-lg: 0 40px 100px rgba(0,0,0,0.7), 0 16px 48px rgba(0,0,0,0.45), 0 4px 16px rgba(0,0,0,0.3);
 
   /* Shell */
   --sidebar-bg:         #07081a;
@@ -63,6 +71,7 @@
 
 html.light {
   color-scheme: light;
+  /* Radius vars are inherited from :root — no override needed */
 
   /* Surfaces */
   --bg:           #f5f5f4;
@@ -168,7 +177,7 @@ p, li, h1, h2, h3, h4, h5, h6, span, td, th {
    ───────────────────────────────────────────────────────────────────────────── */
 .badge {
   display: inline-flex; align-items: center; gap: 5px;
-  padding: 2px 8px; border-radius: 0; font-size: 10px; font-weight: 700;
+  padding: 2px 8px; border-radius: var(--r-xs); font-size: 10px; font-weight: 700;
   letter-spacing: 0.08em; text-transform: uppercase; border: 1px solid var(--border);
   color: var(--t2); background: var(--bg-elevated); white-space: nowrap; line-height: 1.5;
   font-family: 'Space Grotesk', 'Inter', sans-serif;
@@ -185,7 +194,7 @@ p, li, h1, h2, h3, h4, h5, h6, span, td, th {
    ───────────────────────────────────────────────────────────────────────────── */
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 7px;
-  padding: 9px 18px; border-radius: 0; font-size: 11px; font-weight: 800;
+  padding: 9px 18px; border-radius: var(--r-sm); font-size: 11px; font-weight: 800;
   font-family: 'Space Grotesk', 'Inter', sans-serif;
   letter-spacing: 0.08em; text-transform: uppercase;
   line-height: 1; cursor: pointer; border: 1px solid transparent;
@@ -223,7 +232,7 @@ p, li, h1, h2, h3, h4, h5, h6, span, td, th {
    ───────────────────────────────────────────────────────────────────────────── */
 .card {
   background: var(--bg-elevated); border: 1px solid var(--border);
-  border-radius: 0; padding: 20px; box-shadow: var(--shadow-sm);
+  border-radius: var(--r-md); padding: 20px; box-shadow: var(--shadow-sm);
   position: relative; overflow: hidden;
 }
 .card::before {
@@ -248,7 +257,7 @@ p, li, h1, h2, h3, h4, h5, h6, span, td, th {
    ───────────────────────────────────────────────────────────────────────────── */
 .field-input {
   width: 100%; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 0; padding: 11px 15px; font-size: 14px; color: var(--t1);
+  border-radius: var(--r-sm); padding: 11px 15px; font-size: 14px; color: var(--t1);
   font-family: inherit; transition: border-color 0.15s, box-shadow 0.15s; outline: none;
   line-height: 1.4; box-sizing: border-box;
 }
@@ -260,10 +269,10 @@ p, li, h1, h2, h3, h4, h5, h6, span, td, th {
 /* ─────────────────────────────────────────────────────────────────────────────
    PROGRESS
    ───────────────────────────────────────────────────────────────────────────── */
-.progress-track { height: 3px; background: rgba(255,255,255,0.07); border-radius: 0; overflow: hidden; }
-.progress-fill  { height: 100%; border-radius: 0; background: var(--red); transition: width 0.8s cubic-bezier(0.16,1,0.3,1); }
-.xp-bar-track   { height: 2px; background: rgba(255,255,255,0.07); border-radius: 0; overflow: hidden; }
-.xp-bar-fill    { height: 100%; background: var(--red); border-radius: 0; transition: width 1.2s cubic-bezier(0.16,1,0.3,1); box-shadow: 0 0 8px rgba(232,33,39,0.7); animation: xp-glow 2.5s ease-in-out infinite; }
+.progress-track { height: 3px; background: rgba(255,255,255,0.07); border-radius: var(--r-pill); overflow: hidden; }
+.progress-fill  { height: 100%; border-radius: var(--r-pill); background: var(--red); transition: width 0.8s cubic-bezier(0.16,1,0.3,1); }
+.xp-bar-track   { height: 2px; background: rgba(255,255,255,0.07); border-radius: var(--r-pill); overflow: hidden; }
+.xp-bar-fill    { height: 100%; background: var(--red); border-radius: var(--r-pill); transition: width 1.2s cubic-bezier(0.16,1,0.3,1); box-shadow: 0 0 8px rgba(232,33,39,0.7); animation: xp-glow 2.5s ease-in-out infinite; }
 
 @keyframes xp-glow {
   0%, 100% { box-shadow: 0 0 6px rgba(232,33,39,0.6); }
@@ -288,7 +297,7 @@ p, li, h1, h2, h3, h4, h5, h6, span, td, th {
    DIFFICULTY TAGS
    ───────────────────────────────────────────────────────────────────────────── */
 .tag {
-  display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 2px;
+  display: inline-flex; align-items: center; padding: 2px 8px; border-radius: var(--r-xs);
   font-size: 11px; font-weight: 700; letter-spacing: 0.03em; line-height: 1.5; text-transform: uppercase;
 }
 .tag-easy   { background: rgba(74,222,128,0.1);  color: #5DE090; border: 1px solid rgba(74,222,128,0.22); }
@@ -313,7 +322,7 @@ p, li, h1, h2, h3, h4, h5, h6, span, td, th {
    ───────────────────────────────────────────────────────────────────────────── */
 .nav-item {
   display: flex; align-items: center; gap: 9px;
-  padding: 7px 10px; border-radius: 0;
+  padding: 7px 10px; border-radius: var(--r-sm);
   font-size: 12px; font-weight: 500; color: var(--t3);
   cursor: pointer; transition: color 0.15s, background 0.15s, border-color 0.15s;
   text-decoration: none; line-height: 1.3;
@@ -435,7 +444,7 @@ p, li, h1, h2, h3, h4, h5, h6, span, td, th {
 
 /* ── Chart card ────────────────────────────────────────────────────────────── */
 .chart-card {
-  background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 0;
+  background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--r-md);
   padding: 20px; box-shadow: var(--shadow-sm); position: relative; overflow: hidden;
 }
 .chart-card::before {
@@ -509,13 +518,13 @@ kbd {
    ───────────────────────────────────────────────────────────────────────────── */
 .streak-badge {
   display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px 3px 7px;
-  border-radius: 0; color: #FCA55A; background: rgba(251,146,60,0.12);
+  border-radius: var(--r-pill); color: #FCA55A; background: rgba(251,146,60,0.12);
   border: 1px solid rgba(251,146,60,0.25); font-size: 11px; font-weight: 700; line-height: 1;
   letter-spacing: 0.05em;
 }
 
 .module-card {
-  background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 0;
+  background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--r-md);
   padding: 16px; cursor: pointer; box-shadow: var(--shadow-xs);
   transition: border-color 0.2s, box-shadow 0.2s, background 0.2s, transform 0.2s;
   text-decoration: none; display: block; color: inherit; position: relative; overflow: hidden;
@@ -528,7 +537,7 @@ kbd {
 
 .stat-tile {
   background: var(--bg-elevated); border: 1px solid var(--border);
-  border-radius: 0; padding: 18px 20px; box-shadow: var(--shadow-xs);
+  border-radius: var(--r-md); padding: 18px 20px; box-shadow: var(--shadow-xs);
   position: relative; overflow: hidden;
   transition: border-color 0.18s, box-shadow 0.18s, transform 0.18s;
 }
@@ -544,7 +553,7 @@ kbd {
 
 .insight-card {
   background: var(--bg-elevated); border: 1px solid var(--border);
-  border-radius: 0; padding: 16px 20px;
+  border-radius: var(--r-md); padding: 16px 20px;
   box-shadow: 0 0 24px rgba(232,33,39,0.07), var(--shadow-sm);
   position: relative; overflow: hidden;
 }
@@ -571,7 +580,7 @@ kbd {
    ───────────────────────────────────────────────────────────────────────────── */
 .shortcuts-modal {
   background: rgba(14,15,28,0.98); border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 0; box-shadow: var(--shadow-lg), 0 0 80px rgba(0,0,0,0.7);
+  border-radius: var(--r-lg); box-shadow: var(--shadow-lg), 0 0 80px rgba(0,0,0,0.7);
   backdrop-filter: blur(28px) saturate(160%);
 }
 
@@ -580,11 +589,13 @@ kbd {
    ───────────────────────────────────────────────────────────────────────────── */
 .glass {
   background: rgba(14,15,28,0.75); border: 1px solid var(--border);
-  backdrop-filter: blur(16px) saturate(180%);
+  border-radius: var(--r-md);
+  backdrop-filter: blur(20px) saturate(200%);
 }
 .glass-heavy {
   background: rgba(9,10,20,0.92); border: 1px solid var(--border);
-  backdrop-filter: blur(28px) saturate(200%);
+  border-radius: var(--r-md);
+  backdrop-filter: blur(32px) saturate(220%);
 }
 .gradient-text {
   background: linear-gradient(135deg, var(--t1) 0%, var(--red) 100%);
@@ -604,7 +615,7 @@ kbd {
 .cin-card {
   background: rgba(255,255,255,0.025);
   border: 1px solid rgba(255,255,255,0.07);
-  border-radius: 0;
+  border-radius: var(--r-md);
   backdrop-filter: blur(12px);
   transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
 }
@@ -721,6 +732,7 @@ kbd {
 .stat-block {
   background: var(--bg-elevated);
   border: 1px solid var(--border);
+  border-radius: var(--r-md);
   padding: 20px 24px;
   position: relative;
   overflow: hidden;
@@ -770,6 +782,7 @@ kbd {
   display: inline-flex; align-items: center; gap: 5px;
   padding: 6px 14px; font-size: 11px; font-weight: 600;
   letter-spacing: 0.04em; border: 1px solid var(--border);
+  border-radius: var(--r-pill);
   background: transparent; color: var(--t3); cursor: pointer;
   transition: all 0.15s; white-space: nowrap; user-select: none;
 }
@@ -808,6 +821,7 @@ kbd {
   background: var(--bg-elevated);
   border: 1px solid var(--border);
   border-left: 3px solid var(--red);
+  border-radius: var(--r-md);
   padding: 20px 24px;
   transition: box-shadow 0.15s, border-color 0.15s;
 }
