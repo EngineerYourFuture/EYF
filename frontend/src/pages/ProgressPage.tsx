@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { AppShell } from '../components/AppShell';
 import { Icon } from '../components/Icon';
+import { PageHeader } from '../components/PageHeader';
 import { getSession } from '../lib/session';
 import { apiRequest } from '../lib/api';
 
@@ -132,9 +133,9 @@ function groupByWeek(days: DailyActivity[]): (DailyActivity | null)[][] {
 const MONTH_LABELS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
 const GLASS = {
-  background: 'rgba(10,10,10,0.7)',
-  border: '1px solid rgba(255,255,255,0.07)',
-  backdropFilter: 'blur(16px)',
+  background: 'var(--glass-bg)',
+  border: '1px solid var(--glass-border)',
+  backdropFilter: 'blur(16px) saturate(180%)',
 } as const;
 
 // ─── Stat card ────────────────────────────────────────────────────────────────
@@ -150,8 +151,8 @@ function StatCard({ icon, label, value, sub, color, glow, delay = 0 }: {
 }) {
   return (
     <motion.div
-      className="rounded-xl p-5 flex flex-col gap-3"
-      style={GLASS}
+      className="p-5 flex flex-col gap-3"
+      style={{ ...GLASS, background: `${glow.replace('0.15', '0.06')}`, border: `1px solid ${glow.replace('0.15', '0.2')}` }}
       initial={{ opacity: 0, y: 16, filter: 'blur(6px)' }}
       whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
       viewport={{ once: true, margin: '-20px' }}
@@ -160,7 +161,7 @@ function StatCard({ icon, label, value, sub, color, glow, delay = 0 }: {
     >
       <div className="flex items-start justify-between">
         <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--t3)' }}>{label}</p>
-        <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: glow }}>
+        <div className="w-8 h-8 flex items-center justify-center" style={{ background: glow }}>
           <Icon name={icon} size={16} style={{ color }} />
         </div>
       </div>
@@ -180,7 +181,7 @@ function WeeklyXPChart({ days }: { readonly days: DailyActivity[] }) {
 
   return (
     <motion.div
-      className="rounded-xl p-5"
+      className="p-5"
       style={GLASS}
       initial={{ opacity: 0, y: 16 }}
       whileInView={{ opacity: 1, y: 0 }}
@@ -239,7 +240,7 @@ function ActivityHeatmap({ days }: { readonly days: DailyActivity[] }) {
 
   return (
     <motion.div
-      className="rounded-xl p-5 overflow-x-auto"
+      className="p-5 overflow-x-auto"
       style={GLASS}
       initial={{ opacity: 0, y: 16 }}
       whileInView={{ opacity: 1, y: 0 }}
@@ -306,7 +307,7 @@ function ActivityHeatmap({ days }: { readonly days: DailyActivity[] }) {
 function SubjectProgressPanel({ subjects }: { readonly subjects: SubjectProgress[] }) {
   return (
     <motion.div
-      className="rounded-xl p-6 space-y-5"
+      className="p-6 space-y-5"
       style={GLASS}
       initial={{ opacity: 0, y: 16 }}
       whileInView={{ opacity: 1, y: 0 }}
@@ -351,7 +352,7 @@ function RankCard({ percentile, streak, longestStreak }: {
 }) {
   return (
     <motion.div
-      className="rounded-xl p-6 space-y-5"
+      className="p-6 space-y-5"
       style={GLASS}
       initial={{ opacity: 0, y: 16 }}
       whileInView={{ opacity: 1, y: 0 }}
@@ -377,7 +378,7 @@ function RankCard({ percentile, streak, longestStreak }: {
           { label: 'Current Streak', value: streak, color: '#fb923c' },
           { label: 'Longest Streak', value: longestStreak, color: '#fdba74' },
         ].map((item) => (
-          <div key={item.label} className="rounded-lg p-3 text-center" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
+          <div key={item.label} className="p-3 text-center" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
             <p className="text-xl font-black" style={{ color: item.color }}>{item.value}</p>
             <p className="text-[11px] mt-0.5" style={{ color: 'var(--t3)' }}>{item.label}</p>
           </div>
@@ -413,56 +414,38 @@ export function ProgressPage() {
     <AppShell>
       <div className="pt-8 max-w-5xl mx-auto space-y-6">
 
-        {/* Header */}
-        <div className="flex items-end justify-between flex-wrap gap-4">
-          <div>
-            <motion.h1
-              className="text-5xl font-black tracking-tighter leading-none"
-              style={{
-                background: 'linear-gradient(135deg, #E8E8E8 0%, rgba(96,165,250,0.8) 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-              }}
-              initial={{ opacity: 0, y: 24, filter: 'blur(10px)' }}
-              animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-              transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
-            >
-              MY PROGRESS
-            </motion.h1>
-            <motion.p
-              className="mt-2 text-sm"
-              style={{ color: 'var(--t2)' }}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
-            >
-              Your engineering journey at a glance
-            </motion.p>
-          </div>
-          <motion.div
-            initial={{ opacity: 0, x: 16 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-          >
-            <Link to="/app/achievements" className="flex items-center gap-2 text-sm font-bold transition-colors" style={{ color: 'var(--t2)' }}>
-              <Icon name="emoji_events" size={18} />Achievements
+        <PageHeader
+          eyebrow="Your journey"
+          title="My Progress."
+          subtitle="Your engineering journey at a glance — XP, streaks, problems solved, and skill development."
+          stats={[
+            { value: `${stats.totalXP.toLocaleString()}`, label: 'Total XP', color: '#60a5fa' },
+            { value: stats.streak, label: 'Day Streak', color: '#E82127' },
+            { value: stats.problemsSolved, label: 'Problems Solved' },
+          ]}
+          actions={
+            <Link to="/app/achievements" style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 700, color: 'var(--t2)', textDecoration: 'none', border: '1px solid var(--border)', padding: '8px 14px', transition: 'all 0.15s' }}>
+              <Icon name="emoji_events" size={14} />Achievements
             </Link>
-          </motion.div>
-        </div>
+          }
+        />
 
         {/* XP & Level hero */}
         <motion.div
-          className="rounded-2xl p-6"
           style={{
-            background: 'rgba(10,10,10,0.85)',
-            border: '1px solid rgba(96,165,250,0.18)',
-            backdropFilter: 'blur(20px)',
-            boxShadow: '0 0 60px rgba(96,165,250,0.06)',
+            background: 'linear-gradient(135deg, rgba(8,16,40,0.85) 0%, rgba(10,10,14,0.9) 100%)',
+            border: '1px solid rgba(96,165,250,0.2)',
+            backdropFilter: 'blur(24px) saturate(180%)',
+            WebkitBackdropFilter: 'blur(24px) saturate(180%)',
+            boxShadow: '0 0 60px rgba(96,165,250,0.06), inset 0 1px 0 rgba(96,165,250,0.08), 0 8px 32px rgba(0,0,0,0.5)',
+            padding: 24,
+            position: 'relative', overflow: 'hidden',
           }}
           initial={{ opacity: 0, y: 20, filter: 'blur(8px)' }}
           animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
           transition={{ duration: 0.6, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
         >
+          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: 'linear-gradient(90deg, #60a5fa, transparent)' }} />
           <div
             style={{ height: 1, marginBottom: 24, background: 'linear-gradient(90deg, transparent, rgba(96,165,250,0.6) 40%, rgba(96,165,250,0.3) 70%, transparent)' }}
           />
@@ -529,10 +512,10 @@ export function ProgressPage() {
             <motion.div key={cta.to} whileHover={{ scale: 1.02, boxShadow: `0 8px 32px ${cta.glow}` }} transition={{ duration: 0.15 }}>
               <Link
                 to={cta.to}
-                className="flex items-center gap-3 rounded-xl p-4 transition-colors"
-                style={GLASS}
+                className="flex items-center gap-3 p-4 transition-all"
+                style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(16px)', display: 'flex', textDecoration: 'none', color: 'inherit' }}
               >
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: cta.glow }}>
+                <div style={{ width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, background: cta.glow }}>
                   <Icon name={cta.icon} size={20} style={{ color: cta.color }} />
                 </div>
                 <div>

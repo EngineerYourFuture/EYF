@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { AppShell } from '../components/AppShell';
 import { Icon } from '../components/Icon';
+import { PageHeader } from '../components/PageHeader';
 import { useUser } from '../contexts/UserContext';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -234,13 +235,13 @@ function SkillBar({ area }: { readonly area: SkillArea }) {
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <div className={`rounded-2xl border ${meta.border} ${meta.bg} overflow-hidden`}>
+    <div className={`border ${meta.border} ${meta.bg} overflow-hidden`} style={{ borderRadius: 0 }}>
       <button
         className="w-full text-left p-4"
         onClick={() => setExpanded(v => !v)}
       >
         <div className="flex items-center gap-3 mb-3">
-          <div className={`w-8 h-8 rounded-lg bg-black/20 flex items-center justify-center ${meta.text}`}>
+          <div className={`w-8 h-8 bg-black/20 flex items-center justify-center ${meta.text}`}>
             <Icon name={area.icon} className="text-base" />
           </div>
           <div className="flex-1 min-w-0">
@@ -342,8 +343,21 @@ export function ReadinessPage() {
     <AppShell>
       <div className="max-w-5xl mx-auto px-4 py-8 space-y-8">
 
+        <PageHeader
+          eyebrow="Placement Intelligence"
+          title={`${overall}% Ready.`}
+          subtitle="Your personalized gap analysis across every domain recruiters test — from DSA to behavioral."
+          accentColor={overall >= 75 ? '#10b981' : overall >= 55 ? '#f59e0b' : '#E82127'}
+          stats={[
+            { value: `${overall}%`, label: 'Overall Readiness', color: overall >= 75 ? '#10b981' : overall >= 55 ? '#f59e0b' : '#E82127' },
+            { value: strong.length, label: 'Strong Areas' },
+            { value: critical.length, label: 'Critical Gaps' },
+          ]}
+        />
+
         {/* ── Hero: Overall Score ── */}
-        <div className="bg-gradient-to-br from-[#1a1a1a] to-[#141414] rounded-3xl border border-white/8 p-8">
+        <div style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', padding: 32, position: 'relative', overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg, ${overall >= 75 ? '#10b981' : overall >= 55 ? '#f59e0b' : '#E82127'}, transparent)` }} />
           <div className="flex flex-col md:flex-row items-center gap-8">
             <RadialScore score={overall} size={160} />
             <div className="flex-1 text-center md:text-left">
@@ -353,13 +367,13 @@ export function ReadinessPage() {
 
               <div className="flex flex-wrap gap-3 justify-center md:justify-start">
                 {strong.length > 0 && (
-                  <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl px-4 py-2 text-xs">
+                  <div className="bg-emerald-500/10 border border-emerald-500/20 px-4 py-2 text-xs">
                     <span className="text-emerald-400 font-bold">✓ Strong:</span>
                     <span className="text-zinc-400 ml-1">{strong.map(a => a.label).join(', ')}</span>
                   </div>
                 )}
                 {critical.length > 0 && (
-                  <div className="bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-2 text-xs">
+                  <div className="bg-red-500/10 border border-red-500/20 px-4 py-2 text-xs">
                     <span className="text-red-400 font-bold">⚠ Fix first:</span>
                     <span className="text-zinc-400 ml-1">{critical.slice(0, 2).map(a => a.label).join(', ')}</span>
                   </div>
@@ -368,12 +382,12 @@ export function ReadinessPage() {
             </div>
 
             {/* Score breakdown mini */}
-            <div className="shrink-0 grid grid-cols-2 gap-2 w-full md:w-52">
+            <div className="shrink-0 grid grid-cols-2 gap-1 w-full md:w-52" style={{ background: 'var(--border)' }}>
               {areas.slice(0, 4).map(a => {
                 const pct = Math.round((a.score / a.maxScore) * 100);
                 const m = STATUS_META[a.status];
                 return (
-                  <div key={a.id} className={`${m.bg} border ${m.border} rounded-xl p-2.5`}>
+                  <div key={a.id} className={`${m.bg} border ${m.border} p-2.5`} style={{ borderRadius: 0 }}>
                     <div className="text-[9px] text-zinc-600 mb-1 truncate">{a.label.split(' ')[0]}</div>
                     <div className={`text-base font-black ${m.text}`}>{pct}%</div>
                   </div>
@@ -397,7 +411,7 @@ export function ReadinessPage() {
         </section>
 
         {/* ── 7-Day Improvement Sprint ── */}
-        <section className="bg-[#1a1a1a] rounded-3xl border border-white/5 p-6">
+        <section style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', padding: 24 }}>
           <div className="flex items-start justify-between mb-6 gap-4">
             <div>
               <h2 className="text-base font-bold text-white mb-1">7-Day Improvement Sprint</h2>
@@ -422,7 +436,7 @@ export function ReadinessPage() {
                 <button
                   key={d}
                   onClick={() => setActiveDay(d)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all shrink-0 ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold transition-all shrink-0 ${
                     activeDay === d
                       ? 'bg-white/10 text-white'
                       : 'text-zinc-600 hover:text-zinc-400'
@@ -446,7 +460,7 @@ export function ReadinessPage() {
               return (
                 <div
                   key={`${task.day}-${task.title}`}
-                  className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${
+                  className={`flex items-center gap-3 p-3 border transition-all ${
                     task.done
                       ? 'border-emerald-500/20 bg-emerald-500/5'
                       : 'border-white/5 bg-white/[0.02] hover:bg-white/5'
@@ -463,7 +477,7 @@ export function ReadinessPage() {
                     {task.done && <Icon name="check" className="text-white text-xs" />}
                   </button>
 
-                  <div className={`w-6 h-6 rounded-lg ${m.bg} flex items-center justify-center shrink-0`}>
+                  <div className={`w-6 h-6 ${m.bg} flex items-center justify-center shrink-0`}>
                     <Icon name={m.icon} className={`text-xs ${m.color}`} />
                   </div>
 
@@ -548,9 +562,9 @@ export function ReadinessPage() {
               <Link
                 key={rec.path}
                 to={rec.path}
-                className={`${rec.bg} border ${rec.border} rounded-2xl p-4 flex gap-3 hover:border-white/20 transition-all group`}
+                className={`${rec.bg} border ${rec.border} p-4 flex gap-3 hover:border-white/20 transition-all group`}
               >
-                <div className={`w-9 h-9 rounded-xl bg-black/20 flex items-center justify-center ${rec.color} shrink-0`}>
+                <div className={`w-9 h-9 bg-black/20 flex items-center justify-center ${rec.color} shrink-0`}>
                   <Icon name={rec.icon} className="text-base" />
                 </div>
                 <div>
@@ -563,7 +577,7 @@ export function ReadinessPage() {
         </section>
 
         {/* ── Score explanation ── */}
-        <section className="bg-[#141414] rounded-2xl border border-white/5 p-5">
+        <section className="bg-[#141414] border border-white/5 p-5">
           <h3 className="text-sm font-semibold text-white mb-3">How Your Score Is Calculated</h3>
           <div className="grid sm:grid-cols-2 gap-2">
             {areas.map(a => (

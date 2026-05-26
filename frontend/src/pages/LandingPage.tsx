@@ -1,4 +1,6 @@
-import Marquee from 'react-fast-marquee';
+import MarqueeLib from 'react-fast-marquee';
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const Marquee = ((MarqueeLib as any).default ?? MarqueeLib) as typeof MarqueeLib;
 import { Link } from 'react-router-dom';
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
@@ -57,6 +59,23 @@ function ClipReveal({ children, delay = 0, duration = 0.85, style = {}, classNam
         whileInView={{ y: '0%' }}
         viewport={{ once: true, margin: '-20px' }}
         transition={{ duration, delay, ease: [0.16, 1, 0.3, 1] }}
+      >
+        {children}
+      </motion.div>
+    </div>
+  );
+}
+
+/* ── HeroReveal — uses animate (not whileInView) for above-fold content ── */
+function HeroReveal({ children, delay = 0, style = {}, className = '' }: {
+  children: ReactNode; delay?: number; style?: CSSProperties; className?: string;
+}) {
+  return (
+    <div style={{ overflow: 'hidden', display: 'block', ...style }} className={className}>
+      <motion.div
+        initial={{ y: '105%' }}
+        animate={{ y: '0%' }}
+        transition={{ duration: 0.85, delay, ease: [0.16, 1, 0.3, 1] }}
       >
         {children}
       </motion.div>
@@ -187,7 +206,7 @@ function HeroSection() {
           </FadeUp>
 
           <div style={{ textAlign: 'center', marginBottom: 40 }}>
-            <ClipReveal delay={0.05}>
+            <HeroReveal delay={0.05}>
               <h1 style={{
                 fontFamily: 'Space Grotesk, sans-serif',
                 fontSize: 'clamp(3rem, 12vw, 14rem)',
@@ -196,8 +215,8 @@ function HeroSection() {
                 textTransform: 'uppercase',
                 color: D.t1, margin: 0,
               }}>The</h1>
-            </ClipReveal>
-            <ClipReveal delay={0.12}>
+            </HeroReveal>
+            <HeroReveal delay={0.12}>
               <h1 style={{
                 fontFamily: 'Space Grotesk, sans-serif',
                 fontSize: 'clamp(3rem, 12vw, 14rem)',
@@ -206,8 +225,8 @@ function HeroSection() {
                 textTransform: 'uppercase',
                 color: D.t1, margin: 0,
               }}>structured</h1>
-            </ClipReveal>
-            <ClipReveal delay={0.2}>
+            </HeroReveal>
+            <HeroReveal delay={0.2}>
               <h1 style={{
                 fontFamily: 'Space Grotesk, sans-serif',
                 fontSize: 'clamp(3rem, 12vw, 14rem)',
@@ -216,7 +235,7 @@ function HeroSection() {
                 textTransform: 'uppercase',
                 color: D.accent, margin: 0,
               }}>path.</h1>
-            </ClipReveal>
+            </HeroReveal>
           </div>
 
           <FadeUp delay={0.5}>
@@ -362,7 +381,7 @@ function HowItWorksSection() {
   const ys = [y0, y1, y2, y3, y4];
 
   return (
-    <section ref={containerRef} style={{ height: '500vh', position: 'relative', background: D.bg }}>
+    <section ref={containerRef} style={{ height: '250vh', position: 'relative', background: D.bg }}>
       <div style={{ position: 'sticky', top: 0, height: '100vh', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', top: 80, left: 'clamp(16px, 5vw, 80px)', zIndex: 10 }}>
           <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: D.accent, marginBottom: 8 }}>How it works</p>
@@ -831,7 +850,7 @@ function PricingSection() {
 /* ── CTASection ─────────────────────────────────────────────────────────── */
 function CTASection() {
   return (
-    <section style={{ background: '#000', minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center', position: 'relative', overflow: 'hidden', borderTop: `1px solid ${D.border}` }}>
+    <section style={{ background: '#000', padding: '120px clamp(16px,5vw,80px) 80px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center', position: 'relative', overflow: 'hidden', borderTop: `1px solid ${D.border}` }}>
       <motion.div
         initial={{ scaleX: 0 }}
         whileInView={{ scaleX: 1 }}

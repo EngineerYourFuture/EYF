@@ -16,8 +16,8 @@ const appUrl = process.env.APP_URL?.replace(/\/$/, "") ?? "";
 const corsAllowedOrigins = (
   process.env.CORS_ALLOWED_ORIGINS ??
   (serveFrontend
-    ? `http://localhost:${resolvedPort},http://127.0.0.1:${resolvedPort},http://localhost:5173,http://127.0.0.1:5173`
-    : "http://localhost:5173,http://127.0.0.1:5173")
+    ? `http://localhost:${resolvedPort},http://127.0.0.1:${resolvedPort},http://localhost:5173,http://127.0.0.1:5173,http://localhost:5174,http://127.0.0.1:5174,http://localhost:5175,http://127.0.0.1:5175,http://localhost:5176,http://127.0.0.1:5176`
+    : "http://localhost:5173,http://127.0.0.1:5173,http://localhost:5174,http://127.0.0.1:5174,http://localhost:5175,http://127.0.0.1:5175,http://localhost:5176,http://127.0.0.1:5176")
 )
   .split(",")
   .map((origin) => origin.trim())

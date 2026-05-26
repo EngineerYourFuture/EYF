@@ -604,7 +604,7 @@ export function ProblemDetailPage() {
           <select
             value={language}
             onChange={(e) => onLanguageChange(e.target.value as Language)}
-            className="bg-[#1a1a1a] border border-white/10 rounded-lg px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-zinc-300 focus:outline-none cursor-pointer"
+            className="bg-[#1a1a1a] border border-white/10 px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-zinc-300 focus:outline-none cursor-pointer"
           >
             {(['javascript', 'python', 'java', 'cpp', 'c'] as Language[]).map((l) => (
               <option key={l} value={l}>{l === 'cpp' ? 'C++' : l.toUpperCase()}</option>
@@ -614,7 +614,7 @@ export function ProblemDetailPage() {
           <button
             onClick={onRun}
             disabled={running || submitting}
-            className="flex items-center gap-1.5 bg-[#1a1a1a] border border-white/10 text-zinc-300 hover:text-white font-bold px-4 py-1.5 rounded-lg text-[11px] uppercase tracking-wider transition-all disabled:opacity-40"
+            className="flex items-center gap-1.5 bg-[#1a1a1a] border border-white/10 text-zinc-300 hover:text-white font-bold px-4 py-1.5 text-[11px] uppercase tracking-wider transition-all disabled:opacity-40"
           >
             <Icon name="play_arrow" size={16} />
             {running ? 'Running...' : 'Run'}
@@ -623,7 +623,7 @@ export function ProblemDetailPage() {
           <button
             onClick={onSubmit}
             disabled={running || submitting}
-            className="flex items-center gap-1.5 bg-[#e82127] text-white font-bold px-4 py-1.5 rounded-lg text-[11px] uppercase tracking-wider hover:brightness-110 active:scale-95 transition-all disabled:opacity-40"
+            className="flex items-center gap-1.5 bg-[#e82127] text-white font-bold px-4 py-1.5 text-[11px] uppercase tracking-wider hover:brightness-110 active:scale-95 transition-all disabled:opacity-40"
           >
             <Icon name="send" size={14} />
             {submitting ? 'Submitting...' : 'Submit'}
@@ -675,7 +675,7 @@ export function ProblemDetailPage() {
                         <h3 className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-3">Examples</h3>
                         <div className="space-y-3">
                           {(problem.examples as Array<{ input: string; output: string; explanation?: string }>).map((ex, i) => (
-                            <div key={ex.input.slice(0, 30)} className="bg-[#1a1a1a] rounded-lg p-4 border border-white/5">
+                            <div key={ex.input.slice(0, 30)} className="bg-[#1a1a1a] p-4 border border-white/5">
                               <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 mb-2">Example {i + 1}</p>
                               <div className="font-mono text-sm space-y-1">
                                 <p><span className="text-zinc-500">Input: </span><span className="text-zinc-300">{ex.input}</span></p>
@@ -713,7 +713,7 @@ export function ProblemDetailPage() {
                           <div key={hint.slice(0, 40)}>
                             <button
                               onClick={() => setShowHints(true)}
-                              className={`w-full text-left p-4 rounded-lg border border-white/5 text-sm transition-all ${showHints ? 'bg-[#1a1a1a] text-zinc-300' : 'bg-[#1a1a1a] text-transparent blur-sm select-none hover:blur-0 hover:text-zinc-300'}`}
+                              className={`w-full text-left p-4 border border-white/5 text-sm transition-all ${showHints ? 'bg-[#1a1a1a] text-zinc-300' : 'bg-[#1a1a1a] text-transparent blur-sm select-none hover:blur-0 hover:text-zinc-300'}`}
                             >
                               Hint {hintIdx + 1}: {hint}
                             </button>
@@ -783,7 +783,7 @@ export function ProblemDetailPage() {
                 {failedVerdict && diagnosis && (
                   <button
                     onClick={() => { setOutputTab('verdict'); setShowDiagnosis((d) => !d); }}
-                    className={`ml-auto mr-3 flex items-center gap-1.5 px-3 py-1 my-1 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${showDiagnosis ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'bg-amber-500/10 text-amber-500 border border-amber-500/20 hover:bg-amber-500/20'}`}
+                    className={`ml-auto mr-3 flex items-center gap-1.5 px-3 py-1 my-1 text-[10px] font-bold uppercase tracking-wider transition-all ${showDiagnosis ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'bg-amber-500/10 text-amber-500 border border-amber-500/20 hover:bg-amber-500/20'}`}
                   >
                     <Icon name="psychology" size={13} />
                     {showDiagnosis ? 'Hide' : 'Why did it fail?'}
@@ -821,7 +821,7 @@ export function ProblemDetailPage() {
 
                     {/* AI Failure Diagnosis */}
                     {failedVerdict && diagnosis && showDiagnosis && (
-                      <div className="mt-3 border border-amber-500/20 rounded-xl overflow-hidden">
+                      <div className="mt-3 border border-amber-500/20 overflow-hidden">
                         <div className="bg-amber-500/10 px-4 py-3 flex items-center gap-2 border-b border-amber-500/15">
                           <Icon name="psychology" size={16} className="text-amber-400" />
                           <span className="text-amber-400 font-black text-xs uppercase tracking-widest">EYF Failure Diagnosis</span>
@@ -831,7 +831,7 @@ export function ProblemDetailPage() {
                           {/* What was detected */}
                           {detectedPattern && (
                             <div className="flex items-start gap-3">
-                              <div className="w-7 h-7 rounded-lg bg-zinc-800 flex items-center justify-center flex-shrink-0 mt-0.5">
+                              <div className="w-7 h-7 bg-zinc-800 flex items-center justify-center flex-shrink-0 mt-0.5">
                                 <Icon name="search" size={14} className="text-zinc-400" />
                               </div>
                               <div>
@@ -843,7 +843,7 @@ export function ProblemDetailPage() {
 
                           {/* Correct approach */}
                           <div className="flex items-start gap-3">
-                            <div className="w-7 h-7 rounded-lg bg-green-500/15 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <div className="w-7 h-7 bg-green-500/15 flex items-center justify-center flex-shrink-0 mt-0.5">
                               <Icon name="check_circle" size={14} className="text-green-400" />
                             </div>
                             <div>
@@ -886,7 +886,7 @@ export function ProblemDetailPage() {
                           </div>
 
                           {/* Tip */}
-                          <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3">
+                          <div className="bg-blue-500/10 border border-blue-500/20 p-3">
                             <p className="text-[10px] font-bold uppercase tracking-widest text-blue-400 mb-1">Key Insight</p>
                             <p className="text-blue-300 text-sm">{diagnosis.tip}</p>
                           </div>
@@ -899,7 +899,7 @@ export function ProblemDetailPage() {
                                 <Link
                                   key={p.slug}
                                   to={`/app/problems/${p.slug}`}
-                                  className="px-3 py-1.5 bg-[#1a1a1a] border border-white/10 rounded-lg text-xs text-zinc-300 hover:text-white hover:border-white/20 transition-all font-medium"
+                                  className="px-3 py-1.5 bg-[#1a1a1a] border border-white/10 text-xs text-zinc-300 hover:text-white hover:border-white/20 transition-all font-medium"
                                 >
                                   {p.title} →
                                 </Link>

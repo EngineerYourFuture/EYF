@@ -6,6 +6,8 @@ import { apiRequest } from '../lib/api';
 import { getSession } from '../lib/session';
 import { useUser } from '../contexts/UserContext';
 
+import { PageHeader } from '../components/PageHeader';
+
 const GLASS = { background: 'rgba(10,10,10,0.7)', border: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(16px)' } as const;
 const INPUT = { width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '12px 16px', fontSize: 14, color: 'var(--t1)', outline: 'none', boxSizing: 'border-box' } as const;
 
@@ -198,42 +200,16 @@ export function MentorshipPage() {
   return (
     <AppShell>
       <div style={{ paddingTop: 32, maxWidth: 1152, margin: '0 auto' }}>
-        {/* Hero */}
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} style={{ marginBottom: 40 }}>
-          <h1 style={{ fontSize: 48, fontWeight: 900, letterSpacing: '-0.04em', lineHeight: 1.05, marginBottom: 8 }}>
-            Mentorship{' '}
-            <span style={{ background: 'linear-gradient(135deg, #E82127, #ff4d52)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Network.</span>
-          </h1>
-          <p style={{ color: 'var(--t3)', fontSize: 16, maxWidth: 480 }}>
-            Learn faster with guidance from engineers who've done it. 1:1 sessions, study groups, and peer mentorship.
-          </p>
-        </motion.div>
-
-        {/* Stats */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 16, marginBottom: 32 }}>
-          {[
-            { icon: 'workspace_premium', label: 'Active Mentors', value: mentors.filter((m) => m.available).length, color: '#facc15' },
-            { icon: 'groups',            label: 'Study Groups',   value: groups.length,       color: '#60a5fa' },
-            { icon: 'calendar_month',    label: 'My Sessions',    value: mySessions.length,   color: '#4ade80' },
-            { icon: 'star',              label: 'Avg Rating',     value: '4.8',               color: '#fb923c' },
-          ].map((s, i) => (
-            <motion.div
-              key={s.label}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.06 }}
-              style={{ ...GLASS, borderRadius: 14, padding: 20, display: 'flex', alignItems: 'center', gap: 16 }}
-            >
-              <div style={{ width: 40, height: 40, background: `${s.color}18`, border: `1px solid ${s.color}30`, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <Icon name={s.icon} size={20} style={{ color: s.color }} />
-              </div>
-              <div>
-                <p style={{ fontSize: 24, fontWeight: 900, color: 'var(--t1)', letterSpacing: '-0.03em' }}>{s.value}</p>
-                <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--t4)' }}>{s.label}</p>
-              </div>
-            </motion.div>
-          ))}
-        </div>
+        <PageHeader
+          eyebrow="Expert Guidance"
+          title="Mentorship Network."
+          subtitle="Learn faster with guidance from engineers who've done it. 1:1 sessions, study groups, and peer mentorship."
+          stats={[
+            { value: mentors.filter((m) => m.available).length, label: 'Active Mentors', color: '#facc15' },
+            { value: groups.length, label: 'Study Groups', color: '#60a5fa' },
+            { value: '4.8★', label: 'Avg Rating', color: '#fb923c' },
+          ]}
+        />
 
         {/* Tabs */}
         <div style={{ display: 'flex', gap: 4, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', padding: 4, borderRadius: 999, width: 'fit-content', marginBottom: 32, flexWrap: 'wrap' }}>

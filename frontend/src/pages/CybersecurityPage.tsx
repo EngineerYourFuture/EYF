@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { AppShell } from '../components/AppShell';
 import { Icon } from '../components/Icon';
+import { PageHeader } from '../components/PageHeader';
 import { apiRequest, ApiError } from '../lib/api';
 import { getSession } from '../lib/session';
 import { useUser } from '../contexts/UserContext';
@@ -140,68 +141,25 @@ export function CybersecurityPage() {
   return (
     <AppShell>
       <div className="pt-8 max-w-7xl mx-auto">
-        {/* Hero */}
-        <div className="mb-10 flex items-end justify-between flex-wrap gap-6">
-          <div>
-            <motion.h1
-              className="text-6xl font-black tracking-tighter mb-2 leading-none"
-              initial={{ opacity: 0, y: 30, filter: 'blur(12px)' }}
-              animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-              transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-              style={{
-                background: 'linear-gradient(135deg, #E8E8E8 0%, rgba(248,113,113,0.8) 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-              }}
-            >
-              CYBER<br />
-              <span style={{ background: 'linear-gradient(135deg, #f87171, #fb923c)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>SECURITY.</span>
-            </motion.h1>
-            <motion.p
-              className="text-lg max-w-md"
-              style={{ color: 'var(--t2)' }}
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
-            >
-              OWASP · Ethical Hacking · CTF Challenges · Certifications
-            </motion.p>
-          </div>
-
-          {/* Stats + warning */}
-          <div className="flex flex-col gap-3">
-            <motion.div
-              className="rounded-2xl p-5 flex gap-7"
-              style={{ ...GLASS, boxShadow: '0 24px 60px rgba(0,0,0,0.5)' }}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.55, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-            >
-              {[
-                { label: 'Lessons Done', value: `${progress?.lessons.completed ?? 0}/${progress?.lessons.total ?? 14}`, color: '#f87171' },
-                { label: 'CTF Solved',   value: `${progress?.ctf.solved ?? 0}/${progress?.ctf.total ?? 5}`,             color: '#fb923c' },
-                { label: 'CTF Points',   value: String(progress?.ctf.points ?? 0),                                       color: '#facc15' },
-              ].map((s, i) => (
-                <div key={s.label} style={i > 0 ? { borderLeft: '1px solid rgba(255,255,255,0.07)', paddingLeft: 28 } : {}}>
-                  <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: 'var(--t3)' }}>{s.label}</p>
-                  <p className="text-2xl font-black" style={{ color: s.color }}>{s.value}</p>
-                </div>
-              ))}
-            </motion.div>
-            <div className="rounded-lg px-4 py-2.5 flex items-center gap-2" style={{ background: 'rgba(248,113,113,0.07)', border: '1px solid rgba(248,113,113,0.2)' }}>
-              <Icon name="warning" size={14} style={{ color: '#f87171' }} />
-              <span className="text-xs font-bold" style={{ color: '#f87171' }}>Ethical use only. Never attack systems without authorization.</span>
-            </div>
-          </div>
-        </div>
+        <PageHeader
+          eyebrow="Security Training"
+          title="Cybersecurity."
+          subtitle="OWASP · Ethical Hacking · CTF Challenges · Certifications"
+          accentColor="#f87171"
+          stats={[
+            { value: `${progress?.lessons.completed ?? 0}/${progress?.lessons.total ?? 14}`, label: 'Lessons Done', color: '#f87171' },
+            { value: `${progress?.ctf.solved ?? 0}/${progress?.ctf.total ?? 5}`,             label: 'CTF Solved',   color: '#fb923c' },
+            { value: String(progress?.ctf.points ?? 0),                                       label: 'CTF Points',   color: '#facc15' },
+          ]}
+        />
 
         {/* Tabs */}
-        <div className="flex gap-1 mb-8 p-1 w-fit rounded-xl" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
+        <div className="flex gap-1 mb-8 p-1 w-fit " style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
           {(['learn', 'ctf', 'certs'] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className="px-5 py-2.5 rounded-lg text-[11px] font-bold uppercase tracking-widest transition-all"
+              className="px-5 py-2.5 text-[11px] font-bold uppercase tracking-widest transition-all"
               style={{
                 background: activeTab === tab ? 'rgba(232,25,44,0.15)' : 'transparent',
                 color: activeTab === tab ? '#ff4d5a' : 'rgba(255,255,255,0.3)',
@@ -254,7 +212,7 @@ export function CybersecurityPage() {
                 return (
                   <motion.div
                     key={lesson.id}
-                    className="rounded-xl p-6"
+                    className="p-6"
                     style={{ ...GLASS, opacity: locked ? 0.6 : 1 }}
                     initial={{ opacity: 0, y: 16, filter: 'blur(6px)' }}
                     whileInView={{ opacity: locked ? 0.6 : 1, y: 0, filter: 'blur(0px)' }}
@@ -264,7 +222,7 @@ export function CybersecurityPage() {
                   >
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: catMeta.glow }}>
+                        <div className="w-8 h-8 flex items-center justify-center" style={{ background: catMeta.glow }}>
                           <Icon name={catMeta.icon} size={16} style={{ color: catMeta.color }} />
                         </div>
                         <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: catMeta.color }}>{catMeta.label}</span>
@@ -300,7 +258,7 @@ export function CybersecurityPage() {
         {/* CTF Tab */}
         {activeTab === 'ctf' && (
           <div>
-            <div className="rounded-xl p-4 mb-6 flex items-center gap-3" style={{ background: 'rgba(250,204,21,0.07)', border: '1px solid rgba(250,204,21,0.2)' }}>
+            <div className="p-4 mb-6 flex items-center gap-3" style={{ background: 'rgba(250,204,21,0.07)', border: '1px solid rgba(250,204,21,0.2)' }}>
               <Icon name="emoji_events" size={20} style={{ color: '#facc15' }} />
               <p className="text-sm" style={{ color: '#facc15' }}>
                 Capture The Flag challenges use sandboxed environments. Submit flags in <code className="rounded px-1" style={{ background: 'rgba(0,0,0,0.3)' }}>EYF{'{...}'}</code> format.
@@ -313,7 +271,7 @@ export function CybersecurityPage() {
                 return (
                   <motion.div
                     key={c.id}
-                    className="rounded-xl p-6"
+                    className="p-6"
                     style={{ ...GLASS, borderColor: c.solved ? 'rgba(74,222,128,0.2)' : 'rgba(255,255,255,0.07)' }}
                     initial={{ opacity: 0, y: 16, filter: 'blur(6px)' }}
                     whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
@@ -322,7 +280,7 @@ export function CybersecurityPage() {
                     whileHover={{ background: 'rgba(255,255,255,0.06)', y: -1 }}
                   >
                     <div className="flex items-start justify-between mb-4">
-                      <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: catMeta.glow }}>
+                      <div className="w-10 h-10 flex items-center justify-center" style={{ background: catMeta.glow }}>
                         <Icon name={catMeta.icon} size={20} style={{ color: catMeta.color }} />
                       </div>
                       <div className="flex flex-col items-end gap-1">
@@ -350,13 +308,13 @@ export function CybersecurityPage() {
                             onChange={(e) => setFlagInput((prev) => ({ ...prev, [c.id]: e.target.value }))}
                             onKeyDown={(e) => { if (e.key === 'Enter') { void submitFlag(c); } }}
                             placeholder="EYF{flag_here}"
-                            className="flex-1 rounded-lg px-3 py-2 text-xs font-mono focus:outline-none transition-colors"
+                            className="flex-1 px-3 py-2 text-xs font-mono focus:outline-none transition-colors"
                             style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.85)' }}
                           />
                           <button
                             onClick={() => void submitFlag(c)}
                             disabled={submittingFlag === c.id || !flagInput[c.id]?.trim()}
-                            className="px-3 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all flex-shrink-0 disabled:opacity-40"
+                            className="px-3 py-2 text-xs font-black uppercase tracking-widest transition-all flex-shrink-0 disabled:opacity-40"
                             style={{ background: 'linear-gradient(135deg, #E82127, #ff5566)', color: 'white' }}
                           >
                             {submittingFlag === c.id ? '…' : 'Submit'}
@@ -389,7 +347,7 @@ export function CybersecurityPage() {
               {CERT_ROADMAP.map((cert, i) => (
                 <motion.div
                   key={cert.cert}
-                  className="rounded-xl p-6"
+                  className="p-6"
                   style={{ background: cert.bg, border: `1px solid ${cert.borderColor}` }}
                   initial={{ opacity: 0, y: 16 }}
                   whileInView={{ opacity: 1, y: 0 }}
@@ -398,7 +356,7 @@ export function CybersecurityPage() {
                   whileHover={{ scale: 1.005 }}
                 >
                   <div className="flex items-start gap-6">
-                    <div className="w-10 h-10 rounded-xl flex items-center justify-center text-lg font-black flex-shrink-0" style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.5)' }}>
+                    <div className="w-10 h-10 flex items-center justify-center text-lg font-black flex-shrink-0" style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.5)' }}>
                       {i + 1}
                     </div>
                     <div className="flex-1">
@@ -417,7 +375,7 @@ export function CybersecurityPage() {
               ))}
             </div>
             <motion.div
-              className="mt-6 rounded-xl p-6"
+              className="mt-6 p-6"
               style={GLASS}
               initial={{ opacity: 0, y: 16 }}
               whileInView={{ opacity: 1, y: 0 }}

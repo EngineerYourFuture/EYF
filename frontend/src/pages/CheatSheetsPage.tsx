@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AppShell } from '../components/AppShell';
 import { Icon } from '../components/Icon';
+import { PageHeader } from '../components/PageHeader';
 import { useUser } from '../contexts/UserContext';
 
 const GLASS = {
@@ -1634,20 +1635,12 @@ export function CheatSheetsPage() {
   return (
     <AppShell>
       <div className="pt-6 pb-12 max-w-5xl">
-        {/* Hero */}
-        <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} className="mb-10">
-          <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.2em', color: 'rgba(255,255,255,0.3)', marginBottom: 8, textTransform: 'uppercase' }}>
-            EYF · Quick Reference
-          </p>
-          <h1 style={{
-            fontSize: 'clamp(2.5rem, 6vw, 4rem)', fontWeight: 900, lineHeight: 1, letterSpacing: '-0.05em',
-            background: 'linear-gradient(135deg, #fff 20%, #E82127 55%, #fb923c 80%)',
-            WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', marginBottom: 8,
-          }}>
-            CHEAT SHEETS.
-          </h1>
-          <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: '1rem' }}>Quick-reference cards for interviews. Copy code, understand patterns.</p>
-        </motion.div>
+        <PageHeader
+          eyebrow="Quick Reference"
+          title="Cheat Sheets."
+          subtitle="Quick-reference cards for interviews. Copy code, understand patterns."
+          stats={[{ value: SHEETS.length, label: 'Sheets' }]}
+        />
 
         {/* Sheet selector */}
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3 mb-8">

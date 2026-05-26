@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { AppShell } from '../components/AppShell';
+import { PageHeader } from '../components/PageHeader';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -553,28 +554,17 @@ export function ExperiencesPage() {
     <AppShell>
       <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
 
-        {/* Header */}
-        <div>
-          <h1 style={{ fontSize: "2.25rem", fontWeight: 900, letterSpacing: "-0.03em", lineHeight: 1.1, marginBottom: 4, color: "var(--t1)" }}>Interview <span style={{ background: "linear-gradient(135deg, #60a5fa, #c084fc)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Experiences.</span></h1>
-          <p style={{ fontSize: 14, color: "var(--t3)", marginTop: 6 }}>
-            Real interview reports from engineers who got offers. Learn what to expect, what was asked, and how to prepare.
-          </p>
-        </div>
-
-        {/* Stats */}
-        <div className="grid grid-cols-3 gap-3">
-          {[
-            { label: 'Reports', value: EXPERIENCES.length, icon: 'article', color: 'text-blue-400' },
-            { label: 'Offers Documented', value: EXPERIENCES.filter(e => e.outcome === 'offer').length, icon: 'check_circle', color: 'text-green-400' },
-            { label: 'Companies', value: COMPANIES.length, icon: 'business', color: 'text-purple-400' },
-          ].map(s => (
-            <div key={s.label} className="card" style={{ textAlign: "center" }}>
-              <span className={`material-symbols-outlined text-2xl ${s.color}`}>{s.icon}</span>
-              <p className={`text-2xl font-black ${s.color} mt-1`}>{s.value}</p>
-              <p className="text-xs text-zinc-500">{s.label}</p>
-            </div>
-          ))}
-        </div>
+        <PageHeader
+          eyebrow="Community Intel"
+          title="Interview Experiences."
+          subtitle="Real interview reports from engineers who got offers. Learn what to expect, what was asked, and how to prepare."
+          accentColor="#60a5fa"
+          stats={[
+            { value: EXPERIENCES.length,                                  label: 'Reports',  color: '#60a5fa' },
+            { value: EXPERIENCES.filter(e => e.outcome === 'offer').length, label: 'Offers', color: '#4ade80' },
+            { value: COMPANIES.length,                                    label: 'Companies',color: '#c084fc' },
+          ]}
+        />
 
         {/* Filters */}
         <div className="flex flex-wrap gap-3">
@@ -693,7 +683,7 @@ export function ExperiencesPage() {
                           </div>
 
                           {round.notes && (
-                            <div className="bg-zinc-900/60 rounded-lg p-3 border border-zinc-700/30">
+                            <div className="bg-zinc-900/60 p-3 border border-zinc-700/30">
                               <p className="text-xs text-zinc-400 leading-relaxed">{round.notes}</p>
                             </div>
                           )}
@@ -721,10 +711,10 @@ export function ExperiencesPage() {
         </div>
 
         {/* CTA to contribute */}
-        <div className="bg-gradient-to-br from-zinc-900 to-zinc-800/50 rounded-xl border border-zinc-700 p-6 text-center">
+        <div className="bg-gradient-to-br from-zinc-900 to-zinc-800/50 border border-zinc-700 p-6 text-center">
           <p className="text-zinc-300 font-semibold mb-1">Got an interview experience to share?</p>
           <p className="text-zinc-500 text-sm mb-4">Help the community — submit your experience and earn XP.</p>
-          <button className="inline-flex items-center gap-2 bg-[#E82127] hover:bg-red-600 text-white text-sm font-bold px-5 py-2.5 rounded-lg transition-colors">
+          <button className="inline-flex items-center gap-2 bg-[#E82127] hover:bg-red-600 text-white text-sm font-bold px-5 py-2.5 transition-colors">
             <span className="material-symbols-outlined text-base">add</span>{' '}
             Share Your Experience
           </button>

@@ -3,8 +3,7 @@ export type ThemeMode = "light" | "dark";
 const THEME_KEY = "eyf.theme";
 
 const applyThemeClass = (theme: ThemeMode): void => {
-  const root = document.documentElement;
-  root.classList.toggle("dark", theme === "dark");
+  document.documentElement.classList.toggle("light", theme === "light");
 };
 
 export const getTheme = (): ThemeMode => {

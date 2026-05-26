@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { AppShell } from '../components/AppShell';
 import { Icon } from '../components/Icon';
+import { PageHeader } from '../components/PageHeader';
 import { apiRequest } from '../lib/api';
 import { getSession } from '../lib/session';
 import { useUser } from '../contexts/UserContext';
@@ -321,7 +322,7 @@ function CompanyPanel({ guide, onClose }: CompanyPanelProps) {
       <div style={{ width: '100%', maxWidth: 640, background: '#0a0a0a', borderLeft: '1px solid rgba(255,255,255,0.08)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '20px 24px', borderBottom: '1px solid rgba(255,255,255,0.07)', flexShrink: 0 }}>
-          <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${guide.color} flex items-center justify-center text-white font-black text-xl shadow-lg`}>
+          <div className={`w-12 h-12 bg-gradient-to-br ${guide.color} flex items-center justify-center text-white font-black text-xl shadow-lg`}>
             {guide.logo}
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
@@ -946,23 +947,20 @@ export function PlacementPage() {
     <AppShell>
       {selectedCompany && <CompanyPanel guide={selectedCompany} onClose={() => setSelectedCompany(null)} />}
       <div className="pt-8 max-w-6xl mx-auto">
-        {/* Hero */}
-        <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} className="mb-10">
-          <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.2em', color: 'var(--t3)', marginBottom: 8, textTransform: 'uppercase' }}>
-            EYF · Career Prep
-          </p>
-          <h1 style={{
-            fontSize: 'clamp(2.5rem, 6vw, 4rem)', fontWeight: 900, lineHeight: 1, letterSpacing: '-0.05em',
-            background: 'linear-gradient(135deg, #fff 20%, #E82127 55%, #fb923c 80%)',
-            WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', marginBottom: 8,
-          }}>
-            PLACEMENT PREP.
-          </h1>
-          <p style={{ color: 'var(--t2)', fontSize: '1rem' }}>FAANG-level interview preparation, engineered for precision.</p>
-        </motion.div>
+        <PageHeader
+          eyebrow="EYF · Career Prep"
+          title="Placement Prep."
+          subtitle="FAANG-level interview preparation, engineered for precision."
+          stats={[
+            { value: stats.applicationsSubmitted || applications.length, label: 'Applications', color: '#60a5fa' },
+            { value: stats.interviewsScheduled || applications.filter((a) => a.status === 'interview').length, label: 'Interviews', color: '#facc15' },
+            { value: stats.offersReceived || applications.filter((a) => a.status === 'offer').length, label: 'Offers', color: '#4ade80' },
+            { value: `${practiceCount}/${BEHAVIORAL_QUESTIONS.length}`, label: 'BQ Practiced', color: '#c084fc' },
+          ]}
+        />
 
-        {/* Stats row */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        {/* Stats row - hidden, now in PageHeader above */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8" style={{ display: 'none' }}>
           {[
             { icon: 'send',             label: 'Applications', value: stats.applicationsSubmitted || applications.length, color: '#60a5fa', glow: 'rgba(96,165,250,0.15)'  },
             { icon: 'calendar_month',   label: 'Interviews',   value: stats.interviewsScheduled || applications.filter((a) => a.status === 'interview').length, color: '#facc15', glow: 'rgba(250,204,21,0.15)'  },
@@ -1365,7 +1363,7 @@ export function PlacementPage() {
                     whileTap={{ scale: 0.97 }}
                     style={{ ...GLASS, borderRadius: 16, padding: '24px 16px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, cursor: 'pointer', textAlign: 'center' }}
                   >
-                    <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${c.color} flex items-center justify-center text-white font-black text-lg shadow-lg`}>
+                    <div className={`w-12 h-12 bg-gradient-to-br ${c.color} flex items-center justify-center text-white font-black text-lg shadow-lg`}>
                       {c.logo}
                     </div>
                     <div>
@@ -1447,7 +1445,7 @@ export function PlacementPage() {
                 <motion.div
                   initial={{ opacity: 0, y: 16 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className={`bg-gradient-to-r ${selectedServiceCo.color} rounded-2xl`}
+                  className={`bg-gradient-to-r ${selectedServiceCo.color} `}
                   style={{ padding: 20, marginBottom: 20 }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' as const, gap: 12 }}>
@@ -1573,7 +1571,7 @@ export function PlacementPage() {
                       style={{ ...GLASS, borderRadius: 20, padding: 20, textAlign: 'left', cursor: 'pointer' }}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-                        <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${co.color} flex items-center justify-center text-white font-black text-xs shadow-lg`}>
+                        <div className={`w-12 h-12 bg-gradient-to-br ${co.color} flex items-center justify-center text-white font-black text-xs shadow-lg`}>
                           {co.logo}
                         </div>
                         <div>

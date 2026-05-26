@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { AppShell } from '../components/AppShell';
 import { Icon } from '../components/Icon';
+import { PageHeader } from '../components/PageHeader';
 import { apiRequest } from '../lib/api';
 import { getSession } from '../lib/session';
 
@@ -50,9 +51,9 @@ const MEDAL: Record<number, { icon: string; color: string; glow: string }> = {
 };
 
 const GLASS = {
-  background: 'rgba(10,10,10,0.7)',
-  border: '1px solid rgba(255,255,255,0.07)',
-  backdropFilter: 'blur(16px)',
+  background: 'var(--glass-bg)',
+  border: '1px solid var(--glass-border)',
+  backdropFilter: 'blur(16px) saturate(180%)',
 } as const;
 
 const XP_CHALLENGES = [
@@ -68,7 +69,7 @@ function EntryRow({ entry, i }: { readonly entry: LeaderboardEntry; readonly i: 
   const medal = MEDAL[entry.rank];
   return (
     <motion.div
-      className="flex items-center gap-4 px-5 py-4 rounded-xl"
+      className="flex items-center gap-4 px-5 py-4"
       style={{
         ...GLASS,
         borderColor: entry.isCurrentUser ? 'rgba(232,25,44,0.3)' : 'rgba(255,255,255,0.07)',
@@ -81,7 +82,7 @@ function EntryRow({ entry, i }: { readonly entry: LeaderboardEntry; readonly i: 
     >
       {/* Rank */}
       <div
-        className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 text-sm font-black"
+        className="w-9 h-9 flex items-center justify-center flex-shrink-0 text-sm font-black"
         style={{
           background: medal ? `${medal.glow}` : 'rgba(255,255,255,0.05)',
           border: medal ? `1px solid ${medal.color}30` : '1px solid rgba(255,255,255,0.08)',
@@ -137,50 +138,30 @@ export function LeaderboardPage() {
   return (
     <AppShell>
       <div className="pt-8 max-w-3xl mx-auto">
-        {/* Header */}
-        <div className="flex items-end justify-between mb-10 gap-4 flex-wrap">
-          <div>
-            <motion.h1
-              className="text-5xl font-black tracking-tighter leading-none"
-              style={{
-                background: 'linear-gradient(135deg, #E8E8E8 0%, rgba(250,204,21,0.8) 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-              }}
-              initial={{ opacity: 0, y: 24, filter: 'blur(10px)' }}
-              animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-              transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
-            >
-              LEADERBOARD
-            </motion.h1>
-            <motion.p
-              className="mt-2 text-sm"
-              style={{ color: 'var(--t2)' }}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.12, ease: [0.16, 1, 0.3, 1] }}
-            >
-              The top engineers on EYF — ranked by XP.
-            </motion.p>
-          </div>
-
-          <div className="flex p-1 rounded-full" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
-            {(['alltime', 'weekly'] as const).map((p) => (
-              <button
-                key={p}
-                onClick={() => setPeriod(p)}
-                className="px-5 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all"
-                style={{
-                  background: period === p ? 'rgba(255,255,255,0.1)' : 'transparent',
-                  color: period === p ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.3)',
-                  border: 'none', cursor: 'pointer',
-                }}
-              >
-                {p === 'alltime' ? 'All Time' : 'This Week'}
-              </button>
-            ))}
-          </div>
-        </div>
+        <PageHeader
+          eyebrow="Rankings"
+          title="Leaderboard."
+          subtitle="The top engineers on EYF — ranked by XP."
+          accentColor="#facc15"
+          actions={
+            <div className="flex p-1" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}>
+              {(['alltime', 'weekly'] as const).map((p) => (
+                <button
+                  key={p}
+                  onClick={() => setPeriod(p)}
+                  className="px-5 py-2 text-[10px] font-bold uppercase tracking-widest transition-all"
+                  style={{
+                    background: period === p ? 'rgba(255,255,255,0.1)' : 'transparent',
+                    color: period === p ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.3)',
+                    border: 'none', cursor: 'pointer',
+                  }}
+                >
+                  {p === 'alltime' ? 'All Time' : 'This Week'}
+                </button>
+              ))}
+            </div>
+          }
+        />
 
         {/* Top 3 podium */}
         {!loading && data && data.entries.length >= 3 && (
@@ -203,7 +184,7 @@ export function LeaderboardPage() {
                   <p className="text-xs font-bold text-center truncate w-full" style={{ color: 'rgba(255,255,255,0.75)' }}>{entry.name}</p>
                   <p className="text-[10px] font-bold" style={{ color: '#E82127' }}>{entry.xp.toLocaleString()} XP</p>
                   <div
-                    className="w-full rounded-t-xl flex items-center justify-center text-2xl"
+                    className="w-full flex items-center justify-center text-2xl"
                     style={{
                       height: heights[i],
                       background: isChamp ? 'linear-gradient(to top, rgba(250,204,21,0.15), rgba(250,204,21,0.05))' : 'rgba(255,255,255,0.04)',
@@ -253,7 +234,7 @@ export function LeaderboardPage() {
 
         {/* Weekly XP Challenges */}
         <motion.div
-          className="mt-10 rounded-2xl p-6"
+          className="mt-10 p-6"
           style={GLASS}
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -272,11 +253,11 @@ export function LeaderboardPage() {
             {XP_CHALLENGES.map((ch) => (
               <Link key={ch.title} to={ch.link}>
                 <motion.div
-                  className="flex items-center gap-3 rounded-xl px-4 py-3"
+                  className="flex items-center gap-3 px-4 py-3"
                   style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}
                   whileHover={{ background: 'rgba(255,255,255,0.07)', borderColor: 'rgba(255,255,255,0.1)' }}
                 >
-                  <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: ch.glow }}>
+                  <div className="w-9 h-9 flex items-center justify-center flex-shrink-0" style={{ background: ch.glow }}>
                     <Icon name={ch.icon} size={18} style={{ color: ch.color }} />
                   </div>
                   <p className="text-sm font-bold flex-1 truncate" style={{ color: 'rgba(255,255,255,0.75)' }}>{ch.title}</p>
@@ -289,7 +270,7 @@ export function LeaderboardPage() {
 
         {/* XP guide */}
         <motion.div
-          className="mt-4 rounded-2xl p-6"
+          className="mt-4 p-6"
           style={GLASS}
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AppShell } from '../components/AppShell';
 import { Icon } from '../components/Icon';
+import { PageHeader } from '../components/PageHeader';
 import { useUser } from '../contexts/UserContext';
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
@@ -333,28 +334,15 @@ export function PatternQuizPage() {
         {/* ── Home ── */}
         {mode === 'home' && (
           <>
-            {/* Hero card */}
+            <PageHeader
+              eyebrow="Pattern Recognition"
+              title="Pattern Quiz."
+              subtitle="Train your pattern-matching instinct. Recognize which algorithm pattern to use — before implementing."
+              accentColor="#818cf8"
+            />
+            {/* Config card */}
             <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}
-              style={{ ...GLASS, borderRadius: 24, padding: '2.5rem', marginBottom: '1.5rem', position: 'relative', overflow: 'hidden' }}>
-              {/* ambient glow */}
-              <div style={{ position: 'absolute', top: -80, right: -80, width: 280, height: 280, background: 'rgba(99,102,241,0.08)', borderRadius: '50%', filter: 'blur(60px)', pointerEvents: 'none' }} />
-
-              <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.2em', color: 'var(--t3)', marginBottom: 8, textTransform: 'uppercase', position: 'relative' }}>
-                EYF · Pattern Recognition
-              </p>
-              <h1 style={{
-                fontSize: 'clamp(2rem, 5vw, 3rem)', fontWeight: 900, lineHeight: 1, letterSpacing: '-0.05em',
-                background: 'linear-gradient(135deg, #fff 30%, #818cf8 60%, #c084fc)',
-                WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-                marginBottom: 12, position: 'relative',
-              }}>
-                PATTERN QUIZ.
-              </h1>
-              <p style={{ fontSize: '0.875rem', color: 'rgba(255,255,255,0.45)', lineHeight: 1.7, maxWidth: 480, marginBottom: 24, position: 'relative' }}>
-                The hardest part of coding interviews isn't implementing the algorithm — it's recognizing{' '}
-                <em style={{ color: 'rgba(255,255,255,0.7)' }}>which</em> pattern to use. Train your pattern-matching instinct with{' '}
-                20 real interview scenarios and the <em style={{ color: 'rgba(255,255,255,0.7)' }}>why</em> behind each answer.
-              </p>
+              style={{ ...GLASS, borderRadius: 4, padding: '2.5rem', marginBottom: '1.5rem', position: 'relative', overflow: 'hidden' }}>
 
               {/* Config */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6" style={{ position: 'relative' }}>

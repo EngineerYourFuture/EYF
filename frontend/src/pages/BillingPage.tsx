@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AppShell } from '../components/AppShell';
 import { Icon } from '../components/Icon';
+import { PageHeader } from '../components/PageHeader';
 import { apiRequest } from '../lib/api';
 import { getSession } from '../lib/session';
 import { useUser } from '../contexts/UserContext';
@@ -140,48 +141,47 @@ export function BillingPage() {
   return (
     <AppShell>
       <div className="pt-8 max-w-7xl mx-auto">
-        {/* Hero */}
-        <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} style={{ textAlign: 'center', marginBottom: 40 }}>
-          <h1 style={{ fontSize: '3rem', fontWeight: 900, letterSpacing: '-0.03em', marginBottom: 12, lineHeight: 1.1 }}>
-            <span style={{ background: 'linear-gradient(135deg, #fff 40%, #E82127)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>CHOOSE YOUR PLAN.</span>
-          </h1>
-          <p style={{ color: 'var(--t2)', fontSize: 18, maxWidth: 480, margin: '0 auto 24px' }}>
-            Everything you need to go from beginner to FAANG-ready.
-          </p>
+        <PageHeader
+          eyebrow="Subscription"
+          title="Choose Your Plan."
+          subtitle="Everything you need to go from beginner to FAANG-ready."
+          accentColor="#4ade80"
+        />
 
-          {/* Billing toggle */}
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, ...GLASS, padding: 6, borderRadius: 999 }}>
+        {/* Billing toggle */}
+        <div style={{ textAlign: 'center', marginBottom: 32 }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, ...GLASS, padding: 6 }}>
             <motion.button
               onClick={() => setBilling('monthly')}
               whileHover={{ scale: 1.03 }}
-              style={{ padding: '8px 20px', borderRadius: 999, fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', cursor: 'pointer', border: 'none', background: billing === 'monthly' ? 'rgba(255,255,255,0.1)' : 'transparent', color: billing === 'monthly' ? '#fff' : '#71717a' }}
+              style={{ padding: '8px 20px', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', cursor: 'pointer', border: 'none', background: billing === 'monthly' ? 'rgba(255,255,255,0.1)' : 'transparent', color: billing === 'monthly' ? '#fff' : '#71717a' }}
             >
               Monthly
             </motion.button>
             <motion.button
               onClick={() => setBilling('annual')}
               whileHover={{ scale: 1.03 }}
-              style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 20px', borderRadius: 999, fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', cursor: 'pointer', border: 'none', background: billing === 'annual' ? 'rgba(255,255,255,0.1)' : 'transparent', color: billing === 'annual' ? '#fff' : '#71717a' }}
+              style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 20px', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', cursor: 'pointer', border: 'none', background: billing === 'annual' ? 'rgba(255,255,255,0.1)' : 'transparent', color: billing === 'annual' ? '#fff' : '#71717a' }}
             >
               Annual{' '}
-              <span style={{ background: 'rgba(74,222,128,0.15)', color: '#4ade80', padding: '2px 8px', borderRadius: 999, fontSize: 9, fontWeight: 900 }}>SAVE 25%</span>
+              <span style={{ background: 'rgba(74,222,128,0.15)', color: '#4ade80', padding: '2px 8px', fontSize: 9, fontWeight: 900 }}>SAVE 25%</span>
             </motion.button>
           </div>
 
           {/* Alerts */}
           {successMsg && (
-            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} style={{ marginTop: 16, display: 'inline-flex', alignItems: 'center', gap: 8, padding: '12px 24px', background: 'rgba(74,222,128,0.1)', border: '1px solid rgba(74,222,128,0.2)', color: '#4ade80', borderRadius: 999, fontSize: 14, fontWeight: 700 }}>
+            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} style={{ marginTop: 16, display: 'inline-flex', alignItems: 'center', gap: 8, padding: '12px 24px', background: 'rgba(74,222,128,0.1)', border: '1px solid rgba(74,222,128,0.2)', color: '#4ade80', fontSize: 14, fontWeight: 700 }}>
               <Icon name="check_circle" size={16} filled />
               {successMsg}
             </motion.div>
           )}
           {errorMsg && (
-            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} style={{ marginTop: 16, display: 'inline-flex', alignItems: 'center', gap: 8, padding: '12px 24px', background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.2)', color: '#f87171', borderRadius: 999, fontSize: 14, fontWeight: 700 }}>
+            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} style={{ marginTop: 16, display: 'inline-flex', alignItems: 'center', gap: 8, padding: '12px 24px', background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.2)', color: '#f87171', fontSize: 14, fontWeight: 700 }}>
               <Icon name="error" size={16} />
               {errorMsg}
             </motion.div>
           )}
-        </motion.div>
+        </div>
 
         {/* Plan cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto" style={{ marginBottom: 32, paddingTop: 20 }}>

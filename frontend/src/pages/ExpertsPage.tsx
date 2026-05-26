@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AppShell } from '../components/AppShell';
 import { Icon } from '../components/Icon';
+import { PageHeader } from '../components/PageHeader';
 import { apiRequest } from '../lib/api';
 import { getSession } from '../lib/session';
 import { useUser } from '../contexts/UserContext';
@@ -229,38 +230,27 @@ export function ExpertsPage() {
   return (
     <AppShell>
       <div className="pt-8 max-w-7xl mx-auto">
-        {/* Hero */}
-        <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} style={{ ...GLASS, borderRadius: 20, padding: 40, marginBottom: 40, position: 'relative', overflow: 'hidden' }}>
-          <div style={{ position: 'absolute', top: 0, right: 0, width: 288, height: 288, background: 'rgba(250,204,21,0.03)', filter: 'blur(80px)', borderRadius: '50%', marginTop: -80, marginRight: -80 }} />
-          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 24 }}>
-            <div>
-              <h1 style={{ fontSize: '2.5rem', fontWeight: 900, letterSpacing: '-0.03em', marginBottom: 8, lineHeight: 1.1 }}>
-                <span style={{ background: 'linear-gradient(135deg, #fff 40%, #E82127)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>EXPERT NETWORK.</span>
-              </h1>
-              <p style={{ color: 'var(--t2)', maxWidth: 400, lineHeight: 1.6 }}>1:1 sessions with engineers from Google, Meta, Netflix, Microsoft and top startups. Accelerate your growth with personalized mentorship.</p>
-              <div style={{ display: 'flex', gap: 24, marginTop: 32 }}>
-                {[
-                  { label: 'Experts',   value: String(experts.length) },
-                  { label: 'Avg Rating', value: '4.8', color: '#facc15' },
-                  { label: 'Companies', value: '20+' },
-                ].map((stat, i) => (
-                  <div key={stat.label} style={{ paddingLeft: i > 0 ? 24 : 0, borderLeft: i > 0 ? '1px solid rgba(255,255,255,0.08)' : 'none' }}>
-                    <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--t3)', marginBottom: 4 }}>{stat.label}</p>
-                    <p style={{ fontSize: 24, fontWeight: 700, color: stat.color ?? '#e4e4e7' }}>{stat.value}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
+        <PageHeader
+          eyebrow="1:1 Mentorship"
+          title="Expert Network."
+          subtitle="1:1 sessions with engineers from Google, Meta, Netflix, Microsoft and top startups."
+          accentColor="#facc15"
+          stats={[
+            { value: experts.length, label: 'Experts' },
+            { value: '4.8',          label: 'Avg Rating', color: '#facc15' },
+            { value: '20+',          label: 'Companies'   },
+          ]}
+          actions={
             <motion.button
               onClick={() => setShowBecomeExpert(true)}
-              whileHover={{ scale: 1.04 }}
-              whileTap={{ scale: 0.96 }}
-              style={{ border: '1px solid rgba(250,204,21,0.3)', background: 'rgba(250,204,21,0.08)', color: '#facc15', fontWeight: 700, padding: '12px 24px', borderRadius: 999, display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, cursor: 'pointer' }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.97 }}
+              style={{ border: '1px solid rgba(250,204,21,0.3)', background: 'rgba(250,204,21,0.08)', color: '#facc15', fontWeight: 800, padding: '8px 18px', fontSize: '0.7rem', letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontFamily: "'Space Grotesk', 'Inter', sans-serif" }}
             >
-              <Icon name="workspace_premium" size={16} />Become an Expert
+              <Icon name="workspace_premium" size={14} />Become an Expert
             </motion.button>
-          </div>
-        </motion.div>
+          }
+        />
 
         {/* Become Expert Modal */}
         <AnimatePresence>

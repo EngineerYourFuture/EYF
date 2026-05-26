@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { AppShell } from '../components/AppShell';
 import { Icon } from '../components/Icon';
+import { PageHeader } from '../components/PageHeader';
 import { useUser } from '../contexts/UserContext';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -793,7 +794,7 @@ function SkillCard({ skill, onStart, bestScore }: {
   const grade = bestScore == null ? null : scoreToGrade(bestScore);
 
   return (
-    <div className={`bg-gradient-to-br ${skill.gradient} rounded-2xl border border-white/10 p-5 flex flex-col gap-4 hover:border-white/20 transition-all`}>
+    <div className={`bg-gradient-to-br ${skill.gradient} border border-white/10 p-5 flex flex-col gap-4 hover:border-white/20 transition-all`}>
       <div className="flex items-start justify-between">
         <div>
           <div className="text-[10px] text-zinc-500 uppercase tracking-wider mb-1">{skill.category}</div>
@@ -810,7 +811,7 @@ function SkillCard({ skill, onStart, bestScore }: {
 
       <button
         onClick={onStart}
-        className={`w-full py-2.5 rounded-xl text-sm font-semibold transition-all ${
+        className={`w-full py-2.5 text-sm font-semibold transition-all ${
           grade
             ? 'bg-white/5 hover:bg-white/10 text-zinc-300 border border-white/10'
             : `bg-gradient-to-r ${skill.gradient} border border-white/20 ${skill.color} hover:border-white/30`
@@ -867,7 +868,7 @@ function QuizView({ skill, questionIndex, answers, timeLeft, showExplanation, on
           {questionIndex + 1} / {skill.questions.length} — {skill.name}
         </div>
 
-        <div className="bg-[#1a1a1a] rounded-2xl border border-white/5 p-6 mb-4">
+        <div className="bg-[#1a1a1a] border border-white/5 p-6 mb-4">
           <p className="text-base text-zinc-100 leading-relaxed font-medium">{q.text}</p>
         </div>
 
@@ -877,7 +878,7 @@ function QuizView({ skill, questionIndex, answers, timeLeft, showExplanation, on
               key={opt}
               onClick={() => chosen == null && onAnswer(optIdx)}
               disabled={chosen != null}
-              className={`w-full text-left p-4 rounded-xl border text-sm transition-all ${getOptionCls(optIdx, chosen, q.correct)}`}
+              className={`w-full text-left p-4 border text-sm transition-all ${getOptionCls(optIdx, chosen, q.correct)}`}
             >
               <span className="font-medium text-zinc-500 mr-2">{String.fromCodePoint(65 + optIdx)}.</span>
               {opt}
@@ -886,7 +887,7 @@ function QuizView({ skill, questionIndex, answers, timeLeft, showExplanation, on
         </div>
 
         {showExplanation && (
-          <div className={`p-4 rounded-xl border mb-4 ${chosen === q.correct ? 'bg-emerald-500/10 border-emerald-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
+          <div className={`p-4 border mb-4 ${chosen === q.correct ? 'bg-emerald-500/10 border-emerald-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
             <div className="flex items-center gap-2 mb-2">
               <Icon
                 name={chosen === q.correct ? 'check_circle' : 'cancel'}
@@ -928,7 +929,7 @@ function ResultView({ skill, answers, score, grade, onRetake, onBack }: ResultVi
   return (
     <AppShell>
       <div className="max-w-2xl mx-auto px-4 py-8 space-y-6">
-        <div className={`bg-gradient-to-br ${skill.gradient} rounded-2xl border border-white/10 p-8 text-center`}>
+        <div className={`bg-gradient-to-br ${skill.gradient} border border-white/10 p-8 text-center`}>
           <div className="text-5xl font-black text-white mb-2">{score}%</div>
           <div className={`text-xl font-bold ${grade.color} mb-1`}>{grade.label}</div>
           <div className="text-sm text-zinc-400">{correctCount} / {skill.questions.length} correct</div>
@@ -945,7 +946,7 @@ function ResultView({ skill, answers, score, grade, onRetake, onBack }: ResultVi
               const isCorrect = answers[i] === q.correct;
               const userAns = answers[i];
               return (
-                <div key={q.id} className={`p-4 rounded-xl border ${isCorrect ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-red-500/5 border-red-500/20'}`}>
+                <div key={q.id} className={`p-4 border ${isCorrect ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-red-500/5 border-red-500/20'}`}>
                   <div className="flex items-start gap-3">
                     <Icon
                       name={isCorrect ? 'check_circle' : 'cancel'}
@@ -971,7 +972,7 @@ function ResultView({ skill, answers, score, grade, onRetake, onBack }: ResultVi
         <div className="flex gap-3">
           <button
             onClick={onRetake}
-            className="flex-1 bg-white/5 hover:bg-white/10 text-zinc-300 border border-white/10 font-semibold py-3 rounded-xl transition-colors text-sm"
+            className="flex-1 bg-white/5 hover:bg-white/10 text-zinc-300 border border-white/10 font-semibold py-3 transition-colors text-sm"
           >
             Retake Assessment
           </button>
@@ -1083,15 +1084,13 @@ export function SkillAssessmentPage() {
     return (
       <AppShell>
         <div className="max-w-5xl mx-auto px-4 py-8">
-          <div className="mb-8">
-            <h1 style={{ fontSize: "2.25rem", fontWeight: 900, letterSpacing: "-0.03em", lineHeight: 1.1, marginBottom: 4, color: "var(--t1)" }}>Skill <span style={{ background: "linear-gradient(135deg, #4ade80, #22d3ee)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Assessments.</span></h1>
-            <p style={{ fontSize: 14, color: "var(--t3)", marginTop: 4 }}>
-              10-question timed tests with instant feedback. Earn a grade badge and XP.{' '}
-              <span className="ml-2 text-[10px] font-bold text-[#E82127] bg-[#E82127]/10 px-2 py-0.5 rounded-full border border-[#E82127]/20">
-                FREE · No subscription unlike HackerRank certifications
-              </span>
-            </p>
-          </div>
+          <PageHeader
+            eyebrow="Knowledge Check"
+            title="Skill Assessments."
+            subtitle="10-question timed tests with instant feedback. Earn a grade badge and XP."
+            accentColor="#4ade80"
+            stats={[{ value: SKILLS.length, label: 'Assessments' }]}
+          />
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {SKILLS.map((skill) => (

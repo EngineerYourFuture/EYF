@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { shuffle } from '../lib/random';
 import { AppShell } from '../components/AppShell';
 import { Icon } from '../components/Icon';
+import { PageHeader } from '../components/PageHeader';
 import { useUser } from '../contexts/UserContext';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -313,46 +314,29 @@ export function FlashcardsPage() {
     return (
       <AppShell>
         <div className="pt-6 pb-12 max-w-4xl mx-auto">
-          {/* Header */}
-          <div className="mb-8">
-            <motion.h1
-              className="text-5xl font-black tracking-tighter mb-2 leading-none"
-              style={{
-                background: 'linear-gradient(135deg, #E8E8E8 0%, rgba(232,25,44,0.8) 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-              }}
-              initial={{ opacity: 0, y: 24, filter: 'blur(10px)' }}
-              animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-              transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
-            >
-              FLASHCARDS
-            </motion.h1>
-            <motion.p
-              className="text-sm"
-              style={{ color: 'var(--t2)' }}
-              initial={{ opacity: 0, y: 12 }}
+          <PageHeader
+            eyebrow="Active Recall"
+            title="Flashcards."
+            subtitle="Spaced repetition review — built for interview prep"
+            stats={[
+              { value: DECKS.length, label: 'Decks' },
+              { value: totalDue, label: 'Due Today', color: totalDue > 0 ? '#E82127' : undefined },
+            ]}
+          />
+          {totalDue > 0 && (
+            <motion.div
+              className="mb-6 px-5 py-3 flex items-center gap-3"
+              style={{ background: 'rgba(232,25,44,0.07)', border: '1px solid rgba(232,25,44,0.2)' }}
+              initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.12, ease: [0.16, 1, 0.3, 1] }}
+              transition={{ duration: 0.4, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
             >
-              Spaced repetition review — built for interview prep
-            </motion.p>
-
-            {totalDue > 0 && (
-              <motion.div
-                className="mt-5 rounded-2xl px-5 py-3 flex items-center gap-3"
-                style={{ background: 'rgba(232,25,44,0.07)', border: '1px solid rgba(232,25,44,0.2)' }}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-              >
-                <Icon name="notifications_active" size={18} style={{ color: '#E82127', flexShrink: 0 }} />
-                <p className="text-sm" style={{ color: 'rgba(255,255,255,0.6)' }}>
-                  <span className="font-bold" style={{ color: 'rgba(255,255,255,0.9)' }}>{totalDue} cards</span> are due for review across all decks.
-                </p>
-              </motion.div>
-            )}
-          </div>
+              <Icon name="notifications_active" size={18} style={{ color: '#E82127', flexShrink: 0 }} />
+              <p className="text-sm" style={{ color: 'rgba(255,255,255,0.6)' }}>
+                <span className="font-bold" style={{ color: 'rgba(255,255,255,0.9)' }}>{totalDue} cards</span> are due for review across all decks.
+              </p>
+            </motion.div>
+          )}
 
           {/* Decks grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -363,7 +347,7 @@ export function FlashcardsPage() {
                   key={deck.id}
                   type="button"
                   onClick={() => startDeck(deck.id)}
-                  className="rounded-2xl p-5 text-left"
+                  className="p-5 text-left"
                   style={{
                     background: 'rgba(10,10,10,0.7)',
                     border: '1px solid rgba(255,255,255,0.07)',
@@ -381,7 +365,7 @@ export function FlashcardsPage() {
                   }}
                   whileTap={{ scale: 0.98 }}
                 >
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4" style={{ background: deck.glow }}>
+                  <div className="w-10 h-10 flex items-center justify-center mb-4" style={{ background: deck.glow }}>
                     <Icon name={deck.icon} size={20} style={{ color: deck.color }} />
                   </div>
                   <h3 className="font-black text-sm mb-1" style={{ color: 'rgba(255,255,255,0.88)' }}>{deck.title}</h3>
@@ -414,7 +398,7 @@ export function FlashcardsPage() {
             const totalMastered = progress.filter((p) => p.bucket >= 4).length;
             if (weakTopics.length === 0 && mistakeHistory.length === 0) return null;
             return (
-              <div className="mt-8 bg-[#1a1a1a] border border-amber-500/15 rounded-2xl p-6">
+              <div className="mt-8 bg-[#1a1a1a] border border-amber-500/15 p-6">
                 <div className="flex items-center gap-2 mb-5">
                   <Icon name="psychology" size={18} className="text-amber-400" />
                   <h3 className="font-black text-white text-sm">Revision Intelligence</h3>
@@ -432,10 +416,10 @@ export function FlashcardsPage() {
                           key={deck.id}
                           type="button"
                           onClick={() => startDeck(deck.id)}
-                          className="w-full flex items-center gap-3 p-3 rounded-xl transition-colors group"
+                          className="w-full flex items-center gap-3 p-3 transition-colors group"
                           style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}
                         >
-                          <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: deck.glow }}>
+                          <div className="w-8 h-8 flex items-center justify-center flex-shrink-0" style={{ background: deck.glow }}>
                             <Icon name={deck.icon} size={15} style={{ color: deck.color }} />
                           </div>
                           <div className="flex-1 min-w-0">
@@ -461,7 +445,7 @@ export function FlashcardsPage() {
                       {mistakeHistory.map((card) => {
                         const deck = DECKS.find((d) => d.id === card.category);
                         return (
-                          <div key={card.id} className="flex items-start gap-3 p-3 bg-red-500/5 border border-red-500/10 rounded-xl">
+                          <div key={card.id} className="flex items-start gap-3 p-3 bg-red-500/5 border border-red-500/10 ">
                             <Icon name="close" size={14} className="text-red-400 flex-shrink-0 mt-0.5" />
                             <div className="min-w-0">
                               <p className="text-xs text-zinc-400 truncate">{card.front}</p>
@@ -478,7 +462,7 @@ export function FlashcardsPage() {
           })()}
 
           {/* How it works */}
-          <div className="mt-10 bg-[#1a1a1a] border border-white/8 rounded-2xl p-6">
+          <div className="mt-10 bg-[#1a1a1a] border border-white/8 p-6">
             <h3 className="font-black text-white text-sm mb-4 flex items-center gap-2">
               <Icon name="info" size={16} className="text-zinc-500" />
               How spaced repetition works
@@ -526,21 +510,21 @@ export function FlashcardsPage() {
             <p className="text-zinc-400 text-sm mb-8">{sessionCards.length} cards reviewed</p>
 
             <div className="grid grid-cols-3 gap-4 mb-8">
-              <div className="bg-green-500/10 rounded-2xl p-4">
+              <div className="bg-green-500/10 p-4">
                 <p className="text-2xl font-black text-green-400">{good}</p>
                 <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mt-1">Good / Easy</p>
               </div>
-              <div className="bg-orange-500/10 rounded-2xl p-4">
+              <div className="bg-orange-500/10 p-4">
                 <p className="text-2xl font-black text-orange-400">{hard}</p>
                 <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mt-1">Hard</p>
               </div>
-              <div className="bg-red-500/10 rounded-2xl p-4">
+              <div className="bg-red-500/10 p-4">
                 <p className="text-2xl font-black text-red-400">{again}</p>
                 <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mt-1">Again</p>
               </div>
             </div>
 
-            <div className="flex items-center justify-center gap-2 bg-[#E82127]/10 border border-[#E82127]/20 rounded-2xl py-3 px-5 mb-8">
+            <div className="flex items-center justify-center gap-2 bg-[#E82127]/10 border border-[#E82127]/20 py-3 px-5 mb-8">
               <Icon name="bolt" size={16} className="text-[#E82127]" filled />
               <span className="text-[#E82127] font-black">+{xpEarned} XP earned</span>
             </div>
@@ -556,7 +540,7 @@ export function FlashcardsPage() {
               <button
                 type="button"
                 onClick={() => { setSelectedDeck(null); setSessionDone(false); }}
-                className="w-full bg-zinc-800 text-zinc-300 font-bold py-3 rounded-xl text-sm hover:bg-zinc-700 transition-all"
+                className="w-full bg-zinc-800 text-zinc-300 font-bold py-3 text-sm hover:bg-zinc-700 transition-all"
               >
                 Choose Another Deck
               </button>
@@ -663,7 +647,7 @@ export function FlashcardsPage() {
                 key={btn.level}
                 type="button"
                 onClick={() => handleConfidence(btn.level)}
-                className={`flex flex-col items-center gap-1 py-4 rounded-2xl border font-bold text-sm hover:brightness-110 transition-all active:scale-95 ${btn.color}`}
+                className={`flex flex-col items-center gap-1 py-4 border font-bold text-sm hover:brightness-110 transition-all active:scale-95 ${btn.color}`}
               >
                 <span>{btn.label}</span>
                 <span className="text-[9px] font-bold uppercase tracking-widest opacity-70">{btn.sub}</span>

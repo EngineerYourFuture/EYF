@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { AppShell } from '../components/AppShell';
 import { Icon } from '../components/Icon';
+import { PageHeader } from '../components/PageHeader';
 import { apiRequest } from '../lib/api';
 import { getSession } from '../lib/session';
 import { useUser } from '../contexts/UserContext';
@@ -411,50 +412,48 @@ export function ResumePage() {
   return (
     <AppShell>
       <div className="pt-8">
-        {/* Header */}
-        <div className="flex items-start justify-between mb-8 gap-4 flex-wrap">
-          <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }}>
-            <h1 style={{ fontSize: '3rem', fontWeight: 900, letterSpacing: '-0.03em', marginBottom: 4, lineHeight: 1.1 }}>
-              <span style={{ background: 'linear-gradient(135deg, #fff 40%, #E82127)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>RESUME BUILDER.</span>
-            </h1>
-            <p style={{ color: 'var(--t3)' }}>ATS-optimized. Export to PDF anytime.</p>
-          </motion.div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' as const }}>
-            <motion.button
-              type="button"
-              onClick={() => setShowAts((v) => !v)}
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 16px', borderRadius: 999, border: `1px solid ${atsBorderColor}`, background: atsBgRgba, fontWeight: 700, fontSize: 14, color: atsHex, cursor: 'pointer' }}
-            >
-              <div style={{ width: 8, height: 8, borderRadius: '50%', background: atsHex }} />
-              ATS Score: {atsScore}%
-              <Icon name={showAts ? 'expand_less' : 'expand_more'} size={16} style={{ color: 'var(--t3)' }} />
-            </motion.button>
-            <motion.button
-              type="button"
-              onClick={saveResume}
-              disabled={saving}
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              style={{ ...GLASS, display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', borderRadius: 999, color: saved ? '#4ade80' : '#d4d4d8', fontWeight: 700, fontSize: 14, cursor: 'pointer', opacity: saving ? 0.6 : 1 }}
-            >
-              <Icon name={saved ? 'check' : 'save'} size={16} style={{ color: saved ? '#4ade80' : undefined }} />
-              {saveLabel}
-            </motion.button>
-            <motion.button
-              type="button"
-              onClick={exportPdf}
-              disabled={exporting}
-              whileHover={{ scale: 1.04 }}
-              whileTap={{ scale: 0.96 }}
-              style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#E82127', color: '#fff', fontWeight: 700, padding: '10px 24px', borderRadius: 999, fontSize: 14, cursor: 'pointer', boxShadow: '0 0 20px rgba(232,33,39,0.35)', opacity: exporting ? 0.6 : 1 }}
-            >
-              <Icon name="download" size={16} />
-              {exporting ? 'Generating…' : 'Export PDF'}
-            </motion.button>
-          </div>
-        </div>
+        <PageHeader
+          eyebrow="Career Tools"
+          title="Resume Builder."
+          subtitle="ATS-optimized. Export to PDF anytime."
+          stats={[{ value: `${atsScore}%`, label: 'ATS Score', color: atsHex }]}
+          actions={
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' as const }}>
+              <motion.button
+                type="button"
+                onClick={() => setShowAts((v) => !v)}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.97 }}
+                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', border: `1px solid ${atsBorderColor}`, background: atsBgRgba, fontWeight: 700, fontSize: 12, color: atsHex, cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase' as const }}
+              >
+                <div style={{ width: 7, height: 7, background: atsHex }} />
+                ATS: {atsScore}%
+              </motion.button>
+              <motion.button
+                type="button"
+                onClick={saveResume}
+                disabled={saving}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.97 }}
+                style={{ ...GLASS, display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', color: saved ? '#4ade80' : '#d4d4d8', fontWeight: 700, fontSize: 12, cursor: 'pointer', opacity: saving ? 0.6 : 1, letterSpacing: '0.08em', textTransform: 'uppercase' as const }}
+              >
+                <Icon name={saved ? 'check' : 'save'} size={14} style={{ color: saved ? '#4ade80' : undefined }} />
+                {saveLabel}
+              </motion.button>
+              <motion.button
+                type="button"
+                onClick={exportPdf}
+                disabled={exporting}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.97 }}
+                style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#E82127', color: '#000', fontWeight: 800, padding: '8px 18px', border: 'none', fontSize: 12, cursor: 'pointer', opacity: exporting ? 0.6 : 1, letterSpacing: '0.1em', textTransform: 'uppercase' as const, fontFamily: "'Space Grotesk', 'Inter', sans-serif" }}
+              >
+                <Icon name="download" size={14} />
+                {exporting ? 'Generating…' : 'Export PDF'}
+              </motion.button>
+            </div>
+          }
+        />
 
         {saveError && (
           <div style={{ marginBottom: 16, background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.3)', color: '#f87171', fontSize: 14, padding: '12px 16px', borderRadius: 14 }}>{saveError}</div>

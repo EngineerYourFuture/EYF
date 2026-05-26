@@ -64,7 +64,7 @@ export function NotificationsPanel({ notifications, onClose, onMarkAllRead, onMa
   return (
     <motion.div
       ref={panelRef}
-      className="absolute right-0 top-full mt-2 w-[380px] rounded-2xl z-50 overflow-hidden"
+      className="absolute right-0 top-full mt-2 w-[380px] z-50 overflow-hidden"
       style={{
         background: 'rgba(8,8,8,0.95)',
         border: '1px solid rgba(255,255,255,0.08)',
@@ -84,9 +84,9 @@ export function NotificationsPanel({ notifications, onClose, onMarkAllRead, onMa
       {/* Header */}
       <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
         <div className="flex items-center gap-2">
-          <h3 className="font-bold text-on-surface">Notifications</h3>
+          <h3 style={{ fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 13, color: 'var(--t1)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Notifications</h3>
           {unreadCount > 0 && (
-            <span className="text-[10px] font-black bg-primary-container text-white rounded-full px-2 py-0.5">
+            <span style={{ fontFamily: 'Space Grotesk', fontSize: 9, fontWeight: 800, background: 'var(--red)', color: '#000', padding: '2px 7px', letterSpacing: '0.04em' }}>
               {unreadCount}
             </span>
           )}
@@ -134,7 +134,7 @@ export function NotificationsPanel({ notifications, onClose, onMarkAllRead, onMa
                   }`}
                   style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}
                 >
-                  <div className={`w-9 h-9 rounded-xl ${meta.bg} flex items-center justify-center flex-shrink-0 mt-0.5`}>
+                  <div className={`w-9 h-9 ${meta.bg} flex items-center justify-center flex-shrink-0 mt-0.5`}>
                     <Icon name={meta.icon} className={meta.color} size={18} filled={n.type === 'xp' || n.type === 'streak'} />
                   </div>
                   <div className="flex-1 min-w-0">

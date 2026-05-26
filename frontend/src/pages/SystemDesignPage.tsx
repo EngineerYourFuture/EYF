@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { AppShell } from '../components/AppShell';
 import { Icon } from '../components/Icon';
+import { PageHeader } from '../components/PageHeader';
 import { apiRequest } from '../lib/api';
 import { getSession } from '../lib/session';
 import { useUser } from '../contexts/UserContext';
@@ -135,7 +136,7 @@ export function SystemDesignPage() {
           </motion.button>
 
           <motion.div
-            className="rounded-2xl p-8 mb-6"
+            className="p-8 mb-6"
             style={GLASS}
             initial={{ opacity: 0, y: 20, filter: 'blur(8px)' }}
             animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
@@ -145,7 +146,7 @@ export function SystemDesignPage() {
               style={{ height: 1, marginBottom: 28, background: `linear-gradient(90deg, transparent, ${catMeta.color}80 40%, ${catMeta.color}30 70%, transparent)` }}
             />
             <div className="flex items-center gap-3 mb-5">
-              <div className="w-11 h-11 rounded-xl flex items-center justify-center" style={{ background: catMeta.glow }}>
+              <div className="w-11 h-11 flex items-center justify-center" style={{ background: catMeta.glow }}>
                 <Icon name={catMeta.icon} size={22} style={{ color: catMeta.color }} />
               </div>
               <div>
@@ -161,7 +162,7 @@ export function SystemDesignPage() {
 
           {submitted ? (
             <motion.div
-              className="rounded-xl p-8 text-center"
+              className="p-8 text-center"
               style={{ background: 'rgba(74,222,128,0.06)', border: '1px solid rgba(74,222,128,0.2)' }}
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -174,7 +175,7 @@ export function SystemDesignPage() {
             </motion.div>
           ) : (
             <div className="space-y-4">
-              <div className="rounded-xl p-5" style={GLASS}>
+              <div className="p-5" style={GLASS}>
                 <h3 className="font-bold text-sm mb-3 flex items-center gap-2" style={{ color: 'rgba(255,255,255,0.8)' }}>
                   <Icon name="tips_and_updates" size={16} style={{ color: '#facc15' }} />
                   Consider covering:
@@ -195,7 +196,7 @@ export function SystemDesignPage() {
                   onChange={(e) => setResponse(e.target.value)}
                   placeholder="Start with requirements clarification, then capacity estimation, then architecture..."
                   rows={14}
-                  className="w-full rounded-xl p-4 text-sm focus:outline-none resize-none font-mono"
+                  className="w-full p-4 text-sm focus:outline-none resize-none font-mono"
                   style={{
                     background: 'rgba(255,255,255,0.03)',
                     border: '1px solid rgba(255,255,255,0.07)',
@@ -229,53 +230,16 @@ export function SystemDesignPage() {
   return (
     <AppShell>
       <div className="pt-8 max-w-7xl">
-        {/* Hero */}
-        <div className="mb-10 flex items-end justify-between flex-wrap gap-6">
-          <div>
-            <motion.h1
-              className="text-6xl font-black tracking-tighter mb-2 leading-none"
-              initial={{ opacity: 0, y: 30, filter: 'blur(12px)' }}
-              animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-              transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-              style={{
-                background: 'linear-gradient(135deg, #E8E8E8 0%, rgba(192,132,252,0.8) 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-              }}
-            >
-              SYSTEM<br />
-              <span style={{ background: 'linear-gradient(135deg, #c084fc, #a855f7)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>DESIGN.</span>
-            </motion.h1>
-            <motion.p
-              className="text-lg max-w-md"
-              style={{ color: 'var(--t2)' }}
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
-            >
-              Scalability · Distributed Systems · Architecture Patterns
-            </motion.p>
-          </div>
-
-          {/* Stats card */}
-          <motion.div
-            className="rounded-2xl p-6 flex gap-8"
-            style={{ ...GLASS, boxShadow: '0 24px 60px rgba(0,0,0,0.6)' }}
-            initial={{ opacity: 0, x: 20, filter: 'blur(8px)' }}
-            animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }}
-            transition={{ duration: 0.6, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-            whileHover={{ boxShadow: '0 24px 60px rgba(0,0,0,0.7), 0 0 30px rgba(192,132,252,0.08)' }}
-          >
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: 'var(--t3)' }}>Questions</p>
-              <p className="text-2xl font-black" style={{ color: 'rgba(255,255,255,0.9)' }}>{stats.total}</p>
-            </div>
-            <div style={{ borderLeft: '1px solid rgba(255,255,255,0.07)', paddingLeft: 28 }}>
-              <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: 'var(--t3)' }}>Attempted</p>
-              <p className="text-2xl font-black" style={{ color: '#c084fc' }}>{stats.attempted}</p>
-            </div>
-          </motion.div>
-        </div>
+        <PageHeader
+          eyebrow="Architecture"
+          title="System Design."
+          subtitle="Scalability · Distributed Systems · Architecture Patterns"
+          accentColor="#c084fc"
+          stats={[
+            { value: stats.total, label: 'Questions', color: '#c084fc' },
+            { value: stats.attempted, label: 'Attempted' },
+          ]}
+        />
 
         {/* Core Concepts */}
         <section className="mb-12">
@@ -284,7 +248,7 @@ export function SystemDesignPage() {
             {CONCEPTS.map((c, i) => (
               <motion.div
                 key={c.title}
-                className="rounded-xl p-5 flex items-start gap-4"
+                className="p-5 flex items-start gap-4"
                 style={GLASS}
                 initial={{ opacity: 0, y: 16, filter: 'blur(6px)' }}
                 whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
@@ -292,7 +256,7 @@ export function SystemDesignPage() {
                 transition={{ duration: 0.45, delay: i * 0.04, ease: [0.16, 1, 0.3, 1] }}
                 whileHover={{ background: 'rgba(255,255,255,0.05)', borderColor: 'rgba(192,132,252,0.2)' }}
               >
-                <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(192,132,252,0.1)' }}>
+                <div className="w-9 h-9 flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(192,132,252,0.1)' }}>
                   <Icon name={c.icon} size={18} style={{ color: '#c084fc' }} />
                 </div>
                 <div>
@@ -354,7 +318,7 @@ export function SystemDesignPage() {
                   type="button"
                   disabled={locked}
                   onClick={() => setSelected(q)}
-                  className="w-full text-left rounded-xl p-6"
+                  className="w-full text-left p-6"
                   style={{
                     ...GLASS,
                     cursor: locked ? 'not-allowed' : 'pointer',
@@ -374,7 +338,7 @@ export function SystemDesignPage() {
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: catMeta.glow }}>
+                      <div className="w-8 h-8 flex items-center justify-center" style={{ background: catMeta.glow }}>
                         <Icon name={catMeta.icon} size={16} style={{ color: catMeta.color }} />
                       </div>
                       <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: catMeta.color }}>{q.category}</span>

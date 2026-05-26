@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { AppShell } from '../components/AppShell';
 import { Icon } from '../components/Icon';
+import { PageHeader } from '../components/PageHeader';
 import { apiRequest } from '../lib/api';
 import { getSession } from '../lib/session';
 import { useUser } from '../contexts/UserContext';
@@ -158,38 +159,21 @@ export function CoreSubjectsPage() {
   return (
     <AppShell>
       <div className="pt-8 max-w-6xl mx-auto">
-        {/* Hero */}
-        <div className="mb-10 flex items-end justify-between flex-wrap gap-6">
-          <div>
-            <motion.h1
-              className="text-6xl font-black tracking-tighter mb-2 leading-none"
-              initial={{ opacity: 0, y: 30, filter: 'blur(12px)' }}
-              animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-              transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-              style={{
-                background: 'linear-gradient(135deg, #E8E8E8 0%, rgba(74,222,128,0.8) 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-              }}
-            >
-              CORE<br />
-              <span style={{ background: 'linear-gradient(135deg, #4ade80, #22d3ee)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>SUBJECTS.</span>
-            </motion.h1>
-            <motion.p
-              className="text-lg max-w-md"
-              style={{ color: 'var(--t2)' }}
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
-            >
-              Master the CS fundamentals that top companies interview on.
-            </motion.p>
-          </div>
-        </div>
+        <PageHeader
+          eyebrow="CS Fundamentals"
+          title="Core Subjects."
+          subtitle="Master the CS fundamentals that top companies interview on — OS, DBMS, Networks, and more."
+          accentColor="#4ade80"
+          stats={!loading ? [
+            { value: `${masteryScore}%`, label: 'Overall Mastery', color: '#E82127' },
+            { value: `${completedTotal}/${totalTopics}`, label: 'Topics Done', color: '#4ade80' },
+            { value: `~${totalHoursLeft}h`, label: 'Hours Left', color: '#facc15' },
+          ] : undefined}
+        />
 
-        {/* Stats row */}
+        {/* Stats row - now in PageHeader, keeping for compatibility */}
         {!loading && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8" style={{ display: 'none' }}>
             {[
               { icon: 'school',    label: 'Overall Mastery',  value: `${masteryScore}%`,           color: '#E82127', glow: 'rgba(232,25,44,0.15)' },
               { icon: 'task_alt',  label: 'Topics Done',      value: `${completedTotal}/${totalTopics}`, color: '#4ade80', glow: 'rgba(74,222,128,0.15)' },
@@ -198,14 +182,14 @@ export function CoreSubjectsPage() {
             ].map((s, i) => (
               <motion.div
                 key={s.label}
-                className="rounded-xl p-5 flex items-center gap-3"
+                className="p-5 flex items-center gap-3"
                 style={GLASS}
                 initial={{ opacity: 0, y: 16, filter: 'blur(6px)' }}
                 animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
                 transition={{ duration: 0.45, delay: i * 0.06, ease: [0.16, 1, 0.3, 1] }}
                 whileHover={{ boxShadow: `0 8px 32px ${s.glow}` }}
               >
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: s.glow }}>
+                <div className="w-10 h-10 flex items-center justify-center flex-shrink-0" style={{ background: s.glow }}>
                   <Icon name={s.icon} size={20} filled={s.icon === 'bolt' || s.icon === 'task_alt'} style={{ color: s.color }} />
                 </div>
                 <div>
@@ -220,7 +204,7 @@ export function CoreSubjectsPage() {
         {/* Mastery progress bar */}
         {!loading && (
           <motion.div
-            className="rounded-xl p-5 mb-8"
+            className="p-5 mb-8"
             style={GLASS}
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
@@ -257,7 +241,7 @@ export function CoreSubjectsPage() {
               <motion.button
                 type="button"
                 onClick={() => goToSubject(lastActive)}
-                className="rounded-xl p-5 text-left"
+                className="p-5 text-left"
                 style={{ ...GLASS, borderColor: `${lastActive.color}30` }}
                 whileHover={{ background: 'rgba(255,255,255,0.06)', boxShadow: `0 8px 32px ${lastActive.glow}`, scale: 1.01 }}
                 transition={{ duration: 0.15 }}
@@ -267,7 +251,7 @@ export function CoreSubjectsPage() {
                   <Icon name="arrow_forward" size={12} style={{ color: lastActive.color }} />
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: lastActive.glow }}>
+                  <div className="w-10 h-10 flex items-center justify-center" style={{ background: lastActive.glow }}>
                     <Icon name={lastActive.icon} size={20} style={{ color: lastActive.color }} />
                   </div>
                   <div className="flex-1">
@@ -296,7 +280,7 @@ export function CoreSubjectsPage() {
               <motion.button
                 type="button"
                 onClick={handleStartTopic}
-                className="rounded-xl p-5 text-left"
+                className="p-5 text-left"
                 style={GLASS}
                 whileHover={{ background: 'rgba(255,255,255,0.06)', boxShadow: `0 8px 32px ${nextSubject.glow}`, scale: 1.01 }}
                 transition={{ duration: 0.15 }}
@@ -306,7 +290,7 @@ export function CoreSubjectsPage() {
                   <Icon name="recommend" size={12} filled style={{ color: 'var(--t3)' }} />
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: nextSubject.glow }}>
+                  <div className="w-10 h-10 flex items-center justify-center" style={{ background: nextSubject.glow }}>
                     <Icon name={nextSubject.icon} size={20} style={{ color: nextSubject.color }} />
                   </div>
                   <div className="flex-1">
@@ -323,7 +307,7 @@ export function CoreSubjectsPage() {
         )}
 
         {/* Study path hint */}
-        <div className="rounded-xl p-4 mb-8 flex items-center gap-3" style={GLASS}>
+        <div className="p-4 mb-8 flex items-center gap-3" style={GLASS}>
           <Icon name="route" size={18} style={{ color: '#E82127' }} />
           <p className="text-sm" style={{ color: 'var(--t2)' }}>
             <span className="font-bold" style={{ color: 'rgba(255,255,255,0.75)' }}>Recommended path: </span>
@@ -366,7 +350,7 @@ export function CoreSubjectsPage() {
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {[0,1,2,3,4,5].map((n) => (
-              <div key={`skeleton-${n}`} className="h-64 rounded-xl animate-pulse" style={{ background: 'rgba(255,255,255,0.04)' }} />
+              <div key={`skeleton-${n}`} className="h-64 animate-pulse" style={{ background: 'rgba(255,255,255,0.04)' }} />
             ))}
           </div>
         ) : (
@@ -386,7 +370,7 @@ export function CoreSubjectsPage() {
                 <motion.button
                   key={sub.id}
                   type="button"
-                  className="rounded-xl p-6 flex flex-col text-left w-full"
+                  className="p-6 flex flex-col text-left w-full"
                   style={GLASS}
                   initial={{ opacity: 0, y: 20, filter: 'blur(6px)' }}
                   whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
@@ -402,7 +386,7 @@ export function CoreSubjectsPage() {
                 >
                   {/* Top row */}
                   <div className="flex justify-between items-start mb-5">
-                    <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: sub.glow }}>
+                    <div className="w-12 h-12 flex items-center justify-center" style={{ background: sub.glow }}>
                       <Icon name={sub.icon} size={24} style={{ color: sub.color }} />
                     </div>
                     <div className="flex items-center gap-2">

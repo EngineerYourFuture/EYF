@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AppShell } from '../components/AppShell';
 import { Icon } from '../components/Icon';
+import { PageHeader } from '../components/PageHeader';
 import { useUser } from '../contexts/UserContext';
 
 const GLASS = {
@@ -772,60 +773,16 @@ export function DailyChallengePage() {
     <AppShell>
       <div style={{ maxWidth: 896, margin: '0 auto', padding: '0 24px 80px' }}>
 
-        {/* ── Hero ── */}
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          style={{ paddingTop: 56, paddingBottom: 40 }}
-        >
-          <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', flexWrap: 'wrap', gap: 20 }}>
-            <div>
-              <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.18em', color: 'var(--t3)', textTransform: 'uppercase', marginBottom: 8 }}>
-                {now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
-              </p>
-              <h1 style={{
-                fontSize: 'clamp(2.2rem, 6vw, 3.8rem)',
-                fontWeight: 900,
-                letterSpacing: '-0.03em',
-                lineHeight: 1,
-                background: 'linear-gradient(135deg, #ff4d5a 0%, #ff8c42 60%, #facc15 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                marginBottom: 10,
-              }}>
-                DAILY CHALLENGE.
-              </h1>
-              <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.45)', fontWeight: 500 }}>
-                One challenge per day. Compound your edge.
-              </p>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexShrink: 0 }}>
-              {streak > 0 && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.85 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.2 }}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: 8,
-                    background: 'rgba(251,146,60,0.1)', border: '1px solid rgba(251,146,60,0.25)',
-                    borderRadius: 14, padding: '10px 18px',
-                  }}
-                >
-                  <Icon name="local_fire_department" size={18} style={{ color: '#fb923c' }} filled />
-                  <span style={{ fontWeight: 900, color: '#fb923c', fontSize: 20 }}>{streak}</span>
-                  <span style={{ fontSize: 11, fontWeight: 700, color: 'rgba(251,146,60,0.6)' }}>day streak</span>
-                </motion.div>
-              )}
-              <div style={{ textAlign: 'right' }}>
-                <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.15em', color: 'var(--t3)', textTransform: 'uppercase' }}>
-                  Next in
-                </p>
-                <p style={{ fontWeight: 900, color: '#fff', fontSize: 18 }}>{hoursTil}h {minsTil}m</p>
-              </div>
-            </div>
-          </div>
-        </motion.div>
+        <PageHeader
+          eyebrow={now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+          title="Daily Challenge."
+          subtitle="One challenge per day. Compound your edge."
+          accentColor="#fb923c"
+          stats={[
+            { value: streak > 0 ? `${streak} days` : 'No streak', label: 'Streak', color: streak > 0 ? '#fb923c' : undefined },
+            { value: `${hoursTil}h ${minsTil}m`, label: 'Next in' },
+          ]}
+        />
 
         {/* ── Challenge card ── */}
         <motion.div

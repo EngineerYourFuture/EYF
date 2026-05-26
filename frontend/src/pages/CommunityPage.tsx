@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { AppShell } from '../components/AppShell';
 import { Icon } from '../components/Icon';
+import { PageHeader } from '../components/PageHeader';
 import { apiRequest } from '../lib/api';
 import { getSession } from '../lib/session';
 import { useUser } from '../contexts/UserContext';
@@ -336,10 +337,10 @@ function SquadsSection({ squads, selectedSquad, setSelectedSquad, showCreateSqua
         <button onClick={() => setSelectedSquad(null)} className="flex items-center gap-2 text-zinc-500 hover:text-zinc-300 text-sm mb-5 transition-colors">
           <Icon name="arrow_back" size={16} /> All squads
         </button>
-        <div className="p-6 bg-[#1a1a1a] border border-white/8 rounded-2xl mb-5">
+        <div className="p-6 bg-[#1a1a1a] border border-white/8 mb-5">
           <div className="flex items-start justify-between flex-wrap gap-4">
             <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-zinc-800 flex items-center justify-center">
+              <div className="w-14 h-14 bg-zinc-800 flex items-center justify-center">
                 <Icon name={selectedSquad.focusIcon} size={26} className={selectedSquad.focusColor} />
               </div>
               <div>
@@ -355,7 +356,7 @@ function SquadsSection({ squads, selectedSquad, setSelectedSquad, showCreateSqua
             </div>
             <div className="flex gap-2">
               {selectedSquad.joined ? (
-                <button onClick={() => onLeave(selectedSquad.id)} className="px-4 py-2 rounded-xl bg-zinc-800 text-zinc-400 text-xs font-bold hover:bg-zinc-700 transition-colors">
+                <button onClick={() => onLeave(selectedSquad.id)} className="px-4 py-2 bg-zinc-800 text-zinc-400 text-xs font-bold hover:bg-zinc-700 transition-colors">
                   Leave Squad
                 </button>
               ) : (
@@ -367,12 +368,12 @@ function SquadsSection({ squads, selectedSquad, setSelectedSquad, showCreateSqua
             </div>
           </div>
           <p className="text-zinc-400 text-sm mt-4 leading-relaxed">{selectedSquad.description}</p>
-          <div className="mt-4 p-3 bg-zinc-900 rounded-xl">
+          <div className="mt-4 p-3 bg-zinc-900 ">
             <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1">Squad Goal</p>
             <p className="text-white text-sm font-bold">{selectedSquad.goal}</p>
           </div>
         </div>
-        <div className={`p-5 rounded-2xl border mb-5 ${squadDoneToday.has(selectedSquad.id) ? 'bg-green-500/5 border-green-500/20' : 'bg-amber-500/5 border-amber-500/20'}`}>
+        <div className={`p-5 border mb-5 ${squadDoneToday.has(selectedSquad.id) ? 'bg-green-500/5 border-green-500/20' : 'bg-amber-500/5 border-amber-500/20'}`}>
           <div className="flex items-start justify-between gap-4">
             <div>
               <p className={`text-[10px] font-bold uppercase tracking-widest mb-1 ${squadDoneToday.has(selectedSquad.id) ? 'text-green-400' : 'text-amber-400'}`}>
@@ -381,13 +382,13 @@ function SquadsSection({ squads, selectedSquad, setSelectedSquad, showCreateSqua
               <p className="text-white font-bold">{selectedSquad.todayTask}</p>
             </div>
             {!squadDoneToday.has(selectedSquad.id) && selectedSquad.joined && (
-              <button onClick={() => onMarkDone(selectedSquad.id)} className="flex-shrink-0 px-4 py-2 bg-amber-500 text-black font-black text-xs rounded-xl hover:brightness-110 transition-all">
+              <button onClick={() => onMarkDone(selectedSquad.id)} className="flex-shrink-0 px-4 py-2 bg-amber-500 text-black font-black text-xs hover:brightness-110 transition-all">
                 Mark Done
               </button>
             )}
           </div>
         </div>
-        <div className="p-5 bg-[#1a1a1a] border border-white/5 rounded-2xl">
+        <div className="p-5 bg-[#1a1a1a] border border-white/5 ">
           <div className="flex items-center justify-between mb-4">
             <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Members ({selectedSquad.members}/{selectedSquad.maxMembers})</p>
           </div>
@@ -427,9 +428,9 @@ function SquadsSection({ squads, selectedSquad, setSelectedSquad, showCreateSqua
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {squads.filter((s) => s.joined).map((squad) => (
               <button key={squad.id} type="button" onClick={() => setSelectedSquad(squad)}
-                className="text-left bg-[#1a1a1a] border border-[#E82127]/20 rounded-2xl p-5 hover:border-[#E82127]/40 transition-all">
+                className="text-left bg-[#1a1a1a] border border-[#E82127]/20 p-5 hover:border-[#E82127]/40 transition-all">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-xl bg-zinc-800 flex items-center justify-center">
+                  <div className="w-10 h-10 bg-zinc-800 flex items-center justify-center">
                     <Icon name={squad.focusIcon} size={18} className={squad.focusColor} />
                   </div>
                   <div>
@@ -441,7 +442,7 @@ function SquadsSection({ squads, selectedSquad, setSelectedSquad, showCreateSqua
                     <p className="text-[10px] text-zinc-600">streak</p>
                   </div>
                 </div>
-                <div className={`px-3 py-2 rounded-lg text-xs font-medium mt-2 ${squadDoneToday.has(squad.id) ? 'bg-green-500/10 text-green-400' : 'bg-amber-500/10 text-amber-400'}`}>
+                <div className={`px-3 py-2 text-xs font-medium mt-2 ${squadDoneToday.has(squad.id) ? 'bg-green-500/10 text-green-400' : 'bg-amber-500/10 text-amber-400'}`}>
                   {squadDoneToday.has(squad.id) ? '✓ Task done today' : '📌 Task pending: ' + squad.todayTask.slice(0, 50) + '…'}
                 </div>
               </button>
@@ -457,24 +458,24 @@ function SquadsSection({ squads, selectedSquad, setSelectedSquad, showCreateSqua
         </button>
       </div>
       {showCreateSquad && (
-        <div className="bg-[#1a1a1a] border border-[#E82127]/20 rounded-2xl p-5 mb-6">
+        <div className="bg-[#1a1a1a] border border-[#E82127]/20 p-5 mb-6">
           <h3 className="font-bold text-white mb-4">Create a New Squad</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <input type="text" value={newSquad.name} onChange={(e) => setNewSquad((s) => ({ ...s, name: e.target.value }))}
               placeholder="Squad name (e.g. DSA Daily Grinders)"
-              className="w-full bg-zinc-900 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-white/20" />
+              className="w-full bg-zinc-900 border border-white/10 px-4 py-2.5 text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-white/20" />
             <select value={newSquad.focus} onChange={(e) => setNewSquad((s) => ({ ...s, focus: e.target.value }))}
-              className="bg-zinc-900 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none">
+              className="bg-zinc-900 border border-white/10 px-4 py-2.5 text-sm text-white focus:outline-none">
               {['DSA', 'System Design', 'Interview Prep', 'Placement', 'Backend', 'Frontend', 'Security', 'GenAI'].map((f) => (
                 <option key={f} value={f}>{f}</option>
               ))}
             </select>
             <input type="text" value={newSquad.goal} onChange={(e) => setNewSquad((s) => ({ ...s, goal: e.target.value }))}
               placeholder="Daily/Weekly goal (e.g. 1 problem per day)"
-              className="md:col-span-2 w-full bg-zinc-900 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-white/20" />
+              className="md:col-span-2 w-full bg-zinc-900 border border-white/10 px-4 py-2.5 text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-white/20" />
             <textarea value={newSquad.description} onChange={(e) => setNewSquad((s) => ({ ...s, description: e.target.value }))}
               placeholder="What's your squad about? Who should join?" rows={2}
-              className="md:col-span-2 w-full bg-zinc-900 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-white/20 resize-none" />
+              className="md:col-span-2 w-full bg-zinc-900 border border-white/10 px-4 py-2.5 text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-white/20 resize-none" />
           </div>
           <div className="flex justify-end gap-3 mt-4">
             <button onClick={() => setShowCreateSquad(false)} className="text-sm text-zinc-500 hover:text-zinc-300 px-4 py-2 rounded-full transition-colors">Cancel</button>
@@ -487,9 +488,9 @@ function SquadsSection({ squads, selectedSquad, setSelectedSquad, showCreateSqua
       )}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {squads.filter((s) => !s.joined).map((squad) => (
-          <div key={squad.id} className="bg-[#1a1a1a] border border-white/5 rounded-2xl p-5 hover:border-white/10 transition-all">
+          <div key={squad.id} className="bg-[#1a1a1a] border border-white/5 p-5 hover:border-white/10 transition-all">
             <div className="flex items-start gap-3 mb-3">
-              <div className="w-10 h-10 rounded-xl bg-zinc-800 flex items-center justify-center flex-shrink-0">
+              <div className="w-10 h-10 bg-zinc-800 flex items-center justify-center flex-shrink-0">
                 <Icon name={squad.focusIcon} size={18} className={squad.focusColor} />
               </div>
               <div className="flex-1 min-w-0">
@@ -517,7 +518,7 @@ function SquadsSection({ squads, selectedSquad, setSelectedSquad, showCreateSqua
               </div>
               <button onClick={() => { onJoin(squad.id); setSelectedSquad({ ...squad, joined: true, members: squad.members + 1 }); }}
                 disabled={squad.members >= squad.maxMembers}
-                className="flex items-center gap-1.5 px-4 py-2 bg-[#E82127] text-white text-xs font-bold rounded-xl hover:brightness-110 transition-all disabled:opacity-40 disabled:cursor-not-allowed">
+                className="flex items-center gap-1.5 px-4 py-2 bg-[#E82127] text-white text-xs font-bold hover:brightness-110 transition-all disabled:opacity-40 disabled:cursor-not-allowed">
                 <Icon name="group_add" size={13} />
                 Join
               </button>
@@ -672,17 +673,18 @@ export function CommunityPage() {
   return (
     <AppShell>
       <div className="pt-8 max-w-4xl mx-auto">
-        {/* Hero */}
-        <div className="mb-8 flex items-start justify-between flex-wrap gap-4">
-          <div>
-            <h1 className="text-4xl font-black tracking-tighter mb-1">Community</h1>
-            <p style={{ color: 'var(--t2)' }}>Discuss, ask questions, and share knowledge with other engineers</p>
-          </div>
-          <button onClick={() => setShowCompose(!showCompose)}
-            style={{ background: '#E82127', color: '#fff', fontWeight: 700, padding: '12px 24px', borderRadius: 999, fontSize: 14, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Icon name="edit" size={16} />New Post
-          </button>
-        </div>
+        <PageHeader
+          eyebrow="EYF Community"
+          title="Community."
+          subtitle="Discuss, ask questions, and share knowledge with engineers on the same journey."
+          actions={
+            <button
+              onClick={() => setShowCompose(!showCompose)}
+              style={{ background: '#E82127', color: '#000', fontWeight: 700, padding: '10px 20px', fontSize: 12, border: '2px solid #E82127', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'Space Grotesk, sans-serif', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+              <Icon name="edit" size={14} />New Post
+            </button>
+          }
+        />
 
         {/* View toggle */}
         <div className="flex gap-2 mb-6">
@@ -806,11 +808,11 @@ export function CommunityPage() {
                 <div className="flex items-start gap-4">
                   {/* Vote column */}
                   <div className="flex flex-col items-center gap-1 flex-shrink-0">
-                    <button type="button" onClick={(e) => { e.stopPropagation(); vote(post.id, 1); }} className="w-7 h-7 rounded-lg flex items-center justify-center text-zinc-600 hover:text-green-400 hover:bg-green-500/10 transition-all">
+                    <button type="button" onClick={(e) => { e.stopPropagation(); vote(post.id, 1); }} className="w-7 h-7 flex items-center justify-center text-zinc-600 hover:text-green-400 hover:bg-green-500/10 transition-all">
                       <Icon name="arrow_upward" size={14} />
                     </button>
                     <span className="text-sm font-bold text-zinc-400">{post.upvotes}</span>
-                    <button type="button" onClick={(e) => { e.stopPropagation(); vote(post.id, -1); }} className="w-7 h-7 rounded-lg flex items-center justify-center text-zinc-600 hover:text-red-400 hover:bg-red-500/10 transition-all">
+                    <button type="button" onClick={(e) => { e.stopPropagation(); vote(post.id, -1); }} className="w-7 h-7 flex items-center justify-center text-zinc-600 hover:text-red-400 hover:bg-red-500/10 transition-all">
                       <Icon name="arrow_downward" size={14} />
                     </button>
                   </div>

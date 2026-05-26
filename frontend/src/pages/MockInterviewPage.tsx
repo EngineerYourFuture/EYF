@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { shuffle } from '../lib/random';
 import { AppShell } from '../components/AppShell';
 import { Icon } from '../components/Icon';
+import { PageHeader } from '../components/PageHeader';
 import { apiRequest } from '../lib/api';
 import { getSession } from '../lib/session';
 import { useUser } from '../contexts/UserContext';
@@ -216,23 +217,12 @@ export function MockInterviewPage() {
   if (phase === 'select') {
     return (
       <AppShell>
-        <div style={{ maxWidth: 900, margin: '0 auto', padding: '0 24px 80px' }}>
-          {/* Hero */}
-          <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} style={{ paddingTop: 56, paddingBottom: 40 }}>
-            <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--t3)', marginBottom: 8 }}>
-              Interview Prep
-            </p>
-            <h1 style={{
-              fontSize: 'clamp(2.2rem, 6vw, 3.8rem)', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1,
-              background: 'linear-gradient(135deg, #ff4d5a 0%, #fb923c 60%, #facc15 100%)',
-              WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', marginBottom: 12,
-            }}>
-              MOCK INTERVIEW.
-            </h1>
-            <p style={{ fontSize: 15, color: 'var(--t2)', maxWidth: 520, lineHeight: 1.65 }}>
-              Practice FAANG-level interviews with timed questions, hints, and structured response tracking.
-            </p>
-          </motion.div>
+        <div style={{ maxWidth: 900, margin: '0 auto', padding: '0 24px 80px', paddingTop: 40 }}>
+          <PageHeader
+            eyebrow="Interview Prep"
+            title="Mock Interview."
+            subtitle="Practice FAANG-level interviews with timed questions, hints, and structured response tracking."
+          />
 
           {/* Tips banner */}
           <motion.div
@@ -260,16 +250,16 @@ export function MockInterviewPage() {
                   initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.07 }}
                   whileHover={{ boxShadow: `0 8px 28px ${meta.glow}` }}
                   style={{
-                    textAlign: 'left', padding: 24, borderRadius: 20,
-                    background: isActive ? meta.glow.replace('0.15', '0.1') : 'rgba(10,10,10,0.7)',
-                    border: isActive ? `1px solid ${meta.color}40` : '1px solid rgba(255,255,255,0.07)',
-                    backdropFilter: 'blur(16px)', cursor: 'pointer',
-                    boxShadow: isActive ? `0 0 32px ${meta.glow}` : 'none',
-                    transition: 'border-color 0.2s, box-shadow 0.25s',
+                    textAlign: 'left', padding: 24, borderRadius: 4,
+                    background: isActive ? meta.glow.replace('0.15', '0.08') : 'var(--bg-elevated)',
+                    border: isActive ? `1px solid ${meta.color}50` : '1px solid var(--border)',
+                    cursor: 'pointer',
+                    boxShadow: isActive ? `0 0 32px ${meta.glow}, 0 0 0 1px ${meta.color}20` : 'none',
+                    transition: 'border-color 0.2s, box-shadow 0.25s, background 0.2s',
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16 }}>
-                    <div style={{ width: 48, height: 48, borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', background: meta.glow, border: `1px solid ${meta.color}25` }}>
+                    <div style={{ width: 48, height: 48, borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', background: meta.glow, border: `1px solid ${meta.color}25` }}>
                       <Icon name={meta.icon} size={22} style={{ color: meta.color }} />
                     </div>
                     {isActive && <Icon name="check_circle" size={20} style={{ color: meta.color }} filled />}
@@ -290,20 +280,20 @@ export function MockInterviewPage() {
           </div>
 
           {/* What to expect */}
-          <div style={{ marginBottom: 32 }}>
-            <p style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--t3)', marginBottom: 16 }}>What to Expect</p>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 12 }}>
+          <div style={{ marginBottom: 36 }}>
+            <p className="kin-label" style={{ marginBottom: 16 }}>What to Expect</p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 1, background: 'var(--border)' }}>
               {[
                 { icon: 'timer',    title: 'Timed Responses', desc: 'Each question has a recommended time limit, just like real interviews.', color: '#f87171' },
                 { icon: 'lightbulb', title: 'Structured Hints', desc: 'Optional hints guide your thinking without giving away the answer.', color: '#facc15' },
                 { icon: 'bolt',     title: 'XP Rewards',       desc: 'Earn XP based on how many questions you answer thoughtfully.', color: '#ff4d5a' },
               ].map((item) => (
-                <div key={item.title} style={{ ...GLASS, borderRadius: 16, padding: 18, display: 'flex', gap: 12 }}>
-                  <div style={{ width: 36, height: 36, background: `${item.color}15`, border: `1px solid ${item.color}25`, borderRadius: 11, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <div key={item.title} style={{ background: 'var(--bg-elevated)', padding: 20, display: 'flex', gap: 14 }}>
+                  <div style={{ width: 36, height: 36, background: `${item.color}15`, border: `1px solid ${item.color}25`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                     <Icon name={item.icon} size={17} style={{ color: item.color }} />
                   </div>
                   <div>
-                    <p style={{ fontSize: 13, fontWeight: 700, color: '#fff', marginBottom: 4 }}>{item.title}</p>
+                    <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--t1)', marginBottom: 4 }}>{item.title}</p>
                     <p style={{ fontSize: 11, color: 'var(--t2)', lineHeight: 1.6 }}>{item.desc}</p>
                   </div>
                 </div>
@@ -314,13 +304,15 @@ export function MockInterviewPage() {
           <motion.button
             type="button"
             onClick={startInterview}
-            whileHover={{ scale: 1.03, boxShadow: '0 0 32px rgba(232,33,39,0.4)' }}
+            whileHover={{ boxShadow: '0 0 40px rgba(232,33,39,0.5)', background: '#ff2a30' }}
             whileTap={{ scale: 0.97 }}
             style={{
-              background: 'linear-gradient(135deg, #e82127, #c41a1f)',
-              border: 'none', borderRadius: 999, padding: '14px 36px',
-              color: '#fff', fontSize: 14, fontWeight: 900, cursor: 'pointer',
+              background: '#E82127',
+              border: '2px solid #E82127', padding: '14px 36px',
+              color: '#000', fontSize: 13, fontWeight: 900, cursor: 'pointer',
               display: 'flex', alignItems: 'center', gap: 10,
+              fontFamily: 'Space Grotesk, sans-serif', letterSpacing: '0.06em', textTransform: 'uppercase',
+              transition: 'background 0.2s, box-shadow 0.2s',
             }}
           >
             <Icon name="play_arrow" size={20} filled />

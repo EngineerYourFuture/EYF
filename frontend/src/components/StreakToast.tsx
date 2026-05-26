@@ -21,7 +21,7 @@ export function StreakToast({ streak, onClose }: Props) {
 
   return (
     <div
-      className={`fixed top-20 left-1/2 -translate-x-1/2 z-[9998] flex items-center gap-3 px-6 py-4 rounded-2xl border shadow-2xl transition-all duration-500 ${
+      className={`fixed top-20 left-1/2 -translate-x-1/2 z-[9998] flex items-center gap-3 px-6 py-4 border shadow-2xl transition-all duration-500 ${
         visible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'
       } ${isMilestone
         ? 'bg-orange-950/80 border-orange-500/50 backdrop-blur-xl'

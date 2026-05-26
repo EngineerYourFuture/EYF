@@ -543,14 +543,14 @@ export function PlaygroundPage() {
         {/* Toolbar */}
         <div className="flex items-center gap-3 px-4 py-3 border-b border-white/5 bg-[#141414] shrink-0 flex-wrap gap-y-2">
           {/* Language selector */}
-          <div className="flex items-center gap-1 bg-[#1e1e1e] rounded-xl p-1 border border-white/5">
+          <div className="flex items-center gap-1 bg-[#1e1e1e] p-1 border border-white/5">
             {(Object.keys(LANG_CONFIGS) as Language[]).map((lang) => {
               const c = LANG_CONFIGS[lang];
               return (
                 <button
                   key={lang}
                   onClick={() => handleLangChange(lang)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                  className={`px-3 py-1.5 text-xs font-semibold transition-all ${
                     language === lang
                       ? `bg-white/10 ${c.color}`
                       : 'text-zinc-600 hover:text-zinc-400'
@@ -565,11 +565,11 @@ export function PlaygroundPage() {
           <div className="flex items-center gap-2 ml-auto">
             {/* Examples */}
             <div className="relative group">
-              <button className="flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-300 px-3 py-1.5 rounded-lg border border-white/5 hover:border-white/10 transition-colors">
+              <button className="flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-300 px-3 py-1.5 border border-white/5 hover:border-white/10 transition-colors">
                 <Icon name="auto_stories" className="text-sm" />
                 Examples
               </button>
-              <div className="absolute right-0 top-full mt-1 w-56 bg-[#1e1e1e] border border-white/10 rounded-xl overflow-hidden shadow-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none group-hover:pointer-events-auto z-50">
+              <div className="absolute right-0 top-full mt-1 w-56 bg-[#1e1e1e] border border-white/10 overflow-hidden shadow-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none group-hover:pointer-events-auto z-50">
                 {EXAMPLES.map((ex) => (
                   <button
                     key={ex.label}
@@ -585,7 +585,7 @@ export function PlaygroundPage() {
 
             <button
               onClick={handleCopy}
-              className="flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-300 px-3 py-1.5 rounded-lg border border-white/5 hover:border-white/10 transition-colors"
+              className="flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-300 px-3 py-1.5 border border-white/5 hover:border-white/10 transition-colors"
             >
               <Icon name="content_copy" className="text-sm" />
               Copy
@@ -593,7 +593,7 @@ export function PlaygroundPage() {
 
             <button
               onClick={handleClear}
-              className="flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-300 px-3 py-1.5 rounded-lg border border-white/5 hover:border-white/10 transition-colors"
+              className="flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-300 px-3 py-1.5 border border-white/5 hover:border-white/10 transition-colors"
             >
               <Icon name="restart_alt" className="text-sm" />
               Reset
@@ -602,7 +602,7 @@ export function PlaygroundPage() {
             <button
               onClick={handleRun}
               disabled={isRunning}
-              className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 text-black font-bold text-sm px-5 py-2 rounded-xl transition-colors"
+              className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 text-black font-bold text-sm px-5 py-2 transition-colors"
             >
               {isRunning
                 ? <><Icon name="hourglass_empty" className="text-base animate-spin" /> Running…</>

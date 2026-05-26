@@ -5,6 +5,9 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
   return {
     plugins: [react()],
+    optimizeDeps: {
+      include: ['react-fast-marquee'],
+    },
     server: {
       host: true,
       port: 5173,

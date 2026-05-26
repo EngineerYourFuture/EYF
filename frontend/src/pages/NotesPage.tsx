@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { AppShell } from '../components/AppShell';
 import { Icon } from '../components/Icon';
+import { PageHeader } from '../components/PageHeader';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -181,7 +182,7 @@ function NoteEditor({
 
   return (
     <dialog open aria-modal="true" className="fixed inset-0 z-50 m-0 flex w-full h-full items-center justify-center p-4 bg-black/60 backdrop-blur-sm border-0">
-      <div className="w-full max-w-2xl bg-[#1a1a1a] rounded-2xl border border-white/10 shadow-2xl flex flex-col max-h-[90vh]">
+      <div className="w-full max-w-2xl bg-[#1a1a1a] border border-white/10 shadow-2xl flex flex-col max-h-[90vh]">
         {/* Header */}
         <div className="flex items-center gap-3 px-6 py-4 border-b border-white/5">
           <input
@@ -204,7 +205,7 @@ function NoteEditor({
             <select
               value={tag}
               onChange={(e) => setTag(e.target.value)}
-              className="text-xs bg-white/5 text-zinc-300 border border-white/10 rounded-lg px-2 py-1 outline-none"
+              className="text-xs bg-white/5 text-zinc-300 border border-white/10 px-2 py-1 outline-none"
             >
               {TAGS.map((t) => <option key={t} value={t}>{t}</option>)}
             </select>
@@ -275,7 +276,7 @@ function NoteCard({
   return (
     <button
       type="button"
-      className={`relative rounded-2xl border ${c.cls} p-4 flex flex-col gap-3 hover:border-white/20 transition-all cursor-pointer group w-full text-left`}
+      className={`relative border ${c.cls} p-4 flex flex-col gap-3 hover:border-white/20 transition-all cursor-pointer group w-full text-left`}
       onClick={onEdit}
     >
       {/* Pin indicator */}
@@ -315,7 +316,7 @@ function NoteCard({
           {menuOpen && (
             <div
               role="menu"
-              className="absolute right-0 bottom-6 w-36 bg-[#252525] border border-white/10 rounded-xl overflow-hidden shadow-xl z-20"
+              className="absolute right-0 bottom-6 w-36 bg-[#252525] border border-white/10 overflow-hidden shadow-xl z-20"
             >
               <button
                 onClick={() => { onEdit(); setMenuOpen(false); }}
@@ -386,23 +387,21 @@ export function NotesPage() {
   return (
     <AppShell>
       <div className="max-w-6xl mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="flex items-start justify-between gap-4 mb-6">
-          <div>
-            <h1 style={{ fontSize: "2.25rem", fontWeight: 900, letterSpacing: "-0.03em", lineHeight: 1.1, marginBottom: 4, color: "var(--t1)" }}>My <span style={{ background: "linear-gradient(135deg, #E82127, #ff4d52)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Notes.</span></h1>
-            <p style={{ fontSize: 14, color: "var(--t3)", marginTop: 4 }}>
-              Personal study notes saved locally in your browser.{' '}
-              <span className="ml-1 text-[10px] text-zinc-700">{notes.length} note{notes.length === 1 ? '' : 's'}</span>
-            </p>
-          </div>
-          <button
-            onClick={() => setEditing('new')}
-            className="btn btn-primary btn-sm flex-shrink-0"
-          >
-            <Icon name="add" size={15} />
-            New Note
-          </button>
-        </div>
+        <PageHeader
+          eyebrow="Personal Study"
+          title="My Notes."
+          subtitle="Personal study notes saved locally in your browser."
+          stats={[{ value: notes.length, label: notes.length === 1 ? 'Note' : 'Notes' }]}
+          actions={
+            <button
+              onClick={() => setEditing('new')}
+              style={{ background: '#E82127', color: '#000', fontWeight: 800, padding: '8px 18px', border: 'none', fontSize: '0.7rem', letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: "'Space Grotesk', 'Inter', sans-serif", display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}
+            >
+              <Icon name="add" size={14} />
+              New Note
+            </button>
+          }
+        />
 
         {/* Search + filter */}
         <div className="flex items-center gap-3 mb-6 flex-wrap gap-y-2">
@@ -426,7 +425,7 @@ export function NotesPage() {
               <button
                 key={t}
                 onClick={() => setFilterTag(t)}
-                className={`text-xs px-3 py-1.5 rounded-lg border transition-colors ${
+                className={`text-xs px-3 py-1.5 border transition-colors ${
                   filterTag === t
                     ? 'bg-white/10 border-white/20 text-white'
                     : 'border-white/5 text-zinc-500 hover:text-zinc-300 hover:border-white/10'

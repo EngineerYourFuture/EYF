@@ -113,7 +113,7 @@ export function SearchModal({ open, onClose }: Props) {
 
           {/* Modal */}
           <motion.div
-            className="relative w-full max-w-2xl mx-4 rounded-2xl overflow-hidden"
+            className="relative w-full max-w-2xl mx-4 overflow-hidden"
             style={{
               background: 'rgba(10,10,10,0.92)',
               border: '1px solid rgba(255,255,255,0.1)',
@@ -156,7 +156,7 @@ export function SearchModal({ open, onClose }: Props) {
                     type="button"
                     onClick={() => go(item.path)}
                     onMouseEnter={() => setSelected(i)}
-                    className="w-full flex items-center gap-4 px-4 py-3 rounded-xl text-left"
+                    className="w-full flex items-center gap-4 px-4 py-3 text-left"
                     style={{
                       background: i === selected ? 'rgba(255,255,255,0.06)' : 'transparent',
                       border: i === selected ? '1px solid rgba(255,255,255,0.08)' : '1px solid transparent',
@@ -167,11 +167,11 @@ export function SearchModal({ open, onClose }: Props) {
                     }}
                     transition={{ duration: 0.12 }}
                   >
-                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${item.color}`} style={{ background: 'rgba(255,255,255,0.06)' }}>
+                    <div className={`w-9 h-9 flex items-center justify-center flex-shrink-0 ${item.color}`} style={{ background: 'rgba(255,255,255,0.06)' }}>
                       <Icon name={item.icon} size={18} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-white text-sm font-bold truncate">{item.title}</p>
+                      <p style={{ fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 13, color: 'var(--t1)' }} className="truncate">{item.title}</p>
                       <p className="text-zinc-500 text-xs truncate">{item.subtitle}</p>
                     </div>
                     {i === selected && (
@@ -190,10 +190,10 @@ export function SearchModal({ open, onClose }: Props) {
 
             {/* Footer */}
             <div className="flex items-center gap-4 px-5 py-3" style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
-              <span className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest">
+              <span style={{ fontFamily: 'Space Grotesk', fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: 'var(--t4)' }}>
                 {results.length} result{results.length === 1 ? '' : 's'}
               </span>
-              <div className="flex items-center gap-3 ml-auto text-[10px] text-zinc-700 font-mono">
+              <div className="flex items-center gap-3 ml-auto" style={{ fontSize: 10, color: 'var(--t4)', fontFamily: 'JetBrains Mono, monospace' }}>
                 <span>↑↓ navigate</span>
                 <span>↵ open</span>
               </div>

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { AppShell } from '../components/AppShell';
 import { Icon } from '../components/Icon';
+import { PageHeader } from '../components/PageHeader';
 import { apiRequest } from '../lib/api';
 import { getSession } from '../lib/session';
 
@@ -86,7 +87,7 @@ function AchievementCard({ a, i }: { readonly a: Achievement; readonly i: number
   const earned = a.earnedAt !== null;
   return (
     <motion.div
-      className="relative rounded-2xl p-5"
+      className="relative p-5"
       style={{
         background: 'rgba(10,10,10,0.7)',
         border: `1px solid ${r.border}`,
@@ -107,7 +108,7 @@ function AchievementCard({ a, i }: { readonly a: Achievement; readonly i: number
         </div>
       )}
 
-      <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl mb-4" style={{ background: 'rgba(255,255,255,0.05)' }}>
+      <div className="w-12 h-12 flex items-center justify-center text-2xl mb-4" style={{ background: 'rgba(255,255,255,0.05)' }}>
         {a.icon}
       </div>
 
@@ -165,51 +166,38 @@ export function AchievementsPage() {
   return (
     <AppShell>
       <div className="pt-8 max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="mb-10">
-          <motion.h1
-            className="text-5xl font-black tracking-tighter leading-none mb-2"
-            style={{
-              background: 'linear-gradient(135deg, #E8E8E8 0%, rgba(250,204,21,0.8) 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-            }}
-            initial={{ opacity: 0, y: 24, filter: 'blur(10px)' }}
-            animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-            transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
-          >
-            ACHIEVEMENTS
-          </motion.h1>
-          <motion.p
-            className="text-sm"
-            style={{ color: 'var(--t2)' }}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.12, ease: [0.16, 1, 0.3, 1] }}
-          >
-            Collect badges, earn XP, and climb the ranks.
-          </motion.p>
-        </div>
+        <PageHeader
+          eyebrow="Hall of Fame"
+          title="Achievements."
+          subtitle="Collect badges, earn XP, and climb the ranks."
+          accentColor="#facc15"
+          stats={[
+            { value: data?.earnedCount ?? 0, label: 'Earned',    color: '#facc15' },
+            { value: data?.totalCount ?? STATIC_ACHIEVEMENTS.length, label: 'Total' },
+            { value: data?.levelName ?? 'Newcomer', label: 'Level' },
+          ]}
+        />
 
         {/* Level + XP bar */}
         <motion.div
-          className="rounded-2xl p-6 mb-8 flex flex-col md:flex-row md:items-center gap-6"
+          className="p-6 mb-8 flex flex-col md:flex-row md:items-center gap-6"
           style={{
             background: 'rgba(10,10,10,0.85)',
             border: '1px solid rgba(232,25,44,0.18)',
             backdropFilter: 'blur(20px)',
             boxShadow: '0 0 60px rgba(232,25,44,0.05)',
+            position: 'relative', overflow: 'hidden',
           }}
           initial={{ opacity: 0, y: 20, filter: 'blur(8px)' }}
           animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
           transition={{ duration: 0.6, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
         >
           <div
-            style={{ height: 1, position: 'absolute', top: 0, left: 0, right: 0, borderRadius: '16px 16px 0 0', background: 'linear-gradient(90deg, transparent, rgba(232,25,44,0.6) 40%, rgba(232,25,44,0.3) 70%, transparent)' }}
+            style={{ height: 1, position: 'absolute', top: 0, left: 0, right: 0, background: 'linear-gradient(90deg, transparent, rgba(232,25,44,0.6) 40%, rgba(232,25,44,0.3) 70%, transparent)' }}
           />
           <div className="flex items-center gap-4 flex-shrink-0">
             <div
-              className="w-14 h-14 rounded-2xl flex items-center justify-center font-black text-xl"
+              className="w-14 h-14 flex items-center justify-center font-black text-xl"
               style={{ background: 'linear-gradient(135deg, #E82127, #ff5566)', color: 'white', boxShadow: '0 8px 24px rgba(232,25,44,0.4)' }}
             >
               {level}
@@ -286,7 +274,7 @@ export function AchievementsPage() {
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {Array.from({ length: 8 }, (_, n) => (
-              <div key={n} className="rounded-2xl h-44 animate-pulse" style={{ background: 'rgba(255,255,255,0.04)' }} />
+              <div key={n} className="h-44 animate-pulse" style={{ background: 'rgba(255,255,255,0.04)' }} />
             ))}
           </div>
         ) : (

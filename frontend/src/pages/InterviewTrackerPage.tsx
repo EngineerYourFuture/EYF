@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AppShell } from '../components/AppShell';
 import { Icon } from '../components/Icon';
+import { PageHeader } from '../components/PageHeader';
 import { useUser } from '../contexts/UserContext';
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
@@ -465,59 +466,32 @@ export function InterviewTrackerPage() {
     <AppShell>
       <div className="pt-8 max-w-7xl mx-auto">
 
-        {/* Hero */}
-        <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} className="mb-10">
-          <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.2em', color: 'var(--t3)', marginBottom: 8, textTransform: 'uppercase' }}>
-            EYF · Application Tracking
-          </p>
-          <div className="flex items-start justify-between flex-wrap gap-4">
-            <div>
-              <h1 style={{
-                fontSize: 'clamp(2.5rem, 6vw, 4rem)', fontWeight: 900, lineHeight: 1, letterSpacing: '-0.05em',
-                background: 'linear-gradient(135deg, #fff 20%, #E82127 50%, #fb923c 80%)',
-                WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-              }}>
-                INTERVIEW TRACKER.
-              </h1>
-              <p style={{ color: 'var(--t2)', fontSize: '0.875rem', marginTop: 8 }}>
-                Log applications, track rounds, land that offer.
-              </p>
-            </div>
+        <PageHeader
+          eyebrow="Application Tracking"
+          title="Interview Tracker."
+          subtitle="Log applications, track rounds, land that offer."
+          stats={[
+            { value: total,            label: 'Applied'    },
+            { value: active,           label: 'Active',    color: '#60a5fa' },
+            { value: offers,           label: 'Offers',    color: '#4ade80' },
+            { value: `${offerRate}%`,  label: 'Offer Rate',color: '#facc15' },
+          ]}
+          actions={
             <motion.button onClick={() => setShowAdd(!showAdd)}
-              whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
+              whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
               style={{
-                background: 'linear-gradient(135deg,#E82127,#ff6b35)', color: '#fff', fontWeight: 700,
-                padding: '12px 24px', borderRadius: 9999, fontSize: '0.875rem', display: 'flex', alignItems: 'center',
-                gap: 8, boxShadow: '0 0 32px rgba(232,33,39,0.35)', cursor: 'pointer', flexShrink: 0,
+                background: '#E82127', color: '#000', fontWeight: 800,
+                padding: '10px 20px', border: 'none', fontSize: '0.75rem',
+                letterSpacing: '0.1em', textTransform: 'uppercase',
+                fontFamily: "'Space Grotesk', 'Inter', sans-serif",
+                display: 'flex', alignItems: 'center',
+                gap: 8, cursor: 'pointer', flexShrink: 0,
               }}
             >
-              <Icon name="add" size={18} /> Add Application
+              <Icon name="add" size={16} /> Add Application
             </motion.button>
-          </div>
-        </motion.div>
-
-        {/* Stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-          {[
-            { label: 'Total Applied', value: total,       icon: 'send',        color: 'var(--t2)', glow: 'rgba(161,161,170,0.15)' },
-            { label: 'Active',        value: active,      icon: 'trending_up', color: '#60a5fa', glow: 'rgba(96,165,250,0.15)'  },
-            { label: 'Offers',        value: offers,      icon: 'celebration', color: '#4ade80', glow: 'rgba(74,222,128,0.15)'  },
-            { label: 'Offer Rate',    value: `${offerRate}%`, icon: 'percent', color: '#facc15', glow: 'rgba(250,204,21,0.15)'  },
-          ].map((s, i) => (
-            <motion.div key={s.label}
-              initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
-              style={{ ...GLASS, borderRadius: 18, padding: '1.25rem', display: 'flex', alignItems: 'center', gap: 16 }}
-            >
-              <div style={{ width: 44, height: 44, borderRadius: 12, background: s.glow, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: `0 0 16px ${s.glow}` }}>
-                <Icon name={s.icon} size={18} style={{ color: s.color }} />
-              </div>
-              <div>
-                <p style={{ fontSize: '1.5rem', fontWeight: 900, color: '#fff', letterSpacing: '-0.03em' }}>{s.value}</p>
-                <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.12em', color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase' }}>{s.label}</p>
-              </div>
-            </motion.div>
-          ))}
-        </div>
+          }
+        />
 
         {/* Add Application form */}
         <AnimatePresence>

@@ -8,6 +8,7 @@ import { SearchModal } from './SearchModal';
 import { NotificationsPanel, type Notification } from './NotificationsPanel';
 import { useUser } from '../contexts/UserContext';
 import { apiRequest } from '../lib/api';
+import { getTheme, toggleTheme, type ThemeMode } from '../lib/theme';
 
 interface NavItem  { path: string; label: string; icon: string }
 interface NavGroup { label: string; items: NavItem[] }
@@ -71,6 +72,9 @@ const NAV_GROUPS: NavGroup[] = [
     ],
   },
 ];
+
+const ALL_NAV_ITEMS = NAV_GROUPS.flatMap((g) => g.items);
+const ALL_GROUPS_OPEN = Object.fromEntries(NAV_GROUPS.map((g) => [g.label, true]));
 
 const LEVEL_NAMES      = ['Newcomer','Learner','Explorer','Builder','Practitioner','Engineer','Senior','Lead','Architect','Expert','Legend'];
 const LEVEL_THRESHOLDS = [0,100,300,700,1500,3000,6000,12000,25000,50000,100000];
@@ -139,8 +143,8 @@ function ShortcutsModal({ onClose }: { readonly onClose: () => void }) {
         transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
       >
         <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid var(--border)' }}>
-          <h2 className="text-sm font-semibold" style={{ color: 'var(--t1)' }}>Keyboard Shortcuts</h2>
-          <button onClick={onClose} className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors hover:bg-white/5" style={{ color: 'var(--t3)' }}>
+          <h2 style={{ fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 13, color: 'var(--t1)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Keyboard Shortcuts</h2>
+          <button onClick={onClose} className="w-7 h-7 flex items-center justify-center transition-colors hover:bg-white/5" style={{ color: 'var(--t3)' }}>
             <Icon name="close" size={15} />
           </button>
         </div>
@@ -169,10 +173,69 @@ function ShortcutsModal({ onClose }: { readonly onClose: () => void }) {
   );
 }
 
-/* ── Sidebar ───────────────────────────────────────────────────────────────── */
-function Sidebar({
-  location, level, levelName, xp, xpPct, streak, displayName, initials, isPro, onClose, onLogout,
-}: {
+/* ── Sidebar collapsed icon rail ──────────────────────────────────────────── */
+interface CollapsedRailProps {
+  readonly location: { pathname: string };
+  readonly onExpand: () => void;
+}
+
+function CollapsedRail({ location, onExpand }: CollapsedRailProps) {
+  return (
+    <>
+      <div style={{ height: 1, background: 'linear-gradient(90deg, transparent, rgba(232,25,44,0.6) 40%, rgba(232,25,44,0.6) 60%, transparent)', flexShrink: 0 }} />
+      <div className="flex items-center justify-center py-3.5" style={{ borderBottom: '1px solid var(--sidebar-border)' }}>
+        <div style={{ filter: 'drop-shadow(0 0 6px rgba(232,25,44,0.5))' }}>
+          <EYFMark size={18} />
+        </div>
+      </div>
+
+      <nav className="flex-1 overflow-y-auto py-2 flex flex-col items-center gap-0.5">
+        {ALL_NAV_ITEMS.map((item) => {
+          const isActive = location.pathname === item.path || location.pathname.startsWith(item.path + '/');
+          return (
+            <Link
+              key={item.path}
+              to={item.path}
+              title={item.label}
+              className="w-10 h-9 flex items-center justify-center transition-all"
+              style={{ color: isActive ? '#E82127' : 'var(--t3)' }}
+              onMouseEnter={(e) => { if (!isActive) (e.currentTarget as HTMLElement).style.color = 'var(--t1)'; }}
+              onMouseLeave={(e) => { if (!isActive) (e.currentTarget as HTMLElement).style.color = 'var(--t3)'; }}
+            >
+              <Icon name={item.icon} size={16} />
+            </Link>
+          );
+        })}
+      </nav>
+
+      <div className="flex justify-center py-3" style={{ borderTop: '1px solid var(--sidebar-border)' }}>
+        <button
+          type="button"
+          onClick={onExpand}
+          className="w-10 h-9 flex items-center justify-center transition-all"
+          style={{ color: 'var(--t3)' }}
+          title="Expand sidebar"
+          onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = 'var(--t1)'; }}
+          onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = 'var(--t3)'; }}
+        >
+          <Icon name="chevron_right" size={18} />
+        </button>
+      </div>
+
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'absolute', bottom: -20, left: '10%', right: '10%', height: 120,
+          background: 'radial-gradient(ellipse, rgba(232,25,44,0.12) 0%, transparent 70%)',
+          filter: 'blur(20px)', pointerEvents: 'none', zIndex: 0,
+        }}
+      />
+    </>
+  );
+}
+
+/* ── Sidebar full body ─────────────────────────────────────────────────────── */
+interface SidebarBodyProps {
   readonly location: { pathname: string };
   readonly level: number;
   readonly levelName: string;
@@ -182,64 +245,90 @@ function Sidebar({
   readonly displayName: string;
   readonly initials: string;
   readonly isPro: boolean;
-  readonly onClose: () => void;
+  readonly showClose?: boolean;
+  readonly onClose?: () => void;
+  readonly onCollapse?: () => void;
   readonly onLogout: () => void;
-}) {
+  readonly openGroups: Record<string, boolean>;
+  readonly onToggleGroup: (label: string) => void;
+  readonly mounted: boolean;
+}
+
+function SidebarBody({
+  location, level, levelName, xp, xpPct, streak, displayName, initials, isPro,
+  showClose, onClose, onCollapse, onLogout, openGroups, onToggleGroup, mounted,
+}: SidebarBodyProps) {
   return (
-    <motion.aside
-      initial={{ x: '-100%' }}
-      animate={{ x: 0 }}
-      exit={{ x: '-100%' }}
-      transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-      className="fixed left-0 top-0 h-screen w-64 z-50 flex flex-col"
-      style={{
-        background: '#050505',
-        borderRight: '1px solid rgba(255,255,255,0.06)',
-        boxShadow: '8px 0 48px rgba(0,0,0,0.8)',
-      }}
-    >
+    <>
       {/* Top red accent line */}
       <div style={{ height: 1, background: 'linear-gradient(90deg, transparent, rgba(232,25,44,0.6) 40%, rgba(232,25,44,0.6) 60%, transparent)', flexShrink: 0 }} />
 
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3.5" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+      <div className="flex items-center justify-between px-4 py-3.5" style={{ borderBottom: '1px solid var(--sidebar-border)' }}>
         <div className="flex items-center gap-2.5">
           <div style={{ filter: 'drop-shadow(0 0 6px rgba(232,25,44,0.5))' }}>
             <EYFMark size={18} className="flex-shrink-0" />
           </div>
           <div>
-            <span className="text-sm font-black tracking-tight" style={{ color: 'var(--t1)' }}>EYF</span>
-            <p className="text-[9px] font-bold uppercase tracking-wider" style={{ color: 'var(--t4)' }}>
+            <span style={{ fontFamily: 'Space Grotesk', fontWeight: 800, fontSize: 13, letterSpacing: '-0.02em', color: 'var(--t1)' }}>EYF</span>
+            <p style={{ fontSize: 8, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: 'var(--t4)', marginTop: 1 }}>
               Engineer Your Future
             </p>
           </div>
         </div>
-        <button
-          onClick={onClose}
-          className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors hover:bg-white/5"
-          style={{ color: 'var(--t3)' }}
-          aria-label="Close menu"
-        >
-          <Icon name="close" size={15} />
-        </button>
+        <div className="flex items-center gap-1">
+          {/* Collapse button — only on desktop (not in mobile drawer) */}
+          {onCollapse && (
+            <button
+              type="button"
+              onClick={onCollapse}
+              className="w-7 h-7 flex items-center justify-center transition-all"
+              style={{ color: 'var(--t4)' }}
+              title="Collapse sidebar"
+              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = 'var(--t1)'; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = 'var(--t4)'; }}
+            >
+              <Icon name="chevron_left" size={15} />
+            </button>
+          )}
+          {showClose && onClose && (
+            <button
+              onClick={onClose}
+              className="w-7 h-7 flex items-center justify-center transition-colors hover:bg-white/5"
+              style={{ color: 'var(--t3)' }}
+              aria-label="Close menu"
+            >
+              <Icon name="close" size={15} />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* User profile card */}
       <Link
         to="/app/progress"
-        className="mx-3 mt-3 mb-1 p-3 rounded-xl block transition-all"
+        className="mx-3 mt-3 mb-1 p-3 block transition-all"
         style={{
-          border: '1px solid rgba(255,255,255,0.07)',
-          background: 'rgba(255,255,255,0.025)',
+          border: '1px solid var(--border)',
+          background: 'var(--bg-surface)',
+          textDecoration: 'none',
         }}
-        onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.04)'; (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.11)'; }}
-        onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.025)'; (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.07)'; }}
+        onMouseEnter={(e) => {
+          (e.currentTarget as HTMLElement).style.background = 'var(--bg-elevated)';
+          (e.currentTarget as HTMLElement).style.borderColor = 'var(--border-hover)';
+        }}
+        onMouseLeave={(e) => {
+          (e.currentTarget as HTMLElement).style.background = 'var(--bg-surface)';
+          (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)';
+        }}
       >
         <div className="flex items-center gap-2.5 mb-2.5">
           <div className="avatar avatar-sm">{initials}</div>
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold truncate" style={{ color: 'var(--t1)' }}>{displayName || 'Engineer'}</p>
-            <p className="text-[10px] font-medium" style={{ color: 'var(--t4)' }}>
+            <p style={{ fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 12, color: 'var(--t1)', letterSpacing: '-0.01em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {displayName || 'Engineer'}
+            </p>
+            <p style={{ fontSize: 9, fontWeight: 600, color: 'var(--t4)', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: 1 }}>
               Lv.{level} · {levelName}
             </p>
           </div>
@@ -251,7 +340,7 @@ function Sidebar({
           )}
         </div>
         <div className="space-y-1">
-          <div className="flex justify-between text-[10px]" style={{ color: 'var(--t4)' }}>
+          <div className="flex justify-between" style={{ fontSize: 9, color: 'var(--t4)', fontFamily: 'Space Grotesk', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
             <span>{xp.toLocaleString()} XP</span>
             <span>{xpPct}%</span>
           </div>
@@ -266,31 +355,67 @@ function Sidebar({
         </div>
       </Link>
 
-      {/* Nav groups */}
+      {/* Nav groups with accordion */}
       <nav className="flex-1 overflow-y-auto px-2 py-2">
-        {NAV_GROUPS.map((group) => (
-          <div key={group.label} className="mb-4">
-            <p className="nav-group-label">{group.label}</p>
-            <div className="space-y-0.5">
-              {group.items.map((item) => {
-                const isActive = location.pathname === item.path || location.pathname.startsWith(item.path + '/');
-                return <NavLink key={item.path} item={item} isActive={isActive} />;
-              })}
+        {NAV_GROUPS.map((group) => {
+          const isOpen = openGroups[group.label] ?? true;
+          return (
+            <div key={group.label} className="mb-1">
+              <button
+                type="button"
+                onClick={() => onToggleGroup(group.label)}
+                className="nav-group-label flex items-center justify-between w-full cursor-pointer"
+                style={{ paddingRight: 2 }}
+              >
+                <span>{group.label}</span>
+                <motion.span
+                  animate={{ rotate: isOpen ? 180 : 0 }}
+                  transition={{ duration: 0.2 }}
+                  style={{ display: 'flex', color: 'var(--t4)' }}
+                >
+                  <Icon name="keyboard_arrow_down" size={13} />
+                </motion.span>
+              </button>
+              <AnimatePresence>
+                {isOpen && (
+                  <motion.div
+                    key={group.label}
+                    initial={mounted ? { height: 0, opacity: 0 } : false}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+                    style={{ overflow: 'hidden' }}
+                  >
+                    <div className="space-y-0.5 pb-2">
+                      {group.items.map((item) => {
+                        const isActive = location.pathname === item.path || location.pathname.startsWith(item.path + '/');
+                        return <NavLink key={item.path} item={item} isActive={isActive} />;
+                      })}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </nav>
 
       {/* Footer */}
-      <div className="px-2 pb-4 pt-3 space-y-1" style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+      <div className="px-2 pb-4 pt-3 space-y-1" style={{ borderTop: '1px solid var(--sidebar-border)' }}>
         {!isPro && (
           <Link
             to="/plans"
-            className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-sm font-bold mb-2 transition-all"
+            className="flex items-center justify-center gap-2 w-full py-2.5 mb-2 transition-all"
             style={{
               background: 'var(--red)',
-              color: '#fff',
+              color: '#000',
+              fontFamily: 'Space Grotesk',
+              fontWeight: 800,
+              fontSize: 11,
+              textTransform: 'uppercase',
+              letterSpacing: '0.06em',
               boxShadow: '0 4px 20px rgba(232,25,44,0.35)',
+              textDecoration: 'none',
             }}
             onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.boxShadow = '0 6px 28px rgba(232,25,44,0.5)'; }}
             onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 20px rgba(232,25,44,0.35)'; }}
@@ -321,23 +446,43 @@ function Sidebar({
           filter: 'blur(20px)', pointerEvents: 'none', zIndex: 0,
         }}
       />
-    </motion.aside>
+    </>
   );
 }
 
 /* ── App Shell ─────────────────────────────────────────────────────────────── */
+const SIDEBAR_TRANSITION = 'width 0.25s cubic-bezier(0.16,1,0.3,1)';
+
 export function AppShell({ children }: { readonly children: ReactNode }) {
   const location = useLocation();
   const navigate  = useNavigate();
   const session   = getSession();
   const { summary, displayName, plan } = useUser();
 
-  const [sidebarOpen,   setSidebarOpen]   = useState(false);
-  const [searchOpen,    setSearchOpen]    = useState(false);
-  const [notifOpen,     setNotifOpen]     = useState(false);
-  const [shortcutsOpen, setShortcutsOpen] = useState(false);
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [scrolled,      setScrolled]      = useState(false);
+  const [sidebarOpen,     setSidebarOpen]     = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => localStorage.getItem('eyf.sidebar') === 'true');
+  const [openGroups,      setOpenGroups]      = useState<Record<string, boolean>>(ALL_GROUPS_OPEN);
+  const [mounted,         setMounted]         = useState(false);
+  const [searchOpen,      setSearchOpen]      = useState(false);
+  const [notifOpen,       setNotifOpen]       = useState(false);
+  const [shortcutsOpen,   setShortcutsOpen]   = useState(false);
+  const [notifications,   setNotifications]   = useState<Notification[]>([]);
+  const [scrolled,        setScrolled]        = useState(false);
+  const [theme,           setThemeState]      = useState<ThemeMode>(getTheme);
+
+  useEffect(() => { setMounted(true); }, []);
+
+  const toggleSidebarCollapsed = useCallback(() => {
+    setSidebarCollapsed((prev) => {
+      const next = !prev;
+      localStorage.setItem('eyf.sidebar', String(next));
+      return next;
+    });
+  }, []);
+
+  const toggleGroup = useCallback((label: string) => {
+    setOpenGroups((prev) => ({ ...prev, [label]: !(prev[label] ?? true) }));
+  }, []);
 
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 4);
@@ -379,6 +524,7 @@ export function AppShell({ children }: { readonly children: ReactNode }) {
   const initials  = displayName ? displayName[0].toUpperCase() : (session?.email?.[0]?.toUpperCase() ?? '?');
   const isPro     = plan === 'pro' || plan === 'elite';
 
+  // Close mobile sidebar on navigation
   useEffect(() => { setSidebarOpen(false); }, [location.pathname]);
 
   useEffect(() => {
@@ -398,8 +544,36 @@ export function AppShell({ children }: { readonly children: ReactNode }) {
     navigate('/login', { replace: true });
   }, [navigate]);
 
+  const sidebarBodyProps: SidebarBodyProps = {
+    location,
+    level,
+    levelName,
+    xp,
+    xpPct,
+    streak,
+    displayName: displayName ?? '',
+    initials,
+    isPro,
+    onLogout: logout,
+    openGroups,
+    onToggleGroup: toggleGroup,
+    mounted,
+  };
+
+  const SIDEBAR_STYLE = {
+    background: 'var(--sidebar-bg)',
+    borderRight: '1px solid var(--sidebar-border)',
+    boxShadow: '8px 0 48px rgba(0,0,0,0.4)',
+  } as const;
+
+  const desktopWidth = sidebarCollapsed ? 56 : 256;
+
   return (
-    <div className="min-h-screen" style={{ background: 'var(--bg)', color: 'var(--t1)' }}>
+    <div
+      className="min-h-screen"
+      style={{ background: 'var(--bg)', color: 'var(--t1)' }}
+      data-sidebar-collapsed={String(sidebarCollapsed)}
+    >
       {/* Film grain overlay */}
       <div
         aria-hidden="true"
@@ -417,7 +591,18 @@ export function AppShell({ children }: { readonly children: ReactNode }) {
         {shortcutsOpen && <ShortcutsModal onClose={() => setShortcutsOpen(false)} />}
       </AnimatePresence>
 
-      {/* Sidebar backdrop */}
+      {/* ── Desktop sidebar ────────────────────────────────────────────────── */}
+      <aside
+        className="hidden lg:flex fixed left-0 top-0 h-screen z-30 flex-col overflow-hidden"
+        style={{ ...SIDEBAR_STYLE, width: desktopWidth, transition: SIDEBAR_TRANSITION }}
+      >
+        {sidebarCollapsed
+          ? <CollapsedRail location={location} onExpand={toggleSidebarCollapsed} />
+          : <SidebarBody {...sidebarBodyProps} showClose={false} onCollapse={toggleSidebarCollapsed} />
+        }
+      </aside>
+
+      {/* ── Mobile sidebar backdrop ────────────────────────────────────────── */}
       <AnimatePresence>
         {sidebarOpen && (
           <motion.div
@@ -426,39 +611,41 @@ export function AppShell({ children }: { readonly children: ReactNode }) {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.22 }}
             aria-hidden="true"
-            className="fixed inset-0 z-40"
+            className="fixed inset-0 z-40 lg:hidden"
             style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)' }}
             onClick={() => setSidebarOpen(false)}
           />
         )}
       </AnimatePresence>
 
+      {/* ── Mobile sidebar drawer ─────────────────────────────────────────── */}
       <AnimatePresence>
         {sidebarOpen && (
-          <Sidebar
-            location={location}
-            level={level}
-            levelName={levelName}
-            xp={xp}
-            xpPct={xpPct}
-            streak={streak}
-            displayName={displayName ?? ''}
-            initials={initials}
-            isPro={isPro}
-            onClose={() => setSidebarOpen(false)}
-            onLogout={logout}
-          />
+          <motion.aside
+            initial={{ x: '-100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '-100%' }}
+            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+            className="fixed left-0 top-0 h-screen w-64 z-50 flex flex-col lg:hidden"
+            style={SIDEBAR_STYLE}
+          >
+            <SidebarBody
+              {...sidebarBodyProps}
+              showClose
+              onClose={() => setSidebarOpen(false)}
+            />
+          </motion.aside>
         )}
       </AnimatePresence>
 
-      {/* Top header — cinematic dark glass */}
+      {/* ── Top header ─────────────────────────────────────────────────────── */}
       <header
-        className="fixed top-0 left-0 right-0 z-30 h-14 px-4 md:px-6 flex items-center gap-3"
+        className="shell-header fixed top-0 left-0 right-0 z-40 h-14 px-4 md:px-6 flex items-center gap-3"
         style={{
-          background: scrolled ? 'rgba(4,4,4,0.92)' : 'rgba(4,4,4,0.75)',
+          background: scrolled ? 'var(--header-bg-scrolled)' : 'var(--header-bg)',
           backdropFilter: 'blur(24px) saturate(180%)',
-          borderBottom: '1px solid rgba(255,255,255,0.05)',
-          boxShadow: scrolled ? '0 1px 0 rgba(255,255,255,0.04), 0 4px 24px rgba(0,0,0,0.6)' : 'none',
+          borderBottom: '1px solid var(--header-border)',
+          boxShadow: scrolled ? '0 4px 24px rgba(0,0,0,0.3)' : 'none',
           transition: 'background 0.3s, box-shadow 0.3s',
         }}
       >
@@ -468,38 +655,39 @@ export function AppShell({ children }: { readonly children: ReactNode }) {
           background: 'linear-gradient(90deg, transparent, rgba(232,25,44,0.4) 30%, rgba(232,25,44,0.4) 70%, transparent)',
         }} />
 
-        {/* Menu button */}
+        {/* Menu button — mobile only */}
         <button
           onClick={() => setSidebarOpen(true)}
-          className="w-8 h-8 rounded-lg flex items-center justify-center transition-all"
-          style={{ color: 'var(--t3)', border: '1px solid rgba(255,255,255,0.07)' }}
+          className="w-8 h-8 flex items-center justify-center transition-all lg:hidden"
+          style={{ color: 'var(--t3)', border: '1px solid var(--border)', borderRadius: 0 }}
           aria-label="Open menu"
-          onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = 'var(--t1)'; (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.06)'; }}
+          onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = 'var(--t1)'; (e.currentTarget as HTMLElement).style.background = 'var(--border)'; }}
           onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = 'var(--t3)'; (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
         >
           <Icon name="menu" size={16} />
         </button>
 
-        {/* Logo */}
-        <Link to="/app/dashboard" className="flex items-center gap-2 shrink-0 mr-2">
+        {/* Logo — mobile only */}
+        <Link to="/app/dashboard" className="flex items-center gap-2 shrink-0 mr-2 lg:hidden">
           <div style={{ filter: 'drop-shadow(0 0 5px rgba(232,25,44,0.4))' }}>
             <EYFMark size={17} />
           </div>
-          <span className="font-black tracking-tight text-sm" style={{ color: 'var(--t1)' }}>EYF</span>
+          <span style={{ fontFamily: 'Space Grotesk', fontWeight: 800, fontSize: 13, letterSpacing: '-0.02em', color: 'var(--t1)' }}>EYF</span>
         </Link>
 
         {/* Search bar */}
         <button
           type="button"
           onClick={() => setSearchOpen(true)}
-          className="flex-1 max-w-sm flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-left transition-all"
+          className="flex-1 max-w-sm flex items-center gap-2.5 px-3 py-2 text-sm text-left transition-all"
           style={{
-            background: 'rgba(255,255,255,0.04)',
-            border: '1px solid rgba(255,255,255,0.07)',
+            background: 'var(--bg-elevated)',
+            border: '1px solid var(--border)',
             color: 'var(--t4)',
+            borderRadius: 0,
           }}
-          onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.12)'; (e.currentTarget as HTMLElement).style.color = 'var(--t3)'; }}
-          onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.07)'; (e.currentTarget as HTMLElement).style.color = 'var(--t4)'; }}
+          onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border-hover)'; (e.currentTarget as HTMLElement).style.color = 'var(--t3)'; }}
+          onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'; (e.currentTarget as HTMLElement).style.color = 'var(--t4)'; }}
         >
           <Icon name="search" size={14} className="flex-shrink-0" />
           <span className="flex-1 text-sm">Search EYF…</span>
@@ -517,11 +705,23 @@ export function AppShell({ children }: { readonly children: ReactNode }) {
 
           <button
             type="button"
+            onClick={() => { const next = toggleTheme(); setThemeState(next); }}
+            className="w-8 h-8 flex items-center justify-center transition-all"
+            style={{ color: 'var(--t3)', border: '1px solid var(--border)', borderRadius: 0 }}
+            title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = 'var(--t1)'; (e.currentTarget as HTMLElement).style.background = 'var(--border)'; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = 'var(--t3)'; (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
+          >
+            <Icon name={theme === 'dark' ? 'light_mode' : 'dark_mode'} size={16} />
+          </button>
+
+          <button
+            type="button"
             onClick={() => setShortcutsOpen(true)}
-            className="hidden md:flex w-8 h-8 rounded-lg items-center justify-center text-xs font-bold transition-all"
-            style={{ color: 'var(--t4)', border: '1px solid rgba(255,255,255,0.07)' }}
+            className="hidden md:flex w-8 h-8 items-center justify-center text-xs font-bold transition-all"
+            style={{ color: 'var(--t4)', border: '1px solid var(--border)', borderRadius: 0, fontFamily: 'Space Grotesk' }}
             title="Keyboard shortcuts (?)"
-            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = 'var(--t2)'; (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.05)'; }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = 'var(--t2)'; (e.currentTarget as HTMLElement).style.background = 'var(--border)'; }}
             onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = 'var(--t4)'; (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
           >
             ?
@@ -531,16 +731,16 @@ export function AppShell({ children }: { readonly children: ReactNode }) {
             <button
               type="button"
               onClick={() => setNotifOpen((o) => !o)}
-              className="w-8 h-8 rounded-lg flex items-center justify-center transition-all relative"
-              style={{ color: 'var(--t3)', border: '1px solid rgba(255,255,255,0.07)' }}
-              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = 'var(--t1)'; (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.05)'; }}
+              className="w-8 h-8 flex items-center justify-center transition-all relative"
+              style={{ color: 'var(--t3)', border: '1px solid var(--border)', borderRadius: 0 }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = 'var(--t1)'; (e.currentTarget as HTMLElement).style.background = 'var(--border)'; }}
               onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = 'var(--t3)'; (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
             >
               <Icon name="notifications" size={16} />
               {unreadCount > 0 && (
                 <span
                   className="absolute top-1 right-1 w-2 h-2 rounded-full"
-                  style={{ background: '#E82127', border: '1.5px solid #040404', boxShadow: '0 0 6px rgba(232,25,44,0.6)' }}
+                  style={{ background: '#E82127', border: '1.5px solid var(--header-bg-scrolled)', boxShadow: '0 0 6px rgba(232,25,44,0.6)' }}
                 />
               )}
             </button>
@@ -565,8 +765,8 @@ export function AppShell({ children }: { readonly children: ReactNode }) {
         </div>
       </header>
 
-      {/* Page content */}
-      <main className="pt-14 min-h-screen pb-20 md:pb-10" style={{ paddingLeft: 'max(16px, env(safe-area-inset-left))', paddingRight: 'max(16px, env(safe-area-inset-right))' }}>
+      {/* ── Page content ───────────────────────────────────────────────────── */}
+      <main className="shell-main pt-14 min-h-screen pb-20 md:pb-10">
         <AnimatePresence mode="wait">
           <motion.div
             key={location.pathname}
@@ -581,14 +781,13 @@ export function AppShell({ children }: { readonly children: ReactNode }) {
         </AnimatePresence>
       </main>
 
-      {/* Mobile bottom nav */}
+      {/* ── Mobile bottom nav ─────────────────────────────────────────────── */}
       <nav
         className="fixed bottom-0 left-0 right-0 z-30 md:hidden flex h-16"
         style={{
-          background: 'rgba(5,5,5,0.95)',
+          background: 'var(--bottomnav-bg)',
           backdropFilter: 'blur(24px) saturate(180%)',
-          borderTop: '1px solid rgba(255,255,255,0.06)',
-          boxShadow: '0 -1px 0 rgba(255,255,255,0.04)',
+          borderTop: '1px solid var(--bottomnav-border)',
         }}
       >
         {[
@@ -615,7 +814,7 @@ export function AppShell({ children }: { readonly children: ReactNode }) {
                 />
               )}
               <Icon name={item.icon} size={20} />
-              <span className="text-[9px] font-semibold">{item.label}</span>
+              <span style={{ fontSize: 9, fontWeight: 700, fontFamily: 'Space Grotesk', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{item.label}</span>
             </Link>
           );
         })}

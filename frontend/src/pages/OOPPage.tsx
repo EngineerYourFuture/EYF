@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Editor from '@monaco-editor/react';
 import { AppShell } from '../components/AppShell';
 import { Icon } from '../components/Icon';
+import { PageHeader } from '../components/PageHeader';
 import { apiRequest } from '../lib/api';
 import { getSession } from '../lib/session';
 import { useUser } from '../contexts/UserContext';
@@ -1173,55 +1174,29 @@ export function OOPPage() {
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px 80px' }}>
 
         {/* ── Hero ── */}
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          style={{ paddingTop: 56, paddingBottom: 48 }}
-        >
-          <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.18em', color: 'var(--t3)', textTransform: 'uppercase', marginBottom: 8 }}>
-            Software Engineering
-          </p>
-          <h1 style={{
-            fontSize: 'clamp(2.4rem, 6vw, 4rem)', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1,
-            background: 'linear-gradient(135deg, #60a5fa 0%, #818cf8 50%, #c084fc 100%)',
-            WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', marginBottom: 12,
-          }}>
-            OOP & PATTERNS.
-          </h1>
-          <p style={{ fontSize: 15, color: 'var(--t2)', fontWeight: 500 }}>
-            Master design patterns, SOLID principles, and software architecture.
-          </p>
+        <PageHeader
+          eyebrow="Software Engineering"
+          title="OOP & Patterns."
+          subtitle="Master design patterns, SOLID principles, and software architecture."
+          accentColor="#818cf8"
+          stats={[
+            { value: `${progress?.completed ?? 0}/${progress?.total ?? 23}`, label: 'Completed', color: '#818cf8' },
+            { value: `${pct}%`, label: 'Progress' },
+            { value: '23', label: 'GoF Patterns' },
+          ]}
+        />
 
-          {/* Stats row */}
-          <div style={{ display: 'flex', gap: 0, marginTop: 40, ...GLASS, borderRadius: 18, overflow: 'hidden', alignSelf: 'flex-start', width: 'fit-content' }}>
-            {[
-              { label: 'Completed', value: `${progress?.completed ?? 0}/${progress?.total ?? 23}` },
-              { label: 'Progress',  value: `${pct}%` },
-              { label: 'GoF Total', value: '23' },
-            ].map((stat, i) => (
-              <div key={stat.label} style={{
-                padding: '20px 36px',
-                borderRight: i < 2 ? '1px solid rgba(255,255,255,0.07)' : 'none',
-              }}>
-                <p style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--t3)', marginBottom: 6 }}>{stat.label}</p>
-                <p style={{ fontSize: 26, fontWeight: 900, color: '#fff' }}>{stat.value}</p>
-              </div>
-            ))}
+        {/* Progress bar */}
+        <div style={{ marginBottom: 32, maxWidth: 360 }}>
+          <div style={{ height: 4, background: 'rgba(255,255,255,0.06)', borderRadius: 4, overflow: 'hidden' }}>
+            <motion.div
+              initial={{ width: 0 }}
+              animate={{ width: `${pct}%` }}
+              transition={{ duration: 1, ease: 'easeOut', delay: 0.4 }}
+              style={{ height: '100%', background: 'linear-gradient(90deg, #60a5fa, #c084fc)', borderRadius: 4 }}
+            />
           </div>
-
-          {/* Progress bar */}
-          <div style={{ marginTop: 20, maxWidth: 360 }}>
-            <div style={{ height: 4, background: 'rgba(255,255,255,0.06)', borderRadius: 4, overflow: 'hidden' }}>
-              <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: `${pct}%` }}
-                transition={{ duration: 1, ease: 'easeOut', delay: 0.4 }}
-                style={{ height: '100%', background: 'linear-gradient(90deg, #60a5fa, #c084fc)', borderRadius: 4 }}
-              />
-            </div>
-          </div>
-        </motion.div>
+        </div>
 
         {/* ── SOLID Principles ── */}
         <section style={{ marginBottom: 56 }}>

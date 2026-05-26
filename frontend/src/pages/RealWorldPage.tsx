@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { AppShell } from '../components/AppShell';
 import { Icon } from '../components/Icon';
+import { PageHeader } from '../components/PageHeader';
 import { useUser } from '../contexts/UserContext';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -675,9 +676,9 @@ function ChallengeCard({ c, onStart, solved }: { readonly c: Challenge; readonly
   const t = TYPE_META[c.type];
   const d = DIFF_META[c.difficulty];
   return (
-    <div className={`bg-[#1a1a1a] rounded-2xl border ${t.border} p-5 flex flex-col gap-3 hover:border-white/20 transition-all`}>
+    <div className={`bg-[#1a1a1a] border ${t.border} p-5 flex flex-col gap-3 hover:border-white/20 transition-all`}>
       <div className="flex items-start gap-3">
-        <div className={`w-9 h-9 rounded-xl ${t.bg} flex items-center justify-center shrink-0`}>
+        <div className={`w-9 h-9 ${t.bg} flex items-center justify-center shrink-0`}>
           <Icon name={t.icon} className={`text-base ${t.color}`} />
         </div>
         <div className="flex-1 min-w-0">
@@ -699,7 +700,7 @@ function ChallengeCard({ c, onStart, solved }: { readonly c: Challenge; readonly
         </div>
         <button
           onClick={onStart}
-          className={`text-xs font-semibold px-4 py-1.5 rounded-lg transition-colors ${
+          className={`text-xs font-semibold px-4 py-1.5 transition-colors ${
             solved
               ? 'bg-white/5 text-zinc-500 hover:bg-white/10'
               : `${t.bg} ${t.color} border ${t.border} hover:border-white/20`
@@ -742,7 +743,7 @@ function ChallengeSolver({ challenge, onBack, onSubmit }: {
         <button onClick={onBack} className="flex items-center gap-1.5 text-zinc-500 hover:text-zinc-300 transition-colors text-sm">
           <Icon name="arrow_back" className="text-base" /> Back
         </button>
-        <div className={`${t.bg} border ${t.border} px-3 py-1 rounded-lg text-xs font-semibold ${t.color}`}>
+        <div className={`${t.bg} border ${t.border} px-3 py-1 text-xs font-semibold ${t.color}`}>
           {t.label}
         </div>
         <h2 className="text-sm font-semibold text-white">{challenge.title}</h2>
@@ -750,7 +751,7 @@ function ChallengeSolver({ challenge, onBack, onSubmit }: {
           <span className="text-xs text-amber-400 font-bold">+{challenge.xp} XP</span>
           <button
             onClick={handleCheck}
-            className="bg-emerald-500 hover:bg-emerald-400 text-black text-sm font-bold px-5 py-2 rounded-xl transition-colors"
+            className="bg-emerald-500 hover:bg-emerald-400 text-black text-sm font-bold px-5 py-2 transition-colors"
           >
             Check Solution
           </button>
@@ -765,7 +766,7 @@ function ChallengeSolver({ challenge, onBack, onSubmit }: {
               <button
                 key={tab}
                 onClick={() => { setActiveTab(tab); }}
-                className={`flex-1 py-1.5 rounded-lg text-xs font-semibold capitalize transition-colors ${
+                className={`flex-1 py-1.5 text-xs font-semibold capitalize transition-colors ${
                   activeTab === tab ? 'bg-white/10 text-white' : 'text-zinc-600 hover:text-zinc-400'
                 }`}
               >
@@ -803,11 +804,11 @@ function ChallengeSolver({ challenge, onBack, onSubmit }: {
             )}
             {activeTab === 'solution' && (
               <div>
-                <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3 mb-3">
+                <div className="bg-amber-500/10 border border-amber-500/20 p-3 mb-3">
                   <p className="text-amber-400 font-semibold mb-1">Official Solution</p>
                   <p className="text-zinc-500">Try to solve it yourself first — the real learning happens in the struggle.</p>
                 </div>
-                <pre className="text-emerald-300 text-xs font-mono whitespace-pre-wrap bg-black/20 p-3 rounded-xl">
+                <pre className="text-emerald-300 text-xs font-mono whitespace-pre-wrap bg-black/20 p-3 ">
                   {challenge.solution}
                 </pre>
               </div>
@@ -891,37 +892,17 @@ export function RealWorldPage() {
   return (
     <AppShell>
       <div className="max-w-5xl mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <h1 style={{ fontSize: "2.25rem", fontWeight: 900, letterSpacing: "-0.03em", lineHeight: 1.1, color: "var(--t1)" }}>Real-World <span style={{ background: "linear-gradient(135deg, #2dd4bf, #60a5fa)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Challenges.</span></h1>
-            <span className="text-[10px] font-bold text-[#E82127] bg-[#E82127]/10 px-2 py-1 rounded-full border border-[#E82127]/20">
-              EYF EXCLUSIVE
-            </span>
-          </div>
-          <p style={{ fontSize: 14, color: "var(--t3)", maxWidth: 680, marginTop: 8 }}>
-            Debug broken production code, design APIs, fix database anti-patterns, and solve real engineering scenarios.
-            Not just DSA — the skills that actually matter in your first job.
-          </p>
-        </div>
-
-        {/* Stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
-          {[
-            { label: 'Challenges',   value: CHALLENGES.length,                     icon: 'code' },
-            { label: 'Solved',       value: solved.size,                           icon: 'check_circle' },
-            { label: 'XP Available', value: CHALLENGES.reduce((s,c)=>s+c.xp,0),   icon: 'stars' },
-            { label: 'Skill Types',  value: Object.keys(TYPE_META).length,         icon: 'category' },
-          ].map(s => (
-            <div key={s.label} className="bg-[#1a1a1a] border border-white/5 rounded-2xl p-4 flex items-center gap-3">
-              <Icon name={s.icon} className="text-xl text-zinc-600" />
-              <div>
-                <div className="text-lg font-bold text-white">{s.value}</div>
-                <div className="text-xs text-zinc-600">{s.label}</div>
-              </div>
-            </div>
-          ))}
-        </div>
+        <PageHeader
+          eyebrow="EYF Exclusive"
+          title="Real-World Challenges."
+          subtitle="Debug broken production code, design APIs, fix database anti-patterns, and solve real engineering scenarios."
+          accentColor="#2dd4bf"
+          stats={[
+            { value: CHALLENGES.length,                   label: 'Challenges'  },
+            { value: solved.size,                          label: 'Solved',     color: '#4ade80' },
+            { value: CHALLENGES.reduce((s,c)=>s+c.xp,0), label: 'XP Available',color: '#facc15' },
+          ]}
+        />
 
         {/* Type filter */}
         <div className="flex gap-2 mb-6 flex-wrap">
@@ -932,7 +913,7 @@ export function RealWorldPage() {
               <button
                 key={type}
                 onClick={() => setFilter(type)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors border ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold transition-colors border ${
                   filter === type
                     ? activeClass
                     : 'border-white/5 text-zinc-600 hover:text-zinc-400 hover:border-white/10'
@@ -958,7 +939,7 @@ export function RealWorldPage() {
         </div>
 
         {/* Differentiation note */}
-        <div className="mt-10 bg-[#141414] border border-white/5 rounded-2xl p-5">
+        <div className="mt-10 bg-[#141414] border border-white/5 p-5">
           <h3 className="text-sm font-semibold text-white mb-2">Why Real-World Challenges?</h3>
           <p className="text-xs text-zinc-500 leading-relaxed">
             LeetCode teaches you to reverse a linked list. Your first job will ask you to fix a race condition,

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AppShell } from '../components/AppShell';
 import { Icon } from '../components/Icon';
+import { PageHeader } from '../components/PageHeader';
 
 const GLASS = { background: 'rgba(10,10,10,0.7)', border: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(16px)' } as const;
 
@@ -573,18 +574,12 @@ export function CompanyPrepPage() {
   return (
     <AppShell>
       <div className="max-w-6xl mx-auto px-4 py-8">
-        {/* Header */}
-        <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} style={{ marginBottom: 32 }}>
-          <h1 style={{ fontSize: '3rem', fontWeight: 900, letterSpacing: '-0.03em', marginBottom: 8, lineHeight: 1.1 }}>
-            <span style={{ background: 'linear-gradient(135deg, #fff 40%, #E82127)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>COMPANY PREP.</span>
-          </h1>
-          <p style={{ fontSize: 14, color: 'var(--t3)', display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' as const }}>
-            Tailored prep for top companies — focus topics, most-asked problems, interview rounds, tips, and CTC data.{' '}
-            <span style={{ fontSize: 10, fontWeight: 700, color: '#E82127', background: 'rgba(232,33,39,0.1)', padding: '2px 8px', borderRadius: 999, border: '1px solid rgba(232,33,39,0.2)' }}>
-              FREE · Company-filtered problems are ₹2500/mo on LeetCode
-            </span>
-          </p>
-        </motion.div>
+        <PageHeader
+          eyebrow="Targeted Preparation"
+          title="Company Prep."
+          subtitle="Tailored prep for top companies — focus topics, most-asked problems, interview rounds, tips, and CTC data."
+          stats={[{ value: COMPANIES.length, label: 'Companies' }]}
+        />
 
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Sidebar: company list */}

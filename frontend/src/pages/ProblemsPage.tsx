@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { AppShell } from '../components/AppShell';
 import { Icon } from '../components/Icon';
+import { PageHeader } from '../components/PageHeader';
 import { apiRequest } from '../lib/api';
 import { getSession } from '../lib/session';
 
@@ -308,81 +309,17 @@ export function ProblemsPage() {
   return (
     <AppShell>
       <div className="pt-8 max-w-7xl mx-auto">
-        {/* Hero */}
-        <div className="mb-10 flex items-end justify-between flex-wrap gap-6">
-          <div>
-            <motion.h1
-              className="text-6xl font-black tracking-tighter mb-2 leading-none"
-              initial={{ opacity: 0, y: 30, filter: 'blur(12px)' }}
-              animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-              transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-              style={{
-                background: 'linear-gradient(135deg, #E8E8E8 0%, rgba(232,25,44,0.8) 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-              }}
-            >
-              MASTER THE<br />
-              <span style={{
-                background: 'linear-gradient(135deg, #E82127, #FF5566)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-              }}>ALGORITHMS.</span>
-            </motion.h1>
-            <motion.p
-              className="text-lg max-w-lg" style={{ color: 'var(--t2)' }}
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
-            >
-              Curated problems engineered to take you from beginner to FAANG-ready.
-            </motion.p>
-          </div>
-
-          {/* Progress card */}
-          <motion.div
-            className="rounded-2xl p-6 w-full md:w-auto md:min-w-[280px]"
-            style={{
-              background: 'rgba(10,10,10,0.8)',
-              border: '1px solid rgba(255,255,255,0.07)',
-              backdropFilter: 'blur(16px)',
-              boxShadow: '0 24px 60px rgba(0,0,0,0.6)',
-            }}
-            initial={{ opacity: 0, x: 20, filter: 'blur(8px)' }}
-            animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }}
-            transition={{ duration: 0.6, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-            whileHover={{ boxShadow: '0 24px 60px rgba(0,0,0,0.7), 0 0 30px rgba(232,25,44,0.08)' }}
-          >
-            <p className="text-[10px] font-bold uppercase tracking-widest mb-4" style={{ color: '#E82127' }}>Your Progress</p>
-            <div className="space-y-3">
-              {[
-                { label: 'Easy',   solved: easySolved,   total: easyTotal,   hex: '#4ADE80' },
-                { label: 'Medium', solved: mediumSolved, total: mediumTotal, hex: '#FACC15' },
-                { label: 'Hard',   solved: hardSolved,   total: hardTotal,   hex: '#F87171' },
-              ].map((row) => (
-                <div key={row.label}>
-                  <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest mb-1">
-                    <span className="text-zinc-500">{row.label}</span>
-                    <span style={{ color: 'var(--t1)' }}>{row.solved}/{row.total}</span>
-                  </div>
-                  <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
-                    <motion.div
-                      className="h-full rounded-full"
-                      style={{ background: row.hex, boxShadow: `0 0 8px ${row.hex}60` }}
-                      initial={{ width: 0 }}
-                      animate={{ width: row.total ? `${(row.solved / row.total) * 100}%` : '0%' }}
-                      transition={{ duration: 1.2, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="mt-4 pt-4 flex items-center justify-between" style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
-              <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Total Solved</span>
-              <span className="text-xl font-black" style={{ color: 'var(--t1)' }}>{solvedCount}/{problems.length}</span>
-            </div>
-          </motion.div>
-        </div>
+        <PageHeader
+          eyebrow="DSA Practice"
+          title="Master the Algorithms."
+          subtitle="Curated problems engineered to take you from beginner to FAANG-ready. 450+ problems by pattern."
+          stats={[
+            { value: `${solvedCount}/${problems.length}`, label: 'Total Solved' },
+            { value: `${easySolved}/${easyTotal}`, label: 'Easy', color: '#4ADE80' },
+            { value: `${mediumSolved}/${mediumTotal}`, label: 'Medium', color: '#FACC15' },
+            { value: `${hardSolved}/${hardTotal}`, label: 'Hard', color: '#F87171' },
+          ]}
+        />
 
         {/* Company Tags */}
         <div className="mb-4">
@@ -463,7 +400,7 @@ export function ProblemsPage() {
         {/* Filter bar */}
         <div className="flex flex-wrap items-center gap-3 mb-8">
           {/* Difficulty */}
-          <div className="flex items-center p-1 rounded-full" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
+          <div className="flex items-center p-1" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
             {(['all', 'easy', 'medium', 'hard'] as const).map((d) => {
               const active = difficulty === d;
               let diffColor: string;
@@ -495,7 +432,7 @@ export function ProblemsPage() {
           </div>
 
           {/* Status */}
-          <div className="flex items-center p-1 rounded-full" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
+          <div className="flex items-center p-1" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
             {(['all', 'solved', 'unsolved'] as const).map((s) => {
               const active = status === s;
               return (
@@ -550,7 +487,7 @@ export function ProblemsPage() {
 
         {/* Table header */}
         <div
-          className="grid grid-cols-12 gap-4 px-6 py-3 font-['Inter'] uppercase tracking-widest text-[10px] font-black mb-1 rounded-xl"
+          className="grid grid-cols-12 gap-4 px-6 py-3 font-['Inter'] uppercase tracking-widest text-[10px] font-black mb-1"
           style={{
             color: 'rgba(255,255,255,0.22)',
             background: 'rgba(255,255,255,0.025)',
@@ -571,7 +508,7 @@ export function ProblemsPage() {
           {loading && (
             <div className="space-y-1.5">
               {[0,1,2,3,4,5,6,7,8,9].map((n) => (
-                <div key={`skeleton-${n}`} className="h-14 rounded-xl animate-pulse" style={{ background: 'rgba(255,255,255,0.04)' }} />
+                <div key={`skeleton-${n}`} className="h-14 animate-pulse" style={{ background: 'rgba(255,255,255,0.04)' }} />
               ))}
             </div>
           )}
@@ -604,7 +541,7 @@ export function ProblemsPage() {
             >
             <Link to={`/app/problems/${p.id}`} className="block">
               <motion.div
-                className={`grid grid-cols-12 gap-4 rounded-xl px-6 py-4 cursor-pointer group items-center border`}
+                className={`grid grid-cols-12 gap-4 px-6 py-4 cursor-pointer group items-center border`}
                 style={{
                   background: p.solved ? 'rgba(74,222,128,0.04)' : 'var(--bg-elevated)',
                   borderColor: p.solved ? 'rgba(74,222,128,0.1)' : 'rgba(255,255,255,0.05)',

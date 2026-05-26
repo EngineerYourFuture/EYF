@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AppShell } from '../components/AppShell';
+import { PageHeader } from '../components/PageHeader';
 import { useUser } from '../contexts/UserContext';
 
 const GLASS = {
@@ -549,22 +550,11 @@ export function RoadmapPage() {
     <AppShell>
       <div style={{ maxWidth: 900, margin: '0 auto', padding: '0 24px 80px' }}>
 
-        {/* ── Hero ── */}
-        <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} style={{ paddingTop: 56, paddingBottom: 40 }}>
-          <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--t3)', marginBottom: 8 }}>
-            Prep Strategy
-          </p>
-          <h1 style={{
-            fontSize: 'clamp(2.2rem, 6vw, 3.8rem)', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1,
-            background: 'linear-gradient(135deg, #60a5fa 0%, #c084fc 50%, #4ade80 100%)',
-            WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', marginBottom: 12,
-          }}>
-            ROADMAP.
-          </h1>
-          <p style={{ fontSize: 15, color: 'var(--t2)' }}>
-            Structured week-by-week plan for your target role. Check off tasks, earn XP every step.
-          </p>
-        </motion.div>
+        <PageHeader
+          eyebrow="Prep Strategy"
+          title="Roadmap."
+          subtitle="Structured week-by-week plan for your target role. Check off tasks, earn XP every step."
+        />
 
         {/* ── Track selector ── */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 14, marginBottom: 24 }}>
@@ -578,10 +568,10 @@ export function RoadmapPage() {
                 initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}
                 whileHover={{ boxShadow: `0 8px 28px ${tc.glow}` }}
                 style={{
-                  textAlign: 'left', padding: 20, borderRadius: 18,
-                  background: isActive ? tc.glow.replace('0.15', '0.1') : 'rgba(10,10,10,0.7)',
-                  border: isActive ? `1px solid ${tc.color}40` : '1px solid rgba(255,255,255,0.07)',
-                  backdropFilter: 'blur(16px)', cursor: 'pointer',
+                  textAlign: 'left', padding: 20,
+                  background: isActive ? tc.glow.replace('0.15', '0.08') : 'var(--bg-elevated)',
+                  border: isActive ? `1px solid ${tc.color}50` : '1px solid var(--border)',
+                  cursor: 'pointer',
                   boxShadow: isActive ? `0 0 28px ${tc.glow}` : 'none',
                   transition: 'all 0.2s',
                 }}

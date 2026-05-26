@@ -21,11 +21,11 @@ function Toast({ id, amount, reason, onDone }: {
 
   return (
     <div
-      className={`flex items-center gap-3 bg-[#1a1a1a] border border-[#E82127]/40 rounded-2xl px-5 py-3.5 shadow-2xl shadow-black/60 transition-all duration-500 ${
+      className={`flex items-center gap-3 bg-[#1a1a1a] border border-[#E82127]/40 px-5 py-3.5 shadow-2xl shadow-black/60 transition-all duration-500 ${
         visible ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-4 scale-95'
       }`}
     >
-      <div className="w-9 h-9 rounded-xl bg-[#E82127]/20 flex items-center justify-center flex-shrink-0">
+      <div className="w-9 h-9 bg-[#E82127]/20 flex items-center justify-center flex-shrink-0">
         <Icon name="bolt" size={20} className="text-[#E82127]" filled />
       </div>
       <div>

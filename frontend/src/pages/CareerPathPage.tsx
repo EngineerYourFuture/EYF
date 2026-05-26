@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AppShell } from '../components/AppShell';
 import { Icon } from '../components/Icon';
+import { PageHeader } from '../components/PageHeader';
 import { useUser } from '../contexts/UserContext';
 
 const GLASS = { background: 'rgba(10,10,10,0.7)', border: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(16px)' } as const;
@@ -326,27 +327,17 @@ export function CareerPathPage() {
   return (
     <AppShell>
       <div className="pt-8 max-w-7xl mx-auto">
-        {/* Hero */}
-        <div style={{ marginBottom: 40 }}>
-          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap' as const, gap: 16 }}>
-            <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }}>
-              <h1 style={{ fontSize: '3rem', fontWeight: 900, letterSpacing: '-0.03em', marginBottom: 8, lineHeight: 1.1 }}>
-                <span style={{ background: 'linear-gradient(135deg, #fff 40%, #E82127)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>CAREER TRACKS.</span>
-              </h1>
-              <p style={{ color: 'var(--t3)', maxWidth: 480 }}>Pick your engineering role. Get a week-by-week curriculum, company targets, and direct links to every resource you need on EYF.</p>
-            </motion.div>
-            {savedRole && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 16px', background: 'rgba(74,222,128,0.08)', border: '1px solid rgba(74,222,128,0.2)', borderRadius: 14 }}
-              >
-                <Icon name="check_circle" size={16} style={{ color: '#4ade80' }} />
-                <span style={{ color: '#4ade80', fontSize: 12, fontWeight: 700 }}>Your track: {ROLE_TRACKS.find((r) => r.key === savedRole)?.title}</span>
-              </motion.div>
-            )}
-          </div>
-        </div>
+        <PageHeader
+          eyebrow="Choose your path"
+          title="Career Tracks."
+          subtitle="Pick your engineering role. Get a week-by-week curriculum, company targets, and direct links to every resource you need on EYF."
+          actions={savedRole ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 14px', background: 'rgba(74,222,128,0.08)', border: '1px solid rgba(74,222,128,0.2)' }}>
+              <Icon name="check_circle" size={14} style={{ color: '#4ade80' }} />
+              <span style={{ color: '#4ade80', fontSize: 11, fontWeight: 700 }}>Saved: {ROLE_TRACKS.find((r) => r.key === savedRole)?.title}</span>
+            </div>
+          ) : undefined}
+        />
 
         {/* Role selector */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3" style={{ marginBottom: 40 }}>
@@ -361,14 +352,17 @@ export function CareerPathPage() {
               whileHover={{ scale: 1.04 }}
               whileTap={{ scale: 0.96 }}
               style={selectedRole === r.key ? {
-                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: 16, borderRadius: 20, textAlign: 'center',
-                background: r.bg, border: `1px solid ${r.border}`, cursor: 'pointer', boxShadow: `0 0 24px ${r.bg}`,
+                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: 16, textAlign: 'center',
+                background: r.bg, border: `1px solid ${r.border}`, cursor: 'pointer',
+                boxShadow: `0 0 24px ${r.bg}`,
+                transition: 'all 0.2s',
               } : {
-                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: 16, borderRadius: 20, textAlign: 'center',
-                background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', cursor: 'pointer',
+                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: 16, textAlign: 'center',
+                background: 'var(--bg-elevated)', border: '1px solid var(--border)', cursor: 'pointer',
+                transition: 'all 0.2s',
               }}
             >
-              <div style={{ width: 40, height: 40, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', background: selectedRole === r.key ? r.bg : 'rgba(255,255,255,0.06)' }}>
+              <div style={{ width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', background: selectedRole === r.key ? r.bg : 'rgba(255,255,255,0.06)' }}>
                 <Icon name={r.icon} size={20} style={{ color: selectedRole === r.key ? r.color : '#71717a' }} />
               </div>
               <span style={{ fontSize: 11, fontWeight: 700, lineHeight: 1.3, color: selectedRole === r.key ? '#fff' : '#71717a' }}>{r.title}</span>

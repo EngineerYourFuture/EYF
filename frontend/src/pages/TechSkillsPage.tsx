@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { AppShell } from '../components/AppShell';
 import { Icon } from '../components/Icon';
+import { PageHeader } from '../components/PageHeader';
 import { apiRequest } from '../lib/api';
 import { getSession } from '../lib/session';
 import { useUser } from '../contexts/UserContext';
@@ -132,7 +133,7 @@ export function TechSkillsPage() {
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState('all');
   const [saving, setSaving] = useState(false);
-  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [, setLastSaved] = useState<Date | null>(null);
   const [activeTab, setActiveTab] = useState<'skills' | 'gaps' | 'recommendations'>('skills');
 
   useEffect(() => {
@@ -181,31 +182,31 @@ export function TechSkillsPage() {
   return (
     <AppShell>
       <div className="pt-8 max-w-6xl mx-auto">
-        {/* Hero */}
-        <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} style={{ marginBottom: 40, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
-          <div>
-            <h1 style={{ fontSize: '3rem', fontWeight: 900, letterSpacing: '-0.03em', marginBottom: 8, lineHeight: 1.1 }}>
-              <span style={{ background: 'linear-gradient(135deg, #fff 40%, #E82127)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>TECH SKILLS.</span>
-            </h1>
-            <p style={{ color: 'var(--t3)', fontSize: 16 }}>Rate yourself honestly. Track gaps. Get recommendations.</p>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            {lastSaved && <p style={{ fontSize: 12, color: 'var(--t3)' }}>Saved {lastSaved.toLocaleTimeString()}</p>}
+        <PageHeader
+          eyebrow="Skill Mapping"
+          title="Tech Skills."
+          subtitle="Rate yourself honestly. Track gaps. Get recommendations."
+          stats={[
+            { value: `${ratedSkills.length}/${allSkills.length}`, label: 'Rated',       color: '#60a5fa' },
+            { value: strongSkills.length,                          label: 'Strong',      color: '#facc15' },
+            { value: gapSkills.length,                             label: 'Gaps',        color: '#fb923c' },
+          ]}
+          actions={
             <motion.button
               onClick={saveSkills}
               disabled={saving}
-              whileHover={{ scale: 1.04 }}
-              whileTap={{ scale: 0.96 }}
-              style={{ background: '#E82127', color: '#fff', fontWeight: 700, padding: '10px 24px', borderRadius: 999, fontSize: 14, border: 'none', cursor: 'pointer', opacity: saving ? 0.5 : 1, display: 'flex', alignItems: 'center', gap: 8, boxShadow: '0 0 16px rgba(232,33,39,0.3)' }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.97 }}
+              style={{ background: '#E82127', color: '#000', fontWeight: 800, padding: '8px 18px', border: 'none', fontSize: '0.7rem', letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer', opacity: saving ? 0.5 : 1, display: 'flex', alignItems: 'center', gap: 6, fontFamily: "'Space Grotesk', 'Inter', sans-serif" }}
             >
               {saving ? <Icon name="hourglass_empty" size={14} /> : <Icon name="save" size={14} />}
               Save Skills
             </motion.button>
-          </div>
-        </motion.div>
+          }
+        />
 
         {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4" style={{ marginBottom: 32 }}>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4" style={{ marginBottom: 32, display: 'none' }}>
           {[
             { label: 'Skills Rated', value: `${ratedSkills.length}/${allSkills.length}`, icon: 'checklist', color: '#60a5fa', bg: 'rgba(96,165,250,0.1)'  },
             { label: 'Avg Level',    value: avgLevel > 0 ? LEVEL_LABELS[Math.round(avgLevel)] : 'Not set', icon: 'show_chart', color: '#4ade80', bg: 'rgba(74,222,128,0.1)'  },

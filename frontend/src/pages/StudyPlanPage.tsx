@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AppShell } from '../components/AppShell';
 import { Icon } from '../components/Icon';
+import { PageHeader } from '../components/PageHeader';
 import { useUser } from '../contexts/UserContext';
 
 const GLASS = {
@@ -351,24 +352,15 @@ export function StudyPlanPage() {
     <AppShell>
       <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 24px 80px' }}>
 
-        {/* ── Hero + config ── */}
-        <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} style={{ paddingTop: 56, marginBottom: 32 }}>
-          <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--t3)', marginBottom: 8 }}>
-            Personalized Prep
-          </p>
-          <h1 style={{
-            fontSize: 'clamp(2.2rem, 6vw, 3.8rem)', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1,
-            background: 'linear-gradient(135deg, #818cf8 0%, #c084fc 50%, #22d3ee 100%)',
-            WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', marginBottom: 12,
-          }}>
-            STUDY PLAN.
-          </h1>
-          <p style={{ fontSize: 15, color: 'var(--t2)', marginBottom: 28 }}>
-            Personalized day-by-day prep schedule based on your target company, role, and interview date.
-          </p>
+        <PageHeader
+          eyebrow="Personalized Prep"
+          title="Study Plan."
+          subtitle="Personalized day-by-day prep schedule based on your target company, role, and interview date."
+          accentColor="#818cf8"
+        />
 
           {/* Config form */}
-          <div style={{ ...GLASS, borderRadius: 20, padding: '24px 28px' }}>
+          <div style={{ ...GLASS, borderRadius: 4, padding: '24px 28px' }}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 18, marginBottom: 24 }}>
               <div>
                 <label htmlFor="sp-company" style={labelStyle}>Target Company</label>
@@ -418,7 +410,6 @@ export function StudyPlanPage() {
               Generate My Study Plan
             </motion.button>
           </div>
-        </motion.div>
 
         {/* ── Plan display ── */}
         <AnimatePresence>

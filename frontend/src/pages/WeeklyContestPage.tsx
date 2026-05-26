@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { AppShell } from '../components/AppShell';
 import { Icon } from '../components/Icon';
+import { PageHeader } from '../components/PageHeader';
 import { useUser } from '../contexts/UserContext';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -185,7 +186,7 @@ function ProblemRow({ prob, isLive }: { readonly prob: ContestProblem; readonly 
   const pct = diffPct(prob.solvers, prob.totalParticipants);
 
   return (
-    <div className="flex items-center gap-4 py-3 px-4 rounded-xl hover:bg-white/5 transition-colors group">
+    <div className="flex items-center gap-4 py-3 px-4 hover:bg-white/5 transition-colors group">
       <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${dc.bg} ${dc.text} w-16 text-center`}>
         {prob.difficulty}
       </span>
@@ -223,7 +224,7 @@ function ContestCard({
   const endTime = new Date(new Date(contest.startTime).getTime() + contest.durationMinutes * 60 * 1000);
 
   return (
-    <div className={`bg-[#1a1a1a] rounded-2xl border ${meta.ring} overflow-hidden`}>
+    <div className={`bg-[#1a1a1a] border ${meta.ring} overflow-hidden`}>
       {/* Header */}
       <button
         type="button"
@@ -272,7 +273,7 @@ function ContestCard({
           ) : (
             <button
               onClick={() => onRegister(contest.id)}
-              className={`inline-flex items-center gap-2 text-sm font-semibold px-5 py-2 rounded-xl transition-colors ${
+              className={`inline-flex items-center gap-2 text-sm font-semibold px-5 py-2 transition-colors ${
                 registered
                   ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 cursor-default'
                   : 'bg-amber-400/10 hover:bg-amber-400/20 text-amber-400 border border-amber-400/20'
@@ -309,7 +310,7 @@ function ContestCard({
                 <div className="text-[10px] font-bold text-zinc-600 tracking-widest uppercase mb-2 px-4">Leaderboard</div>
                 <div className="space-y-1">
                   {contest.topScorers.map((s) => (
-                    <div key={s.rank} className="flex items-center gap-3 py-2 px-4 rounded-xl hover:bg-white/5 transition-colors">
+                    <div key={s.rank} className="flex items-center gap-3 py-2 px-4 hover:bg-white/5 transition-colors">
                       <span className={`w-6 text-center text-xs font-bold ${s.rank <= 3 ? 'text-amber-400' : 'text-zinc-600'}`}>
                         #{s.rank}
                       </span>
@@ -357,7 +358,7 @@ function UpcomingCountdown({ target }: { readonly target: Date }) {
 
 function StatBadge({ icon, label, value }: { readonly icon: string; readonly label: string; readonly value: string }) {
   return (
-    <div className="flex items-center gap-3 bg-[#1a1a1a] rounded-2xl border border-white/5 px-5 py-4">
+    <div className="flex items-center gap-3 bg-[#1a1a1a] border border-white/5 px-5 py-4">
       <Icon name={icon} className="text-2xl text-zinc-500" />
       <div>
         <div className="text-lg font-bold text-white">{value}</div>
@@ -396,25 +397,21 @@ export function WeeklyContestPage() {
   return (
     <AppShell>
       <div className="max-w-4xl mx-auto px-4 py-8 space-y-8">
-        {/* Header */}
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h1 style={{ fontSize: "2.25rem", fontWeight: 900, letterSpacing: "-0.03em", lineHeight: 1.1, marginBottom: 4, color: "var(--t1)" }}>Weekly <span style={{ background: "linear-gradient(135deg, #facc15, #fb923c)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Contests.</span></h1>
-            <p style={{ fontSize: 14, color: "var(--t3)", marginTop: 4 }}>
-              90-minute timed contests every Sunday — 4 problems, global leaderboard, XP rewards.{' '}
-              <span className="ml-2 text-[10px] font-bold text-[#E82127] bg-[#E82127]/10 px-2 py-0.5 rounded-full border border-[#E82127]/20">
-                FREE · No paywall
-              </span>
-            </p>
-          </div>
-          <Link
-            to="/app/problems"
-            className="flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-300 transition-colors shrink-0"
-          >
-            <Icon name="code" className="text-base" />
-            Practice Problems
-          </Link>
-        </div>
+        <PageHeader
+          eyebrow="Weekly Competition"
+          title="Weekly Contests."
+          subtitle="90-minute timed contests every Sunday — 4 problems, global leaderboard, XP rewards."
+          accentColor="#facc15"
+          actions={
+            <Link
+              to="/app/problems"
+              style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--t3)', textDecoration: 'none', fontFamily: "'Space Grotesk', 'Inter', sans-serif" }}
+            >
+              <Icon name="code" size={14} />
+              Practice Problems
+            </Link>
+          }
+        />
 
         {/* Stats */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -474,7 +471,7 @@ export function WeeklyContestPage() {
         )}
 
         {/* How it works */}
-        <section className="bg-[#1a1a1a] rounded-2xl border border-white/5 p-6">
+        <section className="bg-[#1a1a1a] border border-white/5 p-6">
           <h2 className="text-base font-semibold text-white mb-4">How Contests Work</h2>
           <div className="grid sm:grid-cols-2 gap-4 text-sm text-zinc-400">
             {[
