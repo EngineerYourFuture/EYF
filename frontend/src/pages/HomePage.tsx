@@ -260,8 +260,8 @@ export function HomePage() {
             glow="#E82127"
             style={{
               padding: '28px 32px',
-              background: 'linear-gradient(135deg, rgba(25,8,8,0.9) 0%, rgba(10,8,12,0.85) 100%)',
-              border: '1px solid rgba(232,25,44,0.12)',
+              background: 'linear-gradient(135deg, rgba(30,8,14,0.75) 0%, rgba(14,12,24,0.8) 100%)',
+              border: '1px solid rgba(232,25,44,0.14)',
             }}
           >
             {/* Top shimmer line — red tint */}
@@ -369,20 +369,20 @@ export function HomePage() {
         ═══════════════════════════════════════════════════════════════ */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
           {[
-            { label: 'Total XP',   value: xp.toLocaleString(),             icon: 'bolt',               color: '#E82127', glow: '#E82127', bg: 'rgba(232,25,44,0.12)'   },
-            { label: 'This Week',  value: `+${weeklyXp.toLocaleString()}`,  icon: 'trending_up',        color: '#22C55E', glow: '#22C55E', bg: 'rgba(34,197,94,0.11)'   },
-            { label: 'Streak',     value: `${streak}d`,                     icon: 'local_fire_department', color: '#F97316', glow: '#F97316', bg: 'rgba(249,115,22,0.11)' },
-            { label: 'Badges',     value: String(achievementsEarned),       icon: 'emoji_events',       color: '#EAB308', glow: '#EAB308', bg: 'rgba(234,179,8,0.11)'   },
+            { label: 'Total XP',   value: xp.toLocaleString(),             icon: 'bolt',               color: '#E82127', glow: '#E82127', bg: 'rgba(232,25,44,0.07)'   },
+            { label: 'This Week',  value: `+${weeklyXp.toLocaleString()}`,  icon: 'trending_up',        color: '#22C55E', glow: '#22C55E', bg: 'rgba(34,197,94,0.07)'   },
+            { label: 'Streak',     value: `${streak}d`,                     icon: 'local_fire_department', color: '#F97316', glow: '#F97316', bg: 'rgba(249,115,22,0.07)' },
+            { label: 'Badges',     value: String(achievementsEarned),       icon: 'emoji_events',       color: '#EAB308', glow: '#EAB308', bg: 'rgba(234,179,8,0.07)'   },
           ].map(({ label, value, icon, color, glow, bg }, i) => (
             <motion.div
               key={label}
               initial={{ opacity: 0, y: 16, filter: 'blur(4px)' }}
               animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
               transition={{ duration: 0.5, delay: 0.08 + i * 0.06, ease: [0.16, 1, 0.3, 1] }}
-              whileHover={{ y: -3, boxShadow: `0 0 32px ${glow}28, 0 8px 32px rgba(0,0,0,0.3)` }}
+              whileHover={{ y: -3, boxShadow: `0 0 24px ${glow}20, 0 8px 24px rgba(0,0,0,0.35)` }}
               style={{
                 background: bg,
-                border: `1px solid ${glow}35`,
+                border: `1px solid ${glow}25`,
                 backdropFilter: 'blur(16px)',
                 padding: '18px 20px',
                 position: 'relative',
@@ -390,8 +390,8 @@ export function HomePage() {
                 transition: 'transform 0.2s, box-shadow 0.2s',
               }}
             >
-              {/* Corner glow */}
-              <div style={{ position: 'absolute', top: 0, right: 0, width: 60, height: 60, background: `radial-gradient(circle at top right, ${glow}30, transparent 70%)`, pointerEvents: 'none' }} />
+              {/* Corner glow — subtle */}
+              <div style={{ position: 'absolute', top: 0, right: 0, width: 80, height: 80, background: `radial-gradient(circle at top right, ${glow}18, transparent 70%)`, pointerEvents: 'none' }} />
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
                 <span className="material-symbols-rounded" style={{ fontSize: 14, color, opacity: 0.9 }}>{icon}</span>
                 <span style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color, opacity: 0.6, fontFamily: 'Space Grotesk' }}>{label}</span>
@@ -417,19 +417,19 @@ export function HomePage() {
                 style={{
                   height: '100%',
                   minHeight: 260,
-                  background: `linear-gradient(145deg, rgba(100,8,12,0.85) 0%, rgba(18,6,6,0.95) 55%, rgba(10,6,14,0.9) 100%)`,
-                  border: '1px solid rgba(232,25,44,0.2)',
+                  background: `linear-gradient(145deg, rgba(80,8,14,0.7) 0%, rgba(14,10,22,0.9) 55%, rgba(9,10,20,0.95) 100%)`,
+                  border: '1px solid rgba(232,25,44,0.22)',
                   backdropFilter: 'blur(24px)',
                   padding: '24px',
                   position: 'relative',
                   overflow: 'hidden',
-                  boxShadow: '0 0 60px rgba(232,25,44,0.08), inset 0 1px 0 rgba(255,100,100,0.1)',
+                  boxShadow: '0 0 50px rgba(232,25,44,0.1), inset 0 1px 0 rgba(255,100,100,0.08)',
                   display: 'flex',
                   flexDirection: 'column',
                 }}
               >
                 {/* Radial glow top-left */}
-                <div style={{ position: 'absolute', top: -40, left: -40, width: 180, height: 180, background: 'radial-gradient(circle, rgba(232,25,44,0.2) 0%, transparent 70%)', pointerEvents: 'none' }} />
+                <div style={{ position: 'absolute', top: -40, left: -40, width: 180, height: 180, background: 'radial-gradient(circle, rgba(232,25,44,0.14) 0%, transparent 70%)', pointerEvents: 'none' }} />
                 {/* Grid pattern */}
                 <div style={{
                   position: 'absolute', inset: 0, opacity: 0.04, pointerEvents: 'none',
