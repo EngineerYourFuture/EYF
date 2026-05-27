@@ -359,6 +359,7 @@ function LandingNav() {
 function HeroSection() {
   const { scrollY } = useScroll();
   const heroOpacity = useTransform(scrollY, [0, 500], [1, 0]);
+  const heroY       = useTransform(scrollY, [0, 500], [0, -60]);
   const heroScale   = useTransform(scrollY, [0, 500], [1, 0.96]);
   const scrollIndicatorOpacity = useTransform(scrollY, [0, 160], [1, 0]);
 
