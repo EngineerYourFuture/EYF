@@ -506,36 +506,72 @@ function HeroSection() {
   );
 }
 
-/* ── StatsSection ─────────────────────────────────────────────────────────── */
-const STATS_DATA = [
-  { value: 12000, suffix: '+', label: 'Students enrolled' },
-  { value: 94,    suffix: '%', label: 'Placement rate' },
-  { value: 450,   suffix: '+', label: 'Practice problems' },
-  { value: 60,    suffix: '+', label: 'Companies covered' },
+/* ── ProblemSection ─────────────────────────────────────────────────────────── */
+const PROBLEMS = [
+  {
+    icon: 'shuffle',
+    title: 'No structure.',
+    body: 'Random YouTube playlists, scattered PDFs, 200 problems in no particular order. Being busy feels productive. It isn\'t. You need a system, not more content.',
+  },
+  {
+    icon: 'visibility_off',
+    title: 'Hidden blind spots.',
+    body: "You don't know what you don't know. Companies test specific patterns, in specific orders. Most students discover their gaps mid-interview — when it's already too late.",
+  },
+  {
+    icon: 'timer_off',
+    title: 'Wrong timeline.',
+    body: "Starting 2 weeks before drives. Cramming without context. The students who get offers didn't work harder — they started earlier, with a roadmap that actually matched how companies hire.",
+  },
 ];
 
-function StatsSection() {
+function ProblemSection() {
   return (
-    <section style={{ background: D.surf, borderTop: `1px solid ${D.border}`, padding: '112px clamp(16px, 5vw, 80px)' }}>
+    <section id="platform" style={{ background: D.surf, borderTop: `1px solid ${D.border}`, padding: '112px clamp(16px, 5vw, 80px)' }}>
       <div style={{ maxWidth: 1140, margin: '0 auto' }}>
-        <FadeUp>
-          <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: D.t3, marginBottom: 80, textAlign: 'center' }}>By the numbers</p>
-        </FadeUp>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '64px 40px' }}>
-          {STATS_DATA.map((s, i) => (
-            <FadeUp key={s.label} delay={i * 0.08}>
-              <div>
+        <div style={{ marginBottom: 72 }}>
+          <FadeUp>
+            <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: D.accent, marginBottom: 20 }}>The brutal truth</p>
+          </FadeUp>
+          <ClipReveal>
+            <h2 style={{
+              fontFamily: 'Space Grotesk', fontWeight: 700,
+              fontSize: 'clamp(2.6rem, 6vw, 6rem)',
+              letterSpacing: '-0.05em', lineHeight: 0.92,
+              color: D.t1, margin: '0 0 28px',
+            }}>Most students study hard.<br /><span style={{ color: D.accent }}>And still don't get placed.</span></h2>
+          </ClipReveal>
+          <FadeUp delay={0.1}>
+            <p style={{ fontSize: 'clamp(15px, 1.8vw, 18px)', color: D.t2, lineHeight: 1.75, maxWidth: 580 }}>
+              Not because they weren't smart enough. Because they prepared without structure, without feedback, and without a roadmap built for how companies actually hire.
+            </p>
+          </FadeUp>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(290px, 1fr))', gap: 16 }}>
+          {PROBLEMS.map((p, i) => (
+            <motion.div
+              key={p.title}
+              initial={{ opacity: 0, y: 48, rotateX: 8, scale: 0.97 }}
+              whileInView={{ opacity: 1, y: 0, rotateX: 0, scale: 1 }}
+              viewport={{ once: true, amount: 0 }}
+              transition={{ type: 'spring', stiffness: 50, damping: 18, delay: i * 0.1 }}
+              style={{ perspective: 1000 }}
+            >
+              <TiltCard maxTilt={4} style={{ height: '100%' }}>
                 <div style={{
-                  fontFamily: 'Space Grotesk', fontWeight: 700,
-                  fontSize: 'clamp(52px, 8vw, 88px)',
-                  letterSpacing: '-0.04em', lineHeight: 1,
-                  color: D.t1, marginBottom: 12,
+                  background: D.elev, border: `1px solid ${D.border}`,
+                  borderRadius: 20, padding: '36px 32px',
+                  boxShadow: '0 2px 20px rgba(0,0,0,0.04)', height: '100%',
                 }}>
-                  <CountUp to={s.value} duration={2.2} suffix={s.suffix} />
+                  <div style={{ width: 44, height: 44, borderRadius: 14, background: 'rgba(232,33,39,0.08)', border: '1px solid rgba(232,33,39,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 24 }}>
+                    <span className="material-symbols-rounded" style={{ fontSize: 20, color: D.accent }}>{p.icon}</span>
+                  </div>
+                  <h3 style={{ fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 21, letterSpacing: '-0.03em', color: D.t1, marginBottom: 12, lineHeight: 1.2 }}>{p.title}</h3>
+                  <p style={{ fontSize: 14, color: D.t2, lineHeight: 1.8 }}>{p.body}</p>
                 </div>
-                <p style={{ fontSize: 15, color: D.t2, letterSpacing: '0.01em' }}>{s.label}</p>
-              </div>
-            </FadeUp>
+              </TiltCard>
+            </motion.div>
           ))}
         </div>
       </div>
@@ -543,205 +579,13 @@ function StatsSection() {
   );
 }
 
-/* ── BentoSection ─────────────────────────────────────────────────────────── */
-function BentoSection() {
-  const tile: CSSProperties = {
-    borderRadius: 20,
-    background: '#ffffff',
-    border: `1px solid ${D.border}`,
-    overflow: 'hidden',
-    boxShadow: '0 2px 20px rgba(0,0,0,0.04)',
-  };
-
-  return (
-    <section id="platform" style={{ background: D.bg, borderTop: `1px solid ${D.border}`, padding: '100px clamp(16px, 5vw, 80px)' }}>
-      <div style={{ maxWidth: 1140, margin: '0 auto' }}>
-        {/* Header */}
-        <div style={{ marginBottom: 52 }}>
-          <FadeUp>
-            <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: D.accent, marginBottom: 18 }}>The Platform</p>
-          </FadeUp>
-          <ClipReveal>
-            <h2 style={{
-              fontFamily: 'Space Grotesk', fontWeight: 700,
-              fontSize: 'clamp(2.6rem, 6vw, 6rem)',
-              letterSpacing: '-0.05em', lineHeight: 0.92,
-              color: D.t1, margin: 0,
-            }}>Everything you need.<br />Nothing you don't.</h2>
-          </ClipReveal>
-        </div>
-
-        {/* Row 1 */}
-        <motion.div
-          initial={{ opacity: 0, y: 60, rotateX: 10, scale: 0.96 }}
-          whileInView={{ opacity: 1, y: 0, rotateX: 0, scale: 1 }}
-          viewport={{ once: true, amount: 0.1 }}
-          transition={{ type: 'spring', stiffness: 50, damping: 18 }}
-          style={{ perspective: 1200, transformStyle: 'preserve-3d' }}
-        >
-          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 10, marginBottom: 10 }}>
-
-            {/* DSA Practice — large */}
-            <TiltCard maxTilt={3} style={{ display: 'flex', flexDirection: 'column' }}>
-              <div style={{ ...tile, padding: '36px 36px 0', display: 'flex', flexDirection: 'column', minHeight: 360 }}>
-                <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#0a6cbc', marginBottom: 10 }}>DSA Practice</p>
-                <h3 style={{ fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 'clamp(22px, 3vw, 30px)', letterSpacing: '-0.04em', color: D.t1, marginBottom: 8, lineHeight: 1.15 }}>Pattern-based<br />problem solving.</h3>
-                <p style={{ fontSize: 13, color: D.t2, marginBottom: 24, maxWidth: 340, lineHeight: 1.65 }}>450+ problems organized by 15 core patterns. Each problem teaches something transferable.</p>
-                {/* Code window */}
-                <div style={{ marginTop: 'auto', background: '#06080e', borderRadius: '12px 12px 0 0', border: '1px solid rgba(0,0,0,0.08)', borderBottom: 'none', overflow: 'hidden' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 16px', background: '#090c13', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                    {(['#FF5F57','#FEBC2E','#28C840'] as const).map(c => <span key={c} style={{ width: 8, height: 8, borderRadius: '50%', background: c }} />)}
-                    <span style={{ marginLeft: 4, fontSize: 9.5, color: '#2a2a2a', fontFamily: 'monospace' }}>two_sum.py</span>
-                    <span style={{ marginLeft: 'auto', fontSize: 8.5, fontWeight: 700, color: '#FCC93A', background: 'rgba(252,201,58,0.08)', padding: '1px 7px', borderRadius: 3 }}>MEDIUM</span>
-                  </div>
-                  <div style={{ padding: '12px 18px', fontFamily: 'JetBrains Mono, monospace', fontSize: 11, lineHeight: 2 }}>
-                    <div><span style={{ color: '#FF7B72' }}>def </span><span style={{ color: '#79C0FF' }}>two_sum</span><span style={{ color: '#2e3340' }}>(nums, target):</span></div>
-                    <div style={{ marginLeft: 14 }}><span style={{ color: '#FFA657' }}>seen</span><span style={{ color: '#2e3340' }}> = {'{}'}</span></div>
-                    <div style={{ marginLeft: 14 }}><span style={{ color: '#FF7B72' }}>for </span><span style={{ color: '#FFA657' }}>i, n </span><span style={{ color: '#FF7B72' }}>in </span><span style={{ color: '#79C0FF' }}>enumerate</span><span style={{ color: '#2e3340' }}>(nums):</span></div>
-                    <div style={{ marginLeft: 28 }}><span style={{ color: '#FFA657' }}>diff</span><span style={{ color: '#2e3340' }}> = target - n</span></div>
-                    <div style={{ marginLeft: 28 }}><span style={{ color: '#FF7B72' }}>if </span><span style={{ color: '#FFA657' }}>diff </span><span style={{ color: '#FF7B72' }}>in </span><span style={{ color: '#FFA657' }}>seen</span><span style={{ color: '#2e3340' }}>: </span><span style={{ color: '#FF7B72' }}>return </span><span style={{ color: '#2e3340' }}>[seen[diff], i]</span></div>
-                  </div>
-                </div>
-              </div>
-            </TiltCard>
-
-            {/* Streak & XP */}
-            <TiltCard maxTilt={4} style={{ display: 'flex', flexDirection: 'column' }}>
-              <div style={{ ...tile, padding: 32, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: 360, position: 'relative' }}>
-                <div>
-                  <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#c2410c', marginBottom: 10 }}>Streak & XP</p>
-                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 4 }}>
-                    <span style={{ fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 80, letterSpacing: '-0.06em', lineHeight: 1, color: D.t1 }}>12</span>
-                    <span style={{ fontSize: 18, fontWeight: 600, color: D.t3, marginBottom: 6 }}>days</span>
-                  </div>
-                  <p style={{ fontSize: 11, color: D.t3, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600 }}>Active streak</p>
-                </div>
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                    <span style={{ fontSize: 11.5, color: D.t2 }}>XP this week</span>
-                    <span style={{ fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 12, color: '#c2410c' }}>2,400</span>
-                  </div>
-                  <div style={{ height: 4, background: '#f5f5f7', borderRadius: 100, overflow: 'hidden' }}>
-                    <motion.div
-                      initial={{ width: 0 }}
-                      whileInView={{ width: '80%' }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 1.4, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                      style={{ height: '100%', background: 'linear-gradient(90deg, #F97316, #FBBF24)', borderRadius: 100 }}
-                    />
-                  </div>
-                </div>
-              </div>
-            </TiltCard>
-          </div>
-        </motion.div>
-
-        {/* Row 2 */}
-        <motion.div
-          initial={{ opacity: 0, y: 60, rotateX: 10, scale: 0.96 }}
-          whileInView={{ opacity: 1, y: 0, rotateX: 0, scale: 1 }}
-          viewport={{ once: true, amount: 0.1 }}
-          transition={{ type: 'spring', stiffness: 50, damping: 18, delay: 0.08 }}
-          style={{ perspective: 1200, transformStyle: 'preserve-3d' }}
-        >
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
-
-            {/* System Design */}
-            <TiltCard maxTilt={4} style={{ display: 'flex', flexDirection: 'column' }}>
-              <div style={{ ...tile, padding: 28, display: 'flex', flexDirection: 'column', minHeight: 240 }}>
-                <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#0891b2', marginBottom: 8 }}>System Design</p>
-                <h3 style={{ fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 22, letterSpacing: '-0.04em', color: D.t1, marginBottom: 'auto', lineHeight: 1.2 }}>HLD, LLD &<br />real systems.</h3>
-                <div style={{ position: 'relative', height: 96, marginTop: 16 }}>
-                  <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }} aria-hidden>
-                    <line x1="20%" y1="16%" x2="48%" y2="42%" stroke="#d2d2d7" strokeWidth="1.5" strokeDasharray="4 3" />
-                    <line x1="50%" y1="48%" x2="28%" y2="78%" stroke="#d2d2d7" strokeWidth="1.5" strokeDasharray="4 3" />
-                    <line x1="50%" y1="48%" x2="72%" y2="78%" stroke="#d2d2d7" strokeWidth="1.5" strokeDasharray="4 3" />
-                  </svg>
-                  {[
-                    { label: 'Client',  x: 12, y: 8,  color: '#0a6cbc' },
-                    { label: 'API',     x: 42, y: 40, color: '#6d28d9' },
-                    { label: 'DB',      x: 18, y: 74, color: '#c2410c' },
-                    { label: 'Cache',   x: 62, y: 74, color: '#0891b2' },
-                  ].map(n => (
-                    <div key={n.label} style={{ position: 'absolute', left: `${n.x}%`, top: `${n.y}%` }}>
-                      <span style={{ fontSize: 9, fontWeight: 700, padding: '2px 7px', background: `${n.color}10`, border: `1px solid ${n.color}28`, color: n.color, borderRadius: 4, whiteSpace: 'nowrap' }}>{n.label}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </TiltCard>
-
-            {/* Readiness Score */}
-            <TiltCard maxTilt={4} style={{ display: 'flex', flexDirection: 'column' }}>
-              <div style={{ ...tile, padding: 28, display: 'flex', flexDirection: 'column', minHeight: 240 }}>
-                <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#166534', marginBottom: 8 }}>Readiness Score</p>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: 3, marginBottom: 18 }}>
-                  <span style={{ fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 52, letterSpacing: '-0.05em', lineHeight: 1, color: D.t1 }}>54</span>
-                  <span style={{ fontSize: 22, fontWeight: 700, color: D.t3 }}>%</span>
-                </div>
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 9 }}>
-                  {([
-                    { label: 'DSA',           pct: 68, color: '#0a6cbc' },
-                    { label: 'System Design', pct: 41, color: '#0891b2' },
-                    { label: 'Core CS',       pct: 72, color: '#166534' },
-                  ] as const).map(m => (
-                    <div key={m.label}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                        <span style={{ fontSize: 10.5, color: D.t2 }}>{m.label}</span>
-                        <span style={{ fontSize: 10.5, fontWeight: 700, color: m.color, fontFamily: 'Space Grotesk' }}>{m.pct}%</span>
-                      </div>
-                      <div style={{ height: 3, background: '#f5f5f7', borderRadius: 100, overflow: 'hidden' }}>
-                        <motion.div
-                          initial={{ width: 0 }}
-                          whileInView={{ width: `${m.pct}%` }}
-                          viewport={{ once: true }}
-                          transition={{ duration: 1.2, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-                          style={{ height: '100%', background: m.color, borderRadius: 100 }}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </TiltCard>
-
-            {/* Placement Prep — accent tile */}
-            <TiltCard maxTilt={4} style={{ display: 'flex', flexDirection: 'column' }}>
-              <div style={{
-                borderRadius: 20, overflow: 'hidden',
-                background: D.accent, padding: 28,
-                display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: 240,
-              }}>
-                <div>
-                  <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.5)', marginBottom: 8 }}>Placement Prep</p>
-                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 3 }}>
-                    <span style={{ fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 52, letterSpacing: '-0.05em', lineHeight: 1, color: '#fff' }}>60</span>
-                    <span style={{ fontSize: 24, fontWeight: 700, color: 'rgba(255,255,255,0.5)' }}>+</span>
-                  </div>
-                  <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.55)', textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: 4 }}>Companies</p>
-                </div>
-                <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
-                  {['Google', 'Amazon', 'Zoho', 'Swiggy', 'Razorpay'].map(c => (
-                    <span key={c} style={{ fontSize: 9.5, fontWeight: 700, padding: '3px 10px', background: 'rgba(255,255,255,0.18)', color: '#fff', borderRadius: 100 }}>{c}</span>
-                  ))}
-                </div>
-              </div>
-            </TiltCard>
-
-          </div>
-        </motion.div>
-      </div>
-    </section>
-  );
-}
-
 /* ── HowItWorksSection — dark section ────────────────────────────────────── */
 const STEPS = [
-  { num: '01', label: 'Assess', title: 'KNOW WHERE\nYOU STAND.', body: 'Take the readiness test. Get a precise gap analysis across DSA, system design, and placement skills.', icon: 'analytics', color: '#3B82F6', metric: '94% accuracy' },
-  { num: '02', label: 'Plan', title: 'FOLLOW THE\nPATH.', body: 'A personalized curriculum for campus placements. Modules unlock in sequence — always know what to do next.', icon: 'route', color: '#A78BFA', metric: '3× faster prep' },
-  { num: '03', label: 'Practice', title: 'SOLVE WITH\nPURPOSE.', body: '450+ problems tagged by pattern. Track streaks, earn XP, move through tiers without hitting walls.', icon: 'code', color: '#22D3EE', metric: '450+ problems' },
-  { num: '04', label: 'Simulate', title: 'REHEARSE\nTHE REAL.', body: 'Mock interviews, company prep kits, ATS resume scoring. Know your weak spots before the recruiter does.', icon: 'work_history', color: '#4ADE80', metric: '60+ companies' },
-  { num: '05', label: 'Offer', title: 'GET THE\nOFFER.', body: "Track every application. Prep per company. Walk in knowing you're ready. The offer is the expected outcome.", icon: 'emoji_events', color: '#E82127', metric: '94% placed' },
+  { num: '01', label: 'Assess', title: 'FIND YOUR\nGAPS IN\n20 MINUTES.', body: "Stop guessing what to study. One test. Twenty minutes. EYF shows you exactly where you stand across DSA, system design, and placement readiness — no trial and error.", icon: 'analytics', color: '#3B82F6', metric: '20 min assessment' },
+  { num: '02', label: 'Plan', title: 'ONE PATH.\nZERO\nGUESSWORK.', body: "No more 'what do I study today?' Your personalized roadmap adapts to your timeline and target companies. Open EYF, follow the path. Every single day, you know exactly what to do next.", icon: 'route', color: '#A78BFA', metric: '3× faster prep' },
+  { num: '03', label: 'Practice', title: 'PATTERNS,\nNOT RANDOM\nGRINDING.', body: "Top companies test the same 15 patterns — repeatedly. EYF's 450+ problems are organized so each one you solve makes the next 10 easier. This is how preparation compounds.", icon: 'code', color: '#22D3EE', metric: '450+ problems' },
+  { num: '04', label: 'Simulate', title: 'PRESSURE-TEST\nBEFORE IT\nCOUNTS.', body: "Interviewers remember candidates who stumble. EYF's mock interviews, company-specific prep kits, and ATS resume scoring mean the real interview feels like just another session.", icon: 'work_history', color: '#4ADE80', metric: '60+ company kits' },
+  { num: '05', label: 'Offer', title: 'THE OFFER\nIS THE\nOUTCOME.', body: "94% of EYF students get placed within 3 months. When you prepare in the right order with the right feedback, an offer isn't a hope — it's the expected result of the process.", icon: 'emoji_events', color: '#E82127', metric: '94% placed' },
 ];
 
 function HowItWorksSection() {
@@ -842,9 +686,51 @@ function HowItWorksSection() {
 
 /* ── PricingSection ────────────────────────────────────────────────────────── */
 const PLANS = [
-  { name: 'Free',  price: '₹0',   period: 'forever', features: ['100 DSA problems','Core CS (full)','Daily challenge','Community access'], cta: 'Start free', featured: false },
-  { name: 'Pro',   price: '₹499', period: '/month',   features: ['All 450+ problems','Placement module','60+ company banks','ATS resume analyzer','Mock interviews'], cta: 'Start Pro', featured: true, tag: 'Most popular' },
-  { name: 'Pro+',  price: '₹999', period: '/month',   features: ['Everything in Pro','1-on-1 mentorship','Resume review','LinkedIn review','Placement guarantee'], cta: 'Contact us', featured: false },
+  {
+    name: 'Free',
+    tagline: 'Explore risk-free.',
+    price: '₹0',
+    period: 'forever',
+    features: [
+      '100 curated DSA problems',
+      'Full Core CS module',
+      'Daily coding challenge',
+      'Community access',
+    ],
+    cta: 'Start free →',
+    featured: false,
+  },
+  {
+    name: 'Pro',
+    tagline: 'From stuck to offer-ready.',
+    price: '₹499',
+    period: '/month',
+    features: [
+      'All 450+ problems, sorted by pattern',
+      'Placement module + ATS resume scorer',
+      '60+ company-specific prep kits',
+      'Unlimited mock interviews',
+      'Priority support',
+    ],
+    cta: 'Get Pro →',
+    featured: true,
+    tag: 'Most popular',
+  },
+  {
+    name: 'Pro+',
+    tagline: "When failure isn't an option.",
+    price: '₹999',
+    period: '/month',
+    features: [
+      'Everything in Pro',
+      'Weekly 1-on-1 mentorship',
+      'Expert resume + LinkedIn review',
+      'Dedicated placement coordinator',
+      'Placement guarantee or refund',
+    ],
+    cta: 'Talk to us →',
+    featured: false,
+  },
 ];
 
 function PricingSection() {
@@ -857,9 +743,14 @@ function PricingSection() {
           </FadeUp>
           <ClipReveal>
             <h2 style={{ fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 'clamp(2.5rem, 6vw, 5.5rem)', letterSpacing: '-0.05em', lineHeight: 0.92, color: D.t1, margin: 0 }}>
-              Honest pricing.<br />No surprises.
+              Priced for students.<br /><span style={{ color: D.accent }}>Built for offers.</span>
             </h2>
           </ClipReveal>
+          <FadeUp delay={0.1}>
+            <p style={{ fontSize: 'clamp(15px, 1.8vw, 17px)', color: D.t2, lineHeight: 1.75, maxWidth: 520, marginTop: 24 }}>
+              The average campus coaching centre charges ₹80,000+ — and still doesn't guarantee structure. EYF costs less than a textbook and gives you a roadmap that actually matches how companies hire.
+            </p>
+          </FadeUp>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 12 }}>
@@ -883,7 +774,10 @@ function PricingSection() {
                   {'tag' in plan && plan.tag && (
                     <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: D.accent, marginBottom: 12 }}>{plan.tag}</p>
                   )}
-                  <p style={{ fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 12, letterSpacing: '0.1em', textTransform: 'uppercase', color: D.t2, marginBottom: 8 }}>{plan.name}</p>
+                  <p style={{ fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 12, letterSpacing: '0.1em', textTransform: 'uppercase', color: D.t2, marginBottom: 4 }}>{plan.name}</p>
+                  {'tagline' in plan && plan.tagline && (
+                    <p style={{ fontSize: 13, color: D.t2, marginBottom: 16, lineHeight: 1.4 }}>{plan.tagline}</p>
+                  )}
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 32 }}>
                     <span style={{ fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 52, letterSpacing: '-0.06em', lineHeight: 1, color: D.t1 }}>{plan.price}</span>
                     <span style={{ fontSize: 12, color: D.t3 }}>{plan.period}</span>
@@ -943,12 +837,12 @@ function CTASection() {
           <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: DK.t4, marginBottom: 48 }}>Ready?</p>
         </FadeUp>
         <h2 style={{ fontFamily: 'Space Grotesk', fontWeight: 700, letterSpacing: '-0.05em', lineHeight: 0.88, margin: '0 0 64px' }}>
-          <ClipReveal delay={0.1}><span style={{ display: 'block', fontSize: 'clamp(3rem, 10vw, 9rem)', textTransform: 'uppercase', color: DK.t1 }}>Join</span></ClipReveal>
-          <ClipReveal delay={0.22}><span style={{ display: 'block', fontSize: 'clamp(3rem, 10vw, 9rem)', textTransform: 'uppercase', color: DK.t1 }}>12,000+</span></ClipReveal>
-          <ClipReveal delay={0.36}><span style={{ display: 'block', fontSize: 'clamp(3rem, 10vw, 9rem)', textTransform: 'uppercase', color: '#E82127' }}>on EYF.</span></ClipReveal>
+          <ClipReveal delay={0.1}><span style={{ display: 'block', fontSize: 'clamp(3rem, 10vw, 9rem)', textTransform: 'uppercase', color: DK.t1 }}>Your offer</span></ClipReveal>
+          <ClipReveal delay={0.22}><span style={{ display: 'block', fontSize: 'clamp(3rem, 10vw, 9rem)', textTransform: 'uppercase', color: DK.t1 }}>is waiting.</span></ClipReveal>
+          <ClipReveal delay={0.36}><span style={{ display: 'block', fontSize: 'clamp(3rem, 10vw, 9rem)', textTransform: 'uppercase', color: '#E82127' }}>Go get it.</span></ClipReveal>
         </h2>
         <FadeUp delay={0.6}>
-          <p style={{ fontSize: 15, color: DK.t2, maxWidth: 360, margin: '0 auto 48px', lineHeight: 1.7 }}>Free forever. No credit card. Start in under 5 minutes.</p>
+          <p style={{ fontSize: 15, color: DK.t2, maxWidth: 420, margin: '0 auto 48px', lineHeight: 1.7 }}>12,000+ students are already ahead. The placement season doesn't wait — and neither should you. Free to start, no card needed.</p>
         </FadeUp>
         <FadeUp delay={0.8}>
           <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
@@ -1013,8 +907,7 @@ export function LandingPage() {
       <LandingNav />
       <main>
         <HeroSection />
-        <StatsSection />
-        <BentoSection />
+        <ProblemSection />
         <HowItWorksSection />
         <PricingSection />
         <CTASection />
