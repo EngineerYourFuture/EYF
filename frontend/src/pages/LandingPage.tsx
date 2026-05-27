@@ -362,12 +362,10 @@ function HeroSection() {
   const heroScale   = useTransform(scrollY, [0, 500], [1, 0.96]);
   const scrollIndicatorOpacity = useTransform(scrollY, [0, 160], [1, 0]);
 
-  /* Three parallax planes — different speeds create genuine z-depth */
-  const orbBackY  = useTransform(scrollY, [0, 700], [0, -28]);   // slowest — feels distant
-  const orbMidY   = useTransform(scrollY, [0, 700], [0, -72]);   // mid-plane
-  const orbNearY  = useTransform(scrollY, [0, 700], [0, -120]);  // fast — feels close
-  const textY     = useTransform(scrollY, [0, 700], [0, -60]);   // headline plane
-  const windowY   = useTransform(scrollY, [0, 700], [0, -200]);  // deepest — flies away fastest
+  /* Orbs parallax at different rates — back/mid/near planes create z-depth */
+  const orbBackY = useTransform(scrollY, [0, 700], [0, -20]);
+  const orbMidY  = useTransform(scrollY, [0, 700], [0, -55]);
+  const orbNearY = useTransform(scrollY, [0, 700], [0, -90]);
 
   const [scrambleActive, setScrambleActive] = useState(false);
   useEffect(() => { const t = setTimeout(() => setScrambleActive(true), 900); return () => clearTimeout(t); }, []);
@@ -379,120 +377,117 @@ function HeroSection() {
       display: 'flex', flexDirection: 'column', alignItems: 'center',
       overflowX: 'hidden', paddingTop: 72, paddingBottom: 0,
     }}>
-      {/* ── Depth orbs — three parallax planes ── */}
-      <motion.div aria-hidden style={{
-        position: 'absolute', top: '12%', left: '4%', zIndex: 0, pointerEvents: 'none',
-        width: 520, height: 520, borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(232,33,39,0.06) 0%, transparent 68%)',
-        filter: 'blur(90px)', y: orbBackY,
-      }} />
-      <motion.div aria-hidden style={{
-        position: 'absolute', top: '28%', right: '6%', zIndex: 0, pointerEvents: 'none',
-        width: 360, height: 360, borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(99,102,241,0.045) 0%, transparent 68%)',
-        filter: 'blur(100px)', y: orbMidY,
-      }} />
-      <motion.div aria-hidden style={{
-        position: 'absolute', top: '45%', left: '38%', zIndex: 0, pointerEvents: 'none',
-        width: 280, height: 280, borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(232,33,39,0.035) 0%, transparent 68%)',
-        filter: 'blur(70px)', y: orbNearY,
-      }} />
-
       <motion.div style={{
         position: 'relative', zIndex: 1, textAlign: 'center', width: '100%',
-        opacity: heroOpacity, scale: heroScale,
+        opacity: heroOpacity, y: heroY, scale: heroScale,
         padding: '40px clamp(16px, 5vw, 80px) 0',
         display: 'flex', flexDirection: 'column', alignItems: 'center',
       }}>
-        {/* Text block — its own parallax plane */}
-        <motion.div style={{ y: textY, display: 'contents' }}>
-          {/* Eyebrow */}
-          <HeroReveal delay={0}>
-            <div style={{ marginBottom: 40 }}>
-              <span style={{
-                display: 'inline-flex', alignItems: 'center', gap: 8,
-                padding: '6px 18px', border: `1px solid rgba(232,33,39,0.22)`,
-                background: 'rgba(232,33,39,0.05)', borderRadius: 100,
-                fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: D.accent,
-              }}>
-                <span style={{ width: 5, height: 5, background: D.accent, borderRadius: '50%', flexShrink: 0, animation: 'pulse-dot 2s ease-in-out infinite' }} />
-                Open beta · <CountUp to={12000} duration={2} suffix="+" /> enrolled
-              </span>
-            </div>
-          </HeroReveal>
+        {/* Orbs inside the fading wrapper — they disappear with the hero content */}
+        <motion.div aria-hidden style={{
+          position: 'absolute', top: '8%', left: '4%', zIndex: 0, pointerEvents: 'none',
+          width: 520, height: 520, borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(232,33,39,0.07) 0%, transparent 68%)',
+          filter: 'blur(90px)', y: orbBackY,
+        }} />
+        <motion.div aria-hidden style={{
+          position: 'absolute', top: '22%', right: '6%', zIndex: 0, pointerEvents: 'none',
+          width: 360, height: 360, borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(99,102,241,0.05) 0%, transparent 68%)',
+          filter: 'blur(100px)', y: orbMidY,
+        }} />
+        <motion.div aria-hidden style={{
+          position: 'absolute', top: '48%', left: '40%', zIndex: 0, pointerEvents: 'none',
+          width: 300, height: 300, borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(232,33,39,0.04) 0%, transparent 68%)',
+          filter: 'blur(70px)', y: orbNearY,
+        }} />
 
-          {/* Headline */}
-          <div style={{ marginBottom: 24 }}>
-            <HeroReveal delay={0.1}>
-              <h1 style={{
-                fontFamily: 'Space Grotesk, sans-serif',
-                fontSize: 'clamp(3.6rem, 11vw, 10rem)',
-                fontWeight: 700, lineHeight: 0.9,
-                letterSpacing: '-0.055em',
-                color: D.t1, margin: 0,
-              }}>Engineer Your</h1>
-            </HeroReveal>
-            <HeroReveal delay={0.18}>
-              <h1 style={{
-                fontFamily: 'Space Grotesk, sans-serif',
-                fontSize: 'clamp(3.6rem, 11vw, 10rem)',
-                fontWeight: 700, lineHeight: 0.9,
-                letterSpacing: '-0.055em',
-                color: D.accent, margin: 0,
-              }}>{scrambled || 'Future.'}</h1>
-            </HeroReveal>
+        {/* Eyebrow */}
+        <HeroReveal delay={0}>
+          <div style={{ marginBottom: 40 }}>
+            <span style={{
+              display: 'inline-flex', alignItems: 'center', gap: 8,
+              padding: '6px 18px', border: `1px solid rgba(232,33,39,0.22)`,
+              background: 'rgba(232,33,39,0.05)', borderRadius: 100,
+              fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: D.accent,
+            }}>
+              <span style={{ width: 5, height: 5, background: D.accent, borderRadius: '50%', flexShrink: 0, animation: 'pulse-dot 2s ease-in-out infinite' }} />
+              Open beta · <CountUp to={12000} duration={2} suffix="+" /> enrolled
+            </span>
           </div>
+        </HeroReveal>
 
-          {/* Subtitle */}
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ type: 'spring', stiffness: 60, damping: 18, delay: 0.45 }}
-            style={{ fontSize: 'clamp(15px, 2vw, 18px)', color: D.t2, lineHeight: 1.65, maxWidth: 480, margin: '0 0 40px' }}
-          >
-            The all-in-one platform for campus placement prep. DSA, system design, core CS — structured, not scattered.
-          </motion.p>
+        {/* Headline */}
+        <div style={{ marginBottom: 24 }}>
+          <HeroReveal delay={0.1}>
+            <h1 style={{
+              fontFamily: 'Space Grotesk, sans-serif',
+              fontSize: 'clamp(3.6rem, 11vw, 10rem)',
+              fontWeight: 700, lineHeight: 0.9,
+              letterSpacing: '-0.055em',
+              color: D.t1, margin: 0,
+            }}>Engineer Your</h1>
+          </HeroReveal>
+          <HeroReveal delay={0.18}>
+            <h1 style={{
+              fontFamily: 'Space Grotesk, sans-serif',
+              fontSize: 'clamp(3.6rem, 11vw, 10rem)',
+              fontWeight: 700, lineHeight: 0.9,
+              letterSpacing: '-0.055em',
+              color: D.accent, margin: 0,
+            }}>{scrambled || 'Future.'}</h1>
+          </HeroReveal>
+        </div>
 
-          {/* CTAs */}
-          <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.97 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ type: 'spring', stiffness: 55, damping: 18, delay: 0.56 }}
-            style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 72 }}
-          >
-            <Magnetic strength={0.28}>
-              <Link to="/login?tab=register" style={{
-                display: 'inline-flex', alignItems: 'center', gap: 8,
-                height: 50, padding: '0 30px',
-                background: D.t1, color: '#fff',
-                fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 12, letterSpacing: '0.04em',
-                textDecoration: 'none', borderRadius: 100,
-                boxShadow: '0 2px 16px rgba(29,29,31,0.18)',
-              }}>
-                Get started free →
-              </Link>
-            </Magnetic>
-            <Magnetic strength={0.2}>
-              <a href="#platform" style={{
-                display: 'inline-flex', alignItems: 'center', gap: 8,
-                height: 50, padding: '0 30px',
-                background: 'transparent', color: D.t1,
-                fontFamily: 'Space Grotesk', fontWeight: 600, fontSize: 12, letterSpacing: '0.03em',
-                textDecoration: 'none', border: `1px solid ${D.border}`, borderRadius: 100,
-              }}>
-                See the platform
-              </a>
-            </Magnetic>
-          </motion.div>
+        {/* Subtitle */}
+        <motion.p
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ type: 'spring', stiffness: 60, damping: 18, delay: 0.45 }}
+          style={{ fontSize: 'clamp(15px, 2vw, 18px)', color: D.t2, lineHeight: 1.65, maxWidth: 480, margin: '0 0 40px' }}
+        >
+          The all-in-one platform for campus placement prep. DSA, system design, core CS — structured, not scattered.
+        </motion.p>
+
+        {/* CTAs */}
+        <motion.div
+          initial={{ opacity: 0, y: 20, scale: 0.97 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ type: 'spring', stiffness: 55, damping: 18, delay: 0.56 }}
+          style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 72 }}
+        >
+          <Magnetic strength={0.28}>
+            <Link to="/login?tab=register" style={{
+              display: 'inline-flex', alignItems: 'center', gap: 8,
+              height: 50, padding: '0 30px',
+              background: D.t1, color: '#fff',
+              fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 12, letterSpacing: '0.04em',
+              textDecoration: 'none', borderRadius: 100,
+              boxShadow: '0 2px 16px rgba(29,29,31,0.18)',
+            }}>
+              Get started free →
+            </Link>
+          </Magnetic>
+          <Magnetic strength={0.2}>
+            <a href="#platform" style={{
+              display: 'inline-flex', alignItems: 'center', gap: 8,
+              height: 50, padding: '0 30px',
+              background: 'transparent', color: D.t1,
+              fontFamily: 'Space Grotesk', fontWeight: 600, fontSize: 12, letterSpacing: '0.03em',
+              textDecoration: 'none', border: `1px solid ${D.border}`, borderRadius: 100,
+            }}>
+              See the platform
+            </a>
+          </Magnetic>
         </motion.div>
 
-        {/* AppWindow — deepest plane, moves away fastest on scroll */}
+        {/* AppWindow */}
         <motion.div
           initial={{ opacity: 0, y: 80, rotateX: 18, scale: 0.95 }}
           animate={{ opacity: 1, y: 0, rotateX: 6, scale: 1 }}
           transition={{ type: 'spring', stiffness: 45, damping: 20, delay: 0.85 }}
-          style={{ width: '100%', maxWidth: 920, y: windowY }}
+          style={{ width: '100%', maxWidth: 920 }}
         >
           <AppWindow />
         </motion.div>
@@ -925,7 +920,6 @@ function CTASection() {
   return (
     <section style={{
       background: '#000', padding: '120px clamp(16px,5vw,80px) 100px',
-      minHeight: '100dvh',
       display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center',
       textAlign: 'center', position: 'relative', overflow: 'hidden', borderTop: '1px solid #232325',
     }}>
