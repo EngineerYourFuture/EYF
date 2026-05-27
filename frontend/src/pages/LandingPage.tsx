@@ -3,7 +3,7 @@ import MarqueeLib from 'react-fast-marquee';
 const Marquee = ((MarqueeLib as any).default ?? MarqueeLib) as typeof MarqueeLib; // NOSONAR
 import { Link } from 'react-router-dom';
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
-import { motion, useScroll, useTransform, useMotionValue, useSpring, useInView, animate } from 'framer-motion';
+import { motion, useScroll, useTransform, useMotionValue, useMotionTemplate, useSpring, useInView, animate } from 'framer-motion';
 import { EYFMark } from '../components/EYFLogo';
 
 /* ── Light palette — Apple.com ──────────────────────────────────────── */
@@ -42,6 +42,11 @@ function TiltCard({ children, style, className, maxTilt = 10, role }: Readonly<{
   const rotateX = useSpring(useTransform(rawY, [-0.5, 0.5], [maxTilt, -maxTilt]), { stiffness: 400, damping: 30 });
   const rotateY = useSpring(useTransform(rawX, [-0.5, 0.5], [-maxTilt, maxTilt]), { stiffness: 400, damping: 30 });
 
+  /* directional shadow — shifts opposite to tilt, reinforcing 3-D depth */
+  const shadowX = useSpring(useTransform(rawX, [-0.5, 0.5], [18, -18]), { stiffness: 300, damping: 25 });
+  const shadowY = useSpring(useTransform(rawY, [-0.5, 0.5], [-18, 18]), { stiffness: 300, damping: 25 });
+  const shadow  = useMotionTemplate`${shadowX}px ${shadowY}px 48px rgba(0,0,0,0.14), 0 8px 24px rgba(0,0,0,0.08)`;
+
   function onMove(e: React.MouseEvent) {
     const rect = ref.current!.getBoundingClientRect();
     rawX.set((e.clientX - rect.left) / rect.width - 0.5);
@@ -55,7 +60,7 @@ function TiltCard({ children, style, className, maxTilt = 10, role }: Readonly<{
       onMouseMove={onMove}
       onMouseLeave={onLeave}
       role={role}
-      style={{ perspective: 900, rotateX, rotateY, transformStyle: 'preserve-3d', ...style }}
+      style={{ perspective: 900, rotateX, rotateY, transformStyle: 'preserve-3d', boxShadow: shadow, ...style }}
       className={className}
     >
       {children}
@@ -201,10 +206,10 @@ function FadeUp({ children, delay = 0, style = {}, className = '' }: Readonly<{
 }>) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 24 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-60px' }}
-      transition={{ duration: 0.6, delay, ease: [0.16, 1, 0.3, 1] }}
+      initial={{ opacity: 0, y: 36, scale: 0.97 }}
+      whileInView={{ opacity: 1, y: 0, scale: 1 }}
+      viewport={{ once: true, amount: 0 }}
+      transition={{ type: 'spring', stiffness: 55, damping: 18, delay }}
       style={style}
       className={className}
     >
@@ -353,10 +358,16 @@ function LandingNav() {
 /* ── HeroSection ─────────────────────────────────────────────────────────── */
 function HeroSection() {
   const { scrollY } = useScroll();
-  const heroOpacity = useTransform(scrollY, [0, 480], [1, 0]);
-  const heroY       = useTransform(scrollY, [0, 480], [0, -60]);
-  const heroScale   = useTransform(scrollY, [0, 480], [1, 0.97]);
+  const heroOpacity = useTransform(scrollY, [0, 500], [1, 0]);
+  const heroScale   = useTransform(scrollY, [0, 500], [1, 0.96]);
   const scrollIndicatorOpacity = useTransform(scrollY, [0, 160], [1, 0]);
+
+  /* Three parallax planes — different speeds create genuine z-depth */
+  const orbBackY  = useTransform(scrollY, [0, 700], [0, -28]);   // slowest — feels distant
+  const orbMidY   = useTransform(scrollY, [0, 700], [0, -72]);   // mid-plane
+  const orbNearY  = useTransform(scrollY, [0, 700], [0, -120]);  // fast — feels close
+  const textY     = useTransform(scrollY, [0, 700], [0, -60]);   // headline plane
+  const windowY   = useTransform(scrollY, [0, 700], [0, -200]);  // deepest — flies away fastest
 
   const [scrambleActive, setScrambleActive] = useState(false);
   useEffect(() => { const t = setTimeout(() => setScrambleActive(true), 900); return () => clearTimeout(t); }, []);
@@ -368,97 +379,120 @@ function HeroSection() {
       display: 'flex', flexDirection: 'column', alignItems: 'center',
       overflowX: 'hidden', paddingTop: 72, paddingBottom: 0,
     }}>
+      {/* ── Depth orbs — three parallax planes ── */}
+      <motion.div aria-hidden style={{
+        position: 'absolute', top: '12%', left: '4%', zIndex: 0, pointerEvents: 'none',
+        width: 520, height: 520, borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(232,33,39,0.06) 0%, transparent 68%)',
+        filter: 'blur(90px)', y: orbBackY,
+      }} />
+      <motion.div aria-hidden style={{
+        position: 'absolute', top: '28%', right: '6%', zIndex: 0, pointerEvents: 'none',
+        width: 360, height: 360, borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(99,102,241,0.045) 0%, transparent 68%)',
+        filter: 'blur(100px)', y: orbMidY,
+      }} />
+      <motion.div aria-hidden style={{
+        position: 'absolute', top: '45%', left: '38%', zIndex: 0, pointerEvents: 'none',
+        width: 280, height: 280, borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(232,33,39,0.035) 0%, transparent 68%)',
+        filter: 'blur(70px)', y: orbNearY,
+      }} />
+
       <motion.div style={{
         position: 'relative', zIndex: 1, textAlign: 'center', width: '100%',
-        opacity: heroOpacity, y: heroY, scale: heroScale,
+        opacity: heroOpacity, scale: heroScale,
         padding: '40px clamp(16px, 5vw, 80px) 0',
         display: 'flex', flexDirection: 'column', alignItems: 'center',
       }}>
-        {/* Eyebrow */}
-        <HeroReveal delay={0}>
-          <div style={{ marginBottom: 40 }}>
-            <span style={{
-              display: 'inline-flex', alignItems: 'center', gap: 8,
-              padding: '6px 18px', border: `1px solid rgba(232,33,39,0.22)`,
-              background: 'rgba(232,33,39,0.05)', borderRadius: 100,
-              fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: D.accent,
-            }}>
-              <span style={{ width: 5, height: 5, background: D.accent, borderRadius: '50%', flexShrink: 0, animation: 'pulse-dot 2s ease-in-out infinite' }} />
-              Open beta · <CountUp to={12000} duration={2} suffix="+" /> enrolled
-            </span>
+        {/* Text block — its own parallax plane */}
+        <motion.div style={{ y: textY, display: 'contents' }}>
+          {/* Eyebrow */}
+          <HeroReveal delay={0}>
+            <div style={{ marginBottom: 40 }}>
+              <span style={{
+                display: 'inline-flex', alignItems: 'center', gap: 8,
+                padding: '6px 18px', border: `1px solid rgba(232,33,39,0.22)`,
+                background: 'rgba(232,33,39,0.05)', borderRadius: 100,
+                fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: D.accent,
+              }}>
+                <span style={{ width: 5, height: 5, background: D.accent, borderRadius: '50%', flexShrink: 0, animation: 'pulse-dot 2s ease-in-out infinite' }} />
+                Open beta · <CountUp to={12000} duration={2} suffix="+" /> enrolled
+              </span>
+            </div>
+          </HeroReveal>
+
+          {/* Headline */}
+          <div style={{ marginBottom: 24 }}>
+            <HeroReveal delay={0.1}>
+              <h1 style={{
+                fontFamily: 'Space Grotesk, sans-serif',
+                fontSize: 'clamp(3.6rem, 11vw, 10rem)',
+                fontWeight: 700, lineHeight: 0.9,
+                letterSpacing: '-0.055em',
+                color: D.t1, margin: 0,
+              }}>Engineer Your</h1>
+            </HeroReveal>
+            <HeroReveal delay={0.18}>
+              <h1 style={{
+                fontFamily: 'Space Grotesk, sans-serif',
+                fontSize: 'clamp(3.6rem, 11vw, 10rem)',
+                fontWeight: 700, lineHeight: 0.9,
+                letterSpacing: '-0.055em',
+                color: D.accent, margin: 0,
+              }}>{scrambled || 'Future.'}</h1>
+            </HeroReveal>
           </div>
-        </HeroReveal>
 
-        {/* Headline */}
-        <div style={{ marginBottom: 24 }}>
-          <HeroReveal delay={0.1}>
-            <h1 style={{
-              fontFamily: 'Space Grotesk, sans-serif',
-              fontSize: 'clamp(3.6rem, 11vw, 10rem)',
-              fontWeight: 700, lineHeight: 0.9,
-              letterSpacing: '-0.055em',
-              color: D.t1, margin: 0,
-            }}>Engineer Your</h1>
-          </HeroReveal>
-          <HeroReveal delay={0.18}>
-            <h1 style={{
-              fontFamily: 'Space Grotesk, sans-serif',
-              fontSize: 'clamp(3.6rem, 11vw, 10rem)',
-              fontWeight: 700, lineHeight: 0.9,
-              letterSpacing: '-0.055em',
-              color: D.accent, margin: 0,
-            }}>{scrambled || 'Future.'}</h1>
-          </HeroReveal>
-        </div>
+          {/* Subtitle */}
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ type: 'spring', stiffness: 60, damping: 18, delay: 0.45 }}
+            style={{ fontSize: 'clamp(15px, 2vw, 18px)', color: D.t2, lineHeight: 1.65, maxWidth: 480, margin: '0 0 40px' }}
+          >
+            The all-in-one platform for campus placement prep. DSA, system design, core CS — structured, not scattered.
+          </motion.p>
 
-        {/* Subtitle */}
-        <motion.p
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.45, ease: [0.16, 1, 0.3, 1] }}
-          style={{ fontSize: 'clamp(15px, 2vw, 18px)', color: D.t2, lineHeight: 1.65, maxWidth: 480, margin: '0 0 40px' }}
-        >
-          The all-in-one platform for campus placement prep. DSA, system design, core CS — structured, not scattered.
-        </motion.p>
-
-        {/* CTAs */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.56, ease: [0.16, 1, 0.3, 1] }}
-          style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 72 }}
-        >
-          <Magnetic strength={0.28}>
-            <Link to="/login?tab=register" style={{
-              display: 'inline-flex', alignItems: 'center', gap: 8,
-              height: 50, padding: '0 30px',
-              background: D.t1, color: '#fff',
-              fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 12, letterSpacing: '0.04em',
-              textDecoration: 'none', borderRadius: 100,
-              boxShadow: '0 2px 16px rgba(29,29,31,0.18)',
-            }}>
-              Get started free →
-            </Link>
-          </Magnetic>
-          <Magnetic strength={0.2}>
-            <a href="#platform" style={{
-              display: 'inline-flex', alignItems: 'center', gap: 8,
-              height: 50, padding: '0 30px',
-              background: 'transparent', color: D.t1,
-              fontFamily: 'Space Grotesk', fontWeight: 600, fontSize: 12, letterSpacing: '0.03em',
-              textDecoration: 'none', border: `1px solid ${D.border}`, borderRadius: 100,
-            }}>
-              See the platform
-            </a>
-          </Magnetic>
+          {/* CTAs */}
+          <motion.div
+            initial={{ opacity: 0, y: 20, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ type: 'spring', stiffness: 55, damping: 18, delay: 0.56 }}
+            style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 72 }}
+          >
+            <Magnetic strength={0.28}>
+              <Link to="/login?tab=register" style={{
+                display: 'inline-flex', alignItems: 'center', gap: 8,
+                height: 50, padding: '0 30px',
+                background: D.t1, color: '#fff',
+                fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 12, letterSpacing: '0.04em',
+                textDecoration: 'none', borderRadius: 100,
+                boxShadow: '0 2px 16px rgba(29,29,31,0.18)',
+              }}>
+                Get started free →
+              </Link>
+            </Magnetic>
+            <Magnetic strength={0.2}>
+              <a href="#platform" style={{
+                display: 'inline-flex', alignItems: 'center', gap: 8,
+                height: 50, padding: '0 30px',
+                background: 'transparent', color: D.t1,
+                fontFamily: 'Space Grotesk', fontWeight: 600, fontSize: 12, letterSpacing: '0.03em',
+                textDecoration: 'none', border: `1px solid ${D.border}`, borderRadius: 100,
+              }}>
+                See the platform
+              </a>
+            </Magnetic>
+          </motion.div>
         </motion.div>
 
-        {/* Product window */}
+        {/* AppWindow — deepest plane, moves away fastest on scroll */}
         <motion.div
-          initial={{ opacity: 0, y: 60 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1.2, delay: 0.85, ease: [0.16, 1, 0.3, 1] }}
-          style={{ width: '100%', maxWidth: 920 }}
+          initial={{ opacity: 0, y: 80, rotateX: 18, scale: 0.95 }}
+          animate={{ opacity: 1, y: 0, rotateX: 6, scale: 1 }}
+          transition={{ type: 'spring', stiffness: 45, damping: 20, delay: 0.85 }}
+          style={{ width: '100%', maxWidth: 920, y: windowY }}
         >
           <AppWindow />
         </motion.div>
@@ -542,7 +576,13 @@ function BentoSection() {
         </div>
 
         {/* Row 1 */}
-        <FadeUp>
+        <motion.div
+          initial={{ opacity: 0, y: 60, rotateX: 10, scale: 0.96 }}
+          whileInView={{ opacity: 1, y: 0, rotateX: 0, scale: 1 }}
+          viewport={{ once: true, amount: 0.1 }}
+          transition={{ type: 'spring', stiffness: 50, damping: 18 }}
+          style={{ perspective: 1200, transformStyle: 'preserve-3d' }}
+        >
           <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 10, marginBottom: 10 }}>
 
             {/* DSA Practice — large */}
@@ -598,10 +638,16 @@ function BentoSection() {
               </div>
             </TiltCard>
           </div>
-        </FadeUp>
+        </motion.div>
 
         {/* Row 2 */}
-        <FadeUp delay={0.1}>
+        <motion.div
+          initial={{ opacity: 0, y: 60, rotateX: 10, scale: 0.96 }}
+          whileInView={{ opacity: 1, y: 0, rotateX: 0, scale: 1 }}
+          viewport={{ once: true, amount: 0.1 }}
+          transition={{ type: 'spring', stiffness: 50, damping: 18, delay: 0.08 }}
+          style={{ perspective: 1200, transformStyle: 'preserve-3d' }}
+        >
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
 
             {/* System Design */}
@@ -687,7 +733,7 @@ function BentoSection() {
             </TiltCard>
 
           </div>
-        </FadeUp>
+        </motion.div>
       </div>
     </section>
   );
@@ -822,7 +868,14 @@ function PricingSection() {
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 12 }}>
           {PLANS.map((plan, i) => (
-            <FadeUp key={plan.name} delay={i * 0.1}>
+            <motion.div
+              key={plan.name}
+              initial={{ opacity: 0, y: 48, rotateY: i === 0 ? -10 : i === 2 ? 10 : 0, scale: 0.95 }}
+              whileInView={{ opacity: 1, y: 0, rotateY: 0, scale: 1 }}
+              viewport={{ once: true, amount: 0.1 }}
+              transition={{ type: 'spring', stiffness: 50, damping: 18, delay: i * 0.1 }}
+              style={{ perspective: 1000, height: '100%' }}
+            >
               <TiltCard maxTilt={4} style={{ height: '100%' }}>
                 <div style={{
                   background: '#ffffff',
@@ -859,7 +912,7 @@ function PricingSection() {
                   }}>{plan.cta}</Link>
                 </div>
               </TiltCard>
-            </FadeUp>
+            </motion.div>
           ))}
         </div>
       </div>
