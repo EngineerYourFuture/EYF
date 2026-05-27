@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AppShell } from '../components/AppShell';
+import { Skeleton } from '../components/Skeleton';
 import { apiRequest } from '../lib/api';
 import { getSession } from '../lib/session';
 import { useUser } from '../contexts/UserContext';
@@ -155,13 +156,15 @@ export function HomePage() {
   const session = getSession();
   const { summary, displayName, refresh } = useUser();
   const [modules, setModules] = useState<ModulesStatus['items']>([]);
+  const [modulesLoaded, setModulesLoaded] = useState(false);
   const [levelUpFor, setLevelUpFor] = useState<number | null>(null);
   const [streakToast, setStreakToast] = useState(false);
 
   useEffect(() => {
-    if (!session?.accessToken) return;
+    if (!session?.accessToken) { setModulesLoaded(true); return; }
     apiRequest<ModulesStatus>('/modules/status', { token: session.accessToken })
-      .then((d) => setModules(d.items)).catch(() => {});
+      .then((d) => { setModules(d.items); setModulesLoaded(true); })
+      .catch(() => { setModulesLoaded(true); });
   }, [session?.accessToken]);
 
   useEffect(() => {
@@ -274,94 +277,126 @@ export function HomePage() {
               backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
             }} />
 
-            <div className="flex flex-wrap items-center justify-between gap-6">
-              {/* Left: greeting + name */}
-              <div>
-                <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: 'Space Grotesk', marginBottom: 8 }}>
-                  {greeting}
-                </p>
-                <h1 style={{
-                  fontFamily: 'Space Grotesk, sans-serif',
-                  fontWeight: 800,
-                  fontSize: 'clamp(1.8rem, 4vw, 2.8rem)',
-                  letterSpacing: '-0.03em',
-                  lineHeight: 1.05,
-                  color: '#fff',
-                  margin: 0,
-                  marginBottom: 12,
-                }}>
-                  {displayName || 'Engineer'}
-                </h1>
-                {/* Status pill row */}
-                <div className="flex flex-wrap items-center gap-2">
-                  <div style={{
-                    display: 'inline-flex', alignItems: 'center', gap: 8,
-                    background: 'rgba(255,255,255,0.07)',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    backdropFilter: 'blur(8px)',
-                    padding: '5px 14px',
-                    fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.8)',
-                  }}>
-                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#E82127', display: 'inline-block', boxShadow: '0 0 6px rgba(232,25,44,0.8)', flexShrink: 0 }} />
-                    Level {level} · {levelName}
+            <AnimatePresence mode="wait">
+              {summary === null ? (
+                <motion.div
+                  key="hero-sk"
+                  className="flex flex-wrap items-center justify-between gap-6 w-full"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <div>
+                    <Skeleton width={80} height={10} borderRadius={4} style={{ marginBottom: 8 }} />
+                    <Skeleton width={220} height={42} borderRadius={8} style={{ marginBottom: 12 }} />
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                      <Skeleton width={130} height={28} borderRadius={100} />
+                      <Skeleton width={104} height={28} borderRadius={100} />
+                      <Skeleton width={94} height={28} borderRadius={100} />
+                    </div>
                   </div>
-                  <div style={{
-                    display: 'inline-flex', alignItems: 'center', gap: 6,
-                    background: 'rgba(249,115,22,0.12)',
-                    border: '1px solid rgba(249,115,22,0.25)',
-                    backdropFilter: 'blur(8px)',
-                    padding: '5px 12px',
-                    fontSize: 12, fontWeight: 700, color: '#FDBA74',
-                  }}>
-                    🔥 {streak}d streak
+                  <div style={{ minWidth: 220, flex: '0 0 auto' }}>
+                    <Skeleton width="100%" height={74} borderRadius={4} />
                   </div>
-                  <div style={{
-                    display: 'inline-flex', alignItems: 'center', gap: 6,
-                    background: 'rgba(232,25,44,0.1)',
-                    border: '1px solid rgba(232,25,44,0.2)',
-                    backdropFilter: 'blur(8px)',
-                    padding: '5px 12px',
-                    fontSize: 12, fontWeight: 700, color: '#FDA4AF',
-                  }}>
-                    ✦ {xp.toLocaleString()} XP
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="hero-content"
+                  className="flex flex-wrap items-center justify-between gap-6 w-full"
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                >
+                  {/* Left: greeting + name */}
+                  <div>
+                    <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: 'Space Grotesk', marginBottom: 8 }}>
+                      {greeting}
+                    </p>
+                    <h1 style={{
+                      fontFamily: 'Space Grotesk, sans-serif',
+                      fontWeight: 800,
+                      fontSize: 'clamp(1.8rem, 4vw, 2.8rem)',
+                      letterSpacing: '-0.03em',
+                      lineHeight: 1.05,
+                      color: '#fff',
+                      margin: 0,
+                      marginBottom: 12,
+                    }}>
+                      {displayName || 'Engineer'}
+                    </h1>
+                    {/* Status pill row */}
+                    <div className="flex flex-wrap items-center gap-2">
+                      <div style={{
+                        display: 'inline-flex', alignItems: 'center', gap: 8,
+                        background: 'rgba(255,255,255,0.07)',
+                        border: '1px solid rgba(255,255,255,0.1)',
+                        backdropFilter: 'blur(8px)',
+                        padding: '5px 14px',
+                        fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.8)',
+                      }}>
+                        <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#E82127', display: 'inline-block', boxShadow: '0 0 6px rgba(232,25,44,0.8)', flexShrink: 0 }} />
+                        Level {level} · {levelName}
+                      </div>
+                      <div style={{
+                        display: 'inline-flex', alignItems: 'center', gap: 6,
+                        background: 'rgba(249,115,22,0.12)',
+                        border: '1px solid rgba(249,115,22,0.25)',
+                        backdropFilter: 'blur(8px)',
+                        padding: '5px 12px',
+                        fontSize: 12, fontWeight: 700, color: '#FDBA74',
+                      }}>
+                        🔥 {streak}d streak
+                      </div>
+                      <div style={{
+                        display: 'inline-flex', alignItems: 'center', gap: 6,
+                        background: 'rgba(232,25,44,0.1)',
+                        border: '1px solid rgba(232,25,44,0.2)',
+                        backdropFilter: 'blur(8px)',
+                        padding: '5px 12px',
+                        fontSize: 12, fontWeight: 700, color: '#FDA4AF',
+                      }}>
+                        ✦ {xp.toLocaleString()} XP
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
 
-              {/* Right: level progress */}
-              <div style={{ minWidth: 220, flex: '0 0 auto' }}>
-                <div style={{
-                  background: 'rgba(255,255,255,0.04)',
-                  border: '1px solid rgba(255,255,255,0.08)',
-                  padding: '16px 20px',
-                  backdropFilter: 'blur(12px)',
-                }}>
-                  <div className="flex justify-between mb-2" style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)' }}>
-                    <span>Lv.{level} {levelName}</span>
-                    <span>{(nextThreshold - xp).toLocaleString()} XP to go</span>
+                  {/* Right: level progress */}
+                  <div style={{ minWidth: 220, flex: '0 0 auto' }}>
+                    <div style={{
+                      background: 'rgba(255,255,255,0.04)',
+                      border: '1px solid rgba(255,255,255,0.08)',
+                      padding: '16px 20px',
+                      backdropFilter: 'blur(12px)',
+                    }}>
+                      <div className="flex justify-between mb-2" style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)' }}>
+                        <span>Lv.{level} {levelName}</span>
+                        <span>{(nextThreshold - xp).toLocaleString()} XP to go</span>
+                      </div>
+                      {/* Progress bar */}
+                      <div style={{ height: 5, background: 'rgba(255,255,255,0.06)', position: 'relative', overflow: 'hidden' }}>
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{ width: `${xpPct}%` }}
+                          transition={{ duration: 1.4, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                          style={{
+                            height: '100%',
+                            background: 'linear-gradient(90deg, #E82127, #FF6B7A)',
+                            boxShadow: '0 0 12px rgba(232,25,44,0.7), 0 0 24px rgba(232,25,44,0.3)',
+                          }}
+                        />
+                      </div>
+                      <div className="flex justify-between mt-2" style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)' }}>
+                        <span>{xpPct}% complete</span>
+                        <Link to="/app/progress" style={{ color: '#E82127', fontWeight: 600, fontSize: 10 }}>
+                          View progress →
+                        </Link>
+                      </div>
+                    </div>
                   </div>
-                  {/* Progress bar */}
-                  <div style={{ height: 5, background: 'rgba(255,255,255,0.06)', position: 'relative', overflow: 'hidden' }}>
-                    <motion.div
-                      initial={{ width: 0 }}
-                      animate={{ width: `${xpPct}%` }}
-                      transition={{ duration: 1.4, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                      style={{
-                        height: '100%',
-                        background: 'linear-gradient(90deg, #E82127, #FF6B7A)',
-                        boxShadow: '0 0 12px rgba(232,25,44,0.7), 0 0 24px rgba(232,25,44,0.3)',
-                      }}
-                    />
-                  </div>
-                  <div className="flex justify-between mt-2" style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)' }}>
-                    <span>{xpPct}% complete</span>
-                    <Link to="/app/progress" style={{ color: '#E82127', fontWeight: 600, fontSize: 10 }}>
-                      View progress →
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </GlassCard>
         </motion.div>
 
@@ -369,43 +404,66 @@ export function HomePage() {
             STAT TILES
         ═══════════════════════════════════════════════════════════════ */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
-          {[
-            { label: 'Total XP',  value: xp.toLocaleString(),            icon: 'bolt',                  color: '#E82127' },
-            { label: 'This Week', value: `+${weeklyXp.toLocaleString()}`, icon: 'trending_up',           color: '#22C55E' },
-            { label: 'Streak',    value: `${streak}d`,                    icon: 'local_fire_department', color: '#F97316' },
-            { label: 'Badges',    value: String(achievementsEarned),      icon: 'emoji_events',          color: '#EAB308' },
-          ].map(({ label, value, icon, color }, i) => (
-            <motion.div
-              key={label}
-              initial={{ opacity: 0, y: 16, filter: 'blur(4px)' }}
-              animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-              transition={{ duration: 0.5, delay: 0.08 + i * 0.06, ease: [0.16, 1, 0.3, 1] }}
-              whileHover={{ y: -2, boxShadow: `0 12px 40px rgba(0,0,0,0.4)` }}
-              style={{
-                background: 'var(--bg-elevated)',
-                border: '1px solid var(--border)',
-                borderRadius: 14,
-                backdropFilter: 'blur(16px)',
-                padding: '18px 20px',
-                position: 'relative',
-                overflow: 'hidden',
-                transition: 'transform 0.2s, box-shadow 0.2s',
-                boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
-              }}
-            >
-              {/* Top shimmer */}
-              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.08) 50%, transparent)', pointerEvents: 'none' }} />
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
-                <div style={{ width: 28, height: 28, borderRadius: 8, background: `${color}14`, border: `1px solid ${color}28`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <span className="material-symbols-rounded" style={{ fontSize: 14, color }}>{icon}</span>
-                </div>
-                <span style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--t4)', fontFamily: 'Space Grotesk' }}>{label}</span>
-              </div>
-              <p style={{ fontFamily: 'Space Grotesk', fontWeight: 800, fontSize: 'clamp(1.4rem, 3vw, 2rem)', letterSpacing: '-0.03em', lineHeight: 1, color, marginBottom: 0 }}>
-                {value}
-              </p>
-            </motion.div>
-          ))}
+          {summary === null
+            ? [0, 1, 2, 3].map((i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 16, filter: 'blur(4px)' }}
+                  animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                  transition={{ duration: 0.5, delay: 0.08 + i * 0.06, ease: [0.16, 1, 0.3, 1] }}
+                  style={{
+                    background: 'var(--bg-elevated)',
+                    border: '1px solid var(--border)',
+                    borderRadius: 14,
+                    padding: '18px 20px',
+                    boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
+                    <Skeleton width={28} height={28} borderRadius={8} />
+                    <Skeleton width={48} height={9} borderRadius={4} />
+                  </div>
+                  <Skeleton width={72} height={30} borderRadius={6} />
+                </motion.div>
+              ))
+            : [
+                { label: 'Total XP',  value: xp.toLocaleString(),            icon: 'bolt',                  color: '#E82127' },
+                { label: 'This Week', value: `+${weeklyXp.toLocaleString()}`, icon: 'trending_up',           color: '#22C55E' },
+                { label: 'Streak',    value: `${streak}d`,                    icon: 'local_fire_department', color: '#F97316' },
+                { label: 'Badges',    value: String(achievementsEarned),      icon: 'emoji_events',          color: '#EAB308' },
+              ].map(({ label, value, icon, color }, i) => (
+                <motion.div
+                  key={label}
+                  initial={{ opacity: 0, y: 16, filter: 'blur(4px)' }}
+                  animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                  transition={{ duration: 0.5, delay: 0.08 + i * 0.06, ease: [0.16, 1, 0.3, 1] }}
+                  whileHover={{ y: -2, boxShadow: `0 12px 40px rgba(0,0,0,0.4)` }}
+                  style={{
+                    background: 'var(--bg-elevated)',
+                    border: '1px solid var(--border)',
+                    borderRadius: 14,
+                    backdropFilter: 'blur(16px)',
+                    padding: '18px 20px',
+                    position: 'relative',
+                    overflow: 'hidden',
+                    transition: 'transform 0.2s, box-shadow 0.2s',
+                    boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
+                  }}
+                >
+                  {/* Top shimmer */}
+                  <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.08) 50%, transparent)', pointerEvents: 'none' }} />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
+                    <div style={{ width: 28, height: 28, borderRadius: 8, background: `${color}14`, border: `1px solid ${color}28`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <span className="material-symbols-rounded" style={{ fontSize: 14, color }}>{icon}</span>
+                    </div>
+                    <span style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--t4)', fontFamily: 'Space Grotesk' }}>{label}</span>
+                  </div>
+                  <p style={{ fontFamily: 'Space Grotesk', fontWeight: 800, fontSize: 'clamp(1.4rem, 3vw, 2rem)', letterSpacing: '-0.03em', lineHeight: 1, color, marginBottom: 0 }}>
+                    {value}
+                  </p>
+                </motion.div>
+              ))
+          }
         </div>
 
         {/* ═══════════════════════════════════════════════════════════════
@@ -679,57 +737,82 @@ export function HomePage() {
             <Link to="/app/career" className="btn btn-ghost btn-sm" style={{ marginBottom: 12 }}>View all →</Link>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 gap-3">
-            {moduleList.slice(0, 8).map((mod, i) => {
-              const cfg = MODULE_CONFIG[mod.module];
-              if (!cfg) return null;
-              const rawPct = mod.progress;
-              let pct: number;
-              if (typeof rawPct !== 'number') { pct = 0; }
-              else if (rawPct > 1) { pct = Math.round(rawPct); }
-              else { pct = Math.round(rawPct * 100); }
-              return (
-                <motion.div
-                  key={mod.module}
-                  initial={{ opacity: 0, scale: 0.88, filter: 'blur(4px)' }}
-                  whileInView={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
-                  viewport={{ once: true, margin: '-10px' }}
-                  transition={{ duration: 0.4, delay: (i % 6) * 0.04 }}
-                >
-                  <Link to={cfg.path}>
-                    <motion.div
-                      style={{
-                        background: 'var(--bg-elevated)',
-                        border: '1px solid var(--border)',
-                        borderRadius: 14,
-                        backdropFilter: 'blur(12px)',
-                        padding: '14px',
-                        cursor: 'pointer',
-                        position: 'relative',
-                        overflow: 'hidden',
-                        transition: 'all 0.2s',
-                        boxShadow: '0 2px 12px rgba(0,0,0,0.25)',
-                      }}
-                      whileHover={{
-                        background: `${cfg.hex}0d`,
-                        borderColor: `${cfg.hex}30`,
-                        y: -3,
-                        boxShadow: `0 12px 40px rgba(0,0,0,0.4)`,
-                      }}
-                    >
-                      <div style={{ position: 'absolute', top: 0, right: 0, width: 40, height: 40, background: `radial-gradient(circle at top right, ${cfg.hex}15, transparent 70%)`, pointerEvents: 'none' }} />
+            {!modulesLoaded
+              ? Array.from({ length: 8 }).map((_, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, scale: 0.88, filter: 'blur(4px)' }}
+                    animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
+                    transition={{ duration: 0.4, delay: (i % 6) * 0.04 }}
+                  >
+                    <div style={{
+                      background: 'var(--bg-elevated)',
+                      border: '1px solid var(--border)',
+                      borderRadius: 14,
+                      padding: '14px',
+                      boxShadow: '0 2px 12px rgba(0,0,0,0.25)',
+                    }}>
                       <div className="flex items-center justify-between mb-3">
-                        <div style={{ width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center', background: `${cfg.hex}18` }}>
-                          <span className="material-symbols-rounded" style={{ fontSize: 15, color: cfg.hex }}>{cfg.icon}</span>
-                        </div>
-                        <ProgressRing pct={pct} hex={cfg.hex} />
+                        <Skeleton width={30} height={30} borderRadius={4} />
+                        <Skeleton width={36} height={36} borderRadius={18} />
                       </div>
-                      <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--t1)', marginBottom: 3, fontFamily: 'Space Grotesk', letterSpacing: '-0.01em' }} className="truncate">{cfg.title}</p>
-                      <p style={{ fontSize: 9, fontWeight: 700, color: cfg.hex, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{mod.cta || 'Start'}</p>
+                      <Skeleton width={80} height={11} borderRadius={4} style={{ marginBottom: 6 }} />
+                      <Skeleton width={36} height={9} borderRadius={4} />
+                    </div>
+                  </motion.div>
+                ))
+              : moduleList.slice(0, 8).map((mod, i) => {
+                  const cfg = MODULE_CONFIG[mod.module];
+                  if (!cfg) return null;
+                  const rawPct = mod.progress;
+                  let pct: number;
+                  if (typeof rawPct !== 'number') { pct = 0; }
+                  else if (rawPct > 1) { pct = Math.round(rawPct); }
+                  else { pct = Math.round(rawPct * 100); }
+                  return (
+                    <motion.div
+                      key={mod.module}
+                      initial={{ opacity: 0, scale: 0.88, filter: 'blur(4px)' }}
+                      whileInView={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
+                      viewport={{ once: true, margin: '-10px' }}
+                      transition={{ duration: 0.4, delay: (i % 6) * 0.04 }}
+                    >
+                      <Link to={cfg.path}>
+                        <motion.div
+                          style={{
+                            background: 'var(--bg-elevated)',
+                            border: '1px solid var(--border)',
+                            borderRadius: 14,
+                            backdropFilter: 'blur(12px)',
+                            padding: '14px',
+                            cursor: 'pointer',
+                            position: 'relative',
+                            overflow: 'hidden',
+                            transition: 'all 0.2s',
+                            boxShadow: '0 2px 12px rgba(0,0,0,0.25)',
+                          }}
+                          whileHover={{
+                            background: `${cfg.hex}0d`,
+                            borderColor: `${cfg.hex}30`,
+                            y: -3,
+                            boxShadow: `0 12px 40px rgba(0,0,0,0.4)`,
+                          }}
+                        >
+                          <div style={{ position: 'absolute', top: 0, right: 0, width: 40, height: 40, background: `radial-gradient(circle at top right, ${cfg.hex}15, transparent 70%)`, pointerEvents: 'none' }} />
+                          <div className="flex items-center justify-between mb-3">
+                            <div style={{ width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center', background: `${cfg.hex}18` }}>
+                              <span className="material-symbols-rounded" style={{ fontSize: 15, color: cfg.hex }}>{cfg.icon}</span>
+                            </div>
+                            <ProgressRing pct={pct} hex={cfg.hex} />
+                          </div>
+                          <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--t1)', marginBottom: 3, fontFamily: 'Space Grotesk', letterSpacing: '-0.01em' }} className="truncate">{cfg.title}</p>
+                          <p style={{ fontSize: 9, fontWeight: 700, color: cfg.hex, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{mod.cta || 'Start'}</p>
+                        </motion.div>
+                      </Link>
                     </motion.div>
-                  </Link>
-                </motion.div>
-              );
-            })}
+                  );
+                })
+            }
           </div>
         </FadeUp>
 
