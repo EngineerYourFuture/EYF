@@ -289,6 +289,13 @@ function SkillBar({ area }: { readonly area: SkillArea }) {
   );
 }
 
+function getOverallMeta(overall: number): { status: string; color: string; desc: string } {
+  if (overall >= 75) return { status: 'Interview Ready', color: 'text-emerald-400', desc: 'Strong profile. Target top companies and refine your narratives.' };
+  if (overall >= 55) return { status: 'Getting There', color: 'text-amber-400', desc: 'Good progress. Focus on your weakest 2 areas to unlock significant score gains.' };
+  if (overall >= 35) return { status: 'Needs Work', color: 'text-orange-400', desc: 'You are close to interview-ready. Tighten system design and behavioral gaps.' };
+  return { status: 'Getting Started', color: 'text-red-400', desc: 'You are in the early stages. Follow the 7-day sprint below to close critical gaps fast.' };
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export function ReadinessPage() {
@@ -320,24 +327,16 @@ export function ReadinessPage() {
   const strong   = areas.filter(a => a.status === 'strong');
   const critical = areas.filter(a => a.status === 'critical' || a.status === 'weak');
 
-  let overallStatus = 'Getting Started';
-  if (overall >= 75) overallStatus = 'Interview Ready';
-  else if (overall >= 55) overallStatus = 'Getting There';
-  else if (overall >= 35) overallStatus = 'Needs Work';
-
-  let overallColor = 'text-red-400';
-  if (overall >= 75) overallColor = 'text-emerald-400';
-  else if (overall >= 55) overallColor = 'text-amber-400';
-  else if (overall >= 35) overallColor = 'text-orange-400';
-
-  let overallDesc = 'Strong profile. Target top companies and refine your narratives.';
-  if (overall < 40) overallDesc = 'You are in the early stages. Follow the 7-day sprint below to close critical gaps fast.';
-  else if (overall < 60) overallDesc = 'Good progress. Focus on your weakest 2 areas to unlock significant score gains.';
-  else if (overall < 75) overallDesc = 'You are close to interview-ready. Tighten system design and behavioral gaps.';
+  const { status: overallStatus, color: overallColor, desc: overallDesc } = getOverallMeta(overall);
 
   const sprintDays = Array.from(new Set(sprint.map(t => t.day))).sort((a, b) => a - b);
   const dayTasks = sprint.filter(t => t.day === activeDay);
   const sprintPct = sprint.length ? Math.round((sprint.filter(t => t.done).length / sprint.length) * 100) : 0;
+
+  let accentColor: string;
+  if (overall >= 75) { accentColor = '#10b981'; }
+  else if (overall >= 55) { accentColor = '#f59e0b'; }
+  else { accentColor = '#E82127'; }
 
   return (
     <AppShell>
@@ -347,9 +346,9 @@ export function ReadinessPage() {
           eyebrow="Placement Intelligence"
           title={`${overall}% Ready.`}
           subtitle="Your personalized gap analysis across every domain recruiters test — from DSA to behavioral."
-          accentColor={overall >= 75 ? '#10b981' : overall >= 55 ? '#f59e0b' : '#E82127'}
+          accentColor={accentColor}
           stats={[
-            { value: `${overall}%`, label: 'Overall Readiness', color: overall >= 75 ? '#10b981' : overall >= 55 ? '#f59e0b' : '#E82127' },
+            { value: `${overall}%`, label: 'Overall Readiness', color: accentColor },
             { value: strong.length, label: 'Strong Areas' },
             { value: critical.length, label: 'Critical Gaps' },
           ]}
@@ -357,7 +356,7 @@ export function ReadinessPage() {
 
         {/* ── Hero: Overall Score ── */}
         <div style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', padding: 32, position: 'relative', overflow: 'hidden' }}>
-          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg, ${overall >= 75 ? '#10b981' : overall >= 55 ? '#f59e0b' : '#E82127'}, transparent)` }} />
+          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg, ${accentColor}, transparent)` }} />
           <div className="flex flex-col md:flex-row items-center gap-8">
             <RadialScore score={overall} size={160} />
             <div className="flex-1 text-center md:text-left">

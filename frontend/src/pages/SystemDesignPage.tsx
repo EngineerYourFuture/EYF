@@ -276,9 +276,12 @@ export function SystemDesignPage() {
               {cats.map((cat) => {
                 const meta = CATEGORY_META[cat];
                 const active = activeCategory === cat;
-                const catBg = active ? (meta ? `${meta.glow}` : 'rgba(255,255,255,0.08)') : 'rgba(255,255,255,0.04)';
-                const catBorder = active ? `1px solid ${meta ? meta.color + '50' : 'rgba(255,255,255,0.25)'}` : '1px solid rgba(255,255,255,0.07)';
-                const catColor = active ? (meta ? meta.color : 'rgba(255,255,255,0.9)') : 'rgba(255,255,255,0.32)';
+                let catBg: string;
+                if (active) { catBg = meta ? `${meta.glow}` : 'rgba(255,255,255,0.08)'; } else { catBg = 'rgba(255,255,255,0.04)'; }
+                let catBorder: string;
+                if (active) { catBorder = `1px solid ${meta ? meta.color + '50' : 'rgba(255,255,255,0.25)'}`; } else { catBorder = '1px solid rgba(255,255,255,0.07)'; }
+                let catColor: string;
+                if (active) { catColor = meta ? meta.color : 'rgba(255,255,255,0.9)'; } else { catColor = 'rgba(255,255,255,0.32)'; }
                 return (
                   <motion.button
                     key={cat}

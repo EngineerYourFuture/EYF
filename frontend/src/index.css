@@ -182,12 +182,12 @@ p, li, h1, h2, h3, h4, h5, h6, span, td, th {
   color: var(--t2); background: var(--bg-elevated); white-space: nowrap; line-height: 1.5;
   font-family: 'Space Grotesk', 'Inter', sans-serif;
 }
-.badge-red    { color: #FF6B7A; background: rgba(232,33,39,0.13);    border-color: rgba(232,33,39,0.28); }
-.badge-green  { color: #5DE090; background: rgba(74,222,128,0.10);  border-color: rgba(74,222,128,0.25); }
-.badge-blue   { color: #74B4FB; background: rgba(59,130,246,0.12);  border-color: rgba(59,130,246,0.28); }
-.badge-yellow { color: #FCC93A; background: rgba(251,191,36,0.11);  border-color: rgba(251,191,36,0.28); }
-.badge-purple { color: #B89FFB; background: rgba(167,139,250,0.12); border-color: rgba(167,139,250,0.28); }
-.badge-orange { color: #FCA55A; background: rgba(251,146,60,0.11);  border-color: rgba(251,146,60,0.26); }
+.badge-red    { color: #FF8A95; background: rgba(232,33,39,0.15);    border-color: rgba(232,33,39,0.30); }
+.badge-green  { color: #6EE89E; background: rgba(74,222,128,0.12);  border-color: rgba(74,222,128,0.28); }
+.badge-blue   { color: #8DC5FC; background: rgba(59,130,246,0.14);  border-color: rgba(59,130,246,0.30); }
+.badge-yellow { color: #FDDA5A; background: rgba(251,191,36,0.13);  border-color: rgba(251,191,36,0.30); }
+.badge-purple { color: #C8B4FC; background: rgba(167,139,250,0.14); border-color: rgba(167,139,250,0.30); }
+.badge-orange { color: #FDBB7A; background: rgba(251,146,60,0.13);  border-color: rgba(251,146,60,0.28); }
 
 /* ─────────────────────────────────────────────────────────────────────────────
    BUTTONS
@@ -300,9 +300,9 @@ p, li, h1, h2, h3, h4, h5, h6, span, td, th {
   display: inline-flex; align-items: center; padding: 2px 8px; border-radius: var(--r-xs);
   font-size: 11px; font-weight: 700; letter-spacing: 0.03em; line-height: 1.5; text-transform: uppercase;
 }
-.tag-easy   { background: rgba(74,222,128,0.1);  color: #5DE090; border: 1px solid rgba(74,222,128,0.22); }
-.tag-medium { background: rgba(251,191,36,0.1);  color: #FCC93A; border: 1px solid rgba(251,191,36,0.22); }
-.tag-hard   { background: rgba(248,113,113,0.1); color: #F98E8E; border: 1px solid rgba(248,113,113,0.22); }
+.tag-easy   { background: rgba(74,222,128,0.12);  color: #6EE89E; border: 1px solid rgba(74,222,128,0.25); }
+.tag-medium { background: rgba(251,191,36,0.12);  color: #FDDA5A; border: 1px solid rgba(251,191,36,0.25); }
+.tag-hard   { background: rgba(248,113,113,0.12); color: #FBA5A5; border: 1px solid rgba(248,113,113,0.25); }
 
 /* ─────────────────────────────────────────────────────────────────────────────
    AVATAR
@@ -518,8 +518,8 @@ kbd {
    ───────────────────────────────────────────────────────────────────────────── */
 .streak-badge {
   display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px 3px 7px;
-  border-radius: var(--r-pill); color: #FCA55A; background: rgba(251,146,60,0.12);
-  border: 1px solid rgba(251,146,60,0.25); font-size: 11px; font-weight: 700; line-height: 1;
+  border-radius: var(--r-pill); color: #FDBB7A; background: rgba(251,146,60,0.14);
+  border: 1px solid rgba(251,146,60,0.28); font-size: 11px; font-weight: 700; line-height: 1;
   letter-spacing: 0.05em;
 }
 
@@ -869,16 +869,16 @@ html.light .xp-bar-track   { background: rgba(0,0,0,0.08); }
 
 html.light .hm-0 { background: rgba(0,0,0,0.06); }
 
-html.light .tag-easy   { background: #f0fdf4; color: #16a34a; border-color: rgba(22,163,74,0.25); }
-html.light .tag-medium { background: #fefce8; color: #ca8a04; border-color: rgba(202,138,4,0.25); }
-html.light .tag-hard   { background: #fef2f2; color: #dc2626; border-color: rgba(220,38,38,0.25); }
+html.light .tag-easy   { background: #f0fdf4; color: #15803d; border-color: rgba(21,128,61,0.30); }
+html.light .tag-medium { background: #fefce8; color: #a16207; border-color: rgba(161,98,7,0.30); }
+html.light .tag-hard   { background: #fef2f2; color: #b91c1c; border-color: rgba(185,28,28,0.30); }
 
-html.light .badge-red    { color: #c00; background: #fff1f1; border-color: rgba(192,0,0,0.2); }
-html.light .badge-green  { color: #166534; background: #f0fdf4; border-color: rgba(22,101,52,0.2); }
-html.light .badge-blue   { color: #1e40af; background: #eff6ff; border-color: rgba(30,64,175,0.2); }
-html.light .badge-yellow { color: #854d0e; background: #fefce8; border-color: rgba(133,77,14,0.2); }
-html.light .badge-purple { color: #6b21a8; background: #faf5ff; border-color: rgba(107,33,168,0.2); }
-html.light .badge-orange { color: #9a3412; background: #fff7ed; border-color: rgba(154,52,18,0.2); }
+html.light .badge-red    { color: #b91c1c; background: #fff1f1; border-color: rgba(185,28,28,0.25); }
+html.light .badge-green  { color: #15803d; background: #f0fdf4; border-color: rgba(21,128,61,0.25); }
+html.light .badge-blue   { color: #1d4ed8; background: #eff6ff; border-color: rgba(29,78,216,0.25); }
+html.light .badge-yellow { color: #92400e; background: #fefce8; border-color: rgba(146,64,14,0.25); }
+html.light .badge-purple { color: #7e22ce; background: #faf5ff; border-color: rgba(126,34,206,0.25); }
+html.light .badge-orange { color: #9a3412; background: #fff7ed; border-color: rgba(154,52,18,0.25); }
 
 html.light .shortcuts-modal {
   background: rgba(255,255,255,0.97);
@@ -911,9 +911,9 @@ html.light body { background-image: none; }
 
 /* ── Light mode: code blocks ──────────────────────────────────────────────── */
 html.light pre, html.light code {
-  background: rgba(0,0,0,0.04);
-  border-color: rgba(0,0,0,0.08);
-  color: #1e293b;
+  background: rgba(0,0,0,0.05);
+  border-color: rgba(0,0,0,0.10);
+  color: #0f172a;
 }
 html.light kbd {
   background: rgba(0,0,0,0.06);

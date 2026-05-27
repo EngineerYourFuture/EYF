@@ -26,6 +26,13 @@ interface SkillCategory {
   skills: Skill[];
 }
 
+function applySkillRating(prev: SkillCategory[], skillId: string, level: number): SkillCategory[] {
+  return prev.map((cat) => ({
+    ...cat,
+    skills: cat.skills.map((s) => s.id === skillId ? { ...s, level, source: 'self' as const } : s),
+  }));
+}
+
 const DEFAULT_CATEGORIES: SkillCategory[] = [
   { name: 'Languages',      icon: 'code',      color: '#60a5fa', bg: 'rgba(96,165,250,0.1)',  skills: [
     { id: 'python',     name: 'Python',      category: 'Languages', level: 0, source: 'self', endorsements: 0 },
@@ -133,7 +140,7 @@ export function TechSkillsPage() {
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState('all');
   const [saving, setSaving] = useState(false);
-  const [, setLastSaved] = useState<Date | null>(null);
+  const [_lastSaved, setLastSaved] = useState<Date | null>(null);
   const [activeTab, setActiveTab] = useState<'skills' | 'gaps' | 'recommendations'>('skills');
 
   useEffect(() => {
@@ -145,7 +152,7 @@ export function TechSkillsPage() {
   }, [session?.accessToken]);
 
   const handleRate = (skillId: string, level: number) => {
-    setCategories((prev) => prev.map((cat) => ({ ...cat, skills: cat.skills.map((s) => s.id === skillId ? { ...s, level, source: 'self' as const } : s) })));
+    setCategories((prev) => applySkillRating(prev, skillId, level));
   };
 
   const saveSkills = async () => {

@@ -153,6 +153,23 @@ function buildGuideMessages(allTurns: Turn[]): { role: 'user' | 'assistant'; con
   return msgs;
 }
 
+async function performTrace(token: string, algorithm: string, input: string): Promise<TraceStep[]> {
+  const res = await apiRequest<TraceResponse>('/visualizer/trace', {
+    method: 'POST',
+    token,
+    body: { algorithm, input },
+  });
+  return res.steps ?? [];
+}
+
+async function performGuideCall(token: string, problem: string, messages: { role: 'user' | 'assistant'; content: string }[]): Promise<GuideResponse> {
+  return apiRequest<GuideResponse>('/visualizer/guide', {
+    method: 'POST',
+    token,
+    body: { problem, messages },
+  });
+}
+
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export function VisualizerPage() {
@@ -202,12 +219,8 @@ export function VisualizerPage() {
       return;
     }
     try {
-      const res = await apiRequest<TraceResponse>('/visualizer/trace', {
-        method: 'POST',
-        token: session.accessToken,
-        body: { algorithm, input: code },
-      });
-      setSteps(res.steps ?? []);
+      const traceSteps = await performTrace(session.accessToken, algorithm, code);
+      setSteps(traceSteps);
       fireXP(10, `${algorithm} trace generated!`);
     } catch {
       setTraceError('Failed to generate trace. Check your input.');
@@ -220,12 +233,7 @@ export function VisualizerPage() {
 
   const callGuide = async (messages: { role: 'user' | 'assistant'; content: string }[]) => {
     if (!session?.accessToken) return null;
-    const res = await apiRequest<GuideResponse>('/visualizer/guide', {
-      method: 'POST',
-      token: session.accessToken,
-      body: { problem, messages },
-    });
-    return res;
+    return performGuideCall(session.accessToken, problem, messages);
   };
 
   const startSession = async () => {
@@ -443,7 +451,8 @@ export function VisualizerPage() {
                 {STAGES.map((s, i) => {
                   const done = i < stageIndex;
                   const active = i === stageIndex;
-                  const stageOpacity = active ? 1 : (done ? 0.7 : 0.3);
+                  let stageOpacity: number;
+                  if (active) { stageOpacity = 1; } else if (done) { stageOpacity = 0.7; } else { stageOpacity = 0.3; }
                   let stageBg: string;
                   if (active) { stageBg = `${s.color}22`; }
                   else if (done) { stageBg = 'rgba(255,255,255,0.08)'; }
@@ -452,7 +461,8 @@ export function VisualizerPage() {
                   if (active) { stageBorder = `2px solid ${s.color}`; }
                   else if (done) { stageBorder = '2px solid rgba(255,255,255,0.15)'; }
                   else { stageBorder = '2px solid rgba(255,255,255,0.06)'; }
-                  const stageColor = active ? s.color : (done ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.2)');
+                  let stageColor: string;
+                  if (active) { stageColor = s.color; } else if (done) { stageColor = 'rgba(255,255,255,0.5)'; } else { stageColor = 'rgba(255,255,255,0.2)'; }
                   return (
                     <div key={s.key} style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
                       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, flexShrink: 0, opacity: stageOpacity, transition: 'opacity 0.3s' }}>

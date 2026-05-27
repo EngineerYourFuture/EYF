@@ -293,8 +293,8 @@ function ActivityHeatmap({ days }: { readonly days: DailyActivity[] }) {
 
       <div className="flex items-center gap-2 mt-3 justify-end">
         <span className="text-[10px]" style={{ color: 'rgba(255,255,255,0.2)' }}>Less</span>
-        {INTENSITY_COLORS.map((bg, i) => (
-          <div key={i} className="w-3 h-3 rounded-[2px]" style={{ background: bg }} />
+        {INTENSITY_COLORS.map((bg) => (
+          <div key={bg} className="w-3 h-3 rounded-[2px]" style={{ background: bg }} />
         ))}
         <span className="text-[10px]" style={{ color: 'rgba(255,255,255,0.2)' }}>More</span>
       </div>

@@ -164,11 +164,11 @@ export function CoreSubjectsPage() {
           title="Core Subjects."
           subtitle="Master the CS fundamentals that top companies interview on — OS, DBMS, Networks, and more."
           accentColor="#4ade80"
-          stats={!loading ? [
+          stats={loading ? undefined : [
             { value: `${masteryScore}%`, label: 'Overall Mastery', color: '#E82127' },
             { value: `${completedTotal}/${totalTopics}`, label: 'Topics Done', color: '#4ade80' },
             { value: `~${totalHoursLeft}h`, label: 'Hours Left', color: '#facc15' },
-          ] : undefined}
+          ]}
         />
 
         {/* Stats row - now in PageHeader, keeping for compatibility */}

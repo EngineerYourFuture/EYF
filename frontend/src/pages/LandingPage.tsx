@@ -1,6 +1,6 @@
 import MarqueeLib from 'react-fast-marquee';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const Marquee = ((MarqueeLib as any).default ?? MarqueeLib) as typeof MarqueeLib;
+const Marquee = ((MarqueeLib as any).default ?? MarqueeLib) as typeof MarqueeLib; // NOSONAR
 import { Link } from 'react-router-dom';
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { motion, useScroll, useTransform, useMotionValue, useSpring, useInView, animate } from 'framer-motion';
@@ -33,9 +33,9 @@ const DK = {
 };
 
 /* ── TiltCard ─────────────────────────────────────────────────────────── */
-function TiltCard({ children, style, className, maxTilt = 10 }: {
+function TiltCard({ children, style, className, maxTilt = 10 }: Readonly<{
   children: ReactNode; style?: CSSProperties; className?: string; maxTilt?: number;
-}) {
+}>) {
   const ref = useRef<HTMLDivElement>(null);
   const rawX = useMotionValue(0);
   const rawY = useMotionValue(0);
@@ -63,7 +63,7 @@ function TiltCard({ children, style, className, maxTilt = 10 }: {
 }
 
 /* ── TextScramble ─────────────────────────────────────────────────────── */
-const SCRAMBLE_CHARS = '!<>-_\\/[]{}—=+*^?#@&$%';
+const SCRAMBLE_CHARS = String.raw`!<>-_\/[]{}—=+*^?#@&$%`;
 
 function useTextScramble(text: string, active: boolean, delayS = 0) {
   const [out, setOut] = useState(active ? '' : text);
@@ -90,7 +90,7 @@ function useTextScramble(text: string, active: boolean, delayS = 0) {
 }
 
 /* ── CountUp ──────────────────────────────────────────────────────────── */
-function CountUp({ to, duration = 1.8, suffix = '' }: { to: number; duration?: number; suffix?: string }) {
+function CountUp({ to, duration = 1.8, suffix = '' }: Readonly<{ to: number; duration?: number; suffix?: string }>) {
   const ref = useRef<HTMLSpanElement>(null);
   const inView = useInView(ref, { once: true, margin: '-60px' });
   const val = useMotionValue(0);
@@ -110,7 +110,7 @@ function CountUp({ to, duration = 1.8, suffix = '' }: { to: number; duration?: n
 }
 
 /* ── Magnetic ─────────────────────────────────────────────────────────── */
-function Magnetic({ children, strength = 0.35 }: { children: ReactNode; strength?: number }) {
+function Magnetic({ children, strength = 0.35 }: Readonly<{ children: ReactNode; strength?: number }>) {
   const ref = useRef<HTMLDivElement>(null);
   const x = useMotionValue(0);
   const y = useMotionValue(0);
@@ -142,8 +142,8 @@ function CursorGlow() {
 
   useEffect(() => {
     const fn = (e: MouseEvent) => { x.set(e.clientX - 250); y.set(e.clientY - 250); };
-    window.addEventListener('mousemove', fn, { passive: true });
-    return () => window.removeEventListener('mousemove', fn);
+    globalThis.addEventListener('mousemove', fn, { passive: true });
+    return () => globalThis.removeEventListener('mousemove', fn);
   }, [x, y]);
 
   return (
@@ -160,9 +160,9 @@ function CursorGlow() {
 }
 
 /* ── ClipReveal ─────────────────────────────────────────────────────────── */
-function ClipReveal({ children, delay = 0, duration = 0.85, style = {}, className = '' }: {
+function ClipReveal({ children, delay = 0, duration = 0.85, style = {}, className = '' }: Readonly<{
   children: ReactNode; delay?: number; duration?: number; style?: CSSProperties; className?: string;
-}) {
+}>) {
   return (
     <div style={{ overflow: 'hidden', display: 'block', ...style }} className={className}>
       <motion.div
@@ -178,9 +178,9 @@ function ClipReveal({ children, delay = 0, duration = 0.85, style = {}, classNam
 }
 
 /* ── HeroReveal ─────────────────────────────────────────────────────────── */
-function HeroReveal({ children, delay = 0, style = {}, className = '' }: {
+function HeroReveal({ children, delay = 0, style = {}, className = '' }: Readonly<{
   children: ReactNode; delay?: number; style?: CSSProperties; className?: string;
-}) {
+}>) {
   return (
     <div style={{ overflow: 'hidden', display: 'block', ...style }} className={className}>
       <motion.div
@@ -195,9 +195,9 @@ function HeroReveal({ children, delay = 0, style = {}, className = '' }: {
 }
 
 /* ── FadeUp ──────────────────────────────────────────────────────────────── */
-function FadeUp({ children, delay = 0, style = {}, className = '' }: {
+function FadeUp({ children, delay = 0, style = {}, className = '' }: Readonly<{
   children: ReactNode; delay?: number; style?: CSSProperties; className?: string;
-}) {
+}>) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 24 }}
@@ -218,7 +218,7 @@ function AppWindow() {
     <motion.div
       initial={{ opacity: 0, y: 80, rotateX: 16 }}
       animate={{ opacity: 1, y: 0, rotateX: 6 }}
-      transition={{ duration: 1.6, delay: 1.0, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: 1.6, delay: 1, ease: [0.16, 1, 0.3, 1] }}
       style={{ perspective: 1600, transformStyle: 'preserve-3d', width: '100%' }}
     >
       <div style={{
@@ -759,8 +759,11 @@ function HowItWorksSection() {
                 <p style={{ fontSize: 15, color: DK.t2, lineHeight: 1.7, maxWidth: 420, position: 'relative', zIndex: 1 }}>{step.body}</p>
               </div>
               <div className="hidden lg:flex" style={{ alignItems: 'center', justifyContent: 'center' }}>
-                <TiltCard maxTilt={8} style={{ width: '100%', maxWidth: 340 }}>
-                  <div style={{
+                <TiltCard maxTilt={8} style={{ width: '100%', maxWidth: 340 }} role="presentation">
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    style={{
                     border: `1px solid rgba(255,255,255,0.08)`, padding: '48px 40px',
                     background: DK.elev, borderRadius: 20, width: '100%',
                     position: 'relative', overflow: 'hidden', cursor: 'default',
@@ -778,6 +781,14 @@ function HowItWorksSection() {
                     el.style.background = DK.elev;
                     el.style.borderColor = 'rgba(255,255,255,0.08)';
                     el.querySelectorAll('[data-invert]').forEach(c => { (c as HTMLElement).style.color = ''; });
+                  }}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      const el = e.currentTarget;
+                      el.style.background = '#E82127';
+                      el.style.borderColor = '#E82127';
+                      el.querySelectorAll('[data-invert]').forEach(c => { (c as HTMLElement).style.color = '#fff'; });
+                    }
                   }}
                   >
                     <span className="material-symbols-rounded" data-invert style={{ fontSize: 48, color: step.color, display: 'block', marginBottom: 20, transition: 'color 0.3s' }}>{step.icon}</span>
@@ -919,8 +930,8 @@ function CTASection() {
 
       <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0 }}>
         <Marquee speed={50} gradient={false} autoFill style={{ borderTop: '1px solid rgba(255,255,255,0.05)', padding: '14px 0' }}>
-          {['Get placed', 'Crack every interview', 'Engineer your future', 'DSA · System Design · Placement'].map((t, i) => (
-            <span key={i} style={{ marginRight: 64, fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: DK.t4 }}>{t}</span>
+          {['Get placed', 'Crack every interview', 'Engineer your future', 'DSA · System Design · Placement'].map((t) => (
+            <span key={t} style={{ marginRight: 64, fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: DK.t4 }}>{t}</span>
           ))}
         </Marquee>
       </div>

@@ -65,6 +65,17 @@ function canAdvanceStep(step: number, data: OnboardingData): boolean {
   return true;
 }
 
+async function saveOnboardingProfile(token: string, data: OnboardingData): Promise<void> {
+  await Promise.all([
+    apiRequest('/career/profile', {
+      token,
+      method: 'PUT',
+      body: { track: data.track, targetRole: data.targetRole, interests: data.focusAreas, experienceYears: data.experienceYears, dailyGoalMinutes: data.dailyGoalMinutes, targetCompanies: data.targetCompanies },
+    }),
+    data.name && apiRequest('/auth/profile', { token, method: 'PATCH', body: { name: data.name } }),
+  ]);
+}
+
 export function OnboardingPage() {
   const navigate = useNavigate();
   const session = getSession();
@@ -98,13 +109,9 @@ export function OnboardingPage() {
   const finish = async () => {
     setSaving(true);
     try {
-      await Promise.all([
-        session?.accessToken && apiRequest('/career/profile', {
-          token: session.accessToken, method: 'PUT',
-          body: { track: data.track, targetRole: data.targetRole, interests: data.focusAreas, experienceYears: data.experienceYears, dailyGoalMinutes: data.dailyGoalMinutes, targetCompanies: data.targetCompanies },
-        }),
-        data.name && session?.accessToken && apiRequest('/auth/profile', { token: session.accessToken, method: 'PATCH', body: { name: data.name } }),
-      ]);
+      if (session?.accessToken) {
+        await saveOnboardingProfile(session.accessToken, data);
+      }
       await refresh();
     } catch {
       // Don't block onboarding UX

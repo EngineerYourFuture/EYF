@@ -102,6 +102,26 @@ const SESSION_STATUS_META = {
   cancelled: { label: 'Cancelled', color: 'var(--t3)', bg: 'rgba(113,113,122,0.1)' },
 };
 
+async function createBookingSession(token: string, mentorId: string, sessionType: string, goal: string): Promise<MySession> {
+  return apiRequest<MySession>('/mentorship/sessions', {
+    token,
+    method: 'POST',
+    body: { mentorId, sessionType, goal },
+  });
+}
+
+async function postBecomeMentor(token: string, bio: string, specializations: string, yearsExp: string): Promise<void> {
+  await apiRequest('/mentorship/become-mentor', {
+    token,
+    method: 'POST',
+    body: {
+      bio,
+      specializations: specializations.split(',').map((s) => s.trim()),
+      yearsExperience: Number.parseInt(yearsExp, 10) || 0,
+    },
+  });
+}
+
 export function MentorshipPage() {
   const session = getSession();
   const { fireXP } = useUser();
@@ -140,11 +160,7 @@ export function MentorshipPage() {
     if (!bookingMentor || !sessionType || !session?.accessToken) return;
     setBooking(true);
     try {
-      const created = await apiRequest<MySession>('/mentorship/sessions', {
-        token: session.accessToken,
-        method: 'POST',
-        body: { mentorId: bookingMentor.id, sessionType, goal: sessionGoal },
-      });
+      const created = await createBookingSession(session.accessToken, bookingMentor.id, sessionType, sessionGoal);
       setMySessions((prev) => [created, ...prev]);
     } catch {
       const fallback = buildFallbackSession(bookingMentor, sessionType, sessionGoal);
@@ -177,11 +193,7 @@ export function MentorshipPage() {
     if (!session?.accessToken || !becomeForm.bio || !becomeForm.specializations) return;
     setSubmittingBecome(true);
     try {
-      await apiRequest('/mentorship/become-mentor', {
-        token: session.accessToken,
-        method: 'POST',
-        body: { bio: becomeForm.bio, specializations: becomeForm.specializations.split(',').map((s) => s.trim()), yearsExperience: Number.parseInt(becomeForm.yearsExp, 10) || 0 },
-      });
+      await postBecomeMentor(session.accessToken, becomeForm.bio, becomeForm.specializations, becomeForm.yearsExp);
     } catch {}
     finally {
       setSubmittingBecome(false);
@@ -392,9 +404,12 @@ export function MentorshipPage() {
                         if (g.joined) { groupBtnBg = 'rgba(34,197,94,0.1)'; }
                         else if (full) { groupBtnBg = 'rgba(255,255,255,0.03)'; }
                         else { groupBtnBg = '#E82127'; }
-                        const groupBtnColor = g.joined ? '#4ade80' : (full ? '#52525b' : '#fff');
-                        const groupBtnIcon = g.joined ? 'check_circle' : (full ? 'group_off' : 'group_add');
-                        const groupBtnLabel = g.joined ? 'Joined · Leave' : (full ? 'Group Full' : 'Join Group');
+                        let groupBtnColor: string;
+                        if (g.joined) { groupBtnColor = '#4ade80'; } else if (full) { groupBtnColor = '#52525b'; } else { groupBtnColor = '#fff'; }
+                        let groupBtnIcon: string;
+                        if (g.joined) { groupBtnIcon = 'check_circle'; } else if (full) { groupBtnIcon = 'group_off'; } else { groupBtnIcon = 'group_add'; }
+                        let groupBtnLabel: string;
+                        if (g.joined) { groupBtnLabel = 'Joined · Leave'; } else if (full) { groupBtnLabel = 'Group Full'; } else { groupBtnLabel = 'Join Group'; }
                         return (
                         <button
                           onClick={() => toggleGroup(g.id)}

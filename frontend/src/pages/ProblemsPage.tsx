@@ -408,7 +408,10 @@ export function ProblemsPage() {
               else if (d === 'medium') { diffColor = '#facc15'; }
               else if (d === 'hard') { diffColor = '#f87171'; }
               else { diffColor = 'white'; }
-              const diffBtnColor = active ? (d === 'all' ? 'white' : diffColor) : 'rgba(255,255,255,0.28)';
+              let diffBtnColor: string;
+              if (!active) { diffBtnColor = 'rgba(255,255,255,0.28)'; }
+              else if (d === 'all') { diffBtnColor = 'white'; }
+              else { diffBtnColor = diffColor; }
               return (
                 <button
                   key={d}

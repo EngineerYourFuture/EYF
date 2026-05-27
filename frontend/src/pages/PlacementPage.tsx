@@ -700,6 +700,18 @@ function renderDailyQuestionAction(
   );
 }
 
+async function apiBehavioralSave(token: string, id: string, response: string): Promise<void> {
+  await apiRequest(`/placement/behavioral/${id}`, { token, method: 'POST', body: { response } });
+}
+
+async function apiAddApplication(token: string, newApp: { company: string; role: string; status: Application['status']; nextStep: string; nextStepDate: string }): Promise<Application> {
+  return apiRequest<Application>('/placement/applications', { token, method: 'POST', body: newApp });
+}
+
+async function apiUpdateAppStatus(token: string, id: string, status: Application['status']): Promise<void> {
+  await apiRequest(`/placement/applications/${id}`, { token, method: 'PATCH', body: { status } });
+}
+
 function buildLocalApplication(newApp: { company: string; role: string; status: Application['status']; nextStep: string; nextStepDate: string }): Application {
   return {
     id: Date.now().toString(),
@@ -763,11 +775,7 @@ export function PlacementPage() {
     if (!selectedBQ || !session?.accessToken || bqResponse.length < 10) return;
     setSavingBQ(true);
     try {
-      await apiRequest(`/placement/behavioral/${selectedBQ.id}`, {
-        token: session.accessToken,
-        method: 'POST',
-        body: { response: bqResponse },
-      });
+      await apiBehavioralSave(session.accessToken, selectedBQ.id, bqResponse);
       setBehaviorals((prev) => prev.map((q) => q.id === selectedBQ.id
         ? { ...q, response: bqResponse, lastPracticed: new Date().toISOString() }
         : q
@@ -786,11 +794,7 @@ export function PlacementPage() {
     if (!session?.accessToken || !newApp.company || !newApp.role) return;
     setAddingApp(true);
     try {
-      const created = await apiRequest<Application>('/placement/applications', {
-        token: session.accessToken,
-        method: 'POST',
-        body: newApp,
-      });
+      const created = await apiAddApplication(session.accessToken, newApp);
       setApplications((prev) => [created, ...prev]);
       setStats((s) => ({ ...s, applicationsSubmitted: s.applicationsSubmitted + 1 }));
       setNewApp({ company: '', role: '', status: 'applied', nextStep: '', nextStepDate: '' });
@@ -812,11 +816,7 @@ export function PlacementPage() {
     if (!session?.accessToken) return;
     setApplications((prev) => prev.map((a) => a.id === id ? { ...a, status } : a));
     try {
-      await apiRequest(`/placement/applications/${id}`, {
-        token: session.accessToken,
-        method: 'PATCH',
-        body: { status },
-      });
+      await apiUpdateAppStatus(session.accessToken, id, status);
       if (status === 'offer') fireXP(100, '🎉 Offer received!');
       if (status === 'interview') fireXP(30, 'Interview scheduled!');
     } catch {

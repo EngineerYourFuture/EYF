@@ -683,7 +683,10 @@ export function HomePage() {
               const cfg = MODULE_CONFIG[mod.module];
               if (!cfg) return null;
               const rawPct = mod.progress;
-              const pct = typeof rawPct === 'number' ? (rawPct > 1 ? Math.round(rawPct) : Math.round(rawPct * 100)) : 0;
+              let pct: number;
+              if (typeof rawPct !== 'number') { pct = 0; }
+              else if (rawPct > 1) { pct = Math.round(rawPct); }
+              else { pct = Math.round(rawPct * 100); }
               return (
                 <motion.div
                   key={mod.module}

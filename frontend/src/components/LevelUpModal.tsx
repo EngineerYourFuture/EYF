@@ -59,7 +59,10 @@ export function LevelUpModal({ level, onClose }: Props) {
           {/* Particle ring */}
           <div style={{ position: 'absolute', top: '50%', left: '50%', width: 0, height: 0 }}>
             {PARTICLES.map((p, i) => {
-              const particleColor = i % 3 === 0 ? '#E82127' : (i % 3 === 1 ? '#FF8C00' : '#FFD700');
+              let particleColor: string;
+              if (i % 3 === 0) { particleColor = '#E82127'; }
+              else if (i % 3 === 1) { particleColor = '#FF8C00'; }
+              else { particleColor = '#FFD700'; }
               return (
               <motion.div
                 key={p.angle}

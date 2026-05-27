@@ -1,14 +1,14 @@
 import { type ReactNode } from 'react';
 import { motion } from 'framer-motion';
 
-interface PageHeaderProps {
+type PageHeaderProps = Readonly<{
   eyebrow?: string;
   title: string;
   subtitle?: string;
   actions?: ReactNode;
   stats?: Array<{ value: string | number; label: string; color?: string }>;
   accentColor?: string;
-}
+}>;
 
 export function PageHeader({
   eyebrow,

@@ -121,6 +121,16 @@ function calcInterviewXP(selectedType: InterviewType, answers: Record<string, st
   return Math.round(answered * (XP_PER_ANSWER[selectedType] ?? 10));
 }
 
+async function submitInterviewSession(token: string | undefined, sessionId: string | null, selectedType: InterviewType, answers: Record<string, string>, feedback: string): Promise<void> {
+  if (token && sessionId) {
+    await apiRequest('/mock-interview/sessions', {
+      method: 'POST',
+      token,
+      body: { ...buildSubmitPayload(sessionId, selectedType, answers), selfRating: feedback },
+    }).catch(() => {});
+  }
+}
+
 export function MockInterviewPage() {
   const session = getSession();
   const { fireXP } = useUser();
@@ -182,13 +192,7 @@ export function MockInterviewPage() {
   async function submitSession() {
     setSubmitting(true);
     try {
-      if (session?.accessToken && sessionId) {
-        await apiRequest('/mock-interview/sessions', {
-          method: 'POST',
-          token: session.accessToken,
-          body: { ...buildSubmitPayload(sessionId, selectedType, answers), selfRating: feedback },
-        }).catch(() => {});
-      }
+      await submitInterviewSession(session?.accessToken, sessionId, selectedType, answers, feedback);
       const xp = calcInterviewXP(selectedType, answers);
       fireXP(xp, `Mock ${TYPE_META[selectedType].label} interview complete!`);
     } finally {

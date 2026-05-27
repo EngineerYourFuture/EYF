@@ -256,6 +256,16 @@ function pickQuizQuestions(difficulty: 'all' | 'easy' | 'medium' | 'hard', count
   return shuffle(pool).slice(0, Math.min(count, pool.length));
 }
 
+function getQuizResult(accuracy: number): { emoji: string; msg: string; gradient: string } {
+  if (accuracy >= 80) {
+    return { emoji: '🏆', msg: 'Excellent! Your pattern recognition is interview-ready. 🔥', gradient: 'linear-gradient(135deg,#4ade80,#22d3ee)' };
+  }
+  if (accuracy >= 60) {
+    return { emoji: '🎯', msg: 'Good progress! Review the patterns you missed below.', gradient: 'linear-gradient(135deg,#facc15,#fb923c)' };
+  }
+  return { emoji: '💪', msg: 'Keep practicing! Pattern recognition builds with repetition.', gradient: 'linear-gradient(135deg,#f87171,#fb923c)' };
+}
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export function PatternQuizPage() {
@@ -316,16 +326,7 @@ export function PatternQuizPage() {
   const answeredOffset = answered ? 1 : 0;
   const progressPct = questions.length > 0 ? Math.round(((current + answeredOffset) / questions.length) * 100) : 0;
   const accuracy = answers.length > 0 ? Math.round((score / answers.length) * 100) : 0;
-  let resultEmoji = '💪';
-  if (accuracy >= 80) resultEmoji = '🏆';
-  else if (accuracy >= 60) resultEmoji = '🎯';
-  let resultMsg = 'Keep practicing! Pattern recognition builds with repetition.';
-  if (accuracy >= 80) resultMsg = 'Excellent! Your pattern recognition is interview-ready. 🔥';
-  else if (accuracy >= 60) resultMsg = 'Good progress! Review the patterns you missed below.';
-  let scoreGradient: string;
-  if (accuracy >= 80) { scoreGradient = 'linear-gradient(135deg,#4ade80,#22d3ee)'; }
-  else if (accuracy >= 60) { scoreGradient = 'linear-gradient(135deg,#facc15,#fb923c)'; }
-  else { scoreGradient = 'linear-gradient(135deg,#f87171,#fb923c)'; }
+  const { emoji: resultEmoji, msg: resultMsg, gradient: scoreGradient } = getQuizResult(accuracy);
 
   return (
     <AppShell>

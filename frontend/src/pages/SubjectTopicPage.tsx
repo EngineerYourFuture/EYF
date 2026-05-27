@@ -4122,6 +4122,21 @@ function markTopicCompleteApi(token: string, subjectId: string, topicId: string)
   }).catch(() => {});
 }
 
+function triggerMarkComplete(
+  token: string | undefined,
+  subjectId: string | undefined,
+  topicId: string | undefined,
+  navigate: (path: string) => void,
+  nextTopicId: string | undefined,
+): void {
+  if (token && subjectId && topicId) {
+    markTopicCompleteApi(token, subjectId, topicId);
+  }
+  if (nextTopicId && subjectId) {
+    setTimeout(() => navigate(`/app/subjects/${subjectId}/${nextTopicId}`), 500);
+  }
+}
+
 export function SubjectTopicPage() {
   const { subjectId, topicId } = useParams<{ subjectId: string; topicId: string }>();
   const navigate = useNavigate();
@@ -4158,12 +4173,7 @@ export function SubjectTopicPage() {
   const handleMarkComplete = () => {
     setCompleted(true);
     fireXP(15, `"${topic.title}" completed!`);
-    if (session?.accessToken && subjectId && topicId) {
-      markTopicCompleteApi(session.accessToken, subjectId, topicId);
-    }
-    if (nextTopic) {
-      setTimeout(() => navigate(`/app/subjects/${subjectId}/${nextTopic.id}`), 500);
-    }
+    triggerMarkComplete(session?.accessToken, subjectId, topicId, navigate, nextTopic?.id);
   };
 
   const isDone = topic.done || completed;

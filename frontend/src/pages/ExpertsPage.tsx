@@ -54,6 +54,24 @@ function filterExperts(experts: Expert[], filterAvailable: boolean, filterSpec: 
   });
 }
 
+async function fetchExpertDetail(token: string, id: string, experts: Expert[]): Promise<ExpertDetail> {
+  try {
+    return await apiRequest<ExpertDetail>(`/experts/${id}`, { token });
+  } catch {
+    const found = experts.find((e) => e.id === id);
+    if (found) return { ...found, reviews: [] };
+    throw new Error('Expert not found');
+  }
+}
+
+async function postReview(token: string, expertId: string, rating: number, comment: string): Promise<void> {
+  await apiRequest(`/experts/${expertId}/review`, {
+    token,
+    method: 'POST',
+    body: { rating, comment },
+  });
+}
+
 export function ExpertsPage() {
   const session = getSession();
   const { fireXP } = useUser();
@@ -80,24 +98,15 @@ export function ExpertsPage() {
 
   const openExpert = async (id: string) => {
     if (!session?.accessToken) return;
-    try {
-      const d = await apiRequest<ExpertDetail>(`/experts/${id}`, { token: session.accessToken });
-      setSelected(d);
-    } catch {
-      const found = experts.find((e) => e.id === id);
-      if (found) setSelected({ ...found, reviews: [] });
-    }
+    const detail = await fetchExpertDetail(session.accessToken, id, experts).catch(() => null);
+    if (detail) setSelected(detail);
   };
 
   const submitReview = async () => {
     if (!session?.accessToken || !selected) return;
     setSubmittingReview(true);
     try {
-      await apiRequest(`/experts/${selected.id}/review`, {
-        token: session.accessToken,
-        method: 'POST',
-        body: { rating, comment },
-      });
+      await postReview(session.accessToken, selected.id, rating, comment);
       setSelected((prev) => prev ? {
         ...prev,
         reviews: [{ id: 'new', rating, comment, createdAt: new Date().toISOString(), reviewer: 'you' }, ...prev.reviews],
