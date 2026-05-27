@@ -165,7 +165,7 @@ function ClipReveal({ children, delay = 0, duration = 0.85, style = {}, classNam
   children: ReactNode; delay?: number; duration?: number; style?: CSSProperties; className?: string;
 }>) {
   return (
-    <div style={{ overflow: 'hidden', display: 'block', ...style }} className={className}>
+    <div style={{ overflow: 'hidden', display: 'block', paddingBottom: 4, marginBottom: -4, ...style }} className={className}>
       <motion.div
         initial={{ y: '105%' }}
         whileInView={{ y: '0%' }}
@@ -183,7 +183,7 @@ function HeroReveal({ children, delay = 0, style = {}, className = '' }: Readonl
   children: ReactNode; delay?: number; style?: CSSProperties; className?: string;
 }>) {
   return (
-    <div style={{ overflow: 'hidden', display: 'block', ...style }} className={className}>
+    <div style={{ overflow: 'hidden', display: 'block', paddingBottom: 4, marginBottom: -4, ...style }} className={className}>
       <motion.div
         initial={{ y: '105%' }}
         animate={{ y: '0%' }}
@@ -366,7 +366,7 @@ function HeroSection() {
     <section style={{
       minHeight: '100dvh', background: D.bg, position: 'relative',
       display: 'flex', flexDirection: 'column', alignItems: 'center',
-      overflow: 'hidden', paddingTop: 72, paddingBottom: 0,
+      overflowX: 'hidden', paddingTop: 72, paddingBottom: 0,
     }}>
       <motion.div style={{
         position: 'relative', zIndex: 1, textAlign: 'center', width: '100%',
@@ -953,8 +953,13 @@ function Footer() {
 
 /* ── Export ─────────────────────────────────────────────────────────────── */
 export function LandingPage() {
+  useEffect(() => {
+    document.body.classList.add('landing-page');
+    return () => { document.body.classList.remove('landing-page'); };
+  }, []);
+
   return (
-    <div style={{ background: D.bg, color: D.t1 }}>
+    <div style={{ background: D.bg, color: D.t1, minHeight: '100dvh' }}>
       <CursorGlow />
       <LandingNav />
       <main>

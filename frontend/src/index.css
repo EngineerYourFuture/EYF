@@ -148,6 +148,13 @@ h1, h2, h3 {
   line-height: 0.95;
 }
 
+/* Landing page — override the dark app theme on body */
+body.landing-page {
+  background: #ffffff !important;
+  background-image: none !important;
+  color: #1d1d1f !important;
+}
+
 img, svg { display: block; max-width: 100%; }
 button   { cursor: pointer; font: inherit; }
 a        { color: inherit; }
