@@ -492,6 +492,7 @@ export function ProblemDetailPage() {
   const [submitResult, setSubmitResult] = useState<SubmitResponse | null>(null);
   const [showHints, setShowHints] = useState(false);
   const [editorReady, setEditorReady] = useState(false);
+  const [executionHealth, setExecutionHealth] = useState<'ok' | 'degraded' | 'down' | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -508,6 +509,17 @@ export function ProblemDetailPage() {
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [id, session?.accessToken]);
+
+  // Probe the execution engine once on mount — silently ignored if the API is unreachable
+  useEffect(() => {
+    fetch('/api/system/health')
+      .then((r) => r.json())
+      .then((d: { services?: { judge0?: string } }) => {
+        const s = d.services?.judge0;
+        if (s === 'ok' || s === 'degraded' || s === 'down') setExecutionHealth(s);
+      })
+      .catch(() => {}); // network failure → stay null (no banner)
+  }, []);
 
   const onLanguageChange = (lang: Language) => {
     setEditorReady(false);
@@ -587,10 +599,34 @@ export function ProblemDetailPage() {
   const failedVerdict = submitResult && submitResult.verdict !== 'accepted';
   const detectedPattern = failedVerdict ? detectCodePattern(code) : null;
 
+  const engineDown = executionHealth !== null && executionHealth !== 'ok' && language !== 'javascript';
+
   return (
     <div className="dark min-h-screen bg-[#0e0e0e] flex flex-col" style={{ fontFamily: 'Inter, sans-serif', color: 'var(--t1)' }}>
+      {/* Execution engine degradation banner */}
+      {engineDown && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, zIndex: 60,
+          background: executionHealth === 'down'
+            ? 'linear-gradient(90deg, #7f1d1d, #450a0a)'
+            : 'linear-gradient(90deg, #78350f, #292524)',
+          borderBottom: `1px solid ${executionHealth === 'down' ? 'rgba(239,68,68,0.3)' : 'rgba(245,158,11,0.3)'}`,
+          padding: '7px 24px',
+          display: 'flex', alignItems: 'center', gap: 8,
+          fontSize: 11, fontWeight: 600, color: executionHealth === 'down' ? '#fca5a5' : '#fcd34d',
+        }}>
+          <Icon name={executionHealth === 'down' ? 'error' : 'warning'} size={14} />
+          {executionHealth === 'down'
+            ? 'Execution engine offline — compiled languages unavailable. Switch to JavaScript to run locally.'
+            : 'Execution engine degraded — compiled languages may be slow or fail. JavaScript runs locally as normal.'}
+          <span style={{ marginLeft: 'auto', opacity: 0.6, fontSize: 10 }}>
+            /api/system/health → judge0: {executionHealth}
+          </span>
+        </div>
+      )}
       {/* Top bar */}
-      <header className="fixed top-0 left-0 right-0 z-50 h-14 bg-[#111]/90 backdrop-blur-xl border-b border-white/5 flex items-center justify-between px-6 gap-4">
+      <header className="fixed top-0 left-0 right-0 z-50 h-14 bg-[#111]/90 backdrop-blur-xl border-b border-white/5 flex items-center justify-between px-6 gap-4"
+        style={{ top: engineDown ? 32 : 0 }}>
         <div className="flex items-center gap-3 min-w-0">
           <Link to="/app/problems" className="flex items-center gap-1.5 text-zinc-500 hover:text-white transition-colors shrink-0">
             <Icon name="chevron_left" size={20} />
@@ -634,7 +670,7 @@ export function ProblemDetailPage() {
       </header>
 
       {/* Main two-panel layout */}
-      <div className="flex pt-14 h-screen" style={{ viewTransitionName: 'active-problem' }}>
+      <div className="flex h-screen" style={{ paddingTop: engineDown ? 'calc(3.5rem + 32px)' : '3.5rem', viewTransitionName: 'active-problem' }}>
         {/* Left panel: problem */}
         <div className="w-[45%] min-w-[320px] flex flex-col border-r border-white/5 overflow-hidden">
           {/* Panel tabs */}

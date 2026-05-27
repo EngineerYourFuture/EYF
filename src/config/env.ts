@@ -46,6 +46,25 @@ if (!webhookSigningSecret || webhookSigningSecret.length < 24) {
   throw new Error("BILLING_WEBHOOK_SECRET must be set and at least 24 chars.");
 }
 
+const judge0ApiUrl = (process.env.JUDGE0_API_URL ?? "https://api.judge0.com").replace(/\/$/, "");
+const judge0ApiKey = process.env.JUDGE0_API_KEY ?? "";
+
+if (resolvedNodeEnv === "production") {
+  if (judge0ApiUrl === "https://api.judge0.com") {
+    console.warn(
+      "[EYF] WARNING: JUDGE0_API_URL is unset — falling back to public api.judge0.com. " +
+      "This instance has no SLA and will fail under load. " +
+      "Set JUDGE0_API_URL to a self-hosted Judge0 CE instance."
+    );
+  }
+  if (!judge0ApiKey) {
+    console.warn(
+      "[EYF] WARNING: JUDGE0_API_KEY is unset — unauthenticated requests will hit " +
+      "Judge0's lowest rate-limit tier."
+    );
+  }
+}
+
 export const env = {
   nodeEnv: resolvedNodeEnv,
   port: resolvedPort,
@@ -56,5 +75,7 @@ export const env = {
   billingWebhookSecret: webhookSigningSecret,
   corsAllowedOrigins,
   trustProxy: process.env.TRUST_PROXY === "true",
-  serveFrontend
+  serveFrontend,
+  judge0ApiUrl,
+  judge0ApiKey,
 };

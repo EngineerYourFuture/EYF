@@ -2,58 +2,8 @@ import { Router, Response } from "express";
 import { z } from "zod";
 import { Prisma, Plan } from "@prisma/client";
 import { prisma } from "../lib/prisma";
+import { runOnJudge0 } from "../lib/judge0";
 import { requireAuth, AuthRequest, asStr } from "../middleware/auth";
-
-// Judge0 CE language IDs
-const JUDGE0_LANG: Record<string, number> = {
-  javascript: 93, // Node.js 18
-  python: 71,     // Python 3.8
-  java: 91,       // Java 17
-  cpp: 54,        // C++17
-  c: 50,          // C (GCC 9)
-};
-
-const JUDGE0_BASE = (process.env.JUDGE0_API_URL ?? "https://api.judge0.com").replace(/\/$/, "");
-
-interface Judge0Result {
-  stdout: string | null;
-  stderr: string | null;
-  compile_output: string | null;
-  status: { id: number; description: string };
-  time: string | null;
-  memory: number | null;
-}
-
-async function runOnJudge0(
-  code: string,
-  language: string,
-  stdin: string
-): Promise<{ stdout: string; stderr: string; exitCode: number; runtimeMs: number; memoryKb: number }> {
-  const langId = JUDGE0_LANG[language];
-  if (!langId) throw new Error(`Unsupported language: ${language}`);
-
-  const headers: Record<string, string> = { "Content-Type": "application/json" };
-  if (process.env.JUDGE0_API_KEY) headers["X-RapidAPI-Key"] = process.env.JUDGE0_API_KEY;
-
-  const submitRes = await fetch(`${JUDGE0_BASE}/submissions?base64_encoded=false&wait=true`, {
-    method: "POST",
-    headers,
-    body: JSON.stringify({ source_code: code, language_id: langId, stdin, cpu_time_limit: 5, memory_limit: 262144 }),
-    signal: AbortSignal.timeout(15000),
-  });
-
-  if (!submitRes.ok) throw new Error(`Judge0 error: ${submitRes.status}`);
-  const result = await submitRes.json() as Judge0Result;
-
-  const stdout = result.stdout ?? "";
-  const stderr = (result.stderr ?? "") || (result.compile_output ?? "");
-  // status id 3 = Accepted, anything else is an error
-  const exitCode = result.status.id === 3 ? 0 : 1;
-  const runtimeMs = result.time ? Math.round(Number.parseFloat(result.time) * 1000) : 0;
-  const memoryKb = result.memory ?? 0;
-
-  return { stdout, stderr, exitCode, runtimeMs, memoryKb };
-}
 
 const router = Router();
 

@@ -32,6 +32,7 @@ import { systemDesignRouter } from "./routes/system-design";
 import { careerRouter } from "./routes/career";
 import { communityRouter } from "./routes/community";
 import { expertsRouter } from "./routes/experts";
+import { systemRouter } from "./routes/system";
 
 export const app = express();
 
@@ -125,6 +126,7 @@ app.use("/api/system-design", systemDesignRouter);
 app.use("/api/career", careerRouter);
 app.use("/api/community", communityRouter);
 app.use("/api/experts", expertsRouter);
+app.use("/api/system", systemRouter);
 
 // Serve frontend in production
 if (env.serveFrontend) {
