@@ -724,6 +724,21 @@ function buildLocalApplication(newApp: { company: string; role: string; status: 
   };
 }
 
+async function runSaveBehavioral(
+  token: string,
+  questionId: string,
+  response: string,
+): Promise<void> {
+  await apiBehavioralSave(token, questionId, response);
+}
+
+async function runAddApplication(
+  token: string,
+  newApp: { company: string; role: string; status: Application['status']; nextStep: string; nextStepDate: string },
+): Promise<Application> {
+  return apiAddApplication(token, newApp);
+}
+
 export function PlacementPage() {
   const navigate = useNavigate();
   const session = getSession();
@@ -775,7 +790,7 @@ export function PlacementPage() {
     if (!selectedBQ || !session?.accessToken || bqResponse.length < 10) return;
     setSavingBQ(true);
     try {
-      await apiBehavioralSave(session.accessToken, selectedBQ.id, bqResponse);
+      await runSaveBehavioral(session.accessToken, selectedBQ.id, bqResponse);
       setBehaviorals((prev) => prev.map((q) => q.id === selectedBQ.id
         ? { ...q, response: bqResponse, lastPracticed: new Date().toISOString() }
         : q
@@ -794,7 +809,7 @@ export function PlacementPage() {
     if (!session?.accessToken || !newApp.company || !newApp.role) return;
     setAddingApp(true);
     try {
-      const created = await apiAddApplication(session.accessToken, newApp);
+      const created = await runAddApplication(session.accessToken, newApp);
       setApplications((prev) => [created, ...prev]);
       setStats((s) => ({ ...s, applicationsSubmitted: s.applicationsSubmitted + 1 }));
       setNewApp({ company: '', role: '', status: 'applied', nextStep: '', nextStepDate: '' });

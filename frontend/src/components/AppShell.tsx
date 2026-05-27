@@ -502,7 +502,7 @@ export function AppShell({ children }: { readonly children: ReactNode }) {
   const [shortcutsOpen,   setShortcutsOpen]   = useState(false);
   const [notifications,   setNotifications]   = useState<Notification[]>([]);
   const [scrolled,        setScrolled]        = useState(false);
-  const [theme,           setThemeState]      = useState<ThemeMode>(getTheme);
+  const [theme,           setTheme]           = useState<ThemeMode>(getTheme);
 
   useEffect(() => { setMounted(true); }, []);
 
@@ -739,7 +739,7 @@ export function AppShell({ children }: { readonly children: ReactNode }) {
 
           <button
             type="button"
-            onClick={() => { const next = toggleTheme(); setThemeState(next); }}
+            onClick={() => { const next = toggleTheme(); setTheme(next); }}
             className="w-8 h-8 flex items-center justify-center transition-all"
             style={{ color: 'var(--t3)', border: '1px solid var(--border)', borderRadius: 0 }}
             title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}

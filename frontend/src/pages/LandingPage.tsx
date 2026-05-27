@@ -761,15 +761,15 @@ function HowItWorksSection() {
               </div>
               <div className="hidden lg:flex" style={{ alignItems: 'center', justifyContent: 'center' }}>
                 <TiltCard maxTilt={8} style={{ width: '100%', maxWidth: 340 }} role="presentation">
-                  <div
-                    role="button"
-                    tabIndex={0}
+                  <button
+                    type="button"
                     style={{
                     border: `1px solid rgba(255,255,255,0.08)`, padding: '48px 40px',
                     background: DK.elev, borderRadius: 20, width: '100%',
                     position: 'relative', overflow: 'hidden', cursor: 'default',
                     transition: 'background 0.3s, border-color 0.3s',
                     boxShadow: '0 20px 60px rgba(0,0,0,0.4)',
+                    textAlign: 'left',
                   }}
                   onMouseEnter={e => {
                     const el = e.currentTarget;
@@ -783,19 +783,11 @@ function HowItWorksSection() {
                     el.style.borderColor = 'rgba(255,255,255,0.08)';
                     el.querySelectorAll('[data-invert]').forEach(c => { (c as HTMLElement).style.color = ''; });
                   }}
-                  onKeyDown={e => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      const el = e.currentTarget;
-                      el.style.background = '#E82127';
-                      el.style.borderColor = '#E82127';
-                      el.querySelectorAll('[data-invert]').forEach(c => { (c as HTMLElement).style.color = '#fff'; });
-                    }
-                  }}
                   >
                     <span className="material-symbols-rounded" data-invert style={{ fontSize: 48, color: step.color, display: 'block', marginBottom: 20, transition: 'color 0.3s' }}>{step.icon}</span>
                     <p data-invert style={{ fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 'clamp(2rem, 5vw, 3.5rem)', letterSpacing: '-0.05em', lineHeight: 1, color: DK.t1, marginBottom: 8, transition: 'color 0.3s' }}>{step.metric}</p>
                     <p data-invert style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: DK.t3, transition: 'color 0.3s' }}>{step.label}</p>
-                  </div>
+                  </button>
                 </TiltCard>
               </div>
             </div>

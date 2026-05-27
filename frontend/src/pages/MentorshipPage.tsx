@@ -110,6 +110,12 @@ async function createBookingSession(token: string, mentorId: string, sessionType
   });
 }
 
+function getGroupButtonProps(joined: boolean, full: boolean): { bg: string; color: string; icon: string; label: string } {
+  if (joined) return { bg: 'rgba(34,197,94,0.1)', color: '#4ade80', icon: 'check_circle', label: 'Joined · Leave' };
+  if (full) return { bg: 'rgba(255,255,255,0.03)', color: '#52525b', icon: 'group_off', label: 'Group Full' };
+  return { bg: '#E82127', color: '#fff', icon: 'group_add', label: 'Join Group' };
+}
+
 async function postBecomeMentor(token: string, bio: string, specializations: string, yearsExp: string): Promise<void> {
   await apiRequest('/mentorship/become-mentor', {
     token,
@@ -400,25 +406,16 @@ export function MentorshipPage() {
                       </div>
 
                       {(() => {
-                        let groupBtnBg: string;
-                        if (g.joined) { groupBtnBg = 'rgba(34,197,94,0.1)'; }
-                        else if (full) { groupBtnBg = 'rgba(255,255,255,0.03)'; }
-                        else { groupBtnBg = '#E82127'; }
-                        let groupBtnColor: string;
-                        if (g.joined) { groupBtnColor = '#4ade80'; } else if (full) { groupBtnColor = '#52525b'; } else { groupBtnColor = '#fff'; }
-                        let groupBtnIcon: string;
-                        if (g.joined) { groupBtnIcon = 'check_circle'; } else if (full) { groupBtnIcon = 'group_off'; } else { groupBtnIcon = 'group_add'; }
-                        let groupBtnLabel: string;
-                        if (g.joined) { groupBtnLabel = 'Joined · Leave'; } else if (full) { groupBtnLabel = 'Group Full'; } else { groupBtnLabel = 'Join Group'; }
+                        const { bg: groupBtnBg, color: groupBtnColor, icon: groupBtnIcon, label: groupBtnLabel } = getGroupButtonProps(g.joined, full);
                         return (
-                        <button
-                          onClick={() => toggleGroup(g.id)}
-                          disabled={full}
-                          style={{ width: '100%', padding: '10px 0', borderRadius: 999, fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', cursor: full ? 'not-allowed' : 'pointer', border: g.joined ? '1px solid rgba(34,197,94,0.25)' : 'none', background: groupBtnBg, color: groupBtnColor, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: (!g.joined && !full) ? '0 0 16px rgba(232,33,39,0.2)' : 'none' }}
-                        >
-                          <Icon name={groupBtnIcon} size={14} />
-                          {groupBtnLabel}
-                        </button>
+                          <button
+                            onClick={() => toggleGroup(g.id)}
+                            disabled={full}
+                            style={{ width: '100%', padding: '10px 0', borderRadius: 999, fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', cursor: full ? 'not-allowed' : 'pointer', border: g.joined ? '1px solid rgba(34,197,94,0.25)' : 'none', background: groupBtnBg, color: groupBtnColor, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: (!g.joined && !full) ? '0 0 16px rgba(232,33,39,0.2)' : 'none' }}
+                          >
+                            <Icon name={groupBtnIcon} size={14} />
+                            {groupBtnLabel}
+                          </button>
                         );
                       })()}
                     </motion.div>

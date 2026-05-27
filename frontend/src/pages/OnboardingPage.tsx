@@ -76,6 +76,17 @@ async function saveOnboardingProfile(token: string, data: OnboardingData): Promi
   ]);
 }
 
+async function runFinish(
+  token: string | undefined,
+  data: OnboardingData,
+  refresh: () => void,
+  navigate: (path: string, opts?: { replace?: boolean }) => void,
+): Promise<void> {
+  if (token) await saveOnboardingProfile(token, data);
+  refresh();
+  navigate('/app/dashboard', { replace: true });
+}
+
 export function OnboardingPage() {
   const navigate = useNavigate();
   const session = getSession();
@@ -109,15 +120,12 @@ export function OnboardingPage() {
   const finish = async () => {
     setSaving(true);
     try {
-      if (session?.accessToken) {
-        await saveOnboardingProfile(session.accessToken, data);
-      }
-      await refresh();
+      await runFinish(session?.accessToken, data, refresh, navigate);
     } catch {
       // Don't block onboarding UX
+      navigate('/app/dashboard', { replace: true });
     } finally {
       setSaving(false);
-      navigate('/app/dashboard', { replace: true });
     }
   };
 

@@ -737,31 +737,8 @@ export function HomePage() {
             <Link to="/app/career" className="btn btn-ghost btn-sm" style={{ marginBottom: 12 }}>View all →</Link>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 gap-3">
-            {!modulesLoaded
-              ? Array.from({ length: 8 }).map((_, i) => (
-                  <motion.div
-                    key={i}
-                    initial={{ opacity: 0, scale: 0.88, filter: 'blur(4px)' }}
-                    animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
-                    transition={{ duration: 0.4, delay: (i % 6) * 0.04 }}
-                  >
-                    <div style={{
-                      background: 'var(--bg-elevated)',
-                      border: '1px solid var(--border)',
-                      borderRadius: 14,
-                      padding: '14px',
-                      boxShadow: '0 2px 12px rgba(0,0,0,0.25)',
-                    }}>
-                      <div className="flex items-center justify-between mb-3">
-                        <Skeleton width={30} height={30} borderRadius={4} />
-                        <Skeleton width={36} height={36} borderRadius={18} />
-                      </div>
-                      <Skeleton width={80} height={11} borderRadius={4} style={{ marginBottom: 6 }} />
-                      <Skeleton width={36} height={9} borderRadius={4} />
-                    </div>
-                  </motion.div>
-                ))
-              : moduleList.slice(0, 8).map((mod, i) => {
+            {modulesLoaded
+              ? moduleList.slice(0, 8).map((mod, i) => {
                   const cfg = MODULE_CONFIG[mod.module];
                   if (!cfg) return null;
                   const rawPct = mod.progress;
@@ -812,6 +789,29 @@ export function HomePage() {
                     </motion.div>
                   );
                 })
+              : Array.from({ length: 8 }).map((_, i) => (
+                  <motion.div
+                    key={`skel-${i}`}
+                    initial={{ opacity: 0, scale: 0.88, filter: 'blur(4px)' }}
+                    animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
+                    transition={{ duration: 0.4, delay: (i % 6) * 0.04 }}
+                  >
+                    <div style={{
+                      background: 'var(--bg-elevated)',
+                      border: '1px solid var(--border)',
+                      borderRadius: 14,
+                      padding: '14px',
+                      boxShadow: '0 2px 12px rgba(0,0,0,0.25)',
+                    }}>
+                      <div className="flex items-center justify-between mb-3">
+                        <Skeleton width={30} height={30} borderRadius={4} />
+                        <Skeleton width={36} height={36} borderRadius={18} />
+                      </div>
+                      <Skeleton width={80} height={11} borderRadius={4} style={{ marginBottom: 6 }} />
+                      <Skeleton width={36} height={9} borderRadius={4} />
+                    </div>
+                  </motion.div>
+                ))
             }
           </div>
         </FadeUp>

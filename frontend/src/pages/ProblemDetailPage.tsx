@@ -475,6 +475,16 @@ function runLocalJS(userCode: string, testCases: Problem['testCases']): Promise<
   });
 }
 
+async function runLocalExecution(
+  language: Language,
+  code: string,
+  problem: Problem | null,
+): Promise<RunResponse | null> {
+  if (language !== 'javascript' || !problem?.testCases?.length) return null;
+  await new Promise(r => setTimeout(r, 50));
+  return runLocalJS(code, problem.testCases);
+}
+
 export function ProblemDetailPage() {
   const { id } = useParams<{ id: string }>();
   const session = getSession();
@@ -532,16 +542,13 @@ export function ProblemDetailPage() {
     setRunResult(null);
     setOutputTab('output');
 
-    // Try local execution first for JavaScript
-    if (language === 'javascript' && problem?.testCases?.length) {
-      await new Promise(r => setTimeout(r, 50)); // brief visual delay
-      const result = await runLocalJS(code, problem.testCases);
-      setRunResult(result);
+    const localResult = await runLocalExecution(language, code, problem);
+    if (localResult) {
+      setRunResult(localResult);
       setRunning(false);
       return;
     }
 
-    // Fall back to backend for other languages
     if (!id || !session?.accessToken) {
       setRunResult({ runId: '', stdout: '', stderr: 'Sign in to run non-JavaScript code on our servers.', exitCode: 1, runtimeMs: 0 });
       setRunning(false);

@@ -170,6 +170,14 @@ async function performGuideCall(token: string, problem: string, messages: { role
   });
 }
 
+function getStageStyles(color: string, active: boolean, done: boolean): {
+  opacity: number; bg: string; border: string; textColor: string;
+} {
+  if (active) return { opacity: 1, bg: `${color}22`, border: `2px solid ${color}`, textColor: color };
+  if (done)   return { opacity: 0.7, bg: 'rgba(255,255,255,0.08)', border: '2px solid rgba(255,255,255,0.15)', textColor: 'rgba(255,255,255,0.5)' };
+  return       { opacity: 0.3, bg: 'rgba(255,255,255,0.04)', border: '2px solid rgba(255,255,255,0.06)', textColor: 'rgba(255,255,255,0.2)' };
+}
+
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export function VisualizerPage() {
@@ -451,18 +459,7 @@ export function VisualizerPage() {
                 {STAGES.map((s, i) => {
                   const done = i < stageIndex;
                   const active = i === stageIndex;
-                  let stageOpacity: number;
-                  if (active) { stageOpacity = 1; } else if (done) { stageOpacity = 0.7; } else { stageOpacity = 0.3; }
-                  let stageBg: string;
-                  if (active) { stageBg = `${s.color}22`; }
-                  else if (done) { stageBg = 'rgba(255,255,255,0.08)'; }
-                  else { stageBg = 'rgba(255,255,255,0.04)'; }
-                  let stageBorder: string;
-                  if (active) { stageBorder = `2px solid ${s.color}`; }
-                  else if (done) { stageBorder = '2px solid rgba(255,255,255,0.15)'; }
-                  else { stageBorder = '2px solid rgba(255,255,255,0.06)'; }
-                  let stageColor: string;
-                  if (active) { stageColor = s.color; } else if (done) { stageColor = 'rgba(255,255,255,0.5)'; } else { stageColor = 'rgba(255,255,255,0.2)'; }
+                  const { opacity: stageOpacity, bg: stageBg, border: stageBorder, textColor: stageColor } = getStageStyles(s.color, active, done);
                   return (
                     <div key={s.key} style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
                       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, flexShrink: 0, opacity: stageOpacity, transition: 'opacity 0.3s' }}>

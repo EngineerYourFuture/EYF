@@ -131,6 +131,23 @@ async function submitInterviewSession(token: string | undefined, sessionId: stri
   }
 }
 
+function buildStartState(selectedType: InterviewType): {
+  questions: Question[]; timeLeft: number; totalTime: number;
+} {
+  const qs = shuffle(ALL_QUESTIONS[selectedType]).slice(0, selectedType === 'mixed' ? 5 : 4);
+  const t = qs[0]?.timeSeconds ?? 180;
+  return { questions: qs, timeLeft: t, totalTime: t };
+}
+
+function resolveNextQuestion(qIdx: number, questions: Question[]): {
+  done: boolean; nextIdx: number; timeLeft: number; totalTime: number;
+} {
+  const next = qIdx + 1;
+  if (next >= questions.length) return { done: true, nextIdx: next, timeLeft: 0, totalTime: 0 };
+  const t = questions[next]?.timeSeconds ?? 180;
+  return { done: false, nextIdx: next, timeLeft: t, totalTime: t };
+}
+
 export function MockInterviewPage() {
   const session = getSession();
   const { fireXP } = useUser();
@@ -160,34 +177,32 @@ export function MockInterviewPage() {
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, [timerActive]);
 
-  function startInterview() {
-    const qs = shuffle(ALL_QUESTIONS[selectedType]).slice(0, selectedType === 'mixed' ? 5 : 4);
+  const startInterview = () => {
+    const { questions: qs, timeLeft: t, totalTime: tt } = buildStartState(selectedType);
     setQuestions(qs);
     setQIdx(0);
     setAnswers({});
     setShowHint(false);
-    const t = qs[0]?.timeSeconds ?? 180;
     setTimeLeft(t);
-    setTotalTime(t);
+    setTotalTime(tt);
     setTimerActive(true);
     setPhase('active');
     setSessionId(crypto.randomUUID());
-  }
+  };
 
-  function nextQuestion() {
-    const next = qIdx + 1;
-    if (next >= questions.length) {
+  const nextQuestion = () => {
+    const { done, nextIdx, timeLeft: t, totalTime: tt } = resolveNextQuestion(qIdx, questions);
+    if (done) {
       setTimerActive(false);
       setPhase('done');
     } else {
-      setQIdx(next);
-      const t = questions[next]?.timeSeconds ?? 180;
+      setQIdx(nextIdx);
       setTimeLeft(t);
-      setTotalTime(t);
+      setTotalTime(tt);
       setTimerActive(true);
       setShowHint(false);
     }
-  }
+  };
 
   async function submitSession() {
     setSubmitting(true);

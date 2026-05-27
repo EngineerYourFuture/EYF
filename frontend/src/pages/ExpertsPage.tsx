@@ -72,6 +72,27 @@ async function postReview(token: string, expertId: string, rating: number, comme
   });
 }
 
+async function runSubmitReview(
+  token: string,
+  expertId: string,
+  rating: number,
+  comment: string,
+): Promise<void> {
+  await postReview(token, expertId, rating, comment);
+}
+
+async function fetchFilteredExperts(
+  token: string,
+  filterAvailable: boolean,
+  filterSpec: string,
+): Promise<Expert[]> {
+  const params = new URLSearchParams();
+  if (filterAvailable) params.set('available', 'true');
+  if (filterSpec !== 'all') params.set('specialization', filterSpec);
+  const d = await apiRequest<{ experts: Expert[] }>(`/experts?${params}`, { token });
+  return d.experts;
+}
+
 export function ExpertsPage() {
   const session = getSession();
   const { fireXP } = useUser();
@@ -88,11 +109,8 @@ export function ExpertsPage() {
 
   useEffect(() => {
     if (!session?.accessToken) return;
-    const params = new URLSearchParams();
-    if (filterAvailable) params.set('available', 'true');
-    if (filterSpec !== 'all') params.set('specialization', filterSpec);
-    apiRequest<{ experts: Expert[] }>(`/experts?${params}`, { token: session.accessToken })
-      .then((d) => { if (d.experts.length > 0) setExperts(d.experts); })
+    fetchFilteredExperts(session.accessToken, filterAvailable, filterSpec)
+      .then((experts) => { if (experts.length > 0) setExperts(experts); })
       .catch(() => {});
   }, [session?.accessToken, filterAvailable, filterSpec]);
 
@@ -106,7 +124,7 @@ export function ExpertsPage() {
     if (!session?.accessToken || !selected) return;
     setSubmittingReview(true);
     try {
-      await postReview(session.accessToken, selected.id, rating, comment);
+      await runSubmitReview(session.accessToken, selected.id, rating, comment);
       setSelected((prev) => prev ? {
         ...prev,
         reviews: [{ id: 'new', rating, comment, createdAt: new Date().toISOString(), reviewer: 'you' }, ...prev.reviews],
