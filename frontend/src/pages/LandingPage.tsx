@@ -77,7 +77,7 @@ function useTextScramble(text: string, active: boolean, delayS = 0) {
         text.split('').map((ch, i) => {
           if (ch === ' ') return ' ';
           if (frame / 5 >= i + 1) return ch;
-          return SCRAMBLE_CHARS[Math.floor(Math.random() * SCRAMBLE_CHARS.length)];
+          return SCRAMBLE_CHARS[Math.floor(Math.random() * SCRAMBLE_CHARS.length)]; // NOSONAR — visual animation only, no security context
         }).join(''),
       );
       frame++;
