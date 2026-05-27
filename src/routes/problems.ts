@@ -212,42 +212,48 @@ router.post("/:id/submit", requireAuth("public"), async (req: AuthRequest, res: 
     status = "wrong_answer";
   }
 
-  const submission = await prisma.submission.create({
-    data: {
-      userId, problemId: problem.id, language: parse.data.language,
-      sourceCode: parse.data.code, status,
-      runtimeMs: totalRuntimeMs,
-      memoryKb: peakMemoryKb,
-    },
-  });
-
-  await prisma.dailySubmissionUsage.upsert({
-    where: { userId_date: { userId, date: today } },
-    update: { count: { increment: 1 } },
-    create: { userId, date: today, count: 1 },
-  });
-
+  let xpReward = 0;
   if (allPassed) {
-    let xpReward: number;
     if (problem.difficulty === "easy") { xpReward = 50; }
     else if (problem.difficulty === "medium") { xpReward = 100; }
     else { xpReward = 200; }
-    await Promise.all([
+  }
+
+  // All five writes in a single atomic transaction — DDIA Ch.7.
+  // If any step fails, the entire transaction rolls back: no ghost submissions
+  // with missing XP, no daily-limit bypass from a partial commit.
+  const [submission] = await prisma.$transaction([
+    prisma.submission.create({
+      data: {
+        userId, problemId: problem.id, language: parse.data.language,
+        sourceCode: parse.data.code, status,
+        runtimeMs: totalRuntimeMs, memoryKb: peakMemoryKb,
+      },
+    }),
+    prisma.dailySubmissionUsage.upsert({
+      where:  { userId_date: { userId, date: today } },
+      update: { count: { increment: 1 } },
+      create: { userId, date: today, count: 1 },
+    }),
+    ...(allPassed ? [
       prisma.userXP.upsert({
-        where: { userId },
+        where:  { userId },
         update: { totalXp: { increment: xpReward }, lastActivityDate: new Date() },
         create: { userId, totalXp: xpReward, lastActivityDate: new Date() },
       }),
       prisma.moduleProgress.upsert({
-        where: { userId_moduleKey: { userId, moduleKey: "dsa" } },
+        where:  { userId_moduleKey: { userId, moduleKey: "dsa" } },
         update: { status: "in_progress", lastActivityAt: new Date() },
         create: { userId, moduleKey: "dsa", status: "in_progress" },
       }),
       prisma.recentActivity.create({
-        data: { userId, moduleKey: "dsa", action: "problem_solved", payload: { problemId: problem.id, difficulty: problem.difficulty } as Prisma.InputJsonValue },
+        data: {
+          userId, moduleKey: "dsa", action: "problem_solved",
+          payload: { problemId: problem.id, difficulty: problem.difficulty } as Prisma.InputJsonValue,
+        },
       }),
-    ]);
-  }
+    ] : []),
+  ]);
 
   const testResults = results
     .filter((r) => !r.hidden)
