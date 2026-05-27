@@ -33,8 +33,8 @@ const DK = {
 };
 
 /* ── TiltCard ─────────────────────────────────────────────────────────── */
-function TiltCard({ children, style, className, maxTilt = 10 }: Readonly<{
-  children: ReactNode; style?: CSSProperties; className?: string; maxTilt?: number;
+function TiltCard({ children, style, className, maxTilt = 10, role }: Readonly<{
+  children: ReactNode; style?: CSSProperties; className?: string; maxTilt?: number; role?: string;
 }>) {
   const ref = useRef<HTMLDivElement>(null);
   const rawX = useMotionValue(0);
@@ -54,6 +54,7 @@ function TiltCard({ children, style, className, maxTilt = 10 }: Readonly<{
       ref={ref}
       onMouseMove={onMove}
       onMouseLeave={onLeave}
+      role={role}
       style={{ perspective: 900, rotateX, rotateY, transformStyle: 'preserve-3d', ...style }}
       className={className}
     >
