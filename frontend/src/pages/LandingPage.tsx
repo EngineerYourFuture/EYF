@@ -169,7 +169,7 @@ function ClipReveal({ children, delay = 0, duration = 0.85, style = {}, classNam
       <motion.div
         initial={{ y: '105%' }}
         whileInView={{ y: '0%' }}
-        viewport={{ once: true, margin: '-20px' }}
+        viewport={{ once: true, amount: 0 }}
         transition={{ duration, delay, ease: [0.16, 1, 0.3, 1] }}
       >
         {children}
@@ -738,8 +738,8 @@ function HowItWorksSection() {
         {STEPS.map((step, i) => (
           <motion.div key={step.num} style={{
             position: 'absolute', inset: 0, opacity: opacities[i], y: ys[i],
-            display: 'flex', alignItems: 'center',
-            padding: 'clamp(16px, 5vw, 80px)', paddingTop: 120,
+            display: 'flex', alignItems: 'flex-start',
+            padding: `clamp(100px, 18vh, 160px) clamp(16px, 5vw, 80px) clamp(16px, 5vw, 80px)`,
           }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 40, width: '100%', maxWidth: '90vw', margin: '0 auto' }} className="lg:grid-two-col">
               <div style={{ position: 'relative' }}>
@@ -785,7 +785,7 @@ function HowItWorksSection() {
                   }}
                   >
                     <span className="material-symbols-rounded" data-invert style={{ fontSize: 48, color: step.color, display: 'block', marginBottom: 20, transition: 'color 0.3s' }}>{step.icon}</span>
-                    <p data-invert style={{ fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 'clamp(2rem, 5vw, 3.5rem)', letterSpacing: '-0.05em', lineHeight: 1, color: DK.t1, marginBottom: 8, transition: 'color 0.3s' }}>{step.metric}</p>
+                    <p data-invert style={{ fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 'clamp(1.5rem, 2.8vw, 2.2rem)', letterSpacing: '-0.05em', lineHeight: 1.1, color: DK.t1, marginBottom: 8, transition: 'color 0.3s', wordBreak: 'normal', overflowWrap: 'normal' }}>{step.metric}</p>
                     <p data-invert style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: DK.t3, transition: 'color 0.3s' }}>{step.label}</p>
                   </button>
                 </TiltCard>
@@ -871,7 +871,8 @@ function PricingSection() {
 function CTASection() {
   return (
     <section style={{
-      background: '#000', padding: '120px clamp(16px,5vw,80px) 80px',
+      background: '#000', padding: '120px clamp(16px,5vw,80px) 100px',
+      minHeight: '100dvh',
       display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center',
       textAlign: 'center', position: 'relative', overflow: 'hidden', borderTop: '1px solid #232325',
     }}>
