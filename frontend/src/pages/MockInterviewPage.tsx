@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { shuffle } from '../lib/random';
@@ -148,6 +148,42 @@ function resolveNextQuestion(qIdx: number, questions: Question[]): {
   return { done: false, nextIdx: next, timeLeft: t, totalTime: t };
 }
 
+function getTimerColor(pct: number): string {
+  if (pct > 50) return '#4ade80';
+  if (pct > 25) return '#facc15';
+  return '#f87171';
+}
+
+function tickTimer(
+  t: number,
+  timerRef: React.MutableRefObject<ReturnType<typeof setInterval> | null>,
+  setTimerActive: (b: boolean) => void,
+): number {
+  if (t > 1) return t - 1;
+  if (timerRef.current) clearInterval(timerRef.current);
+  setTimerActive(false);
+  return 0;
+}
+
+async function doSubmitSession(
+  token: string | undefined,
+  sessionId: string | null,
+  selectedType: InterviewType,
+  answers: Record<string, string>,
+  feedback: string,
+  fireXP: (n: number, msg: string) => void,
+  setSubmitting: (b: boolean) => void,
+): Promise<void> {
+  setSubmitting(true);
+  try {
+    await submitInterviewSession(token, sessionId, selectedType, answers, feedback);
+    const xp = calcInterviewXP(selectedType, answers);
+    fireXP(xp, `Mock ${TYPE_META[selectedType].label} interview complete!`);
+  } finally {
+    setSubmitting(false);
+  }
+}
+
 export function MockInterviewPage() {
   const session = getSession();
   const { fireXP } = useUser();
@@ -167,12 +203,12 @@ export function MockInterviewPage() {
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
-    if (!timerActive) { if (timerRef.current) { clearInterval(timerRef.current); } return; }
+    if (!timerActive) {
+      if (timerRef.current) clearInterval(timerRef.current);
+      return;
+    }
     timerRef.current = setInterval(() => {
-      setTimeLeft((t) => {
-        if (t <= 1) { if (timerRef.current) { clearInterval(timerRef.current); } setTimerActive(false); return 0; }
-        return t - 1;
-      });
+      setTimeLeft((t) => tickTimer(t, timerRef, setTimerActive));
     }, 1000);
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, [timerActive]);
@@ -204,24 +240,12 @@ export function MockInterviewPage() {
     }
   };
 
-  async function submitSession() {
-    setSubmitting(true);
-    try {
-      await submitInterviewSession(session?.accessToken, sessionId, selectedType, answers, feedback);
-      const xp = calcInterviewXP(selectedType, answers);
-      fireXP(xp, `Mock ${TYPE_META[selectedType].label} interview complete!`);
-    } finally {
-      setSubmitting(false);
-    }
-  }
+  const submitSession = () => void doSubmitSession(session?.accessToken, sessionId, selectedType, answers, feedback, fireXP, setSubmitting);
 
   const currentQ = questions[qIdx];
   const answeredCount = Object.values(answers).filter((a) => a.trim().length > 20).length;
   const timerPct = totalTime > 0 ? (timeLeft / totalTime) * 100 : 0;
-  let timerHex: string;
-  if (timerPct > 50) { timerHex = '#4ade80'; }
-  else if (timerPct > 25) { timerHex = '#facc15'; }
-  else { timerHex = '#f87171'; }
+  const timerHex = getTimerColor(timerPct);
   const XP_PER_ANS: Record<string, number> = { system_design: 20, dsa: 15 };
 
   const categoryChip = (cat: string) => {

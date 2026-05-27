@@ -128,6 +128,55 @@ async function postBecomeMentor(token: string, bio: string, specializations: str
   });
 }
 
+async function loadMentorshipData(
+  token: string,
+  setMentors: (m: Mentor[]) => void,
+  setGroups: (g: StudyGroup[]) => void,
+  setMySessions: (s: MySession[]) => void,
+): Promise<void> {
+  const [mentorsRes, groupsRes, sessionsRes] = await Promise.allSettled([
+    apiRequest<{ mentors: Mentor[] }>('/mentorship/mentors', { token }),
+    apiRequest<{ groups: StudyGroup[] }>('/mentorship/groups', { token }),
+    apiRequest<{ sessions: MySession[] }>('/mentorship/my-sessions', { token }),
+  ]);
+  if (mentorsRes.status === 'fulfilled' && mentorsRes.value.mentors?.length) setMentors(mentorsRes.value.mentors);
+  if (groupsRes.status === 'fulfilled' && groupsRes.value.groups?.length) setGroups(groupsRes.value.groups);
+  if (sessionsRes.status === 'fulfilled' && sessionsRes.value.sessions) setMySessions(sessionsRes.value.sessions);
+}
+
+async function doHandleBook(
+  token: string,
+  bookingMentor: Mentor,
+  sessionType: string,
+  sessionGoal: string,
+  fireXP: (n: number, msg: string) => void,
+  setBooking: (b: boolean) => void,
+  setBookingDone: (b: boolean) => void,
+  setMySessions: (updater: (prev: MySession[]) => MySession[]) => void,
+  setBookingMentor: (m: Mentor | null) => void,
+  setSessionType: (s: string) => void,
+  setSessionGoal: (s: string) => void,
+): Promise<void> {
+  setBooking(true);
+  try {
+    const created = await createBookingSession(token, bookingMentor.id, sessionType, sessionGoal);
+    setMySessions((prev) => [created, ...prev]);
+  } catch {
+    const fallback = buildFallbackSession(bookingMentor, sessionType, sessionGoal);
+    setMySessions((prev) => [fallback, ...prev]);
+  } finally {
+    setBooking(false);
+    setBookingDone(true);
+    fireXP(10, 'Mentorship session booked!');
+    setTimeout(() => {
+      setBookingMentor(null);
+      setSessionType('');
+      setSessionGoal('');
+      setBookingDone(false);
+    }, 2500);
+  }
+}
+
 export function MentorshipPage() {
   const session = getSession();
   const { fireXP } = useUser();
@@ -148,40 +197,15 @@ export function MentorshipPage() {
 
   useEffect(() => {
     if (!session?.accessToken) return;
-    apiRequest<{ mentors: Mentor[] }>('/mentorship/mentors', { token: session.accessToken })
-      .then((d) => { if (d.mentors?.length) setMentors(d.mentors); })
-      .catch(() => {});
-    apiRequest<{ groups: StudyGroup[] }>('/mentorship/groups', { token: session.accessToken })
-      .then((d) => { if (d.groups?.length) setGroups(d.groups); })
-      .catch(() => {});
-    apiRequest<{ sessions: MySession[] }>('/mentorship/my-sessions', { token: session.accessToken })
-      .then((d) => { if (d.sessions) setMySessions(d.sessions); })
-      .catch(() => {});
+    void loadMentorshipData(session.accessToken, setMentors, setGroups, setMySessions);
   }, [session?.accessToken]);
 
   const allTags = ['all', ...Array.from(new Set(STATIC_MENTORS.flatMap((m) => m.tags)))];
   const filteredMentors = filterTag === 'all' ? mentors : mentors.filter((m) => m.tags.includes(filterTag));
 
-  const handleBook = async () => {
+  const handleBook = () => {
     if (!bookingMentor || !sessionType || !session?.accessToken) return;
-    setBooking(true);
-    try {
-      const created = await createBookingSession(session.accessToken, bookingMentor.id, sessionType, sessionGoal);
-      setMySessions((prev) => [created, ...prev]);
-    } catch {
-      const fallback = buildFallbackSession(bookingMentor, sessionType, sessionGoal);
-      setMySessions((prev) => [fallback, ...prev]);
-    } finally {
-      setBooking(false);
-      setBookingDone(true);
-      fireXP(10, 'Mentorship session booked!');
-      setTimeout(() => {
-        setBookingMentor(null);
-        setSessionType('');
-        setSessionGoal('');
-        setBookingDone(false);
-      }, 2500);
-    }
+    void doHandleBook(session.accessToken, bookingMentor, sessionType, sessionGoal, fireXP, setBooking, setBookingDone, setMySessions, setBookingMentor, setSessionType, setSessionGoal);
   };
 
   const toggleGroup = async (groupId: string) => {

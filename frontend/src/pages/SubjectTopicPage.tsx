@@ -108,6 +108,46 @@ function TopicContentCards({ content }: Readonly<{ content: TopicContent | null 
   );
 }
 
+interface NavTopic { id: string; title: string; }
+
+function TopicNavButtons({ prevTopic, nextTopic, isDone, subjectId, navigate, onComplete }: Readonly<{
+  prevTopic: NavTopic | null;
+  nextTopic: NavTopic | null;
+  isDone: boolean;
+  subjectId: string | undefined;
+  navigate: (path: string) => void;
+  onComplete: () => void;
+}>) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 48, paddingTop: 32, borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+      <motion.button
+        whileHover={{ scale: prevTopic ? 1.02 : 1 }}
+        whileTap={{ scale: prevTopic ? 0.98 : 1 }}
+        onClick={() => prevTopic && navigate(`/app/subjects/${subjectId}/${prevTopic.id}`)}
+        disabled={!prevTopic}
+        style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 24px', borderRadius: 999, fontWeight: 700, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.1em', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: 'var(--t2)', cursor: prevTopic ? 'pointer' : 'not-allowed', opacity: prevTopic ? 1 : 0.3 }}
+      >
+        <Icon name="arrow_back" size={16} />
+        Previous
+      </motion.button>
+
+      <motion.button
+        whileHover={{ scale: isDone ? 1 : 1.02 }}
+        whileTap={{ scale: isDone ? 1 : 0.98 }}
+        onClick={onComplete}
+        disabled={isDone}
+        style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 32px', borderRadius: 999, fontWeight: 700, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.1em', border: 'none', cursor: isDone ? 'default' : 'pointer', background: isDone ? 'rgba(34,197,94,0.15)' : '#E82127', color: isDone ? '#4ade80' : '#fff', boxShadow: isDone ? 'none' : '0 0 24px rgba(232,33,39,0.35)' }}
+      >
+        {isDone ? (
+          <><Icon name="check_circle" size={16} />Completed</>
+        ) : (
+          <>Mark Complete {nextTopic ? '& Next' : ''}<Icon name="arrow_forward" size={16} /></>
+        )}
+      </motion.button>
+    </div>
+  );
+}
+
 export function SubjectTopicPage() {
   const { subjectId, topicId } = useParams<{ subjectId: string; topicId: string }>();
   const navigate = useNavigate();
@@ -219,38 +259,14 @@ export function SubjectTopicPage() {
         </div>
 
         {/* Bottom navigation */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 48, paddingTop: 32, borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-          <motion.button
-            whileHover={{ scale: prevTopic ? 1.02 : 1 }}
-            whileTap={{ scale: prevTopic ? 0.98 : 1 }}
-            onClick={() => prevTopic && navigate(`/app/subjects/${subjectId}/${prevTopic.id}`)}
-            disabled={!prevTopic}
-            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 24px', borderRadius: 999, fontWeight: 700, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.1em', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: 'var(--t2)', cursor: prevTopic ? 'pointer' : 'not-allowed', opacity: prevTopic ? 1 : 0.3 }}
-          >
-            <Icon name="arrow_back" size={16} />
-            Previous
-          </motion.button>
-
-          <motion.button
-            whileHover={{ scale: isDone ? 1 : 1.02 }}
-            whileTap={{ scale: isDone ? 1 : 0.98 }}
-            onClick={handleMarkComplete}
-            disabled={isDone}
-            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 32px', borderRadius: 999, fontWeight: 700, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.1em', border: 'none', cursor: isDone ? 'default' : 'pointer', background: isDone ? 'rgba(34,197,94,0.15)' : '#E82127', color: isDone ? '#4ade80' : '#fff', boxShadow: isDone ? 'none' : '0 0 24px rgba(232,33,39,0.35)' }}
-          >
-            {isDone ? (
-              <>
-                <Icon name="check_circle" size={16} />
-                Completed
-              </>
-            ) : (
-              <>
-                Mark Complete {nextTopic ? '& Next' : ''}
-                <Icon name="arrow_forward" size={16} />
-              </>
-            )}
-          </motion.button>
-        </div>
+        <TopicNavButtons
+          prevTopic={prevTopic}
+          nextTopic={nextTopic}
+          isDone={isDone}
+          subjectId={subjectId}
+          navigate={navigate}
+          onComplete={handleMarkComplete}
+        />
       </div>
     </AppShell>
   );

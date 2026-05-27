@@ -180,6 +180,35 @@ function getStageStyles(color: string, active: boolean, done: boolean): {
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
+async function doCallGuide(
+  token: string | undefined,
+  problem: string,
+  messages: { role: 'user' | 'assistant'; content: string }[],
+): Promise<GuideResponse | null> {
+  if (!token) return null;
+  return performGuideCall(token, problem, messages);
+}
+
+function doResetGuide(setters: {
+  setSessionStarted: (b: boolean) => void;
+  setTurns: (t: Turn[]) => void;
+  setInsights: (i: string[]) => void;
+  setCurrentStage: (s: Stage) => void;
+  setProblem: (p: string) => void;
+  setUserInput: (s: string) => void;
+  setStudentCode: (s: string) => void;
+  setGuideError: (e: string | null) => void;
+}): void {
+  setters.setSessionStarted(false);
+  setters.setTurns([]);
+  setters.setInsights([]);
+  setters.setCurrentStage('understand');
+  setters.setProblem('');
+  setters.setUserInput('');
+  setters.setStudentCode('');
+  setters.setGuideError(null);
+}
+
 export function VisualizerPage() {
   const session = getSession();
   const { fireXP } = useUser();
@@ -237,13 +266,6 @@ export function VisualizerPage() {
     }
   };
 
-  const buildMessages = buildGuideMessages;
-
-  const callGuide = async (messages: { role: 'user' | 'assistant'; content: string }[]) => {
-    if (!session?.accessToken) return null;
-    return performGuideCall(session.accessToken, problem, messages);
-  };
-
   const startSession = async () => {
     if (!problem.trim()) return;
     setSessionStarted(true);
@@ -253,7 +275,7 @@ export function VisualizerPage() {
     setGuideLoading(true);
     setGuideError(null);
     try {
-      const res = await callGuide([]);
+      const res = await doCallGuide(session?.accessToken, problem, []);
       if (!res) return;
       setCurrentStage(res.stage);
       setTurns([{ stage: res.stage, question: res.question, insight: res.insight, codeHint: res.codeHint, userReply: '' }]);
@@ -278,8 +300,8 @@ export function VisualizerPage() {
     setTurns(updatedTurns);
 
     try {
-      const messages = buildMessages(updatedTurns);
-      const res = await callGuide(messages);
+      const messages = buildGuideMessages(updatedTurns);
+      const res = await doCallGuide(session?.accessToken, problem, messages);
       if (!res) return;
       setCurrentStage(res.stage);
       setTurns([...updatedTurns, { stage: res.stage, question: res.question, insight: res.insight, codeHint: res.codeHint, userReply: '' }]);
@@ -291,17 +313,6 @@ export function VisualizerPage() {
     } finally {
       setGuideLoading(false);
     }
-  };
-
-  const resetGuide = () => {
-    setSessionStarted(false);
-    setTurns([]);
-    setInsights([]);
-    setCurrentStage('understand');
-    setProblem('');
-    setUserInput('');
-    setStudentCode('');
-    setGuideError(null);
   };
 
   const stageIndex = STAGES.findIndex((s) => s.key === currentStage);
@@ -360,7 +371,7 @@ export function VisualizerPage() {
           </div>
         )}
         {tab === 'guide' && sessionStarted && (
-          <button type="button" onClick={resetGuide}
+          <button type="button" onClick={() => doResetGuide({ setSessionStarted, setTurns, setInsights, setCurrentStage, setProblem, setUserInput, setStudentCode, setGuideError })}
             style={{ color: 'var(--t3)', fontSize: '0.6875rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', background: 'transparent', border: 'none', transition: 'color 0.2s' }}>
             <Icon name="restart_alt" size={16} />
             New Problem

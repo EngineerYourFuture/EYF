@@ -485,6 +485,31 @@ async function runLocalExecution(
   return runLocalJS(code, problem.testCases);
 }
 
+async function loadProblemAndHealth(
+  id: string | undefined,
+  token: string | undefined,
+  setProblem: (p: Problem) => void,
+  setLoading: (b: boolean) => void,
+  setExecutionHealth: (h: 'ok' | 'degraded' | 'down') => void,
+): Promise<void> {
+  if (!id) return;
+  const staticData = STATIC_PROBLEM_DATA[id];
+  if (staticData) { setProblem(staticData); setLoading(false); }
+  if (token) {
+    apiRequest<Problem>(`/problems/${id}`, { token })
+      .then(setProblem)
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }
+  fetch('/api/system/health')
+    .then((r) => r.json())
+    .then((d: { services?: { judge0?: string } }) => {
+      const s = d.services?.judge0;
+      if (s === 'ok' || s === 'degraded' || s === 'down') setExecutionHealth(s);
+    })
+    .catch(() => {});
+}
+
 export function ProblemDetailPage() {
   const { id } = useParams<{ id: string }>();
   const session = getSession();
@@ -505,31 +530,8 @@ export function ProblemDetailPage() {
   const [executionHealth, setExecutionHealth] = useState<'ok' | 'degraded' | 'down' | null>(null);
 
   useEffect(() => {
-    if (!id) return;
-    // Try static data first (instant)
-    const staticData = STATIC_PROBLEM_DATA[id];
-    if (staticData) {
-      setProblem(staticData);
-      setLoading(false);
-    }
-    // Also try API for richer data (overwrites static if successful)
-    if (!session?.accessToken) return;
-    apiRequest<Problem>(`/problems/${id}`, { token: session.accessToken })
-      .then(setProblem)
-      .catch(() => {})
-      .finally(() => setLoading(false));
+    void loadProblemAndHealth(id, session?.accessToken, setProblem, setLoading, setExecutionHealth);
   }, [id, session?.accessToken]);
-
-  // Probe the execution engine once on mount — silently ignored if the API is unreachable
-  useEffect(() => {
-    fetch('/api/system/health')
-      .then((r) => r.json())
-      .then((d: { services?: { judge0?: string } }) => {
-        const s = d.services?.judge0;
-        if (s === 'ok' || s === 'degraded' || s === 'down') setExecutionHealth(s);
-      })
-      .catch(() => {}); // network failure → stay null (no banner)
-  }, []);
 
   const onLanguageChange = (lang: Language) => {
     setEditorReady(false);

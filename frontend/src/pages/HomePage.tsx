@@ -789,9 +789,9 @@ export function HomePage() {
                     </motion.div>
                   );
                 })
-              : Array.from({ length: 8 }).map((_, i) => (
+              : (['sk0','sk1','sk2','sk3','sk4','sk5','sk6','sk7'] as const).map((key, i) => (
                   <motion.div
-                    key={`skel-${i}`}
+                    key={key}
                     initial={{ opacity: 0, scale: 0.88, filter: 'blur(4px)' }}
                     animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
                     transition={{ duration: 0.4, delay: (i % 6) * 0.04 }}

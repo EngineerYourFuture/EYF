@@ -93,6 +93,16 @@ async function fetchFilteredExperts(
   return d.experts;
 }
 
+async function doOpenExpert(
+  token: string,
+  id: string,
+  experts: Expert[],
+  setSelected: (d: ExpertDetail | null) => void,
+): Promise<void> {
+  const detail = await fetchExpertDetail(token, id, experts).catch(() => null);
+  if (detail) setSelected(detail);
+}
+
 export function ExpertsPage() {
   const session = getSession();
   const { fireXP } = useUser();
@@ -114,10 +124,9 @@ export function ExpertsPage() {
       .catch(() => {});
   }, [session?.accessToken, filterAvailable, filterSpec]);
 
-  const openExpert = async (id: string) => {
+  const openExpert = (id: string) => {
     if (!session?.accessToken) return;
-    const detail = await fetchExpertDetail(session.accessToken, id, experts).catch(() => null);
-    if (detail) setSelected(detail);
+    void doOpenExpert(session.accessToken, id, experts, setSelected);
   };
 
   const submitReview = async () => {

@@ -739,6 +739,28 @@ async function runAddApplication(
   return apiAddApplication(token, newApp);
 }
 
+async function loadPlacementData(
+  token: string,
+  setTracks: (t: TrackProgress[]) => void,
+  setStats: (s: PlacementStats) => void,
+  setApplications: (a: Application[]) => void,
+  setBehaviorals: (b: BehavioralQ[]) => void,
+): Promise<void> {
+  const [overviewRes, appsRes, behavioralsRes] = await Promise.allSettled([
+    apiRequest<{ tracks: TrackProgress[]; stats: PlacementStats }>('/placement/overview', { token }),
+    apiRequest<{ applications: Application[] }>('/placement/applications', { token }),
+    apiRequest<{ questions: BehavioralQ[] }>('/placement/behavioral', { token }),
+  ]);
+  if (overviewRes.status === 'fulfilled') {
+    if (overviewRes.value.tracks?.length) setTracks(overviewRes.value.tracks);
+    if (overviewRes.value.stats) setStats(overviewRes.value.stats);
+  } else {
+    setTracks(TRACKS.map((t) => ({ id: t.id, title: t.title, company: t.company, icon: t.icon, progress: 0, totalTopics: 20, completedTopics: 0 })));
+  }
+  if (appsRes.status === 'fulfilled' && appsRes.value.applications?.length) setApplications(appsRes.value.applications);
+  if (behavioralsRes.status === 'fulfilled' && behavioralsRes.value.questions?.length) setBehaviorals(behavioralsRes.value.questions);
+}
+
 export function PlacementPage() {
   const navigate = useNavigate();
   const session = getSession();
@@ -765,24 +787,7 @@ export function PlacementPage() {
 
   useEffect(() => {
     if (!session?.accessToken) return;
-
-    apiRequest<{ tracks: TrackProgress[]; stats: PlacementStats }>('/placement/overview', { token: session.accessToken })
-      .then((d) => {
-        if (d.tracks?.length) setTracks(d.tracks);
-        if (d.stats) setStats(d.stats);
-      })
-      .catch(() => {
-        // fallback to local static
-        setTracks(TRACKS.map((t) => ({ id: t.id, title: t.title, company: t.company, icon: t.icon, progress: 0, totalTopics: 20, completedTopics: 0 })));
-      });
-
-    apiRequest<{ applications: Application[] }>('/placement/applications', { token: session.accessToken })
-      .then((d) => { if (d.applications?.length) setApplications(d.applications); })
-      .catch(() => {});
-
-    apiRequest<{ questions: BehavioralQ[] }>('/placement/behavioral', { token: session.accessToken })
-      .then((d) => { if (d.questions?.length) setBehaviorals(d.questions); })
-      .catch(() => {});
+    void loadPlacementData(session.accessToken, setTracks, setStats, setApplications, setBehaviorals);
   }, [session?.accessToken]);
 
 

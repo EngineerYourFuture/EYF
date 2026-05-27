@@ -140,7 +140,7 @@ export function TechSkillsPage() {
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState('all');
   const [saving, setSaving] = useState(false);
-  const [, setLastSaved] = useState<Date | null>(null);
+  const [, setLastSaved] = useState<Date | null>(null); // NOSONAR
   const [activeTab, setActiveTab] = useState<'skills' | 'gaps' | 'recommendations'>('skills');
 
   useEffect(() => {

@@ -87,6 +87,12 @@ async function runFinish(
   navigate('/app/dashboard', { replace: true });
 }
 
+function toggleArrayValue<T>(arr: T[], value: T, max: number): T[] {
+  if (arr.includes(value)) return arr.filter((v) => v !== value);
+  if (arr.length < max) return [...arr, value];
+  return arr;
+}
+
 export function OnboardingPage() {
   const navigate = useNavigate();
   const session = getSession();
@@ -101,21 +107,11 @@ export function OnboardingPage() {
   const next = () => setStep((s) => Math.min(s + 1, TOTAL_STEPS));
   const back = () => setStep((s) => Math.max(s - 1, 1));
 
-  const toggleCompany = (company: string) => {
-    setData((d) => {
-      if (d.targetCompanies.includes(company)) return { ...d, targetCompanies: d.targetCompanies.filter((c) => c !== company) };
-      if (d.targetCompanies.length < 4) return { ...d, targetCompanies: [...d.targetCompanies, company] };
-      return d;
-    });
-  };
+  const toggleCompany = (company: string) =>
+    setData((d) => ({ ...d, targetCompanies: toggleArrayValue(d.targetCompanies, company, 4) }));
 
-  const toggleFocus = (id: string) => {
-    setData((d) => {
-      if (d.focusAreas.includes(id)) return { ...d, focusAreas: d.focusAreas.filter((f) => f !== id) };
-      if (d.focusAreas.length < 4) return { ...d, focusAreas: [...d.focusAreas, id] };
-      return d;
-    });
-  };
+  const toggleFocus = (id: string) =>
+    setData((d) => ({ ...d, focusAreas: toggleArrayValue(d.focusAreas, id, 4) }));
 
   const finish = async () => {
     setSaving(true);
