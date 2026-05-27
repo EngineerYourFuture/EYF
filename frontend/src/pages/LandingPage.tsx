@@ -8,19 +8,20 @@ import { EYFMark } from '../components/EYFLogo';
 
 /* ── Design tokens ─────────────────────────────────────────────────────── */
 const D = {
-  bg:     '#09090B',
-  surf:   '#111113',
-  elev:   '#18181B',
+  bg:     '#000000',
+  surf:   '#0a0a0a',
+  elev:   '#141414',
+  card:   '#1c1c1e',
   accent: '#E82127',
-  t1:     '#FAFAFA',
-  t2:     '#A1A1AA',
-  t3:     '#71717A',
-  t4:     '#3F3F46',
-  border: '#3F3F46',
-  muted:  '#27272A',
+  t1:     '#F5F5F7',
+  t2:     '#86868B',
+  t3:     '#515154',
+  t4:     '#2d2d2f',
+  border: '#232325',
+  muted:  '#1d1d1f',
 };
 
-/* ── TiltCard — Apple-style 3D perspective hover ───────────────────────── */
+/* ── TiltCard ─────────────────────────────────────────────────────────── */
 function TiltCard({ children, style, className, maxTilt = 10 }: {
   children: ReactNode; style?: CSSProperties; className?: string; maxTilt?: number;
 }) {
@@ -50,112 +51,7 @@ function TiltCard({ children, style, className, maxTilt = 10 }: {
   );
 }
 
-/* ── FloatingDashboardPreview ────────────────────────────────────────────── */
-function FloatingDashboardPreview() {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 48, rotateX: 14 }}
-      animate={{ opacity: 1, y: 0, rotateX: 4 }}
-      transition={{ duration: 1.2, delay: 0.7, ease: [0.16, 1, 0.3, 1] }}
-      style={{ perspective: 1200, transformStyle: 'preserve-3d', width: '100%', maxWidth: 420 }}
-    >
-      {/* Main glass card */}
-      <div style={{
-        background: 'rgba(14,15,28,0.88)',
-        border: '1px solid rgba(255,255,255,0.12)',
-        borderRadius: 20,
-        padding: '22px',
-        backdropFilter: 'blur(28px) saturate(200%)',
-        boxShadow: '0 40px 100px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.06), inset 0 1px 0 rgba(255,255,255,0.1)',
-        position: 'relative',
-        overflow: 'hidden',
-      }}>
-        {/* Top shimmer */}
-        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.18) 50%, transparent)' }} />
-
-        {/* Header row */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 18 }}>
-          <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#E82127', boxShadow: '0 0 8px rgba(232,25,44,0.9)', animation: 'pulse-dot 2s ease-in-out infinite', flexShrink: 0 }} />
-          <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', flex: 1 }}>Daily Challenge</span>
-          <span style={{ fontSize: 10, fontWeight: 800, color: '#FCD34D', background: 'rgba(234,179,8,0.14)', border: '1px solid rgba(234,179,8,0.3)', padding: '2px 9px', borderRadius: 100, fontFamily: 'Space Grotesk' }}>+50 XP</span>
-        </div>
-
-        {/* Difficulty + title */}
-        <div style={{ marginBottom: 16 }}>
-          <span style={{ fontSize: 10, fontWeight: 700, color: '#FCC93A', background: 'rgba(251,191,36,0.12)', padding: '2px 8px', borderRadius: 6, textTransform: 'uppercase', letterSpacing: '0.06em', fontFamily: 'Space Grotesk', marginRight: 8 }}>Medium</span>
-          <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)' }}>Array · HashMap</span>
-          <p style={{ fontFamily: 'Space Grotesk', fontWeight: 800, fontSize: 18, letterSpacing: '-0.02em', color: '#fff', marginTop: 8, marginBottom: 0, lineHeight: 1.2 }}>Two Sum</p>
-        </div>
-
-        {/* Code snippet */}
-        <div style={{
-          background: 'rgba(0,0,0,0.45)',
-          borderRadius: 12,
-          padding: '14px 16px',
-          marginBottom: 16,
-          fontFamily: 'JetBrains Mono, monospace',
-          fontSize: 11.5,
-          lineHeight: 1.75,
-          border: '1px solid rgba(255,255,255,0.06)',
-        }}>
-          <div><span style={{ color: '#FF7B72' }}>def </span><span style={{ color: '#79C0FF' }}>two_sum</span><span style={{ color: 'rgba(255,255,255,0.3)' }}>(nums, target):</span></div>
-          <div style={{ paddingLeft: 14 }}><span style={{ color: 'rgba(255,255,255,0.25)' }}>seen = {'{}'}</span></div>
-          <div style={{ paddingLeft: 14 }}><span style={{ color: '#FF7B72' }}>for </span><span style={{ color: '#FFA657' }}>i, n </span><span style={{ color: '#FF7B72' }}>in </span><span style={{ color: '#79C0FF' }}>enumerate</span><span style={{ color: 'rgba(255,255,255,0.3)' }}>(nums):</span></div>
-          <div style={{ paddingLeft: 28 }}><span style={{ color: '#FFA657' }}>diff</span><span style={{ color: 'rgba(255,255,255,0.3)' }}> = target - n</span></div>
-        </div>
-
-        {/* XP progress */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
-          <div style={{ flex: 1, height: 4, background: 'rgba(255,255,255,0.07)', borderRadius: 100, overflow: 'hidden' }}>
-            <motion.div
-              initial={{ width: 0 }}
-              animate={{ width: '68%' }}
-              transition={{ duration: 1.5, delay: 1.2, ease: [0.16, 1, 0.3, 1] }}
-              style={{ height: '100%', background: 'linear-gradient(90deg, #E82127, #FF6B7A)', borderRadius: 100, boxShadow: '0 0 10px rgba(232,25,44,0.6)' }}
-            />
-          </div>
-          <span style={{ fontSize: 10, fontWeight: 700, color: '#E82127', fontFamily: 'Space Grotesk', whiteSpace: 'nowrap' }}>2,400 XP</span>
-        </div>
-
-        {/* Stat pills row */}
-        <div style={{ display: 'flex', gap: 6 }}>
-          {[
-            { label: '68% solved', color: '#3B82F6' },
-            { label: '12d streak', color: '#F97316' },
-            { label: 'Rank #847', color: '#22C55E' },
-          ].map(({ label, color }) => (
-            <span key={label} style={{ fontSize: 9, fontWeight: 700, color, background: `${color}14`, border: `1px solid ${color}28`, padding: '3px 8px', borderRadius: 100, letterSpacing: '0.04em', fontFamily: 'Space Grotesk', whiteSpace: 'nowrap' }}>{label}</span>
-          ))}
-        </div>
-      </div>
-
-      {/* Floating badge — modules count */}
-      <motion.div
-        initial={{ opacity: 0, x: 20, y: -10 }}
-        animate={{ opacity: 1, x: 0, y: 0 }}
-        transition={{ duration: 0.8, delay: 1.4, ease: [0.16, 1, 0.3, 1] }}
-        style={{
-          position: 'absolute', top: -16, right: -16,
-          background: 'rgba(14,15,28,0.95)',
-          border: '1px solid rgba(255,255,255,0.14)',
-          borderRadius: 12,
-          padding: '8px 14px',
-          backdropFilter: 'blur(20px)',
-          boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
-          display: 'flex', alignItems: 'center', gap: 8,
-        }}
-      >
-        <span style={{ fontSize: 16 }}>🏆</span>
-        <div>
-          <p style={{ fontFamily: 'Space Grotesk', fontWeight: 800, fontSize: 14, letterSpacing: '-0.02em', color: '#fff', margin: 0, lineHeight: 1 }}>94%</p>
-          <p style={{ fontSize: 9, color: 'rgba(255,255,255,0.4)', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', margin: 0 }}>Placement rate</p>
-        </div>
-      </motion.div>
-    </motion.div>
-  );
-}
-
-/* ── TextScramble — Matrix-style character reveal ───────────────────────── */
+/* ── TextScramble ─────────────────────────────────────────────────────── */
 const SCRAMBLE_CHARS = '!<>-_\\/[]{}—=+*^?#@&$%';
 
 function useTextScramble(text: string, active: boolean, delayS = 0) {
@@ -182,7 +78,7 @@ function useTextScramble(text: string, active: boolean, delayS = 0) {
   return out;
 }
 
-/* ── CountUp — number animates from 0 when entering viewport ──────────── */
+/* ── CountUp ──────────────────────────────────────────────────────────── */
 function CountUp({ to, duration = 1.8, suffix = '' }: { to: number; duration?: number; suffix?: string }) {
   const ref = useRef<HTMLSpanElement>(null);
   const inView = useInView(ref, { once: true, margin: '-60px' });
@@ -202,7 +98,7 @@ function CountUp({ to, duration = 1.8, suffix = '' }: { to: number; duration?: n
   return <span ref={ref}>{display}{suffix}</span>;
 }
 
-/* ── Magnetic — button follows cursor with spring physics ───────────────── */
+/* ── Magnetic ─────────────────────────────────────────────────────────── */
 function Magnetic({ children, strength = 0.35 }: { children: ReactNode; strength?: number }) {
   const ref = useRef<HTMLDivElement>(null);
   const x = useMotionValue(0);
@@ -226,7 +122,7 @@ function Magnetic({ children, strength = 0.35 }: { children: ReactNode; strength
   );
 }
 
-/* ── CursorGlow — subtle red radial follows the cursor ──────────────────── */
+/* ── CursorGlow ───────────────────────────────────────────────────────── */
 function CursorGlow() {
   const x = useMotionValue(-400);
   const y = useMotionValue(-400);
@@ -245,42 +141,25 @@ function CursorGlow() {
       style={{
         position: 'fixed', top: 0, left: 0, zIndex: 1, pointerEvents: 'none',
         width: 500, height: 500, borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(232,33,39,0.055) 0%, transparent 60%)',
+        background: 'radial-gradient(circle, rgba(232,33,39,0.045) 0%, transparent 60%)',
         filter: 'blur(40px)', x: sx, y: sy, willChange: 'transform',
       }}
     />
   );
 }
 
-/* ── Film grain ─────────────────────────────────────────────────────────── */
+/* ── Grain ────────────────────────────────────────────────────────────── */
 function Grain() {
   return (
-    <div
-      aria-hidden="true"
-      style={{
-        position: 'fixed', inset: 0, zIndex: 50, pointerEvents: 'none',
-        backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E")`,
-        opacity: 0.03,
-        mixBlendMode: 'overlay',
-      }}
-    />
-  );
-}
-
-/* ── Structural grid ─────────────────────────────────────────────────────── */
-function GridBg() {
-  return (
-    <div aria-hidden style={{
-      position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none',
-      backgroundImage: `linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)`,
-      backgroundSize: '80px 80px',
-      maskImage: 'linear-gradient(to bottom, transparent, black 8%, black 92%, transparent)',
-      WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 8%, black 92%, transparent)',
+    <div aria-hidden="true" style={{
+      position: 'fixed', inset: 0, zIndex: 50, pointerEvents: 'none',
+      backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E")`,
+      opacity: 0.025, mixBlendMode: 'overlay',
     }} />
   );
 }
 
-/* ── ClipReveal — signature slide-up from hidden mask ──────────────────── */
+/* ── ClipReveal ───────────────────────────────────────────────────────── */
 function ClipReveal({ children, delay = 0, duration = 0.85, style = {}, className = '' }: {
   children: ReactNode; delay?: number; duration?: number; style?: CSSProperties; className?: string;
 }) {
@@ -298,7 +177,7 @@ function ClipReveal({ children, delay = 0, duration = 0.85, style = {}, classNam
   );
 }
 
-/* ── HeroReveal — uses animate (not whileInView) for above-fold content ── */
+/* ── HeroReveal ───────────────────────────────────────────────────────── */
 function HeroReveal({ children, delay = 0, style = {}, className = '' }: {
   children: ReactNode; delay?: number; style?: CSSProperties; className?: string;
 }) {
@@ -307,7 +186,7 @@ function HeroReveal({ children, delay = 0, style = {}, className = '' }: {
       <motion.div
         initial={{ y: '105%' }}
         animate={{ y: '0%' }}
-        transition={{ duration: 0.85, delay, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ duration: 0.9, delay, ease: [0.16, 1, 0.3, 1] }}
       >
         {children}
       </motion.div>
@@ -315,7 +194,7 @@ function HeroReveal({ children, delay = 0, style = {}, className = '' }: {
   );
 }
 
-/* ── FadeUp ─────────────────────────────────────────────────────────────── */
+/* ── FadeUp ───────────────────────────────────────────────────────────── */
 function FadeUp({ children, delay = 0, style = {}, className = '' }: {
   children: ReactNode; delay?: number; style?: CSSProperties; className?: string;
 }) {
@@ -333,28 +212,111 @@ function FadeUp({ children, delay = 0, style = {}, className = '' }: {
   );
 }
 
-/* ── EditorialNum ───────────────────────────────────────────────────────── */
+/* ── EditorialNum ─────────────────────────────────────────────────────── */
 function EditorialNum({ n, align = 'right' }: { n: string; align?: 'left' | 'right' }) {
   return (
     <div aria-hidden style={{
-      position: 'absolute',
-      top: -20,
+      position: 'absolute', top: -20,
       ...(align === 'right' ? { right: -16 } : { left: -16 }),
       fontSize: 'clamp(120px, 20vw, 280px)',
-      fontWeight: 900,
-      fontFamily: 'Space Grotesk, sans-serif',
-      color: 'rgba(255,255,255,0.03)',
-      letterSpacing: '-0.06em',
-      lineHeight: 1,
-      pointerEvents: 'none',
-      userSelect: 'none',
+      fontWeight: 900, fontFamily: 'Space Grotesk, sans-serif',
+      color: 'rgba(255,255,255,0.025)', letterSpacing: '-0.06em',
+      lineHeight: 1, pointerEvents: 'none', userSelect: 'none',
     }}>
       {n}
     </div>
   );
 }
 
-/* ── LandingNav ─────────────────────────────────────────────────────────── */
+/* ── AppWindow — hero product screenshot ──────────────────────────────── */
+function AppWindow() {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 80, rotateX: 16 }}
+      animate={{ opacity: 1, y: 0, rotateX: 6 }}
+      transition={{ duration: 1.6, delay: 1.0, ease: [0.16, 1, 0.3, 1] }}
+      style={{ perspective: 1600, transformStyle: 'preserve-3d', width: '100%' }}
+    >
+      <div style={{
+        background: '#090909',
+        border: '1px solid rgba(255,255,255,0.1)',
+        borderRadius: 18,
+        overflow: 'hidden',
+        boxShadow: '0 80px 160px rgba(0,0,0,0.95), 0 0 0 1px rgba(255,255,255,0.05), inset 0 1px 0 rgba(255,255,255,0.08)',
+      }}>
+        {/* Browser chrome */}
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 8, padding: '11px 18px',
+          background: 'rgba(0,0,0,0.6)', borderBottom: '1px solid rgba(255,255,255,0.06)',
+        }}>
+          {(['#FF5F57','#FEBC2E','#28C840'] as const).map(c => (
+            <span key={c} style={{ width: 10, height: 10, borderRadius: '50%', background: c, flexShrink: 0 }} />
+          ))}
+          <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
+            <span style={{ padding: '3px 16px', background: 'rgba(255,255,255,0.05)', borderRadius: 5, fontSize: 10.5, color: 'rgba(255,255,255,0.22)', fontFamily: 'Inter, monospace', letterSpacing: '0.02em' }}>eyf.app/problems/two-sum</span>
+          </div>
+          <span style={{ fontSize: 10, fontWeight: 700, color: '#FCD34D', background: 'rgba(252,211,77,0.1)', padding: '3px 10px', borderRadius: 100, fontFamily: 'Space Grotesk' }}>2,400 XP</span>
+        </div>
+
+        {/* App layout */}
+        <div style={{ display: 'grid', gridTemplateColumns: '48px 1fr 1fr' }}>
+          {/* Sidebar */}
+          <div style={{ padding: '18px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 18, borderRight: '1px solid rgba(255,255,255,0.04)', background: 'rgba(0,0,0,0.25)' }}>
+            <EYFMark size={18} />
+            {(['code','architecture','work_history','analytics','person'] as const).map((icon, i) => (
+              <span key={icon} className="material-symbols-rounded" style={{ fontSize: 17, color: i === 0 ? D.accent : D.t3 }}>{icon}</span>
+            ))}
+          </div>
+
+          {/* Problem description */}
+          <div style={{ padding: '20px 20px', borderRight: '1px solid rgba(255,255,255,0.04)' }}>
+            <div style={{ display: 'flex', gap: 6, marginBottom: 12, flexWrap: 'wrap' }}>
+              <span style={{ fontSize: 9.5, fontWeight: 700, color: '#FCC93A', background: 'rgba(252,201,58,0.1)', padding: '2px 8px', borderRadius: 4, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Medium</span>
+              <span style={{ fontSize: 9.5, color: D.t3, padding: '2px 8px', background: 'rgba(255,255,255,0.04)', borderRadius: 4 }}>Array · HashMap</span>
+            </div>
+            <h3 style={{ fontFamily: 'Space Grotesk', fontSize: 17, fontWeight: 700, color: D.t1, marginBottom: 10, letterSpacing: '-0.02em' }}>Two Sum</h3>
+            <p style={{ fontSize: 11, color: D.t2, lineHeight: 1.7, marginBottom: 14 }}>
+              Given an array of integers <code style={{ background: 'rgba(255,255,255,0.07)', padding: '1px 5px', borderRadius: 3, fontFamily: 'JetBrains Mono', fontSize: 10 }}>nums</code> and integer <code style={{ background: 'rgba(255,255,255,0.07)', padding: '1px 5px', borderRadius: 3, fontFamily: 'JetBrains Mono', fontSize: 10 }}>target</code>, return indices that add up to target.
+            </p>
+            <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 14 }}>
+              {['Google', 'Amazon', 'Meta', 'Apple'].map(c => (
+                <span key={c} style={{ fontSize: 9.5, padding: '2px 8px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', color: D.t3, borderRadius: 4 }}>{c}</span>
+              ))}
+            </div>
+            <div style={{ display: 'flex', gap: 4 }}>
+              <span style={{ fontSize: 9, fontWeight: 700, padding: '3px 8px', background: 'rgba(74,222,128,0.08)', color: '#4ADE80', borderRadius: 4 }}>✓ SOLVED</span>
+              <span style={{ fontSize: 9, fontWeight: 700, padding: '3px 8px', background: 'rgba(232,33,39,0.08)', color: D.accent, borderRadius: 4 }}>+50 XP</span>
+            </div>
+          </div>
+
+          {/* Code editor */}
+          <div style={{ background: '#07090e', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ padding: '9px 16px', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', gap: 8, alignItems: 'center' }}>
+              <span style={{ fontSize: 10, fontWeight: 600, color: D.t3, padding: '2px 10px', background: 'rgba(255,255,255,0.04)', borderRadius: 4 }}>two_sum.py</span>
+              <span style={{ marginLeft: 'auto', fontSize: 9, fontWeight: 700, padding: '2px 8px', background: 'rgba(59,130,246,0.1)', color: '#3B82F6', borderRadius: 4 }}>Python</span>
+            </div>
+            <div style={{ padding: '14px 18px', fontFamily: 'JetBrains Mono, monospace', fontSize: 11, lineHeight: 2, flex: 1 }}>
+              <div><span style={{ color: '#FF7B72' }}>def </span><span style={{ color: '#79C0FF' }}>two_sum</span><span style={{ color: '#3a3f4b' }}>(nums, target):</span></div>
+              <div style={{ marginLeft: 16 }}><span style={{ color: '#FFA657' }}>seen</span><span style={{ color: '#3a3f4b' }}> = {'{}'}</span></div>
+              <div style={{ marginLeft: 16 }}><span style={{ color: '#FF7B72' }}>for </span><span style={{ color: '#FFA657' }}>i, n </span><span style={{ color: '#FF7B72' }}>in </span><span style={{ color: '#79C0FF' }}>enumerate</span><span style={{ color: '#3a3f4b' }}>(nums):</span></div>
+              <div style={{ marginLeft: 32 }}><span style={{ color: '#FFA657' }}>diff</span><span style={{ color: '#3a3f4b' }}> = target - n</span></div>
+              <div style={{ marginLeft: 32 }}><span style={{ color: '#FF7B72' }}>if </span><span style={{ color: '#FFA657' }}>diff </span><span style={{ color: '#FF7B72' }}>in </span><span style={{ color: '#FFA657' }}>seen</span><span style={{ color: '#3a3f4b' }}>:</span></div>
+              <div style={{ marginLeft: 48 }}><span style={{ color: '#FF7B72' }}>return </span><span style={{ color: '#3a3f4b' }}>[seen[diff], i]</span></div>
+              <div style={{ marginLeft: 32 }}><span style={{ color: '#FFA657' }}>seen</span><span style={{ color: '#3a3f4b' }}>[n] = i</span></div>
+            </div>
+            <div style={{ padding: '9px 16px', borderTop: '1px solid rgba(255,255,255,0.04)', background: 'rgba(74,222,128,0.03)', display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#4ADE80', flexShrink: 0 }} />
+              <span style={{ fontSize: 10.5, fontWeight: 600, color: '#4ADE80' }}>All 57 tests passed · 34ms</span>
+              <span style={{ marginLeft: 'auto', fontSize: 10, fontFamily: 'JetBrains Mono', color: D.t4 }}>O(n)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+/* ── LandingNav ───────────────────────────────────────────────────────── */
 function LandingNav() {
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
@@ -366,22 +328,21 @@ function LandingNav() {
   return (
     <header style={{
       position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
-      padding: '0 clamp(16px, 4vw, 48px)',
-      height: 64,
+      padding: '0 clamp(16px, 4vw, 48px)', height: 56,
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      background: scrolled ? 'rgba(9,9,11,0.92)' : 'transparent',
-      backdropFilter: scrolled ? 'blur(20px)' : 'none',
+      background: scrolled ? 'rgba(0,0,0,0.88)' : 'transparent',
+      backdropFilter: scrolled ? 'blur(24px) saturate(180%)' : 'none',
       borderBottom: scrolled ? `1px solid ${D.border}` : '1px solid transparent',
-      transition: 'all 0.3s ease',
+      transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
     }}>
-      <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
-        <EYFMark size={24} />
-        <span style={{ fontFamily: 'Space Grotesk', fontWeight: 800, fontSize: 15, letterSpacing: '-0.04em', color: D.t1, textTransform: 'uppercase' }}>EYF</span>
+      <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 9, textDecoration: 'none' }}>
+        <EYFMark size={22} />
+        <span style={{ fontFamily: 'Space Grotesk', fontWeight: 800, fontSize: 13, letterSpacing: '-0.03em', color: D.t1, textTransform: 'uppercase' }}>EYF</span>
       </Link>
 
       <nav className="hidden md:flex" style={{ gap: 40 }}>
-        {[['#showcase', 'Platform'], ['#curriculum', 'Curriculum'], ['#pricing', 'Pricing']].map(([href, label]) => (
-          <a key={href} href={href} style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: D.t3, textDecoration: 'none', transition: 'color 0.2s' }}
+        {[['#platform', 'Platform'], ['#how-it-works', 'Process'], ['#pricing', 'Pricing']].map(([href, label]) => (
+          <a key={href} href={href} style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: D.t3, textDecoration: 'none', transition: 'color 0.2s' }}
             onMouseEnter={e => (e.currentTarget.style.color = D.t1)}
             onMouseLeave={e => (e.currentTarget.style.color = D.t3)}
           >{label}</a>
@@ -389,9 +350,14 @@ function LandingNav() {
       </nav>
 
       <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-        <Link to="/login" className="md:block" style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: D.t3, textDecoration: 'none', padding: '8px 16px', display: 'none' }}>Sign in</Link>
+        <Link to="/login" className="hidden md:block" style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: D.t3, textDecoration: 'none', padding: '8px 16px' }}>Sign in</Link>
         <Magnetic strength={0.3}>
-          <Link to="/login?tab=register" style={{ fontFamily: 'Space Grotesk', fontSize: 12, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#000', background: D.accent, padding: '10px 20px', borderRadius: 10, textDecoration: 'none', display: 'inline-block', boxShadow: '0 4px 20px rgba(232,33,39,0.3)' }}>
+          <Link to="/login?tab=register" style={{
+            fontFamily: 'Space Grotesk', fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase',
+            color: '#fff', background: D.accent, padding: '9px 20px', borderRadius: 100,
+            textDecoration: 'none', display: 'inline-block',
+            boxShadow: '0 0 0 1px rgba(232,33,39,0.4), 0 4px 20px rgba(232,33,39,0.25)',
+          }}>
             Start free
           </Link>
         </Magnetic>
@@ -400,219 +366,363 @@ function LandingNav() {
   );
 }
 
-/* ── HeroSection ────────────────────────────────────────────────────────── */
+/* ── HeroSection ──────────────────────────────────────────────────────── */
 function HeroSection() {
   const { scrollY } = useScroll();
-  const heroOpacity = useTransform(scrollY, [0, 520], [1, 0]);
-  const heroScale  = useTransform(scrollY, [0, 520], [1, 0.93]);
-  const heroBlur   = useTransform(scrollY, [0, 380], [0, 8]);
-  const heroY      = useTransform(scrollY, [0, 520], [0, -60]);
-  const scrollIndicatorOpacity = useTransform(scrollY, [0, 180], [1, 0]);
+  const heroOpacity = useTransform(scrollY, [0, 480], [1, 0]);
+  const heroY       = useTransform(scrollY, [0, 480], [0, -60]);
+  const heroScale   = useTransform(scrollY, [0, 480], [1, 0.96]);
+  const scrollIndicatorOpacity = useTransform(scrollY, [0, 160], [1, 0]);
 
-  /* Text scramble on "future." — fires once, 300ms after mount */
   const [scrambleActive, setScrambleActive] = useState(false);
-  useEffect(() => { const t = setTimeout(() => setScrambleActive(true), 600); return () => clearTimeout(t); }, []);
-  const scrambledFuture = useTextScramble('future.', scrambleActive, 0);
+  useEffect(() => { const t = setTimeout(() => setScrambleActive(true), 900); return () => clearTimeout(t); }, []);
+  const scrambled = useTextScramble('Future.', scrambleActive, 0);
 
   return (
-    <motion.section style={{
-      minHeight: '100dvh', background: D.bg, position: 'relative', overflow: 'hidden',
-      display: 'flex', flexDirection: 'column', justifyContent: 'center',
-      paddingTop: 80, opacity: heroOpacity,
+    <section style={{
+      minHeight: '100dvh', background: D.bg, position: 'relative',
+      display: 'flex', flexDirection: 'column', alignItems: 'center',
+      overflow: 'hidden', paddingTop: 80, paddingBottom: 0,
     }}>
-      <GridBg />
-
-      {/* Ambient red glow */}
+      {/* Ambient glow */}
       <div aria-hidden style={{
-        position: 'absolute', top: '15%', left: '55%', transform: 'translateX(-50%)',
-        width: 600, height: 500, borderRadius: '50%',
-        background: 'radial-gradient(ellipse, rgba(232,33,39,0.08) 0%, transparent 65%)',
-        filter: 'blur(80px)', pointerEvents: 'none', zIndex: 0,
-      }} />
-      <div aria-hidden style={{
-        position: 'absolute', bottom: '10%', left: '10%',
-        width: 400, height: 300, borderRadius: '50%',
-        background: 'radial-gradient(ellipse, rgba(99,102,241,0.05) 0%, transparent 70%)',
-        filter: 'blur(80px)', pointerEvents: 'none', zIndex: 0,
+        position: 'absolute', top: '10%', left: '50%', transform: 'translateX(-50%)',
+        width: 900, height: 600, borderRadius: '50%',
+        background: 'radial-gradient(ellipse, rgba(232,33,39,0.07) 0%, transparent 60%)',
+        filter: 'blur(100px)', pointerEvents: 'none', zIndex: 0,
       }} />
 
       <motion.div style={{
         position: 'relative', zIndex: 1,
-        padding: 'clamp(16px, 5vw, 80px)', maxWidth: '100%', margin: '0 auto',
-        scale: heroScale, y: heroY,
-        filter: useTransform(heroBlur, v => `blur(${v}px)`),
+        textAlign: 'center', width: '100%',
+        opacity: heroOpacity, y: heroY, scale: heroScale,
+        padding: '40px clamp(16px, 5vw, 80px) 0',
+        display: 'flex', flexDirection: 'column', alignItems: 'center',
       }}>
-
-        {/* Beta pill */}
+        {/* Eyebrow */}
         <HeroReveal delay={0}>
-          <div style={{ marginBottom: 40 }}>
+          <div style={{ marginBottom: 44 }}>
             <span style={{
               display: 'inline-flex', alignItems: 'center', gap: 8,
-              padding: '6px 18px', border: `1px solid rgba(232,33,39,0.3)`,
-              background: 'rgba(232,33,39,0.07)', borderRadius: 100,
-              fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: D.accent,
+              padding: '6px 18px', border: `1px solid rgba(232,33,39,0.25)`,
+              background: 'rgba(232,33,39,0.06)', borderRadius: 100,
+              fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: D.accent,
             }}>
-              <span style={{ width: 5, height: 5, background: D.accent, borderRadius: '50%', display: 'inline-block', animation: 'pulse-dot 2s ease-in-out infinite' }} />
-              Open beta · <CountUp to={12000} duration={2} suffix="+" /> students enrolled
+              <span style={{ width: 5, height: 5, background: D.accent, borderRadius: '50%', flexShrink: 0, animation: 'pulse-dot 2s ease-in-out infinite' }} />
+              Open beta · <CountUp to={12000} duration={2} suffix="+" /> enrolled
             </span>
           </div>
         </HeroReveal>
 
-        {/* Two-column layout */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 48, alignItems: 'center' }} className="lg:grid-two-col">
-
-          {/* Left — text */}
-          <div>
-            <div style={{ marginBottom: 32 }}>
-              <HeroReveal delay={0.05}>
-                <h1 style={{
-                  fontFamily: 'Space Grotesk, sans-serif',
-                  fontSize: 'clamp(3.2rem, 9vw, 8rem)',
-                  fontWeight: 800, lineHeight: 0.9,
-                  letterSpacing: '-0.05em',
-                  textTransform: 'uppercase',
-                  color: D.t1, margin: 0,
-                }}>Engineer</h1>
-              </HeroReveal>
-              <HeroReveal delay={0.1}>
-                <h1 style={{
-                  fontFamily: 'Space Grotesk, sans-serif',
-                  fontSize: 'clamp(3.2rem, 9vw, 8rem)',
-                  fontWeight: 800, lineHeight: 0.9,
-                  letterSpacing: '-0.05em',
-                  textTransform: 'uppercase',
-                  color: D.t1, margin: 0,
-                }}>your</h1>
-              </HeroReveal>
-              <HeroReveal delay={0.17}>
-                <h1 style={{
-                  fontFamily: 'Space Grotesk, sans-serif',
-                  fontSize: 'clamp(3.2rem, 9vw, 8rem)',
-                  fontWeight: 800, lineHeight: 0.9,
-                  letterSpacing: '-0.05em',
-                  textTransform: 'uppercase',
-                  color: D.accent, margin: 0,
-                  fontVariantNumeric: 'tabular-nums',
-                }}>{scrambledFuture || 'future.'}</h1>
-              </HeroReveal>
-            </div>
-
-            <FadeUp delay={0.45}>
-              <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 16, color: D.t2, lineHeight: 1.75, maxWidth: 460, marginBottom: 36 }}>
-                DSA, system design, core CS, and placement prep — one platform, one structured path to your first tech offer.
-              </p>
-            </FadeUp>
-
-            <FadeUp delay={0.55}>
-              <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 28 }}>
-                <Magnetic strength={0.28}>
-                  <Link to="/login?tab=register" style={{
-                    display: 'inline-flex', alignItems: 'center', gap: 8,
-                    height: 52, padding: '0 32px',
-                    background: D.accent, color: '#000',
-                    fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase',
-                    textDecoration: 'none', borderRadius: 12,
-                    boxShadow: '0 8px 32px rgba(232,33,39,0.35)',
-                    transition: 'box-shadow 0.2s',
-                  }}>
-                    Start free →
-                  </Link>
-                </Magnetic>
-                <Magnetic strength={0.22}>
-                  <a href="#showcase" style={{
-                    display: 'inline-flex', alignItems: 'center', gap: 8,
-                    height: 52, padding: '0 32px',
-                    background: 'rgba(255,255,255,0.05)', color: D.t1,
-                    fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase',
-                    textDecoration: 'none', border: `1px solid rgba(255,255,255,0.12)`, borderRadius: 12,
-                    backdropFilter: 'blur(12px)',
-                  }}>
-                    See platform
-                  </a>
-                </Magnetic>
-              </div>
-              <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
-                {['No credit card', 'Free tier forever', '5 min setup'].map(t => (
-                  <span key={t} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, letterSpacing: '0.04em', color: D.t4 }}>
-                    <span style={{ color: '#4ADE80', fontWeight: 700, fontSize: 13 }}>✓</span> {t}
-                  </span>
-                ))}
-              </div>
-            </FadeUp>
-          </div>
-
-          {/* Right — floating product preview */}
-          <div className="hidden lg:flex" style={{ justifyContent: 'flex-end', position: 'relative' }}>
-            <FloatingDashboardPreview />
-          </div>
+        {/* Headline */}
+        <div style={{ marginBottom: 28 }}>
+          <HeroReveal delay={0.1}>
+            <h1 style={{
+              fontFamily: 'Space Grotesk, sans-serif',
+              fontSize: 'clamp(3.8rem, 11vw, 10rem)',
+              fontWeight: 700, lineHeight: 0.9,
+              letterSpacing: '-0.055em',
+              color: D.t1, margin: 0,
+            }}>Engineer Your</h1>
+          </HeroReveal>
+          <HeroReveal delay={0.18}>
+            <h1 style={{
+              fontFamily: 'Space Grotesk, sans-serif',
+              fontSize: 'clamp(3.8rem, 11vw, 10rem)',
+              fontWeight: 700, lineHeight: 0.9,
+              letterSpacing: '-0.055em',
+              color: D.accent, margin: 0,
+            }}>{scrambled || 'Future.'}</h1>
+          </HeroReveal>
         </div>
+
+        {/* Subtitle */}
+        <motion.p
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.45, ease: [0.16, 1, 0.3, 1] }}
+          style={{
+            fontSize: 'clamp(15px, 2vw, 18px)', color: D.t2, lineHeight: 1.65,
+            maxWidth: 480, margin: '0 0 44px',
+          }}
+        >
+          The all-in-one platform for campus placement prep. DSA, system design, core CS — structured, not scattered.
+        </motion.p>
+
+        {/* CTAs */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.56, ease: [0.16, 1, 0.3, 1] }}
+          style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 72 }}
+        >
+          <Magnetic strength={0.28}>
+            <Link to="/login?tab=register" style={{
+              display: 'inline-flex', alignItems: 'center', gap: 8,
+              height: 52, padding: '0 32px',
+              background: D.accent, color: '#fff',
+              fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 12, letterSpacing: '0.04em',
+              textDecoration: 'none', borderRadius: 100,
+              boxShadow: '0 0 0 1px rgba(232,33,39,0.4), 0 8px 32px rgba(232,33,39,0.28)',
+            }}>
+              Get started free →
+            </Link>
+          </Magnetic>
+          <Magnetic strength={0.2}>
+            <a href="#platform" style={{
+              display: 'inline-flex', alignItems: 'center', gap: 8,
+              height: 52, padding: '0 32px',
+              background: 'rgba(255,255,255,0.06)', color: D.t1,
+              fontFamily: 'Space Grotesk', fontWeight: 600, fontSize: 12, letterSpacing: '0.03em',
+              textDecoration: 'none', border: `1px solid rgba(255,255,255,0.1)`, borderRadius: 100,
+              backdropFilter: 'blur(12px)',
+            }}>
+              See the platform
+            </a>
+          </Magnetic>
+        </motion.div>
+
+        {/* Product window — peeks below fold */}
+        <motion.div
+          initial={{ opacity: 0, y: 60 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1.2, delay: 0.85, ease: [0.16, 1, 0.3, 1] }}
+          style={{ width: '100%', maxWidth: 920, paddingBottom: 0 }}
+        >
+          <AppWindow />
+        </motion.div>
       </motion.div>
 
+      {/* Scroll indicator */}
       <motion.div
-        style={{ position: 'absolute', bottom: 36, left: '50%', transform: 'translateX(-50%)', opacity: scrollIndicatorOpacity }}
+        style={{ position: 'absolute', bottom: 28, left: '50%', transform: 'translateX(-50%)', opacity: scrollIndicatorOpacity }}
         animate={{ y: [0, 8, 0] }}
         transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
       >
-        <div style={{ width: 1, height: 48, background: `linear-gradient(to bottom, ${D.accent}, transparent)`, margin: '0 auto' }} />
+        <div style={{ width: 1, height: 40, background: `linear-gradient(to bottom, ${D.accent}, transparent)`, margin: '0 auto' }} />
       </motion.div>
-    </motion.section>
+    </section>
   );
 }
 
-/* ── StatsMarquee ───────────────────────────────────────────────────────── */
-const STATS_ITEMS = [
-  { value: '12,400+', label: 'Students' },
-  { value: '450+',    label: 'Problems' },
-  { value: '94%',     label: 'Placement rate' },
-  { value: '60+',     label: 'Companies' },
-  { value: '#1',      label: 'Placement platform' },
-  { value: '15',      label: 'DSA patterns' },
-  { value: '4.9★',    label: 'Rating' },
-  { value: '200+',    label: 'Colleges' },
+/* ── StatsSection ─────────────────────────────────────────────────────── */
+const STATS_DATA = [
+  { value: 12000, suffix: '+', label: 'Students enrolled' },
+  { value: 94,    suffix: '%', label: 'Placement rate' },
+  { value: 450,   suffix: '+', label: 'Practice problems' },
+  { value: 60,    suffix: '+', label: 'Companies covered' },
 ];
 
-function StatsMarquee() {
+function StatsSection() {
   return (
-    <section style={{ background: D.accent, borderTop: `2px solid ${D.accent}`, borderBottom: `2px solid ${D.accent}`, padding: '24px 0', overflow: 'hidden' }}>
-      <Marquee speed={80} gradient={false} autoFill>
-        {STATS_ITEMS.map((s, i) => (
-          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 40, marginRight: 80 }}>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: 14 }}>
-              <span style={{
-                fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 'clamp(24px, 4vw, 40px)',
-                letterSpacing: '-0.04em', color: '#000', lineHeight: 1,
-              }}>{s.value}</span>
-              <span style={{
-                fontFamily: 'Space Grotesk', fontWeight: 600, fontSize: 11,
-                letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(0,0,0,0.6)',
-              }}>{s.label}</span>
-            </div>
-            {i < STATS_ITEMS.length - 1 && (
-              <span style={{ fontSize: 20, color: 'rgba(0,0,0,0.25)', fontWeight: 300 }}>×</span>
-            )}
+    <section style={{ background: D.bg, borderTop: `1px solid ${D.border}`, padding: '120px clamp(16px, 5vw, 80px)' }}>
+      <div style={{ maxWidth: 1140, margin: '0 auto' }}>
+        <FadeUp>
+          <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: D.t3, marginBottom: 80, textAlign: 'center' }}>By the numbers</p>
+        </FadeUp>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '72px 40px' }}>
+          {STATS_DATA.map((s, i) => (
+            <FadeUp key={s.label} delay={i * 0.08}>
+              <div>
+                <div style={{
+                  fontFamily: 'Space Grotesk', fontWeight: 700,
+                  fontSize: 'clamp(52px, 8vw, 92px)',
+                  letterSpacing: '-0.04em', lineHeight: 1,
+                  color: D.t1, marginBottom: 14,
+                }}>
+                  <CountUp to={s.value} duration={2.2} suffix={s.suffix} />
+                </div>
+                <p style={{ fontSize: 15, color: D.t2, letterSpacing: '0.01em' }}>{s.label}</p>
+              </div>
+            </FadeUp>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ── BentoSection ─────────────────────────────────────────────────────── */
+function BentoSection() {
+  const bentoTile: CSSProperties = {
+    borderRadius: 20,
+    border: `1px solid ${D.border}`,
+    overflow: 'hidden',
+    background: D.elev,
+  };
+
+  return (
+    <section id="platform" style={{ background: D.surf, borderTop: `1px solid ${D.border}`, padding: '100px clamp(16px, 5vw, 80px)' }}>
+      <div style={{ maxWidth: 1140, margin: '0 auto' }}>
+        {/* Header */}
+        <div style={{ marginBottom: 56 }}>
+          <FadeUp>
+            <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: D.accent, marginBottom: 18 }}>The Platform</p>
+          </FadeUp>
+          <ClipReveal>
+            <h2 style={{
+              fontFamily: 'Space Grotesk', fontWeight: 700,
+              fontSize: 'clamp(2.6rem, 6vw, 6rem)',
+              letterSpacing: '-0.05em', lineHeight: 0.92,
+              color: D.t1, margin: 0,
+            }}>Everything you need.<br />Nothing you don't.</h2>
+          </ClipReveal>
+        </div>
+
+        {/* Bento grid — row 1 */}
+        <FadeUp>
+          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 10, marginBottom: 10 }}>
+
+            {/* DSA Practice — large */}
+            <TiltCard maxTilt={4} style={{ display: 'flex', flexDirection: 'column' }}>
+              <div style={{ ...bentoTile, padding: '36px 36px 0', display: 'flex', flexDirection: 'column', minHeight: 340 }}>
+                <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#3B82F6', marginBottom: 10 }}>DSA Practice</p>
+                <h3 style={{ fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 'clamp(22px, 3vw, 30px)', letterSpacing: '-0.04em', color: D.t1, marginBottom: 8, lineHeight: 1.15 }}>Pattern-based<br />problem solving.</h3>
+                <p style={{ fontSize: 13, color: D.t2, marginBottom: 24, maxWidth: 340, lineHeight: 1.6 }}>450+ problems organized by 15 core patterns. Each problem teaches something transferable.</p>
+                <div style={{ marginTop: 'auto', background: '#06080e', borderRadius: '12px 12px 0 0', border: '1px solid rgba(255,255,255,0.06)', borderBottom: 'none', overflow: 'hidden' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 16px', background: '#090c13', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                    {(['#FF5F57','#FEBC2E','#28C840'] as const).map(c => <span key={c} style={{ width: 8, height: 8, borderRadius: '50%', background: c }} />)}
+                    <span style={{ marginLeft: 4, fontSize: 9.5, color: '#2a2a2a', fontFamily: 'monospace' }}>two_sum.py</span>
+                    <span style={{ marginLeft: 'auto', fontSize: 8.5, fontWeight: 700, color: '#FCC93A', background: 'rgba(252,201,58,0.08)', padding: '1px 7px', borderRadius: 3 }}>MEDIUM</span>
+                  </div>
+                  <div style={{ padding: '12px 18px', fontFamily: 'JetBrains Mono, monospace', fontSize: 11, lineHeight: 1.9 }}>
+                    <div><span style={{ color: '#FF7B72' }}>def </span><span style={{ color: '#79C0FF' }}>two_sum</span><span style={{ color: '#2e3340' }}>(nums, target):</span></div>
+                    <div style={{ marginLeft: 14 }}><span style={{ color: '#FFA657' }}>seen</span><span style={{ color: '#2e3340' }}> = {'{}'}</span></div>
+                    <div style={{ marginLeft: 14 }}><span style={{ color: '#FF7B72' }}>for </span><span style={{ color: '#FFA657' }}>i, n </span><span style={{ color: '#FF7B72' }}>in </span><span style={{ color: '#79C0FF' }}>enumerate</span><span style={{ color: '#2e3340' }}>(nums):</span></div>
+                    <div style={{ marginLeft: 28 }}><span style={{ color: '#FFA657' }}>diff</span><span style={{ color: '#2e3340' }}> = target - n</span></div>
+                    <div style={{ marginLeft: 28 }}><span style={{ color: '#FF7B72' }}>if </span><span style={{ color: '#FFA657' }}>diff </span><span style={{ color: '#FF7B72' }}>in </span><span style={{ color: '#FFA657' }}>seen</span><span style={{ color: '#2e3340' }}>: </span><span style={{ color: '#FF7B72' }}>return </span><span style={{ color: '#2e3340' }}>[seen[diff], i]</span></div>
+                  </div>
+                </div>
+              </div>
+            </TiltCard>
+
+            {/* Streak & XP */}
+            <TiltCard maxTilt={5} style={{ display: 'flex', flexDirection: 'column' }}>
+              <div style={{ ...bentoTile, padding: 32, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: 340, position: 'relative' }}>
+                <div>
+                  <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#F97316', marginBottom: 10 }}>Streak & XP</p>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 4 }}>
+                    <span style={{ fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 80, letterSpacing: '-0.06em', lineHeight: 1, color: D.t1 }}>12</span>
+                    <span style={{ fontSize: 18, fontWeight: 600, color: D.t2, marginBottom: 6 }}>days</span>
+                  </div>
+                  <p style={{ fontSize: 11, color: D.t3, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600 }}>Active streak</p>
+                </div>
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                    <span style={{ fontSize: 11.5, color: D.t2 }}>XP this week</span>
+                    <span style={{ fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 12, color: '#FBBF24' }}>2,400</span>
+                  </div>
+                  <div style={{ height: 4, background: 'rgba(255,255,255,0.06)', borderRadius: 100, overflow: 'hidden' }}>
+                    <motion.div
+                      initial={{ width: 0 }}
+                      whileInView={{ width: '80%' }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 1.4, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                      style={{ height: '100%', background: 'linear-gradient(90deg, #F97316, #FBBF24)', borderRadius: 100 }}
+                    />
+                  </div>
+                </div>
+                <div aria-hidden style={{ position: 'absolute', bottom: -28, right: -12, fontSize: 130, opacity: 0.05, lineHeight: 1, pointerEvents: 'none', userSelect: 'none', filter: 'saturate(0)' }}>🔥</div>
+              </div>
+            </TiltCard>
           </div>
-        ))}
-      </Marquee>
+        </FadeUp>
+
+        {/* Bento grid — row 2 */}
+        <FadeUp delay={0.1}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+
+            {/* System Design */}
+            <TiltCard maxTilt={5} style={{ display: 'flex', flexDirection: 'column' }}>
+              <div style={{ ...bentoTile, padding: 28, display: 'flex', flexDirection: 'column', minHeight: 240 }}>
+                <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#22D3EE', marginBottom: 8 }}>System Design</p>
+                <h3 style={{ fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 22, letterSpacing: '-0.04em', color: D.t1, marginBottom: 'auto', lineHeight: 1.2 }}>HLD, LLD &<br />real systems.</h3>
+                <div style={{ position: 'relative', height: 96, marginTop: 16 }}>
+                  <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }} aria-hidden>
+                    <line x1="20%" y1="16%" x2="48%" y2="42%" stroke="rgba(255,255,255,0.07)" strokeWidth="1.5" strokeDasharray="4 3" />
+                    <line x1="50%" y1="48%" x2="28%" y2="78%" stroke="rgba(255,255,255,0.07)" strokeWidth="1.5" strokeDasharray="4 3" />
+                    <line x1="50%" y1="48%" x2="72%" y2="78%" stroke="rgba(255,255,255,0.07)" strokeWidth="1.5" strokeDasharray="4 3" />
+                  </svg>
+                  {[
+                    { label: 'Client',  x: 12, y: 8,  color: '#3B82F6' },
+                    { label: 'API',     x: 42, y: 40, color: '#A78BFA' },
+                    { label: 'DB',      x: 18, y: 74, color: '#FB923C' },
+                    { label: 'Cache',   x: 62, y: 74, color: '#22D3EE' },
+                  ].map(n => (
+                    <div key={n.label} style={{ position: 'absolute', left: `${n.x}%`, top: `${n.y}%` }}>
+                      <span style={{ fontSize: 9, fontWeight: 700, padding: '2px 7px', background: `${n.color}14`, border: `1px solid ${n.color}30`, color: n.color, borderRadius: 4, whiteSpace: 'nowrap' }}>{n.label}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </TiltCard>
+
+            {/* Readiness Score */}
+            <TiltCard maxTilt={5} style={{ display: 'flex', flexDirection: 'column' }}>
+              <div style={{ ...bentoTile, padding: 28, display: 'flex', flexDirection: 'column', minHeight: 240 }}>
+                <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#4ADE80', marginBottom: 8 }}>Readiness Score</p>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 3, marginBottom: 18 }}>
+                  <span style={{ fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 52, letterSpacing: '-0.05em', lineHeight: 1, color: D.t1 }}>54</span>
+                  <span style={{ fontSize: 22, fontWeight: 700, color: D.t3 }}>%</span>
+                </div>
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 9 }}>
+                  {([
+                    { label: 'DSA',           pct: 68, color: '#3B82F6' },
+                    { label: 'System Design', pct: 41, color: '#22D3EE' },
+                    { label: 'Core CS',       pct: 72, color: '#4ADE80' },
+                  ] as const).map(m => (
+                    <div key={m.label}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                        <span style={{ fontSize: 10.5, color: D.t3 }}>{m.label}</span>
+                        <span style={{ fontSize: 10.5, fontWeight: 700, color: m.color, fontFamily: 'Space Grotesk' }}>{m.pct}%</span>
+                      </div>
+                      <div style={{ height: 3, background: 'rgba(255,255,255,0.06)', borderRadius: 100, overflow: 'hidden' }}>
+                        <motion.div
+                          initial={{ width: 0 }}
+                          whileInView={{ width: `${m.pct}%` }}
+                          viewport={{ once: true }}
+                          transition={{ duration: 1.2, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+                          style={{ height: '100%', background: m.color, borderRadius: 100 }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </TiltCard>
+
+            {/* Placement Prep — accent tile */}
+            <TiltCard maxTilt={5} style={{ display: 'flex', flexDirection: 'column' }}>
+              <div style={{
+                borderRadius: 20, overflow: 'hidden',
+                background: D.accent, padding: 28,
+                display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: 240,
+                position: 'relative',
+              }}>
+                <div>
+                  <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(0,0,0,0.45)', marginBottom: 8 }}>Placement Prep</p>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 3 }}>
+                    <span style={{ fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 52, letterSpacing: '-0.05em', lineHeight: 1, color: '#000' }}>60</span>
+                    <span style={{ fontSize: 24, fontWeight: 700, color: 'rgba(0,0,0,0.55)' }}>+</span>
+                  </div>
+                  <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,0.5)', textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: 4 }}>Companies</p>
+                </div>
+                <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
+                  {['Google', 'Amazon', 'Zoho', 'Swiggy', 'Razorpay'].map(c => (
+                    <span key={c} style={{ fontSize: 9.5, fontWeight: 700, padding: '3px 10px', background: 'rgba(0,0,0,0.15)', color: '#000', borderRadius: 100 }}>{c}</span>
+                  ))}
+                </div>
+              </div>
+            </TiltCard>
+
+          </div>
+        </FadeUp>
+      </div>
     </section>
   );
 }
 
-/* ── TrustBar ───────────────────────────────────────────────────────────── */
-function TrustBar() {
-  const colleges = ['IIT Delhi','IIT Bombay','NIT Trichy','BITS Pilani','VIT Vellore','IIIT Hyderabad','DTU Delhi','Manipal','Anna University','SRM','PSG Tech','NSUT'];
-  return (
-    <section style={{ background: D.bg, borderBottom: `1px solid ${D.border}`, padding: '32px 0' }}>
-      <p style={{ textAlign: 'center', fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: D.t4, marginBottom: 20 }}>Students from</p>
-      <Marquee speed={40} gradient={false} autoFill>
-        {colleges.map(c => (
-          <span key={c} style={{ marginRight: 64, fontFamily: 'Space Grotesk', fontSize: 13, fontWeight: 600, letterSpacing: '0.04em', color: D.t4 }}>{c}</span>
-        ))}
-      </Marquee>
-    </section>
-  );
-}
-
-/* ── HowItWorksSection ──────────────────────────────────────────────────── */
+/* ── HowItWorksSection ────────────────────────────────────────────────── */
 const STEPS = [
   { num: '01', label: 'Assess', title: 'KNOW WHERE\nYOU STAND.', body: 'Take the readiness test. Get a precise gap analysis across DSA, system design, and placement skills.', icon: 'analytics', color: '#3B82F6', metric: '94% accuracy' },
   { num: '02', label: 'Plan', title: 'FOLLOW THE\nPATH.', body: 'A personalized curriculum for campus placements. Modules unlock in sequence — always know what to do next.', icon: 'route', color: '#A78BFA', metric: '3× faster prep' },
@@ -626,10 +736,7 @@ function HowItWorksSection() {
   const { scrollYProgress } = useScroll({ target: containerRef, offset: ['start start', 'end end'] });
   const progressHeight = useTransform(scrollYProgress, [0, 1], ['0%', '100%']);
 
-  const STEP_RANGES = STEPS.map((_, i) => ({
-    start: i / STEPS.length,
-    end: (i + 1) / STEPS.length,
-  }));
+  const STEP_RANGES = STEPS.map((_, i) => ({ start: i / STEPS.length, end: (i + 1) / STEPS.length }));
 
   const o0 = useTransform(scrollYProgress, [STEP_RANGES[0].start, STEP_RANGES[0].start + 0.06, STEP_RANGES[0].end - 0.06, STEP_RANGES[0].end], [0,1,1,0]);
   const o1 = useTransform(scrollYProgress, [STEP_RANGES[1].start, STEP_RANGES[1].start + 0.06, STEP_RANGES[1].end - 0.06, STEP_RANGES[1].end], [0,1,1,0]);
@@ -647,70 +754,66 @@ function HowItWorksSection() {
   const ys = [y0, y1, y2, y3, y4];
 
   return (
-    <section ref={containerRef} style={{ height: '250vh', position: 'relative', background: D.bg }}>
+    <section id="how-it-works" ref={containerRef} style={{ height: '250vh', position: 'relative', background: D.bg, borderTop: `1px solid ${D.border}` }}>
       <div style={{ position: 'sticky', top: 0, height: '100vh', overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', top: 80, left: 'clamp(16px, 5vw, 80px)', zIndex: 10 }}>
+        <div style={{ position: 'absolute', top: 72, left: 'clamp(16px, 5vw, 80px)', zIndex: 10 }}>
           <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: D.accent, marginBottom: 8 }}>How it works</p>
         </div>
 
-        <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 4, background: D.muted, zIndex: 10 }}>
-          <motion.div style={{
-            position: 'absolute', top: 0, left: 0, right: 0,
-            height: progressHeight,
-            background: D.accent,
-          }} />
+        <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 3, background: D.muted, zIndex: 10 }}>
+          <motion.div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: progressHeight, background: D.accent }} />
         </div>
 
         {STEPS.map((step, i) => (
           <motion.div key={step.num} style={{
             position: 'absolute', inset: 0, opacity: opacities[i], y: ys[i],
             display: 'flex', alignItems: 'center',
-            padding: 'clamp(16px, 5vw, 80px)',
-            paddingTop: 120,
+            padding: 'clamp(16px, 5vw, 80px)', paddingTop: 120,
           }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 40, width: '100%', maxWidth: '90vw', margin: '0 auto' }} className="lg:grid-two-col">
               <div style={{ position: 'relative' }}>
-                <EditorialNum n={step.num} align="left" />
+                <div aria-hidden style={{
+                  position: 'absolute', top: -20, left: -16,
+                  fontSize: 'clamp(120px, 20vw, 280px)', fontWeight: 900,
+                  fontFamily: 'Space Grotesk', color: 'rgba(255,255,255,0.02)',
+                  letterSpacing: '-0.06em', lineHeight: 1, pointerEvents: 'none', userSelect: 'none',
+                }}>{step.num}</div>
                 <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: step.color, marginBottom: 16, position: 'relative', zIndex: 1 }}>{step.label}</p>
                 <h2 style={{
                   fontFamily: 'Space Grotesk', fontWeight: 700,
                   fontSize: 'clamp(2.5rem, 7vw, 6rem)',
                   letterSpacing: '-0.04em', lineHeight: 0.95,
                   textTransform: 'uppercase', color: D.t1,
-                  marginBottom: 24, position: 'relative', zIndex: 1,
-                  whiteSpace: 'pre-line',
+                  marginBottom: 24, position: 'relative', zIndex: 1, whiteSpace: 'pre-line',
                 }}>{step.title}</h2>
                 <p style={{ fontSize: 15, color: D.t2, lineHeight: 1.7, maxWidth: 420, position: 'relative', zIndex: 1 }}>{step.body}</p>
               </div>
               <div className="hidden lg:flex" style={{ alignItems: 'center', justifyContent: 'center' }}>
                 <TiltCard maxTilt={8} style={{ width: '100%', maxWidth: 340 }}>
-                <div style={{
-                  border: `1px solid rgba(255,255,255,0.1)`, padding: '48px 40px',
-                  background: 'rgba(21,22,39,0.9)', borderRadius: 20,
-                  width: '100%',
-                  position: 'relative', overflow: 'hidden',
-                  cursor: 'default',
-                  transition: 'background 0.3s, border-color 0.3s',
-                  backdropFilter: 'blur(20px)',
-                  boxShadow: '0 20px 60px rgba(0,0,0,0.4)',
-                }}
-                onMouseEnter={e => {
-                  const el = e.currentTarget as HTMLDivElement;
-                  el.style.background = D.accent;
-                  el.style.borderColor = D.accent;
-                  el.querySelectorAll('[data-invert]').forEach(c => { (c as HTMLElement).style.color = '#000'; });
-                }}
-                onMouseLeave={e => {
-                  const el = e.currentTarget as HTMLDivElement;
-                  el.style.background = D.elev;
-                  el.style.borderColor = D.border;
-                  el.querySelectorAll('[data-invert]').forEach(c => { (c as HTMLElement).style.color = ''; });
-                }}
-                >
-                  <span className="material-symbols-rounded" data-invert style={{ fontSize: 48, color: step.color, display: 'block', marginBottom: 20, transition: 'color 0.3s' }}>{step.icon}</span>
-                  <p data-invert style={{ fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 'clamp(2rem, 5vw, 3.5rem)', letterSpacing: '-0.05em', lineHeight: 1, color: D.t1, marginBottom: 8, transition: 'color 0.3s' }}>{step.metric}</p>
-                  <p data-invert style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: D.t3, transition: 'color 0.3s' }}>{step.label}</p>
-                </div>
+                  <div style={{
+                    border: `1px solid rgba(255,255,255,0.08)`, padding: '48px 40px',
+                    background: D.elev, borderRadius: 20, width: '100%',
+                    position: 'relative', overflow: 'hidden', cursor: 'default',
+                    transition: 'background 0.3s, border-color 0.3s', backdropFilter: 'blur(20px)',
+                    boxShadow: '0 20px 60px rgba(0,0,0,0.4)',
+                  }}
+                  onMouseEnter={e => {
+                    const el = e.currentTarget;
+                    el.style.background = D.accent;
+                    el.style.borderColor = D.accent;
+                    el.querySelectorAll('[data-invert]').forEach(c => { (c as HTMLElement).style.color = '#000'; });
+                  }}
+                  onMouseLeave={e => {
+                    const el = e.currentTarget;
+                    el.style.background = D.elev;
+                    el.style.borderColor = 'rgba(255,255,255,0.08)';
+                    el.querySelectorAll('[data-invert]').forEach(c => { (c as HTMLElement).style.color = ''; });
+                  }}
+                  >
+                    <span className="material-symbols-rounded" data-invert style={{ fontSize: 48, color: step.color, display: 'block', marginBottom: 20, transition: 'color 0.3s' }}>{step.icon}</span>
+                    <p data-invert style={{ fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 'clamp(2rem, 5vw, 3.5rem)', letterSpacing: '-0.05em', lineHeight: 1, color: D.t1, marginBottom: 8, transition: 'color 0.3s' }}>{step.metric}</p>
+                    <p data-invert style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: D.t3, transition: 'color 0.3s' }}>{step.label}</p>
+                  </div>
                 </TiltCard>
               </div>
             </div>
@@ -721,404 +824,67 @@ function HowItWorksSection() {
   );
 }
 
-/* ── CodeCard ───────────────────────────────────────────────────────────── */
-function CodeCard() {
-  return (
-    <div style={{ background: '#0B0F18', overflow: 'hidden' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 18px', background: '#0F1520', borderBottom: `1px solid rgba(255,255,255,0.07)` }}>
-        {['#FF5F57','#FEBC2E','#28C840'].map((c) => <span key={c} style={{ width: 10, height: 10, borderRadius: '50%', background: c, display: 'inline-block' }} />)}
-        <span style={{ flex: 1 }} />
-        <span style={{ fontFamily: 'monospace', fontSize: 11, padding: '2px 10px', background: 'rgba(255,255,255,0.04)', color: '#555' }}>two_sum.py</span>
-        <span style={{ flex: 1 }} />
-        <span style={{ fontSize: 9, fontWeight: 700, padding: '2px 8px', background: 'rgba(202,138,4,0.12)', color: '#D97706', letterSpacing: '0.04em' }}>MEDIUM</span>
-      </div>
-      <div style={{ padding: '20px 22px', fontFamily: 'JetBrains Mono, monospace', fontSize: 13, lineHeight: 1.9, color: '#C9D1D9' }}>
-        <div><span style={{ color: '#FF7B72' }}>def </span><span style={{ color: '#79C0FF' }}>two_sum</span><span style={{ color: '#555' }}>(nums: list[int], target: int):</span></div>
-        <div style={{ marginLeft: 20 }}><span style={{ color: '#555' }}># O(n) hash map approach</span></div>
-        <div style={{ marginLeft: 20 }}><span style={{ color: '#FFA657' }}>seen</span><span style={{ color: '#555' }}> = {'{}'}</span></div>
-        <div style={{ marginLeft: 20, marginTop: 4 }}><span style={{ color: '#FF7B72' }}>for </span><span style={{ color: '#FFA657' }}>i</span><span style={{ color: '#555' }}>, </span><span style={{ color: '#FFA657' }}>num</span><span style={{ color: '#FF7B72' }}> in </span><span style={{ color: '#79C0FF' }}>enumerate</span><span style={{ color: '#555' }}>(nums):</span></div>
-        <div style={{ marginLeft: 40 }}><span style={{ color: '#FFA657' }}>diff</span><span style={{ color: '#555' }}> = target - num</span></div>
-        <div style={{ marginLeft: 40 }}><span style={{ color: '#FF7B72' }}>if </span><span style={{ color: '#FFA657' }}>diff</span><span style={{ color: '#FF7B72' }}> in </span><span style={{ color: '#FFA657' }}>seen</span><span style={{ color: '#555' }}>:</span></div>
-        <div style={{ marginLeft: 60 }}><span style={{ color: '#FF7B72' }}>return </span><span style={{ color: '#555' }}>[seen[diff], i]</span></div>
-        <div style={{ marginLeft: 40 }}><span style={{ color: '#555' }}>seen[num] = i</span></div>
-      </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 22px', borderTop: `1px solid ${D.border}`, background: 'rgba(74,222,128,0.03)' }}>
-        <span style={{ fontSize: 12, fontWeight: 600, color: '#4ADE80' }}>✓ 57/57 test cases passed</span>
-        <span style={{ marginLeft: 'auto', fontSize: 11, fontFamily: 'monospace', color: '#333' }}>Runtime 34ms · 14.9MB</span>
-      </div>
-    </div>
-  );
-}
-
-/* ── ReadinessCard ──────────────────────────────────────────────────────── */
-function ReadinessCard() {
-  const mods = [
-    { label: 'DSA Practice',   pct: 68, color: '#3B82F6' },
-    { label: 'System Design',  pct: 41, color: '#22D3EE' },
-    { label: 'OOP & Patterns', pct: 55, color: '#A78BFA' },
-    { label: 'Core CS',        pct: 72, color: '#4ADE80' },
-    { label: 'Placement Prep', pct: 33, color: '#FB923C' },
-  ];
-  return (
-    <div style={{ background: D.elev, border: `1px solid ${D.border}`, borderRadius: 0, overflow: 'hidden' }}>
-      <div style={{ padding: '18px 22px', borderBottom: `1px solid ${D.border}` }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-          <span style={{ fontSize: 13, fontWeight: 700, color: D.t1 }}>Placement Readiness</span>
-          <span style={{ fontSize: 13, fontWeight: 700, color: D.accent }}>54%</span>
-        </div>
-        <p style={{ fontSize: 11, color: D.t4, marginBottom: 12 }}>Across all technical domains</p>
-        <div style={{ height: 4, background: 'rgba(255,255,255,0.07)', overflow: 'hidden' }}>
-          <div style={{ width: '54%', height: '100%', background: D.accent }} />
-        </div>
-      </div>
-      <div style={{ padding: '18px 22px' }}>
-        {mods.map((m) => (
-          <div key={m.label} style={{ marginBottom: 14 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-              <span style={{ fontSize: 11, color: D.t3 }}>{m.label}</span>
-              <span style={{ fontSize: 11, fontFamily: 'monospace', fontWeight: 700, color: m.color }}>{m.pct}%</span>
-            </div>
-            <div style={{ height: 3, background: 'rgba(255,255,255,0.07)', overflow: 'hidden' }}>
-              <div style={{ width: `${m.pct}%`, height: '100%', background: m.color }} />
-            </div>
-          </div>
-        ))}
-      </div>
-      <div style={{ padding: '13px 22px', borderTop: `1px solid ${D.border}`, background: 'rgba(255,255,255,0.015)', display: 'flex', alignItems: 'center', gap: 8 }}>
-        <span style={{ fontSize: 11, color: D.t4 }}>Next:</span>
-        <span style={{ fontSize: 11, fontWeight: 600, color: D.t2 }}>Complete System Design module</span>
-        <span style={{ marginLeft: 'auto', fontSize: 11, fontWeight: 700, color: D.accent }}>+30 XP →</span>
-      </div>
-    </div>
-  );
-}
-
-/* ── SystemDesignCard ───────────────────────────────────────────────────── */
-function SystemDesignCard() {
-  const nodes = [
-    { label: 'Client',       x: 50, y: 10, color: '#3B82F6' },
-    { label: 'CDN',          x: 20, y: 35, color: '#22D3EE' },
-    { label: 'API Gateway',  x: 50, y: 40, color: '#A78BFA' },
-    { label: 'Auth Service', x: 20, y: 65, color: '#4ADE80' },
-    { label: 'DB (Primary)', x: 50, y: 70, color: '#FB923C' },
-    { label: 'Cache (Redis)',x: 78, y: 55, color: '#FBBF24' },
-  ];
-  const edges: [number, number][] = [[0,1],[0,2],[2,3],[2,4],[2,5]];
-  return (
-    <div style={{ background: '#0B0F18', border: `1px solid ${D.border}`, borderRadius: 0, overflow: 'hidden', padding: 28 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-        <div>
-          <p style={{ fontSize: 13, fontWeight: 700, color: D.t1 }}>URL Shortener — System Design</p>
-          <p style={{ fontSize: 11, color: D.t3 }}>HLD · Scalability · 100M requests/day</p>
-        </div>
-        <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 10px', background: 'rgba(59,130,246,0.12)', color: '#3B82F6' }}>HARD</span>
-      </div>
-      <div style={{ position: 'relative', height: 200 }}>
-        <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}>
-          {edges.map(([a,b]) => {
-            const na = nodes[a], nb = nodes[b];
-            return (
-              <line key={`${a}-${b}`}
-                x1={`${na.x}%`} y1={`${na.y + 5}%`}
-                x2={`${nb.x}%`} y2={`${nb.y + 5}%`}
-                stroke="rgba(255,255,255,0.1)" strokeWidth="1.5" strokeDasharray="4 3"
-              />
-            );
-          })}
-        </svg>
-        {nodes.map((n) => (
-          <div key={n.label} style={{ position: 'absolute', left: `${n.x}%`, top: `${n.y}%`, transform: 'translate(-50%, -50%)' }}>
-            <div style={{ padding: '5px 10px', fontSize: 10, fontWeight: 600, background: `${n.color}14`, border: `1px solid ${n.color}30`, color: n.color, whiteSpace: 'nowrap' }}>{n.label}</div>
-          </div>
-        ))}
-      </div>
-      <div style={{ display: 'flex', gap: 6, marginTop: 16, flexWrap: 'wrap' }}>
-        {['Horizontal scaling','Load balancing','Cache layer','DB sharding'].map((t) => (
-          <span key={t} style={{ fontSize: 10, padding: '3px 9px', background: 'rgba(255,255,255,0.04)', border: `1px solid ${D.border}`, color: D.t3 }}>{t}</span>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-/* ── FeatureShowcase ────────────────────────────────────────────────────── */
-const FEATURES = [
-  {
-    eyebrow: 'DSA Practice',
-    accentColor: '#3B82F6',
-    heading: 'PATTERN-BASED\nDSA.',
-    body: 'Stop grinding randomly. 450+ problems organized by pattern — Two Pointers, Dynamic Programming, Graphs — so each problem teaches you something transferable.',
-    points: ['15 core patterns with cross-problem links', 'Difficulty tiers: warm-up → interview-ready', 'XP and streak system that keeps you consistent'],
-    card: <CodeCard />,
-  },
-  {
-    eyebrow: 'Placement Readiness',
-    accentColor: '#4ADE80',
-    heading: 'KNOW YOUR\nGAPS.',
-    body: 'The readiness score shows exactly where you stand versus what recruiters actually test. Not a percentage — a real breakdown by skill area.',
-    points: ['Gap analysis across 6 skill dimensions', 'Tracks improvement over time', 'Benchmarked against successful placements'],
-    card: <ReadinessCard />,
-  },
-  {
-    eyebrow: 'System Design',
-    accentColor: '#A78BFA',
-    heading: 'DESIGN AT\nSCALE.',
-    body: 'HLD, LLD, real system deep-dives. Study how Netflix handles 200M users, how WhatsApp delivers 100B messages, and how to explain it all in 45 minutes.',
-    points: ['HLD + LLD frameworks', '20+ real system case studies', 'Interview-format guided walkthroughs'],
-    card: <SystemDesignCard />,
-  },
-];
-
-function FeatureShowcase() {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({ target: containerRef, offset: ['start start', 'end end'] });
-
-  return (
-    <div id="showcase" ref={containerRef} style={{ height: '360vh', position: 'relative', background: D.bg, borderTop: `1px solid ${D.border}` }}>
-      <div style={{ position: 'sticky', top: 0, height: 0, zIndex: 20 }}>
-        <div style={{ position: 'absolute', left: 0, top: 0, width: 4, height: '100vh', background: D.muted }}>
-          <motion.div style={{ position: 'absolute', top: 0, left: 0, right: 0, background: D.accent, height: useTransform(scrollYProgress, [0,1], ['0%','100%']) }} />
-        </div>
-      </div>
-
-      {FEATURES.map((feat, i) => (
-        <div key={feat.eyebrow} style={{ position: 'sticky', top: 0, height: '100vh', display: 'flex', alignItems: 'center', overflow: 'hidden', background: D.bg, borderTop: i > 0 ? `1px solid ${D.border}` : 'none' }}>
-          <div style={{ padding: 'clamp(16px, 5vw, 80px)', paddingTop: 100, width: '100%', maxWidth: '95vw', margin: '0 auto' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 48, alignItems: 'center' }} className="lg:grid-two-col">
-              <div>
-                <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: feat.accentColor, marginBottom: 20 }}>{feat.eyebrow}</p>
-                <h2 style={{
-                  fontFamily: 'Space Grotesk', fontWeight: 700,
-                  fontSize: 'clamp(2.5rem, 6vw, 5rem)',
-                  letterSpacing: '-0.04em', lineHeight: 0.95,
-                  textTransform: 'uppercase',
-                  color: D.t1, marginBottom: 20,
-                  whiteSpace: 'pre-line',
-                }}>{feat.heading}</h2>
-                <p style={{ fontSize: 15, color: D.t2, lineHeight: 1.75, marginBottom: 24, maxWidth: 440 }}>{feat.body}</p>
-                <ul style={{ marginBottom: 36, padding: 0, listStyle: 'none' }}>
-                  {feat.points.map(p => (
-                    <li key={p} style={{ display: 'flex', gap: 12, fontSize: 13, color: D.t2, marginBottom: 10, alignItems: 'flex-start' }}>
-                      <span style={{ color: feat.accentColor, flexShrink: 0, marginTop: 2 }}>—</span>
-                      {p}
-                    </li>
-                  ))}
-                </ul>
-                <Link to="/login?tab=register" style={{
-                  display: 'inline-flex', alignItems: 'center', gap: 10,
-                  height: 48, padding: '0 28px',
-                  background: 'transparent', color: D.t1,
-                  fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase',
-                  textDecoration: 'none', border: `2px solid ${D.border}`,
-                }}>Get started free</Link>
-              </div>
-              <TiltCard maxTilt={5} className="hidden lg:block">
-                <div style={{ border: `1px solid rgba(255,255,255,0.1)`, borderRadius: 16, overflow: 'hidden', boxShadow: '0 24px 80px rgba(0,0,0,0.4)' }}>
-                  {feat.card}
-                </div>
-              </TiltCard>
-            </div>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-/* ── CurriculumSection ──────────────────────────────────────────────────── */
-const MODULES = [
-  { icon: 'code',         label: 'DSA Practice',      desc: '450+ problems · 15 patterns',   color: '#3B82F6', num: '01' },
-  { icon: 'architecture', label: 'System Design',     desc: 'HLD · LLD · Real systems',      color: '#22D3EE', num: '02' },
-  { icon: 'account_tree', label: 'OOP & Design',      desc: 'SOLID · GoF · UML',             color: '#A78BFA', num: '03' },
-  { icon: 'terminal',     label: 'Core CS',           desc: 'OS · DBMS · Networks',          color: '#4ADE80', num: '04' },
-  { icon: 'shield',       label: 'Cybersecurity',     desc: 'OWASP · CTF · Web security',    color: D.accent,  num: '05' },
-  { icon: 'work_history', label: 'Placement Prep',    desc: 'Companies · Resume · Mock',     color: '#FB923C', num: '06' },
-  { icon: 'fact_check',   label: 'Skill Assessments', desc: 'Timed tests · Certificates',    color: '#FBBF24', num: '07' },
-  { icon: 'style',        label: 'Flashcards',        desc: 'Spaced repetition · Review',    color: '#F472B6', num: '08' },
-  { icon: 'forum',        label: 'Community',         desc: 'Squads · Discussion · Mentors', color: '#818CF8', num: '09' },
-];
-
-function CurriculumSection() {
-  return (
-    <section id="curriculum" style={{ background: D.bg, padding: '128px 0', borderTop: `1px solid ${D.border}` }}>
-      <div style={{ padding: '0 clamp(16px, 5vw, 80px)', maxWidth: '95vw', margin: '0 auto' }}>
-        <div style={{ marginBottom: 72 }}>
-          <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: D.accent, marginBottom: 16 }}>Full curriculum</p>
-          <ClipReveal>
-            <h2 style={{ fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 'clamp(2.5rem, 6vw, 5.5rem)', letterSpacing: '-0.04em', lineHeight: 0.95, textTransform: 'uppercase', color: D.t1, margin: 0 }}>
-              Everything in<br />one place.
-            </h2>
-          </ClipReveal>
-        </div>
-
-        <div>
-          {MODULES.map((m, i) => (
-            <FadeUp key={m.label} delay={i * 0.04}>
-              <div style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                padding: '20px 0', borderBottom: `1px solid ${D.border}`,
-                cursor: 'default', transition: 'background 0.25s, padding 0.25s',
-                gap: 16,
-              }}
-              onMouseEnter={e => {
-                const el = e.currentTarget;
-                el.style.background = D.accent;
-                el.style.padding = '20px 16px';
-                el.querySelectorAll('[data-mi]').forEach(c => { (c as HTMLElement).style.color = '#000'; });
-              }}
-              onMouseLeave={e => {
-                const el = e.currentTarget;
-                el.style.background = 'transparent';
-                el.style.padding = '20px 0';
-                el.querySelectorAll('[data-mi]').forEach(c => { (c as HTMLElement).style.color = ''; });
-              }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
-                  <span data-mi style={{ fontFamily: 'Space Grotesk', fontSize: 11, fontWeight: 700, color: D.t4, letterSpacing: '0.06em', minWidth: 28, transition: 'color 0.25s' }}>{m.num}</span>
-                  <span className="material-symbols-rounded" data-mi style={{ fontSize: 20, color: m.color, transition: 'color 0.25s' }}>{m.icon}</span>
-                  <span data-mi style={{ fontFamily: 'Space Grotesk', fontSize: 'clamp(15px, 2.5vw, 20px)', fontWeight: 700, letterSpacing: '-0.01em', textTransform: 'uppercase', color: D.t1, transition: 'color 0.25s' }}>{m.label}</span>
-                </div>
-                <span data-mi style={{ fontSize: 12, color: D.t3, letterSpacing: '0.04em', transition: 'color 0.25s', flexShrink: 0 }}>{m.desc}</span>
-              </div>
-            </FadeUp>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ── TestimonialsSection ────────────────────────────────────────────────── */
-const TESTIMONIALS = [
-  { quote: "I'd been grinding LeetCode randomly for months. EYF's pattern-based approach gave me a structure that actually stuck. Cracked Juspay in 3 weeks.", name: 'Arjun Mehta', role: 'SDE-1 at Juspay', college: 'NIT Warangal · 2024' },
-  { quote: "The readiness score was honestly humbling — showed massive gaps in system design. That honesty saved me from failing my first interview round.", name: 'Priya Venkataraman', role: 'Software Engineer at Freshworks', college: 'Anna University · 2024' },
-  { quote: "Finally a platform that treats DSA and placement prep as connected. The company-specific question banks are gold — I had 3 exact questions from Zoho's OA.", name: 'Rohit Sharma', role: 'Associate Engineer at Zoho', college: 'VIT Vellore · 2023' },
-  { quote: "EYF's system design module is leagues ahead of anything else I tried. The structured walkthroughs actually helped me answer HLD questions in interviews.", name: 'Keerthana Nair', role: 'Backend Engineer at Razorpay', college: 'BITS Pilani · 2024' },
-  { quote: "The OOP module with design patterns was a game-changer. I went from barely understanding SOLID to confidently explaining it in interviews.", name: 'Vikram Iyer', role: 'SDE at Swiggy', college: 'IIT Delhi · 2023' },
-  { quote: "Loved how the roadmap adapts. When I finished the DSA track, EYF immediately suggested core subjects gaps I had no idea about.", name: 'Sneha Reddy', role: 'Engineer at Dunzo', college: 'IIIT Hyderabad · 2024' },
-];
-
-function TestimonialCard({ t }: { t: typeof TESTIMONIALS[0] }) {
-  return (
-    <div style={{
-      width: 340, flexShrink: 0, marginRight: 16,
-      border: `1px solid rgba(255,255,255,0.09)`,
-      background: 'rgba(14,15,28,0.9)', padding: 28, borderRadius: 16,
-      backdropFilter: 'blur(16px)',
-      transition: 'background 0.3s, border-color 0.3s',
-      cursor: 'default',
-    }}
-    onMouseEnter={e => {
-      const el = e.currentTarget;
-      el.style.background = D.accent;
-      el.style.borderColor = D.accent;
-      el.querySelectorAll('[data-tc]').forEach(c => { (c as HTMLElement).style.color = '#000'; });
-    }}
-    onMouseLeave={e => {
-      const el = e.currentTarget;
-      el.style.background = D.surf;
-      el.style.borderColor = D.border;
-      el.querySelectorAll('[data-tc]').forEach(c => { (c as HTMLElement).style.color = ''; });
-    }}
-    >
-      <p data-tc style={{ fontSize: 13, lineHeight: 1.7, color: D.t2, marginBottom: 20, transition: 'color 0.3s' }}>"{t.quote}"</p>
-      <p data-tc style={{ fontFamily: 'Space Grotesk', fontSize: 13, fontWeight: 700, color: D.t1, marginBottom: 2, transition: 'color 0.3s' }}>{t.name}</p>
-      <p data-tc style={{ fontSize: 11, color: D.t3, letterSpacing: '0.04em', transition: 'color 0.3s' }}>{t.role}</p>
-      <p data-tc style={{ fontSize: 10, color: D.t4, marginTop: 2, letterSpacing: '0.04em', transition: 'color 0.3s' }}>{t.college}</p>
-    </div>
-  );
-}
-
-function TestimonialsSection() {
-  const row1 = TESTIMONIALS.slice(0, 3);
-  const row2 = TESTIMONIALS.slice(3);
-
-  return (
-    <section style={{ background: D.surf, padding: '128px 0', borderTop: `1px solid ${D.border}`, overflow: 'hidden' }}>
-      <div style={{ padding: '0 clamp(16px, 5vw, 80px)', marginBottom: 64 }}>
-        <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: D.accent, marginBottom: 16 }}>Student outcomes</p>
-        <ClipReveal>
-          <h2 style={{ fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 'clamp(2.5rem, 6vw, 5rem)', letterSpacing: '-0.04em', lineHeight: 0.95, textTransform: 'uppercase', color: D.t1, margin: 0 }}>
-            From prep<br />to placement.
-          </h2>
-        </ClipReveal>
-      </div>
-
-      <div style={{ marginBottom: 16 }}>
-        <Marquee speed={40} gradient={false} autoFill direction="left">
-          {[...row1, ...row1].map((t, i) => <TestimonialCard key={i} t={t} />)}
-        </Marquee>
-      </div>
-      <Marquee speed={35} gradient={false} autoFill direction="right">
-        {[...row2, ...row2].map((t, i) => <TestimonialCard key={i} t={t} />)}
-      </Marquee>
-    </section>
-  );
-}
-
-/* ── PricingSection ─────────────────────────────────────────────────────── */
+/* ── PricingSection ───────────────────────────────────────────────────── */
 const PLANS = [
-  { name: 'Free',  price: '₹0',   period: 'forever',  features: ['100 DSA problems','Core CS (full)','Daily challenge','Community access'], cta: 'Start free', featured: false },
-  { name: 'Pro',   price: '₹499', period: '/month',    features: ['All 450+ problems','Placement module','60+ company banks','ATS resume analyzer','Mock interviews'], cta: 'Start Pro', featured: true, tag: 'Most popular' },
-  { name: 'Pro+',  price: '₹999', period: '/month',    features: ['Everything in Pro','1-on-1 mentorship','Resume review','LinkedIn review','Placement guarantee support'], cta: 'Contact us', featured: false },
+  { name: 'Free',  price: '₹0',   period: 'forever', features: ['100 DSA problems','Core CS (full)','Daily challenge','Community access'], cta: 'Start free', featured: false },
+  { name: 'Pro',   price: '₹499', period: '/month',   features: ['All 450+ problems','Placement module','60+ company banks','ATS resume analyzer','Mock interviews'], cta: 'Start Pro', featured: true, tag: 'Most popular' },
+  { name: 'Pro+',  price: '₹999', period: '/month',   features: ['Everything in Pro','1-on-1 mentorship','Resume review','LinkedIn review','Placement guarantee'], cta: 'Contact us', featured: false },
 ];
 
 function PricingSection() {
   return (
-    <section id="pricing" style={{ background: D.bg, padding: '128px 0', borderTop: `1px solid ${D.border}`, position: 'relative' }}>
+    <section id="pricing" style={{ background: D.bg, padding: '120px 0', borderTop: `1px solid ${D.border}`, position: 'relative' }}>
       <EditorialNum n="₹" align="right" />
       <div style={{ padding: '0 clamp(16px, 5vw, 80px)', maxWidth: '95vw', margin: '0 auto' }}>
         <div style={{ marginBottom: 72 }}>
-          <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: D.accent, marginBottom: 16 }}>Pricing</p>
+          <FadeUp>
+            <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: D.accent, marginBottom: 16 }}>Pricing</p>
+          </FadeUp>
           <ClipReveal>
-            <h2 style={{ fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 'clamp(2.5rem, 6vw, 5.5rem)', letterSpacing: '-0.04em', lineHeight: 0.95, textTransform: 'uppercase', color: D.t1, margin: 0 }}>
+            <h2 style={{ fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 'clamp(2.5rem, 6vw, 5.5rem)', letterSpacing: '-0.05em', lineHeight: 0.92, color: D.t1, margin: 0 }}>
               Honest pricing.<br />No surprises.
             </h2>
           </ClipReveal>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 12 }}>
           {PLANS.map((plan, i) => (
             <FadeUp key={plan.name} delay={i * 0.1}>
-              <TiltCard maxTilt={6} style={{ height: '100%' }}>
-              <div style={{
-                background: plan.featured ? 'rgba(21,22,39,0.95)' : 'rgba(14,15,28,0.85)',
-                padding: '40px 32px',
-                borderRadius: 20,
-                border: plan.featured ? `1px solid rgba(232,33,39,0.35)` : `1px solid rgba(255,255,255,0.09)`,
-                boxShadow: plan.featured ? '0 0 60px rgba(232,33,39,0.12), 0 24px 64px rgba(0,0,0,0.5)' : '0 12px 40px rgba(0,0,0,0.35)',
-                backdropFilter: 'blur(20px)',
-                height: '100%',
-                display: 'flex', flexDirection: 'column',
-                transformStyle: 'preserve-3d',
-              }}>
-                {'tag' in plan && plan.tag && (
-                  <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: D.accent, marginBottom: 12 }}>{plan.tag}</p>
-                )}
-                <p style={{ fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', color: D.t2, marginBottom: 8 }}>{plan.name}</p>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 32 }}>
-                  <span style={{ fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 52, letterSpacing: '-0.06em', lineHeight: 1, color: D.t1 }}>{plan.price}</span>
-                  <span style={{ fontSize: 12, color: D.t4 }}>{plan.period}</span>
+              <TiltCard maxTilt={5} style={{ height: '100%' }}>
+                <div style={{
+                  background: plan.featured ? D.elev : D.surf,
+                  padding: '40px 32px', borderRadius: 20,
+                  border: plan.featured ? `1px solid rgba(232,33,39,0.3)` : `1px solid ${D.border}`,
+                  boxShadow: plan.featured ? '0 0 60px rgba(232,33,39,0.1), 0 24px 64px rgba(0,0,0,0.5)' : 'none',
+                  height: '100%', display: 'flex', flexDirection: 'column',
+                }}>
+                  {'tag' in plan && plan.tag && (
+                    <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: D.accent, marginBottom: 12 }}>{plan.tag}</p>
+                  )}
+                  <p style={{ fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 12, letterSpacing: '0.1em', textTransform: 'uppercase', color: D.t2, marginBottom: 8 }}>{plan.name}</p>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 32 }}>
+                    <span style={{ fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 52, letterSpacing: '-0.06em', lineHeight: 1, color: D.t1 }}>{plan.price}</span>
+                    <span style={{ fontSize: 12, color: D.t3 }}>{plan.period}</span>
+                  </div>
+                  <div style={{ height: 1, background: D.border, marginBottom: 28 }} />
+                  <ul style={{ flex: 1, marginBottom: 32, padding: 0, listStyle: 'none' }}>
+                    {plan.features.map(f => (
+                      <li key={f} style={{ display: 'flex', gap: 10, fontSize: 13, color: D.t2, marginBottom: 10, alignItems: 'flex-start' }}>
+                        <span style={{ color: '#4ADE80', flexShrink: 0, marginTop: 1, fontWeight: 700 }}>✓</span>{f}
+                      </li>
+                    ))}
+                  </ul>
+                  <Link to="/login?tab=register" style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    height: 48, borderRadius: 100,
+                    background: plan.featured ? D.accent : 'rgba(255,255,255,0.06)',
+                    color: plan.featured ? '#fff' : D.t1,
+                    border: plan.featured ? `1px solid ${D.accent}` : `1px solid ${D.border}`,
+                    fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase',
+                    textDecoration: 'none',
+                    boxShadow: plan.featured ? '0 4px 20px rgba(232,33,39,0.3)' : 'none',
+                  }}>{plan.cta}</Link>
                 </div>
-                <div style={{ height: 1, background: D.border, marginBottom: 28 }} />
-                <ul style={{ flex: 1, marginBottom: 32, padding: 0, listStyle: 'none' }}>
-                  {plan.features.map(f => (
-                    <li key={f} style={{ display: 'flex', gap: 10, fontSize: 13, color: D.t2, marginBottom: 10, alignItems: 'flex-start' }}>
-                      <span style={{ color: '#4ADE80', flexShrink: 0, marginTop: 1 }}>✓</span>{f}
-                    </li>
-                  ))}
-                </ul>
-                <Link to="/login?tab=register" style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  height: 48, borderRadius: 10,
-                  background: plan.featured ? D.accent : 'rgba(255,255,255,0.06)',
-                  color: plan.featured ? '#000' : D.t1,
-                  border: plan.featured ? `1px solid ${D.accent}` : `1px solid rgba(255,255,255,0.12)`,
-                  fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase',
-                  textDecoration: 'none',
-                  boxShadow: plan.featured ? '0 4px 20px rgba(232,33,39,0.35)' : 'none',
-                }}>{plan.cta}</Link>
-              </div>
               </TiltCard>
             </FadeUp>
           ))}
@@ -1128,10 +894,14 @@ function PricingSection() {
   );
 }
 
-/* ── CTASection ─────────────────────────────────────────────────────────── */
+/* ── CTASection ───────────────────────────────────────────────────────── */
 function CTASection() {
   return (
-    <section style={{ background: '#000', padding: '120px clamp(16px,5vw,80px) 80px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center', position: 'relative', overflow: 'hidden', borderTop: `1px solid ${D.border}` }}>
+    <section style={{
+      background: '#000', padding: '120px clamp(16px,5vw,80px) 80px',
+      display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center',
+      textAlign: 'center', position: 'relative', overflow: 'hidden', borderTop: `1px solid ${D.border}`,
+    }}>
       <motion.div
         initial={{ scaleX: 0 }}
         whileInView={{ scaleX: 1 }}
@@ -1139,15 +909,12 @@ function CTASection() {
         transition={{ duration: 1.4, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
         style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: D.accent, transformOrigin: 'left' }}
       />
-
       <motion.div
         aria-hidden
-        animate={{ scale: [1, 1.15, 1], opacity: [0.4, 0.7, 0.4] }}
+        animate={{ scale: [1, 1.15, 1], opacity: [0.35, 0.65, 0.35] }}
         transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
-        style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 600, height: 400, borderRadius: '50%', background: 'radial-gradient(ellipse, rgba(232,33,39,0.18) 0%, transparent 70%)', filter: 'blur(60px)', pointerEvents: 'none' }}
+        style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 600, height: 400, borderRadius: '50%', background: 'radial-gradient(ellipse, rgba(232,33,39,0.16) 0%, transparent 70%)', filter: 'blur(60px)', pointerEvents: 'none' }}
       />
-
-      <GridBg />
 
       <div style={{ position: 'relative', zIndex: 1, maxWidth: 800, padding: '0 clamp(16px, 5vw, 48px)' }}>
         <FadeUp>
@@ -1164,21 +931,25 @@ function CTASection() {
         <FadeUp delay={0.8}>
           <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
             <Magnetic strength={0.25}>
-              <Link to="/login?tab=register" style={{ display: 'inline-flex', alignItems: 'center', height: 56, padding: '0 40px', background: D.accent, color: '#000', fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', textDecoration: 'none', borderRadius: 14, boxShadow: '0 8px 40px rgba(232,33,39,0.4)' }}>
-                Create free account
-              </Link>
+              <Link to="/login?tab=register" style={{
+                display: 'inline-flex', alignItems: 'center', height: 56, padding: '0 40px',
+                background: D.accent, color: '#fff', fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 13, letterSpacing: '0.06em', textTransform: 'uppercase',
+                textDecoration: 'none', borderRadius: 100, boxShadow: '0 8px 40px rgba(232,33,39,0.35)',
+              }}>Create free account</Link>
             </Magnetic>
             <Magnetic strength={0.2}>
-              <Link to="/login" style={{ display: 'inline-flex', alignItems: 'center', height: 56, padding: '0 40px', background: 'rgba(255,255,255,0.05)', color: D.t1, fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', textDecoration: 'none', border: `1px solid rgba(255,255,255,0.14)`, borderRadius: 14, backdropFilter: 'blur(12px)' }}>
-                Sign in
-              </Link>
+              <Link to="/login" style={{
+                display: 'inline-flex', alignItems: 'center', height: 56, padding: '0 40px',
+                background: 'rgba(255,255,255,0.05)', color: D.t1, fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 13, letterSpacing: '0.06em', textTransform: 'uppercase',
+                textDecoration: 'none', border: `1px solid rgba(255,255,255,0.12)`, borderRadius: 100, backdropFilter: 'blur(12px)',
+              }}>Sign in</Link>
             </Magnetic>
           </div>
         </FadeUp>
       </div>
 
       <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0 }}>
-        <Marquee speed={50} gradient={false} autoFill style={{ borderTop: `1px solid rgba(255,255,255,0.06)`, padding: '14px 0' }}>
+        <Marquee speed={50} gradient={false} autoFill style={{ borderTop: `1px solid rgba(255,255,255,0.05)`, padding: '14px 0' }}>
           {['Get placed', 'Crack every interview', 'Engineer your future', 'DSA · System Design · Placement'].map((t, i) => (
             <span key={i} style={{ marginRight: 64, fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: D.t4 }}>{t}</span>
           ))}
@@ -1188,14 +959,14 @@ function CTASection() {
   );
 }
 
-/* ── Footer ─────────────────────────────────────────────────────────────── */
+/* ── Footer ───────────────────────────────────────────────────────────── */
 function Footer() {
   return (
-    <footer style={{ background: '#000', borderTop: `1px solid ${D.border}`, padding: '32px clamp(16px, 5vw, 80px)' }}>
+    <footer style={{ background: '#000', borderTop: `1px solid ${D.border}`, padding: '28px clamp(16px, 5vw, 80px)' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
         <span style={{ fontFamily: 'Space Grotesk', fontSize: 12, fontWeight: 700, letterSpacing: '0.06em', color: D.t4 }}>EYF · 2026</span>
         <div style={{ display: 'flex', gap: 32 }}>
-          {[['#showcase','Platform'],['#curriculum','Curriculum'],['#pricing','Pricing'],['/login','Sign in']].map(([href, label]) => (
+          {[['#platform','Platform'],['#how-it-works','Process'],['#pricing','Pricing'],['/login','Sign in']].map(([href, label]) => (
             href.startsWith('#')
               ? <a key={href} href={href} style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: D.t4, textDecoration: 'none' }}>{label}</a>
               : <Link key={href} to={href} style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: D.t4, textDecoration: 'none' }}>{label}</Link>
@@ -1207,7 +978,7 @@ function Footer() {
   );
 }
 
-/* ── Export ─────────────────────────────────────────────────────────────── */
+/* ── Export ───────────────────────────────────────────────────────────── */
 export function LandingPage() {
   return (
     <div style={{ background: D.bg, color: D.t1 }}>
@@ -1216,12 +987,9 @@ export function LandingPage() {
       <LandingNav />
       <main>
         <HeroSection />
-        <StatsMarquee />
-        <TrustBar />
+        <StatsSection />
+        <BentoSection />
         <HowItWorksSection />
-        <FeatureShowcase />
-        <CurriculumSection />
-        <TestimonialsSection />
         <PricingSection />
         <CTASection />
       </main>
