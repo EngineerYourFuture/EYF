@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { vtNavigate } from '../lib/viewTransition';
 import { motion } from 'framer-motion';
 import { AppShell } from '../components/AppShell';
 import { Icon } from '../components/Icon';
@@ -229,6 +230,7 @@ const CATEGORY_META: Record<string, { icon: string; color: string }> = {
 };
 
 export function ProblemsPage() {
+  const navigate = useNavigate();
   const session = getSession();
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -542,8 +544,7 @@ export function ProblemsPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: Math.min(i * 0.025, 0.5), ease: 'easeOut' }}
             >
-            <Link to={`/app/problems/${p.id}`} className="block">
-              <motion.div
+            <motion.div
                 className={`grid grid-cols-12 gap-4 px-6 py-4 cursor-pointer group items-center border`}
                 style={{
                   background: p.solved ? 'rgba(74,222,128,0.04)' : 'var(--bg-elevated)',
@@ -556,6 +557,10 @@ export function ProblemsPage() {
                   y: -1,
                 }}
                 transition={{ duration: 0.15 }}
+                onClick={(e) => {
+                  (e.currentTarget as HTMLElement).style.viewTransitionName = 'active-problem';
+                  vtNavigate(navigate, `/app/problems/${p.id}`);
+                }}
               >
                 <div className="col-span-1 text-center">
                   {p.solved ? (
@@ -606,7 +611,6 @@ export function ProblemsPage() {
                   <Icon name="bolt" size={12} style={{ color: '#E82127' }} filled />
                 </div>
               </motion.div>
-            </Link>
             </motion.div>
             );
           })}

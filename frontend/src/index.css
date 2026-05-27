@@ -990,3 +990,22 @@ aside, header, nav, main {
 .error-state-desc {
   font-size: 12px; color: var(--t4); max-width: 300px; margin: 0;
 }
+
+/* ── View Transitions ─────────────────────────────────────────────────────── */
+/* Global page cross-fade — applies to any navigation wrapped in startViewTransition */
+@keyframes vt-fade-in  { from { opacity: 0; } }
+@keyframes vt-fade-out { to   { opacity: 0; } }
+
+::view-transition-old(root) {
+  animation: 300ms cubic-bezier(0.22, 1, 0.36, 1) both vt-fade-out;
+}
+::view-transition-new(root) {
+  animation: 400ms cubic-bezier(0.22, 1, 0.36, 1) both vt-fade-in;
+}
+
+/* Named morph — problem row ↔ workspace */
+::view-transition-old(active-problem),
+::view-transition-new(active-problem) {
+  animation-duration: 480ms;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}

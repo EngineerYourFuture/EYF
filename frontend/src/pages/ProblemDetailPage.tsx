@@ -491,6 +491,7 @@ export function ProblemDetailPage() {
   const [runResult, setRunResult] = useState<RunResponse | null>(null);
   const [submitResult, setSubmitResult] = useState<SubmitResponse | null>(null);
   const [showHints, setShowHints] = useState(false);
+  const [editorReady, setEditorReady] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -509,6 +510,7 @@ export function ProblemDetailPage() {
   }, [id, session?.accessToken]);
 
   const onLanguageChange = (lang: Language) => {
+    setEditorReady(false);
     setLanguage(lang);
     setCode(LANG_STARTERS[lang]);
   };
@@ -632,7 +634,7 @@ export function ProblemDetailPage() {
       </header>
 
       {/* Main two-panel layout */}
-      <div className="flex pt-14 h-screen">
+      <div className="flex pt-14 h-screen" style={{ viewTransitionName: 'active-problem' }}>
         {/* Left panel: problem */}
         <div className="w-[45%] min-w-[320px] flex flex-col border-r border-white/5 overflow-hidden">
           {/* Panel tabs */}
@@ -744,13 +746,17 @@ export function ProblemDetailPage() {
         {/* Right panel: editor + output */}
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Monaco editor */}
-          <div className="flex-1 overflow-hidden">
+          <div
+            className="flex-1 overflow-hidden"
+            style={{ opacity: editorReady ? 1 : 0, transition: 'opacity 0.25s ease' }}
+          >
             <Editor
               height="100%"
               language={LANG_MONACO[language]}
               value={code}
               onChange={(val) => setCode(val ?? '')}
               theme="vs-dark"
+              onMount={() => { requestAnimationFrame(() => setEditorReady(true)); }}
               options={{
                 fontSize: 14,
                 fontFamily: "'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace",
