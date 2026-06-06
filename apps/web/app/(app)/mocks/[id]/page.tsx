@@ -1,6 +1,6 @@
 "use client";
 import { toast } from "sonner";
-import { Card, Badge, Button } from "@eyf/ui";
+import { Card, Badge, Button, Meter } from "@eyf/ui";
 import { useApi, useApiAction } from "@/lib/use-api";
 import { track, Events } from "@/lib/analytics";
 import { useEyfAuth as useAuth } from "@/lib/auth";
@@ -79,7 +79,19 @@ export default function Page({ params }: { params: { id: string } }) {
               }`}>{t.content}</div>
             </div>
           ))}
-          {sending && <div className="text-text-3 text-sm">Interviewer is thinking…</div>}
+          {(data.transcript ?? []).length === 0 && !sending && (
+            <div className="text-text-3 text-sm">The interviewer will open with a question. Reply below to begin.</div>
+          )}
+          {sending && (
+            <div className="flex items-center gap-2 text-text-3 text-sm">
+              <span className="flex gap-1">
+                <span className="h-1.5 w-1.5 rounded-full bg-text-3 animate-bounce" style={{ animationDelay: "0ms" }} />
+                <span className="h-1.5 w-1.5 rounded-full bg-text-3 animate-bounce" style={{ animationDelay: "150ms" }} />
+                <span className="h-1.5 w-1.5 rounded-full bg-text-3 animate-bounce" style={{ animationDelay: "300ms" }} />
+              </span>
+              Interviewer is thinking…
+            </div>
+          )}
         </div>
 
         {data.status !== "COMPLETED" && (
@@ -92,17 +104,21 @@ export default function Page({ params }: { params: { id: string } }) {
         <h2 className="font-display text-xl font-bold mb-4">Feedback</h2>
         {data.feedback ? (
           <>
-            <Card>
-              <div className="text-xs text-text-3 uppercase">Overall</div>
-              <div className="mt-1 font-display text-4xl font-bold">{data.feedback.overallScore}<span className="text-text-3 text-xl"> /100</span></div>
+            <Card variant="glow">
+              <div className="text-xs text-text-3 uppercase tracking-wider">Overall score</div>
+              <div className="mt-1 font-display text-5xl font-bold text-accent">{data.feedback.overallScore}<span className="text-text-3 text-xl font-semibold"> /100</span></div>
               <p className="mt-3 text-text-2 text-sm leading-relaxed">{data.feedback.summary}</p>
             </Card>
 
             <Card className="mt-4">
-              <h3 className="font-display text-sm uppercase tracking-wider text-text-3 mb-2">Rubric</h3>
-              {Object.entries(data.feedback.rubric).map(([k, v]) => (
-                <RubricRow key={k} label={k} value={v} />
-              ))}
+              <h3 className="font-display text-sm uppercase tracking-wider text-text-3 mb-3">Rubric</h3>
+              <div className="space-y-3">
+                {Object.entries(data.feedback.rubric).map(([k, v]) => (
+                  <Meter key={k} label={<span className="capitalize">{k.replace(/([A-Z])/g, " $1")}</span>}
+                    value={`${v}/100`} pct={v / 100}
+                    tone={v >= 70 ? "easy" : v >= 40 ? "medium" : "hard"} />
+                ))}
+              </div>
             </Card>
 
             <Card className="mt-4">
@@ -201,16 +217,3 @@ function Composer({ onSend, onEnd, mockId }: { onSend: (m: string) => Promise<vo
   );
 }
 
-function RubricRow({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="flex items-center justify-between gap-2 py-1.5 border-b border-border last:border-0">
-      <span className="text-text-2 capitalize text-sm">{label.replace(/([A-Z])/g, " $1")}</span>
-      <div className="flex items-center gap-2">
-        <div className="w-20 h-1.5 bg-border rounded-full overflow-hidden">
-          <div className="h-full bg-accent" style={{ width: `${value}%` }} />
-        </div>
-        <span className="font-mono text-xs w-8 text-right">{value}</span>
-      </div>
-    </div>
-  );
-}
