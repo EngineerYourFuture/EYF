@@ -2,63 +2,64 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { StaffLink } from "./staff-link";
+import { Icons, type IconName } from "./icons";
 
-type Item = { href: string; label: string };
+type Item = { href: string; label: string; icon: IconName };
 type Group = { label: string; items: Item[] };
 
 const GROUPS: Group[] = [
   {
     label: "Practice",
     items: [
-      { href: "/dashboard", label: "Dashboard" },
-      { href: "/problems", label: "Problems" },
-      { href: "/visualizer", label: "Visualizer" },
-      { href: "/games", label: "Cognitive Games" },
-      { href: "/pressure", label: "Pressure Mode" },
+      { href: "/dashboard", label: "Dashboard", icon: "home" },
+      { href: "/problems", label: "Problems", icon: "code" },
+      { href: "/visualizer", label: "Visualizer", icon: "activity" },
+      { href: "/games", label: "Cognitive Games", icon: "brain" },
+      { href: "/pressure", label: "Pressure Mode", icon: "gauge" },
     ],
   },
   {
     label: "Learn",
     items: [
-      { href: "/tracks", label: "Career Tracks" },
-      { href: "/subjects", label: "Core Subjects" },
-      { href: "/assessment", label: "Assessment" },
-      { href: "/roadmap", label: "Roadmap" },
+      { href: "/tracks", label: "Career Tracks", icon: "compass" },
+      { href: "/subjects", label: "Core Subjects", icon: "book" },
+      { href: "/assessment", label: "Assessment", icon: "clipboard" },
+      { href: "/roadmap", label: "Roadmap", icon: "map" },
     ],
   },
   {
     label: "Interview",
     items: [
-      { href: "/mocks", label: "AI Mocks" },
-      { href: "/peer-mocks", label: "Peer Mocks" },
-      { href: "/code-dna", label: "Code DNA" },
-      { href: "/oa", label: "OA Fingerprint" },
+      { href: "/mocks", label: "AI Mocks", icon: "mic" },
+      { href: "/peer-mocks", label: "Peer Mocks", icon: "users" },
+      { href: "/code-dna", label: "Code DNA", icon: "fingerprint" },
+      { href: "/oa", label: "OA Fingerprint", icon: "target" },
     ],
   },
   {
     label: "Career",
     items: [
-      { href: "/resume", label: "Resume" },
-      { href: "/projects", label: "Projects" },
-      { href: "/internships", label: "Internships" },
-      { href: "/jobs", label: "Jobs" },
-      { href: "/mentors", label: "Mentors" },
+      { href: "/resume", label: "Resume", icon: "doc" },
+      { href: "/projects", label: "Projects", icon: "cube" },
+      { href: "/internships", label: "Internships", icon: "building" },
+      { href: "/jobs", label: "Jobs", icon: "briefcase" },
+      { href: "/mentors", label: "Mentors", icon: "search" },
     ],
   },
   {
     label: "More",
     items: [
-      { href: "/forum", label: "Community" },
-      { href: "/wrapped", label: "Wrapped" },
-      { href: "/certificates", label: "Certificates" },
-      { href: "/fun", label: "Roast + Offer" },
+      { href: "/forum", label: "Community", icon: "chat" },
+      { href: "/wrapped", label: "Wrapped", icon: "gift" },
+      { href: "/certificates", label: "Certificates", icon: "award" },
+      { href: "/fun", label: "Roast + Offer", icon: "smile" },
     ],
   },
   {
     label: "Account",
     items: [
-      { href: "/billing", label: "Billing" },
-      { href: "/settings", label: "Settings" },
+      { href: "/billing", label: "Billing", icon: "card" },
+      { href: "/settings", label: "Settings", icon: "gear" },
     ],
   },
 ];
@@ -73,19 +74,21 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
           <div className="space-y-0.5">
             {g.items.map((i) => {
               const active = pathname === i.href || pathname.startsWith(i.href + "/");
+              const Icon = Icons[i.icon];
               return (
                 <Link
                   key={i.href}
                   href={i.href}
                   onClick={onNavigate}
                   aria-current={active ? "page" : undefined}
-                  className={`relative block px-3 py-1.5 rounded-md transition-colors ${
+                  className={`group relative flex items-center gap-2.5 px-3 py-1.5 rounded-md transition-colors ${
                     active
                       ? "bg-accent-tint text-text-1 font-medium"
                       : "text-text-2 hover:bg-surface hover:text-text-1"
                   }`}
                 >
                   {active && <span className="absolute left-0 top-1/2 -translate-y-1/2 h-4 w-0.5 bg-accent rounded-r" />}
+                  <Icon width={16} height={16} className={active ? "text-accent" : "text-text-3 group-hover:text-text-2"} />
                   {i.label}
                 </Link>
               );
