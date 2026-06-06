@@ -1,66 +1,40 @@
 {
   "name": "eyf",
-  "version": "1.0.0",
-  "description": "EYF backend foundation",
-  "main": "dist/index.js",
+  "version": "0.1.0",
+  "private": true,
+  "description": "EYF — Engineer Your Future. India's end-to-end placement OS.",
+  "packageManager": "pnpm@9.12.0",
   "engines": {
-    "node": ">=22.0.0",
-    "npm": ">=10.0.0"
+    "node": ">=20.10.0"
   },
   "scripts": {
-    "dev": "tsx watch src/index.ts",
-    "build": "tsc -p tsconfig.json",
-    "build:all": "npm run build && npm run frontend:build",
-    "start": "node dist/index.js",
-    "start:prod": "NODE_ENV=production SERVE_FRONTEND=true node dist/index.js",
-    "typecheck": "tsc --noEmit",
-    "db:migrate": "prisma migrate dev",
-    "db:push": "prisma db push",
-    "db:seed": "tsx prisma/seed.ts",
-    "db:studio": "prisma studio",
-    "db:generate": "prisma generate",
-    "frontend:dev": "npm --prefix frontend run dev",
-    "frontend:build": "npm --prefix frontend run build",
-    "ci:check": "npm run typecheck && npm run build:all"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "UNLICENSED",
-  "type": "commonjs",
-  "dependencies": {
-    "@prisma/adapter-pg": "^7.8.0",
-    "@prisma/client": "^7.8.0",
-    "@types/cookie-parser": "^1.4.10",
-    "@types/pdfkit": "^0.17.6",
-    "@types/pg": "^8.20.0",
-    "bcryptjs": "^3.0.3",
-    "compression": "^1.8.1",
-    "cookie-parser": "^1.4.7",
-    "cors": "^2.8.6",
-    "dotenv": "^17.4.2",
-    "express": "^5.2.1",
-    "express-rate-limit": "^8.3.2",
-    "groq-sdk": "^1.1.2",
-    "helmet": "^8.1.0",
-    "jsonwebtoken": "^9.0.3",
-    "morgan": "^1.10.1",
-    "pdfkit": "^0.18.0",
-    "pg": "^8.20.0",
-    "resend": "^6.12.3",
-    "speakeasy": "^2.0.0",
-    "uuid": "^13.0.0",
-    "zod": "^4.3.6"
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "test:ci": "turbo run test --filter=@eyf/types --filter=@eyf/api",
+    "clean": "turbo run clean && rm -rf node_modules",
+    "db:generate": "pnpm --filter @eyf/db prisma:generate",
+    "db:migrate": "pnpm --filter @eyf/db prisma:migrate",
+    "db:studio": "pnpm --filter @eyf/db prisma:studio",
+    "db:seed": "pnpm --filter @eyf/db seed",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f"
   },
   "devDependencies": {
-    "@types/compression": "^1.8.1",
-    "@types/cors": "^2.8.19",
-    "@types/express": "^5.0.6",
-    "@types/jsonwebtoken": "^9.0.10",
-    "@types/morgan": "^1.9.10",
-    "@types/node": "^25.6.0",
-    "@types/speakeasy": "^2.0.10",
-    "prisma": "^7.8.0",
-    "tsx": "^4.21.0",
-    "typescript": "^6.0.3"
+    "turbo": "^2.3.3",
+    "typescript": "^5.6.3",
+    "@types/node": "^22.10.1"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "pnpm": {
+    "overrides": {
+      "ioredis": "5.10.1"
+    }
   }
 }

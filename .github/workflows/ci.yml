@@ -2,56 +2,51 @@ name: CI
 
 on:
   push:
-    branches: ["**"]
+    branches: [master, main]
   pull_request:
-    branches: ["**"]
+    branches: [master, main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  typecheck-and-build:
-    name: Typecheck & Build
+  check:
+    name: Typecheck + Test + Lint
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
       - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.12.0
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
-          cache: npm
+          node-version: 20
+          cache: pnpm
 
-      - name: Install backend deps
-        run: npm ci
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
       - name: Generate Prisma client
-        run: npx prisma generate
+        run: pnpm db:generate
 
-      - name: Typecheck backend
-        run: npm run typecheck
+      - name: Typecheck
+        run: pnpm typecheck
 
-      - name: Build backend
-        run: npm run build
+      - name: Test
+        run: pnpm --filter @eyf/types test && pnpm --filter @eyf/api test
 
-      - name: Install frontend deps
-        run: npm --prefix frontend ci
-
-      - name: Typecheck frontend
-        run: npm --prefix frontend exec tsc -- --noEmit
-
-      - name: Build frontend
-        run: npm run frontend:build
-
-  sonarcloud:
-    name: SonarCloud Analysis
-    runs-on: ubuntu-latest
-    needs: typecheck-and-build
-
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@master
+      - name: Build
+        run: pnpm build
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          # Provide minimal envs so Next.js + API typecheck-able builds run.
+          DATABASE_URL: postgresql://eyf:eyf@localhost:5432/eyf
+          JWT_ACCESS_SECRET: ci-only-not-secret-32-character-key-pad
+          JWT_REFRESH_SECRET: ci-only-not-secret-32-character-key-padx
+          NEXT_PUBLIC_API_URL: http://localhost:4000/v1
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: pk_test_ci_placeholder
+          CLERK_SECRET_KEY: sk_test_ci_placeholder

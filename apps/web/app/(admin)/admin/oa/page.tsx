@@ -1,0 +1,61 @@
+"use client";
+import Link from "next/link";
+import { Card, Badge, Button } from "@eyf/ui";
+import { useApi, useApiAction } from "@/lib/use-api";
+import { toast } from "sonner";
+
+type Report = {
+  id: string; company: string; role: string; driveDate: string;
+  durationMin: number; sections: string[]; difficulty: string;
+  patterns: string[]; helpfulCount: number;
+  author: { name: string };
+};
+
+export default function Page() {
+  const { data, mutate } = useApi<Report[]>("/oa?limit=50");
+  const action = useApiAction();
+
+  async function del(r: Report) {
+    if (!confirm(`Delete OA report for ${r.company} · ${r.role}?`)) return;
+    try {
+      await action(`/admin/mod/oa/${r.id}`, { method: "DELETE" });
+      toast.success("Deleted.");
+      await mutate();
+    } catch (e) { toast.error((e as Error).message); }
+  }
+
+  return (
+    <div className="px-10 py-12 max-w-5xl">
+      <h1 className="font-display text-3xl font-bold tracking-tight">OA Reports · moderation</h1>
+      <p className="text-text-3 mt-2">{data?.length ?? 0} reports loaded</p>
+
+      <div className="mt-8 space-y-2">
+        {data?.map((r) => (
+          <Card key={r.id} className="flex items-center justify-between gap-4">
+            <div className="flex-1">
+              <div className="flex items-center gap-2">
+                <span className="font-display text-base font-semibold">{r.company}</span>
+                <Badge>{r.role}</Badge>
+                <Badge tone={r.difficulty === "HARD" ? "hard" : r.difficulty === "EASY" ? "easy" : "medium"}>{r.difficulty}</Badge>
+                <span className="text-text-3 text-xs">{new Date(r.driveDate).toLocaleDateString()} · {r.durationMin}m · 👍 {r.helpfulCount}</span>
+              </div>
+              <div className="text-text-3 text-xs mt-1">by {r.author.name}</div>
+              {r.patterns.length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-1">
+                  {r.patterns.slice(0, 6).map((p) => (
+                    <span key={p} className="text-xs font-mono text-text-3 px-2 py-0.5 border border-border rounded">{p}</span>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="flex flex-col gap-2 shrink-0">
+              <Link href={`/oa/${r.id}`}><Button size="sm" variant="ghost">View</Button></Link>
+              <Button size="sm" variant="ghost" onClick={() => del(r)} className="text-hard">Delete</Button>
+            </div>
+          </Card>
+        ))}
+        {data?.length === 0 && <Card><p className="text-text-3 text-sm">No reports yet.</p></Card>}
+      </div>
+    </div>
+  );
+}

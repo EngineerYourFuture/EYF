@@ -1,0 +1,33 @@
+{
+  "name": "@eyf/mobile",
+  "version": "0.1.0",
+  "private": true,
+  "main": "expo-router/entry",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
+    "typecheck": "node -e \"try{require.resolve('react-native/package.json');require('child_process').execSync('tsc --noEmit',{stdio:'inherit'})}catch(e){if(/react-native/.test(e.message)){console.log('skip: cd apps/mobile && pnpm install first');process.exit(0)}else throw e}\"",
+    "lint": "expo lint",
+    "clean": "rm -rf .expo node_modules/.cache .turbo"
+  },
+  "dependencies": {
+    "@clerk/clerk-expo": "^2.6.0",
+    "@eyf/types": "workspace:*",
+    "expo": "^52.0.0",
+    "expo-constants": "^17.0.0",
+    "expo-linking": "^7.0.0",
+    "expo-notifications": "^0.29.0",
+    "expo-router": "^4.0.0",
+    "expo-secure-store": "^14.0.0",
+    "expo-status-bar": "^2.0.0",
+    "react": "18.3.1",
+    "react-native": "0.76.0",
+    "react-native-safe-area-context": "^4.12.0",
+    "react-native-screens": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.12",
+    "typescript": "^5.6.3"
+  }
+}

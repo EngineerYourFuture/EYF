@@ -1,10 +1,42 @@
+# deps
 node_modules
-dist
-.env
-.env.production
-.DS_Store
-*.log
-/tmp
-frontend/public/stitch
+.pnpm-store
 
-/src/generated/prisma
+# build
+dist
+build
+.next
+out
+.turbo
+*.tsbuildinfo
+
+# env
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# os
+.DS_Store
+Thumbs.db
+
+# ide
+.vscode/*
+!.vscode/extensions.json
+.idea
+
+# coverage
+coverage
+*.lcov
+
+# prisma generated
+packages/db/src/generated
+
+# claude code local state
+.claude/
+shot.mjs

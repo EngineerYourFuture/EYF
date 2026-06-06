@@ -1,0 +1,47 @@
+name: E2E
+
+on:
+  pull_request:
+    branches: [master, main]
+  workflow_dispatch:
+
+jobs:
+  playwright:
+    name: Playwright smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with: { version: 9.12.0 }
+
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: pnpm }
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Prisma generate
+        run: pnpm db:generate
+
+      - name: Install Playwright browsers
+        run: pnpm --filter @eyf/web exec playwright install --with-deps chromium
+
+      - name: Run Playwright tests
+        run: pnpm --filter @eyf/web exec playwright test
+        env:
+          # Clerk middleware needs valid-looking keys to not crash the build, even
+          # though our smoke tests never sign in. Real auth flows are out of scope here.
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: pk_test_e2e_placeholder
+          CLERK_SECRET_KEY: sk_test_e2e_placeholder
+          NEXT_PUBLIC_API_URL: http://localhost:4000/v1
+
+      - name: Upload report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: apps/web/playwright-report/
+          retention-days: 7

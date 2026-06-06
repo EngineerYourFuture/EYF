@@ -1,12 +1,72 @@
 services:
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: eyf-app:latest
-    container_name: eyf-app
-    ports:
-      - "3000:3000"
-    env_file:
-      - .env.production
+  postgres:
+    image: postgres:16-alpine
+    container_name: eyf-postgres
     restart: unless-stopped
+    environment:
+      POSTGRES_USER: eyf
+      POSTGRES_PASSWORD: eyf
+      POSTGRES_DB: eyf
+    ports:
+      - "5432:5432"
+    volumes:
+      - eyf_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U eyf -d eyf"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: eyf-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - eyf_redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Judge0 — code execution sandbox. Self-hosted per spec (Phase 1).
+  # Enable with: docker compose --profile judge up -d
+  judge0:
+    image: judge0/judge0:1.13.1
+    container_name: eyf-judge0
+    profiles: ["judge"]
+    restart: unless-stopped
+    ports:
+      - "2358:2358"
+    privileged: true
+    depends_on:
+      - judge0-db
+      - judge0-redis
+    environment:
+      POSTGRES_HOST: judge0-db
+      POSTGRES_DB: judge0
+      POSTGRES_USER: judge0
+      POSTGRES_PASSWORD: judge0
+      REDIS_HOST: judge0-redis
+      REDIS_PORT: 6379
+
+  judge0-db:
+    image: postgres:16-alpine
+    profiles: ["judge"]
+    environment:
+      POSTGRES_USER: judge0
+      POSTGRES_PASSWORD: judge0
+      POSTGRES_DB: judge0
+    volumes:
+      - eyf_judge0_pg:/var/lib/postgresql/data
+
+  judge0-redis:
+    image: redis:7-alpine
+    profiles: ["judge"]
+
+volumes:
+  eyf_pgdata:
+  eyf_redisdata:
+  eyf_judge0_pg:

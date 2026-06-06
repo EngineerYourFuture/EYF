@@ -1,47 +1,77 @@
-# EYF Full-Stack Application
+# EYF — Engineer Your Future
 
-EYF is a full-stack TypeScript application with:
-- **Backend API** (`Express`, `src/`)
-- **Frontend SPA** (`React + Vite`, `frontend/`)
+> India's end-to-end placement operating system — from your first DSA concept to your first offer letter.
 
-## Local development
+This is a green-field rebuild (May 2026) following [specs/EYF_Master_Docs_Final.md](specs/EYF_Master_Docs_Final.md) and [specs/EYF_Complete_SaaS_Build_Guide.md](specs/EYF_Complete_SaaS_Build_Guide.md).
 
-1. Copy env templates:
-   - `cp .env.example .env`
-   - `cp frontend/.env.example frontend/.env`
-2. Install dependencies:
-   - `npm ci`
-   - `npm --prefix frontend ci`
-3. Run backend:
-   - `npm run dev`
-4. Run frontend:
-   - `npm run frontend:dev`
+## Stack
 
-## Build checks
+| Layer | Tech |
+|---|---|
+| Frontend | Next.js 14 (App Router), React 18, Tailwind, Framer Motion |
+| Backend | Fastify on Node 20, TypeScript |
+| Database | PostgreSQL 16 + Prisma 5 |
+| Cache / queues | Redis 7 + BullMQ |
+| Auth | Clerk (Google OAuth + phone OTP via MSG91) |
+| Payments | Razorpay (subscriptions + Connect for mentor payouts) |
+| Code judge | Judge0 (self-hosted) |
+| LLM | Anthropic Claude (Sonnet for analysis, Haiku for hints) |
+| Storage | Cloudflare R2 |
+| Email | Resend (transactional), Customer.io (marketing) |
+| SMS | MSG91 |
+| Monorepo | Turborepo + pnpm workspaces |
 
-- Backend typecheck: `npm run typecheck`
-- Full build: `npm run build:all`
-- CI-equivalent check: `npm run ci:check`
+## Layout
 
-## Production container run
+```
+apps/
+  web/        Next.js 14 — eyf.in
+  api/        Fastify — api.eyf.in
+  judge/      Judge0 deploy config (separate host in prod)
+packages/
+  db/         Prisma schema + generated client
+  ui/         Shared React component library
+  types/      Shared TypeScript types
+  config/     Shared ESLint / Tailwind / TS bases
+specs/        Source-of-truth product docs
+PLAN.md       Build phases + what's done vs next
+```
 
-1. Copy production env:
-   - `cp .env.production.example .env.production`
-2. Fill strong secrets and production URLs in `.env.production`.
-3. Build and start:
-   - `docker compose up --build -d`
-4. App endpoint:
-   - `http://localhost:3000`
+## Quick start
 
-## Production runtime hardening
+```bash
+# 1. Install deps
+pnpm install
 
-- Security headers via `helmet`
-- CORS allow-list (`CORS_ALLOWED_ORIGINS`)
-- Compression enabled
-- Request logging (`morgan`) with request IDs
-- Auth rate limiting on `/api/v1/auth/*`
-- Health probes:
-  - `/api/v1/live`
-  - `/api/v1/ready`
-  - `/api/v1/health`
-- Graceful shutdown on `SIGINT` / `SIGTERM`
+# 2. Copy env
+cp .env.example .env
+
+# 3. Start Postgres + Redis
+pnpm docker:up
+
+# 4. Generate Prisma client + run migrations
+pnpm db:generate
+pnpm db:migrate
+pnpm db:seed
+
+# 5. Run everything (web on :3000, api on :4000)
+pnpm dev
+```
+
+Optional: start Judge0 locally with `docker compose --profile judge up -d` (heavy).
+
+## Scripts
+
+| Command | What it does |
+|---|---|
+| `pnpm dev` | Run `web` + `api` in parallel |
+| `pnpm build` | Build all packages + apps |
+| `pnpm typecheck` | TS check everything |
+| `pnpm lint` | Lint everything |
+| `pnpm db:migrate` | Apply Prisma migrations |
+| `pnpm db:studio` | Prisma Studio GUI |
+| `pnpm db:seed` | Seed dev data (problems, dev users) |
+
+## Project status
+
+See [PLAN.md](PLAN.md) for what's built, what's next, and how the work maps to the 36-week roadmap in the build guide.

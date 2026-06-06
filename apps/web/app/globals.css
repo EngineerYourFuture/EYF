@@ -1,0 +1,137 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================
+   Theme tokens — values are space-separated RGB channels so
+   Tailwind can apply opacity modifiers (bg-accent/10 etc).
+   :root = dark (default).  .light = light overrides.
+   ============================================================ */
+@layer base {
+  :root {
+    color-scheme: dark;
+
+    --bg:          10 10 10;
+    --bg-2:        14 14 14;
+    --surface:     17 17 17;
+    --surface-2:   22 22 22;
+    --surface-3:   30 30 30;
+    --border:      28 28 28;
+    --border-2:    42 42 42;
+
+    --text-1:      250 250 249;
+    --text-2:      201 201 199;
+    --text-3:      138 138 135;
+    --text-4:      90 90 87;
+
+    --accent:      232 255 71;   /* neon lime */
+    --accent-hover:184 204 56;
+    --accent-tint: 26 31 0;
+    --accent-ink:  10 10 10;     /* text on an accent fill */
+
+    --easy:        0 255 135;
+    --medium:      255 176 32;
+    --hard:        255 69 0;
+    --expert:      255 0 128;
+    --info:        56 189 248;
+
+    --shadow:      0 0 0;        /* boxShadow base */
+    --hairline:    255 255 255;  /* inset top highlight */
+  }
+
+  :root.light {
+    color-scheme: light;
+
+    --bg:          246 246 244;
+    --bg-2:        240 240 237;
+    --surface:     255 255 255;
+    --surface-2:   255 255 255;
+    --surface-3:   241 241 238;
+    --border:      228 228 222;
+    --border-2:    214 214 206;
+
+    --text-1:      24 24 27;
+    --text-2:      55 55 62;
+    --text-3:      107 110 120;
+    --text-4:      150 152 162;
+
+    --accent:      54 83 20;     /* deep botanical lime — readable on white */
+    --accent-hover:63 98 18;
+    --accent-tint: 236 244 209;
+    --accent-ink:  255 255 255;  /* text on the deep-lime fill */
+
+    --easy:        4 160 80;
+    --medium:      193 120 0;
+    --hard:        205 50 0;
+    --expert:      200 0 100;
+    --info:        2 132 199;
+
+    --shadow:      24 24 27;
+    --hairline:    255 255 255;
+  }
+
+  /* Force the dark palette on a subtree regardless of the app theme.
+     Used by the cinematic marketing landing, which is designed dark-only. */
+  .theme-dark {
+    color-scheme: dark;
+    --bg: 10 10 10; --bg-2: 14 14 14;
+    --surface: 17 17 17; --surface-2: 22 22 22; --surface-3: 30 30 30;
+    --border: 28 28 28; --border-2: 42 42 42;
+    --text-1: 250 250 249; --text-2: 201 201 199; --text-3: 138 138 135; --text-4: 90 90 87;
+    --accent: 232 255 71; --accent-hover: 184 204 56; --accent-tint: 26 31 0; --accent-ink: 10 10 10;
+    --easy: 0 255 135; --medium: 255 176 32; --hard: 255 69 0; --expert: 255 0 128; --info: 56 189 248;
+    --shadow: 0 0 0; --hairline: 255 255 255;
+  }
+
+  html, body {
+    @apply bg-bg text-text-1;
+    font-feature-settings: "ss01", "cv11";
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background: rgb(var(--accent));
+    color: rgb(var(--accent-ink));
+  }
+
+  /* Themed scrollbars so the chrome matches the palette. */
+  * {
+    scrollbar-color: rgb(var(--border-2)) transparent;
+  }
+  *::-webkit-scrollbar { width: 10px; height: 10px; }
+  *::-webkit-scrollbar-thumb {
+    background: rgb(var(--border-2));
+    border-radius: 999px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+  *::-webkit-scrollbar-thumb:hover { background: rgb(var(--text-4)); background-clip: content-box; }
+}
+
+@layer components {
+  /* Hairline divider that reads on both themes. */
+  .hairline { height: 1px; @apply bg-hairline; }
+
+  /* Card hover lift used across feature grids. */
+  .card-interactive {
+    @apply transition-all duration-200 ease-out;
+  }
+  .card-interactive:hover {
+    @apply border-edge -translate-y-0.5 shadow-card-lg;
+  }
+
+  /* Shimmer sweep for skeletons (richer than a flat pulse). */
+  .shimmer {
+    position: relative;
+    overflow: hidden;
+  }
+  .shimmer::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(90deg, transparent, rgb(var(--hairline) / 0.06), transparent);
+    @apply animate-shimmer;
+  }
+}

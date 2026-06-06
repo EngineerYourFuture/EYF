@@ -1,0 +1,388 @@
+"use client";
+/**
+ * EYF Landing — the scroll film (spec Doc 03). Nine scenes, one idea each,
+ * scroll-driven with Framer Motion. Three.js particle field + 3D roadmap.
+ * Physics-based springs, slow for story (600–1200ms feel via scroll scrub).
+ */
+import { useRef } from "react";
+import Link from "next/link";
+import {
+  motion, useScroll, useTransform, useSpring, type MotionValue,
+} from "framer-motion";
+import { Button, Badge } from "@eyf/ui";
+import { Roadmap3D, ROADMAP_NODES } from "./roadmap-3d";
+
+// ─── Scene 1 — THE CONFRONTATION ──────────────────────────────────
+function Confrontation() {
+  const ref = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
+  const line1 = "You've been preparing.".split(" ");
+  const line2 = "You're still not getting placed.".split(" ");
+  const fade = useTransform(scrollYProgress, [0, 0.7, 1], [1, 1, 0]);
+
+  return (
+    <section ref={ref} className="relative h-[115vh] lg:h-[160vh]">
+      <motion.div style={{ opacity: fade }} className="sticky top-0 h-screen flex flex-col items-center justify-center px-6 text-center">
+        <h1 className="font-display tracking-tight leading-[1.05]" style={{ fontSize: "clamp(2.5rem, 7vw, 4.5rem)", letterSpacing: "-0.03em", fontWeight: 300 }}>
+          <span className="block text-text-1">
+            {line1.map((w, i) => (
+              <motion.span key={i} className="inline-block mr-[0.25em]"
+                initial={{ opacity: 0, y: 14 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+                transition={{ delay: i * 0.08, duration: 0.5 }}>{w}</motion.span>
+            ))}
+          </span>
+          <span className="block mt-3" style={{ color: "#A1A1AA" }}>
+            {line2.map((w, i) => (
+              <motion.span key={i} className="inline-block mr-[0.25em]"
+                initial={{ opacity: 0, y: 14 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+                transition={{ delay: 0.8 + i * 0.08, duration: 0.5 }}>{w}</motion.span>
+            ))}
+          </span>
+        </h1>
+        <motion.div className="absolute bottom-12 left-1/2 -translate-x-1/2"
+          animate={{ opacity: [0.2, 1, 0.2] }} transition={{ duration: 2, repeat: Infinity }}>
+          <div className="w-px h-10 bg-text-3" />
+        </motion.div>
+      </motion.div>
+    </section>
+  );
+}
+
+// ─── Scene 2 — THE DIAGNOSIS ──────────────────────────────────────
+function Diagnosis() {
+  return (
+    <section className="relative min-h-[80vh] lg:min-h-screen flex items-center justify-center px-6 py-16 lg:py-0">
+      <div className="max-w-3xl">
+        <Stat n="300" suffix=" problems solved." />
+        <Stat n="0" suffix=" offers received." accentZero />
+        <motion.p className="mt-10 text-text-3 text-xl leading-relaxed max-w-2xl"
+          initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.6, delay: 0.2 }}>
+          Most students don&apos;t fail because they don&apos;t work hard. They fail because they prepare without direction.
+        </motion.p>
+      </div>
+    </section>
+  );
+}
+function Stat({ n, suffix, accentZero }: { n: string; suffix: string; accentZero?: boolean }) {
+  return (
+    <motion.div className="font-display font-bold leading-tight" style={{ fontSize: "clamp(2.5rem, 8vw, 6rem)" }}
+      initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-100px" }}
+      transition={{ duration: 0.6 }}>
+      <span style={{ color: accentZero ? "#FF4500" : "#E8FF47" }}>{n}</span>
+      <span className="text-text-1">{suffix}</span>
+    </motion.div>
+  );
+}
+
+// ─── Scene 3 — THE REVEAL ─────────────────────────────────────────
+function Reveal() {
+  const ref = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "center center"] });
+  const sweep = useTransform(scrollYProgress, [0.3, 0.8], ["0%", "100%"]);
+  return (
+    <section ref={ref} className="relative min-h-screen flex flex-col items-center justify-center px-6 text-center">
+      <motion.div initial={{ opacity: 0, scale: 0.92 }} whileInView={{ opacity: 1, scale: 1 }}
+        viewport={{ once: true }} transition={{ duration: 1.1, ease: [0.16, 1, 0.3, 1] }}>
+        <div className="font-display font-bold tracking-tight text-text-1" style={{ fontSize: "clamp(5rem, 22vw, 14rem)", lineHeight: 0.9 }}>
+          EYF
+        </div>
+      </motion.div>
+      <div className="relative mt-2">
+        <h2 className="font-display tracking-tight" style={{ fontSize: "clamp(1.75rem, 5vw, 3rem)", fontWeight: 300 }}>
+          Engineer Your Future.
+        </h2>
+        <motion.div className="h-[2px] bg-accent absolute -bottom-2 left-0" style={{ width: sweep }} />
+      </div>
+      <motion.p className="mt-6 text-text-3 text-lg"
+        initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ delay: 0.6 }}>
+        India&apos;s first placement operating system.
+      </motion.p>
+    </section>
+  );
+}
+
+// ─── Scene 4 — THE MAP (3D roadmap) ───────────────────────────────
+function TheMap() {
+  const ref = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
+  const smooth = useSpring(scrollYProgress, { stiffness: 90, damping: 30 });
+
+  return (
+    <section ref={ref} className="relative h-[170vh] lg:h-[320vh]">
+      <div className="sticky top-0 h-screen overflow-hidden">
+        <Roadmap3D progress={smooth} />
+        <div className="absolute inset-0 grid lg:grid-cols-2 pointer-events-none">
+          <div className="flex flex-col justify-center px-6 sm:px-8 lg:px-16">
+            <motion.div initial={{ opacity: 0, x: -24 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.7 }}>
+              <Badge tone="accent" className="mb-6">The path</Badge>
+              <h2 className="font-display text-4xl md:text-5xl font-bold tracking-tight leading-[1.05]">
+                Most platforms give you content.<br />
+                <span className="text-accent">EYF gives you a path.</span>
+              </h2>
+              <p className="mt-6 text-text-2 text-lg max-w-md leading-relaxed">
+                Every student starts with a skill assessment. Every roadmap is generated for your timeline,
+                your target company, and your exact gaps.
+              </p>
+              <NodeTicker progress={smooth} />
+            </motion.div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+function NodeTicker({ progress }: { progress: MotionValue<number> }) {
+  const label = useTransform(progress, (v) => {
+    const i = Math.min(ROADMAP_NODES.length - 1, Math.max(0, Math.floor(v * ROADMAP_NODES.length)));
+    return ROADMAP_NODES[i] ?? ROADMAP_NODES[0]!;
+  });
+  return (
+    <motion.div className="mt-8 font-mono text-sm text-text-3">
+      <span className="text-accent">▸ </span>
+      <motion.span>{label}</motion.span>
+    </motion.div>
+  );
+}
+
+// ─── Scene 5 — THE PROOF (horizontal pinned) ──────────────────────
+const STUDENTS = [
+  ["Rahul", "VIT Bhopal", "Amazon SDE-1"],
+  ["Priya", "JNTU Hyderabad", "Razorpay"],
+  ["Mohammed", "LNCT Bhopal", "Flipkart"],
+  ["Sneha", "PCCoE Pune", "Swiggy"],
+  ["Arjun", "AKTU Lucknow", "CRED"],
+  ["Divya", "SRM Chennai", "Juspay"],
+  ["Karan", "MIT Pune", "Zepto"],
+  ["Anjali", "BNMIT Bangalore", "Freshworks"],
+];
+function Proof() {
+  const ref = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
+  const x = useTransform(scrollYProgress, [0, 1], ["2%", "-70%"]);
+  return (
+    <section ref={ref} className="relative h-[200vh] lg:h-[300vh]">
+      <div className="sticky top-0 h-screen flex flex-col justify-center overflow-hidden">
+        <div className="px-6 sm:px-8 lg:px-16 mb-10">
+          <h2 className="font-display text-3xl md:text-4xl font-bold tracking-tight">They started where you are.</h2>
+        </div>
+        <motion.div style={{ x }} className="flex gap-5 px-6 sm:px-8 lg:px-16">
+          {STUDENTS.map(([name, college, company]) => (
+            <div key={name} className="shrink-0 w-72 bg-surface border border-border rounded-xl p-6">
+              <div className="w-14 h-14 rounded-full bg-gradient-to-br from-accent/30 to-border border border-accent/30" />
+              <div className="mt-4 font-display text-lg font-bold">{name}</div>
+              <div className="text-text-3 text-sm">{college}</div>
+              <div className="mt-3 flex items-center gap-2 text-sm">
+                <span className="text-text-3">→</span>
+                <span className="text-accent font-semibold">{company}</span>
+              </div>
+            </div>
+          ))}
+        </motion.div>
+        <div className="px-6 sm:px-8 lg:px-16 mt-10">
+          <p className="text-xl text-text-1">
+            <span className="text-accent font-display font-bold text-3xl">73%</span>{" "}
+            of EYF users who complete their track get placed within 3 months.
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ─── Scene 6 — THE FEATURES ───────────────────────────────────────
+const FEATURES = [
+  { kicker: "DSA Engine", title: "Pattern-based. Not problem-based.",
+    body: "EYF organises 2,000+ problems into 15 core patterns. After every solution, we generate 3 variants.",
+    stat: "15 patterns cover 92% of all Indian OA questions.", icon: "tree" },
+  { kicker: "Cognitive Games", title: "The round that eliminates 80% of students.",
+    body: "EYF simulates TCS NQT, AMCAT, and Mettl with the exact interface and timing.",
+    stat: "14 minutes remaining.", icon: "timer", urgent: true },
+  { kicker: "AI Mock Interview", title: "Practice until the pressure disappears.",
+    body: "Your anxiety index drops over four weeks of real, recorded practice.",
+    stat: "Average anxiety index: 29 → 8 in 4 weeks.", icon: "wave" },
+  { kicker: "Career Tracks", title: "Your role. Your curriculum. Your companies.",
+    body: "Every student gets a week-by-week curriculum built for their exact target role.",
+    stat: "12 roles. 12 distinct paths.", icon: "cards" },
+];
+function Features() {
+  return (
+    <section className="relative">
+      {FEATURES.map((f, i) => (
+        <div key={f.kicker} className="min-h-[75vh] lg:min-h-screen flex items-center px-6 sm:px-8 lg:px-16 py-16 lg:py-0">
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center max-w-6xl mx-auto w-full">
+            <motion.div initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, margin: "-120px" }} transition={{ duration: 0.7 }}
+              className={i % 2 ? "lg:order-2" : ""}>
+              <Badge tone="accent" className="mb-5">{f.kicker}</Badge>
+              <h3 className="font-display text-3xl md:text-4xl font-bold tracking-tight leading-tight">{f.title}</h3>
+              <p className="mt-5 text-text-2 text-lg leading-relaxed max-w-md">{f.body}</p>
+              <p className={`mt-6 font-mono text-sm ${f.urgent ? "text-hard" : "text-accent"}`}>{f.stat}</p>
+            </motion.div>
+            <motion.div initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true, margin: "-120px" }} transition={{ duration: 0.8 }}
+              className={`${i % 2 ? "lg:order-1" : ""} aspect-square rounded-2xl bg-surface/50 border border-border grid place-items-center`}>
+              <FeatureVisual icon={f.icon} />
+            </motion.div>
+          </div>
+        </div>
+      ))}
+    </section>
+  );
+}
+function FeatureVisual({ icon }: { icon: string }) {
+  if (icon === "tree") {
+    return (
+      <motion.svg width="220" height="220" viewBox="-110 -10 220 220" animate={{ rotateY: 360 }}
+        transition={{ duration: 24, repeat: Infinity, ease: "linear" }} style={{ transformStyle: "preserve-3d" }}>
+        {[[0, 20], [-50, 80], [50, 80], [-80, 140], [-20, 140], [20, 140], [80, 140]].flatMap((p, i, a) => {
+          const parent = i === 0 ? null : a[Math.floor((i - 1) / 2)];
+          return parent ? [<line key={`l${i}`} x1={parent[0]} y1={parent[1]} x2={p[0]} y2={p[1]} stroke="#3B4A0F" strokeWidth="2" />] : [];
+        })}
+        {[[0, 20], [-50, 80], [50, 80], [-80, 140], [-20, 140], [20, 140], [80, 140]].map((p, i) => (
+          <circle key={i} cx={p[0]} cy={p[1]} r="14" fill={i > 2 ? "#E8FF47" : "#111"} stroke="#E8FF47" strokeWidth="1.5" />
+        ))}
+      </motion.svg>
+    );
+  }
+  if (icon === "timer") {
+    return (
+      <div className="text-center">
+        <motion.div className="font-display text-6xl font-bold text-hard"
+          animate={{ opacity: [1, 0.4, 1] }} transition={{ duration: 1, repeat: Infinity }}>14:00</motion.div>
+        <div className="text-text-3 text-sm mt-2 font-mono">minutes remaining</div>
+      </div>
+    );
+  }
+  if (icon === "wave") {
+    return (
+      <svg width="240" height="120" viewBox="0 0 240 120">
+        {Array.from({ length: 40 }).map((_, i) => {
+          const peak = Math.abs(Math.sin(i));
+          return (
+            <motion.rect key={i} x={i * 6} width="3" rx="1.5" fill="#E8FF47"
+              height={8} y={56}
+              initial={{ height: 8, y: 56 }}
+              animate={{ height: [8, 8 + peak * 70, 8], y: [56, 56 - peak * 35, 56] }}
+              transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.03 }} />
+          );
+        })}
+      </svg>
+    );
+  }
+  return (
+    <div className="relative w-48 h-48">
+      {[0, 1, 2, 3].map((i) => (
+        <motion.div key={i} className="absolute inset-0 rounded-xl bg-surface border border-accent/40"
+          style={{ transformOrigin: "bottom center" }}
+          animate={{ rotate: (i - 1.5) * 12, y: i * -4 }}
+          transition={{ type: "spring", stiffness: 60 }} />
+      ))}
+    </div>
+  );
+}
+
+// ─── Scene 7 — THE COMPARISON ─────────────────────────────────────
+function Comparison() {
+  const ref = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start center", "center center"] });
+  const collapse = useTransform(scrollYProgress, [0, 1], [1, 0]);
+  const emerge = useTransform(scrollYProgress, [0.3, 1], [0, 1]);
+  const tools = ["LeetCode", "GFG", "YouTube", "Telegram", "PDFs", "Notion"];
+  return (
+    <section ref={ref} className="relative min-h-[80vh] lg:min-h-screen flex items-center justify-center px-6 py-16 lg:py-0">
+      <div className="max-w-4xl w-full text-center">
+        <motion.div style={{ opacity: collapse }} className="flex flex-wrap justify-center gap-3 mb-8">
+          {tools.map((t, i) => (
+            <motion.span key={t} className="px-4 py-2 border border-border rounded-md text-text-3 text-sm"
+              animate={{ x: [0, (i % 2 ? 1 : -1) * 8, 0], rotate: [0, (i % 2 ? 2 : -2), 0] }}
+              transition={{ duration: 3, repeat: Infinity }}>{t}</motion.span>
+          ))}
+        </motion.div>
+        <motion.div style={{ opacity: collapse }} className="text-text-3 text-sm mb-12">Average student: 6 platforms, 0 direction.</motion.div>
+        <motion.div style={{ opacity: emerge }}>
+          <div className="inline-flex items-center gap-3 px-6 py-4 border border-accent/40 rounded-xl bg-accent-tint">
+            <span className="text-accent font-display text-xl font-bold">One path.</span>
+            <span className="text-text-2">From first concept to first offer.</span>
+          </div>
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
+// ─── Scene 8 — PRICING ────────────────────────────────────────────
+const TIERS = [
+  { name: "Basic", price: "₹249", featured: false, items: ["20 submissions/day", "All core subjects", "Peer mocks"] },
+  { name: "Pro", price: "₹499", featured: true, items: ["Unlimited", "AI mock interviews", "Resume ATS", "All problems"] },
+  { name: "Elite", price: "₹899", featured: false, items: ["Everything in Pro", "2 expert mocks/mo", "Mentor priority"] },
+];
+function Pricing() {
+  return (
+    <section className="relative min-h-screen flex items-center justify-center px-6 py-20 lg:py-24">
+      <div className="max-w-5xl w-full">
+        <motion.h2 className="font-display text-3xl md:text-5xl font-bold tracking-tight text-center max-w-2xl mx-auto leading-tight"
+          initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
+          Two months of EYF Pro. Less than one day of offline coaching.
+        </motion.h2>
+        <div className="mt-14 grid md:grid-cols-3 gap-5 items-stretch">
+          {TIERS.map((t, i) => (
+            <motion.div key={t.name}
+              initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: i * 0.1 }}
+              className={`rounded-xl p-7 border flex flex-col ${t.featured ? "border-accent bg-accent-tint scale-[1.04]" : "border-border bg-surface"}`}>
+              {t.featured && <Badge tone="accent" className="mb-3 w-fit">Most popular</Badge>}
+              <div className="font-display text-xl font-bold">{t.name}</div>
+              <div className="mt-2 font-display text-4xl font-bold">{t.price}<span className="text-base text-text-3">/mo</span></div>
+              <ul className="mt-5 space-y-2 text-sm text-text-2 flex-1">
+                {t.items.map((x) => <li key={x} className="flex gap-2"><span className="text-accent">▸</span>{x}</li>)}
+              </ul>
+              <Link href="/billing" className="mt-6"><Button className="w-full" variant={t.featured ? "primary" : "secondary"}>Choose {t.name}</Button></Link>
+            </motion.div>
+          ))}
+        </div>
+        <p className="text-center text-text-3 text-sm mt-10 font-mono">
+          Offline coaching ₹1,20,000 · LeetCode ₹35,000/yr · <span className="text-accent">EYF Pro ₹3,999/yr</span>
+        </p>
+      </div>
+    </section>
+  );
+}
+
+// ─── Scene 9 — THE FINAL CTA ──────────────────────────────────────
+function FinalCTA() {
+  return (
+    <section className="relative min-h-[85vh] lg:min-h-screen flex flex-col items-center justify-center px-6 py-20 lg:py-0 text-center">
+      <motion.h2 className="font-display font-light tracking-tight leading-[1.05]" style={{ fontSize: "clamp(2.5rem, 9vw, 6rem)" }}
+        initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.9 }}>
+        What&apos;s the cost<br />of not starting<br /><span className="text-accent">today?</span>
+      </motion.h2>
+      <motion.p className="mt-8 text-text-3 text-lg max-w-md"
+        initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ delay: 0.4 }}>
+        14,847 students are currently preparing on EYF. Some of them are competing for the same roles you are.
+      </motion.p>
+      <motion.div initial={{ opacity: 0, scale: 0.95 }} whileInView={{ opacity: 1, scale: 1 }}
+        viewport={{ once: true }} transition={{ delay: 0.6 }} className="mt-10">
+        <Link href="/dashboard">
+          <Button size="lg" className="text-base px-10 shadow-[0_0_40px_rgba(232,255,71,0.35)]">Start your path →</Button>
+        </Link>
+      </motion.div>
+    </section>
+  );
+}
+
+export function ScrollFilm() {
+  return (
+    <div className="relative">
+      <Confrontation />
+      <Diagnosis />
+      <Reveal />
+      <TheMap />
+      <Proof />
+      <Features />
+      <Comparison />
+      <Pricing />
+      <FinalCTA />
+    </div>
+  );
+}

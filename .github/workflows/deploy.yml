@@ -1,0 +1,41 @@
+name: Deploy
+
+on:
+  push:
+    branches: [master, main]
+  workflow_dispatch:
+
+jobs:
+  deploy-web:
+    name: Deploy Web → Vercel
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: 9.12.0 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm db:generate
+      - name: Pull Vercel project
+        run: pnpm --filter @eyf/web exec vercel pull --yes --environment=production --token="${VERCEL_TOKEN}"
+        env: { VERCEL_TOKEN: "${{ secrets.VERCEL_TOKEN }}" }
+      - name: Build
+        run: pnpm --filter @eyf/web exec vercel build --prod --token="${VERCEL_TOKEN}"
+        env: { VERCEL_TOKEN: "${{ secrets.VERCEL_TOKEN }}" }
+      - name: Deploy
+        run: pnpm --filter @eyf/web exec vercel deploy --prebuilt --prod --token="${VERCEL_TOKEN}"
+        env: { VERCEL_TOKEN: "${{ secrets.VERCEL_TOKEN }}" }
+
+  deploy-api:
+    name: Deploy API → Railway
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Railway up
+        run: |
+          curl -fsSL https://railway.app/install.sh | sh
+          railway up --service api --token "${RAILWAY_TOKEN}"
+        env: { RAILWAY_TOKEN: "${{ secrets.RAILWAY_TOKEN }}" }
