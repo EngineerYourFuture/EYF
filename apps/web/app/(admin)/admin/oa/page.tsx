@@ -1,8 +1,9 @@
 "use client";
 import Link from "next/link";
-import { Card, Badge, Button } from "@eyf/ui";
+import { Card, Badge, Button, EmptyState, SkeletonRows } from "@eyf/ui";
 import { useApi, useApiAction } from "@/lib/use-api";
 import { toast } from "sonner";
+import { Icons } from "@/components/icons";
 
 type Report = {
   id: string; company: string; role: string; driveDate: string;
@@ -25,11 +26,12 @@ export default function Page() {
   }
 
   return (
-    <div className="px-10 py-12 max-w-5xl">
+    <div className="px-6 lg:px-10 py-10 lg:py-12 max-w-5xl mx-auto">
       <h1 className="font-display text-3xl font-bold tracking-tight">OA Reports · moderation</h1>
       <p className="text-text-3 mt-2">{data?.length ?? 0} reports loaded</p>
 
       <div className="mt-8 space-y-2">
+        {!data && <SkeletonRows rows={4} />}
         {data?.map((r) => (
           <Card key={r.id} className="flex items-center justify-between gap-4">
             <div className="flex-1">
@@ -54,7 +56,10 @@ export default function Page() {
             </div>
           </Card>
         ))}
-        {data?.length === 0 && <Card><p className="text-text-3 text-sm">No reports yet.</p></Card>}
+        {data?.length === 0 && (
+          <EmptyState icon={<Icons.target width={28} height={28} />} title="No reports yet"
+            description="Community-submitted OA reports will appear here for curation." />
+        )}
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 "use client";
-import { Card, Badge, Button } from "@eyf/ui";
+import { Card, Badge, Button, EmptyState, SkeletonRows } from "@eyf/ui";
 import { useApi, useApiAction } from "@/lib/use-api";
+import { Icons } from "@/components/icons";
 
 type Pending = {
   id: string; company: string; jobTitle: string; yearsExp: number;
@@ -25,11 +26,12 @@ export default function Page() {
   }
 
   return (
-    <div className="px-10 py-12 max-w-4xl">
+    <div className="px-6 lg:px-10 py-10 lg:py-12 max-w-4xl mx-auto">
       <h1 className="font-display text-3xl font-bold tracking-tight">Mentor verification queue</h1>
       <p className="text-text-3 mt-2">{data?.length ?? 0} pending</p>
 
       <div className="mt-8 space-y-3">
+        {!data && <SkeletonRows rows={2} />}
         {data?.map((m) => (
           <Card key={m.id}>
             <div className="flex items-start justify-between gap-4">
@@ -52,7 +54,10 @@ export default function Page() {
             </div>
           </Card>
         ))}
-        {data?.length === 0 && <Card><p className="text-text-3">Queue empty. 🎉</p></Card>}
+        {data?.length === 0 && (
+          <EmptyState icon={<Icons.users width={28} height={28} />} title="Queue is clear"
+            description="No mentor applications waiting for review. New applications will appear here." />
+        )}
       </div>
     </div>
   );

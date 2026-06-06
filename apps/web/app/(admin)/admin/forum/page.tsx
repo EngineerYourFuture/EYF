@@ -1,6 +1,7 @@
 "use client";
-import { Card, Badge, Button } from "@eyf/ui";
+import { Card, Badge, Button, EmptyState, SkeletonRows } from "@eyf/ui";
 import { useApi, useApiAction } from "@/lib/use-api";
+import { Icons } from "@/components/icons";
 
 type Thread = {
   id: string; slug: string; title: string; category: string;
@@ -23,11 +24,12 @@ export default function Page() {
   }
 
   return (
-    <div className="px-10 py-12 max-w-5xl">
+    <div className="px-6 lg:px-10 py-10 lg:py-12 max-w-5xl mx-auto">
       <h1 className="font-display text-3xl font-bold tracking-tight">Forum moderation</h1>
       <p className="text-text-3 mt-2">Recent {data?.length ?? 0} threads</p>
 
       <div className="mt-8 space-y-2">
+        {!data && <SkeletonRows rows={4} />}
         {data?.map((t) => (
           <Card key={t.id} className="flex items-center justify-between gap-4">
             <div className="flex-1">
@@ -48,6 +50,10 @@ export default function Page() {
             </div>
           </Card>
         ))}
+        {data?.length === 0 && (
+          <EmptyState icon={<Icons.chat width={28} height={28} />} title="No threads yet"
+            description="When students start discussions, they'll show up here for moderation." />
+        )}
       </div>
     </div>
   );
