@@ -8,6 +8,7 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     label: "Practice",
     items: [
+      { href: "/today", label: "Today", icon: "bolt", keywords: "daily plan agenda focus" },
       { href: "/dashboard", label: "Dashboard", icon: "home", keywords: "home overview" },
       { href: "/readiness", label: "Readiness", icon: "target", keywords: "placement ready score am i ready gaps progress" },
       { href: "/problems", label: "Problems", icon: "code", keywords: "dsa coding leetcode solve" },
