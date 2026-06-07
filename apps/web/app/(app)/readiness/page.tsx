@@ -1,0 +1,146 @@
+"use client";
+import Link from "next/link";
+import { Card, Button, Badge, Meter, PageHeader, Skeleton } from "@eyf/ui";
+import { useApi } from "@/lib/use-api";
+import { PageMotion } from "@/components/page-motion";
+import { Icons } from "@/components/icons";
+import { computeReadiness, type ReadinessInput } from "@/lib/readiness";
+
+type Gam = { streak: number; longestStreak: number; totalSolved: number };
+type Dna = { acceptanceRate: number; difficultyMix: { difficulty: string; count: number }[] };
+type Mock = { feedback: { overallScore: number } | null };
+type Resume = { atsScore: number | null };
+type Proj = { status: string };
+
+export default function Page() {
+  const { data: gam }      = useApi<Gam>("/gamification/me");
+  const { data: dna }      = useApi<Dna>("/code-dna/me");
+  const { data: mocks }    = useApi<Mock[]>("/mocks/me");
+  const { data: resumes }  = useApi<Resume[]>("/resume/me");
+  const { data: projects } = useApi<Proj[]>("/projects/me/started");
+
+  const loaded = gam && dna && mocks && resumes && projects;
+
+  const input: ReadinessInput | null = loaded ? {
+    totalSolved: gam.totalSolved,
+    acceptanceRate: dna.acceptanceRate ?? 0,
+    difficultyMix: dna.difficultyMix ?? [],
+    mocks, resumes, projects,
+    streak: gam.streak, longestStreak: gam.longestStreak,
+  } : null;
+
+  const r = input ? computeReadiness(input) : null;
+
+  return (
+    <PageMotion className="relative">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-glow-radial" aria-hidden />
+      <div className="relative px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-5xl mx-auto">
+        <PageHeader
+          eyebrow="Your north star"
+          title="Placement Readiness"
+          subtitle="One score across everything that gets you placed — DSA, interviews, resume, projects, and consistency. Updated live as you progress."
+        />
+
+        {!r ? (
+          <div className="mt-8 grid lg:grid-cols-[320px_1fr] gap-6">
+            <Skeleton className="h-72 rounded-2xl" />
+            <div className="space-y-3">{Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-14 rounded-xl" />)}</div>
+          </div>
+        ) : (
+          <>
+            <div className="mt-8 grid lg:grid-cols-[320px_1fr] gap-6 items-stretch">
+              {/* Score hero */}
+              <Card variant="glow" className="flex flex-col items-center justify-center text-center py-10">
+                <ReadinessRing score={r.overall} />
+                <Badge tone={r.overall >= 80 ? "easy" : r.overall >= 50 ? "accent" : "medium"} className="mt-5">{r.band}</Badge>
+                <p className="text-text-3 text-sm mt-4 max-w-xs leading-relaxed">{r.summary}</p>
+              </Card>
+
+              {/* Pillar breakdown */}
+              <Card>
+                <h2 className="font-display text-lg font-bold mb-4">What makes up your score</h2>
+                <div className="space-y-4">
+                  {r.pillars.map((p) => {
+                    const Icon = Icons[p.icon];
+                    return (
+                      <Link key={p.key} href={p.href} className="block group">
+                        <Meter
+                          tone={p.score >= 70 ? "easy" : p.score >= 40 ? "medium" : "hard"}
+                          pct={p.score / 100}
+                          label={
+                            <span className="inline-flex items-center gap-2">
+                              <span className="text-text-3 group-hover:text-text-2"><Icon width={15} height={15} /></span>
+                              <span className="group-hover:text-text-1">{p.label}</span>
+                              <span className="text-text-4 text-xs">· {Math.round(p.weight * 100)}% weight</span>
+                            </span>
+                          }
+                          value={`${p.score}`}
+                        />
+                        <div className="text-text-4 text-xs mt-1 ml-6">{p.detail}</div>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </Card>
+            </div>
+
+            {/* Do this next */}
+            <div className="mt-8">
+              <h2 className="font-display text-xl font-bold mb-4">Do this next</h2>
+              {r.nextActions.length === 0 ? (
+                <Card className="flex items-center gap-3">
+                  <span className="text-easy"><Icons.trophy width={22} height={22} /></span>
+                  <p className="text-text-2">Every pillar is strong — you&apos;re placement-ready. Keep your streak and start applying.</p>
+                </Card>
+              ) : (
+                <div className="grid sm:grid-cols-3 gap-4">
+                  {r.nextActions.map((a, idx) => {
+                    const Icon = Icons[a.icon];
+                    return (
+                      <Card key={a.href} interactive className="flex flex-col">
+                        <div className="flex items-center justify-between">
+                          <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent-tint text-accent border border-accent/20">
+                            <Icon width={20} height={20} />
+                          </span>
+                          <span className="text-text-4 font-mono text-xs">#{idx + 1}</span>
+                        </div>
+                        <div className="font-medium mt-3">{a.label}</div>
+                        <div className="text-text-4 text-xs mt-1 flex-1">{a.detail}</div>
+                        <Link href={a.href} className="mt-4">
+                          <Button size="sm" variant="secondary" className="w-full">Go <Icons.arrow width={14} height={14} /></Button>
+                        </Link>
+                      </Card>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            <p className="text-text-4 text-xs mt-8 max-w-2xl">
+              Your readiness updates automatically as you solve problems, take mocks, score your resume, ship projects, and keep your streak.
+              No other app can compute this — because no other app sees your whole journey.
+            </p>
+          </>
+        )}
+      </div>
+    </PageMotion>
+  );
+}
+
+function ReadinessRing({ score }: { score: number }) {
+  const radius = 76, c = 2 * Math.PI * radius;
+  return (
+    <div className="relative h-48 w-48">
+      <svg viewBox="0 0 180 180" className="h-48 w-48 -rotate-90">
+        <circle cx="90" cy="90" r={radius} className="fill-none stroke-surface-3" strokeWidth="12" />
+        <circle cx="90" cy="90" r={radius} className="fill-none stroke-accent" strokeWidth="12" strokeLinecap="round"
+          strokeDasharray={c} strokeDashoffset={c - (c * score) / 100}
+          style={{ transition: "stroke-dashoffset 1s cubic-bezier(0.16,1,0.3,1)" }} />
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <span className="font-display text-6xl font-bold leading-none">{score}</span>
+        <span className="text-text-3 text-xs font-mono mt-1">/ 100 ready</span>
+      </div>
+    </div>
+  );
+}

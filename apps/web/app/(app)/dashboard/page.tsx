@@ -254,6 +254,7 @@ function Metric({ icon, label, value, unit, sub, tone = "default" }: {
 
 type QA = { href: string; label: string; desc: string; icon: IconName };
 const QUICK_ACTIONS: QA[] = [
+  { href: "/readiness", label: "Readiness",  desc: "Am I ready?",        icon: "target" },
   { href: "/problems",  label: "Problems",   desc: "1000+ patterns",     icon: "code" },
   { href: "/mocks",     label: "AI Mock",    desc: "Interview practice", icon: "mic" },
   { href: "/subjects",  label: "Core CS",    desc: "OS · DBMS · CN",     icon: "book" },
