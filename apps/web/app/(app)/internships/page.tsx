@@ -3,7 +3,9 @@ import Link from "next/link";
 import { Card, Badge, Button, SkeletonRows, EmptyState, PageHeader } from "@eyf/ui";
 import { useApi, useApiAction } from "@/lib/use-api";
 import { toast } from "sonner";
+import { useState } from "react";
 import { PageMotion } from "@/components/page-motion";
+import { Icons } from "@/components/icons";
 
 type Internship = {
   id: string; slug: string; company: string; role: string;
@@ -16,22 +18,29 @@ export default function Page() {
   const { data, isLoading } = useApi<Internship[]>("/internships");
   const { data: apps, mutate } = useApi<App[]>("/internships/me/applications");
   const action = useApiAction();
+  const [saving, setSaving] = useState<string | null>(null);
+  const savedSlugs = new Set((apps ?? []).map((a) => a.internship.slug));
 
   async function save(slug: string) {
-    await action(`/internships/${slug}/save`, { method: "POST" });
-    toast.success("Saved to your tracker.");
-    await mutate();
+    setSaving(slug);
+    try {
+      await action(`/internships/${slug}/save`, { method: "POST" });
+      toast.success("Saved to your tracker.");
+      await mutate();
+    } finally {
+      setSaving(null);
+    }
   }
 
   return (
-    <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-6xl">
+    <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-6xl mx-auto">
       <PageHeader title="Internships" subtitle="2nd/3rd year? This is your entry point. PPO conversion data where we have it." />
 
       <div className="mt-8 grid md:grid-cols-[1fr_300px] gap-8">
         <div className="space-y-2">
           {isLoading && <SkeletonRows rows={5} />}
           {data && data.length === 0 && (
-            <EmptyState icon="🎓" title="No internships listed" description="New roles are added each drive season. Check back soon." />
+            <EmptyState icon={<Icons.building width={28} height={28} />} title="No internships listed" description="New roles are added each drive season. Check back soon." />
           )}
           {data?.map((i) => (
             <Link key={i.id} href={`/internships/${i.slug}`}>
@@ -47,7 +56,9 @@ export default function Page() {
                       {i.company} · {i.location} · ₹{(i.stipendInr).toLocaleString("en-IN")}/mo · {i.duration.replace("_", " ")}
                     </div>
                   </div>
-                  <Button size="sm" onClick={(e) => { e.preventDefault(); save(i.slug); }}>Save</Button>
+                  {savedSlugs.has(i.slug)
+                    ? <Badge tone="easy">✓ Saved</Badge>
+                    : <Button size="sm" onClick={(e) => { e.preventDefault(); save(i.slug); }} disabled={saving === i.slug}>{saving === i.slug ? "…" : "Save"}</Button>}
                 </div>
               </Card>
             </Link>

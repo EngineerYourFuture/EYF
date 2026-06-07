@@ -5,6 +5,7 @@ import { useApi, useApiAction } from "@/lib/use-api";
 import { toast } from "sonner";
 import { useState } from "react";
 import { PageMotion } from "@/components/page-motion";
+import { Icons } from "@/components/icons";
 
 type Job = {
   id: string; slug: string; company: string; title: string;
@@ -24,15 +25,22 @@ export default function Page() {
   const { data: jobs, isLoading } = useApi<Job[]>(`/jobs${role ? `?role=${role}` : ""}`);
   const { data: apps, mutate } = useApi<App[]>("/jobs/me/applications");
   const action = useApiAction();
+  const [saving, setSaving] = useState<string | null>(null);
+  const savedSlugs = new Set((apps ?? []).map((a) => a.job.slug));
 
   async function save(slug: string) {
-    await action(`/jobs/${slug}/save`, { method: "POST" });
-    toast.success("Saved to your tracker.");
-    await mutate();
+    setSaving(slug);
+    try {
+      await action(`/jobs/${slug}/save`, { method: "POST" });
+      toast.success("Saved to your tracker.");
+      await mutate();
+    } finally {
+      setSaving(null);
+    }
   }
 
   return (
-    <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-6xl">
+    <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-6xl mx-auto">
       <PageHeader title="Jobs" subtitle="Find them, save them, track them — Kanban for your apps." />
 
       <div className="mt-6 flex items-center gap-2 text-sm">
@@ -48,7 +56,7 @@ export default function Page() {
         <div className="space-y-2">
           {isLoading && <SkeletonRows rows={6} />}
           {jobs && jobs.length === 0 && (
-            <EmptyState icon="💼" title="No jobs for this filter" description="Try a different role, or check back — new roles are added regularly." />
+            <EmptyState icon={<Icons.briefcase width={28} height={28} />} title="No jobs for this filter" description="Try a different role, or check back — new roles are added regularly." />
           )}
           {jobs?.map((j) => (
             <Card key={j.id} className="flex items-center justify-between">
@@ -63,9 +71,11 @@ export default function Page() {
                   {j.salaryMinInr && ` · ₹${Math.round(j.salaryMinInr / 100_000)}–${j.salaryMaxInr ? Math.round(j.salaryMaxInr / 100_000) : "?"} LPA`}
                 </div>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 shrink-0">
                 <Link href={`/jobs/${j.slug}`}><Button size="sm" variant="ghost">View</Button></Link>
-                <Button size="sm" onClick={() => save(j.slug)}>Save</Button>
+                {savedSlugs.has(j.slug)
+                  ? <Badge tone="easy">✓ Saved</Badge>
+                  : <Button size="sm" onClick={() => save(j.slug)} disabled={saving === j.slug}>{saving === j.slug ? "…" : "Save"}</Button>}
               </div>
             </Card>
           ))}
