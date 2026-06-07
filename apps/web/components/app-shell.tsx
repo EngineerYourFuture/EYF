@@ -7,6 +7,21 @@ import { AnimatePresence, motion } from "framer-motion";
 import { AppSidebar } from "./app-sidebar";
 import { BackButton } from "./back-button";
 import { ThemeToggle } from "./theme";
+import { CommandPalette, openCommandPalette } from "./command-palette";
+import { Icons } from "./icons";
+
+function SearchTrigger() {
+  return (
+    <button
+      onClick={openCommandPalette}
+      className="mx-3 mt-3 mb-1 flex items-center gap-2 rounded-lg border border-border bg-surface-2 px-3 h-9 text-sm text-text-3 hover:border-edge hover:text-text-2 transition-colors"
+    >
+      <Icons.search width={15} height={15} />
+      <span>Search…</span>
+      <kbd className="ml-auto text-[10px] font-mono border border-border rounded px-1.5 py-0.5">⌘K</kbd>
+    </button>
+  );
+}
 
 const PK = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ?? "";
 const HAS_REAL_CLERK = !!PK && PK !== "pk_test_replace" && PK !== "pk_test_ZGV2LnBsYWNlaG9sZGVyLmNsZXJrLmFjY291bnRzLmRldiQ";
@@ -36,6 +51,7 @@ function SidebarInner({ onNavigate }: { onNavigate?: () => void }) {
       <Link href="/" onClick={onNavigate} className="px-6 h-16 flex items-center font-display font-bold text-xl border-b border-border shrink-0">
         EYF
       </Link>
+      <SearchTrigger />
       <AppSidebar onNavigate={onNavigate} />
       <AccountFooter />
     </>
@@ -71,6 +87,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </button>
         <Link href="/" className="font-display font-bold text-lg tracking-tight">EYF</Link>
         <div className="ml-auto flex items-center gap-1">
+          <button onClick={openCommandPalette} aria-label="Search" className="inline-flex items-center justify-center h-9 w-9 rounded-lg text-text-3 hover:text-text-1 hover:bg-surface-3">
+            <Icons.search width={18} height={18} />
+          </button>
           <ThemeToggle />
           <BackButton />
         </div>
@@ -109,6 +128,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <DesktopBackBar />
         {children}
       </main>
+
+      <CommandPalette />
     </div>
   );
 }
