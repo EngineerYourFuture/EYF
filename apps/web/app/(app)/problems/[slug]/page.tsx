@@ -39,6 +39,7 @@ export default function Page({ params }: { params: { slug: string } }) {
   const [lang, setLang] = useState<Lang>("CPP");
   const [code, setCode] = useState("");
   const [pendingId, setPendingId] = useState<string | null>(null);
+  const [stalled, setStalled] = useState(false);
   const action = useApiAction();
 
   useEffect(() => {
@@ -49,12 +50,27 @@ export default function Page({ params }: { params: { slug: string } }) {
   const { data: submission, mutate: refreshSub } = useApi<Submission>(
     pendingId ? `/submissions/${pendingId}` : null,
     {
-      refreshInterval: (s) => (s && s.verdict !== "PENDING" ? 0 : 1500),
+      // Stop polling once judged — or after we've given up waiting.
+      refreshInterval: (s) => (stalled || (s && s.verdict !== "PENDING") ? 0 : 1500),
     },
   );
 
+  // If the judge never reports back (worker/Judge0 down), don't hang forever.
+  useEffect(() => {
+    if (!pendingId) { setStalled(false); return; }
+    setStalled(false);
+    const t = setTimeout(() => setStalled(true), 30000);
+    return () => clearTimeout(t);
+  }, [pendingId]);
+  useEffect(() => {
+    if (submission && submission.verdict !== "PENDING") setStalled(false);
+  }, [submission?.verdict]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const judging = submission?.verdict === "PENDING" && !stalled;
+
   async function onSubmit() {
     if (!problem) return;
+    setStalled(false);
     const res = await action<{ id: string }>("/submissions", {
       method: "POST",
       body: JSON.stringify({ problemSlug: problem.slug, language: lang, code }),
@@ -111,8 +127,8 @@ export default function Page({ params }: { params: { slug: string } }) {
             {(Object.keys(MONACO_LANG) as Lang[]).map((l) => <option key={l} value={l}>{l}</option>)}
           </select>
           <div className="ml-auto">
-            <Button size="sm" glow onClick={onSubmit} disabled={submission?.verdict === "PENDING"}>
-              {submission?.verdict === "PENDING" ? "Judging…" : "Submit"}
+            <Button size="sm" glow onClick={onSubmit} disabled={judging}>
+              {judging ? "Judging…" : "Submit"}
             </Button>
           </div>
         </div>
@@ -140,10 +156,13 @@ export default function Page({ params }: { params: { slug: string } }) {
               <span className="text-xs text-text-3 uppercase tracking-wider">Verdict</span>
               <Badge tone={
                 submission.verdict === "ACCEPTED" ? "easy" :
-                submission.verdict === "PENDING" ? "default" : "hard"
+                submission.verdict === "PENDING" ? (stalled ? "medium" : "default") : "hard"
               }>
-                {submission.verdict === "PENDING" ? "Judging…" : submission.verdict.replace(/_/g, " ")}
+                {submission.verdict === "PENDING" ? (stalled ? "Timed out" : "Judging…") : submission.verdict.replace(/_/g, " ")}
               </Badge>
+              {stalled && (
+                <span className="text-text-3 text-sm">The judge didn&apos;t respond — it may be offline. Submit again to retry.</span>
+              )}
               {submission.totalTests ? (
                 <span className="text-text-3 text-sm font-mono">
                   {submission.passedTests}/{submission.totalTests} tests

@@ -24,22 +24,18 @@ type Mock = {
 export default function Page({ params }: { params: { id: string } }) {
   const { data, mutate } = useApi<Mock>(`/mocks/${params.id}`);
   const action = useApiAction();
-  const [msg, setMsg] = useState("");
   const [sending, setSending] = useState(false);
   const [ending, setEnding] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
-  }, [data?.transcript?.length]);
+  }, [data?.transcript?.length, sending]);
 
   if (!data) return <div className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 text-text-3">Loading…</div>;
 
-  async function send() {
-    if (!msg.trim() || sending) return;
+  async function handleSend(m: string) {
     setSending(true);
-    const m = msg;
-    setMsg("");
     try {
       await action(`/mocks/${params.id}/turn`, { method: "POST", body: JSON.stringify({ message: m }) });
       await mutate();
@@ -95,8 +91,7 @@ export default function Page({ params }: { params: { id: string } }) {
         </div>
 
         {data.status !== "COMPLETED" && (
-          <Composer onSend={async (m) => { setMsg(m); await action(`/mocks/${params.id}/turn`, { method: "POST", body: JSON.stringify({ message: m }) }); await mutate(); }}
-                    onEnd={end} mockId={params.id} />
+          <Composer onSend={handleSend} onEnd={end} mockId={params.id} />
         )}
       </div>
 
