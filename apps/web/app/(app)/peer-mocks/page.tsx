@@ -19,7 +19,7 @@ export default function Page() {
     if (!inQueue) return;
     const id = setInterval(async () => {
       try {
-        const r = await action<{ matched: boolean; mockSessionId: string | null }>("/peer/queue/status");
+        const r = await action<{ matched: boolean; mockSessionId: string | null }>("/peer/queue/status", {}, { silent: true });
         if (r.matched && r.mockSessionId) {
           clearInterval(id);
           setInQueue(false);
@@ -35,7 +35,7 @@ export default function Page() {
       const r = await action<
         | { matched: true; mockSessionId: string }
         | { matched: false; queuePosition: number }
-      >("/peer/queue/join", { method: "POST", body: JSON.stringify({ problemFocus: focus }) });
+      >("/peer/queue/join", { method: "POST", body: JSON.stringify({ problemFocus: focus }) }, { silent: true });
       if (r.matched) {
         router.push(`/peer-mocks/${r.mockSessionId}`);
       } else {

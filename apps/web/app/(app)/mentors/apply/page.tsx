@@ -26,7 +26,7 @@ export default function Page() {
           ...form,
           expertise: form.expertise.split(",").map((s) => s.trim()).filter(Boolean),
         }),
-      });
+      }, { silent: true });
       toast.success("Application submitted. Verification within 5 business days.");
     } catch (e) {
       toast.error((e as Error).message);

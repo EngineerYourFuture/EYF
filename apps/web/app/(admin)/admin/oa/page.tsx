@@ -19,7 +19,7 @@ export default function Page() {
   async function del(r: Report) {
     if (!confirm(`Delete OA report for ${r.company} · ${r.role}?`)) return;
     try {
-      await action(`/admin/mod/oa/${r.id}`, { method: "DELETE" });
+      await action(`/admin/mod/oa/${r.id}`, { method: "DELETE" }, { silent: true });
       toast.success("Deleted.");
       await mutate();
     } catch (e) { toast.error((e as Error).message); }

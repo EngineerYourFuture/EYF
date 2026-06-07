@@ -25,13 +25,16 @@ export default function Page({ params }: { params: { id: string } }) {
 
   async function save() {
     setSaving(true);
-    const r = await action<{ atsScore: number | null }>(`/resume/${params.id}`, {
-      method: "PATCH", body: JSON.stringify({ json: doc }),
-    });
-    track(Events.ResumeScored, { score: r.atsScore });
-    toast.success(r.atsScore != null ? `Saved · ATS ${r.atsScore}/100` : "Saved");
-    await mutate();
-    setSaving(false);
+    try {
+      const r = await action<{ atsScore: number | null }>(`/resume/${params.id}`, {
+        method: "PATCH", body: JSON.stringify({ json: doc }),
+      });
+      track(Events.ResumeScored, { score: r.atsScore });
+      toast.success(r.atsScore != null ? `Saved · ATS ${r.atsScore}/100` : "Saved");
+      await mutate();
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (

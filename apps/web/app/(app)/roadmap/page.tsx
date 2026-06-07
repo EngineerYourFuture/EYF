@@ -38,9 +38,12 @@ export default function Page() {
 
   async function start(slug: string) {
     setStarting(slug);
-    await action("/roadmap/start", { method: "POST", body: JSON.stringify({ templateSlug: slug }) });
-    await mutate();
-    setStarting(null);
+    try {
+      await action("/roadmap/start", { method: "POST", body: JSON.stringify({ templateSlug: slug }) });
+      await mutate();
+    } finally {
+      setStarting(null);
+    }
   }
 
   return (

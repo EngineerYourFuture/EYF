@@ -50,7 +50,7 @@ export default function Page() {
           targetRole: targetRole.trim() || null,
           graduationYear: graduationYear ? Number(graduationYear) : null,
         }),
-      });
+      }, { silent: true });
       await mutate();
       toast.success("Profile updated");
     } catch {

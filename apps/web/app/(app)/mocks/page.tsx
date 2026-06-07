@@ -28,7 +28,7 @@ export default function Page() {
       const m = await action<{ id: string }>("/mocks/ai/start", {
         method: "POST",
         body: JSON.stringify({ company, problemFocus: focus }),
-      });
+      }, { silent: true });
       track(Events.MockStarted, { type: "AI", company, focus });
       await mutate();
       window.location.href = `/mocks/${m.id}`;

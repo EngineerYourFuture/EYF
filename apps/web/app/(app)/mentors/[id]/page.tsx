@@ -19,7 +19,7 @@ export default function Page({ params }: { params: { id: string } }) {
 
   async function book(slotId: string) {
     try {
-      await action(`/mentors/slots/${slotId}/book`, { method: "POST" });
+      await action(`/mentors/slots/${slotId}/book`, { method: "POST" }, { silent: true });
       track(Events.MentorBooked, { mentorId: params.id, slotId });
       await mutate();
       toast.success("Booked. Check Mocks for details.");

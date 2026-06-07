@@ -32,7 +32,7 @@ export default function Page() {
   async function generate() {
     setLoading(true);
     try {
-      const p = await action<Plan>("/code-dna/strategy", { method: "POST" });
+      const p = await action<Plan>("/code-dna/strategy", { method: "POST" }, { silent: true });
       setPlan(p);
     } catch (e) {
       toast.error((e as Error).message);

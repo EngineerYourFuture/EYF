@@ -22,7 +22,7 @@ export default function Page() {
   async function roastIt(id: string) {
     setRoasting(true);
     try {
-      const r = await action<Roast>(`/fun/roast/${id}`, { method: "POST" });
+      const r = await action<Roast>(`/fun/roast/${id}`, { method: "POST" }, { silent: true });
       setRoast(r);
     } catch (e) { toast.error((e as Error).message); }
     finally { setRoasting(false); }

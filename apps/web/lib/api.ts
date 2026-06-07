@@ -23,10 +23,14 @@ export async function fetchApi<T = unknown>(
   init: RequestInit & { token?: string | null } = {},
 ): Promise<T> {
   const { token, headers, ...rest } = init;
+  // Only declare a JSON content-type when we're actually sending a JSON body.
+  // Fastify rejects an empty body when content-type is application/json — which
+  // would 400 every body-less POST (mock end, booking, roast, etc.).
+  const hasBody = rest.body != null;
   const res = await fetch(`${BASE}${path}`, {
     ...rest,
     headers: {
-      "content-type": "application/json",
+      ...(hasBody ? { "content-type": "application/json" } : {}),
       ...(token ? { authorization: `Bearer ${token}` } : {}),
       ...headers,
     },

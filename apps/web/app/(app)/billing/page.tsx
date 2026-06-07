@@ -36,6 +36,7 @@ export default function Page() {
       const order = await action<{ orderId: string; amountInr: number; keyId: string }>(
         "/billing/create-order",
         { method: "POST", body: JSON.stringify({ plan: planId, interval }) },
+        { silent: true },
       );
       const rzp = new window.Razorpay({
         key: order.keyId,
@@ -55,7 +56,7 @@ export default function Page() {
               plan: planId,
               interval,
             }),
-          });
+          }, { silent: true });
           track(Events.PlanUpgraded, { plan: planId, interval, amountInr: order.amountInr });
           toast.success("Welcome to " + planId.toUpperCase());
         },
