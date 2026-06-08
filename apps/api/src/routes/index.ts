@@ -29,6 +29,7 @@ import { peerRoutes } from "./peer.js";
 import { funRoutes } from "./fun.js";
 import { pushRoutes } from "./push.js";
 import { companyRoutes } from "./companies.js";
+import { skillGraphRoutes } from "./skill-graph.js";
 
 export async function registerRoutes(app: FastifyInstance) {
   await app.register(authRoutes,         { prefix: "/auth" });
@@ -61,4 +62,5 @@ export async function registerRoutes(app: FastifyInstance) {
   await app.register(funRoutes,          { prefix: "/fun" });
   await app.register(pushRoutes,         { prefix: "/push" });
   await app.register(companyRoutes,      { prefix: "/companies" });
+  await app.register(skillGraphRoutes,   { prefix: "/skill-graph" });
 }
