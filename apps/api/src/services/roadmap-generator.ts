@@ -48,11 +48,15 @@ export type GenerateInput = {
 const SUBJECT_HREF: Record<string, string> = { os: "/subjects/os", dbms: "/subjects/dbms", cn: "/subjects/cn", oop: "/subjects/oop" };
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
+type Persona = "STUDENT" | "SWITCHER" | "DEVELOPER";
+
 export async function generateRoadmap(userId: string, input: GenerateInput): Promise<GeneratedPlan> {
-  const [graph, track] = await Promise.all([
+  const [graph, track, user] = await Promise.all([
     computeSkillGraph(userId),
     prisma.careerTrack.findUnique({ where: { slug: input.trackSlug } }),
+    prisma.user.findUnique({ where: { id: userId }, select: { persona: true } }),
   ]);
+  const persona = (user?.persona ?? "STUDENT") as Persona;
   const roleName = track?.name ?? cap(input.trackSlug);
   const tier = tierOf(input.targetCompany);
   const weeks = Math.max(4, Math.min(24, Math.round(input.weeks)));
@@ -62,9 +66,16 @@ export async function generateRoadmap(userId: string, input: GenerateInput): Pro
   const weak = ranked.filter((d) => d.score < 60);
   const focusAreas = ranked.slice(0, 3).map((d) => d.label);
 
-  // Phase split: foundation (remediate) → depth (role + harder DSA) → interview.
-  const foundationWeeks = Math.max(1, Math.round(weeks * 0.4));
-  const interviewWeeks = Math.max(1, Math.round(weeks * 0.25));
+  // Phase split varies by persona: students remediate more; switchers/devs already
+  // have fundamentals, so they spend less on foundation and more on depth/interview.
+  const MIX: Record<Persona, { foundation: number; interview: number }> = {
+    STUDENT:   { foundation: 0.40, interview: 0.25 },
+    SWITCHER:  { foundation: 0.25, interview: 0.35 },
+    DEVELOPER: { foundation: 0.25, interview: 0.20 },
+  };
+  const mix = MIX[persona];
+  const foundationWeeks = Math.max(1, Math.round(weeks * mix.foundation));
+  const interviewWeeks = Math.max(1, Math.round(weeks * mix.interview));
   const depthWeeks = Math.max(1, weeks - foundationWeeks - interviewWeeks);
 
   const rolePatterns = (track?.patterns ?? []).filter(Boolean);
@@ -107,16 +118,31 @@ export async function generateRoadmap(userId: string, input: GenerateInput): Pro
       const rp = rolePatterns[i % rolePatterns.length]!;
       tasks.push({ area: roleName, label: cap(rp), detail: `${roleName} core: ${rp}`, href: `/tracks/${input.trackSlug}` });
     }
-    if (i === Math.floor(depthWeeks / 2)) {
-      tasks.push({ area: "Projects", label: "Ship a portfolio project", detail: "Start a resume-worthy build", href: "/projects" });
+    // Persona shapes the depth phase.
+    let theme = focus ? `${roleName}: ${focus}` : `${roleName} depth + hard DSA`;
+    let milestone = `Clear 10 medium/hard problems`;
+    if (persona === "DEVELOPER") {
+      // Build-first: a project milestone most weeks, architecture concepts woven in.
+      tasks.push({ area: "Projects", label: `Project milestone ${i + 1}`, detail: "Ship a vertical slice; write the design doc", href: "/projects" });
+      tasks.push({ area: "Architecture", label: "Architecture deep-dive", detail: "One system concept applied to your build", href: "/tracks/" + input.trackSlug });
+      theme = focus ? `Build: ${focus}` : "Architecture & projects";
+      milestone = "Project slice shipped";
+    } else if (persona === "SWITCHER") {
+      // System design every week — the round that decides senior offers.
+      tasks.push({ area: "System Design", label: "System design study", detail: "One design + a recorded mock prompt", href: "/mocks" });
+      if (i === Math.floor(depthWeeks / 2)) tasks.push({ area: "Projects", label: "Refresh a portfolio project", detail: "One senior-grade build to show", href: "/projects" });
+      theme = focus ? `${roleName}: ${focus}` : "System design + role depth";
+      milestone = "Can design a mid-size system end-to-end";
+    } else {
+      if (i === Math.floor(depthWeeks / 2)) {
+        tasks.push({ area: "Projects", label: "Ship a portfolio project", detail: "Start a resume-worthy build", href: "/projects" });
+        milestone = "First portfolio project underway";
+      }
+      if (tier === "product" || tier === "elite") {
+        tasks.push({ area: "System Design", label: "System design primer", detail: "One design concept + a mock prompt", href: "/mocks" });
+      }
     }
-    if (tier === "product" || tier === "elite") {
-      tasks.push({ area: "System Design", label: "System design primer", detail: "One design concept + a mock prompt", href: "/mocks" });
-    }
-    plan.push({
-      week: w++, phase: "Depth", theme: focus ? `${roleName}: ${focus}` : `${roleName} depth + hard DSA`,
-      tasks, milestone: i === Math.floor(depthWeeks / 2) ? "First portfolio project underway" : `Clear 10 medium/hard problems`,
-    });
+    plan.push({ week: w++, phase: "Depth", theme, tasks, milestone });
   }
 
   // ── INTERVIEW ──────────────────────────────────────────────────────
@@ -135,7 +161,14 @@ export async function generateRoadmap(userId: string, input: GenerateInput): Pro
     if (input.targetCompany) {
       tasks.push({ area: "Company Prep", label: `${cap(input.targetCompany)} problem set`, detail: "Close coverage on their most-asked problems", href: `/companies/${input.targetCompany}` });
     }
-    if (tier === "elite" || tier === "product") {
+    // Persona shapes the interview phase.
+    if (persona === "SWITCHER") {
+      tasks.push({ area: "Behavioral", label: "STAR + leadership stories", detail: "5 senior-level stories with impact metrics", href: "/mocks" });
+      if (last) tasks.push({ area: "Compensation", label: "Negotiation prep", detail: "Benchmark bands and rehearse the ask", href: "/jobs" });
+    } else if (persona === "DEVELOPER") {
+      tasks.push({ area: "Portfolio", label: "Showcase your work", detail: "Polish the README + a short demo", href: "/projects" });
+      if (last) tasks.push({ area: "Proof", label: "Claim a certificate", detail: "Verifiable proof of depth for your profile", href: "/certificates" });
+    } else if (tier === "elite" || tier === "product") {
       tasks.push({ area: "Behavioral", label: "STAR stories", detail: "Prepare 5 strong behavioral answers", href: "/mocks" });
     }
     plan.push({
@@ -145,7 +178,12 @@ export async function generateRoadmap(userId: string, input: GenerateInput): Pro
   }
 
   const companyBit = input.targetCompany ? ` targeting ${cap(input.targetCompany)} (${TIER_LABEL[tier]})` : "";
-  const weakBit = focusAreas.length ? ` We front-load your weakest areas — ${focusAreas.slice(0, 2).join(" and ")} — then ramp to ${TIER_LABEL[tier]} depth.` : "";
+  const personaBit: Record<Persona, string> = {
+    STUDENT: " We front-load your weakest areas, then ramp to interview prep.",
+    SWITCHER: " Tuned for a switch — lighter fundamentals, heavy on system design, behavioral, and comp.",
+    DEVELOPER: " Build-first — architecture and shipped projects over interview cramming.",
+  };
+  const weakBit = focusAreas.length ? ` Weakest right now: ${focusAreas.slice(0, 2).join(" and ")}.` : "";
 
   return {
     title: `${weeks}-week ${roleName} roadmap`,
@@ -154,7 +192,7 @@ export async function generateRoadmap(userId: string, input: GenerateInput): Pro
     tier,
     weeks,
     hoursPerDay: Math.max(1, Math.min(8, Math.round(input.hoursPerDay))),
-    summary: `A ${weeks}-week plan for ${roleName}${companyBit}, ~${input.hoursPerDay} hrs/day.${weakBit}`,
+    summary: `A ${weeks}-week plan for ${roleName}${companyBit}, ~${input.hoursPerDay} hrs/day.${personaBit[persona]}${weakBit}`,
     focusAreas,
     plan,
   };
