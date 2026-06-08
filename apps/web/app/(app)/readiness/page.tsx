@@ -1,35 +1,12 @@
 "use client";
 import Link from "next/link";
 import { Card, Button, Badge, Meter, PageHeader, Skeleton } from "@eyf/ui";
-import { useApi } from "@/lib/use-api";
 import { PageMotion } from "@/components/page-motion";
 import { Icons } from "@/components/icons";
-import { computeReadiness, type ReadinessInput } from "@/lib/readiness";
-
-type Gam = { streak: number; longestStreak: number; totalSolved: number };
-type Dna = { acceptanceRate: number; difficultyMix: { difficulty: string; count: number }[] };
-type Mock = { feedback: { overallScore: number } | null };
-type Resume = { atsScore: number | null };
-type Proj = { status: string };
+import { useReadiness } from "@/lib/use-readiness";
 
 export default function Page() {
-  const { data: gam }      = useApi<Gam>("/gamification/me");
-  const { data: dna }      = useApi<Dna>("/code-dna/me");
-  const { data: mocks }    = useApi<Mock[]>("/mocks/me");
-  const { data: resumes }  = useApi<Resume[]>("/resume/me");
-  const { data: projects } = useApi<Proj[]>("/projects/me/started");
-
-  const loaded = gam && dna && mocks && resumes && projects;
-
-  const input: ReadinessInput | null = loaded ? {
-    totalSolved: gam.totalSolved,
-    acceptanceRate: dna.acceptanceRate ?? 0,
-    difficultyMix: dna.difficultyMix ?? [],
-    mocks, resumes, projects,
-    streak: gam.streak, longestStreak: gam.longestStreak,
-  } : null;
-
-  const r = input ? computeReadiness(input) : null;
+  const { readiness: r } = useReadiness();
 
   return (
     <PageMotion className="relative">

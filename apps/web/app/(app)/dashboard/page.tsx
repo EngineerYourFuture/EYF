@@ -5,6 +5,8 @@ import { useApi } from "@/lib/use-api";
 import { Heatmap } from "@/components/heatmap";
 import { PageMotion } from "@/components/page-motion";
 import { Icons, type IconName } from "@/components/icons";
+import { useReadiness } from "@/lib/use-readiness";
+import type { Readiness } from "@/lib/readiness";
 
 type Me = {
   user: {
@@ -38,6 +40,7 @@ export default function DashboardPage() {
   const { data: gam }    = useApi<GamMe>("/gamification/me");
   const { data: streak } = useApi<StreakDay[]>("/gamification/streak");
   const { data: today }  = useApi<Today>("/roadmap/today");
+  const { readiness }    = useReadiness();
 
   const xpPct = gam ? Math.min(100, Math.round((gam.xpAtLevel / Math.max(1, gam.xpAtLevel + gam.xpToNext)) * 100)) : 0;
   const name = me?.user?.name?.split(" ")[0] ?? "there";
@@ -67,6 +70,9 @@ export default function DashboardPage() {
             </Badge>
           )}
         </div>
+
+        {/* Placement Readiness strip */}
+        <ReadinessStrip readiness={readiness} />
 
         {/* First-run setup nudge */}
         {me?.user && !me.user.targetRole && (
@@ -151,6 +157,51 @@ export default function DashboardPage() {
 }
 
 /* ---------- pieces ---------- */
+
+function ReadinessStrip({ readiness: r }: { readiness: Readiness | null }) {
+  if (!r) return <Skeleton className="mt-6 h-24 rounded-2xl" />;
+  const top = r.nextActions[0];
+  const tone = r.overall >= 80 ? "easy" : r.overall >= 50 ? "accent" : "medium";
+  return (
+    <Link href="/readiness"
+      className="mt-6 flex items-center gap-5 rounded-2xl border border-border bg-surface px-5 py-4 shadow-card card-interactive">
+      <MiniRing score={r.overall} />
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="font-display text-lg font-bold">Placement Readiness</span>
+          <Badge tone={tone}>{r.band}</Badge>
+        </div>
+        <p className="text-text-3 text-sm mt-1 truncate">
+          {top ? <>Next: <span className="text-text-2">{top.label}</span></> : "Every pillar is strong — keep your streak and start applying."}
+        </p>
+      </div>
+      <div className="hidden sm:flex items-center gap-3 shrink-0">
+        <Link href="/today" onClick={(e) => e.stopPropagation()}>
+          <Button size="sm" variant="secondary">Today&apos;s plan</Button>
+        </Link>
+        <span className="text-accent"><Icons.arrow width={18} height={18} /></span>
+      </div>
+    </Link>
+  );
+}
+
+function MiniRing({ score }: { score: number }) {
+  const r = 28, c = 2 * Math.PI * r;
+  return (
+    <div className="relative h-[72px] w-[72px] shrink-0">
+      <svg viewBox="0 0 72 72" className="h-[72px] w-[72px] -rotate-90">
+        <circle cx="36" cy="36" r={r} className="fill-none stroke-surface-3" strokeWidth="7" />
+        <circle cx="36" cy="36" r={r} className="fill-none stroke-accent" strokeWidth="7" strokeLinecap="round"
+          strokeDasharray={c} strokeDashoffset={c - (c * score) / 100}
+          style={{ transition: "stroke-dashoffset 1s cubic-bezier(0.16,1,0.3,1)" }} />
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <span className="font-display text-xl font-bold leading-none">{score}</span>
+        <span className="text-text-4 text-[9px] font-mono">/100</span>
+      </div>
+    </div>
+  );
+}
 
 function greeting() {
   const h = new Date().getHours();

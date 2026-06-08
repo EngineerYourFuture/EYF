@@ -5,17 +5,12 @@ import { Card, Badge, Button, Skeleton } from "@eyf/ui";
 import { useApi } from "@/lib/use-api";
 import { PageMotion } from "@/components/page-motion";
 import { Icons, type IconName } from "@/components/icons";
-import { computeReadiness, type ReadinessInput } from "@/lib/readiness";
+import { useReadiness } from "@/lib/use-readiness";
 
 type Today = {
   challenge: { problem: { slug: string; title: string; difficulty: string }; alreadySolvedToday: boolean } | null;
   streak: number; xpToday: number; problemsSolvedToday: number;
 };
-type Gam = { streak: number; longestStreak: number; totalSolved: number };
-type Dna = { acceptanceRate: number; difficultyMix: { difficulty: string; count: number }[] };
-type Mock = { feedback: { overallScore: number } | null };
-type Resume = { atsScore: number | null };
-type Proj = { status: string };
 type Flash = { id: string }[];
 
 const SUBJECTS = ["os", "dbms", "cn", "oop"] as const;
@@ -25,11 +20,7 @@ type PlanItem = { id: string; label: string; detail: string; href: string; icon:
 
 export default function Page() {
   const { data: today } = useApi<Today>("/roadmap/today");
-  const { data: gam }      = useApi<Gam>("/gamification/me");
-  const { data: dna }      = useApi<Dna>("/code-dna/me");
-  const { data: mocks }    = useApi<Mock[]>("/mocks/me");
-  const { data: resumes }  = useApi<Resume[]>("/resume/me");
-  const { data: projects } = useApi<Proj[]>("/projects/me/started");
+  const { readiness, loading: readinessLoading } = useReadiness();
   const due = {
     os:   useApi<Flash>("/subjects/os/flashcards/due").data,
     dbms: useApi<Flash>("/subjects/dbms/flashcards/due").data,
@@ -55,17 +46,7 @@ export default function Page() {
     });
   }
 
-  const loaded = today && gam && dna && mocks && resumes && projects;
-
-  const readiness = useMemo(() => {
-    if (!loaded) return null;
-    const input: ReadinessInput = {
-      totalSolved: gam.totalSolved, acceptanceRate: dna.acceptanceRate ?? 0,
-      difficultyMix: dna.difficultyMix ?? [], mocks, resumes, projects,
-      streak: gam.streak, longestStreak: gam.longestStreak,
-    };
-    return computeReadiness(input);
-  }, [loaded, gam, dna, mocks, resumes, projects]);
+  const loaded = today && !readinessLoading;
 
   const plan: PlanItem[] = useMemo(() => {
     if (!today || !readiness) return [];
