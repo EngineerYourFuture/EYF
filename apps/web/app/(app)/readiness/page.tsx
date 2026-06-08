@@ -4,6 +4,9 @@ import { Card, Button, Badge, Meter, PageHeader, Skeleton } from "@eyf/ui";
 import { PageMotion } from "@/components/page-motion";
 import { Icons } from "@/components/icons";
 import { useReadiness } from "@/lib/use-readiness";
+import { companyReadiness, readinessBand, tierOf, TIER_PROFILES, SPOTLIGHT_COMPANIES } from "@/lib/company-readiness";
+import { companyLabel } from "@/lib/company";
+import type { Readiness } from "@/lib/readiness";
 
 export default function Page() {
   const { readiness: r } = useReadiness();
@@ -93,6 +96,9 @@ export default function Page() {
               )}
             </div>
 
+            {/* Am I ready for…? — per-company readiness */}
+            <CompanyBoard r={r} />
+
             <p className="text-text-4 text-xs mt-8 max-w-2xl">
               Your readiness updates automatically as you solve problems, take mocks, score your resume, ship projects, and keep your streak.
               No other app can compute this — because no other app sees your whole journey.
@@ -101,6 +107,47 @@ export default function Page() {
         )}
       </div>
     </PageMotion>
+  );
+}
+
+function CompanyBoard({ r }: { r: Readiness }) {
+  const rows = SPOTLIGHT_COMPANIES
+    .map((slug) => {
+      const tier = tierOf(slug);
+      const pct = companyReadiness(r.pillars, tier);
+      return { slug, tier, pct, band: readinessBand(pct) };
+    })
+    .sort((a, b) => b.pct - a.pct);
+
+  return (
+    <div className="mt-10">
+      <h2 className="font-display text-xl font-bold mb-1">Am I ready for…?</h2>
+      <p className="text-text-3 text-sm mb-4 max-w-2xl">
+        Every company hires against a different bar. Here&apos;s where you stand for each — tap any to open targeted prep.
+      </p>
+      <div className="grid sm:grid-cols-2 gap-3">
+        {rows.map((c) => (
+          <Link key={c.slug} href={`/companies/${c.slug}`}
+            className="block rounded-xl border border-border bg-surface px-4 py-3 shadow-card hover:border-edge transition-colors">
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <span className="font-medium">{companyLabel(c.slug)}</span>
+                <span className="text-text-4 text-xs ml-2">{TIER_PROFILES[c.tier].label}</span>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <span className="font-display text-lg font-bold tabular-nums">{c.pct}%</span>
+                <Badge tone={c.band.tone}>{c.band.label}</Badge>
+              </div>
+            </div>
+            <div className="mt-2 h-1.5 bg-surface-3 rounded-full overflow-hidden">
+              <div className={`h-full rounded-full transition-all duration-700 ${
+                c.pct >= 85 ? "bg-easy" : c.pct >= 65 ? "bg-accent" : c.pct >= 40 ? "bg-medium" : "bg-hard"
+              }`} style={{ width: `${c.pct}%` }} />
+            </div>
+          </Link>
+        ))}
+      </div>
+    </div>
   );
 }
 

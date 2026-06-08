@@ -5,6 +5,8 @@ import { useApi } from "@/lib/use-api";
 import { PageMotion } from "@/components/page-motion";
 import { Icons } from "@/components/icons";
 import { companyLabel } from "@/lib/company";
+import { useReadiness } from "@/lib/use-readiness";
+import { companyReadiness, readinessBand, tierOf, biggestGap } from "@/lib/company-readiness";
 
 type Problem = {
   id: string; slug: string; title: string;
@@ -51,12 +53,39 @@ export default function Page({ params }: { params: { slug: string } }) {
 
 function CompanyView({ label, data }: { label: string; data: Detail }) {
   const nextUnsolved = data.problems.find((p) => !p.solved);
+  const { readiness } = useReadiness();
+  const tier = tierOf(data.company);
+  const ready = readiness ? companyReadiness(readiness.pillars, tier) : null;
+  const band = ready != null ? readinessBand(ready) : null;
+  const gap = readiness ? biggestGap(readiness.pillars, tier) : null;
+
   return (
     <>
       <h1 className="font-display text-3xl sm:text-4xl font-bold tracking-tight mt-3">{label}</h1>
       <p className="text-text-3 mt-2">
         {data.counts.total} problems reported in {label} interviews — sorted by how often they show up.
       </p>
+
+      {/* Per-company readiness banner */}
+      {ready != null && band && (
+        <div className="mt-5 flex flex-wrap items-center gap-4 rounded-2xl border border-border bg-surface px-5 py-4 shadow-card">
+          <div className="flex items-baseline gap-2">
+            <span className="font-display text-4xl font-bold tabular-nums">{ready}%</span>
+            <span className="text-text-3 text-sm">{label} ready</span>
+          </div>
+          <Badge tone={band.tone}>{band.label}</Badge>
+          <div className="h-2 flex-1 min-w-32 bg-surface-3 rounded-full overflow-hidden">
+            <div className={`h-full rounded-full transition-all duration-700 ${
+              ready >= 85 ? "bg-easy" : ready >= 65 ? "bg-accent" : ready >= 40 ? "bg-medium" : "bg-hard"
+            }`} style={{ width: `${ready}%` }} />
+          </div>
+          {gap && (
+            <Link href={gap.href} className="text-accent text-sm hover:underline shrink-0">
+              Biggest gap: {gap.label} →
+            </Link>
+          )}
+        </div>
+      )}
 
       <div className="mt-8 grid lg:grid-cols-[320px_1fr] gap-6 items-stretch">
         {/* Coverage hero */}
