@@ -233,10 +233,25 @@ model User {
   pressureSessions PressureSession[]
   peerQueue       PeerQueue?
   pushTokens      PushToken[]
+  missionDays     MissionDay[]
 
   @@index([role])
   @@index([college])
   @@map("users")
+}
+
+// ─── Daily Mission claim (idempotent bonus XP, one per day) ───────────
+model MissionDay {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date      DateTime  @db.Date
+  bonusXp   Int       @default(0)
+  claimedAt DateTime  @default(now())
+
+  @@unique([userId, date])
+  @@index([userId, date])
+  @@map("mission_days")
 }
 
 // ─── 2. UserProfile ───────────────────────────────────────────────

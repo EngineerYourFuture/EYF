@@ -2,7 +2,8 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { Card, Badge, Button, Skeleton } from "@eyf/ui";
-import { useApi } from "@/lib/use-api";
+import { useApi, useApiAction } from "@/lib/use-api";
+import { toast } from "sonner";
 import { PageMotion } from "@/components/page-motion";
 import { Icons, type IconName } from "@/components/icons";
 import { useReadiness } from "@/lib/use-readiness";
@@ -22,11 +23,12 @@ type PlanItem = { id: string; label: string; detail: string; href: string; icon:
 export default function Page() {
   const { data: today } = useApi<Today>("/roadmap/today");
   const { readiness, loading: readinessLoading } = useReadiness();
+  // API expects the Subject enum in upper-case (OS/DBMS/CN/OOP).
   const due = {
-    os:   useApi<Flash>("/subjects/os/flashcards/due").data,
-    dbms: useApi<Flash>("/subjects/dbms/flashcards/due").data,
-    cn:   useApi<Flash>("/subjects/cn/flashcards/due").data,
-    oop:  useApi<Flash>("/subjects/oop/flashcards/due").data,
+    os:   useApi<Flash>("/subjects/OS/flashcards/due").data,
+    dbms: useApi<Flash>("/subjects/DBMS/flashcards/due").data,
+    cn:   useApi<Flash>("/subjects/CN/flashcards/due").data,
+    oop:  useApi<Flash>("/subjects/OOP/flashcards/due").data,
   };
   const dueCount = SUBJECTS.reduce((a, s) => a + (due[s]?.length ?? 0), 0);
 
@@ -107,6 +109,9 @@ export default function Page() {
           <MiniStat icon="code" label="Solved today" value={today ? `${today.problemsSolvedToday}` : "—"} />
         </div>
 
+        {/* Daily Mission — the retention loop */}
+        <DailyMission />
+
         {/* Plan */}
         <Card variant="glow" className="mt-6">
           <div className="flex items-center justify-between mb-1">
@@ -164,6 +169,93 @@ export default function Page() {
         </div>
       </div>
     </PageMotion>
+  );
+}
+
+type Mission = {
+  date: string;
+  tasks: { key: string; label: string; detail: string; href: string; icon: IconName; xp: number; done: boolean }[];
+  earnedXp: number; bonusXp: number; allDone: boolean; claimed: boolean;
+};
+
+function DailyMission() {
+  const { data, mutate } = useApi<Mission>("/missions/today");
+  const action = useApiAction();
+  const [claiming, setClaiming] = useState(false);
+
+  if (!data) return <Skeleton className="mt-6 h-44 rounded-2xl" />;
+
+  const doneCount = data.tasks.filter((t) => t.done).length;
+  const pct = Math.round((doneCount / data.tasks.length) * 100);
+
+  async function claim() {
+    setClaiming(true);
+    try {
+      const res = await action<{ awardedXp: number }>("/missions/claim", { method: "POST" }, { silent: true });
+      toast.success(`Mission complete! +${res.awardedXp} XP claimed 🎉`);
+      await mutate();
+    } catch {
+      toast.error("Couldn't claim just yet — try again.");
+    } finally {
+      setClaiming(false);
+    }
+  }
+
+  return (
+    <Card variant="glow" className="mt-6 relative overflow-hidden">
+      <div className="flex items-center justify-between mb-1">
+        <div className="flex items-center gap-2">
+          <span className="text-accent"><Icons.bolt width={18} height={18} /></span>
+          <h2 className="font-display text-xl font-bold">Daily mission</h2>
+        </div>
+        <Badge tone={data.allDone ? "easy" : "accent"}>
+          {data.claimed ? "Claimed" : data.allDone ? "Ready to claim" : `+${data.bonusXp} XP`}
+        </Badge>
+      </div>
+      <p className="text-text-3 text-sm mb-4">Clear all three to bank a {data.bonusXp} XP bonus and protect your streak.</p>
+
+      <div className="h-1.5 bg-surface-3 rounded-full overflow-hidden mb-4">
+        <div className="h-full bg-accent transition-all duration-500" style={{ width: `${pct}%` }} />
+      </div>
+
+      <div className="space-y-2">
+        {data.tasks.map((t) => {
+          const Icon = Icons[t.icon];
+          return (
+            <Link key={t.key} href={t.href}
+              className={`flex items-center gap-3 rounded-xl border p-3 transition-colors ${
+                t.done ? "border-border bg-surface-2/50" : "border-border bg-surface hover:border-edge"
+              }`}>
+              <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md border ${
+                t.done ? "bg-accent border-accent text-accent-ink" : "border-edge text-transparent"
+              }`}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
+              </span>
+              <span className={`shrink-0 ${t.done ? "text-text-4" : "text-accent"}`}><Icon width={18} height={18} /></span>
+              <div className="flex-1 min-w-0">
+                <div className={`text-sm font-medium truncate ${t.done ? "text-text-3 line-through" : "text-text-1"}`}>{t.label}</div>
+                <div className="text-text-4 text-xs mt-0.5">{t.detail}</div>
+              </div>
+              <span className="shrink-0 font-mono text-xs text-text-4">+{t.xp}</span>
+            </Link>
+          );
+        })}
+      </div>
+
+      {data.allDone && (
+        <div className="mt-4">
+          {data.claimed ? (
+            <div className="flex items-center justify-center gap-2 text-easy text-sm font-medium py-2">
+              <Icons.trophy width={18} height={18} /> Bonus claimed — see you tomorrow.
+            </div>
+          ) : (
+            <Button glow className="w-full" onClick={claim} disabled={claiming}>
+              {claiming ? "Claiming…" : `Claim +${data.bonusXp} XP`}
+            </Button>
+          )}
+        </div>
+      )}
+    </Card>
   );
 }
 
