@@ -82,7 +82,10 @@ export default function Page() {
         </div>
 
         <aside>
-          <h2 className="font-display text-lg font-bold mb-3">My tracker</h2>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="font-display text-lg font-bold">My tracker</h2>
+            <Link href="/pipeline" className="text-accent text-sm hover:underline">Open pipeline →</Link>
+          </div>
           <div className="space-y-2">
             {apps?.map((a) => (
               <Card key={a.id} className="p-4">
