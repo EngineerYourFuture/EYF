@@ -34,7 +34,7 @@ function Stat({ n, suffix, accentZero }: { n: string; suffix: string; accentZero
     <motion.div className="font-display font-bold leading-tight" style={{ fontSize: "clamp(2.5rem, 8vw, 6rem)" }}
       initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-100px" }}
       transition={{ duration: 0.6 }}>
-      <span style={{ color: accentZero ? "#FF4500" : "#E8FF47" }}>{n}</span>
+      <span className={accentZero ? "text-hard" : "text-accent"}>{n}</span>
       <span className="text-text-1">{suffix}</span>
     </motion.div>
   );
@@ -133,11 +133,13 @@ function Proof() {
         </div>
         <motion.div style={{ x }} className="flex gap-5 px-6 sm:px-8 lg:px-16">
           {STUDENTS.map(([name, college, company]) => (
-            <div key={name} className="shrink-0 w-72 bg-surface border border-border rounded-xl p-6">
-              <div className="w-14 h-14 rounded-full bg-gradient-to-br from-accent/30 to-border border border-accent/30" />
+            <div key={name} className="group shrink-0 w-72 rounded-xl border border-border bg-surface p-6 transition-all duration-300 hover:-translate-y-1 hover:border-accent/40 hover:shadow-[0_14px_44px_-16px_rgba(232,255,71,0.3)]">
+              <div className="flex h-14 w-14 items-center justify-center rounded-full border border-accent/30 bg-gradient-to-br from-accent/30 to-border font-display text-lg font-bold text-text-1">
+                {name?.[0]}
+              </div>
               <div className="mt-4 font-display text-lg font-bold">{name}</div>
               <div className="text-text-3 text-sm">{college}</div>
-              <div className="mt-3 flex items-center gap-2 text-sm">
+              <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-accent/20 bg-accent-tint px-3 py-1 text-sm">
                 <span className="text-text-3">→</span>
                 <span className="text-accent font-semibold">{company}</span>
               </div>
@@ -186,8 +188,11 @@ function Features() {
             </motion.div>
             <motion.div initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true, margin: "-120px" }} transition={{ duration: 0.8 }}
-              className={`${i % 2 ? "lg:order-1" : ""} aspect-square rounded-2xl bg-surface/50 border border-border grid place-items-center`}>
-              <FeatureVisual icon={f.icon} />
+              className={`${i % 2 ? "lg:order-1" : ""} relative aspect-square overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-surface to-bg grid place-items-center`}>
+              <div className="pointer-events-none absolute -inset-px rounded-2xl bg-gradient-to-br from-accent/15 via-transparent to-transparent" />
+              <div className="pointer-events-none absolute inset-0 opacity-[0.05]"
+                style={{ backgroundImage: "radial-gradient(rgba(232,255,71,0.8) 1px, transparent 1px)", backgroundSize: "22px 22px" }} />
+              <div className="relative"><FeatureVisual icon={f.icon} /></div>
             </motion.div>
           </div>
         </div>
@@ -202,10 +207,10 @@ function FeatureVisual({ icon }: { icon: string }) {
         transition={{ duration: 24, repeat: Infinity, ease: "linear" }} style={{ transformStyle: "preserve-3d" }}>
         {[[0, 20], [-50, 80], [50, 80], [-80, 140], [-20, 140], [20, 140], [80, 140]].flatMap((p, i, a) => {
           const parent = i === 0 ? null : a[Math.floor((i - 1) / 2)];
-          return parent ? [<line key={`l${i}`} x1={parent[0]} y1={parent[1]} x2={p[0]} y2={p[1]} stroke="#3B4A0F" strokeWidth="2" />] : [];
+          return parent ? [<line key={`l${i}`} x1={parent[0]} y1={parent[1]} x2={p[0]} y2={p[1]} stroke="rgb(var(--accent) / 0.3)" strokeWidth="2" />] : [];
         })}
         {[[0, 20], [-50, 80], [50, 80], [-80, 140], [-20, 140], [20, 140], [80, 140]].map((p, i) => (
-          <circle key={i} cx={p[0]} cy={p[1]} r="14" fill={i > 2 ? "#E8FF47" : "#111"} stroke="#E8FF47" strokeWidth="1.5" />
+          <circle key={i} cx={p[0]} cy={p[1]} r="14" fill={i > 2 ? "rgb(var(--accent))" : "rgb(var(--surface))"} stroke="rgb(var(--accent))" strokeWidth="1.5" />
         ))}
       </motion.svg>
     );
@@ -225,7 +230,7 @@ function FeatureVisual({ icon }: { icon: string }) {
         {Array.from({ length: 40 }).map((_, i) => {
           const peak = Math.abs(Math.sin(i));
           return (
-            <motion.rect key={i} x={i * 6} width="3" rx="1.5" fill="#E8FF47"
+            <motion.rect key={i} x={i * 6} width="3" rx="1.5" fill="rgb(var(--accent))"
               height={8} y={56}
               initial={{ height: 8, y: 56 }}
               animate={{ height: [8, 8 + peak * 70, 8], y: [56, 56 - peak * 35, 56] }}
@@ -295,7 +300,7 @@ function Pricing() {
             <motion.div key={t.name}
               initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
               transition={{ duration: 0.5, delay: i * 0.1 }}
-              className={`rounded-xl p-7 border flex flex-col ${t.featured ? "border-accent bg-accent-tint scale-[1.04]" : "border-border bg-surface"}`}>
+              className={`rounded-xl p-7 border flex flex-col transition-transform duration-300 ${t.featured ? "border-accent bg-accent-tint scale-[1.04] shadow-[0_0_55px_-14px_rgba(232,255,71,0.45)]" : "border-border bg-surface hover:-translate-y-1"}`}>
               {t.featured && <Badge tone="accent" className="mb-3 w-fit">Most popular</Badge>}
               <div className="font-display text-xl font-bold">{t.name}</div>
               <div className="mt-2 font-display text-4xl font-bold">{t.price}<span className="text-base text-text-3">/mo</span></div>
