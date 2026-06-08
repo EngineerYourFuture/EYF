@@ -439,12 +439,20 @@ model UserRoadmap {
   id           String   @id @default(cuid())
   userId       String
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  templateSlug String   // e.g. "30-day-sprint", "12-week-product"
+  templateSlug String   // "personalized" for generated plans; else a template slug
   currentDay   Int      @default(1)
   completionPct Float   @default(0)
   startedAt    DateTime @default(now())
   targetDate   DateTime?
   completedAt  DateTime?
+
+  // Personalized Roadmap Engine output
+  title         String?
+  targetRole    String?
+  targetCompany String?
+  weeks         Int?
+  hoursPerDay   Int?
+  plan          Json?    // GeneratedPlan.plan — week-by-week
 
   @@index([userId])
   @@map("user_roadmaps")

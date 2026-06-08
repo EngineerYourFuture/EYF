@@ -2,6 +2,7 @@ import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { prisma } from "@eyf/db";
 import { pickDailyChallenge } from "../services/daily.js";
+import { generateRoadmap } from "../services/roadmap-generator.js";
 
 export async function roadmapRoutes(app: FastifyInstance) {
   app.get("/me", { preHandler: app.requireAuth }, async (req) => {
@@ -10,6 +11,29 @@ export async function roadmapRoutes(app: FastifyInstance) {
       orderBy: { startedAt: "desc" },
     });
     return { success: true, data: roadmaps };
+  });
+
+  // Personalized Roadmap Engine — generate + persist a week-by-week plan.
+  app.post("/generate", { preHandler: app.requireAuth }, async (req) => {
+    const input = z.object({
+      trackSlug: z.string(),
+      targetCompany: z.string().optional().nullable(),
+      weeks: z.coerce.number().min(4).max(24),
+      hoursPerDay: z.coerce.number().min(1).max(8),
+    }).parse(req.body);
+    const userId = req.session!.id;
+    const generated = await generateRoadmap(userId, input);
+    // One active personalized plan at a time — replace any prior one.
+    await prisma.userRoadmap.deleteMany({ where: { userId, templateSlug: "personalized" } });
+    const roadmap = await prisma.userRoadmap.create({
+      data: {
+        userId, templateSlug: "personalized",
+        title: generated.title, targetRole: generated.targetRole,
+        targetCompany: generated.targetCompany, weeks: generated.weeks,
+        hoursPerDay: generated.hoursPerDay, plan: generated.plan,
+      },
+    });
+    return { success: true, data: { roadmap, generated } };
   });
 
   app.post("/start", { preHandler: app.requireAuth }, async (req) => {
