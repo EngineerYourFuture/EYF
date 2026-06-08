@@ -12,6 +12,7 @@ type Today = {
   streak: number; xpToday: number; problemsSolvedToday: number;
 };
 type Flash = { id: string }[];
+type App = { id: string; status: string; job: { slug: string; title: string; company: string; closesAt: string | null } };
 
 const SUBJECTS = ["os", "dbms", "cn", "oop"] as const;
 const diffTone = { EASY: "easy", MEDIUM: "medium", HARD: "hard", EXPERT: "expert" } as const;
@@ -28,6 +29,17 @@ export default function Page() {
     oop:  useApi<Flash>("/subjects/oop/flashcards/due").data,
   };
   const dueCount = SUBJECTS.reduce((a, s) => a + (due[s]?.length ?? 0), 0);
+
+  // Live application deadlines — the cross-module signal only EYF can surface here.
+  const { data: apps } = useApi<App[]>("/jobs/me/applications");
+  const deadlines = useMemo(() => {
+    const active = new Set(["SAVED", "APPLIED", "OA", "INTERVIEW"]);
+    return (apps ?? [])
+      .filter((a) => active.has(a.status) && a.job.closesAt)
+      .map((a) => ({ ...a, days: Math.ceil((new Date(a.job.closesAt!).getTime() - Date.now()) / 86_400_000) }))
+      .filter((a) => a.days >= 0 && a.days <= 10)
+      .sort((a, b) => a.days - b.days);
+  }, [apps]);
 
   const dateKey = new Date().toISOString().slice(0, 10);
   const [checked, setChecked] = useState<Set<string>>(new Set());
@@ -119,6 +131,32 @@ export default function Page() {
             </div>
           )}
         </Card>
+
+        {/* Application deadlines */}
+        {deadlines.length > 0 && (
+          <Card className="mt-6">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="font-display text-lg font-bold flex items-center gap-2">
+                <span className="text-hard"><Icons.gauge width={18} height={18} /></span> Deadlines this week
+              </h2>
+              <Link href="/pipeline" className="text-accent text-sm hover:underline">Pipeline →</Link>
+            </div>
+            <div className="space-y-2">
+              {deadlines.map((d) => (
+                <Link key={d.id} href={`/jobs/${d.job.slug}`}
+                  className="flex items-center gap-3 rounded-xl border border-border bg-surface px-3 py-2.5 hover:border-edge transition-colors">
+                  <div className="min-w-0 flex-1">
+                    <div className="text-sm font-medium truncate">{d.job.title}</div>
+                    <div className="text-text-4 text-xs truncate">{d.job.company} · {d.status}</div>
+                  </div>
+                  <Badge tone={d.days <= 2 ? "hard" : d.days <= 5 ? "medium" : "default"}>
+                    {d.days === 0 ? "Today" : `${d.days}d`}
+                  </Badge>
+                </Link>
+              ))}
+            </div>
+          </Card>
+        )}
 
         <div className="mt-4 flex items-center justify-between text-sm">
           <Link href="/readiness" className="text-accent hover:underline">View placement readiness →</Link>
