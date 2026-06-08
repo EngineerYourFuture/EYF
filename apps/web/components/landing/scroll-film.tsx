@@ -11,42 +11,7 @@ import {
 } from "framer-motion";
 import { Button, Badge } from "@eyf/ui";
 import { Roadmap3D, ROADMAP_NODES } from "./roadmap-3d";
-
-// ─── Scene 1 — THE CONFRONTATION ──────────────────────────────────
-function Confrontation() {
-  const ref = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
-  const line1 = "You've been preparing.".split(" ");
-  const line2 = "You're still not getting placed.".split(" ");
-  const fade = useTransform(scrollYProgress, [0, 0.7, 1], [1, 1, 0]);
-
-  return (
-    <section ref={ref} className="relative h-[115vh] lg:h-[160vh]">
-      <motion.div style={{ opacity: fade }} className="sticky top-0 h-screen flex flex-col items-center justify-center px-6 text-center">
-        <h1 className="font-display tracking-tight leading-[1.05]" style={{ fontSize: "clamp(2.5rem, 7vw, 4.5rem)", letterSpacing: "-0.03em", fontWeight: 300 }}>
-          <span className="block text-text-1">
-            {line1.map((w, i) => (
-              <motion.span key={i} className="inline-block mr-[0.25em]"
-                initial={{ opacity: 0, y: 14 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-                transition={{ delay: i * 0.08, duration: 0.5 }}>{w}</motion.span>
-            ))}
-          </span>
-          <span className="block mt-3" style={{ color: "#A1A1AA" }}>
-            {line2.map((w, i) => (
-              <motion.span key={i} className="inline-block mr-[0.25em]"
-                initial={{ opacity: 0, y: 14 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-                transition={{ delay: 0.8 + i * 0.08, duration: 0.5 }}>{w}</motion.span>
-            ))}
-          </span>
-        </h1>
-        <motion.div className="absolute bottom-12 left-1/2 -translate-x-1/2"
-          animate={{ opacity: [0.2, 1, 0.2] }} transition={{ duration: 2, repeat: Infinity }}>
-          <div className="w-px h-10 bg-text-3" />
-        </motion.div>
-      </motion.div>
-    </section>
-  );
-}
+import { VideoHero } from "./video-hero";
 
 // ─── Scene 2 — THE DIAGNOSIS ──────────────────────────────────────
 function Diagnosis() {
@@ -374,7 +339,7 @@ function FinalCTA() {
 export function ScrollFilm() {
   return (
     <div className="relative">
-      <Confrontation />
+      <VideoHero />
       <Diagnosis />
       <Reveal />
       <TheMap />
