@@ -305,15 +305,14 @@ function Metric({ icon, label, value, unit, sub, tone = "default" }: {
 
 type QA = { href: string; label: string; desc: string; icon: IconName };
 const QUICK_ACTIONS: QA[] = [
-  { href: "/readiness", label: "Readiness",  desc: "Am I ready?",        icon: "target" },
-  { href: "/problems",  label: "Problems",   desc: "1000+ patterns",     icon: "code" },
-  { href: "/mocks",     label: "AI Mock",    desc: "Interview practice", icon: "mic" },
-  { href: "/subjects",  label: "Core CS",    desc: "OS · DBMS · CN",     icon: "book" },
-  { href: "/tracks",    label: "Career Path",desc: "12 roles",           icon: "compass" },
-  { href: "/resume",    label: "Resume",     desc: "ATS-scored",         icon: "doc" },
-  { href: "/roadmap",   label: "Roadmap",    desc: "Your plan",          icon: "map" },
-  { href: "/mentors",   label: "Mentors",    desc: "Book a session",     icon: "users" },
-  { href: "/jobs",      label: "Jobs",       desc: "Apply & track",      icon: "briefcase" },
+  { href: "/readiness",  label: "Readiness",    desc: "Am I ready?",        icon: "target" },
+  { href: "/problems",   label: "Problems",     desc: "1000+ patterns",     icon: "code" },
+  { href: "/companies",  label: "Company Prep", desc: "Targeted coverage",  icon: "building" },
+  { href: "/mocks",      label: "AI Mock",      desc: "Interview practice", icon: "mic" },
+  { href: "/subjects",   label: "Core CS",      desc: "OS · DBMS · CN",     icon: "book" },
+  { href: "/resume",     label: "Resume",       desc: "ATS-scored",         icon: "doc" },
+  { href: "/pipeline",   label: "Pipeline",     desc: "Track to offer",     icon: "activity" },
+  { href: "/jobs",       label: "Jobs",         desc: "Find roles",         icon: "briefcase" },
 ];
 
 function QuickAction({ href, label, desc, icon }: QA) {
