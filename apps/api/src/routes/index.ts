@@ -28,6 +28,7 @@ import { whatsappRoutes } from "./whatsapp.js";
 import { peerRoutes } from "./peer.js";
 import { funRoutes } from "./fun.js";
 import { pushRoutes } from "./push.js";
+import { companyRoutes } from "./companies.js";
 
 export async function registerRoutes(app: FastifyInstance) {
   await app.register(authRoutes,         { prefix: "/auth" });
@@ -59,4 +60,5 @@ export async function registerRoutes(app: FastifyInstance) {
   await app.register(peerRoutes,         { prefix: "/peer" });
   await app.register(funRoutes,          { prefix: "/fun" });
   await app.register(pushRoutes,         { prefix: "/push" });
+  await app.register(companyRoutes,      { prefix: "/companies" });
 }

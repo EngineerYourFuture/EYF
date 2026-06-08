@@ -33,6 +33,7 @@ export const NAV_GROUPS: NavGroup[] = [
       { href: "/peer-mocks", label: "Peer Mocks", icon: "users", keywords: "pair video" },
       { href: "/code-dna", label: "Code DNA", icon: "fingerprint", keywords: "fingerprint strengths strategist" },
       { href: "/oa", label: "OA Fingerprint", icon: "target", keywords: "online assessment patterns" },
+      { href: "/companies", label: "Company Prep", icon: "building", keywords: "amazon google company specific interview problems coverage" },
     ],
   },
   {
