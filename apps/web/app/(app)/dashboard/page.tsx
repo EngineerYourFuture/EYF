@@ -7,11 +7,13 @@ import { PageMotion } from "@/components/page-motion";
 import { Icons, type IconName } from "@/components/icons";
 import { useReadiness } from "@/lib/use-readiness";
 import type { Readiness } from "@/lib/readiness";
+import { PERSONAS, type PersonaId } from "@/lib/persona";
 
 type Me = {
   user: {
     id: string; email: string; name: string; role: string;
     college?: string | null; targetRole?: string | null; graduationYear?: number | null;
+    persona?: PersonaId | null;
     profile?: { currentXp: number; streakDays: number; totalSolved: number; level: number } | null;
     subscription?: { plan: string; status: string } | null;
   } | null;
@@ -61,7 +63,9 @@ export default function DashboardPage() {
             <p className="text-text-3 mt-2">
               {today?.problemsSolvedToday
                 ? `${today.problemsSolvedToday} solved today · keep the streak alive.`
-                : "Your next step is one click away."}
+                : me?.user?.persona
+                  ? PERSONAS[me.user.persona].tagline
+                  : "Your next step is one click away."}
             </p>
           </div>
           {me?.user?.subscription && (
@@ -75,19 +79,22 @@ export default function DashboardPage() {
         <ReadinessStrip readiness={readiness} />
 
         {/* First-run setup nudge */}
-        {me?.user && !me.user.targetRole && (
+        {me?.user && !me.user.persona && (
           <Link href="/welcome"
             className="mt-6 flex items-center gap-3 rounded-xl border border-accent/40 bg-accent-tint px-4 py-3 shadow-glow-sm card-interactive">
             <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent text-accent-ink">
               <Icons.sparkle width={18} height={18} />
             </span>
             <div className="min-w-0 flex-1">
-              <div className="font-medium text-text-1">Finish setting up your profile</div>
-              <div className="text-text-3 text-sm truncate">Pick a target role so we can personalise your roadmap.</div>
+              <div className="font-medium text-text-1">Tailor EYF to you</div>
+              <div className="text-text-3 text-sm truncate">Tell us if you&apos;re a student, switcher, or developer — we&apos;ll shape your journey.</div>
             </div>
             <span className="text-accent shrink-0"><Icons.arrow width={18} height={18} /></span>
           </Link>
         )}
+
+        {/* Persona-tailored journey */}
+        {me?.user?.persona && <YourJourney persona={me.user.persona} />}
 
         {/* Hero: today's focus + level */}
         <div className="mt-6 grid lg:grid-cols-3 gap-5">
@@ -198,6 +205,37 @@ function MiniRing({ score }: { score: number }) {
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <span className="font-display text-xl font-bold leading-none">{score}</span>
         <span className="text-text-4 text-[9px] font-mono">/100</span>
+      </div>
+    </div>
+  );
+}
+
+function YourJourney({ persona }: { persona: PersonaId }) {
+  const p = PERSONAS[persona];
+  return (
+    <div className="mt-8">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <h2 className="font-display text-xl font-bold">Your journey</h2>
+          <Badge tone="accent">{p.label}</Badge>
+        </div>
+        <Link href="/welcome" className="text-sm text-text-3 hover:text-text-1">Change</Link>
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+        {p.journey.map((j, i) => {
+          const Icon = Icons[j.icon];
+          return (
+            <Link key={j.href} href={j.href}
+              className="group relative rounded-xl border border-border bg-surface p-4 shadow-card card-interactive">
+              <span className="absolute right-3 top-3 font-mono text-[11px] text-text-4">{i + 1}</span>
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent-tint text-accent border border-accent/20 group-hover:bg-accent group-hover:text-accent-ink transition-colors">
+                <Icon width={20} height={20} />
+              </div>
+              <div className="mt-3 font-medium text-text-1 leading-tight">{j.label}</div>
+              <div className="text-text-4 text-xs mt-1 leading-snug">{j.why}</div>
+            </Link>
+          );
+        })}
       </div>
     </div>
   );

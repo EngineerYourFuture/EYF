@@ -26,6 +26,12 @@ enum Role {
   ADMIN
 }
 
+enum Persona {
+  STUDENT   // 0–2 yrs: placements, DSA, core subjects
+  SWITCHER  // 1–5 yrs: system design, behavioral, resume, comp
+  DEVELOPER // architecture, projects, AI engineering, leadership
+}
+
 enum PlanTier {
   FREE
   BASIC
@@ -201,6 +207,7 @@ model User {
   college         String?
   graduationYear  Int?
   targetRole      String?
+  persona         Persona?  // STUDENT | SWITCHER | DEVELOPER — tailors the journey
   role            Role      @default(STUDENT_FREE)
   emailVerifiedAt DateTime?
   phoneVerifiedAt DateTime?

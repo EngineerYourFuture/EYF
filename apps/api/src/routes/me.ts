@@ -1,6 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
-import { prisma } from "@eyf/db";
+import { prisma, Persona } from "@eyf/db";
 
 const profileSelect = {
   id: true,
@@ -10,6 +10,7 @@ const profileSelect = {
   college: true,
   graduationYear: true,
   targetRole: true,
+  persona: true,
   role: true,
   emailVerifiedAt: true,
   phoneVerifiedAt: true,
@@ -45,6 +46,7 @@ export async function meRoutes(app: FastifyInstance) {
         college: z.string().trim().max(120).nullish(),
         graduationYear: z.coerce.number().int().min(2000).max(2100).nullish(),
         targetRole: z.string().trim().max(80).nullish(),
+        persona: z.nativeEnum(Persona).nullish(),
       })
       .parse(req.body);
 

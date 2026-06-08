@@ -5,10 +5,13 @@ import { Card, Button, PageHeader } from "@eyf/ui";
 import { useApi, useApiAction } from "@/lib/use-api";
 import { PageMotion } from "@/components/page-motion";
 import { ThemeToggle } from "@/components/theme";
+import { Icons } from "@/components/icons";
+import { PERSONA_LIST, type PersonaId } from "@/lib/persona";
 
 type User = {
   email: string; name: string;
   college?: string | null; targetRole?: string | null; graduationYear?: number | null;
+  persona?: PersonaId | null;
   subscription?: { plan: string } | null;
 };
 type Me = { user: User | null };
@@ -23,6 +26,20 @@ export default function Page() {
   const [targetRole, setTargetRole] = useState("");
   const [graduationYear, setGraduationYear] = useState("");
   const [saving, setSaving] = useState(false);
+  const [savingPersona, setSavingPersona] = useState(false);
+
+  async function setPersona(persona: PersonaId) {
+    if (savingPersona || u?.persona === persona) return;
+    setSavingPersona(true);
+    try {
+      await action("/me", { method: "PATCH", body: JSON.stringify({ persona }) }, { silent: true });
+      await mutate();
+      toast.success("Journey updated");
+    } catch {
+      toast.error("Couldn't save — try again");
+    }
+    setSavingPersona(false);
+  }
 
   useEffect(() => {
     if (!u) return;
@@ -88,6 +105,25 @@ export default function Page() {
         </div>
         <div className="mt-6 flex justify-end">
           <Button onClick={save} disabled={!dirty || saving}>{saving ? "Saving…" : "Save changes"}</Button>
+        </div>
+      </Card>
+
+      <Card className="mt-5">
+        <h2 className="font-display text-lg font-bold">How you use EYF</h2>
+        <p className="text-text-3 text-sm mt-1">Tailors your home screen and your journey.</p>
+        <div className="mt-4 grid sm:grid-cols-3 gap-3">
+          {PERSONA_LIST.map((p) => {
+            const Icon = Icons[p.icon];
+            const active = u?.persona === p.id;
+            return (
+              <button key={p.id} onClick={() => setPersona(p.id)} disabled={savingPersona}
+                className={`text-left rounded-xl border p-4 transition-colors ${active ? "border-accent bg-accent-tint" : "border-border bg-surface hover:border-edge"}`}>
+                <span className={active ? "text-accent" : "text-text-3"}><Icon width={20} height={20} /></span>
+                <div className="font-medium mt-2 text-text-1">{p.label}</div>
+                <div className="text-text-4 text-xs mt-0.5 leading-snug">{p.who}</div>
+              </button>
+            );
+          })}
         </div>
       </Card>
 
