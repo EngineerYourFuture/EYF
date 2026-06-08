@@ -1,6 +1,6 @@
 "use client";
 import { toast } from "sonner";
-import { Card, Badge, Button, MetricTile, Meter, Skeleton } from "@eyf/ui";
+import { Card, Button, MetricTile, Meter, Skeleton } from "@eyf/ui";
 import { useApi } from "@/lib/use-api";
 import { useEyfAuth as useAuth } from "@/lib/auth";
 import { track, Events } from "@/lib/analytics";
@@ -42,25 +42,17 @@ export default function Page() {
 
       {!data ? (
         <div className="mt-8 space-y-4">
-          <Skeleton className="h-28 rounded-xl" />
+          <Skeleton className="h-[28rem] rounded-2xl" />
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-24 rounded-xl" />)}
           </div>
         </div>
       ) : (
         <>
-          <Card variant="glow" className="mt-8 relative overflow-hidden">
-            <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-accent/10 blur-3xl" />
-            <div className="relative flex items-start justify-between gap-4 flex-wrap">
-              <div>
-                <div className="text-text-3 text-xs uppercase tracking-widest">Your {data.year}</div>
-                <p className="font-display text-2xl sm:text-3xl font-bold mt-2 leading-snug max-w-md">{data.headline}</p>
-              </div>
-              <ShareButton year={data.year} />
-            </div>
-          </Card>
+          <ShareCard data={data} />
+          <ShareRow data={data} />
 
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-5">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-6">
             <MetricTile icon={<Icons.code width={16} height={16} />} tone="accent" label="Solved" value={data.totalSolved} />
             <MetricTile icon={<Icons.bolt width={16} height={16} />} label="Submissions" value={data.totalSubmissions} />
             <MetricTile icon={<Icons.flame width={16} height={16} />} tone="medium" label="Best streak" value={data.bestStreakDays} unit="d" />
@@ -99,7 +91,75 @@ export default function Page() {
   );
 }
 
-function ShareButton({ year }: { year: number }) {
+/* ─────────── The shareable poster ─────────── */
+function ShareCard({ data }: { data: Wrapped }) {
+  return (
+    <div className="mt-8 theme-dark relative overflow-hidden rounded-2xl border border-accent/20 bg-bg p-7 sm:p-9 shadow-glow-sm">
+      <div className="pointer-events-none absolute -top-1/3 -right-10 h-72 w-72 rounded-full blur-[90px]" style={{ background: "radial-gradient(circle, rgba(232,255,71,0.28), transparent 60%)" }} />
+      <div className="pointer-events-none absolute -bottom-20 -left-10 h-72 w-72 rounded-full blur-[100px]" style={{ background: "radial-gradient(circle, rgba(170,190,70,0.18), transparent 60%)" }} />
+      <div className="pointer-events-none absolute inset-0 opacity-[0.05]" style={{ backgroundImage: "radial-gradient(rgba(232,255,71,0.8) 1px, transparent 1px)", backgroundSize: "26px 26px" }} />
+
+      <div className="relative">
+        <div className="flex items-center justify-between">
+          <span className="font-display font-bold text-xl tracking-tight text-text-1">EYF</span>
+          <span className="font-mono text-[11px] uppercase tracking-[0.25em] text-accent">{data.year} Wrapped</span>
+        </div>
+
+        <p className="font-display text-2xl sm:text-3xl font-bold mt-6 leading-snug max-w-md text-text-1">{data.headline}</p>
+
+        <div className="mt-8 grid grid-cols-3 gap-4">
+          <PosterStat value={data.totalSolved} label="problems solved" />
+          <PosterStat value={`${data.bestStreakDays}d`} label="best streak" />
+          <PosterStat value={data.mockSessions} label="mock interviews" />
+        </div>
+
+        <div className="mt-7 flex items-center justify-between">
+          <span className="text-text-3 text-sm">
+            {data.topPattern ? <>Signature pattern: <span className="text-accent font-mono">{data.topPattern}</span></> : "Engineering my future"}
+          </span>
+          <span className="text-text-4 text-xs font-mono">engineeryourfuture</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+function PosterStat({ value, label }: { value: number | string; label: string }) {
+  return (
+    <div>
+      <div className="font-display text-3xl sm:text-4xl font-bold text-accent leading-none tabular-nums">{value}</div>
+      <div className="text-text-4 text-[11px] uppercase tracking-wide mt-1.5">{label}</div>
+    </div>
+  );
+}
+
+/* ─────────── Share actions ─────────── */
+function ShareRow({ data }: { data: Wrapped }) {
+  const shareText = `My ${data.year} on EYF: ${data.totalSolved} problems solved, a ${data.bestStreakDays}-day best streak${data.mockSessions ? `, ${data.mockSessions} mock interviews` : ""} 🔥 Engineering my future.`;
+  const shareUrl = typeof window !== "undefined" ? window.location.origin : "https://engineeryourfuture.app";
+
+  async function share() {
+    const payload = { title: `EYF Wrapped ${data.year}`, text: shareText, url: shareUrl };
+    try {
+      if (typeof navigator !== "undefined" && navigator.share) {
+        await navigator.share(payload);
+        track(Events.WrappedDownloaded, { year: data.year, via: "native" });
+        return;
+      }
+      await navigator.clipboard.writeText(`${shareText} ${shareUrl}`);
+      toast.success("Share text copied to clipboard.");
+    } catch { /* user dismissed the share sheet */ }
+  }
+
+  return (
+    <div className="mt-4 flex flex-wrap items-center gap-3">
+      <Button onClick={share}>Share my Wrapped</Button>
+      <DownloadPdf year={data.year} />
+      <span className="text-text-4 text-xs">Screenshot the card above to post it anywhere.</span>
+    </div>
+  );
+}
+
+function DownloadPdf({ year }: { year: number }) {
   const { getToken } = useAuth();
   const [busy, setBusy] = useState(false);
   async function download() {
@@ -115,9 +175,9 @@ function ShareButton({ year }: { year: number }) {
       const a = document.createElement("a");
       a.href = url; a.download = `eyf-wrapped-${year}.pdf`; a.click();
       URL.revokeObjectURL(url);
-      track(Events.WrappedDownloaded, { year });
+      track(Events.WrappedDownloaded, { year, via: "pdf" });
     } catch (e) { toast.error((e as Error).message); }
     finally { setBusy(false); }
   }
-  return <Button size="sm" onClick={download} disabled={busy}>{busy ? "…" : "↓ Share card"}</Button>;
+  return <Button size="sm" variant="secondary" onClick={download} disabled={busy}>{busy ? "…" : "↓ PDF"}</Button>;
 }
