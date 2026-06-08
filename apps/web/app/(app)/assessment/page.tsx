@@ -23,6 +23,25 @@ type Scored = {
 
 const LETTERS = ["A", "B", "C", "D", "E", "F"];
 
+function NextStep({ href, icon, title, desc, primary }: {
+  href: string; icon: "activity" | "target" | "map"; title: string; desc: string; primary?: boolean;
+}) {
+  const Icon = Icons[icon];
+  return (
+    <Link href={href}
+      className={`group flex flex-col rounded-xl border p-4 shadow-card card-interactive ${
+        primary ? "border-accent/50 bg-accent-tint" : "border-border bg-surface"
+      }`}>
+      <span className={`flex h-10 w-10 items-center justify-center rounded-lg border ${
+        primary ? "bg-accent text-accent-ink border-accent" : "bg-accent-tint text-accent border-accent/20"
+      }`}><Icon width={20} height={20} /></span>
+      <div className="mt-3 font-medium text-text-1">{title}</div>
+      <div className="text-text-4 text-xs mt-1 flex-1">{desc}</div>
+      <span className="mt-3 text-accent text-sm inline-flex items-center gap-1">Open <Icons.arrow width={14} height={14} /></span>
+    </Link>
+  );
+}
+
 export default function Page() {
   const action = useApiAction();
   const [questions, setQuestions] = useState<Q[] | null>(null);
@@ -96,13 +115,21 @@ export default function Page() {
           </div>
         </Card>
 
-        <Card className="mt-5 flex items-center justify-between gap-4 flex-wrap">
-          <div>
-            <h3 className="font-display text-lg font-bold">You scored {pctCorrect}%. Now build the plan.</h3>
-            <p className="text-text-3 text-sm mt-1">Turn this readout into a day-by-day roadmap.</p>
+        {/* The loop made visible: this readout just moved your measured state. */}
+        <div className="mt-8">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-accent"><Icons.activity width={18} height={18} /></span>
+            <h2 className="font-display text-lg font-bold">This just updated your map</h2>
           </div>
-          <Link href="/roadmap"><Button glow>Generate my roadmap →</Button></Link>
-        </Card>
+          <div className="grid sm:grid-cols-3 gap-4">
+            <NextStep href="/skills" icon="activity" title="Skill Graph"
+              desc="Your aptitude & core-CS mastery moved with these answers." />
+            <NextStep href="/readiness" icon="target" title="Placement Readiness"
+              desc="Your overall score reflects this calibration now." />
+            <NextStep href="/roadmap" icon="map" title="Generate roadmap"
+              desc="Turn this readout into a week-by-week plan." primary />
+          </div>
+        </div>
       </PageMotion>
     );
   }
