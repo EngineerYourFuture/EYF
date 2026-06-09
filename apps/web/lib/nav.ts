@@ -52,6 +52,7 @@ export const NAV_GROUPS: NavGroup[] = [
     label: "More",
     items: [
       { href: "/forum", label: "Community", icon: "chat", keywords: "forum threads discuss" },
+      { href: "/leaderboard", label: "Leaderboard", icon: "trophy", keywords: "rank cohort college class compete top percentile" },
       { href: "/wrapped", label: "Wrapped", icon: "gift", keywords: "year review stats" },
       { href: "/certificates", label: "Certificates", icon: "award", keywords: "verify linkedin pdf" },
       { href: "/fun", label: "Roast + Offer", icon: "smile", keywords: "roast offer letter motivation" },
