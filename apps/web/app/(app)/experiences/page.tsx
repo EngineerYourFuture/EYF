@@ -20,7 +20,9 @@ const OUTCOME_LABEL = { OFFER: "Offer", REJECTED: "Rejected", PENDING: "In proce
 const OUTCOMES = ["OFFER", "REJECTED", "PENDING", "WITHDRAWN"] as const;
 
 export default function Page() {
-  const [company, setCompany] = useState("");
+  // Pre-filter when arrived from a company's prep page (?company=amazon).
+  const [company, setCompany] = useState(() =>
+    typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("company") ?? "" : "");
   const { data, isLoading, mutate } = useApi<Exp[]>(`/experiences${company ? `?company=${company}` : ""}`);
   const { data: companies } = useApi<{ slug: string }[]>("/companies");
   const [open, setOpen] = useState(false);

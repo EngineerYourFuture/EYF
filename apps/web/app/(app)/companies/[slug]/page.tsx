@@ -65,6 +65,9 @@ function CompanyView({ label, data }: { label: string; data: Detail }) {
       <p className="text-text-3 mt-2">
         {data.counts.total} problems reported in {label} interviews — sorted by how often they show up.
       </p>
+      <Link href={`/experiences?company=${data.company}`} className="mt-2 inline-flex items-center gap-1.5 text-accent text-sm hover:underline">
+        <Icons.chat width={14} height={14} /> Read {label} interview experiences
+      </Link>
 
       {/* Per-company readiness banner */}
       {ready != null && band && (
