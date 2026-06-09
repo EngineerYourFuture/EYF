@@ -32,6 +32,7 @@ import { companyRoutes } from "./companies.js";
 import { skillGraphRoutes } from "./skill-graph.js";
 import { missionRoutes } from "./missions.js";
 import { leaderboardRoutes } from "./leaderboard.js";
+import { experienceRoutes } from "./experiences.js";
 
 export async function registerRoutes(app: FastifyInstance) {
   await app.register(authRoutes,         { prefix: "/auth" });
@@ -67,4 +68,5 @@ export async function registerRoutes(app: FastifyInstance) {
   await app.register(skillGraphRoutes,   { prefix: "/skill-graph" });
   await app.register(missionRoutes,      { prefix: "/missions" });
   await app.register(leaderboardRoutes,  { prefix: "/leaderboard" });
+  await app.register(experienceRoutes,   { prefix: "/experiences" });
 }

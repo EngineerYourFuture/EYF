@@ -241,6 +241,7 @@ model User {
   peerQueue       PeerQueue?
   pushTokens      PushToken[]
   missionDays     MissionDay[]
+  interviewExperiences InterviewExperience[]
 
   @@index([role])
   @@index([college])
@@ -963,6 +964,32 @@ model OaReport {
   @@index([company, driveDate])
   @@index([role])
   @@map("oa_reports")
+}
+
+enum InterviewOutcome {
+  OFFER
+  REJECTED
+  PENDING
+  WITHDRAWN
+}
+
+// Crowd-sourced full-loop interview writeups (distinct from OaReport, which is OA-only).
+model InterviewExperience {
+  id          String           @id @default(cuid())
+  authorId    String
+  author      User             @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  company     String
+  role        String
+  outcome     InterviewOutcome @default(PENDING)
+  difficulty  Int              @default(3) // 1–5
+  rounds      Int              @default(1)
+  body        String           // markdown — round-by-round writeup
+  tips        String?
+  upvotes     Int              @default(0)
+  createdAt   DateTime         @default(now())
+
+  @@index([company, createdAt])
+  @@map("interview_experiences")
 }
 
 // ─── 26. Mentor payouts (Razorpay Connect transfers) ──────────────
