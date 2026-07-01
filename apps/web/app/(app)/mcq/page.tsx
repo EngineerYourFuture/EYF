@@ -5,6 +5,7 @@ import { useApi, useApiAction } from "@/lib/use-api";
 import { track, Events } from "@/lib/analytics";
 import { PageMotion } from "@/components/page-motion";
 import { Icons } from "@/components/icons";
+import { ReadinessNudge } from "@/components/readiness-nudge";
 
 type Category = "APTITUDE" | "LOGICAL" | "VERBAL" | "TECHNICAL";
 type CatalogCat = { id: Category; name: string; blurb: string; free: boolean; count: number };
@@ -174,6 +175,8 @@ export default function Page() {
             </Card>
           ))}
         </div>
+
+        <ReadinessNudge label="This test just moved your readiness" />
 
         <div className="mt-8 flex gap-3">
           <Button onClick={() => { setPhase("config"); setResult(null); }}>Back to sections</Button>

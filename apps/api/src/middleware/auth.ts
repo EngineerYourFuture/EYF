@@ -69,6 +69,8 @@ async function authPluginInner(app: FastifyInstance) {
       }
       req.session = session;
     }
+    // Paywall disabled pre-launch: authenticated users get full access.
+    if (!env.BILLING_ENABLED) return;
     const check = meetsPlan(req.session.plan, plans);
     if (!check.ok) {
       return reply.code(402).send({

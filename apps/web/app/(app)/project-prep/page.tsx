@@ -5,6 +5,7 @@ import { useApi, useApiAction } from "@/lib/use-api";
 import { track, Events } from "@/lib/analytics";
 import { PageMotion } from "@/components/page-motion";
 import { Icons } from "@/components/icons";
+import { ReadinessNudge } from "@/components/readiness-nudge";
 
 type Question = { category: string; question: string; testing: string; approach: string };
 type Prep = {
@@ -114,6 +115,8 @@ export default function Page() {
             </ul>
           </Card>
         </div>
+
+        <ReadinessNudge label="Prepping projects strengthens your readiness" />
 
         <div className="mt-8 flex gap-3">
           <Button onClick={() => setPrep(null)}>Prep another project</Button>

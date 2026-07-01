@@ -8,6 +8,7 @@ import { useRecorder } from "@/lib/use-recorder";
 import { track, Events } from "@/lib/analytics";
 import { PageMotion } from "@/components/page-motion";
 import { Icons } from "@/components/icons";
+import { ReadinessNudge } from "@/components/readiness-nudge";
 
 type Kind = "INTRO" | "HR" | "BEHAVIORAL" | "SITUATIONAL";
 type KindMeta = { id: Kind; name: string; blurb: string };
@@ -137,6 +138,8 @@ export default function Page() {
           <h3 className="font-medium text-accent flex items-center gap-2"><Icons.sparkle width={16} height={16} /> Model answer</h3>
           <p className="mt-3 text-sm text-text-2 leading-relaxed whitespace-pre-line">{feedback.modelAnswer}</p>
         </Card>
+
+        <ReadinessNudge label="This drill just moved your communication score" />
 
         <div className="mt-8 flex gap-3">
           <Button onClick={() => setActive(null)}>Back to prompts</Button>

@@ -22,6 +22,10 @@ const schema = z.object({
   RAZORPAY_KEY_SECRET: z.string().optional(),
   RAZORPAY_WEBHOOK_SECRET: z.string().optional(),
 
+  // Master switch for paywalls. Off until Razorpay goes live, so the whole app
+  // is usable on the free tier; set BILLING_ENABLED=true to re-enable plan gating.
+  BILLING_ENABLED: z.string().default("false").transform((v) => v === "true"),
+
   JUDGE0_URL: z.string().url().default("http://localhost:2358"),
   JUDGE0_TOKEN: z.string().optional(),
 
