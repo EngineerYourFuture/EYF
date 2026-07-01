@@ -242,6 +242,9 @@ model User {
   pushTokens      PushToken[]
   missionDays     MissionDay[]
   interviewExperiences InterviewExperience[]
+  mcqAttempts     McqAttempt[]
+  communicationDrills CommunicationDrill[]
+  projectPreps    ProjectPrep[]
 
   @@index([role])
   @@index([college])
@@ -1091,4 +1094,85 @@ model PushToken {
 
   @@index([userId])
   @@map("push_tokens")
+}
+
+// ─── MCQ Tests ────────────────────────────────────────────────────
+// Timed, sectioned multiple-choice practice (aptitude / verbal / technical),
+// optionally filtered to a company's pattern. Content lives in an editorial
+// bank (src/lib/mcq-bank.ts); only attempts are persisted here — same approach
+// as AssessmentSession/CognitiveSession.
+
+enum McqCategory {
+  APTITUDE  // quant, data interpretation
+  LOGICAL   // reasoning, series, puzzles
+  VERBAL    // grammar, RC, para-jumbles, vocabulary
+  TECHNICAL // OS / DBMS / CN / OOP / DSA theory
+}
+
+model McqAttempt {
+  id              String      @id @default(cuid())
+  userId          String
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category        McqCategory
+  company         String?     // optional company-pattern filter, e.g. "TCS", "Infosys"
+  totalQuestions  Int
+  correctAnswers  Int
+  score           Int         // 0–100
+  durationSeconds Int
+  // Per-question review payload: [{ questionId, chosen, correctIndex }]
+  detail          Json
+  completedAt     DateTime    @default(now())
+
+  @@index([userId, category])
+  @@index([userId, completedAt])
+  @@map("mcq_attempts")
+}
+
+// ─── Communication drills ─────────────────────────────────────────
+// Spoken-English / HR / behavioural practice: the learner answers a prompt
+// (typed or transcribed via Whisper) and Claude returns structured feedback.
+// Prompt content is editorial (src/lib/communication-bank.ts); attempts persist.
+
+enum CommunicationKind {
+  INTRO       // "Tell me about yourself", walk-through-resume
+  HR          // motivation, strengths/weaknesses, 5-year plan
+  BEHAVIORAL  // STAR: "tell me about a time…"
+  SITUATIONAL // hypothetical judgement / conflict scenarios
+}
+
+model CommunicationDrill {
+  id              String            @id @default(cuid())
+  userId          String
+  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  promptId        String            // references a prompt in the editorial bank
+  kind            CommunicationKind
+  transcript      String            // the learner's answer (typed or transcribed)
+  score           Int               // 0–100 overall
+  feedback        Json              // { overallScore, dimensions{}, strengths[], improvements[], fillerWords[], modelAnswer }
+  durationSeconds Int               @default(0)
+  createdAt       DateTime          @default(now())
+
+  @@index([userId, kind])
+  @@index([userId, createdAt])
+  @@map("communication_drills")
+}
+
+// ─── Project interview prep ───────────────────────────────────────
+// A student feeds a project (a started UserProject or a custom one) and Claude
+// generates the interview grilling they'll face on it — questions, what each
+// probes, and how to approach — plus red-flags and STAR story hooks.
+
+model ProjectPrep {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  projectTitle String
+  summary      String   // one-line description used to ground generation
+  techStack    String[]
+  questions    Json     // [{ category, question, testing, approach }]
+  tips         Json     // { redFlags: string[], starHooks: string[] }
+  createdAt    DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@map("project_preps")
 }

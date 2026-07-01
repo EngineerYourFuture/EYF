@@ -47,4 +47,7 @@ export const Events = {
   ForumPosted:       "forum.posted",
   WrappedDownloaded: "wrapped.downloaded",
   CertificateIssued: "certificate.issued",
+  McqCompleted:      "mcq.completed",
+  CommunicationDrilled: "communication.drilled",
+  ProjectPrepped:    "project.prepped",
 } as const;
