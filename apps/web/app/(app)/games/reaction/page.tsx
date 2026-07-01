@@ -87,8 +87,11 @@ export default function Page() {
       <p className="text-text-3 mt-2">Click as soon as the box turns green. 5 rounds. Don&apos;t jump the gun.</p>
 
       <div
+        role="button"
+        tabIndex={0}
         className={`mt-10 cursor-pointer select-none rounded-xl border border-border h-80 flex items-center justify-center transition-colors ${bg}`}
         onClick={onClick}
+        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick(); } }}
       >
         <div className="text-center">
           {phase === "idle"    && <div className="font-display text-3xl">Click to start</div>}

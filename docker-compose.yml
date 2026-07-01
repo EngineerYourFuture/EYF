@@ -5,7 +5,7 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_USER: eyf
-      POSTGRES_PASSWORD: eyf
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-eyf}
       POSTGRES_DB: eyf
     ports:
       - "5432:5432"
@@ -48,7 +48,7 @@ services:
       POSTGRES_HOST: judge0-db
       POSTGRES_DB: judge0
       POSTGRES_USER: judge0
-      POSTGRES_PASSWORD: judge0
+      POSTGRES_PASSWORD: ${JUDGE0_DB_PASSWORD:-judge0}
       REDIS_HOST: judge0-redis
       REDIS_PORT: 6379
 
@@ -57,7 +57,7 @@ services:
     profiles: ["judge"]
     environment:
       POSTGRES_USER: judge0
-      POSTGRES_PASSWORD: judge0
+      POSTGRES_PASSWORD: ${JUDGE0_DB_PASSWORD:-judge0}
       POSTGRES_DB: judge0
     volumes:
       - eyf_judge0_pg:/var/lib/postgresql/data
