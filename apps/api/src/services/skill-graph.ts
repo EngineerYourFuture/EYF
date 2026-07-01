@@ -38,7 +38,7 @@ const SUBJECT_LABEL: Record<Subject, string> = {
 };
 
 export async function computeSkillGraph(userId: string): Promise<SkillGraph> {
-  const [profile, accepted, allSubs, latestAssessment, flashcards, reviews, mocks, resumes, projects, cognitive] =
+  const [profile, accepted, allSubs, latestAssessment, flashcards, reviews, mocks, resumes, projects, cognitive, mcqAttempts, commDrills, projectPrepCount] =
     await Promise.all([
       prisma.userProfile.findUnique({ where: { userId } }),
       prisma.problemSolution.findMany({
@@ -55,7 +55,14 @@ export async function computeSkillGraph(userId: string): Promise<SkillGraph> {
       prisma.resume.findMany({ where: { userId }, select: { atsScore: true } }),
       prisma.userProject.findMany({ where: { userId }, select: { status: true } }),
       prisma.cognitiveSession.findMany({ where: { userId }, select: { accuracyPct: true } }),
+      prisma.mcqAttempt.findMany({ where: { userId }, select: { category: true, score: true } }),
+      prisma.communicationDrill.findMany({ where: { userId }, select: { score: true } }),
+      prisma.projectPrep.count({ where: { userId } }),
     ]);
+
+  // Best MCQ score achieved in a given section (0 if never attempted).
+  const mcqBest = (cat: "APTITUDE" | "LOGICAL" | "VERBAL" | "TECHNICAL") =>
+    mcqAttempts.filter((a) => a.category === cat).reduce((m, a) => Math.max(m, a.score), 0);
 
   // ── Problem Solving / DSA ──────────────────────────────────────────
   const solvedCount = accepted.length;
@@ -63,14 +70,17 @@ export async function computeSkillGraph(userId: string): Promise<SkillGraph> {
   const dsa = solvedCount === 0 ? 0
     : clamp(0.7 * clamp((solvedCount / 120) * 100) + 0.3 * acceptanceRate * 100);
 
-  // ── Aptitude ───────────────────────────────────────────────────────
+  // ── Aptitude (assessment gap + brain games + timed MCQ tests) ───────
   const gap = (latestAssessment?.gapAnalysis ?? {}) as { dsa?: number; cs?: number; aptitude?: number };
   const cogAcc = mean(cognitive.map((c) => c.accuracyPct));
-  const aptitude = clamp(
-    latestAssessment && cognitive.length ? 0.6 * (gap.aptitude ?? 0) + 0.4 * cogAcc :
-    latestAssessment ? (gap.aptitude ?? 0) :
-    cognitive.length ? cogAcc : 0,
-  );
+  const aptMcq = mean([mcqBest("APTITUDE"), mcqBest("LOGICAL")].filter((s) => s > 0));
+  // Average of whichever signals the user has actually produced.
+  const aptSignals = [
+    ...(latestAssessment ? [gap.aptitude ?? 0] : []),
+    ...(cognitive.length ? [cogAcc] : []),
+    ...(aptMcq > 0 ? [aptMcq] : []),
+  ];
+  const aptitude = clamp(mean(aptSignals));
 
   // ── Core CS subjects (per-subject SRS mastery, floored by assessment CS) ──
   const totalBySubject = new Map<Subject, number>();
@@ -82,44 +92,58 @@ export async function computeSkillGraph(userId: string): Promise<SkillGraph> {
     arr.push(Math.min(1, r.repetitions / 3)); // 3 clean reps ≈ locked in
     repsBySubject.set(s, arr);
   }
+  const techMcq = mcqBest("TECHNICAL"); // core-CS MCQ signal, shared across subjects
   const subjectScore = (s: Subject) => {
     const total = totalBySubject.get(s) ?? 0;
     const progress = repsBySubject.get(s) ?? [];
     const srs = total > 0 ? (progress.reduce((a, b) => a + b, 0) / total) * 100 : 0;
-    return clamp(0.8 * srs + 0.2 * (gap.cs ?? 0));
+    return clamp(0.7 * srs + 0.15 * (gap.cs ?? 0) + 0.15 * techMcq);
   };
 
-  // ── Projects ───────────────────────────────────────────────────────
+  // ── Projects (build + interview-defence prep) ──────────────────────
   const completed = projects.filter((p) => p.status === "COMPLETED").length;
-  const projectScore = clamp(((projects.length + completed * 0.5) / 2) * 100);
+  const projectScore = clamp(((projects.length + completed * 0.5) / 2) * 100 + Math.min(8, projectPrepCount * 4));
 
   // ── Resume ─────────────────────────────────────────────────────────
   const bestAts = resumes.reduce((m, r) => Math.max(m, r.atsScore ?? 0), 0);
 
-  // ── Communication (mocks) ──────────────────────────────────────────
+  // ── Communication (mocks + HR/spoken drills + verbal MCQ) ──────────
   const mockScores = mocks
     .map((m) => (m.feedback as { score?: number; overallScore?: number } | null))
     .map((f) => f?.overallScore ?? f?.score ?? 0)
     .filter((s) => s > 0);
-  const communication = mockScores.length
-    ? clamp(0.4 * clamp((mocks.length / 4) * 100) + 0.6 * mean(mockScores))
-    : 0;
+  const drillScores = commDrills.map((d) => d.score).filter((s) => s > 0);
+  const verbalMcq = mcqBest("VERBAL");
+  const commQuality = mean([
+    ...(mockScores.length ? [mean(mockScores)] : []),
+    ...(drillScores.length ? [mean(drillScores)] : []),
+    ...(verbalMcq > 0 ? [verbalMcq] : []),
+  ]);
+  const commVolume = clamp(((mocks.length + commDrills.length) / 6) * 100);
+  const communication = commQuality > 0 ? clamp(0.7 * commQuality + 0.3 * commVolume) : 0;
 
   const dimensions: SkillDimension[] = [
     { key: "dsa", label: "Data Structures & Algorithms", group: "Problem Solving", score: dsa,
       detail: solvedCount ? `${solvedCount} solved · ${Math.round(acceptanceRate * 100)}% acceptance` : "No problems solved yet", href: "/problems" },
     { key: "aptitude", label: "Aptitude", group: "Problem Solving", score: aptitude,
-      detail: latestAssessment ? `Last assessment + ${cognitive.length} brain games` : cognitive.length ? `${cognitive.length} cognitive games` : "Take an assessment", href: "/assessment" },
+      detail: aptMcq > 0 ? `MCQ tests + assessment + ${cognitive.length} brain games`
+        : latestAssessment ? `Last assessment + ${cognitive.length} brain games`
+        : cognitive.length ? `${cognitive.length} cognitive games`
+        : "Take a test or assessment",
+      href: aptMcq > 0 || latestAssessment ? "/mcq" : "/assessment" },
     ...(Object.keys(SUBJECT_LABEL) as Subject[]).map((s) => ({
       key: s.toLowerCase(), label: SUBJECT_LABEL[s], group: "Core CS" as SkillGroup, score: subjectScore(s),
       detail: (repsBySubject.get(s)?.length ?? 0) > 0 ? `${repsBySubject.get(s)!.length} cards reviewed` : "Start the flashcards", href: `/subjects/${s.toLowerCase()}`,
     })),
     { key: "projects", label: "Projects", group: "Career", score: projectScore,
-      detail: projects.length ? `${projects.length} started · ${completed} shipped` : "No projects started", href: "/projects" },
+      detail: projects.length ? `${projects.length} started · ${completed} shipped${projectPrepCount ? ` · ${projectPrepCount} prepped` : ""}` : "No projects started", href: "/projects" },
     { key: "resume", label: "Resume", group: "Career", score: clamp(bestAts),
       detail: bestAts ? `${bestAts}/100 ATS score` : "No resume scored yet", href: "/resume" },
     { key: "communication", label: "Communication", group: "Career", score: communication,
-      detail: mockScores.length ? `${mocks.length} mocks · avg ${Math.round(mean(mockScores))}/100` : "No mock interviews yet", href: "/mocks" },
+      detail: communication > 0
+        ? `${mocks.length} mocks · ${commDrills.length} drills${verbalMcq > 0 ? " · verbal MCQ" : ""}`
+        : "No mocks or drills yet",
+      href: commDrills.length && !mocks.length ? "/communication" : "/mocks" },
   ];
 
   const overall = clamp(mean(dimensions.map((d) => d.score)));

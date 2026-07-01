@@ -17,6 +17,10 @@ export type ReadinessInput = {
   projects: { status: string }[];
   streak: number;
   longestStreak: number;
+  // Best MCQ score per section (0/absent = not attempted).
+  mcqBest: Partial<Record<"APTITUDE" | "LOGICAL" | "VERBAL" | "TECHNICAL", number>>;
+  // HR / spoken communication drill scores.
+  commDrills: { score: number }[];
 };
 
 export type Pillar = {
@@ -57,11 +61,21 @@ export function computeReadiness(i: ReadinessInput): Readiness {
   const dsa = i.totalSolved === 0 ? 0
     : clamp(0.6 * solvedScore + 0.25 * (i.acceptanceRate * 100) + 0.15 * hardBonus);
 
-  // Interview — having done mocks at all matters; quality refines it.
+  // Interview practice — AI/peer mocks + HR/spoken communication drills.
   const mockCount = i.mocks.length;
   const avgMock = mean(i.mocks.map((m) => m.feedback?.overallScore ?? 0).filter((s) => s > 0));
-  const interview = mockCount === 0 ? 0
-    : clamp(0.5 * clamp((mockCount / TARGET_MOCKS) * 100) + 0.5 * avgMock);
+  const drillScores = i.commDrills.map((d) => d.score).filter((s) => s > 0);
+  const practiceCount = mockCount + i.commDrills.length;
+  const practiceQuality = mean([
+    ...(avgMock > 0 ? [avgMock] : []),
+    ...(drillScores.length ? [mean(drillScores)] : []),
+  ]);
+  const interview = practiceCount === 0 ? 0
+    : clamp(0.5 * clamp((practiceCount / TARGET_MOCKS) * 100) + 0.5 * practiceQuality);
+
+  // Aptitude — timed MCQ tests (quant + logical reasoning).
+  const aptScores = [i.mcqBest.APTITUDE, i.mcqBest.LOGICAL].filter((s): s is number => (s ?? 0) > 0);
+  const aptitude = aptScores.length ? clamp(mean(aptScores)) : 0;
 
   // Resume — best ATS score the student has achieved.
   const bestAts = i.resumes.reduce((m, r) => Math.max(m, r.atsScore ?? 0), 0);
@@ -76,19 +90,22 @@ export function computeReadiness(i: ReadinessInput): Readiness {
     + 0.35 * clamp((i.streak / 7) * 100));
 
   const pillars: Pillar[] = [
-    { key: "dsa", label: "Problem Solving", icon: "code", score: dsa, weight: 0.32,
+    { key: "dsa", label: "Problem Solving", icon: "code", score: dsa, weight: 0.30,
       detail: i.totalSolved ? `${i.totalSolved} solved · ${Math.round(i.acceptanceRate * 100)}% acceptance` : "No problems solved yet",
       href: "/problems", action: "Solve problems daily" },
-    { key: "interview", label: "Interview Practice", icon: "mic", score: interview, weight: 0.22,
-      detail: mockCount ? `${mockCount} mock${mockCount > 1 ? "s" : ""} · avg ${Math.round(avgMock)}/100` : "No mock interviews yet",
-      href: "/mocks", action: "Take an AI mock interview" },
-    { key: "resume", label: "Resume", icon: "doc", score: resume, weight: 0.16,
+    { key: "interview", label: "Interview Practice", icon: "mic", score: interview, weight: 0.20,
+      detail: practiceCount ? `${mockCount} mock${mockCount === 1 ? "" : "s"} · ${i.commDrills.length} drill${i.commDrills.length === 1 ? "" : "s"}` : "No interview practice yet",
+      href: mockCount || !i.commDrills.length ? "/mocks" : "/communication", action: "Do a mock or HR drill" },
+    { key: "aptitude", label: "Aptitude", icon: "clipboard", score: aptitude, weight: 0.15,
+      detail: aptScores.length ? `Best ${Math.round(Math.max(...aptScores))}% on MCQ tests` : "No aptitude tests taken",
+      href: "/mcq", action: "Take timed aptitude tests" },
+    { key: "resume", label: "Resume", icon: "doc", score: resume, weight: 0.13,
       detail: bestAts ? `${bestAts}/100 ATS score` : "No resume scored yet",
       href: "/resume", action: "Build & score your resume" },
-    { key: "consistency", label: "Consistency", icon: "flame", score: consistency, weight: 0.18,
+    { key: "consistency", label: "Consistency", icon: "flame", score: consistency, weight: 0.12,
       detail: i.longestStreak ? `${i.streak}d streak · best ${i.longestStreak}d` : "No streak yet",
       href: "/dashboard", action: "Build a daily streak" },
-    { key: "projects", label: "Projects", icon: "cube", score: projects, weight: 0.12,
+    { key: "projects", label: "Projects", icon: "cube", score: projects, weight: 0.10,
       detail: i.projects.length ? `${i.projects.length} started · ${completed} shipped` : "No projects started",
       href: "/projects", action: "Ship a portfolio project" },
   ];

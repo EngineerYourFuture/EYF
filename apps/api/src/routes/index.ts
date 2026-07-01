@@ -33,6 +33,9 @@ import { skillGraphRoutes } from "./skill-graph.js";
 import { missionRoutes } from "./missions.js";
 import { leaderboardRoutes } from "./leaderboard.js";
 import { experienceRoutes } from "./experiences.js";
+import { mcqRoutes } from "./mcq.js";
+import { communicationRoutes } from "./communication.js";
+import { projectPrepRoutes } from "./project-prep.js";
 
 export async function registerRoutes(app: FastifyInstance) {
   await app.register(authRoutes,         { prefix: "/auth" });
@@ -69,4 +72,7 @@ export async function registerRoutes(app: FastifyInstance) {
   await app.register(missionRoutes,      { prefix: "/missions" });
   await app.register(leaderboardRoutes,  { prefix: "/leaderboard" });
   await app.register(experienceRoutes,   { prefix: "/experiences" });
+  await app.register(mcqRoutes,          { prefix: "/mcq" });
+  await app.register(communicationRoutes, { prefix: "/communication" });
+  await app.register(projectPrepRoutes,  { prefix: "/project-prep" });
 }

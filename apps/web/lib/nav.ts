@@ -24,6 +24,7 @@ export const NAV_GROUPS: NavGroup[] = [
       { href: "/tracks", label: "Career Tracks", icon: "compass", keywords: "role path sde frontend backend" },
       { href: "/subjects", label: "Core Subjects", icon: "book", keywords: "os dbms cn oop theory flashcards" },
       { href: "/assessment", label: "Assessment", icon: "clipboard", keywords: "test quiz calibration placement" },
+      { href: "/mcq", label: "MCQ Tests", icon: "clipboard", keywords: "aptitude verbal reasoning logical quant timed test company tcs infosys wipro amazon multiple choice quiz mcq core cs" },
       { href: "/roadmap", label: "Roadmap", icon: "map", keywords: "plan sprint schedule" },
     ],
   },
@@ -31,6 +32,7 @@ export const NAV_GROUPS: NavGroup[] = [
     label: "Interview",
     items: [
       { href: "/mocks", label: "AI Mocks", icon: "mic", keywords: "interview claude voice" },
+      { href: "/communication", label: "Communication", icon: "chat", keywords: "hr behavioral star spoken english verbal tell me about yourself soft skills fluency confidence" },
       { href: "/peer-mocks", label: "Peer Mocks", icon: "users", keywords: "pair video" },
       { href: "/code-dna", label: "Code DNA", icon: "fingerprint", keywords: "fingerprint strengths strategist" },
       { href: "/oa", label: "OA Fingerprint", icon: "target", keywords: "online assessment patterns" },
@@ -43,6 +45,7 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [
       { href: "/resume", label: "Resume", icon: "doc", keywords: "cv ats score" },
       { href: "/projects", label: "Projects", icon: "cube", keywords: "btech build portfolio" },
+      { href: "/project-prep", label: "Project Prep", icon: "cube", keywords: "defend project interview questions resume grilling explain viva tech stack" },
       { href: "/internships", label: "Internships", icon: "building", keywords: "intern ppo stipend" },
       { href: "/jobs", label: "Jobs", icon: "briefcase", keywords: "apply tracker hiring" },
       { href: "/pipeline", label: "Pipeline", icon: "activity", keywords: "applications kanban tracker status offer deadline funnel" },
