@@ -1,4 +1,5 @@
 import type { FastifyInstance } from "fastify";
+import { randomBytes } from "node:crypto";
 import { z } from "zod";
 import { prisma, ForumCategory, ReactionKind } from "@eyf/db";
 
@@ -61,7 +62,7 @@ export async function forumRoutes(app: FastifyInstance) {
     let slug = slugify(body.title);
     // Ensure uniqueness with a short random suffix on collision.
     const collision = await prisma.forumThread.findUnique({ where: { slug } });
-    if (collision) slug = `${slug}-${Math.random().toString(36).slice(2, 6)}`;
+    if (collision) slug = `${slug}-${randomBytes(2).toString("hex")}`;
     const thread = await prisma.forumThread.create({
       data: { ...body, slug, authorId: req.session!.id },
     });

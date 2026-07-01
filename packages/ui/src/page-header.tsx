@@ -58,7 +58,7 @@ export function Stat({ label, value, sub, tone = "default", icon, trend }: {
   return (
     <div className={cn(
       "relative overflow-hidden rounded-xl border p-5 shadow-card transition-colors",
-      accenty ? "bg-surface border-border" : "bg-surface border-border",
+      "bg-surface border-border",
     )}>
       {accenty && (
         <div className={cn("absolute inset-x-0 top-0 h-0.5", toneBar[tone])} />
