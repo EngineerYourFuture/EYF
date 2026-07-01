@@ -3,7 +3,7 @@
  * Returns a Buffer ready to ship via Fastify reply.
  */
 import React from "react";
-import { Document, Page, Text, View, StyleSheet, Font, renderToBuffer } from "@react-pdf/renderer";
+import { Document, Page, Text, View, StyleSheet, renderToBuffer } from "@react-pdf/renderer";
 import type { ResumeDocument } from "@eyf/types";
 
 const sty = StyleSheet.create({

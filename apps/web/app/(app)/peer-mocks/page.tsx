@@ -73,7 +73,7 @@ export default function Page() {
           : (
             <div className="mt-6">
               <Badge tone="accent">In queue · {position != null ? `${position} ahead` : "looking"}</Badge>
-              <p className="text-text-3 text-sm mt-3">Hold tight. We'll page you the second a peer joins.</p>
+              <p className="text-text-3 text-sm mt-3">Hold tight. We&apos;ll page you the second a peer joins.</p>
               <Button variant="ghost" onClick={leave} className="mt-3">Leave queue</Button>
             </div>
           )}
