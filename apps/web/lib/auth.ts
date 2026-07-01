@@ -32,10 +32,25 @@ export type EyfAuth = {
 
 let devTokenPromise: Promise<string | null> | null = null;
 
+/** True while the JWT still has >60s left. Guards against the dev-login token
+ * (15-min exp) going stale and 401-ing every authed request until localStorage
+ * is manually cleared. */
+function tokenIsFresh(token: string): boolean {
+  try {
+    const part = token.split(".")[1]!.replace(/-/g, "+").replace(/_/g, "/");
+    const exp = JSON.parse(atob(part)).exp as number | undefined;
+    return typeof exp === "number" && exp * 1000 > Date.now() + 60_000;
+  } catch {
+    return false;
+  }
+}
+
 async function ensureDevToken(): Promise<string | null> {
   if (typeof window === "undefined") return null;
   const cached = window.localStorage.getItem("eyf_dev_token");
-  if (cached) return cached;
+  if (cached && tokenIsFresh(cached)) return cached;
+  // Missing or stale → (re)fetch. Reset the memo when it settles so the next
+  // expiry can trigger a fresh login instead of returning the old token forever.
   if (!devTokenPromise) {
     devTokenPromise = fetch(`${API}/auth/dev-login`, {
       method: "POST",
@@ -51,7 +66,10 @@ async function ensureDevToken(): Promise<string | null> {
         }
         return null;
       })
-      .catch(() => null);
+      .catch(() => null)
+      .finally(() => {
+        devTokenPromise = null;
+      });
   }
   return devTokenPromise;
 }

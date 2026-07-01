@@ -40,3 +40,4 @@ packages/db/src/generated
 # claude code local state
 .claude/
 shot.mjs
+.gstack/

@@ -12,7 +12,17 @@ export function useApi<T>(path: string | null, options?: SWRConfiguration<T>) {
       const token = await getToken();
       return fetchApi<T>(key, { token });
     },
-    options,
+    {
+      // 400/402/403/404 are terminal — the response won't change on retry, so
+      // retrying wastes 5 round-trips and pins components on their loading state
+      // (e.g. the "no editorial yet" 404 that used to hang forever). But KEEP
+      // retrying 401: auth can become available after a token refresh, so a 401
+      // is transient. 5xx / network errors also stay retryable. Callers override
+      // via `options`.
+      shouldRetryOnError: (err: unknown) =>
+        !(err instanceof ApiClientError && [400, 402, 403, 404].includes(err.status)),
+      ...options,
+    },
   );
 }
 
