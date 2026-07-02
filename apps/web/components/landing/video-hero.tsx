@@ -8,6 +8,7 @@ import { useRef, type ReactNode } from "react";
 import Link from "next/link";
 import { motion, useScroll, useTransform, useReducedMotion } from "framer-motion";
 import { Button } from "@eyf/ui";
+import { EyfAnimatedLogo } from "@/components/brand/eyf-animated-logo";
 
 const HERO_VIDEO: string | null = null; // → "/hero.mp4" when the cinematic scroll video is ready
 
@@ -44,7 +45,10 @@ export function VideoHero() {
         {/* Foreground */}
         <motion.div style={{ opacity: fade, y: reduce ? 0 : contentY }}
           className="relative h-full flex flex-col items-center justify-center px-6 text-center">
-          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}
+          {/* Brand — the animated iconic mark assembles on load. */}
+          <EyfAnimatedLogo width={220} className="mb-4 w-[180px] sm:w-[220px]" />
+
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.3 }}
             className="mb-6 inline-flex items-center gap-2 rounded-full border border-accent/30 bg-accent-tint/50 px-4 py-1.5 text-[11px] font-mono uppercase tracking-[0.2em] text-accent">
             India&apos;s placement operating system
           </motion.div>
