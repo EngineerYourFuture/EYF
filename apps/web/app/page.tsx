@@ -6,7 +6,7 @@ import { Footer } from "@/components/footer";
 
 export default function Page() {
   return (
-    <main className="theme-dark relative bg-bg text-text-1">
+    <main className="theme-light relative bg-bg text-text-1">
       <LandingBackground />
       <ParticleField />
       <div className="relative z-10">

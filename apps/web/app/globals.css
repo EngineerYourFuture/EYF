@@ -99,6 +99,20 @@
     --shadow: 0 0 0; --hairline: 255 255 255;
   }
 
+  /* Force a clean light palette on a subtree (Apple/Google feel) — used by the
+     landing. Bright white, near-black text, soft grey surfaces, red accent. */
+  .theme-light {
+    color-scheme: light;
+    --bg: 255 255 255; --bg-2: 247 248 250;
+    --surface: 255 255 255; --surface-2: 250 251 253; --surface-3: 242 244 247;
+    --border: 226 229 235; --border-2: 208 213 221;
+    --text-1: 29 29 31; --text-2: 88 93 102; --text-3: 128 134 143; --text-4: 160 165 174;
+    --accent: 29 29 31; --accent-hover: 55 57 62; --accent-tint: 242 244 247; --accent-ink: 255 255 255;
+    --brand: 214 24 42; --brand-hover: 186 16 34; --brand-ink: 255 255 255;
+    --easy: 40 150 90; --medium: 170 120 20; --hard: 190 60 45; --expert: 150 80 140; --info: 26 115 232;
+    --shadow: 24 27 33; --hairline: 255 255 255;
+  }
+
   html, body {
     @apply bg-bg text-text-1 font-sans;
     font-feature-settings: "ss01", "cv11";

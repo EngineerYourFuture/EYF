@@ -110,7 +110,7 @@ function TheMap() {
               <Badge tone="accent" className="mb-6">The path</Badge>
               <h2 className="font-display text-4xl md:text-5xl font-bold tracking-tight leading-[1.05]">
                 Most platforms give you content.<br />
-                <span className="text-accent">EYF gives you a path.</span>
+                <span className="text-brand">EYF gives you a path.</span>
               </h2>
               <p className="mt-6 text-text-2 text-lg max-w-md leading-relaxed">
                 Every student starts with a skill assessment. Every roadmap is generated for your timeline,
@@ -175,7 +175,7 @@ function Proof() {
         </motion.div>
         <div className="px-6 sm:px-8 lg:px-16 mt-10">
           <p className="text-xl text-text-1">
-            <span className="text-accent font-display font-bold text-3xl">73%</span>{" "}
+            <span className="text-brand font-display font-bold text-3xl">73%</span>{" "}
             of EYF users who complete their track get placed within 3 months.
           </p>
         </div>
@@ -215,7 +215,7 @@ function Features() {
             </motion.div>
             <motion.div initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true, margin: "-120px" }} transition={{ duration: 0.8 }}
-              className={`${i % 2 ? "lg:order-1" : ""} relative aspect-[4/3] overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-surface to-bg grid place-items-center`}>
+              className={`${i % 2 ? "lg:order-1" : ""} relative aspect-[4/3] overflow-hidden rounded-2xl border border-border bg-surface-2 shadow-card grid place-items-center`}>
               <div className="pointer-events-none absolute -inset-px rounded-2xl bg-gradient-to-br from-accent/15 via-transparent to-transparent" />
               <div className="pointer-events-none absolute inset-0 opacity-[0.05]"
                 style={{ backgroundImage: "radial-gradient(rgba(255, 255, 255,0.8) 1px, transparent 1px)", backgroundSize: "22px 22px" }} />
@@ -299,7 +299,7 @@ function Comparison() {
         <motion.div style={{ opacity: collapse }} className="text-text-3 text-sm mb-12">Average student: 6 platforms, 0 direction.</motion.div>
         <motion.div style={{ opacity: emerge }}>
           <div className="inline-flex items-center gap-3 px-6 py-4 border border-accent/40 rounded-xl bg-accent-tint">
-            <span className="text-accent font-display text-xl font-bold">One path.</span>
+            <span className="text-brand font-display text-xl font-bold">One path.</span>
             <span className="text-text-2">From first concept to first offer.</span>
           </div>
         </motion.div>

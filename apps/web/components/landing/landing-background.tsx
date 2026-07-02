@@ -1,20 +1,14 @@
 "use client";
 /**
- * Immersive monochrome 3D background — a perspective grid corridor (floor +
- * ceiling) that recedes to a horizon and drifts toward the viewer, plus a faint
- * drifting light, film grain, and a vignette. Built with CSS 3D transforms (no
- * WebGL) so it renders everywhere and stays crisp. NO neon, NO colored gradients.
+ * Immersive light 3D background — a perspective grid corridor (floor + ceiling)
+ * in soft grey lines on white, receding to a horizon and drifting toward the
+ * viewer. Clean, Apple/Google-light. CSS 3D transforms (no WebGL).
  */
 import { motion, useReducedMotion } from "framer-motion";
 
-const GRAIN =
-  "data:image/svg+xml;utf8," +
-  encodeURIComponent(
-    `<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(#n)'/></svg>`,
-  );
-
+// Soft grey grid lines (dark on white — the Apple-light grid look).
 const GRID =
-  "linear-gradient(rgba(255,255,255,0.85) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.85) 1px, transparent 1px)";
+  "linear-gradient(rgba(20,22,30,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(20,22,30,0.5) 1px, transparent 1px)";
 
 export function LandingBackground() {
   const reduce = useReducedMotion();
@@ -22,48 +16,44 @@ export function LandingBackground() {
   const driftT = { duration: 3.2, repeat: Infinity, ease: "linear" as const };
 
   return (
-    <div aria-hidden className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+    <div aria-hidden className="fixed inset-0 z-0 overflow-hidden pointer-events-none bg-bg">
       {/* 3D perspective corridor — floor + ceiling grids receding to a horizon. */}
       <div className="absolute inset-0" style={{ perspective: "600px", perspectiveOrigin: "50% 50%" }}>
         <motion.div
-          className="absolute left-[-50%] right-[-50%] bottom-[-30%] h-[130%] opacity-[0.32]"
+          className="absolute left-[-50%] right-[-50%] bottom-[-30%] h-[130%] opacity-[0.22]"
           style={{
             transformOrigin: "50% 100%",
             transform: "rotateX(76deg)",
             backgroundImage: GRID,
             backgroundSize: "80px 80px",
-            maskImage: "linear-gradient(to top, black 0%, transparent 70%)",
-            WebkitMaskImage: "linear-gradient(to top, black 0%, transparent 70%)",
+            maskImage: "linear-gradient(to top, black 0%, transparent 72%)",
+            WebkitMaskImage: "linear-gradient(to top, black 0%, transparent 72%)",
           }}
           animate={drift}
           transition={driftT}
         />
         <motion.div
-          className="absolute left-[-50%] right-[-50%] top-[-30%] h-[130%] opacity-[0.18]"
+          className="absolute left-[-50%] right-[-50%] top-[-30%] h-[130%] opacity-[0.12]"
           style={{
             transformOrigin: "50% 0%",
             transform: "rotateX(-76deg)",
             backgroundImage: GRID,
             backgroundSize: "80px 80px",
-            maskImage: "linear-gradient(to bottom, black 0%, transparent 70%)",
-            WebkitMaskImage: "linear-gradient(to bottom, black 0%, transparent 70%)",
+            maskImage: "linear-gradient(to bottom, black 0%, transparent 72%)",
+            WebkitMaskImage: "linear-gradient(to bottom, black 0%, transparent 72%)",
           }}
           animate={drift}
           transition={driftT}
         />
       </div>
 
-      {/* Horizon glow where the grids meet — sense of infinite distance. */}
-      <motion.div
-        className="absolute left-1/2 top-1/2 h-[50vh] w-[90vw] -translate-x-1/2 -translate-y-1/2 rounded-full blur-[120px]"
-        style={{ background: "radial-gradient(ellipse, rgba(255,255,255,0.06), transparent 65%)" }}
-        animate={reduce ? {} : { opacity: [0.7, 1, 0.7] }}
-        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+      {/* Soft cool horizon wash — a whisper of colour so the white isn't clinical. */}
+      <div
+        className="absolute left-1/2 top-1/2 h-[55vh] w-[95vw] -translate-x-1/2 -translate-y-1/2 rounded-full blur-[130px]"
+        style={{ background: "radial-gradient(ellipse, rgba(120,140,200,0.10), transparent 68%)" }}
       />
-
-      {/* Film grain + vignette. */}
-      <div className="absolute inset-0 opacity-[0.06] mix-blend-soft-light" style={{ backgroundImage: `url("${GRAIN}")`, backgroundSize: "180px 180px" }} />
-      <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at 50% 45%, transparent 55%, rgba(0,0,0,0.55))" }} />
+      {/* Gentle edge vignette (light). */}
+      <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at 50% 42%, transparent 55%, rgba(20,22,30,0.05))" }} />
     </div>
   );
 }
