@@ -136,12 +136,13 @@ export function levelForXp(xp: number): number {
 // Placement Readiness + Guidance intelligence layer (pure, shared web+api).
 // EXPLICIT named re-exports (not `export *`): esbuild transpiles each file
 // independently, so a star re-export can't be statically linked by Node's ESM
-// linker under `tsx watch` (static imports fail to bind). Explicit names + the
-// .js extension (tsx maps .js->.ts) link correctly at runtime.
-export { computeReadiness, rankActions } from "./readiness.js";
+// linker under `tsx watch`. Extensionless (not `.js`): tsx resolves it, and
+// Next's webpack resolves `./readiness`->`.ts` — a `.js` specifier would break
+// the web build (no readiness.js exists). Named + extensionless satisfies both.
+export { computeReadiness, rankActions } from "./readiness";
 export type {
   ReadinessInput,
   Readiness,
   Pillar,
   GuidanceAction,
-} from "./readiness.js";
+} from "./readiness";
