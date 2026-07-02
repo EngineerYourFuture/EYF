@@ -11,8 +11,15 @@ const schema = z.object({
   DATABASE_URL: z.string().url(),
   REDIS_URL: z.string().url().default("redis://localhost:6379"),
 
-  JWT_ACCESS_SECRET: z.string().min(16),
-  JWT_REFRESH_SECRET: z.string().min(16),
+  // 32+ chars (256-bit). Generate with `openssl rand -hex 32`. A short secret
+  // makes HS256 tokens offline-forgeable — including admin tokens.
+  JWT_ACCESS_SECRET: z.string().min(32),
+  JWT_REFRESH_SECRET: z.string().min(32),
+
+  // Dev-only email login (no password). Fail-closed: OFF unless explicitly
+  // enabled, so a deploy that forgets NODE_ENV=production can't hand out admin
+  // tokens. Never set this in production.
+  DEV_LOGIN_ENABLED: z.string().default("false").transform((v) => v === "true"),
 
   // Second gate on the admin portal: staff must enter this shared access code
   // (on top of being logged in with a staff role) to reach /admin. Unset = gate

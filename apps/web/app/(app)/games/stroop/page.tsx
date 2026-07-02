@@ -11,7 +11,7 @@ const COLORS = [
   { name: "RED",    hex: "#FF4500" },
   { name: "GREEN",  hex: "#00FF87" },
   { name: "BLUE",   hex: "#4D9DFF" },
-  { name: "YELLOW", hex: "#E8FF47" },
+  { name: "YELLOW", hex: "#F5F5F5" },
 ] as const;
 
 const TRIALS = 20;

@@ -12,7 +12,9 @@ const MAX_SESSIONS = 3;
 export async function authRoutes(app: FastifyInstance) {
   // ─── Dev-only: log in seed users by email ───────────────────────
   app.post("/dev-login", async (req, reply) => {
-    if (env.NODE_ENV === "production") {
+    // Fail-closed: requires the explicit opt-in flag AND a non-production env.
+    // Either guard alone blocks it; a misconfigured NODE_ENV can't reopen it.
+    if (!env.DEV_LOGIN_ENABLED || env.NODE_ENV === "production") {
       return reply.code(404).send({ success: false, error: { code: "NOT_FOUND", message: "Not found" } });
     }
     const { email } = z.object({ email: z.string().email() }).parse(req.body);

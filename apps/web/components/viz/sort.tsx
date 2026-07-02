@@ -82,7 +82,7 @@ export function SortViz() {
                 y={y}
                 width={Math.max(1, barW - 2)}
                 height={h}
-                fill={isSwapped ? "#E8FF47" : isComparing ? "#FFB020" : "#3B4A0F"}
+                fill={isSwapped ? "#F5F5F5" : isComparing ? "#FFB020" : "#3B4A0F"}
               />
               <text x={x + barW / 2} y={H - 2} textAnchor="middle" fontSize="9" fill="#8A8A87" fontFamily="JetBrains Mono">
                 {v}

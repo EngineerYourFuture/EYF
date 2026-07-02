@@ -5,6 +5,7 @@ import { Card, Button, Badge, PageHeader, Skeleton } from "@eyf/ui";
 import { useApi, useApiAction } from "@/lib/use-api";
 import { toast } from "sonner";
 import { PageMotion } from "@/components/page-motion";
+import { Reveal } from "@/components/motion";
 import { Icons } from "@/components/icons";
 import { companyLabel } from "@/lib/company";
 
@@ -174,11 +175,11 @@ function PlanView({ roadmap, onRegenerate }: { roadmap: Roadmap; onRegenerate: (
         </div>
       </Card>
 
-      <div className="mt-8 space-y-3">
+      <Reveal className="mt-8 space-y-3">
         {plan.map((wk) => (
           <WeekCard key={wk.week} wk={wk} current={wk.week === currentWeek} />
         ))}
-      </div>
+      </Reveal>
 
       <div className="mt-8 flex items-center justify-between text-sm">
         <Link href="/today" className="text-accent hover:underline">Start today&apos;s tasks →</Link>

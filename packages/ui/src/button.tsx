@@ -1,7 +1,7 @@
 import { type ButtonHTMLAttributes, forwardRef } from "react";
 import { cn } from "./cn";
 
-type Variant = "primary" | "secondary" | "ghost" | "danger";
+type Variant = "primary" | "secondary" | "ghost" | "danger" | "brand";
 type Size = "sm" | "md" | "lg";
 
 export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
@@ -19,6 +19,8 @@ const variants: Record<Variant, string> = {
   secondary: "bg-surface-2 text-text-1 border border-border hover:border-edge hover:bg-surface-3",
   ghost:     "text-text-2 hover:text-text-1 hover:bg-surface-3",
   danger:    "bg-hard/10 text-hard border border-hard/30 hover:bg-hard/20",
+  // The ONE key action per screen — brand red, used sparingly.
+  brand:     "bg-brand text-brand-ink hover:bg-brand-hover",
 };
 
 const sizes: Record<Size, string> = {

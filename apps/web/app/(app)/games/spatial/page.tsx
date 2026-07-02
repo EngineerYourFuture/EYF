@@ -28,7 +28,7 @@ function mirror(cells: { x: number; y: number }[]) {
   return cells.map((c) => ({ x: maxX - c.x, y: c.y }));
 }
 
-function Tetromino({ cells, color = "#E8FF47" }: { cells: { x: number; y: number }[]; color?: string }) {
+function Tetromino({ cells, color = "#F5F5F5" }: { cells: { x: number; y: number }[]; color?: string }) {
   const maxX = Math.max(...cells.map((c) => c.x));
   const maxY = Math.max(...cells.map((c) => c.y));
   const w = (maxX + 1) * CELL;
