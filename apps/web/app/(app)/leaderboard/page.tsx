@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Card, Badge, PageHeader, Skeleton } from "@eyf/ui";
 import { useApi } from "@/lib/use-api";
 import { PageMotion } from "@/components/page-motion";
+import { Reveal } from "@/components/motion";
 import { Icons } from "@/components/icons";
 
 type Row = { rank: number; name: string; college: string | null; gradYear: number | null; level: number; value: number; isMe: boolean };
@@ -97,10 +98,10 @@ export default function Page() {
             )}
 
             {/* Ranked list */}
-            <div className="mt-5 space-y-2">
+            <Reveal className="mt-5 space-y-2">
               {data.rows.length === 0 && <Card><p className="text-text-3 text-sm">No one here yet — be the first.</p></Card>}
               {data.rows.map((r) => <RankRow key={r.rank} r={r} unit={unit} />)}
-            </div>
+            </Reveal>
           </>
         )}
       </div>

@@ -5,6 +5,7 @@ import { Button, Card, Badge, MetricTile, Meter, PageHeader, Skeleton } from "@e
 import { useApiAction } from "@/lib/use-api";
 import { track, Events } from "@/lib/analytics";
 import { PageMotion } from "@/components/page-motion";
+import { Reveal } from "@/components/motion";
 import { Icons } from "@/components/icons";
 
 type Q = { id: string; topic: string; area: string; difficulty: string; prompt: string; choices: string[] };
@@ -116,7 +117,7 @@ export default function Page() {
         </Card>
 
         {/* The loop made visible: this readout just moved your measured state. */}
-        <div className="mt-8">
+        <Reveal className="mt-8">
           <div className="flex items-center gap-2 mb-3">
             <span className="text-accent"><Icons.activity width={18} height={18} /></span>
             <h2 className="font-display text-lg font-bold">This just updated your map</h2>
@@ -129,7 +130,7 @@ export default function Page() {
             <NextStep href="/roadmap" icon="map" title="Generate roadmap"
               desc="Turn this readout into a week-by-week plan." primary />
           </div>
-        </div>
+        </Reveal>
       </PageMotion>
     );
   }
