@@ -116,5 +116,5 @@ export function ParticleField() {
     return () => { disposed = true; cleanup?.(); };
   }, []);
 
-  return <div ref={ref} aria-hidden className="fixed inset-0 -z-10 pointer-events-none" />;
+  return <div ref={ref} aria-hidden className="fixed inset-0 z-0 pointer-events-none" />;
 }
