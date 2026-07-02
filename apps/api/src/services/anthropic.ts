@@ -28,6 +28,35 @@ export async function generateProblemVariant(input: {
   return JSON.parse(text.slice(start, end + 1));
 }
 
+/**
+ * One-line personal coaching note for the guidance engine. Haiku (cheap/fast).
+ * The CALLER owns caching + the deterministic fallback — this throws if no key,
+ * exactly like the other functions here, so guidance.ts can catch and fall back
+ * to the deterministic action reason. Never blocks scoring.
+ */
+export async function generateCoachNote(input: {
+  band: string;
+  overall: number;
+  topAction: string;
+  topReason: string;
+  weakPillars: string; // e.g. "Problem Solving 40, Aptitude 20"
+}): Promise<string> {
+  if (!anthropic) throw new Error("ANTHROPIC_API_KEY not set");
+  const msg = await anthropic.messages.create({
+    model: MODEL_HAIKU,
+    max_tokens: 120,
+    system:
+      "You are a placement-prep coach for an Indian engineering student. Given their readiness snapshot, write ONE punchy, specific, encouraging sentence (max 30 words) telling them exactly what to do today and why it moves the needle. No preamble, no markdown, no emojis. Second person.",
+    messages: [
+      {
+        role: "user",
+        content: `Readiness ${input.overall}/100 (${input.band}). Weak pillars: ${input.weakPillars}. Next best action: ${input.topAction} — ${input.topReason}`,
+      },
+    ],
+  });
+  return msg.content.find((c) => c.type === "text")?.text?.trim() ?? "";
+}
+
 export async function generateHint(input: {
   problemTitle: string;
   problemDescription: string;

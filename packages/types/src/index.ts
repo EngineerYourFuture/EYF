@@ -132,3 +132,16 @@ export function levelForXp(xp: number): number {
   while (xpForLevel(l + 1) <= xp) l += 1;
   return l;
 }
+
+// Placement Readiness + Guidance intelligence layer (pure, shared web+api).
+// EXPLICIT named re-exports (not `export *`): esbuild transpiles each file
+// independently, so a star re-export can't be statically linked by Node's ESM
+// linker under `tsx watch` (static imports fail to bind). Explicit names + the
+// .js extension (tsx maps .js->.ts) link correctly at runtime.
+export { computeReadiness, rankActions } from "./readiness.js";
+export type {
+  ReadinessInput,
+  Readiness,
+  Pillar,
+  GuidanceAction,
+} from "./readiness.js";
