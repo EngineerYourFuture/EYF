@@ -14,6 +14,11 @@ const schema = z.object({
   JWT_ACCESS_SECRET: z.string().min(16),
   JWT_REFRESH_SECRET: z.string().min(16),
 
+  // Second gate on the admin portal: staff must enter this shared access code
+  // (on top of being logged in with a staff role) to reach /admin. Unset = gate
+  // disabled (dev). Set a strong value in production for defense-in-depth.
+  ADMIN_ACCESS_CODE: z.string().optional(),
+
   CLERK_SECRET_KEY: z.string().optional(),
   CLERK_PUBLISHABLE_KEY: z.string().optional(),
   CLERK_WEBHOOK_SECRET: z.string().optional(),
