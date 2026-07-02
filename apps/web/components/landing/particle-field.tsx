@@ -9,7 +9,7 @@
 import type * as THREE from "three";
 import { useEffect, useRef } from "react";
 
-const COUNT = 220;
+const COUNT = 340;
 
 export function ParticleField() {
   const ref = useRef<HTMLDivElement>(null);
@@ -45,8 +45,8 @@ export function ParticleField() {
       geo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
 
       const mat = new THREE.PointsMaterial({
-        color: new THREE.Color(0x2a2a28),
-        size: 0.14,
+        color: new THREE.Color(0x4a4a46),
+        size: 0.17,
         transparent: true,
         opacity: 0.9,
         sizeAttenuation: true,
@@ -55,14 +55,26 @@ export function ParticleField() {
       scene.add(points);
 
       const accent = new THREE.Color(0xf5f5f5);
-      const base = new THREE.Color(0x2a2a28);
+      const base = new THREE.Color(0x4a4a46);
       const tmp = new THREE.Color();
+
+      // Mouse parallax — the camera eases toward the cursor for a 3D, immersive
+      // sense of depth (the field feels like it has real volume behind it).
+      let mx = 0, my = 0;
+      function onMouse(e: MouseEvent) {
+        mx = e.clientX / window.innerWidth - 0.5;
+        my = e.clientY / window.innerHeight - 0.5;
+      }
+      if (!reduced) window.addEventListener("mousemove", onMouse);
 
       let raf = 0;
       let last = performance.now();
       function frame(now: number) {
         const dt = Math.min(0.05, (now - last) / 1000);
         last = now;
+        camera.position.x += (mx * 7 - camera.position.x) * 0.045;
+        camera.position.y += (-my * 4.5 - camera.position.y) * 0.045;
+        camera.lookAt(0, 0, 0);
         // Scroll progress 0..1 → particles drift faster + brighten toward accent.
         const sp = window.scrollY / Math.max(1, document.body.scrollHeight - window.innerHeight);
         const pos = geo.attributes.position as THREE.BufferAttribute;
@@ -73,10 +85,10 @@ export function ParticleField() {
           if ((arr[k] ?? 0) > 20) arr[k] = -20;
         }
         pos.needsUpdate = true;
-        tmp.copy(base).lerp(accent, sp * 0.5);
+        tmp.copy(base).lerp(accent, sp * 0.55);
         mat.color.copy(tmp);
-        mat.opacity = 0.5 + sp * 0.35;
-        points.rotation.y += dt * 0.02;
+        mat.opacity = 0.62 + sp * 0.3;
+        points.rotation.y += dt * 0.025;
         renderer.render(scene, camera);
         if (!reduced) raf = requestAnimationFrame(frame);
       }
@@ -93,6 +105,7 @@ export function ParticleField() {
       cleanup = () => {
         cancelAnimationFrame(raf);
         window.removeEventListener("resize", onResize);
+        window.removeEventListener("mousemove", onMouse);
         geo.dispose();
         mat.dispose();
         renderer.dispose();

@@ -33,7 +33,7 @@ function Parallax({ children, speed = 60, className }: { children: ReactNode; sp
 // ─── Scene 2 — THE DIAGNOSIS ──────────────────────────────────────
 function Diagnosis() {
   return (
-    <section className="relative min-h-[80vh] lg:min-h-screen flex items-center justify-center px-6 py-16 lg:py-0 overflow-hidden">
+    <section className="relative min-h-[68vh] lg:min-h-[80vh] flex items-center justify-center px-6 py-12 overflow-hidden">
       <div className="max-w-3xl">
         <Parallax speed={40}><Stat n="300" suffix=" problems solved." /></Parallax>
         <Parallax speed={100}><Stat n="0" suffix=" offers received." accentZero /></Parallax>
@@ -75,7 +75,7 @@ function Reveal() {
   const subOpacity = useTransform(p, [0.3, 0.6], [0, 1]);
   const sweep = useTransform(p, [0.45, 0.85], ["0%", "100%"]);
   return (
-    <section ref={ref} className="relative h-[200vh]">
+    <section ref={ref} className="relative h-[135vh]">
       <div className="sticky top-0 h-screen flex flex-col items-center justify-center px-6 text-center overflow-hidden">
         <motion.div style={reduce ? undefined : { scale, opacity: markOpacity, y: markY, filter: blur }}>
           <div className="font-display font-bold tracking-tight text-text-1" style={{ fontSize: "clamp(5rem, 22vw, 15rem)", lineHeight: 0.9 }}>
@@ -103,7 +103,7 @@ function TheMap() {
   const smooth = useSpring(scrollYProgress, { stiffness: 90, damping: 30 });
 
   return (
-    <section ref={ref} className="relative h-[170vh] lg:h-[320vh]">
+    <section ref={ref} className="relative h-[150vh] lg:h-[230vh]">
       <div className="sticky top-0 h-screen overflow-hidden">
         <Roadmap3D progress={smooth} />
         <div className="absolute inset-0 grid lg:grid-cols-2 pointer-events-none">
@@ -155,7 +155,7 @@ function Proof() {
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
   const x = useTransform(scrollYProgress, [0, 1], ["2%", "-70%"]);
   return (
-    <section ref={ref} className="relative h-[200vh] lg:h-[300vh]">
+    <section ref={ref} className="relative h-[170vh] lg:h-[230vh]">
       <div className="sticky top-0 h-screen flex flex-col justify-center overflow-hidden">
         <div className="px-6 sm:px-8 lg:px-16 mb-10">
           <h2 className="font-display text-3xl md:text-4xl font-bold tracking-tight">They started where you are.</h2>
@@ -205,7 +205,7 @@ function Features() {
   return (
     <section className="relative">
       {FEATURES.map((f, i) => (
-        <div key={f.kicker} className="min-h-[75vh] lg:min-h-screen flex items-center px-6 sm:px-8 lg:px-16 py-16 lg:py-0">
+        <div key={f.kicker} className="min-h-[68vh] lg:min-h-[84vh] flex items-center px-6 sm:px-8 lg:px-16 py-12">
           <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center max-w-6xl mx-auto w-full">
             <motion.div initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true, margin: "-120px" }} transition={{ duration: 0.7 }}
@@ -289,7 +289,7 @@ function Comparison() {
   const emerge = useTransform(scrollYProgress, [0.3, 1], [0, 1]);
   const tools = ["LeetCode", "GFG", "YouTube", "Telegram", "PDFs", "Notion"];
   return (
-    <section ref={ref} className="relative min-h-[80vh] lg:min-h-screen flex items-center justify-center px-6 py-16 lg:py-0">
+    <section ref={ref} className="relative min-h-[64vh] lg:min-h-[78vh] flex items-center justify-center px-6 py-12">
       <div className="max-w-4xl w-full text-center">
         <motion.div style={{ opacity: collapse }} className="flex flex-wrap justify-center gap-3 mb-8">
           {tools.map((t, i) => (
@@ -318,7 +318,7 @@ const TIERS = [
 ];
 function Pricing() {
   return (
-    <section className="relative min-h-screen flex items-center justify-center px-6 py-20 lg:py-24">
+    <section className="relative min-h-[88vh] flex items-center justify-center px-6 py-16">
       <div className="max-w-5xl w-full">
         <motion.h2 className="font-display text-3xl md:text-5xl font-bold tracking-tight text-center max-w-2xl mx-auto leading-tight"
           initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
@@ -360,7 +360,7 @@ function FinalCTA() {
   const ctaOpacity = useTransform(p, [0.45, 0.7], [0, 1]);
   const ctaY = useTransform(p, [0.45, 0.75], [32, 0]);
   return (
-    <section ref={ref} className="relative h-[180vh]">
+    <section ref={ref} className="relative h-[125vh]">
       <div className="sticky top-0 h-screen flex flex-col items-center justify-center px-6 text-center overflow-hidden">
         <motion.h2 className="font-display font-light tracking-tight leading-[1.05]" style={{ fontSize: "clamp(2.5rem, 9vw, 6rem)", ...(reduce ? {} : { scale, y, opacity }) }}>
           What&apos;s the cost<br />of not starting<br /><span className="text-brand">today?</span>

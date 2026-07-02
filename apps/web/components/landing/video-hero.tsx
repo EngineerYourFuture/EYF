@@ -24,7 +24,7 @@ export function VideoHero() {
   const line2 = "You're still not getting placed.".split(" ");
 
   return (
-    <section ref={ref} className="relative h-[120vh] lg:h-[170vh]">
+    <section ref={ref} className="relative h-[110vh] lg:h-[140vh]">
       <div className="sticky top-0 h-screen overflow-hidden">
         {/* Background — video when provided, animated aurora otherwise */}
         <motion.div className="absolute inset-0" style={{ scale: reduce ? 1 : bgScale }}>
