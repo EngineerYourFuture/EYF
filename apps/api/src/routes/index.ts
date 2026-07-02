@@ -40,6 +40,7 @@ import { guidanceRoutes } from "./guidance.js";
 import { adminContentRoutes } from "./admin-content.js";
 import { adminUsersRoutes } from "./admin-users.js";
 import { adminPaymentsRoutes } from "./admin-payments.js";
+import { adminAuditRoutes } from "./admin-audit.js";
 
 export async function registerRoutes(app: FastifyInstance) {
   await app.register(authRoutes,         { prefix: "/auth" });
@@ -77,6 +78,7 @@ export async function registerRoutes(app: FastifyInstance) {
   await app.register(adminContentRoutes, { prefix: "/admin/content" });
   await app.register(adminUsersRoutes,   { prefix: "/admin/users" });
   await app.register(adminPaymentsRoutes, { prefix: "/admin/payments" });
+  await app.register(adminAuditRoutes,   { prefix: "/admin/audit" });
   await app.register(missionRoutes,      { prefix: "/missions" });
   await app.register(leaderboardRoutes,  { prefix: "/leaderboard" });
   await app.register(experienceRoutes,   { prefix: "/experiences" });

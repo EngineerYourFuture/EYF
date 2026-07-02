@@ -12,6 +12,7 @@ const adminNav = [
   { href: "/admin/mentors",         label: "Mentor queue" },
   { href: "/admin/forum",           label: "Forum" },
   { href: "/admin/oa",              label: "OA reports" },
+  { href: "/admin/audit",           label: "Audit" },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

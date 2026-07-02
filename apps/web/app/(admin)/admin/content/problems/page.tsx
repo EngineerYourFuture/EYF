@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Card, Badge, Button, EmptyState, SkeletonRows } from "@eyf/ui";
 import { useApi, useApiAction } from "@/lib/use-api";
 import { Icons } from "@/components/icons";
+import { ContentTabs } from "../_tabs";
 
 const DIFFICULTIES = ["EASY", "MEDIUM", "HARD", "EXPERT"] as const;
 type Diff = (typeof DIFFICULTIES)[number];
@@ -113,8 +114,9 @@ export default function Page() {
         </div>
         <Button onClick={startNew}>+ New problem</Button>
       </div>
+      <ContentTabs />
 
-      <div className="mt-8 space-y-2">
+      <div className="mt-6 space-y-2">
         {!data && <SkeletonRows rows={4} />}
         {data?.map((p) => (
           <Card key={p.id} className="flex items-center gap-4 py-3">

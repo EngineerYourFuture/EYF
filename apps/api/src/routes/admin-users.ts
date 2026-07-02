@@ -8,6 +8,7 @@ import type { FastifyInstance, FastifyReply } from "fastify";
 import { z } from "zod";
 import { prisma, Role, PlanTier } from "@eyf/db";
 import { requirePermission } from "../middleware/permissions.js";
+import { recordAudit } from "../lib/audit.js";
 
 const badRequest = (reply: FastifyReply, msg: string) =>
   reply.code(400).send({ success: false, error: { code: "VALIDATION", message: msg } });
@@ -53,6 +54,7 @@ export async function adminUsersRoutes(app: FastifyInstance) {
     const u = await prisma.user.findUnique({ where: { id }, select: { id: true } });
     if (!u) return notFound(reply);
     await prisma.user.update({ where: { id }, data: { role: parsed.data.role } });
+    await recordAudit(req, { action: "role", entity: "user", entityId: id, summary: `Set role → ${parsed.data.role}` });
     return { success: true, data: { id, role: parsed.data.role } };
   });
 
@@ -68,6 +70,7 @@ export async function adminUsersRoutes(app: FastifyInstance) {
       create: { userId: id, plan: parsed.data.plan },
       update: { plan: parsed.data.plan },
     });
+    await recordAudit(req, { action: "plan", entity: "user", entityId: id, summary: `Set plan → ${parsed.data.plan}` });
     return { success: true, data: { id, plan: parsed.data.plan } };
   });
 
@@ -80,6 +83,7 @@ export async function adminUsersRoutes(app: FastifyInstance) {
     const u = await prisma.user.findUnique({ where: { id }, select: { id: true } });
     if (!u) return notFound(reply);
     await prisma.user.update({ where: { id }, data: { deletedAt: parsed.data.suspended ? new Date() : null } });
+    await recordAudit(req, { action: "status", entity: "user", entityId: id, summary: parsed.data.suspended ? "Suspended account" : "Restored account" });
     return { success: true, data: { id, suspended: parsed.data.suspended } };
   });
 }

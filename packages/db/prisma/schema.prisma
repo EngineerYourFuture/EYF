@@ -1176,3 +1176,21 @@ model ProjectPrep {
   @@index([userId, createdAt])
   @@map("project_preps")
 }
+
+// ─── Admin audit log ──────────────────────────────────────────────
+// Who did what in the staff back-office. Written best-effort by admin
+// mutations; viewing is gated on view:analytics (ADMIN only).
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String
+  actorEmail String
+  action     String   // create | update | delete | role | plan | status
+  entity     String   // problem | job | career-track | user
+  entityId   String
+  summary    String
+  createdAt  DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([entity])
+  @@map("audit_logs")
+}
