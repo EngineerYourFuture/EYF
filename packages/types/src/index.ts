@@ -146,3 +146,7 @@ export type {
   Pillar,
   GuidanceAction,
 } from "./readiness";
+
+// RBAC capability layer (admin/staff portal — scalable, shared web+api).
+export { CAPABILITIES, capabilitiesFor, hasCapability, isStaffRole } from "./permissions";
+export type { Capability, StaffRole } from "./permissions";

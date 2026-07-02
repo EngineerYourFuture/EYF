@@ -37,6 +37,7 @@ import { mcqRoutes } from "./mcq.js";
 import { communicationRoutes } from "./communication.js";
 import { projectPrepRoutes } from "./project-prep.js";
 import { guidanceRoutes } from "./guidance.js";
+import { adminContentRoutes } from "./admin-content.js";
 
 export async function registerRoutes(app: FastifyInstance) {
   await app.register(authRoutes,         { prefix: "/auth" });
@@ -71,6 +72,7 @@ export async function registerRoutes(app: FastifyInstance) {
   await app.register(companyRoutes,      { prefix: "/companies" });
   await app.register(skillGraphRoutes,   { prefix: "/skill-graph" });
   await app.register(guidanceRoutes,     { prefix: "/guidance" });
+  await app.register(adminContentRoutes, { prefix: "/admin/content" });
   await app.register(missionRoutes,      { prefix: "/missions" });
   await app.register(leaderboardRoutes,  { prefix: "/leaderboard" });
   await app.register(experienceRoutes,   { prefix: "/experiences" });

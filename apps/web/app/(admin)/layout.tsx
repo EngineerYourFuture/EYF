@@ -5,10 +5,11 @@ import { useEffect } from "react";
 import { useRole } from "@/lib/use-role";
 
 const adminNav = [
-  { href: "/admin",         label: "Overview" },
-  { href: "/admin/mentors", label: "Mentor queue" },
-  { href: "/admin/forum",   label: "Forum" },
-  { href: "/admin/oa",      label: "OA reports" },
+  { href: "/admin",                 label: "Overview" },
+  { href: "/admin/content/problems", label: "Content" },
+  { href: "/admin/mentors",         label: "Mentor queue" },
+  { href: "/admin/forum",           label: "Forum" },
+  { href: "/admin/oa",              label: "OA reports" },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
