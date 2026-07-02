@@ -6,6 +6,7 @@ import * as SecureStore from "expo-secure-store";
 import { useEffect } from "react";
 import { registerForPushNotificationsAsync } from "../lib/push";
 import { theme } from "../lib/theme";
+import { ScreenCaptureGuard } from "../components/screen-capture-guard";
 
 function PushRegistrar() {
   const { isSignedIn } = useAuth();
@@ -26,6 +27,7 @@ export default function RootLayout() {
   return (
     <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY} tokenCache={tokenCache}>
       <SafeAreaProvider>
+        <ScreenCaptureGuard />
         <PushRegistrar />
         <StatusBar style="light" />
         <Stack
