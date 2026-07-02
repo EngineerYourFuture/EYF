@@ -128,7 +128,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       <main className="min-h-screen min-w-0 overflow-x-hidden">
         <DesktopBackBar />
-        {children}
+        {/* Route transition — content fades + rises in on every navigation. */}
+        <motion.div
+          key={pathname}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.34, ease: [0.16, 1, 0.3, 1] }}
+        >
+          {children}
+        </motion.div>
       </main>
 
       <CommandPalette />
