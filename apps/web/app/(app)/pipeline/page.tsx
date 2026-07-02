@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Card, Badge, Button, PageHeader, SkeletonRows, EmptyState } from "@eyf/ui";
 import { useApi, useApiAction } from "@/lib/use-api";
 import { PageMotion } from "@/components/page-motion";
+import { Reveal } from "@/components/motion";
 import { Icons, type IconName } from "@/components/icons";
 
 type App = {
@@ -107,6 +108,7 @@ export default function PipelinePage() {
       )}
 
       {closed.length > 0 && (
+        <Reveal>
         <details className="mt-8 group">
           <summary className="cursor-pointer text-text-3 hover:text-text-1 text-sm select-none">
             Closed ({closed.length}) — rejected &amp; withdrawn
@@ -124,6 +126,7 @@ export default function PipelinePage() {
             ))}
           </div>
         </details>
+        </Reveal>
       )}
     </PageMotion>
   );

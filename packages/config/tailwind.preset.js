@@ -37,6 +37,12 @@ module.exports = {
           tint:    v("accent-tint"),
           ink:     v("accent-ink"), // readable text color ON an accent fill
         },
+        // Brand red — the ONE accent, used sparingly (key CTA, active state, logo).
+        brand: {
+          DEFAULT: v("brand"),
+          hover:   v("brand-hover"),
+          ink:     v("brand-ink"),
+        },
         // semantic difficulty / status
         easy:    v("easy"),
         medium:  v("medium"),
@@ -45,9 +51,9 @@ module.exports = {
         info:    v("info"),
       },
       fontFamily: {
-        display: ["Geist", "Inter", "ui-sans-serif", "system-ui"],
-        sans:    ["Inter", "ui-sans-serif", "system-ui"],
-        mono:    ["JetBrains Mono", "Fira Code", "ui-monospace", "monospace"],
+        display: ["Geist", "ui-sans-serif", "system-ui"],
+        sans:    ["Geist", "ui-sans-serif", "system-ui"],
+        mono:    ["Geist Mono", "JetBrains Mono", "ui-monospace", "monospace"],
       },
       spacing: {
         "4.5": "1.125rem",
@@ -65,20 +71,22 @@ module.exports = {
         prose: "68ch",
       },
       boxShadow: {
-        // subtle elevation that reads on both themes (var-driven)
+        // Neutral, physical elevation (no colored glow — premium restraint).
         card:       "0 1px 2px rgb(var(--shadow) / 0.30), 0 8px 24px -12px rgb(var(--shadow) / 0.45)",
         "card-lg":  "0 1px 2px rgb(var(--shadow) / 0.30), 0 24px 48px -16px rgb(var(--shadow) / 0.55)",
-        // accent glow for hero / interactive moments
-        glow:       "0 0 0 1px rgb(var(--accent) / 0.25), 0 8px 40px -8px rgb(var(--accent) / 0.35)",
-        "glow-sm":  "0 0 24px -6px rgb(var(--accent) / 0.45)",
+        // "glow" kept as an alias for back-compat but neutralized (no neon).
+        glow:       "0 1px 2px rgb(var(--shadow) / 0.30), 0 12px 40px -12px rgb(var(--shadow) / 0.55)",
+        "glow-sm":  "0 8px 24px -10px rgb(var(--shadow) / 0.5)",
         inset:      "inset 0 1px 0 0 rgb(var(--hairline) / 0.06)",
       },
       backgroundImage: {
-        // tasteful, restrained gradients (the "vibrant" layer)
-        "accent-grad": "linear-gradient(135deg, rgb(var(--accent)) 0%, rgb(var(--accent-hover)) 100%)",
+        // Monochrome only — no colored/decorative gradients. accent-grad and
+        // glow-radial kept as neutral aliases (back-compat) so existing usages
+        // degrade to premium monochrome instead of vanishing.
+        "accent-grad":  "linear-gradient(135deg, rgb(var(--accent)) 0%, rgb(var(--accent-hover)) 100%)",
         "surface-grad": "linear-gradient(180deg, rgb(var(--surface-2)) 0%, rgb(var(--surface)) 100%)",
-        "glow-radial": "radial-gradient(60% 80% at 50% 0%, rgb(var(--accent) / 0.10) 0%, transparent 70%)",
-        "hairline":   "linear-gradient(90deg, transparent, rgb(var(--border-2)), transparent)",
+        "glow-radial":  "radial-gradient(60% 80% at 50% 0%, rgb(var(--hairline) / 0.05) 0%, transparent 70%)",
+        "hairline":     "linear-gradient(90deg, transparent, rgb(var(--border-2)), transparent)",
       },
       keyframes: {
         "fade-up": {

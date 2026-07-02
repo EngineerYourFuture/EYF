@@ -1,7 +1,7 @@
 "use client";
 /**
  * Scene 4 — THE MAP (spec Doc 03). A 3D roadmap of 9 nodes the camera travels
- * as the user scrolls. Nodes light up in #E8FF47 as the camera passes them.
+ * as the user scrolls. Nodes light up in #F5F5F5 as the camera passes them.
  * `progress` (0..1) is driven by the parent's scroll position.
  */
 import { useEffect, useRef } from "react";
@@ -69,10 +69,10 @@ export function Roadmap3D({ progress }: { progress: MotionValue<number> }) {
       });
 
       scene.add(new THREE.AmbientLight(0xffffff, 0.5));
-      const key = new THREE.PointLight(0xe8ff47, 1.2, 60);
+      const key = new THREE.PointLight(0xf5f5f5, 1.2, 60);
       scene.add(key);
 
-      const accent = new THREE.Color(0xe8ff47);
+      const accent = new THREE.Color(0xf5f5f5);
       const dim = new THREE.Color(0x1c1c1c);
 
       let raf = 0;

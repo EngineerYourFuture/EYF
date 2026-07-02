@@ -22,7 +22,7 @@ const HAS_REAL_CLERK = !!PK && PK !== "pk_test_replace" && PK !== "pk_test_ZGV2L
 
 const clerkAppearance = {
   variables: {
-    colorPrimary: "#E8FF47",
+    colorPrimary: "#F5F5F5",
     colorBackground: "#0A0A0A",
     colorText: "#FAFAF9",
     colorInputBackground: "#111111",
@@ -39,7 +39,7 @@ function Shell({ children }: { children: React.ReactNode }) {
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
           rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap"
         />
       </head>
       <body>

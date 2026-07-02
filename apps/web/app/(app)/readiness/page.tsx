@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { Card, Button, Badge, Meter, PageHeader, Skeleton } from "@eyf/ui";
 import { PageMotion } from "@/components/page-motion";
+import { Reveal } from "@/components/motion";
 import { Icons } from "@/components/icons";
 import { useGuidance } from "@/lib/use-guidance";
 import { companyReadiness, readinessBand, tierOf, TIER_PROFILES, SPOTLIGHT_COMPANIES } from "@/lib/company-readiness";
@@ -77,7 +78,7 @@ export default function Page() {
             </div>
 
             {/* Do this next */}
-            <div className="mt-8">
+            <Reveal className="mt-8">
               <h2 className="font-display text-xl font-bold mb-4">Do this next</h2>
               {r.nextActions.length === 0 ? (
                 <Card className="flex items-center gap-3">
@@ -106,10 +107,10 @@ export default function Page() {
                   })}
                 </div>
               )}
-            </div>
+            </Reveal>
 
             {/* Am I ready for…? — per-company readiness */}
-            <CompanyBoard r={r} />
+            <Reveal><CompanyBoard r={r} /></Reveal>
 
             <p className="text-text-4 text-xs mt-8 max-w-2xl">
               Your readiness updates automatically as you solve problems, take mocks, score your resume, ship projects, and keep your streak.

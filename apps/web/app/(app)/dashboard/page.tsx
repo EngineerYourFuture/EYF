@@ -4,6 +4,7 @@ import { Card, Badge, Button, Skeleton } from "@eyf/ui";
 import { useApi } from "@/lib/use-api";
 import { Heatmap } from "@/components/heatmap";
 import { PageMotion } from "@/components/page-motion";
+import { Reveal } from "@/components/motion";
 import { Icons, type IconName } from "@/components/icons";
 import { useGuidance, type Guidance } from "@/lib/use-guidance";
 import { PERSONAS, type PersonaId } from "@/lib/persona";
@@ -113,7 +114,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Quick actions */}
-        <div className="mt-10">
+        <Reveal className="mt-10">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-display text-xl font-bold">Jump back in</h2>
             <Link href="/assessment" className="text-sm text-accent hover:underline">Take assessment →</Link>
@@ -121,10 +122,11 @@ export default function DashboardPage() {
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
             {QUICK_ACTIONS.map((q) => <QuickAction key={q.href} {...q} />)}
           </div>
-        </div>
+        </Reveal>
 
         {/* Activity */}
-        <Card className="mt-8">
+        <Reveal className="mt-8">
+        <Card>
           <div className="flex items-center justify-between">
             <h2 className="font-display text-xl font-bold">Activity</h2>
             <span className="text-text-3 text-xs font-mono">past 12 months</span>
@@ -140,9 +142,11 @@ export default function DashboardPage() {
             <span>More</span>
           </div>
         </Card>
+        </Reveal>
 
         {gam && gam.badges.length > 0 && (
-          <Card className="mt-5">
+          <Reveal className="mt-5">
+          <Card>
             <h2 className="font-display text-xl font-bold mb-4">Your badges</h2>
             <div className="flex flex-wrap gap-3">
               {gam.badges.map((b) => (
@@ -156,6 +160,7 @@ export default function DashboardPage() {
               ))}
             </div>
           </Card>
+          </Reveal>
         )}
       </div>
     </PageMotion>

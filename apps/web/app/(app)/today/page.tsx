@@ -5,6 +5,7 @@ import { Card, Badge, Button, Skeleton } from "@eyf/ui";
 import { useApi, useApiAction } from "@/lib/use-api";
 import { toast } from "sonner";
 import { PageMotion } from "@/components/page-motion";
+import { Reveal } from "@/components/motion";
 import { Icons, type IconName } from "@/components/icons";
 import { useGuidance, type Guidance } from "@/lib/use-guidance";
 
@@ -139,7 +140,7 @@ export default function Page() {
 
         {/* Application deadlines */}
         {deadlines.length > 0 && (
-          <Card className="mt-6">
+          <Reveal className="mt-6"><Card>
             <div className="flex items-center justify-between mb-3">
               <h2 className="font-display text-lg font-bold flex items-center gap-2">
                 <span className="text-hard"><Icons.gauge width={18} height={18} /></span> Deadlines this week
@@ -160,7 +161,7 @@ export default function Page() {
                 </Link>
               ))}
             </div>
-          </Card>
+          </Card></Reveal>
         )}
 
         <div className="mt-4 flex items-center justify-between text-sm">

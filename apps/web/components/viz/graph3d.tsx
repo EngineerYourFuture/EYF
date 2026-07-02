@@ -101,7 +101,7 @@ export function Graph3D() {
       scene.add(group);
       const sphere = new THREE.SphereGeometry(0.45, 24, 24);
       const off = new THREE.MeshStandardMaterial({ color: 0xfafaf9, emissive: 0x111111 });
-      const on  = new THREE.MeshStandardMaterial({ color: 0xe8ff47, emissive: 0xe8ff47, emissiveIntensity: 0.7 });
+      const on  = new THREE.MeshStandardMaterial({ color: 0xf5f5f5, emissive: 0xf5f5f5, emissiveIntensity: 0.7 });
       const meshes: THREE.Mesh[] = [];
       for (let i = 0; i < SAMPLE.nodes; i++) {
         const m = new THREE.Mesh(sphere, off);
@@ -118,7 +118,7 @@ export function Graph3D() {
       }
 
       scene.add(new THREE.AmbientLight(0xffffff, 0.6));
-      const key = new THREE.DirectionalLight(0xe8ff47, 0.7);
+      const key = new THREE.DirectionalLight(0xf5f5f5, 0.7);
       key.position.set(5, 5, 8);
       scene.add(key);
 
