@@ -64,6 +64,25 @@ Almost nothing genuinely left; the pillars, retention loop, guidance, admin, and
 
 ---
 
+## Security — MUST verify before exposing to the internet
+
+A `/cso` audit found the app solid (CORS restricted, rate-limited, IDOR-scoped, webhook
+signatures verified, no raw SQL) with one critical config trap, now fixed in code but
+still requiring correct deploy env:
+
+- [ ] **`DEV_LOGIN_ENABLED` is UNSET in production.** dev-login (passwordless admin login
+  by email) is now fail-closed — off unless this flag is `true`. Never set it in prod.
+  Set it to `true` only in local `.env`. (Was: exposed unauthenticated admin takeover if
+  `NODE_ENV` wasn't `production`.)
+- [ ] **`NODE_ENV=production`** on the deployed API (second guard on dev-login).
+- [ ] **`JWT_ACCESS_SECRET` / `JWT_REFRESH_SECRET` are 32+ chars**, generated with
+  `openssl rand -hex 32` (enforced by env validation now).
+- [ ] **`API_CORS_ORIGINS`** set to your real web domain (not the localhost default).
+- [ ] **Enable MFA for staff (ADMIN / CONTENT_CREATOR) in Clerk** — admin access is a
+  role claim; a second factor is the real gate on the back-office.
+- [ ] Note: env lives in TWO files locally (`apps/api/.env` for the API, root `.env`
+  symlinked into `packages/db`). In prod, set vars in the platform's env UI, not files.
+
 ## Go-live verification (after keys + deploy)
 - [ ] Real Clerk signup → land on dashboard (dev-login disabled in prod)
 - [ ] Solve a problem → Judge0 returns a verdict
