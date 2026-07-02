@@ -3,6 +3,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useRole } from "@/lib/use-role";
+import { useAdminGate, AdminGate } from "@/components/admin-gate";
 
 const adminNav = [
   { href: "/admin",                 label: "Overview" },
@@ -17,6 +18,7 @@ const adminNav = [
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { loading, isStaff } = useRole();
+  const gate = useAdminGate(!loading && isStaff);
   const router = useRouter();
   const pathname = usePathname();
 
@@ -38,6 +40,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
       </div>
     );
+  }
+
+  // Second factor: the admin access-code gate (when configured server-side).
+  if (gate.loading) {
+    return <div className="min-h-screen grid place-items-center text-text-3">Checking access…</div>;
+  }
+  if (gate.required && !gate.passed) {
+    return <AdminGate onPassed={() => gate.refresh()} />;
   }
 
   return (

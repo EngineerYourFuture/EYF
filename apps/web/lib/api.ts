@@ -27,11 +27,15 @@ export async function fetchApi<T = unknown>(
   // Fastify rejects an empty body when content-type is application/json — which
   // would 400 every body-less POST (mock end, booking, roast, etc.).
   const hasBody = rest.body != null;
+  // Admin access-gate token (set after passing the /admin gate). Harmless on
+  // non-admin routes; the API only checks it on capability-gated admin routes.
+  const gate = typeof window !== "undefined" ? window.sessionStorage.getItem("eyf-admin-gate") : null;
   const res = await fetch(`${BASE}${path}`, {
     ...rest,
     headers: {
       ...(hasBody ? { "content-type": "application/json" } : {}),
       ...(token ? { authorization: `Bearer ${token}` } : {}),
+      ...(gate ? { "x-admin-gate": gate } : {}),
       ...headers,
     },
     cache: "no-store",
