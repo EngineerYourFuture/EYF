@@ -8,6 +8,7 @@ const adminNav = [
   { href: "/admin",                 label: "Overview" },
   { href: "/admin/content/problems", label: "Content" },
   { href: "/admin/users",           label: "Users" },
+  { href: "/admin/payments",        label: "Payments" },
   { href: "/admin/mentors",         label: "Mentor queue" },
   { href: "/admin/forum",           label: "Forum" },
   { href: "/admin/oa",              label: "OA reports" },
