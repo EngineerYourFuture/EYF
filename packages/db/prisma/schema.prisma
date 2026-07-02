@@ -220,6 +220,7 @@ model User {
   solutions       ProblemSolution[]
   roadmaps        UserRoadmap[]
   streaks         DailyStreak[]
+  sessions        UserSession[]
   assessments     AssessmentSession[]
   cognitive       CognitiveSession[]
   mocksAsCandidate MockSession[]    @relation("mock_candidate")
@@ -1193,4 +1194,22 @@ model AuditLog {
   @@index([createdAt])
   @@index([entity])
   @@map("audit_logs")
+}
+
+// ─── Active sessions (account-sharing control) ────────────────────
+// One row per active device/login. The JWT carries this row's id as `sid`;
+// the auth middleware rejects tokens whose session was evicted. Login caps
+// concurrent sessions per user, evicting the oldest — so a shared account
+// can't be used on unlimited devices at once.
+model UserSession {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userAgent  String?
+  ip         String?
+  createdAt  DateTime @default(now())
+  lastSeenAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@map("user_sessions")
 }

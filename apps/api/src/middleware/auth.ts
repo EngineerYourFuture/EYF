@@ -40,7 +40,21 @@ async function resolveSession(
   }
 
   try {
-    return app.jwt.verify<SessionUser>(token) as SessionUser;
+    const session = app.jwt.verify<SessionUser & { sid?: string }>(token) as SessionUser & { sid?: string };
+    // Account-sharing control: a token carrying a `sid` is only valid while that
+    // session row exists. Evicting the row (via the concurrent-session cap on a
+    // new login) invalidates the token → that device is forced to re-auth.
+    if (session.sid) {
+      const active = await prisma.userSession.findUnique({
+        where: { id: session.sid }, select: { id: true, lastSeenAt: true },
+      });
+      if (!active) return null;
+      // Throttle the lastSeenAt write to at most once every 5 minutes.
+      if (Date.now() - active.lastSeenAt.getTime() > 5 * 60 * 1000) {
+        void prisma.userSession.update({ where: { id: session.sid }, data: { lastSeenAt: new Date() } }).catch(() => {});
+      }
+    }
+    return session;
   } catch {
     return null;
   }

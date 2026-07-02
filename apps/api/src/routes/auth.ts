@@ -5,6 +5,10 @@ import { prisma } from "@eyf/db";
 import { env } from "../env.js";
 import { upsertUserFromClerk } from "../services/clerk.js";
 
+// Concurrent-session cap per account (account-sharing control). A login beyond
+// this evicts the oldest session, logging that device out.
+const MAX_SESSIONS = 3;
+
 export async function authRoutes(app: FastifyInstance) {
   // ─── Dev-only: log in seed users by email ───────────────────────
   app.post("/dev-login", async (req, reply) => {
@@ -23,12 +27,26 @@ export async function authRoutes(app: FastifyInstance) {
       });
     }
     const plan = (user.subscription?.plan ?? "FREE").toLowerCase();
+
+    // Evict the oldest sessions so this login stays within the cap.
+    const existing = await prisma.userSession.findMany({
+      where: { userId: user.id }, orderBy: { createdAt: "asc" }, select: { id: true },
+    });
+    const overflow = existing.length - (MAX_SESSIONS - 1);
+    if (overflow > 0) {
+      await prisma.userSession.deleteMany({ where: { id: { in: existing.slice(0, overflow).map((s) => s.id) } } });
+    }
+    const sess = await prisma.userSession.create({
+      data: { userId: user.id, userAgent: (req.headers["user-agent"] as string | undefined) ?? null, ip: req.ip },
+    });
+
     const token = await reply.jwtSign({
       id: user.id,
       email: user.email,
       name: user.name,
       role: user.role,
       plan,
+      sid: sess.id,
     });
     return reply.send({
       success: true,
