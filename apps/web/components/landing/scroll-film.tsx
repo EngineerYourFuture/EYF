@@ -205,7 +205,7 @@ function Features() {
   return (
     <section className="relative">
       {FEATURES.map((f, i) => (
-        <div key={f.kicker} className="min-h-[68vh] lg:min-h-[84vh] flex items-center px-6 sm:px-8 lg:px-16 py-12">
+        <div key={f.kicker} className="min-h-[50vh] lg:min-h-[62vh] flex items-center px-6 sm:px-8 lg:px-16 py-10 lg:py-14">
           <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center max-w-6xl mx-auto w-full">
             <motion.div initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true, margin: "-120px" }} transition={{ duration: 0.7 }}
@@ -217,7 +217,7 @@ function Features() {
             </motion.div>
             <motion.div initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true, margin: "-120px" }} transition={{ duration: 0.8 }}
-              className={`${i % 2 ? "lg:order-1" : ""} relative aspect-square overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-surface to-bg grid place-items-center`}>
+              className={`${i % 2 ? "lg:order-1" : ""} relative aspect-[4/3] overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-surface to-bg grid place-items-center`}>
               <div className="pointer-events-none absolute -inset-px rounded-2xl bg-gradient-to-br from-accent/15 via-transparent to-transparent" />
               <div className="pointer-events-none absolute inset-0 opacity-[0.05]"
                 style={{ backgroundImage: "radial-gradient(rgba(255, 255, 255,0.8) 1px, transparent 1px)", backgroundSize: "22px 22px" }} />
