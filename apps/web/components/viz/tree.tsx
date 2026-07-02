@@ -93,7 +93,7 @@ export function TreeViz() {
           const isHighlighted = highlightIdx >= 0 && traversal[highlightIdx] === v;
           return (
             <g key={v}>
-              <circle cx={p.x} cy={p.y} r={14} fill={isHighlighted ? "#E8FF47" : "#111111"} stroke="#E8FF47" strokeWidth={isHighlighted ? 2 : 1} />
+              <circle cx={p.x} cy={p.y} r={14} fill={isHighlighted ? "#F5F5F5" : "#111111"} stroke="#F5F5F5" strokeWidth={isHighlighted ? 2 : 1} />
               <text x={p.x} y={p.y + 4} textAnchor="middle" fontSize="11" fill={isHighlighted ? "#0A0A0A" : "#FAFAF9"} fontFamily="JetBrains Mono">{v}</text>
             </g>
           );

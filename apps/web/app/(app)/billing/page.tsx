@@ -45,7 +45,7 @@ export default function Page() {
         name: "EYF",
         description: `${planId.toUpperCase()} · ${interval}`,
         order_id: order.orderId,
-        theme: { color: "#E8FF47" },
+        theme: { color: "#F5F5F5" },
         handler: async (response: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string }) => {
           await action("/billing/confirm", {
             method: "POST",

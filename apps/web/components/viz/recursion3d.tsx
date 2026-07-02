@@ -83,7 +83,7 @@ export function Recursion3D() {
         scene.add(group);
 
         const sphereGeo = new THREE.SphereGeometry(0.35, 24, 24);
-        const accentMat = new THREE.MeshStandardMaterial({ color: 0xe8ff47, emissive: 0xe8ff47, emissiveIntensity: 0.4 });
+        const accentMat = new THREE.MeshStandardMaterial({ color: 0xf5f5f5, emissive: 0xf5f5f5, emissiveIntensity: 0.4 });
         const baseMat = new THREE.MeshStandardMaterial({ color: 0xfafaf9, emissive: 0x111111 });
         const lineMat = new THREE.LineBasicMaterial({ color: 0x3b4a0f });
 
@@ -107,7 +107,7 @@ export function Recursion3D() {
         visit(tree);
 
         scene.add(new THREE.AmbientLight(0xffffff, 0.6));
-        const key = new THREE.DirectionalLight(0xe8ff47, 0.8);
+        const key = new THREE.DirectionalLight(0xf5f5f5, 0.8);
         key.position.set(5, 10, 7);
         scene.add(key);
 

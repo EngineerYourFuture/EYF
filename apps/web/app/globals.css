@@ -19,23 +19,30 @@
     --border:      28 28 28;
     --border-2:    42 42 42;
 
-    --text-1:      250 250 249;
-    --text-2:      201 201 199;
-    --text-3:      138 138 135;
-    --text-4:      90 90 87;
+    --text-1:      245 245 245;
+    --text-2:      168 168 170;
+    --text-3:      120 120 122;
+    --text-4:      82 82 84;
 
-    --accent:      232 255 71;   /* neon lime */
-    --accent-hover:184 204 56;
-    --accent-tint: 26 31 0;
-    --accent-ink:  10 10 10;     /* text on an accent fill */
+    /* Monochrome primary — near-white. Primary buttons/links read premium, not neon. */
+    --accent:      245 245 245;
+    --accent-hover:214 214 214;
+    --accent-tint: 30 30 30;
+    --accent-ink:  10 10 10;     /* dark text on the white primary */
 
-    --easy:        0 255 135;
-    --medium:      255 176 32;
-    --hard:        255 69 0;
-    --expert:      255 0 128;
-    --info:        56 189 248;
+    /* Brand red — the ONE accent, used sparingly (~5%): key CTA, active state, logo. */
+    --brand:       232 25 44;    /* #E8192C */
+    --brand-hover: 200 20 38;
+    --brand-ink:   255 255 255;
 
-    --shadow:      0 0 0;        /* boxShadow base */
+    /* Muted functional scale — refined data, never candy. */
+    --easy:        90 190 120;
+    --medium:      200 160 70;
+    --hard:        210 90 70;
+    --expert:      176 112 160;
+    --info:        120 150 190;
+
+    --shadow:      0 0 0;        /* boxShadow base (neutral) */
     --hairline:    255 255 255;  /* inset top highlight */
   }
 
@@ -50,21 +57,26 @@
     --border:      228 228 222;
     --border-2:    214 214 206;
 
-    --text-1:      24 24 27;
-    --text-2:      55 55 62;
-    --text-3:      107 110 120;
-    --text-4:      150 152 162;
+    --text-1:      18 18 20;
+    --text-2:      70 70 74;
+    --text-3:      120 120 124;
+    --text-4:      160 160 164;
 
-    --accent:      54 83 20;     /* deep botanical lime — readable on white */
-    --accent-hover:63 98 18;
-    --accent-tint: 236 244 209;
-    --accent-ink:  255 255 255;  /* text on the deep-lime fill */
+    /* Monochrome primary — near-black on white. */
+    --accent:      18 18 20;
+    --accent-hover:40 40 44;
+    --accent-tint: 240 240 238;
+    --accent-ink:  255 255 255;  /* white text on the near-black primary */
 
-    --easy:        4 160 80;
-    --medium:      193 120 0;
-    --hard:        205 50 0;
-    --expert:      200 0 100;
-    --info:        2 132 199;
+    --brand:       212 18 36;    /* red, slightly deeper for white bg */
+    --brand-hover: 184 14 30;
+    --brand-ink:   255 255 255;
+
+    --easy:        40 150 90;
+    --medium:      170 120 20;
+    --hard:        190 60 45;
+    --expert:      150 80 140;
+    --info:        60 110 170;
 
     --shadow:      24 24 27;
     --hairline:    255 255 255;
@@ -77,14 +89,15 @@
     --bg: 10 10 10; --bg-2: 14 14 14;
     --surface: 17 17 17; --surface-2: 22 22 22; --surface-3: 30 30 30;
     --border: 28 28 28; --border-2: 42 42 42;
-    --text-1: 250 250 249; --text-2: 201 201 199; --text-3: 138 138 135; --text-4: 90 90 87;
-    --accent: 232 255 71; --accent-hover: 184 204 56; --accent-tint: 26 31 0; --accent-ink: 10 10 10;
-    --easy: 0 255 135; --medium: 255 176 32; --hard: 255 69 0; --expert: 255 0 128; --info: 56 189 248;
+    --text-1: 245 245 245; --text-2: 168 168 170; --text-3: 120 120 122; --text-4: 82 82 84;
+    --accent: 245 245 245; --accent-hover: 214 214 214; --accent-tint: 30 30 30; --accent-ink: 10 10 10;
+    --brand: 232 25 44; --brand-hover: 200 20 38; --brand-ink: 255 255 255;
+    --easy: 90 190 120; --medium: 200 160 70; --hard: 210 90 70; --expert: 176 112 160; --info: 120 150 190;
     --shadow: 0 0 0; --hairline: 255 255 255;
   }
 
   html, body {
-    @apply bg-bg text-text-1;
+    @apply bg-bg text-text-1 font-sans;
     font-feature-settings: "ss01", "cv11";
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;

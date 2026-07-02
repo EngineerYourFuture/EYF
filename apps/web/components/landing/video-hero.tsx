@@ -71,7 +71,7 @@ export function VideoHero() {
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.45, duration: 0.6 }}
             className="mt-9 flex flex-col items-center">
             <Link href="/dashboard">
-              <Button size="lg" className="text-base px-9 shadow-[0_0_45px_rgba(232,255,71,0.32)]">Start your path →</Button>
+              <Button variant="brand" size="lg" className="text-base px-9">Start your path →</Button>
             </Link>
             <div className="mt-4 text-text-4 text-xs font-mono">14,847 students preparing right now</div>
           </motion.div>
@@ -99,24 +99,18 @@ function Word({ children, delay }: { children: ReactNode; delay: number }) {
 }
 
 function Aurora({ reduce }: { reduce: boolean }) {
+  // Monochrome depth — no colored blobs. A single faint white light drifts
+  // slowly over near-black, with a fine grid and edge vignette. Premium, quiet.
   return (
     <div className="absolute inset-0 bg-bg overflow-hidden">
-      <motion.div className="absolute -top-[20%] -left-[5%] h-[75vh] w-[75vh] rounded-full blur-[110px]"
-        style={{ background: "radial-gradient(circle, rgba(232,255,71,0.38), transparent 62%)" }}
-        animate={reduce ? {} : { x: [0, 70, -20, 0], y: [0, 50, 25, 0] }}
-        transition={{ duration: 22, repeat: Infinity, ease: "easeInOut" }} />
-      <motion.div className="absolute top-[10%] right-[-8%] h-[68vh] w-[68vh] rounded-full blur-[120px]"
-        style={{ background: "radial-gradient(circle, rgba(170,190,70,0.32), transparent 62%)" }}
-        animate={reduce ? {} : { x: [0, -60, 30, 0], y: [0, -30, 40, 0] }}
-        transition={{ duration: 26, repeat: Infinity, ease: "easeInOut" }} />
-      <motion.div className="absolute -bottom-[15%] left-[28%] h-[62vh] w-[62vh] rounded-full blur-[130px]"
-        style={{ background: "radial-gradient(circle, rgba(232,255,71,0.22), transparent 62%)" }}
-        animate={reduce ? {} : { x: [0, 50, -50, 0], y: [0, -20, 20, 0] }}
-        transition={{ duration: 30, repeat: Infinity, ease: "easeInOut" }} />
+      <motion.div className="absolute -top-[25%] left-1/2 -translate-x-1/2 h-[85vh] w-[85vh] rounded-full blur-[130px]"
+        style={{ background: "radial-gradient(circle, rgba(255,255,255,0.06), transparent 60%)" }}
+        animate={reduce ? {} : { x: [0, 40, -30, 0], y: [0, 30, 10, 0] }}
+        transition={{ duration: 28, repeat: Infinity, ease: "easeInOut" }} />
       {/* fine grid texture + gentle edge vignette */}
-      <div className="absolute inset-0 opacity-[0.06]"
-        style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.6) 1px, transparent 1px)", backgroundSize: "56px 56px" }} />
-      <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at center, transparent 55%, rgba(10,10,10,0.6))" }} />
+      <div className="absolute inset-0 opacity-[0.05]"
+        style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.6) 1px, transparent 1px)", backgroundSize: "64px 64px" }} />
+      <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at center, transparent 50%, rgba(10,10,10,0.75))" }} />
     </div>
   );
 }

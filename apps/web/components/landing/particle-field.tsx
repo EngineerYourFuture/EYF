@@ -54,7 +54,7 @@ export function ParticleField() {
       const points = new THREE.Points(geo, mat);
       scene.add(points);
 
-      const accent = new THREE.Color(0xe8ff47);
+      const accent = new THREE.Color(0xf5f5f5);
       const base = new THREE.Color(0x2a2a28);
       const tmp = new THREE.Color();
 
