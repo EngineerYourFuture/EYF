@@ -162,6 +162,8 @@ export function Graph3D() {
     })();
 
     return () => { cancelled = true; dispose?.(); };
+    // Scene is keyed on `order` only — rebuilding it on every `step` would be wrong and costly.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [order]);
 
   // Push step into the canvas via data attribute (avoids re-init of Three scene).

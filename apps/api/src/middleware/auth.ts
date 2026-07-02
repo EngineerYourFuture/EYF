@@ -3,7 +3,7 @@ import fp from "fastify-plugin";
 import type { Plan, SessionUser } from "@eyf/types";
 import { meetsPlan } from "@eyf/types";
 import { prisma } from "@eyf/db";
-import { verifyClerkSession } from "../services/clerk.js";
+import { verifyClerkSession, hasRealClerk } from "../services/clerk.js";
 import { env } from "../env.js";
 
 function planFromTier(tier: string): Plan {
@@ -18,7 +18,7 @@ async function resolveSession(
   if (!header?.startsWith("Bearer ")) return null;
   const token = header.slice(7);
 
-  if (env.CLERK_SECRET_KEY) {
+  if (hasRealClerk()) {
     try {
       const claims = await verifyClerkSession(token);
       const user = await prisma.user.findUnique({

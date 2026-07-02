@@ -38,9 +38,8 @@ const SUBJECT_LABEL: Record<Subject, string> = {
 };
 
 export async function computeSkillGraph(userId: string): Promise<SkillGraph> {
-  const [profile, accepted, allSubs, latestAssessment, flashcards, reviews, mocks, resumes, projects, cognitive, mcqAttempts, commDrills, projectPrepCount] =
+  const [accepted, allSubs, latestAssessment, flashcards, reviews, mocks, resumes, projects, cognitive, mcqAttempts, commDrills, projectPrepCount] =
     await Promise.all([
-      prisma.userProfile.findUnique({ where: { userId } }),
       prisma.problemSolution.findMany({
         where: { userId, verdict: Verdict.ACCEPTED }, distinct: ["problemId"],
         select: { problem: { select: { difficulty: true } } },

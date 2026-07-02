@@ -169,26 +169,31 @@ function ReadinessStrip({ readiness: r }: { readiness: Readiness | null }) {
   if (!r) return <Skeleton className="mt-6 h-24 rounded-2xl" />;
   const top = r.nextActions[0];
   const tone = r.overall >= 80 ? "easy" : r.overall >= 50 ? "accent" : "medium";
+  // Sibling links, never nested: an <a> inside an <a> is invalid HTML and caused a
+  // React hydration error that blanked this strip on the dashboard.
   return (
-    <Link href="/readiness"
-      className="mt-6 flex items-center gap-5 rounded-2xl border border-border bg-surface px-5 py-4 shadow-card card-interactive">
-      <MiniRing score={r.overall} />
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="font-display text-lg font-bold">Placement Readiness</span>
-          <Badge tone={tone}>{r.band}</Badge>
+    <div className="mt-6 flex items-center gap-5 rounded-2xl border border-border bg-surface px-5 py-4 shadow-card">
+      <Link href="/readiness" className="flex min-w-0 flex-1 items-center gap-5 rounded-xl card-interactive">
+        <MiniRing score={r.overall} />
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="font-display text-lg font-bold">Placement Readiness</span>
+            <Badge tone={tone}>{r.band}</Badge>
+          </div>
+          <p className="text-text-3 text-sm mt-1 truncate">
+            {top ? <>Next: <span className="text-text-2">{top.label}</span></> : "Every pillar is strong — keep your streak and start applying."}
+          </p>
         </div>
-        <p className="text-text-3 text-sm mt-1 truncate">
-          {top ? <>Next: <span className="text-text-2">{top.label}</span></> : "Every pillar is strong — keep your streak and start applying."}
-        </p>
-      </div>
+      </Link>
       <div className="hidden sm:flex items-center gap-3 shrink-0">
-        <Link href="/today" onClick={(e) => e.stopPropagation()}>
+        <Link href="/today">
           <Button size="sm" variant="secondary">Today&apos;s plan</Button>
         </Link>
-        <span className="text-accent"><Icons.arrow width={18} height={18} /></span>
+        <Link href="/readiness" aria-label="Open readiness" className="text-accent">
+          <Icons.arrow width={18} height={18} />
+        </Link>
       </div>
-    </Link>
+    </div>
   );
 }
 

@@ -1,6 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
-import { prisma, PlanTier, SubscriptionStatus } from "@eyf/db";
+import { prisma, SubscriptionStatus } from "@eyf/db";
 import {
   createOrder,
   verifyCheckoutSignature,
@@ -8,7 +8,6 @@ import {
   PLAN_PRICING_INR,
   PLAN_TIER_MAP,
 } from "../services/razorpay.js";
-import { env } from "../env.js";
 
 export async function billingRoutes(app: FastifyInstance) {
   app.get("/plans", async () => ({
@@ -137,12 +136,11 @@ export async function billingRoutes(app: FastifyInstance) {
           });
         }
       } else if (event.event === "subscription.cancelled") {
-        // shape varies; placeholder for live subscriptions API integration
+        // Recurring subscriptions aren't live yet (one-time orders for now);
+        // log for observability until the subscription lifecycle is wired.
         req.log.info({ event: event.event }, "subscription cancelled webhook");
       }
       return reply.send({ success: true, data: { handled: event.event } });
     },
   );
-
-  void env; // env may become referenced via TODO endpoints; keep import warm
 }

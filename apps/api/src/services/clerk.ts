@@ -1,16 +1,23 @@
 import { createClerkClient, verifyToken } from "@clerk/backend";
 import { env } from "../env.js";
 import { prisma, Role, PlanTier } from "@eyf/db";
+import { isRealClerkKey } from "./clerk-key.js";
 
-export const clerk = env.CLERK_SECRET_KEY
+export { isRealClerkKey };
+
+// See clerk-key.ts: only touch Clerk when a real secret key is configured, so a
+// placeholder key can't inflict a ~5s verifyToken() timeout on every authed request.
+export const hasRealClerk = (): boolean => isRealClerkKey(env.CLERK_SECRET_KEY);
+
+export const clerk = hasRealClerk()
   ? createClerkClient({ secretKey: env.CLERK_SECRET_KEY })
   : null;
 
 export type ClerkClaims = { sub: string; email?: string; sid?: string };
 
 export async function verifyClerkSession(token: string): Promise<ClerkClaims> {
-  if (!env.CLERK_SECRET_KEY) {
-    throw new Error("CLERK_SECRET_KEY not set");
+  if (!hasRealClerk()) {
+    throw new Error("Clerk not configured with a real secret key");
   }
   const payload = await verifyToken(token, { secretKey: env.CLERK_SECRET_KEY });
   return { sub: payload.sub, email: payload.email as string | undefined, sid: payload.sid as string | undefined };

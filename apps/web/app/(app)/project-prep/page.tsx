@@ -84,7 +84,7 @@ export default function Page() {
 
         <div className="mt-8 space-y-4">
           <h2 className="font-display text-lg font-bold flex items-center gap-2">
-            <Icons.chat width={18} height={18} className="text-accent" /> Questions you'll face
+            <Icons.chat width={18} height={18} className="text-accent" /> Questions you&apos;ll face
           </h2>
           {prep.questions.map((q, i) => (
             <Card key={i}>
@@ -137,7 +137,7 @@ export default function Page() {
 
       {started && started.length > 0 && (
         <Card className="mt-8">
-          <label className="text-text-3 text-xs uppercase tracking-wider">Use a project you've started</label>
+          <label className="text-text-3 text-xs uppercase tracking-wider">Use a project you&apos;ve started</label>
           <select value={userProjectId} onChange={(e) => pickStarted(e.target.value)}
             className="mt-2 w-full h-11 px-3 rounded-lg bg-surface border border-border text-text-1 focus:outline-none focus:border-accent">
             <option value="">Custom project (fill in below)</option>
