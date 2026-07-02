@@ -3,13 +3,14 @@ import Link from "next/link";
 import { Card, Button, Badge, Meter, PageHeader, Skeleton } from "@eyf/ui";
 import { PageMotion } from "@/components/page-motion";
 import { Icons } from "@/components/icons";
-import { useReadiness } from "@/lib/use-readiness";
+import { useGuidance } from "@/lib/use-guidance";
 import { companyReadiness, readinessBand, tierOf, TIER_PROFILES, SPOTLIGHT_COMPANIES } from "@/lib/company-readiness";
 import { companyLabel } from "@/lib/company";
 import type { Readiness } from "@/lib/readiness";
 
 export default function Page() {
-  const { readiness: r } = useReadiness();
+  const { guidance } = useGuidance();
+  const r = guidance?.readiness ?? null;
 
   return (
     <PageMotion className="relative">
@@ -20,6 +21,17 @@ export default function Page() {
           title="Placement Readiness"
           subtitle="One score across everything that gets you placed — DSA, interviews, resume, projects, and consistency. Updated live as you progress."
         />
+
+        {/* Active coaching voice from the guidance engine. */}
+        {guidance?.coachNote && guidance.actions.length > 0 && (
+          <div className="mt-6 flex items-start gap-3 rounded-2xl border border-accent/20 bg-accent-tint/40 px-5 py-4">
+            <span className="text-accent mt-0.5 shrink-0"><Icons.sparkle width={18} height={18} /></span>
+            <div className="min-w-0">
+              <div className="font-mono text-[11px] uppercase tracking-widest text-accent mb-1">Your coach</div>
+              <p className="text-text-1 font-medium leading-snug">{guidance.coachNote}</p>
+            </div>
+          </div>
+        )}
 
         {!r ? (
           <div className="mt-8 grid lg:grid-cols-[320px_1fr] gap-6">
