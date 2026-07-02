@@ -4,27 +4,46 @@
  * scroll-driven with Framer Motion. Three.js particle field + 3D roadmap.
  * Physics-based springs, slow for story (600–1200ms feel via scroll scrub).
  */
-import { useRef } from "react";
+import { useRef, type ReactNode } from "react";
 import Link from "next/link";
 import {
-  motion, useScroll, useTransform, useSpring, type MotionValue,
+  motion, useScroll, useTransform, useSpring, useReducedMotion, type MotionValue,
 } from "framer-motion";
 import { Button, Badge } from "@eyf/ui";
 import { Roadmap3D, ROADMAP_NODES } from "./roadmap-3d";
 import { VideoHero } from "./video-hero";
 
+/**
+ * Scroll-linked vertical parallax. The element drifts from +speed to -speed (px)
+ * as it travels through the viewport, so layered elements move at different
+ * rates and the page gains depth. Disabled for reduced-motion.
+ */
+function Parallax({ children, speed = 60, className }: { children: ReactNode; speed?: number; className?: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const reduce = useReducedMotion();
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
+  const y = useTransform(scrollYProgress, [0, 1], [speed, -speed]);
+  return (
+    <motion.div ref={ref} style={reduce ? undefined : { y }} className={className}>
+      {children}
+    </motion.div>
+  );
+}
+
 // ─── Scene 2 — THE DIAGNOSIS ──────────────────────────────────────
 function Diagnosis() {
   return (
-    <section className="relative min-h-[80vh] lg:min-h-screen flex items-center justify-center px-6 py-16 lg:py-0">
+    <section className="relative min-h-[80vh] lg:min-h-screen flex items-center justify-center px-6 py-16 lg:py-0 overflow-hidden">
       <div className="max-w-3xl">
-        <Stat n="300" suffix=" problems solved." />
-        <Stat n="0" suffix=" offers received." accentZero />
-        <motion.p className="mt-10 text-text-3 text-xl leading-relaxed max-w-2xl"
-          initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.6, delay: 0.2 }}>
-          Most students don&apos;t fail because they don&apos;t work hard. They fail because they prepare without direction.
-        </motion.p>
+        <Parallax speed={40}><Stat n="300" suffix=" problems solved." /></Parallax>
+        <Parallax speed={100}><Stat n="0" suffix=" offers received." accentZero /></Parallax>
+        <Parallax speed={20}>
+          <motion.p className="mt-10 text-text-3 text-xl leading-relaxed max-w-2xl"
+            initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.6, delay: 0.2 }}>
+            Most students don&apos;t fail because they don&apos;t work hard. They fail because they prepare without direction.
+          </motion.p>
+        </Parallax>
       </div>
     </section>
   );
@@ -40,29 +59,39 @@ function Stat({ n, suffix, accentZero }: { n: string; suffix: string; accentZero
   );
 }
 
-// ─── Scene 3 — THE REVEAL ─────────────────────────────────────────
+// ─── Scene 3 — THE REVEAL (pinned scrub) ──────────────────────────
 function Reveal() {
   const ref = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "center center"] });
-  const sweep = useTransform(scrollYProgress, [0.3, 0.8], ["0%", "100%"]);
+  const reduce = useReducedMotion();
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
+  const p = useSpring(scrollYProgress, { stiffness: 90, damping: 30 });
+  // The mark scales down from oversized, de-blurs, holds, then drifts up + fades.
+  const scale = useTransform(p, [0, 0.4, 0.72, 1], [1.4, 1, 1, 0.92]);
+  const markOpacity = useTransform(p, [0, 0.22, 0.85, 1], [0, 1, 1, 0]);
+  const markY = useTransform(p, [0, 1], ["10vh", "-12vh"]);
+  const filter = useTransform(p, [0, 0.4], [18, 0], { clamp: true });
+  const blur = useTransform(filter, (b) => `blur(${b}px)`);
+  const subY = useTransform(p, [0.25, 0.65], [48, 0]);
+  const subOpacity = useTransform(p, [0.3, 0.6], [0, 1]);
+  const sweep = useTransform(p, [0.45, 0.85], ["0%", "100%"]);
   return (
-    <section ref={ref} className="relative min-h-screen flex flex-col items-center justify-center px-6 text-center">
-      <motion.div initial={{ opacity: 0, scale: 0.92 }} whileInView={{ opacity: 1, scale: 1 }}
-        viewport={{ once: true }} transition={{ duration: 1.1, ease: [0.16, 1, 0.3, 1] }}>
-        <div className="font-display font-bold tracking-tight text-text-1" style={{ fontSize: "clamp(5rem, 22vw, 14rem)", lineHeight: 0.9 }}>
-          EYF
-        </div>
-      </motion.div>
-      <div className="relative mt-2">
-        <h2 className="font-display tracking-tight" style={{ fontSize: "clamp(1.75rem, 5vw, 3rem)", fontWeight: 300 }}>
-          Engineer Your Future.
-        </h2>
-        <motion.div className="h-[2px] bg-accent absolute -bottom-2 left-0" style={{ width: sweep }} />
+    <section ref={ref} className="relative h-[200vh]">
+      <div className="sticky top-0 h-screen flex flex-col items-center justify-center px-6 text-center overflow-hidden">
+        <motion.div style={reduce ? undefined : { scale, opacity: markOpacity, y: markY, filter: blur }}>
+          <div className="font-display font-bold tracking-tight text-text-1" style={{ fontSize: "clamp(5rem, 22vw, 15rem)", lineHeight: 0.9 }}>
+            EYF
+          </div>
+        </motion.div>
+        <motion.div style={reduce ? undefined : { y: subY, opacity: subOpacity }} className="relative mt-2">
+          <h2 className="font-display tracking-tight" style={{ fontSize: "clamp(1.75rem, 5vw, 3rem)", fontWeight: 300 }}>
+            Engineer Your Future.
+          </h2>
+          <motion.div className="h-[2px] bg-brand absolute -bottom-2 left-0" style={{ width: reduce ? "100%" : sweep }} />
+        </motion.div>
+        <motion.p className="mt-6 text-text-3 text-lg" style={reduce ? undefined : { opacity: subOpacity }}>
+          India&apos;s first placement operating system.
+        </motion.p>
       </div>
-      <motion.p className="mt-6 text-text-3 text-lg"
-        initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ delay: 0.6 }}>
-        India&apos;s first placement operating system.
-      </motion.p>
     </section>
   );
 }
@@ -192,7 +221,7 @@ function Features() {
               <div className="pointer-events-none absolute -inset-px rounded-2xl bg-gradient-to-br from-accent/15 via-transparent to-transparent" />
               <div className="pointer-events-none absolute inset-0 opacity-[0.05]"
                 style={{ backgroundImage: "radial-gradient(rgba(255, 255, 255,0.8) 1px, transparent 1px)", backgroundSize: "22px 22px" }} />
-              <div className="relative"><FeatureVisual icon={f.icon} /></div>
+              <Parallax speed={44} className="relative"><FeatureVisual icon={f.icon} /></Parallax>
             </motion.div>
           </div>
         </div>
@@ -319,24 +348,32 @@ function Pricing() {
   );
 }
 
-// ─── Scene 9 — THE FINAL CTA ──────────────────────────────────────
+// ─── Scene 9 — THE FINAL CTA (pinned scrub) ───────────────────────
 function FinalCTA() {
+  const ref = useRef<HTMLDivElement>(null);
+  const reduce = useReducedMotion();
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
+  const p = useSpring(scrollYProgress, { stiffness: 80, damping: 28 });
+  const scale = useTransform(p, [0, 0.5], [0.82, 1]);
+  const y = useTransform(p, [0, 0.5], [64, 0]);
+  const opacity = useTransform(p, [0, 0.4], [0, 1]);
+  const ctaOpacity = useTransform(p, [0.45, 0.7], [0, 1]);
+  const ctaY = useTransform(p, [0.45, 0.75], [32, 0]);
   return (
-    <section className="relative min-h-[85vh] lg:min-h-screen flex flex-col items-center justify-center px-6 py-20 lg:py-0 text-center">
-      <motion.h2 className="font-display font-light tracking-tight leading-[1.05]" style={{ fontSize: "clamp(2.5rem, 9vw, 6rem)" }}
-        initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.9 }}>
-        What&apos;s the cost<br />of not starting<br /><span className="text-accent">today?</span>
-      </motion.h2>
-      <motion.p className="mt-8 text-text-3 text-lg max-w-md"
-        initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ delay: 0.4 }}>
-        14,847 students are currently preparing on EYF. Some of them are competing for the same roles you are.
-      </motion.p>
-      <motion.div initial={{ opacity: 0, scale: 0.95 }} whileInView={{ opacity: 1, scale: 1 }}
-        viewport={{ once: true }} transition={{ delay: 0.6 }} className="mt-10">
-        <Link href="/dashboard">
-          <Button size="lg" className="text-base px-10 shadow-[0_0_40px_rgba(255, 255, 255,0.35)]">Start your path →</Button>
-        </Link>
-      </motion.div>
+    <section ref={ref} className="relative h-[180vh]">
+      <div className="sticky top-0 h-screen flex flex-col items-center justify-center px-6 text-center overflow-hidden">
+        <motion.h2 className="font-display font-light tracking-tight leading-[1.05]" style={{ fontSize: "clamp(2.5rem, 9vw, 6rem)", ...(reduce ? {} : { scale, y, opacity }) }}>
+          What&apos;s the cost<br />of not starting<br /><span className="text-brand">today?</span>
+        </motion.h2>
+        <motion.p className="mt-8 text-text-3 text-lg max-w-md" style={reduce ? undefined : { opacity }}>
+          14,847 students are currently preparing on EYF. Some of them are competing for the same roles you are.
+        </motion.p>
+        <motion.div className="mt-10" style={reduce ? undefined : { opacity: ctaOpacity, y: ctaY }}>
+          <Link href="/dashboard">
+            <Button variant="brand" size="lg" className="text-base px-10">Start your path →</Button>
+          </Link>
+        </motion.div>
+      </div>
     </section>
   );
 }
