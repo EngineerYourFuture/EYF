@@ -8,6 +8,8 @@ import { AppSidebar } from "./app-sidebar";
 import { BackButton } from "./back-button";
 import { ThemeToggle } from "./theme";
 import { CommandPalette, openCommandPalette } from "./command-palette";
+import { Watermark } from "./protection/watermark";
+import { ProtectionGuard } from "./protection/protection-guard";
 import { Icons } from "./icons";
 
 function SearchTrigger() {
@@ -130,6 +132,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </main>
 
       <CommandPalette />
+      {/* Content protection: forensic watermark + client deterrents. */}
+      <Watermark />
+      <ProtectionGuard />
     </div>
   );
 }

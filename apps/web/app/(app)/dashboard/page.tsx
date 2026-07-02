@@ -5,8 +5,7 @@ import { useApi } from "@/lib/use-api";
 import { Heatmap } from "@/components/heatmap";
 import { PageMotion } from "@/components/page-motion";
 import { Icons, type IconName } from "@/components/icons";
-import { useReadiness } from "@/lib/use-readiness";
-import type { Readiness } from "@/lib/readiness";
+import { useGuidance, type Guidance } from "@/lib/use-guidance";
 import { PERSONAS, type PersonaId } from "@/lib/persona";
 
 type Me = {
@@ -42,7 +41,7 @@ export default function DashboardPage() {
   const { data: gam }    = useApi<GamMe>("/gamification/me");
   const { data: streak } = useApi<StreakDay[]>("/gamification/streak");
   const { data: today }  = useApi<Today>("/roadmap/today");
-  const { readiness }    = useReadiness();
+  const { guidance }     = useGuidance();
 
   const xpPct = gam ? Math.min(100, Math.round((gam.xpAtLevel / Math.max(1, gam.xpAtLevel + gam.xpToNext)) * 100)) : 0;
   const name = me?.user?.name?.split(" ")[0] ?? "there";
@@ -75,8 +74,8 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {/* Placement Readiness strip */}
-        <ReadinessStrip readiness={readiness} />
+        {/* Placement Readiness strip — now shows the active next-best-action */}
+        <ReadinessStrip guidance={guidance} />
 
         {/* First-run setup nudge */}
         {me?.user && !me.user.persona && (
@@ -165,31 +164,35 @@ export default function DashboardPage() {
 
 /* ---------- pieces ---------- */
 
-function ReadinessStrip({ readiness: r }: { readiness: Readiness | null }) {
-  if (!r) return <Skeleton className="mt-6 h-24 rounded-2xl" />;
-  const top = r.nextActions[0];
+function ReadinessStrip({ guidance: g }: { guidance: Guidance | null }) {
+  if (!g) return <Skeleton className="mt-6 h-24 rounded-2xl" />;
+  const r = g.readiness;
+  const top = g.actions[0];
   const tone = r.overall >= 80 ? "easy" : r.overall >= 50 ? "accent" : "medium";
   // Sibling links, never nested: an <a> inside an <a> is invalid HTML and caused a
   // React hydration error that blanked this strip on the dashboard.
   return (
     <div className="mt-6 flex items-center gap-5 rounded-2xl border border-border bg-surface px-5 py-4 shadow-card">
-      <Link href="/readiness" className="flex min-w-0 flex-1 items-center gap-5 rounded-xl card-interactive">
+      <Link href="/today" className="flex min-w-0 flex-1 items-center gap-5 rounded-xl card-interactive">
         <MiniRing score={r.overall} />
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="font-display text-lg font-bold">Placement Readiness</span>
             <Badge tone={tone}>{r.band}</Badge>
           </div>
+          {/* The active coaching line — personalised guidance on the landing screen. */}
           <p className="text-text-3 text-sm mt-1 truncate">
-            {top ? <>Next: <span className="text-text-2">{top.label}</span></> : "Every pillar is strong — keep your streak and start applying."}
+            {top ? g.coachNote : "Every pillar is strong — start applying with confidence."}
           </p>
         </div>
       </Link>
       <div className="hidden sm:flex items-center gap-3 shrink-0">
-        <Link href="/today">
-          <Button size="sm" variant="secondary">Today&apos;s plan</Button>
-        </Link>
-        <Link href="/readiness" aria-label="Open readiness" className="text-accent">
+        {top && (
+          <Link href={top.href}>
+            <Button size="sm" variant="secondary">{top.label}</Button>
+          </Link>
+        )}
+        <Link href="/today" aria-label="Open today" className="text-accent">
           <Icons.arrow width={18} height={18} />
         </Link>
       </div>

@@ -132,3 +132,21 @@ export function levelForXp(xp: number): number {
   while (xpForLevel(l + 1) <= xp) l += 1;
   return l;
 }
+
+// Placement Readiness + Guidance intelligence layer (pure, shared web+api).
+// EXPLICIT named re-exports (not `export *`): esbuild transpiles each file
+// independently, so a star re-export can't be statically linked by Node's ESM
+// linker under `tsx watch`. Extensionless (not `.js`): tsx resolves it, and
+// Next's webpack resolves `./readiness`->`.ts` — a `.js` specifier would break
+// the web build (no readiness.js exists). Named + extensionless satisfies both.
+export { computeReadiness, rankActions } from "./readiness";
+export type {
+  ReadinessInput,
+  Readiness,
+  Pillar,
+  GuidanceAction,
+} from "./readiness";
+
+// RBAC capability layer (admin/staff portal — scalable, shared web+api).
+export { CAPABILITIES, capabilitiesFor, hasCapability, isStaffRole } from "./permissions";
+export type { Capability, StaffRole } from "./permissions";

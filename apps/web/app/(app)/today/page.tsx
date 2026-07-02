@@ -6,7 +6,7 @@ import { useApi, useApiAction } from "@/lib/use-api";
 import { toast } from "sonner";
 import { PageMotion } from "@/components/page-motion";
 import { Icons, type IconName } from "@/components/icons";
-import { useReadiness } from "@/lib/use-readiness";
+import { useGuidance, type Guidance } from "@/lib/use-guidance";
 
 type Today = {
   challenge: { problem: { slug: string; title: string; difficulty: string }; alreadySolvedToday: boolean } | null;
@@ -22,7 +22,7 @@ type PlanItem = { id: string; label: string; detail: string; href: string; icon:
 
 export default function Page() {
   const { data: today } = useApi<Today>("/roadmap/today");
-  const { readiness, loading: readinessLoading } = useReadiness();
+  const { guidance } = useGuidance();
   // API expects the Subject enum in upper-case (OS/DBMS/CN/OOP).
   const due = {
     os:   useApi<Flash>("/subjects/OS/flashcards/due").data,
@@ -60,10 +60,10 @@ export default function Page() {
     });
   }
 
-  const loaded = today && !readinessLoading;
+  const loaded = !!today;
 
   const plan: PlanItem[] = useMemo(() => {
-    if (!today || !readiness) return [];
+    if (!today) return [];
     const items: PlanItem[] = [];
     if (today.challenge) {
       items.push({
@@ -80,13 +80,10 @@ export default function Page() {
         detail: "Spaced repetition keeps core CS sticky", done: checked.has("flashcards"), auto: false,
       });
     }
-    // Smart suggestions from the weakest readiness pillars.
-    readiness.nextActions.slice(0, 2).forEach((a, i) => {
-      const id = `gap-${i}`;
-      items.push({ id, icon: a.icon, href: a.href, label: a.label, detail: a.detail, done: checked.has(id), auto: false });
-    });
+    // Strategic next-best-actions now live in the Coach card above, so the plan
+    // holds only concrete daily to-dos — no duplication across cards.
     return items;
-  }, [today, readiness, dueCount, checked]);
+  }, [today, dueCount, checked]);
 
   const doneCount = plan.filter((p) => p.done).length;
   const pct = plan.length ? Math.round((doneCount / plan.length) * 100) : 0;
@@ -108,6 +105,9 @@ export default function Page() {
           <MiniStat icon="bolt" tone="medium" label="XP today" value={today ? `${today.xpToday}` : "—"} />
           <MiniStat icon="code" label="Solved today" value={today ? `${today.problemsSolvedToday}` : "—"} />
         </div>
+
+        {/* Your Coach — the active guidance engine (readiness → next best action) */}
+        <CoachCard guidance={guidance} />
 
         {/* Daily Mission — the retention loop */}
         <DailyMission />
@@ -169,6 +169,62 @@ export default function Page() {
         </div>
       </div>
     </PageMotion>
+  );
+}
+
+function CoachCard({ guidance }: { guidance: Guidance | null }) {
+  if (!guidance) return <Skeleton className="mt-6 h-40 rounded-2xl" />;
+  const { readiness, actions, coachNote } = guidance;
+  const tone = readiness.overall >= 80 ? "easy" : readiness.overall >= 50 ? "accent" : "medium";
+  return (
+    <Card variant="glow" className="mt-6">
+      <div className="flex items-center justify-between gap-3 mb-3">
+        <div className="flex items-center gap-2">
+          <span className="text-accent"><Icons.sparkle width={18} height={18} /></span>
+          <span className="font-mono text-[11px] uppercase tracking-widest text-accent">Your coach</span>
+        </div>
+        <Link href="/readiness">
+          <Badge tone={tone}>{readiness.overall} · {readiness.band}</Badge>
+        </Link>
+      </div>
+
+      {/* The personalised coaching line — the intelligence layer's voice. */}
+      <p className="font-display text-lg sm:text-xl font-semibold leading-snug text-text-1">{coachNote}</p>
+
+      {actions.length > 0 ? (
+        <div className="mt-5">
+          <div className="font-mono text-[11px] uppercase tracking-widest text-text-4 mb-2">
+            Next best {actions.length > 1 ? "actions" : "action"}
+          </div>
+          <div className="space-y-2">
+            {actions.map((a, i) => {
+              const Icon = Icons[a.icon];
+              return (
+                <Link key={a.pillarKey} href={a.href}
+                  className="group flex items-start gap-3 rounded-xl border border-border bg-surface px-3.5 py-3 hover:border-accent/40 hover:bg-surface-2 transition-colors">
+                  <span className={`mt-0.5 shrink-0 ${i === 0 ? "text-accent" : "text-text-3"}`}><Icon width={18} height={18} /></span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-medium text-text-1 group-hover:text-accent transition-colors">{a.label}</span>
+                      {i === 0 && <Badge tone="accent">Start here</Badge>}
+                    </div>
+                    {a.reason !== coachNote && (
+                      <div className="text-text-4 text-xs mt-0.5 leading-snug">{a.reason}</div>
+                    )}
+                  </div>
+                  <span className="shrink-0 self-center text-text-4 group-hover:text-accent transition-colors"><Icons.arrow width={16} height={16} /></span>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      ) : (
+        <div className="mt-5 flex items-center justify-between rounded-xl border border-easy/30 bg-easy/5 px-4 py-3">
+          <span className="text-text-2 text-sm">Every pillar is strong. Time to convert it into offers.</span>
+          <Link href="/pipeline"><Button size="sm" variant="secondary">Start applying</Button></Link>
+        </div>
+      )}
+    </Card>
   );
 }
 

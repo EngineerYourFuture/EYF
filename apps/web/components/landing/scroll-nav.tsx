@@ -6,6 +6,7 @@
 import Link from "next/link";
 import { useScroll, useTransform, motion } from "framer-motion";
 import { Button } from "@eyf/ui";
+import { EyfMark } from "@/components/brand/eyf-mark";
 
 export function ScrollNav() {
   const { scrollY } = useScroll();
@@ -19,7 +20,10 @@ export function ScrollNav() {
     >
       <div className="absolute inset-0 bg-bg/85 backdrop-blur-xl -z-10" />
       <nav className="mx-auto max-w-7xl px-6 h-16 flex items-center justify-between">
-        <Link href="/" className="font-display font-bold text-xl tracking-tight">EYF</Link>
+        <Link href="/" className="flex items-center gap-2.5" aria-label="EYF home">
+          <EyfMark size={22} />
+          <span className="font-display font-bold text-xl tracking-tight">EYF</span>
+        </Link>
         <div className="hidden md:flex items-center gap-8 text-sm text-text-2">
           <Link href="/tracks" className="hover:text-text-1 transition-colors">Tracks</Link>
           <Link href="/problems" className="hover:text-text-1 transition-colors">Problems</Link>
