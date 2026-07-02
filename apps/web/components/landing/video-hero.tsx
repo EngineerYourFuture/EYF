@@ -16,9 +16,9 @@ export function VideoHero() {
   const ref = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
   const reduce = useReducedMotion();
-  const fade = useTransform(scrollYProgress, [0, 0.65, 1], [1, 1, 0]);
-  const contentY = useTransform(scrollYProgress, [0, 1], [0, 90]);
-  const bgScale = useTransform(scrollYProgress, [0, 1], [1, 1.12]);
+  const fade = useTransform(scrollYProgress, [0, 0.65, 1], [1, 1, 0], { clamp: true });
+  const contentY = useTransform(scrollYProgress, [0, 1], [0, 90], { clamp: true });
+  const bgScale = useTransform(scrollYProgress, [0, 1], [1, 1.12], { clamp: true });
 
   const line1 = "You've been preparing.".split(" ");
   const line2 = "You're still not getting placed.".split(" ");

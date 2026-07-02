@@ -22,7 +22,7 @@ function Parallax({ children, speed = 60, className }: { children: ReactNode; sp
   const ref = useRef<HTMLDivElement>(null);
   const reduce = useReducedMotion();
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
-  const y = useTransform(scrollYProgress, [0, 1], [speed, -speed]);
+  const y = useTransform(scrollYProgress, [0, 1], [speed, -speed], { clamp: true });
   return (
     <motion.div ref={ref} style={reduce ? undefined : { y }} className={className}>
       {children}
@@ -63,21 +63,19 @@ function Stat({ n, suffix, accentZero }: { n: string; suffix: string; accentZero
 function Reveal() {
   const ref = useRef<HTMLDivElement>(null);
   const reduce = useReducedMotion();
-  const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
-  const p = useSpring(scrollYProgress, { stiffness: 90, damping: 30 });
-  // The mark scales down from oversized, de-blurs, holds, then drifts up + fades.
-  const scale = useTransform(p, [0, 0.4, 0.72, 1], [1.4, 1, 1, 0.92]);
-  const markOpacity = useTransform(p, [0, 0.22, 0.85, 1], [0, 1, 1, 0]);
-  const markY = useTransform(p, [0, 1], ["10vh", "-12vh"]);
-  const filter = useTransform(p, [0, 0.4], [18, 0], { clamp: true });
-  const blur = useTransform(filter, (b) => `blur(${b}px)`);
-  const subY = useTransform(p, [0.25, 0.65], [48, 0]);
-  const subOpacity = useTransform(p, [0.3, 0.6], [0, 1]);
-  const sweep = useTransform(p, [0.45, 0.85], ["0%", "100%"]);
+  // Direct scroll (no spring — springs lag then snap on fast scroll). All
+  // transforms clamped so a fast scroll past the range can't overshoot.
+  const { scrollYProgress: p } = useScroll({ target: ref, offset: ["start start", "end end"] });
+  const scale = useTransform(p, [0, 0.4, 0.72, 1], [1.3, 1, 1, 0.94], { clamp: true });
+  const markOpacity = useTransform(p, [0, 0.22, 0.85, 1], [0, 1, 1, 0], { clamp: true });
+  const markY = useTransform(p, [0, 1], [60, -80], { clamp: true });
+  const subY = useTransform(p, [0.25, 0.65], [40, 0], { clamp: true });
+  const subOpacity = useTransform(p, [0.3, 0.6], [0, 1], { clamp: true });
+  const sweep = useTransform(p, [0.45, 0.85], ["0%", "100%"], { clamp: true });
   return (
     <section ref={ref} className="relative h-[135vh]">
       <div className="sticky top-0 h-screen flex flex-col items-center justify-center px-6 text-center overflow-hidden">
-        <motion.div style={reduce ? undefined : { scale, opacity: markOpacity, y: markY, filter: blur }}>
+        <motion.div className="will-change-transform" style={reduce ? undefined : { scale, opacity: markOpacity, y: markY }}>
           <div className="font-display font-bold tracking-tight text-text-1" style={{ fontSize: "clamp(5rem, 22vw, 15rem)", lineHeight: 0.9 }}>
             EYF
           </div>
@@ -100,7 +98,7 @@ function Reveal() {
 function TheMap() {
   const ref = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
-  const smooth = useSpring(scrollYProgress, { stiffness: 90, damping: 30 });
+  const smooth = useSpring(scrollYProgress, { stiffness: 140, damping: 34, restDelta: 0.001 });
 
   return (
     <section ref={ref} className="relative h-[150vh] lg:h-[230vh]">
@@ -153,7 +151,7 @@ const STUDENTS = [
 function Proof() {
   const ref = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
-  const x = useTransform(scrollYProgress, [0, 1], ["2%", "-70%"]);
+  const x = useTransform(scrollYProgress, [0, 1], ["2%", "-70%"], { clamp: true });
   return (
     <section ref={ref} className="relative h-[170vh] lg:h-[230vh]">
       <div className="sticky top-0 h-screen flex flex-col justify-center overflow-hidden">
@@ -285,8 +283,8 @@ function FeatureVisual({ icon }: { icon: string }) {
 function Comparison() {
   const ref = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start center", "center center"] });
-  const collapse = useTransform(scrollYProgress, [0, 1], [1, 0]);
-  const emerge = useTransform(scrollYProgress, [0.3, 1], [0, 1]);
+  const collapse = useTransform(scrollYProgress, [0, 1], [1, 0], { clamp: true });
+  const emerge = useTransform(scrollYProgress, [0.3, 1], [0, 1], { clamp: true });
   const tools = ["LeetCode", "GFG", "YouTube", "Telegram", "PDFs", "Notion"];
   return (
     <section ref={ref} className="relative min-h-[64vh] lg:min-h-[78vh] flex items-center justify-center px-6 py-12">
@@ -352,13 +350,12 @@ function Pricing() {
 function FinalCTA() {
   const ref = useRef<HTMLDivElement>(null);
   const reduce = useReducedMotion();
-  const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
-  const p = useSpring(scrollYProgress, { stiffness: 80, damping: 28 });
-  const scale = useTransform(p, [0, 0.5], [0.82, 1]);
-  const y = useTransform(p, [0, 0.5], [64, 0]);
-  const opacity = useTransform(p, [0, 0.4], [0, 1]);
-  const ctaOpacity = useTransform(p, [0.45, 0.7], [0, 1]);
-  const ctaY = useTransform(p, [0.45, 0.75], [32, 0]);
+  const { scrollYProgress: p } = useScroll({ target: ref, offset: ["start start", "end end"] });
+  const scale = useTransform(p, [0, 0.5], [0.85, 1], { clamp: true });
+  const y = useTransform(p, [0, 0.5], [64, 0], { clamp: true });
+  const opacity = useTransform(p, [0, 0.4], [0, 1], { clamp: true });
+  const ctaOpacity = useTransform(p, [0.45, 0.7], [0, 1], { clamp: true });
+  const ctaY = useTransform(p, [0.45, 0.75], [32, 0], { clamp: true });
   return (
     <section ref={ref} className="relative h-[125vh]">
       <div className="sticky top-0 h-screen flex flex-col items-center justify-center px-6 text-center overflow-hidden">
