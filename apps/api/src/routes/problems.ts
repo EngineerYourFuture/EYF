@@ -1,6 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
-import { prisma } from "@eyf/db";
+import { prisma, Verdict } from "@eyf/db";
 
 const listQuery = z.object({
   difficulty: z.enum(["EASY", "MEDIUM", "HARD", "EXPERT"]).optional(),
@@ -32,6 +32,43 @@ export async function problemRoutes(app: FastifyInstance) {
     });
     const next = problems.length > limit ? problems.pop()!.id : null;
     return { success: true, data: problems, meta: { cursor: next } };
+  });
+
+  // ── Pattern Mastery + adaptive next rep — EYF's DSA differentiator. ──
+  // Per-pattern mastery from the student's accepted solutions, plus the exact
+  // next problem to fix their weakest pattern. No competitor computes this.
+  app.get("/mastery", { preHandler: app.requireAuth }, async (req) => {
+    const userId = req.session!.id;
+    const [allProblems, solved] = await Promise.all([
+      prisma.problem.findMany({ select: { id: true, slug: true, title: true, difficulty: true, patterns: true } }),
+      prisma.problemSolution.findMany({
+        where: { userId, verdict: Verdict.ACCEPTED }, distinct: ["problemId"], select: { problemId: true },
+      }),
+    ]);
+    const solvedIds = new Set(solved.map((s) => s.problemId));
+
+    const stats = new Map<string, { total: number; solved: number }>();
+    for (const p of allProblems) {
+      for (const pat of p.patterns) {
+        const s = stats.get(pat) ?? { total: 0, solved: 0 };
+        s.total += 1;
+        if (solvedIds.has(p.id)) s.solved += 1;
+        stats.set(pat, s);
+      }
+    }
+    const patterns = [...stats.entries()]
+      .map(([pattern, s]) => ({ pattern, total: s.total, solved: s.solved, mastery: s.total ? Math.round((s.solved / s.total) * 100) : 0 }))
+      .sort((a, b) => a.mastery - b.mastery || b.total - a.total);
+
+    // Adaptive "next rep": weakest pattern that still has an unsolved problem.
+    let next: { slug: string; title: string; difficulty: string; pattern: string } | null = null;
+    for (const pm of patterns) {
+      if (pm.solved >= pm.total) continue;
+      const cand = allProblems.find((p) => p.patterns.includes(pm.pattern) && !solvedIds.has(p.id));
+      if (cand) { next = { slug: cand.slug, title: cand.title, difficulty: cand.difficulty, pattern: pm.pattern }; break; }
+    }
+    const overall = patterns.length ? Math.round(patterns.reduce((a, p) => a + p.mastery, 0) / patterns.length) : 0;
+    return { success: true, data: { patterns, next, overall } };
   });
 
   app.get("/:slug", async (req, reply) => {
