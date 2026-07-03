@@ -7,7 +7,7 @@
 import type { Pillar } from "./readiness";
 
 export type CompanyTier = "service" | "mass" | "product" | "elite";
-type PillarKey = "dsa" | "interview" | "resume" | "consistency" | "projects";
+type PillarKey = "dsa" | "interview" | "aptitude" | "resume" | "consistency" | "projects";
 
 type TierProfile = {
   label: string;
@@ -21,27 +21,27 @@ type TierProfile = {
 export const TIER_PROFILES: Record<CompanyTier, TierProfile> = {
   service: {
     label: "Service-based",
-    blurb: "Aptitude, fundamentals and a clean resume carry these. The DSA bar is gentle.",
-    bar:    { dsa: 40, interview: 35, resume: 70, consistency: 55, projects: 35 },
-    weight: { dsa: 0.22, interview: 0.18, resume: 0.30, consistency: 0.20, projects: 0.10 },
+    blurb: "Aptitude is the gate — clear the test, keep a clean resume, and the DSA bar is gentle.",
+    bar:    { dsa: 40, interview: 35, aptitude: 65, resume: 70, consistency: 55, projects: 35 },
+    weight: { dsa: 0.15, interview: 0.13, aptitude: 0.27, resume: 0.22, consistency: 0.15, projects: 0.08 },
   },
   mass: {
     label: "Product (mass-hire)",
-    blurb: "Solid DSA plus a couple of real projects. Resume still counts.",
-    bar:    { dsa: 60, interview: 55, resume: 70, consistency: 60, projects: 55 },
-    weight: { dsa: 0.34, interview: 0.22, resume: 0.16, consistency: 0.13, projects: 0.15 },
+    blurb: "Solid DSA plus a couple of real projects. Aptitude and resume still count.",
+    bar:    { dsa: 60, interview: 55, aptitude: 55, resume: 70, consistency: 60, projects: 55 },
+    weight: { dsa: 0.30, interview: 0.20, aptitude: 0.15, resume: 0.14, consistency: 0.11, projects: 0.10 },
   },
   product: {
     label: "Product",
     blurb: "Strong DSA, mock-tested communication, and shipped projects.",
-    bar:    { dsa: 75, interview: 68, resume: 75, consistency: 65, projects: 65 },
-    weight: { dsa: 0.38, interview: 0.24, resume: 0.13, consistency: 0.10, projects: 0.15 },
+    bar:    { dsa: 75, interview: 68, aptitude: 50, resume: 75, consistency: 65, projects: 65 },
+    weight: { dsa: 0.36, interview: 0.22, aptitude: 0.08, resume: 0.12, consistency: 0.09, projects: 0.13 },
   },
   elite: {
     label: "Top-tier (FAANG+)",
-    blurb: "High DSA including hards, strong mocks, and real portfolio depth.",
-    bar:    { dsa: 88, interview: 78, resume: 78, consistency: 70, projects: 72 },
-    weight: { dsa: 0.40, interview: 0.26, resume: 0.10, consistency: 0.08, projects: 0.16 },
+    blurb: "High DSA including hards, strong mocks, and real portfolio depth. Aptitude barely matters.",
+    bar:    { dsa: 88, interview: 78, aptitude: 45, resume: 78, consistency: 70, projects: 72 },
+    weight: { dsa: 0.38, interview: 0.25, aptitude: 0.05, resume: 0.09, consistency: 0.08, projects: 0.15 },
   },
 };
 
