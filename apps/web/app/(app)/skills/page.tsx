@@ -4,6 +4,7 @@ import { Card, Badge, Meter, PageHeader, Skeleton, ErrorState } from "@eyf/ui";
 import { useApi } from "@/lib/use-api";
 import { PageMotion } from "@/components/page-motion";
 import { Reveal } from "@/components/motion";
+import { PatternTree } from "@/components/pattern-tree";
 import { Icons } from "@/components/icons";
 
 type Dim = { key: string; label: string; group: string; score: number; detail: string; href: string };
@@ -67,6 +68,9 @@ export default function SkillsPage() {
                 )}
               </div>
             </div>
+
+            {/* Pattern prerequisite tree */}
+            <Reveal><PatternTree /></Reveal>
 
             {/* Grouped breakdown */}
             <Reveal className="mt-8 space-y-6">
