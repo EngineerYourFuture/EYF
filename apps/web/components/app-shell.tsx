@@ -47,12 +47,18 @@ function AccountFooter() {
   );
 }
 
-function SidebarInner({ onNavigate }: { onNavigate?: () => void }) {
+function SidebarInner({ onNavigate, onCollapse }: { onNavigate?: () => void; onCollapse?: () => void }) {
   return (
     <>
-      <Link href="/" onClick={onNavigate} className="px-6 h-16 flex items-center font-display font-bold text-xl border-b border-border shrink-0">
-        EYF
-      </Link>
+      <div className="px-6 h-16 flex items-center justify-between border-b border-border shrink-0">
+        <Link href="/" onClick={onNavigate} className="font-display font-bold text-xl">EYF</Link>
+        {onCollapse && (
+          <button onClick={onCollapse} aria-label="Collapse sidebar" title="Collapse sidebar"
+            className="hidden lg:inline-flex items-center justify-center h-8 w-8 -mr-2 rounded-lg text-text-3 hover:text-text-1 hover:bg-surface-3 transition-colors">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>
+          </button>
+        )}
+      </div>
       <SearchTrigger />
       <AppSidebar onNavigate={onNavigate} />
       <AccountFooter />
@@ -62,7 +68,12 @@ function SidebarInner({ onNavigate }: { onNavigate?: () => void }) {
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
   const pathname = usePathname();
+
+  // Restore the collapsed preference (desktop sidebar).
+  useEffect(() => { try { setCollapsed(localStorage.getItem("eyf-sidebar-collapsed") === "1"); } catch {} }, []);
+  const setCol = (v: boolean) => { setCollapsed(v); try { localStorage.setItem("eyf-sidebar-collapsed", v ? "1" : "0"); } catch {} };
 
   // Close the drawer whenever the route changes.
   useEffect(() => { setOpen(false); }, [pathname]);
@@ -74,11 +85,19 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }, [open]);
 
   return (
-    <div className="min-h-screen lg:grid lg:grid-cols-[248px_1fr]">
-      {/* Desktop sidebar — fixed left, hidden on mobile */}
-      <aside className="hidden lg:flex border-r border-border bg-surface/40 flex-col h-screen sticky top-0">
-        <SidebarInner />
+    <div className={`min-h-screen lg:grid ${collapsed ? "lg:grid-cols-[0_1fr]" : "lg:grid-cols-[248px_1fr]"}`}>
+      {/* Desktop sidebar — collapsible, hidden on mobile (mobile uses the drawer) */}
+      <aside className={`${collapsed ? "hidden" : "hidden lg:flex"} border-r border-border bg-surface/40 flex-col h-screen sticky top-0`}>
+        <SidebarInner onCollapse={() => setCol(true)} />
       </aside>
+
+      {/* Desktop: floating button to reopen the collapsed sidebar */}
+      {collapsed && (
+        <button onClick={() => setCol(false)} aria-label="Open sidebar" title="Open sidebar"
+          className="hidden lg:inline-flex fixed top-4 left-4 z-40 items-center justify-center h-9 w-9 rounded-lg border border-border bg-surface text-text-2 hover:text-text-1 shadow-card transition-colors">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6" /></svg>
+        </button>
+      )}
 
       {/* Mobile top bar */}
       <header className="lg:hidden sticky top-0 z-40 h-14 px-4 flex items-center gap-3 border-b border-border bg-bg/90 backdrop-blur-md">
@@ -126,7 +145,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         )}
       </AnimatePresence>
 
-      <main className="min-h-screen min-w-0 overflow-x-hidden">
+      <main className="min-h-screen min-w-0 overflow-x-hidden lg:col-start-2">
         <DesktopBackBar />
         {/* Route transition — content fades + rises in on every navigation. */}
         <motion.div

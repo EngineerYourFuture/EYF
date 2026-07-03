@@ -33,8 +33,8 @@ function Parallax({ children, speed = 60, className }: { children: ReactNode; sp
 // ─── Scene 2 — THE DIAGNOSIS ──────────────────────────────────────
 function Diagnosis() {
   return (
-    <section className="relative min-h-[68vh] lg:min-h-[80vh] flex items-center justify-center px-6 py-12 overflow-hidden">
-      <div className="max-w-3xl">
+    <section className="relative min-h-[68vh] lg:min-h-[80vh] flex items-center justify-start px-6 sm:px-10 lg:px-16 py-12 overflow-hidden">
+      <div className="max-w-3xl mx-auto lg:mx-0">
         <Parallax speed={40}><Stat n="300" suffix=" problems solved." /></Parallax>
         <Parallax speed={100}><Stat n="0" suffix=" offers received." accentZero /></Parallax>
         <Parallax speed={20}>
@@ -287,9 +287,9 @@ function Comparison() {
   const emerge = useTransform(scrollYProgress, [0.3, 1], [0, 1], { clamp: true });
   const tools = ["LeetCode", "GFG", "YouTube", "Telegram", "PDFs", "Notion"];
   return (
-    <section ref={ref} className="relative min-h-[64vh] lg:min-h-[78vh] flex items-center justify-center px-6 py-12">
-      <div className="max-w-4xl w-full text-center">
-        <motion.div style={{ opacity: collapse }} className="flex flex-wrap justify-center gap-3 mb-8">
+    <section ref={ref} className="relative min-h-[64vh] lg:min-h-[78vh] flex items-center justify-start px-6 sm:px-10 lg:px-16 py-12">
+      <div className="max-w-4xl w-full text-left mx-auto lg:mx-0">
+        <motion.div style={{ opacity: collapse }} className="flex flex-wrap justify-start gap-3 mb-8">
           {tools.map((t, i) => (
             <motion.span key={t} className="px-4 py-2 border border-border rounded-md text-text-3 text-sm"
               animate={{ x: [0, (i % 2 ? 1 : -1) * 8, 0], rotate: [0, (i % 2 ? 2 : -2), 0] }}
@@ -318,7 +318,7 @@ function Pricing() {
   return (
     <section className="relative min-h-[88vh] flex items-center justify-center px-6 py-16">
       <div className="max-w-5xl w-full">
-        <motion.h2 className="font-display text-3xl md:text-5xl font-bold tracking-tight text-center max-w-2xl mx-auto leading-tight"
+        <motion.h2 className="font-display text-3xl md:text-5xl font-bold tracking-tight text-left max-w-3xl leading-tight"
           initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
           Two months of EYF Pro. Less than one day of offline coaching.
         </motion.h2>
@@ -338,7 +338,7 @@ function Pricing() {
             </motion.div>
           ))}
         </div>
-        <p className="text-center text-text-3 text-sm mt-10 font-mono">
+        <p className="text-left text-text-3 text-sm mt-10 font-mono">
           Offline coaching ₹1,20,000 · LeetCode ₹35,000/yr · <span className="text-accent">EYF Pro ₹3,999/yr</span>
         </p>
       </div>
@@ -358,8 +358,8 @@ function FinalCTA() {
   const ctaY = useTransform(p, [0.45, 0.75], [32, 0], { clamp: true });
   return (
     <section ref={ref} className="relative h-[125vh]">
-      <div className="sticky top-0 h-screen flex flex-col items-center justify-center px-6 text-center overflow-hidden">
-        <motion.h2 className="font-display font-light tracking-tight leading-[1.05]" style={{ fontSize: "clamp(2.5rem, 9vw, 6rem)", ...(reduce ? {} : { scale, y, opacity }) }}>
+      <div className="sticky top-0 h-screen mx-auto max-w-7xl flex flex-col items-start justify-center px-6 sm:px-10 lg:px-16 text-left overflow-hidden">
+        <motion.h2 className="font-display font-light tracking-tight leading-[1.05]" style={{ fontSize: "clamp(2.5rem, 8vw, 5.5rem)", ...(reduce ? {} : { scale, y, opacity }) }}>
           What&apos;s the cost<br />of not starting<br /><span className="text-brand">today?</span>
         </motion.h2>
         <motion.p className="mt-8 text-text-3 text-lg max-w-md" style={reduce ? undefined : { opacity }}>

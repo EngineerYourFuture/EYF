@@ -45,18 +45,18 @@ export function ParticleField() {
       geo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
 
       const mat = new THREE.PointsMaterial({
-        color: new THREE.Color(0x9aa0ac),
-        size: 0.16,
+        color: new THREE.Color(0xe86a78),
+        size: 0.17,
         transparent: true,
-        opacity: 0.55,
+        opacity: 0.5,
         sizeAttenuation: true,
       });
       const points = new THREE.Points(geo, mat);
       scene.add(points);
 
-      // On the light landing, particles darken toward ink as you scroll.
-      const accent = new THREE.Color(0x2b2e36);
-      const base = new THREE.Color(0x9aa0ac);
+      // EYF-red particles — soft rose intensifying to the brand red as you scroll.
+      const accent = new THREE.Color(0xd6182a);
+      const base = new THREE.Color(0xe86a78);
       const tmp = new THREE.Color();
 
       // Mouse parallax — the camera eases toward the cursor for a 3D, immersive
