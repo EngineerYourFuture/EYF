@@ -5,7 +5,7 @@ import { PageMotion } from "@/components/page-motion";
 import { Reveal } from "@/components/motion";
 import { Icons } from "@/components/icons";
 import { useGuidance } from "@/lib/use-guidance";
-import { companyReadiness, readinessBand, tierOf, biggestGap, TIER_PROFILES, SPOTLIGHT_COMPANIES } from "@/lib/company-readiness";
+import { companyReadiness, readinessBand, tierOf, biggestGap, offerProbability, TIER_PROFILES, SPOTLIGHT_COMPANIES } from "@/lib/company-readiness";
 import { companyLabel } from "@/lib/company";
 import type { Readiness } from "@/lib/readiness";
 
@@ -128,15 +128,15 @@ function CompanyBoard({ r }: { r: Readiness }) {
     .map((slug) => {
       const tier = tierOf(slug);
       const pct = companyReadiness(r.pillars, tier);
-      return { slug, tier, pct, band: readinessBand(pct), gap: biggestGap(r.pillars, tier) };
+      return { slug, tier, pct, odds: offerProbability(pct, tier), band: readinessBand(pct), gap: biggestGap(r.pillars, tier) };
     })
-    .sort((a, b) => b.pct - a.pct);
+    .sort((a, b) => b.odds - a.odds);
 
   return (
     <div className="mt-10">
-      <h2 className="font-display text-xl font-bold mb-1">Am I ready for…?</h2>
+      <h2 className="font-display text-xl font-bold mb-1">Will I get an offer?</h2>
       <p className="text-text-3 text-sm mb-4 max-w-2xl">
-        Every company hires against a different bar. Here&apos;s where you stand for each — tap any to open targeted prep.
+        Your live offer probability at each company — calibrated to how hard that company hires. Tap any to open targeted prep.
       </p>
       <div className="grid sm:grid-cols-2 gap-3">
         {rows.map((c) => (
@@ -148,7 +148,8 @@ function CompanyBoard({ r }: { r: Readiness }) {
                 <span className="text-text-4 text-xs ml-2">{TIER_PROFILES[c.tier].label}</span>
               </div>
               <div className="flex items-center gap-2 shrink-0">
-                <span className="font-display text-lg font-bold tabular-nums">{c.pct}%</span>
+                <span className="font-display text-lg font-bold tabular-nums">{c.odds}%</span>
+                <span className="text-text-4 text-xs">odds</span>
                 <Badge tone={c.band.tone}>{c.band.label}</Badge>
               </div>
             </div>
