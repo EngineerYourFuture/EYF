@@ -71,12 +71,14 @@ module.exports = {
         prose: "68ch",
       },
       boxShadow: {
-        // Neutral, physical elevation (no colored glow — premium restraint).
-        card:       "0 1px 2px rgb(var(--shadow) / 0.30), 0 8px 24px -12px rgb(var(--shadow) / 0.45)",
-        "card-lg":  "0 1px 2px rgb(var(--shadow) / 0.30), 0 24px 48px -16px rgb(var(--shadow) / 0.55)",
+        // Soft, layered elevation (Stripe/Linear-grade) — multiple low-opacity
+        // layers read premium; a single hard shadow reads cheap. On dark the
+        // near-black --shadow keeps these barely-there, so borders carry depth.
+        card:       "0 1px 2px -1px rgb(var(--shadow) / 0.10), 0 4px 12px -3px rgb(var(--shadow) / 0.08), 0 12px 28px -8px rgb(var(--shadow) / 0.08)",
+        "card-lg":  "0 2px 4px -2px rgb(var(--shadow) / 0.10), 0 8px 20px -4px rgb(var(--shadow) / 0.10), 0 28px 56px -12px rgb(var(--shadow) / 0.14)",
         // "glow" kept as an alias for back-compat but neutralized (no neon).
-        glow:       "0 1px 2px rgb(var(--shadow) / 0.30), 0 12px 40px -12px rgb(var(--shadow) / 0.55)",
-        "glow-sm":  "0 8px 24px -10px rgb(var(--shadow) / 0.5)",
+        glow:       "0 1px 2px -1px rgb(var(--shadow) / 0.10), 0 12px 32px -10px rgb(var(--shadow) / 0.14)",
+        "glow-sm":  "0 6px 18px -8px rgb(var(--shadow) / 0.16)",
         inset:      "inset 0 1px 0 0 rgb(var(--hairline) / 0.06)",
       },
       backgroundImage: {
