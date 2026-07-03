@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import { Badge, Button } from "@eyf/ui";
 import { useApi, useApiAction } from "@/lib/use-api";
@@ -40,6 +41,14 @@ export default function Page({ params }: { params: { slug: string } }) {
   const [code, setCode] = useState("");
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [stalled, setStalled] = useState(false);
+  // Blind mode — no tags/hints/difficulty, timer always on. Real-interview reps.
+  const blind = useSearchParams().get("blind") === "1";
+  const [elapsed, setElapsed] = useState(0);
+  useEffect(() => {
+    if (!blind) return;
+    const t = setInterval(() => setElapsed((e) => e + 1), 1000);
+    return () => clearInterval(t);
+  }, [blind]);
   const action = useApiAction();
 
   useEffect(() => {
@@ -89,14 +98,23 @@ export default function Page({ params }: { params: { slug: string } }) {
         <BackButton className="mb-4" />
         <div className="flex items-center gap-3 flex-wrap">
           <h1 className="font-display text-2xl lg:text-3xl font-bold">{problem.title}</h1>
-          <Badge tone={tone[problem.difficulty]}>{problem.difficulty}</Badge>
+          {!blind && <Badge tone={tone[problem.difficulty]}>{problem.difficulty}</Badge>}
+          {blind && (
+            <span className="inline-flex items-center gap-1.5 rounded-md border border-brand/30 bg-brand/[0.06] px-2.5 py-1 font-mono text-sm text-brand tabular-nums">
+              ● {Math.floor(elapsed / 60)}:{String(elapsed % 60).padStart(2, "0")}
+            </span>
+          )}
         </div>
-        <div className="mt-3 flex flex-wrap gap-2">
-          {problem.patterns.map((p) => (
-            <Badge key={p} tone="accent">{p}</Badge>
-          ))}
-          {problem.companies?.map((c) => <Badge key={c}>{c}</Badge>)}
-        </div>
+        {blind ? (
+          <div className="mt-3 text-xs font-mono uppercase tracking-wider text-text-4">Blind mode · no tags, no hints — commit like the real thing</div>
+        ) : (
+          <div className="mt-3 flex flex-wrap gap-2">
+            {problem.patterns.map((p) => (
+              <Badge key={p} tone="accent">{p}</Badge>
+            ))}
+            {problem.companies?.map((c) => <Badge key={c}>{c}</Badge>)}
+          </div>
+        )}
         <div className="mt-6 text-text-2 whitespace-pre-wrap leading-relaxed">
           {problem.description}
         </div>
@@ -112,7 +130,7 @@ export default function Page({ params }: { params: { slug: string } }) {
           </div>
         )}
 
-        <EditorialPanel slug={problem.slug} />
+        {!blind && <EditorialPanel slug={problem.slug} />}
       </div>
 
       {/* Editor + verdict panel */}
