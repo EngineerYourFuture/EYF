@@ -10,8 +10,91 @@ import {
   motion, useScroll, useTransform, useSpring, useReducedMotion, type MotionValue,
 } from "framer-motion";
 import { Button, Badge } from "@eyf/ui";
+import { Icons, type IconName } from "@/components/icons";
 import { Roadmap3D, ROADMAP_NODES } from "./roadmap-3d";
 import { VideoHero } from "./video-hero";
+
+// ─── Everything in one platform (full breadth) ────────────────────
+const PILLARS: { icon: IconName; title: string; desc: string }[] = [
+  { icon: "target", title: "Placement Readiness", desc: "One score that tells you exactly how ready you are." },
+  { icon: "code", title: "DSA Engine", desc: "2,000+ problems in 15 patterns, with AI variants." },
+  { icon: "book", title: "Core Subjects", desc: "OS · DBMS · CN · OOP with spaced repetition." },
+  { icon: "clipboard", title: "Aptitude & MCQ", desc: "TCS NQT, AMCAT & Mettl, exact interface + timing." },
+  { icon: "mic", title: "AI Mock Interviews", desc: "Recorded, graded, anxiety tracked over weeks." },
+  { icon: "brain", title: "Cognitive Games", desc: "The pressure round that eliminates 80% of students." },
+  { icon: "doc", title: "Resume & ATS", desc: "ATS-scored, one-click PDF, recruiter-ready." },
+  { icon: "cube", title: "Projects", desc: "Guided builds that survive the interview." },
+  { icon: "building", title: "Company Prep", desc: "Targeted coverage + real OA reports." },
+  { icon: "users", title: "Mentors", desc: "Expert mocks from people who've been there." },
+  { icon: "briefcase", title: "Jobs & Pipeline", desc: "Find roles, apply, and track every deadline." },
+  { icon: "compass", title: "Career Tracks", desc: "A week-by-week curriculum for your exact role." },
+];
+function Everything() {
+  return (
+    <section className="relative min-h-[80vh] flex items-center justify-center px-6 sm:px-8 lg:px-16 py-16">
+      <div className="max-w-6xl w-full text-center">
+        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-100px" }} transition={{ duration: 0.6 }}>
+          <Badge tone="accent" className="mb-5">Everything in one place</Badge>
+          <h2 className="font-display text-3xl md:text-5xl font-bold tracking-tight leading-tight">
+            One platform. <span className="text-brand">Everything to get placed.</span>
+          </h2>
+          <p className="mt-5 text-text-2 text-lg max-w-2xl mx-auto leading-relaxed">
+            No more juggling six tools. From your first concept to your first offer — it&apos;s all here,
+            and every part feeds your readiness score.
+          </p>
+        </motion.div>
+        <div className="mt-12 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 text-left">
+          {PILLARS.map((p, i) => {
+            const Icon = Icons[p.icon];
+            return (
+              <motion.div key={p.title}
+                initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-40px" }}
+                transition={{ duration: 0.4, delay: (i % 4) * 0.05 }}
+                className="rounded-2xl border border-border bg-surface p-5 hover:border-brand/30 hover:shadow-card transition-all">
+                <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-brand/[0.08] text-brand mb-3"><Icon width={20} height={20} /></span>
+                <div className="font-display font-bold">{p.title}</div>
+                <div className="text-text-3 text-sm mt-1 leading-relaxed">{p.desc}</div>
+              </motion.div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ─── How it works (the journey) ───────────────────────────────────
+const STEPS: [string, string, string][] = [
+  ["01", "Assess", "A 20-question skill assessment finds your exact gaps."],
+  ["02", "Get your roadmap", "A week-by-week plan for your timeline and target company."],
+  ["03", "Practice with feedback", "Problems, core CS and mocks — every rep moves your score."],
+  ["04", "Simulate the pressure", "AI, peer and expert mocks until interviews feel routine."],
+  ["05", "Apply & get placed", "Track applications, hit deadlines, land the offer."],
+];
+function HowItWorks() {
+  return (
+    <section className="relative min-h-[70vh] flex items-center justify-center px-6 sm:px-8 lg:px-16 py-16">
+      <div className="max-w-6xl w-full text-center">
+        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-100px" }} transition={{ duration: 0.6 }}>
+          <Badge tone="accent" className="mb-5">How it works</Badge>
+          <h2 className="font-display text-3xl md:text-5xl font-bold tracking-tight">From day one to your first offer.</h2>
+        </motion.div>
+        <div className="mt-12 grid sm:grid-cols-2 lg:grid-cols-5 gap-6 text-left">
+          {STEPS.map(([n, t, d], i) => (
+            <motion.div key={n}
+              initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-40px" }}
+              transition={{ duration: 0.4, delay: i * 0.08 }}
+              className="relative">
+              <div className="font-display font-bold text-4xl text-brand/90">{n}</div>
+              <div className="font-display font-bold text-lg mt-3">{t}</div>
+              <div className="text-text-3 text-sm mt-1.5 leading-relaxed">{d}</div>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
 
 /**
  * Scroll-linked vertical parallax. The element drifts from +speed to -speed (px)
@@ -382,8 +465,10 @@ export function ScrollFilm() {
       <Diagnosis />
       <Reveal />
       <TheMap />
+      <HowItWorks />
       <Proof />
       <Features />
+      <Everything />
       <Comparison />
       <Pricing />
       <FinalCTA />
