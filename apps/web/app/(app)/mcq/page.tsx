@@ -6,6 +6,7 @@ import { track, Events } from "@/lib/analytics";
 import { PageMotion } from "@/components/page-motion";
 import { Icons } from "@/components/icons";
 import { ReadinessNudge } from "@/components/readiness-nudge";
+import { CompanySims } from "@/components/company-sims";
 
 type Category = "APTITUDE" | "LOGICAL" | "VERBAL" | "TECHNICAL";
 type CatalogCat = { id: Category; name: string; blurb: string; free: boolean; count: number };
@@ -59,22 +60,24 @@ export default function Page() {
 
   const selectedCat = catalog?.categories.find((c) => c.id === category);
 
-  async function onStart() {
+  async function runStart(cat: Category, comp: string, cnt: number, seconds?: number) {
+    setCategory(cat); setCompany(comp); setCount(cnt);
     setStarting(true);
     try {
       const data = await action<{ questions: Q[]; suggestedSeconds: number }>("/mcq/start", {
         method: "POST",
-        body: JSON.stringify({ category, company: company || undefined, count }),
+        body: JSON.stringify({ category: cat, company: comp || undefined, count: cnt }),
       });
       setQuestions(data.questions);
       setAnswers({});
-      setRemaining(data.suggestedSeconds);
+      setRemaining(seconds ?? data.suggestedSeconds);
       setStartedAt(Date.now());
       setResult(null);
       setPhase("test");
       window.scrollTo({ top: 0 });
     } finally { setStarting(false); }
   }
+  function onStart() { return runStart(category, company, count); }
 
   async function onSubmit() {
     if (submitting) return;
@@ -260,6 +263,8 @@ export default function Page() {
         title="MCQ Tests"
         subtitle="Aptitude, reasoning, verbal and core-CS — the sections real placement rounds test. Pick a section, optionally target a company, and go against the clock."
       />
+
+      <CompanySims onStart={(cat, cnt, secs) => runStart(cat, "", cnt, secs)} />
 
       {!catalog ? (
         <div className="mt-8 grid sm:grid-cols-2 gap-4">

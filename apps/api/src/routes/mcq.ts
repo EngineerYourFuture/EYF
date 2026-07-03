@@ -8,6 +8,7 @@ import {
   pickTest,
 } from "../lib/mcq-bank.js";
 import { scoreMcq } from "../services/mcq.js";
+import { COMPANY_SIMS, simSummary } from "../lib/company-sims.js";
 
 /** Verbal + Technical sections and company-pattern filters are premium. */
 const FREE_CATEGORIES = new Set(
@@ -30,6 +31,13 @@ export async function mcqRoutes(app: FastifyInstance) {
       categories: MCQ_CATEGORIES.map((c) => ({ ...c, count: mcqCount(c.id) })),
       companies: mcqCompanies(),
     },
+  }));
+
+  // Real-company sims — the Aptitude differentiator. The exact section layout +
+  // timing of the tests students actually sit (TCS NQT, AMCAT, InfyTQ, CoCubes).
+  app.get("/sims", async () => ({
+    success: true,
+    data: COMPANY_SIMS.map((s) => ({ ...s, ...simSummary(s) })),
   }));
 
   // Start a test — returns questions WITHOUT the correct answer.
