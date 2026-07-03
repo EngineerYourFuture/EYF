@@ -1,6 +1,7 @@
 "use client";
 import { Card, Button, Badge } from "@eyf/ui";
 import { useApi, useApiAction } from "@/lib/use-api";
+import { ResumeGap } from "@/components/resume-gap";
 import { track, Events } from "@/lib/analytics";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
@@ -169,6 +170,8 @@ export default function Page({ params }: { params: { id: string } }) {
             <Button variant="secondary" className="w-full">Download PDF</Button>
           </a>
         </Card>
+
+        <ResumeGap resumeId={params.id} />
       </aside>
     </div>
   );
