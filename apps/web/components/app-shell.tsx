@@ -87,20 +87,20 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className={`min-h-screen lg:grid ${collapsed ? "lg:grid-cols-[0_1fr]" : "lg:grid-cols-[248px_1fr]"}`}>
       {/* Desktop sidebar — collapsible, hidden on mobile (mobile uses the drawer) */}
-      <aside className={`${collapsed ? "hidden" : "hidden lg:flex"} border-r border-border bg-surface/40 flex-col h-screen sticky top-0`}>
+      <aside className={`${collapsed ? "hidden" : "hidden lg:flex"} border-r border-border glass flex-col h-screen sticky top-0`}>
         <SidebarInner onCollapse={() => setCol(true)} />
       </aside>
 
       {/* Desktop: floating button to reopen the collapsed sidebar */}
       {collapsed && (
         <button onClick={() => setCol(false)} aria-label="Open sidebar" title="Open sidebar"
-          className="hidden lg:inline-flex fixed top-4 left-4 z-40 items-center justify-center h-9 w-9 rounded-lg border border-border bg-surface text-text-2 hover:text-text-1 shadow-card transition-colors">
+          className="hidden lg:inline-flex fixed top-4 left-4 z-40 items-center justify-center h-9 w-9 rounded-lg border border-border glass text-text-2 hover:text-text-1 shadow-card transition-colors">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6" /></svg>
         </button>
       )}
 
       {/* Mobile top bar */}
-      <header className="lg:hidden sticky top-0 z-40 h-14 px-4 flex items-center gap-3 border-b border-border bg-bg/90 backdrop-blur-md">
+      <header className="lg:hidden sticky top-0 z-40 h-14 px-4 flex items-center gap-3 border-b border-border glass">
         <button onClick={() => setOpen(true)} aria-label="Open menu" className="p-1 -ml-1 text-text-2 hover:text-text-1">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
             <path d="M3 12h18M3 6h18M3 18h18" />

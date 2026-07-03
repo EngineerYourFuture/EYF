@@ -18,7 +18,7 @@ export function ScrollNav() {
       style={{ opacity, y }}
       className="fixed top-0 inset-x-0 z-50 border-b border-border/60"
     >
-      <div className="absolute inset-0 bg-bg/85 backdrop-blur-xl -z-10" />
+      <div className="absolute inset-0 glass -z-10" />
       <nav className="mx-auto max-w-7xl px-6 h-16 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2.5" aria-label="EYF home">
           <EyfMark size={22} />
