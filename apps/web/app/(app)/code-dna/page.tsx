@@ -14,6 +14,7 @@ type Dna = {
   patternStrengths: { pattern: string; acceptanceRate: number; attempts: number }[];
   patternWeaknesses: { pattern: string; acceptanceRate: number; attempts: number }[];
   avgRuntimeMs: number | null; fastestSolveMin: number | null;
+  firstTryRate: number; avgAttemptsToSolve: number; speedAccuracy: string;
   habitFlags: string[];
 };
 type Plan = {
@@ -63,6 +64,26 @@ export default function Page() {
             <MetricTile icon={<Icons.flame width={16} height={16} />} tone="accent"
               label="Fastest solve" value={dna.fastestSolveMin ?? "—"} unit={dna.fastestSolveMin ? "min" : undefined} sub="Personal best" />
           </div>
+
+          {/* Speed vs accuracy tradeoff */}
+          <Card className="mt-5">
+            <div className="flex items-start justify-between gap-4 flex-wrap">
+              <div>
+                <div className="text-xs font-mono uppercase tracking-widest text-text-3">Speed vs accuracy</div>
+                <p className="text-text-1 font-medium mt-1 max-w-xl">{dna.speedAccuracy}</p>
+              </div>
+              <div className="flex gap-6 shrink-0">
+                <div>
+                  <div className="font-display text-2xl font-bold tabular-nums">{Math.round(dna.firstTryRate * 100)}%</div>
+                  <div className="text-text-4 text-xs">first-try solves</div>
+                </div>
+                <div>
+                  <div className="font-display text-2xl font-bold tabular-nums">{dna.avgAttemptsToSolve || "—"}</div>
+                  <div className="text-text-4 text-xs">avg tries to solve</div>
+                </div>
+              </div>
+            </div>
+          </Card>
 
           <div className="grid md:grid-cols-2 gap-5 mt-5">
             <Card>
