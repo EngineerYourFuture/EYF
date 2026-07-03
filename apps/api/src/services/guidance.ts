@@ -16,6 +16,7 @@ import {
   computeReadiness,
   rankActions,
   type ReadinessInput,
+  type ReadinessGoal,
   type Readiness,
   type GuidanceAction,
 } from "@eyf/types";
@@ -114,9 +115,27 @@ function fallbackNote(readiness: Readiness, actions: GuidanceAction[]): string {
  * enriched when possible, deterministic reason otherwise. Never throws for a
  * missing/broken LLM.
  */
+/** The student's placement goal (from their latest roadmap) — readiness is
+ *  scored against this. Best-effort: no goal → the balanced default. */
+async function resolveGoal(userId: string): Promise<ReadinessGoal | undefined> {
+  try {
+    const rm = await prisma.userRoadmap.findFirst({
+      where: { userId },
+      orderBy: { startedAt: "desc" },
+      select: { targetRole: true, targetCompany: true },
+    });
+    return rm ? { targetRole: rm.targetRole, targetCompany: rm.targetCompany } : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 export async function computeGuidance(userId: string): Promise<Guidance> {
-  const { input, partial } = await gatherReadinessInput(userId);
-  const readiness = computeReadiness(input);
+  const [{ input, partial }, goal] = await Promise.all([
+    gatherReadinessInput(userId),
+    resolveGoal(userId),
+  ]);
+  const readiness = computeReadiness(input, goal);
   const actions = rankActions(readiness);
   const fallback = fallbackNote(readiness, actions);
 
