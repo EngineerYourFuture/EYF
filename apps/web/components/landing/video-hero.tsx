@@ -42,23 +42,23 @@ export function VideoHero() {
         <div className="absolute inset-0 bg-bg/40" />
         <div className="absolute inset-0 bg-gradient-to-b from-bg/50 via-transparent to-bg" />
 
-        {/* Foreground — left-aligned, editorial (not centered) */}
+        {/* Foreground — centered, immersive */}
         <motion.div style={{ opacity: fade, y: reduce ? 0 : contentY }}
-          className="relative h-full mx-auto max-w-7xl flex flex-col items-start justify-center px-6 sm:px-10 lg:px-16 text-left">
+          className="relative h-full flex flex-col items-center justify-center px-6 text-center">
           {/* Brand — the animated iconic mark assembles on load. */}
-          <EyfAnimatedLogo width={180} className="mb-6 w-[140px] sm:w-[170px] -ml-1" />
+          <EyfAnimatedLogo width={220} className="mb-5 w-[180px] sm:w-[220px]" />
 
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.3 }}
             className="mb-6 inline-flex items-center gap-2 rounded-full border border-brand/25 bg-brand/[0.06] px-4 py-1.5 text-[11px] font-mono uppercase tracking-[0.2em] text-brand">
             <span className="h-1.5 w-1.5 rounded-full bg-brand" /> India&apos;s placement operating system
           </motion.div>
 
-          <h1 className="font-display tracking-tight leading-[1.02] max-w-3xl"
-            style={{ fontSize: "clamp(2.75rem, 7vw, 5.5rem)", letterSpacing: "-0.03em", fontWeight: 400 }}>
+          <h1 className="font-display tracking-tight leading-[1.04] max-w-4xl"
+            style={{ fontSize: "clamp(2.75rem, 8vw, 5.5rem)", letterSpacing: "-0.03em", fontWeight: 300 }}>
             <span className="block text-text-1">
               {line1.map((w, i) => <Word key={i} delay={i * 0.08}>{w}</Word>)}
             </span>
-            <span className="block mt-1 text-text-3">
+            <span className="block mt-2 text-text-3">
               {line2.map((w, i) => <Word key={i} delay={0.5 + i * 0.08}>{w}</Word>)}
             </span>
           </h1>
@@ -69,11 +69,11 @@ export function VideoHero() {
           </motion.p>
 
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.45, duration: 0.6 }}
-            className="mt-9 flex flex-wrap items-center gap-x-6 gap-y-4">
+            className="mt-9 flex flex-col items-center">
             <Link href="/dashboard">
               <Button variant="brand" size="lg" className="text-base px-9">Start your path →</Button>
             </Link>
-            <div className="text-text-4 text-xs font-mono">14,847 students preparing right now</div>
+            <div className="mt-4 text-text-4 text-xs font-mono">14,847 students preparing right now</div>
           </motion.div>
         </motion.div>
 
