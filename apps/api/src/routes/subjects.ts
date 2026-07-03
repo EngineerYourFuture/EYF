@@ -14,6 +14,45 @@ export async function subjectRoutes(app: FastifyInstance) {
     ],
   }));
 
+  // ── Weakness-targeted review — the Core Subjects differentiator. ──
+  // Standard SRS schedules by due date only. EYF also surfaces your WEAKEST
+  // topics (lowest SM-2 easiness = cards you keep failing) across ALL subjects
+  // in one queue, so limited review time goes where it moves the needle.
+  app.get("/review", { preHandler: app.requireAuth }, async (req) => {
+    const userId = req.session!.id;
+    const now = new Date();
+    const reviews = await prisma.flashcardReview.findMany({
+      where: { userId },
+      select: { easiness: true, dueAt: true, flashcard: { select: { subject: true, topic: true } } },
+    });
+
+    // Aggregate the student's SM-2 easiness per subject:topic (lower = weaker).
+    const agg = new Map<string, { subject: string; topic: string; sumEase: number; n: number; due: number }>();
+    for (const r of reviews) {
+      const key = `${r.flashcard.subject}:${r.flashcard.topic}`;
+      const t = agg.get(key) ?? { subject: r.flashcard.subject, topic: r.flashcard.topic, sumEase: 0, n: 0, due: 0 };
+      t.sumEase += r.easiness; t.n += 1;
+      if (r.dueAt <= now) t.due += 1;
+      agg.set(key, t);
+    }
+    // Easiness ~1.3 (hardest) .. 2.6 (easiest) → mastery 0..100.
+    const toMastery = (ease: number) => Math.max(0, Math.min(100, Math.round(((ease - 1.3) / 1.3) * 100)));
+    const weakTopics = [...agg.values()]
+      .map((t) => ({ subject: t.subject, topic: t.topic, mastery: toMastery(t.sumEase / t.n), reviewed: t.n, due: t.due }))
+      .sort((a, b) => a.mastery - b.mastery || b.due - a.due)
+      .slice(0, 6);
+
+    const [dueCount, newCount] = await Promise.all([
+      prisma.flashcard.count({ where: { reviews: { some: { userId, dueAt: { lte: now } } } } }),
+      prisma.flashcard.count({ where: { reviews: { none: { userId } } } }),
+    ]);
+    const overall = weakTopics.length
+      ? Math.round([...agg.values()].reduce((a, t) => a + toMastery(t.sumEase / t.n), 0) / agg.size)
+      : 0;
+
+    return { success: true, data: { weakTopics, overall, counts: { due: dueCount, new: newCount, reviewed: reviews.length } } };
+  });
+
   app.get("/:subject/notes", async (req, reply) => {
     const params = z.object({ subject: z.nativeEnum(Subject) }).parse(req.params);
     const notes = await prisma.theoryNote.findMany({
