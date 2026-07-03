@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { Card, Badge, Button } from "@eyf/ui";
 import { useApi, useApiAction } from "@/lib/use-api";
+import { PressureResilience } from "@/components/pressure-resilience";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
 
@@ -104,6 +105,10 @@ export default function Page() {
           </div>
           {trend.avgDelta < 0 && <p className="text-easy text-sm mt-3">Anxiety dropping over time — inoculation working.</p>}
         </Card>
+      )}
+
+      {sessions && sessions.length >= 2 && (
+        <div className="mt-5"><PressureResilience sessions={sessions} /></div>
       )}
 
       <Card className="mt-8">
