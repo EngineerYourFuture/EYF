@@ -84,6 +84,19 @@ export function readinessBand(pct: number): { label: string; tone: "easy" | "acc
   return { label: "Not yet", tone: "hard" };
 }
 
+/**
+ * Offer Predictor — turns per-company readiness into a "will I get in?" number.
+ * Sigmoid on readiness, with the 50%-odds midpoint set by tier difficulty
+ * (elite needs ~85 readiness for a coin-flip; service needs ~55). No competitor
+ * gives students a calibrated offer probability per company.
+ */
+const TIER_MIDPOINT: Record<CompanyTier, number> = { service: 55, mass: 65, product: 76, elite: 86 };
+
+export function offerProbability(readinessPct: number, tier: CompanyTier): number {
+  const p = 1 / (1 + Math.exp(-0.09 * (readinessPct - TIER_MIDPOINT[tier])));
+  return Math.round(p * 100);
+}
+
 /** The biggest single thing dragging readiness for this tier — for a "do this next" nudge. */
 export function biggestGap(pillars: Pillar[], tier: CompanyTier): Pillar | null {
   const p = TIER_PROFILES[tier];
