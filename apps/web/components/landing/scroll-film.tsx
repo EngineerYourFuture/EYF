@@ -160,7 +160,7 @@ function Proof() {
         </div>
         <motion.div style={{ x }} className="flex gap-5 px-6 sm:px-8 lg:px-16">
           {STUDENTS.map(([name, college, company]) => (
-            <div key={name} className="group shrink-0 w-72 rounded-xl border border-border bg-surface p-6 transition-all duration-300 hover:-translate-y-1 hover:border-accent/40 hover:shadow-[0_14px_44px_-16px_rgba(255, 255, 255,0.3)]">
+            <div key={name} className="group shrink-0 w-72 rounded-xl border border-border bg-surface p-6 transition-all duration-300 hover:-translate-y-1 hover:border-brand/40 hover:shadow-card-lg">
               <div className="flex h-14 w-14 items-center justify-center rounded-full border border-accent/30 bg-gradient-to-br from-accent/30 to-border font-display text-lg font-bold text-text-1">
                 {name?.[0]}
               </div>
@@ -217,8 +217,8 @@ function Features() {
               viewport={{ once: true, margin: "-120px" }} transition={{ duration: 0.8 }}
               className={`${i % 2 ? "lg:order-1" : ""} relative aspect-[4/3] overflow-hidden rounded-2xl border border-border bg-surface-2 shadow-card grid place-items-center`}>
               <div className="pointer-events-none absolute -inset-px rounded-2xl bg-gradient-to-br from-accent/15 via-transparent to-transparent" />
-              <div className="pointer-events-none absolute inset-0 opacity-[0.05]"
-                style={{ backgroundImage: "radial-gradient(rgba(255, 255, 255,0.8) 1px, transparent 1px)", backgroundSize: "22px 22px" }} />
+              <div className="pointer-events-none absolute inset-0 opacity-[0.5]"
+                style={{ backgroundImage: "radial-gradient(rgb(var(--text-1) / 0.06) 1px, transparent 1px)", backgroundSize: "22px 22px" }} />
               <Parallax speed={44} className="relative"><FeatureVisual icon={f.icon} /></Parallax>
             </motion.div>
           </div>
@@ -327,7 +327,7 @@ function Pricing() {
             <motion.div key={t.name}
               initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
               transition={{ duration: 0.5, delay: i * 0.1 }}
-              className={`rounded-xl p-7 border flex flex-col transition-transform duration-300 ${t.featured ? "border-accent bg-accent-tint scale-[1.04] shadow-[0_0_55px_-14px_rgba(255, 255, 255,0.45)]" : "border-border bg-surface hover:-translate-y-1"}`}>
+              className={`rounded-xl p-7 border flex flex-col transition-transform duration-300 ${t.featured ? "border-brand/40 bg-surface scale-[1.04] shadow-[0_20px_55px_-18px_rgba(214,24,42,0.28)]" : "border-border bg-surface hover:-translate-y-1"}`}>
               {t.featured && <Badge tone="accent" className="mb-3 w-fit">Most popular</Badge>}
               <div className="font-display text-xl font-bold">{t.name}</div>
               <div className="mt-2 font-display text-4xl font-bold">{t.price}<span className="text-base text-text-3">/mo</span></div>
