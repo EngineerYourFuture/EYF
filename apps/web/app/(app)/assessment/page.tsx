@@ -5,6 +5,7 @@ import { Button, Card, Badge, MetricTile, Meter, PageHeader, Skeleton } from "@e
 import { useApiAction } from "@/lib/use-api";
 import { track, Events } from "@/lib/analytics";
 import { PageMotion } from "@/components/page-motion";
+import { AdaptiveDiagnostic } from "@/components/adaptive-diagnostic";
 import { Reveal } from "@/components/motion";
 import { Icons } from "@/components/icons";
 
@@ -50,13 +51,15 @@ export default function Page() {
   const [startedAt, setStarted] = useState<number>(0);
   const [result, setResult]     = useState<Scored["scored"] | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [mode, setMode] = useState<"choose" | "full" | "adaptive">("choose");
 
   useEffect(() => {
+    if (mode !== "full" || questions) return;
     action<{ questions: Q[] }>("/assessment/start").then((d) => {
       setQuestions(d.questions);
       setStarted(Date.now());
     });
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [mode]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function onSubmit() {
     if (!questions) return;
@@ -79,6 +82,38 @@ export default function Page() {
       setResult(data.scored);
       window.scrollTo({ top: 0, behavior: "smooth" });
     } finally { setSubmitting(false); }
+  }
+
+  /* ---------- mode chooser ---------- */
+  if (mode === "choose") {
+    return (
+      <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-3xl mx-auto">
+        <PageHeader eyebrow="Skill assessment" title="Find your level" subtitle="Two ways in — a fast adaptive diagnostic that pinpoints your exact boundary, or the full topic-by-topic assessment." />
+        <div className="mt-8 grid sm:grid-cols-2 gap-4">
+          <button onClick={() => setMode("adaptive")} className="text-left rounded-2xl border border-brand/30 bg-brand/[0.04] p-5 hover:bg-brand/[0.08] transition-colors">
+            <div className="text-xs font-mono uppercase tracking-wider text-brand">Recommended</div>
+            <h3 className="font-display text-lg font-bold mt-1">Adaptive diagnostic</h3>
+            <p className="text-text-3 text-sm mt-1">12 questions that harden or soften with each answer to find your exact mastery boundary. ~4 min.</p>
+          </button>
+          <button onClick={() => setMode("full")} className="text-left rounded-2xl border border-border bg-surface p-5 hover:border-edge transition-colors">
+            <div className="text-xs font-mono uppercase tracking-wider text-text-4">Full</div>
+            <h3 className="font-display text-lg font-bold mt-1">Full assessment</h3>
+            <p className="text-text-3 text-sm mt-1">20 fixed questions across DSA, core CS and aptitude with a topic-by-topic report. ~12 min.</p>
+          </button>
+        </div>
+      </PageMotion>
+    );
+  }
+
+  /* ---------- adaptive ---------- */
+  if (mode === "adaptive") {
+    return (
+      <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-2xl mx-auto">
+        <button onClick={() => setMode("choose")} className="text-text-4 text-sm hover:text-text-2 mb-4">← Back</button>
+        <PageHeader eyebrow="Adaptive diagnostic" title="Find your exact level" subtitle="Each answer changes what comes next — get it right and it hardens." />
+        <div className="mt-8"><AdaptiveDiagnostic onExit={() => setMode("choose")} /></div>
+      </PageMotion>
+    );
   }
 
   /* ---------- result ---------- */
