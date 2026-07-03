@@ -2,7 +2,7 @@ import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { prisma } from "@eyf/db";
 import type { ResumeDocument } from "@eyf/types";
-import { scoreResume } from "../services/ats.js";
+import { scoreResume, resumeGapToTarget } from "../services/ats.js";
 import { renderResumePdf } from "../services/pdf.js";
 
 const resumeDocSchema: z.ZodType<ResumeDocument> = z.object({
@@ -118,5 +118,19 @@ export async function resumeRoutes(app: FastifyInstance) {
     const ats = scoreResume(r.json as ResumeDocument);
     await prisma.resume.update({ where: { id }, data: { atsScore: ats.total, atsBreakdown: ats } });
     return { success: true, data: ats };
+  });
+
+  // Gap-to-target — the Resume differentiator. Scores the resume against the
+  // student's target role (from their latest roadmap) and returns exact fixes.
+  app.get("/:id/gap", { preHandler: app.requireAuth }, async (req, reply) => {
+    const { id } = z.object({ id: z.string() }).parse(req.params);
+    const userId = req.session!.id;
+    const [r, roadmap] = await Promise.all([
+      prisma.resume.findFirst({ where: { id, userId } }),
+      prisma.userRoadmap.findFirst({ where: { userId }, orderBy: { startedAt: "desc" }, select: { targetRole: true } }),
+    ]);
+    if (!r) return reply.code(404).send({ success: false, error: { code: "NOT_FOUND", message: "Resume not found" } });
+    const gap = resumeGapToTarget(r.json as ResumeDocument, roadmap?.targetRole);
+    return { success: true, data: gap };
   });
 }

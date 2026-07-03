@@ -68,3 +68,86 @@ export function scoreResume(doc: ResumeDocument): AtsBreakdown {
   const total = factors.reduce((a, f) => a + f.score, 0);
   return { total, factors };
 }
+
+/* ─── Gap-to-target — the Resume differentiator ──────────────────────
+ * Competitors give a static ATS score. EYF scores your resume against YOUR
+ * target role: which expected keywords are missing, and the exact rewrites to
+ * clear that role's bar. Pure + deterministic; the LLM is not required.
+ */
+const ROLE_KEYWORDS: Record<string, string[]> = {
+  frontend: ["react", "typescript", "javascript", "css", "html", "responsive", "accessibility", "performance", "testing", "redux", "next.js", "tailwind"],
+  backend:  ["api", "rest", "database", "sql", "microservices", "docker", "caching", "redis", "scalability", "system design", "authentication", "kubernetes"],
+  fullstack:["react", "typescript", "node", "api", "database", "sql", "docker", "rest", "testing", "system design", "authentication"],
+  data:     ["python", "sql", "pandas", "numpy", "machine learning", "statistics", "data pipeline", "spark", "visualization", "tensorflow", "etl"],
+  sde:      ["data structures", "algorithms", "system design", "git", "testing", "ci/cd", "object-oriented", "rest api", "database", "docker"],
+};
+const ROLE_LABEL: Record<string, string> = {
+  frontend: "Frontend", backend: "Backend", fullstack: "Full-stack", data: "Data / ML", sde: "Software Engineer",
+};
+function roleKey(targetRole?: string | null): keyof typeof ROLE_KEYWORDS {
+  const r = (targetRole ?? "").toLowerCase();
+  if (/front|\bui\b/.test(r)) return "frontend";
+  if (/full.?stack/.test(r)) return "fullstack";
+  if (/back|server/.test(r)) return "backend";
+  if (/data|\bml\b|\bai\b|scien|analyst/.test(r)) return "data";
+  return "sde";
+}
+const cap = (s: string) => s.replace(/\b\w/g, (c) => c.toUpperCase());
+
+export type ResumeGap = {
+  roleLabel: string;
+  matchPct: number;
+  matched: string[];
+  missing: string[];
+  fixes: { label: string; detail: string; severity: "high" | "med" }[];
+};
+
+export function resumeGapToTarget(doc: ResumeDocument, targetRole?: string | null): ResumeGap {
+  const key = roleKey(targetRole);
+  const keywords = ROLE_KEYWORDS[key]!;
+  const roleLabel = ROLE_LABEL[key]!;
+  const hay = [
+    ...(doc.skills ?? []),
+    ...(doc.experience?.flatMap((e) => e.bullets ?? []) ?? []),
+    ...(doc.projects?.flatMap((p) => [p.name, p.description].filter(Boolean) as string[]) ?? []),
+    doc.summary ?? "",
+  ].join(" ").toLowerCase();
+
+  const matched = keywords.filter((k) => hay.includes(k));
+  const missing = keywords.filter((k) => !hay.includes(k));
+  const matchPct = keywords.length ? Math.round((matched.length / keywords.length) * 100) : 0;
+
+  const fixes: ResumeGap["fixes"] = [];
+  if (missing.length) {
+    fixes.push({
+      label: `Show ${missing.slice(0, 4).map(cap).join(", ")}`,
+      detail: `Expected for ${roleLabel} roles but not on your resume. Add a project or bullet that genuinely demonstrates ${missing.length === 1 ? "it" : "them"}.`,
+      severity: "high",
+    });
+  }
+  const allBullets = doc.experience?.flatMap((e) => e.bullets ?? []) ?? [];
+  const unquantified = allBullets.filter((b) => !/\d/.test(b)).length;
+  if (allBullets.length && unquantified > 0) {
+    fixes.push({
+      label: `Quantify ${unquantified} more bullet${unquantified === 1 ? "" : "s"}`,
+      detail: "Recruiters scan for impact numbers (%, ₹, users, ms). Add a metric to every bullet that lacks one.",
+      severity: "high",
+    });
+  }
+  if ((doc.projects?.filter((p) => p.link).length ?? 0) === 0) {
+    fixes.push({
+      label: "Add a project with a live link",
+      detail: `${roleLabel} interviewers open your projects — a working demo + GitHub link is high signal.`,
+      severity: "med",
+    });
+  }
+  if ((doc.skills?.length ?? 0) < 8) {
+    fixes.push({
+      label: "Expand your skills section",
+      detail: "List the concrete tools and languages you know — ATS keyword-matches against this section first.",
+      severity: "med",
+    });
+  }
+
+  return { roleLabel, matchPct, matched, missing, fixes };
+}
