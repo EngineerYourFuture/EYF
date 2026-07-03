@@ -44,6 +44,18 @@ export default function ProblemsPage() {
 
       <div className="mt-8"><PatternMastery /></div>
 
+      <div className="mt-4 flex justify-end">
+        <button
+          onClick={() => {
+            const pool = (catalog ?? shown);
+            if (pool.length) window.location.href = `/problems/${pool[Math.floor(Math.random() * pool.length)]!.slug}?blind=1`;
+          }}
+          className="text-sm font-medium text-brand hover:underline"
+        >
+          🎯 Blind practice — random problem, no tags, timer on →
+        </button>
+      </div>
+
       <div className="mt-6 grid lg:grid-cols-[240px_1fr] gap-6 items-start">
         {/* Filters rail */}
         <aside className="lg:sticky lg:top-6 space-y-6">
