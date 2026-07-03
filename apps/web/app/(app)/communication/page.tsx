@@ -7,6 +7,7 @@ import { useEyfAuth as useAuth } from "@/lib/auth";
 import { useRecorder } from "@/lib/use-recorder";
 import { track, Events } from "@/lib/analytics";
 import { PageMotion } from "@/components/page-motion";
+import { StarBuilder } from "@/components/star-builder";
 import { Icons } from "@/components/icons";
 import { ReadinessNudge } from "@/components/readiness-nudge";
 
@@ -222,6 +223,8 @@ export default function Page() {
           <span className="text-accent"><Icons.arrow width={16} height={16} /></span>
         </Card>
       </Link>
+
+      <StarBuilder />
 
       {/* Spoken / HR drills */}
       <div className="mt-8">
