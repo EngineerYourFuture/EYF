@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { PageHeader } from "@eyf/ui";
 import { PageMotion } from "@/components/page-motion";
+import { CognitiveRank } from "@/components/cognitive-rank";
 import { Icons, type IconName } from "@/components/icons";
 
 const GAMES: { slug: string; name: string; blurb: string; icon: IconName; tag: string }[] = [
@@ -21,7 +22,9 @@ export default function Page() {
         subtitle="Pattern recognition, working memory, reaction, spatial reasoning, and attention — the raw aptitudes companies actually screen for."
       />
 
-      <div className="mt-8 grid sm:grid-cols-2 gap-4">
+      <div className="mt-8"><CognitiveRank /></div>
+
+      <div className="mt-6 grid sm:grid-cols-2 gap-4">
         {GAMES.map((g) => {
           const Icon = Icons[g.icon];
           return (
