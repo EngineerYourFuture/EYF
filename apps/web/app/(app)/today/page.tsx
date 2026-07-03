@@ -93,7 +93,7 @@ export default function Page() {
   return (
     <PageMotion className="relative">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-64 bg-glow-radial" aria-hidden />
-      <div className="relative px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-5xl mx-auto">
+      <div className="relative px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-7xl mx-auto">
         <div className="text-xs font-mono uppercase tracking-widest text-accent mb-2">
           {new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" })}
         </div>
@@ -107,62 +107,71 @@ export default function Page() {
           <MiniStat icon="code" label="Solved today" value={today ? `${today.problemsSolvedToday}` : "—"} />
         </div>
 
-        {/* Your Coach — the active guidance engine (readiness → next best action) */}
-        <CoachCard guidance={guidance} />
+        {/* Two-column workspace — fills the width */}
+        <div className="grid lg:grid-cols-[1.6fr_1fr] gap-x-6 items-start">
+          {/* Left: coach + today's plan */}
+          <div>
+            {/* Your Coach — the active guidance engine (readiness → next best action) */}
+            <CoachCard guidance={guidance} />
 
-        {/* Daily Mission — the retention loop */}
-        <DailyMission />
+            {/* Plan */}
+            <Card variant="glow" className="mt-6">
+              <div className="flex items-center justify-between mb-1">
+                <h2 className="font-display text-xl font-bold">Today&apos;s plan</h2>
+                <span className="text-text-3 text-sm font-mono">{doneCount}/{plan.length || "—"}</span>
+              </div>
+              <div className="h-1.5 bg-surface-3 rounded-full overflow-hidden mb-5">
+                <div className="h-full bg-accent transition-all duration-500" style={{ width: `${pct}%` }} />
+              </div>
 
-        {/* Plan */}
-        <Card variant="glow" className="mt-6">
-          <div className="flex items-center justify-between mb-1">
-            <h2 className="font-display text-xl font-bold">Today&apos;s plan</h2>
-            <span className="text-text-3 text-sm font-mono">{doneCount}/{plan.length || "—"}</span>
+              {!loaded ? (
+                <div className="space-y-3">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-16 rounded-xl" />)}</div>
+              ) : allDone ? (
+                <div className="text-center py-8">
+                  <div className="text-easy mb-3 flex justify-center"><Icons.trophy width={32} height={32} /></div>
+                  <p className="font-display text-lg font-bold">Plan complete. 🎯</p>
+                  <p className="text-text-3 text-sm mt-1">You showed up today — that&apos;s how offers get built. See you tomorrow.</p>
+                </div>
+              ) : (
+                <div className="space-y-2.5">
+                  {plan.map((item) => <PlanRow key={item.id} item={item} onToggle={() => toggle(item.id)} />)}
+                </div>
+              )}
+            </Card>
           </div>
-          <div className="h-1.5 bg-surface-3 rounded-full overflow-hidden mb-5">
-            <div className="h-full bg-accent transition-all duration-500" style={{ width: `${pct}%` }} />
+
+          {/* Right: daily mission + deadlines */}
+          <div>
+            {/* Daily Mission — the retention loop */}
+            <DailyMission />
+
+            {/* Application deadlines */}
+            {deadlines.length > 0 && (
+              <Reveal className="mt-6"><Card>
+                <div className="flex items-center justify-between mb-3">
+                  <h2 className="font-display text-lg font-bold flex items-center gap-2">
+                    <span className="text-hard"><Icons.gauge width={18} height={18} /></span> Deadlines this week
+                  </h2>
+                  <Link href="/pipeline" className="text-accent text-sm hover:underline">Pipeline →</Link>
+                </div>
+                <div className="space-y-2">
+                  {deadlines.map((d) => (
+                    <Link key={d.id} href={`/jobs/${d.job.slug}`}
+                      className="flex items-center gap-3 rounded-xl border border-border bg-surface px-3 py-2.5 hover:border-edge transition-colors">
+                      <div className="min-w-0 flex-1">
+                        <div className="text-sm font-medium truncate">{d.job.title}</div>
+                        <div className="text-text-4 text-xs truncate">{d.job.company} · {d.status}</div>
+                      </div>
+                      <Badge tone={d.days <= 2 ? "hard" : d.days <= 5 ? "medium" : "default"}>
+                        {d.days === 0 ? "Today" : `${d.days}d`}
+                      </Badge>
+                    </Link>
+                  ))}
+                </div>
+              </Card></Reveal>
+            )}
           </div>
-
-          {!loaded ? (
-            <div className="space-y-3">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-16 rounded-xl" />)}</div>
-          ) : allDone ? (
-            <div className="text-center py-8">
-              <div className="text-easy mb-3 flex justify-center"><Icons.trophy width={32} height={32} /></div>
-              <p className="font-display text-lg font-bold">Plan complete. 🎯</p>
-              <p className="text-text-3 text-sm mt-1">You showed up today — that&apos;s how offers get built. See you tomorrow.</p>
-            </div>
-          ) : (
-            <div className="space-y-2.5">
-              {plan.map((item) => <PlanRow key={item.id} item={item} onToggle={() => toggle(item.id)} />)}
-            </div>
-          )}
-        </Card>
-
-        {/* Application deadlines */}
-        {deadlines.length > 0 && (
-          <Reveal className="mt-6"><Card>
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="font-display text-lg font-bold flex items-center gap-2">
-                <span className="text-hard"><Icons.gauge width={18} height={18} /></span> Deadlines this week
-              </h2>
-              <Link href="/pipeline" className="text-accent text-sm hover:underline">Pipeline →</Link>
-            </div>
-            <div className="space-y-2">
-              {deadlines.map((d) => (
-                <Link key={d.id} href={`/jobs/${d.job.slug}`}
-                  className="flex items-center gap-3 rounded-xl border border-border bg-surface px-3 py-2.5 hover:border-edge transition-colors">
-                  <div className="min-w-0 flex-1">
-                    <div className="text-sm font-medium truncate">{d.job.title}</div>
-                    <div className="text-text-4 text-xs truncate">{d.job.company} · {d.status}</div>
-                  </div>
-                  <Badge tone={d.days <= 2 ? "hard" : d.days <= 5 ? "medium" : "default"}>
-                    {d.days === 0 ? "Today" : `${d.days}d`}
-                  </Badge>
-                </Link>
-              ))}
-            </div>
-          </Card></Reveal>
-        )}
+        </div>
 
         <div className="mt-4 flex items-center justify-between text-sm">
           <Link href="/readiness" className="text-accent hover:underline">View placement readiness →</Link>
