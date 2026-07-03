@@ -73,7 +73,7 @@ function Reveal() {
   const subOpacity = useTransform(p, [0.3, 0.6], [0, 1], { clamp: true });
   const sweep = useTransform(p, [0.45, 0.85], ["0%", "100%"], { clamp: true });
   return (
-    <section ref={ref} className="relative h-[135vh]">
+    <section ref={ref} className="relative h-[108vh]">
       <div className="sticky top-0 h-screen flex flex-col items-center justify-center px-6 text-center overflow-hidden">
         <motion.div className="will-change-transform" style={reduce ? undefined : { scale, opacity: markOpacity, y: markY }}>
           <div className="font-display font-bold tracking-tight text-text-1" style={{ fontSize: "clamp(5rem, 22vw, 15rem)", lineHeight: 0.9 }}>
@@ -101,7 +101,7 @@ function TheMap() {
   const smooth = useSpring(scrollYProgress, { stiffness: 140, damping: 34, restDelta: 0.001 });
 
   return (
-    <section ref={ref} className="relative h-[150vh] lg:h-[230vh]">
+    <section ref={ref} className="relative h-[115vh] lg:h-[140vh]">
       <div className="sticky top-0 h-screen overflow-hidden">
         <Roadmap3D progress={smooth} />
         <div className="absolute inset-0 grid lg:grid-cols-2 pointer-events-none">
@@ -153,7 +153,7 @@ function Proof() {
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
   const x = useTransform(scrollYProgress, [0, 1], ["2%", "-70%"], { clamp: true });
   return (
-    <section ref={ref} className="relative h-[170vh] lg:h-[230vh]">
+    <section ref={ref} className="relative h-[130vh] lg:h-[145vh]">
       <div className="sticky top-0 h-screen flex flex-col justify-center overflow-hidden">
         <div className="px-6 sm:px-8 lg:px-16 mb-10">
           <h2 className="font-display text-3xl md:text-4xl font-bold tracking-tight">They started where you are.</h2>
@@ -357,7 +357,7 @@ function FinalCTA() {
   const ctaOpacity = useTransform(p, [0.45, 0.7], [0, 1], { clamp: true });
   const ctaY = useTransform(p, [0.45, 0.75], [32, 0], { clamp: true });
   return (
-    <section ref={ref} className="relative h-[125vh]">
+    <section ref={ref} className="relative h-[105vh]">
       <div className="sticky top-0 h-screen flex flex-col items-center justify-center px-6 text-center overflow-hidden">
         <motion.h2 className="font-display font-light tracking-tight leading-[1.05]" style={{ fontSize: "clamp(2.5rem, 9vw, 6rem)", ...(reduce ? {} : { scale, y, opacity }) }}>
           What&apos;s the cost<br />of not starting<br /><span className="text-brand">today?</span>
