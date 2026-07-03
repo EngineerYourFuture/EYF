@@ -10,8 +10,91 @@ import {
   motion, useScroll, useTransform, useSpring, useReducedMotion, type MotionValue,
 } from "framer-motion";
 import { Button, Badge } from "@eyf/ui";
+import { Icons, type IconName } from "@/components/icons";
 import { Roadmap3D, ROADMAP_NODES } from "./roadmap-3d";
 import { VideoHero } from "./video-hero";
+
+// ─── Everything in one platform (full breadth) ────────────────────
+const PILLARS: { icon: IconName; title: string; desc: string }[] = [
+  { icon: "target", title: "Placement Readiness", desc: "One score that tells you exactly how ready you are." },
+  { icon: "code", title: "DSA Engine", desc: "2,000+ problems in 15 patterns, with AI variants." },
+  { icon: "book", title: "Core Subjects", desc: "OS · DBMS · CN · OOP with spaced repetition." },
+  { icon: "clipboard", title: "Aptitude & MCQ", desc: "TCS NQT, AMCAT & Mettl, exact interface + timing." },
+  { icon: "mic", title: "AI Mock Interviews", desc: "Recorded, graded, anxiety tracked over weeks." },
+  { icon: "brain", title: "Cognitive Games", desc: "The pressure round that eliminates 80% of students." },
+  { icon: "doc", title: "Resume & ATS", desc: "ATS-scored, one-click PDF, recruiter-ready." },
+  { icon: "cube", title: "Projects", desc: "Guided builds that survive the interview." },
+  { icon: "building", title: "Company Prep", desc: "Targeted coverage + real OA reports." },
+  { icon: "users", title: "Mentors", desc: "Expert mocks from people who've been there." },
+  { icon: "briefcase", title: "Jobs & Pipeline", desc: "Find roles, apply, and track every deadline." },
+  { icon: "compass", title: "Career Tracks", desc: "A week-by-week curriculum for your exact role." },
+];
+function Everything() {
+  return (
+    <section className="relative min-h-[80vh] flex items-center justify-center px-6 sm:px-8 lg:px-16 py-16">
+      <div className="max-w-6xl w-full text-center">
+        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-100px" }} transition={{ duration: 0.6 }}>
+          <Badge tone="accent" className="mb-5">Everything in one place</Badge>
+          <h2 className="font-display text-3xl md:text-5xl font-bold tracking-tight leading-tight">
+            One platform. <span className="text-brand">Everything to get placed.</span>
+          </h2>
+          <p className="mt-5 text-text-2 text-lg max-w-2xl mx-auto leading-relaxed">
+            No more juggling six tools. From your first concept to your first offer — it&apos;s all here,
+            and every part feeds your readiness score.
+          </p>
+        </motion.div>
+        <div className="mt-12 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 text-left">
+          {PILLARS.map((p, i) => {
+            const Icon = Icons[p.icon];
+            return (
+              <motion.div key={p.title}
+                initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-40px" }}
+                transition={{ duration: 0.4, delay: (i % 4) * 0.05 }}
+                className="rounded-2xl border border-border bg-surface p-5 hover:border-brand/30 hover:shadow-card transition-all">
+                <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-brand/[0.08] text-brand mb-3"><Icon width={20} height={20} /></span>
+                <div className="font-display font-bold">{p.title}</div>
+                <div className="text-text-3 text-sm mt-1 leading-relaxed">{p.desc}</div>
+              </motion.div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ─── How it works (the journey) ───────────────────────────────────
+const STEPS: [string, string, string][] = [
+  ["01", "Assess", "A 20-question skill assessment finds your exact gaps."],
+  ["02", "Get your roadmap", "A week-by-week plan for your timeline and target company."],
+  ["03", "Practice with feedback", "Problems, core CS and mocks — every rep moves your score."],
+  ["04", "Simulate the pressure", "AI, peer and expert mocks until interviews feel routine."],
+  ["05", "Apply & get placed", "Track applications, hit deadlines, land the offer."],
+];
+function HowItWorks() {
+  return (
+    <section className="relative min-h-[70vh] flex items-center justify-center px-6 sm:px-8 lg:px-16 py-16">
+      <div className="max-w-6xl w-full text-center">
+        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-100px" }} transition={{ duration: 0.6 }}>
+          <Badge tone="accent" className="mb-5">How it works</Badge>
+          <h2 className="font-display text-3xl md:text-5xl font-bold tracking-tight">From day one to your first offer.</h2>
+        </motion.div>
+        <div className="mt-12 grid sm:grid-cols-2 lg:grid-cols-5 gap-6 text-left">
+          {STEPS.map(([n, t, d], i) => (
+            <motion.div key={n}
+              initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-40px" }}
+              transition={{ duration: 0.4, delay: i * 0.08 }}
+              className="relative">
+              <div className="font-display font-bold text-4xl text-brand/90">{n}</div>
+              <div className="font-display font-bold text-lg mt-3">{t}</div>
+              <div className="text-text-3 text-sm mt-1.5 leading-relaxed">{d}</div>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
 
 /**
  * Scroll-linked vertical parallax. The element drifts from +speed to -speed (px)
@@ -22,7 +105,7 @@ function Parallax({ children, speed = 60, className }: { children: ReactNode; sp
   const ref = useRef<HTMLDivElement>(null);
   const reduce = useReducedMotion();
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
-  const y = useTransform(scrollYProgress, [0, 1], [speed, -speed]);
+  const y = useTransform(scrollYProgress, [0, 1], [speed, -speed], { clamp: true });
   return (
     <motion.div ref={ref} style={reduce ? undefined : { y }} className={className}>
       {children}
@@ -34,7 +117,7 @@ function Parallax({ children, speed = 60, className }: { children: ReactNode; sp
 function Diagnosis() {
   return (
     <section className="relative min-h-[68vh] lg:min-h-[80vh] flex items-center justify-center px-6 py-12 overflow-hidden">
-      <div className="max-w-3xl">
+      <div className="max-w-3xl text-center">
         <Parallax speed={40}><Stat n="300" suffix=" problems solved." /></Parallax>
         <Parallax speed={100}><Stat n="0" suffix=" offers received." accentZero /></Parallax>
         <Parallax speed={20}>
@@ -63,21 +146,19 @@ function Stat({ n, suffix, accentZero }: { n: string; suffix: string; accentZero
 function Reveal() {
   const ref = useRef<HTMLDivElement>(null);
   const reduce = useReducedMotion();
-  const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
-  const p = useSpring(scrollYProgress, { stiffness: 90, damping: 30 });
-  // The mark scales down from oversized, de-blurs, holds, then drifts up + fades.
-  const scale = useTransform(p, [0, 0.4, 0.72, 1], [1.4, 1, 1, 0.92]);
-  const markOpacity = useTransform(p, [0, 0.22, 0.85, 1], [0, 1, 1, 0]);
-  const markY = useTransform(p, [0, 1], ["10vh", "-12vh"]);
-  const filter = useTransform(p, [0, 0.4], [18, 0], { clamp: true });
-  const blur = useTransform(filter, (b) => `blur(${b}px)`);
-  const subY = useTransform(p, [0.25, 0.65], [48, 0]);
-  const subOpacity = useTransform(p, [0.3, 0.6], [0, 1]);
-  const sweep = useTransform(p, [0.45, 0.85], ["0%", "100%"]);
+  // Direct scroll (no spring — springs lag then snap on fast scroll). All
+  // transforms clamped so a fast scroll past the range can't overshoot.
+  const { scrollYProgress: p } = useScroll({ target: ref, offset: ["start start", "end end"] });
+  const scale = useTransform(p, [0, 0.4, 0.72, 1], [1.3, 1, 1, 0.94], { clamp: true });
+  const markOpacity = useTransform(p, [0, 0.22, 0.85, 1], [0, 1, 1, 0], { clamp: true });
+  const markY = useTransform(p, [0, 1], [60, -80], { clamp: true });
+  const subY = useTransform(p, [0.25, 0.65], [40, 0], { clamp: true });
+  const subOpacity = useTransform(p, [0.3, 0.6], [0, 1], { clamp: true });
+  const sweep = useTransform(p, [0.45, 0.85], ["0%", "100%"], { clamp: true });
   return (
-    <section ref={ref} className="relative h-[135vh]">
+    <section ref={ref} className="relative h-[108vh]">
       <div className="sticky top-0 h-screen flex flex-col items-center justify-center px-6 text-center overflow-hidden">
-        <motion.div style={reduce ? undefined : { scale, opacity: markOpacity, y: markY, filter: blur }}>
+        <motion.div className="will-change-transform" style={reduce ? undefined : { scale, opacity: markOpacity, y: markY }}>
           <div className="font-display font-bold tracking-tight text-text-1" style={{ fontSize: "clamp(5rem, 22vw, 15rem)", lineHeight: 0.9 }}>
             EYF
           </div>
@@ -100,10 +181,10 @@ function Reveal() {
 function TheMap() {
   const ref = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
-  const smooth = useSpring(scrollYProgress, { stiffness: 90, damping: 30 });
+  const smooth = useSpring(scrollYProgress, { stiffness: 140, damping: 34, restDelta: 0.001 });
 
   return (
-    <section ref={ref} className="relative h-[150vh] lg:h-[230vh]">
+    <section ref={ref} className="relative h-[115vh] lg:h-[140vh]">
       <div className="sticky top-0 h-screen overflow-hidden">
         <Roadmap3D progress={smooth} />
         <div className="absolute inset-0 grid lg:grid-cols-2 pointer-events-none">
@@ -112,7 +193,7 @@ function TheMap() {
               <Badge tone="accent" className="mb-6">The path</Badge>
               <h2 className="font-display text-4xl md:text-5xl font-bold tracking-tight leading-[1.05]">
                 Most platforms give you content.<br />
-                <span className="text-accent">EYF gives you a path.</span>
+                <span className="text-brand">EYF gives you a path.</span>
               </h2>
               <p className="mt-6 text-text-2 text-lg max-w-md leading-relaxed">
                 Every student starts with a skill assessment. Every roadmap is generated for your timeline,
@@ -153,16 +234,16 @@ const STUDENTS = [
 function Proof() {
   const ref = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
-  const x = useTransform(scrollYProgress, [0, 1], ["2%", "-70%"]);
+  const x = useTransform(scrollYProgress, [0, 1], ["2%", "-70%"], { clamp: true });
   return (
-    <section ref={ref} className="relative h-[170vh] lg:h-[230vh]">
+    <section ref={ref} className="relative h-[130vh] lg:h-[145vh]">
       <div className="sticky top-0 h-screen flex flex-col justify-center overflow-hidden">
         <div className="px-6 sm:px-8 lg:px-16 mb-10">
           <h2 className="font-display text-3xl md:text-4xl font-bold tracking-tight">They started where you are.</h2>
         </div>
         <motion.div style={{ x }} className="flex gap-5 px-6 sm:px-8 lg:px-16">
           {STUDENTS.map(([name, college, company]) => (
-            <div key={name} className="group shrink-0 w-72 rounded-xl border border-border bg-surface p-6 transition-all duration-300 hover:-translate-y-1 hover:border-accent/40 hover:shadow-[0_14px_44px_-16px_rgba(255, 255, 255,0.3)]">
+            <div key={name} className="group shrink-0 w-72 rounded-xl border border-border bg-surface p-6 transition-all duration-300 hover:-translate-y-1 hover:border-brand/40 hover:shadow-card-lg">
               <div className="flex h-14 w-14 items-center justify-center rounded-full border border-accent/30 bg-gradient-to-br from-accent/30 to-border font-display text-lg font-bold text-text-1">
                 {name?.[0]}
               </div>
@@ -177,7 +258,7 @@ function Proof() {
         </motion.div>
         <div className="px-6 sm:px-8 lg:px-16 mt-10">
           <p className="text-xl text-text-1">
-            <span className="text-accent font-display font-bold text-3xl">73%</span>{" "}
+            <span className="text-brand font-display font-bold text-3xl">73%</span>{" "}
             of EYF users who complete their track get placed within 3 months.
           </p>
         </div>
@@ -205,7 +286,7 @@ function Features() {
   return (
     <section className="relative">
       {FEATURES.map((f, i) => (
-        <div key={f.kicker} className="min-h-[68vh] lg:min-h-[84vh] flex items-center px-6 sm:px-8 lg:px-16 py-12">
+        <div key={f.kicker} className="min-h-[50vh] lg:min-h-[62vh] flex items-center px-6 sm:px-8 lg:px-16 py-10 lg:py-14">
           <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center max-w-6xl mx-auto w-full">
             <motion.div initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true, margin: "-120px" }} transition={{ duration: 0.7 }}
@@ -217,10 +298,10 @@ function Features() {
             </motion.div>
             <motion.div initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true, margin: "-120px" }} transition={{ duration: 0.8 }}
-              className={`${i % 2 ? "lg:order-1" : ""} relative aspect-square overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-surface to-bg grid place-items-center`}>
+              className={`${i % 2 ? "lg:order-1" : ""} relative aspect-[4/3] overflow-hidden rounded-2xl border border-border bg-surface-2 shadow-card grid place-items-center`}>
               <div className="pointer-events-none absolute -inset-px rounded-2xl bg-gradient-to-br from-accent/15 via-transparent to-transparent" />
-              <div className="pointer-events-none absolute inset-0 opacity-[0.05]"
-                style={{ backgroundImage: "radial-gradient(rgba(255, 255, 255,0.8) 1px, transparent 1px)", backgroundSize: "22px 22px" }} />
+              <div className="pointer-events-none absolute inset-0 opacity-[0.5]"
+                style={{ backgroundImage: "radial-gradient(rgb(var(--text-1) / 0.06) 1px, transparent 1px)", backgroundSize: "22px 22px" }} />
               <Parallax speed={44} className="relative"><FeatureVisual icon={f.icon} /></Parallax>
             </motion.div>
           </div>
@@ -285,8 +366,8 @@ function FeatureVisual({ icon }: { icon: string }) {
 function Comparison() {
   const ref = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start center", "center center"] });
-  const collapse = useTransform(scrollYProgress, [0, 1], [1, 0]);
-  const emerge = useTransform(scrollYProgress, [0.3, 1], [0, 1]);
+  const collapse = useTransform(scrollYProgress, [0, 1], [1, 0], { clamp: true });
+  const emerge = useTransform(scrollYProgress, [0.3, 1], [0, 1], { clamp: true });
   const tools = ["LeetCode", "GFG", "YouTube", "Telegram", "PDFs", "Notion"];
   return (
     <section ref={ref} className="relative min-h-[64vh] lg:min-h-[78vh] flex items-center justify-center px-6 py-12">
@@ -301,7 +382,7 @@ function Comparison() {
         <motion.div style={{ opacity: collapse }} className="text-text-3 text-sm mb-12">Average student: 6 platforms, 0 direction.</motion.div>
         <motion.div style={{ opacity: emerge }}>
           <div className="inline-flex items-center gap-3 px-6 py-4 border border-accent/40 rounded-xl bg-accent-tint">
-            <span className="text-accent font-display text-xl font-bold">One path.</span>
+            <span className="text-brand font-display text-xl font-bold">One path.</span>
             <span className="text-text-2">From first concept to first offer.</span>
           </div>
         </motion.div>
@@ -329,7 +410,7 @@ function Pricing() {
             <motion.div key={t.name}
               initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
               transition={{ duration: 0.5, delay: i * 0.1 }}
-              className={`rounded-xl p-7 border flex flex-col transition-transform duration-300 ${t.featured ? "border-accent bg-accent-tint scale-[1.04] shadow-[0_0_55px_-14px_rgba(255, 255, 255,0.45)]" : "border-border bg-surface hover:-translate-y-1"}`}>
+              className={`rounded-xl p-7 border flex flex-col transition-transform duration-300 ${t.featured ? "border-brand/40 bg-surface scale-[1.04] shadow-[0_20px_55px_-18px_rgba(214,24,42,0.28)]" : "border-border bg-surface hover:-translate-y-1"}`}>
               {t.featured && <Badge tone="accent" className="mb-3 w-fit">Most popular</Badge>}
               <div className="font-display text-xl font-bold">{t.name}</div>
               <div className="mt-2 font-display text-4xl font-bold">{t.price}<span className="text-base text-text-3">/mo</span></div>
@@ -352,15 +433,14 @@ function Pricing() {
 function FinalCTA() {
   const ref = useRef<HTMLDivElement>(null);
   const reduce = useReducedMotion();
-  const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
-  const p = useSpring(scrollYProgress, { stiffness: 80, damping: 28 });
-  const scale = useTransform(p, [0, 0.5], [0.82, 1]);
-  const y = useTransform(p, [0, 0.5], [64, 0]);
-  const opacity = useTransform(p, [0, 0.4], [0, 1]);
-  const ctaOpacity = useTransform(p, [0.45, 0.7], [0, 1]);
-  const ctaY = useTransform(p, [0.45, 0.75], [32, 0]);
+  const { scrollYProgress: p } = useScroll({ target: ref, offset: ["start start", "end end"] });
+  const scale = useTransform(p, [0, 0.5], [0.85, 1], { clamp: true });
+  const y = useTransform(p, [0, 0.5], [64, 0], { clamp: true });
+  const opacity = useTransform(p, [0, 0.4], [0, 1], { clamp: true });
+  const ctaOpacity = useTransform(p, [0.45, 0.7], [0, 1], { clamp: true });
+  const ctaY = useTransform(p, [0.45, 0.75], [32, 0], { clamp: true });
   return (
-    <section ref={ref} className="relative h-[125vh]">
+    <section ref={ref} className="relative h-[105vh]">
       <div className="sticky top-0 h-screen flex flex-col items-center justify-center px-6 text-center overflow-hidden">
         <motion.h2 className="font-display font-light tracking-tight leading-[1.05]" style={{ fontSize: "clamp(2.5rem, 9vw, 6rem)", ...(reduce ? {} : { scale, y, opacity }) }}>
           What&apos;s the cost<br />of not starting<br /><span className="text-brand">today?</span>
@@ -385,8 +465,10 @@ export function ScrollFilm() {
       <Diagnosis />
       <Reveal />
       <TheMap />
+      <HowItWorks />
       <Proof />
       <Features />
+      <Everything />
       <Comparison />
       <Pricing />
       <FinalCTA />

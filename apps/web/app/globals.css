@@ -11,28 +11,30 @@
   :root {
     color-scheme: dark;
 
-    --bg:          10 10 10;
-    --bg-2:        14 14 14;
-    --surface:     17 17 17;
-    --surface-2:   22 22 22;
-    --surface-3:   30 30 30;
-    --border:      28 28 28;
-    --border-2:    42 42 42;
+    /* Cool graphite — neutrals carry a faint blue undertone so they read
+       designed, not flat grey (the Linear/Vercel-dark signature). */
+    --bg:          9 10 13;
+    --bg-2:        12 13 17;
+    --surface:     17 19 24;
+    --surface-2:   22 25 31;
+    --surface-3:   29 32 40;
+    --border:      33 36 44;
+    --border-2:    48 52 63;
 
-    --text-1:      245 245 245;
-    --text-2:      168 168 170;
-    --text-3:      120 120 122;
-    --text-4:      82 82 84;
+    --text-1:      244 245 248;
+    --text-2:      166 171 182;
+    --text-3:      118 123 134;
+    --text-4:      80 85 96;
 
-    /* Monochrome primary — near-white. Primary buttons/links read premium, not neon. */
-    --accent:      245 245 245;
-    --accent-hover:214 214 214;
-    --accent-tint: 30 30 30;
-    --accent-ink:  10 10 10;     /* dark text on the white primary */
+    /* Monochrome primary — cool near-white. Premium, not neon. */
+    --accent:      244 245 248;
+    --accent-hover:210 214 222;
+    --accent-tint: 29 32 40;
+    --accent-ink:  9 10 13;      /* dark text on the white primary */
 
-    /* Brand red — the ONE accent, used sparingly (~5%): key CTA, active state, logo. */
-    --brand:       232 25 44;    /* #E8192C */
-    --brand-hover: 200 20 38;
+    /* Brand red — the ONE accent, used sparingly. Vivid against cool graphite. */
+    --brand:       235 38 55;
+    --brand-hover: 205 28 46;
     --brand-ink:   255 255 255;
 
     /* Muted functional scale — refined data, never candy. */
@@ -49,27 +51,28 @@
   :root.light {
     color-scheme: light;
 
-    --bg:          246 246 244;
-    --bg-2:        240 240 237;
+    /* Cool off-white — a whisper of blue keeps it from looking bare/warm-grey. */
+    --bg:          248 249 251;
+    --bg-2:        242 244 247;
     --surface:     255 255 255;
-    --surface-2:   255 255 255;
-    --surface-3:   241 241 238;
-    --border:      228 228 222;
-    --border-2:    214 214 206;
+    --surface-2:   252 253 255;
+    --surface-3:   239 241 245;
+    --border:      225 228 234;
+    --border-2:    209 213 221;
 
-    --text-1:      18 18 20;
-    --text-2:      70 70 74;
-    --text-3:      120 120 124;
-    --text-4:      160 160 164;
+    --text-1:      17 19 24;
+    --text-2:      66 71 82;
+    --text-3:      114 120 132;
+    --text-4:      154 159 170;
 
-    /* Monochrome primary — near-black on white. */
-    --accent:      18 18 20;
-    --accent-hover:40 40 44;
-    --accent-tint: 240 240 238;
+    /* Monochrome primary — cool near-black on white. */
+    --accent:      17 19 24;
+    --accent-hover:38 41 48;
+    --accent-tint: 239 241 245;
     --accent-ink:  255 255 255;  /* white text on the near-black primary */
 
-    --brand:       212 18 36;    /* red, slightly deeper for white bg */
-    --brand-hover: 184 14 30;
+    --brand:       214 24 42;    /* red, slightly deeper for white bg */
+    --brand-hover: 186 16 34;
     --brand-ink:   255 255 255;
 
     --easy:        40 150 90;
@@ -86,14 +89,28 @@
      Used by the cinematic marketing landing, which is designed dark-only. */
   .theme-dark {
     color-scheme: dark;
-    --bg: 10 10 10; --bg-2: 14 14 14;
-    --surface: 17 17 17; --surface-2: 22 22 22; --surface-3: 30 30 30;
-    --border: 28 28 28; --border-2: 42 42 42;
-    --text-1: 245 245 245; --text-2: 168 168 170; --text-3: 120 120 122; --text-4: 82 82 84;
-    --accent: 245 245 245; --accent-hover: 214 214 214; --accent-tint: 30 30 30; --accent-ink: 10 10 10;
-    --brand: 232 25 44; --brand-hover: 200 20 38; --brand-ink: 255 255 255;
+    --bg: 9 10 13; --bg-2: 12 13 17;
+    --surface: 17 19 24; --surface-2: 22 25 31; --surface-3: 29 32 40;
+    --border: 33 36 44; --border-2: 48 52 63;
+    --text-1: 244 245 248; --text-2: 166 171 182; --text-3: 118 123 134; --text-4: 80 85 96;
+    --accent: 244 245 248; --accent-hover: 210 214 222; --accent-tint: 29 32 40; --accent-ink: 9 10 13;
+    --brand: 235 38 55; --brand-hover: 205 28 46; --brand-ink: 255 255 255;
     --easy: 90 190 120; --medium: 200 160 70; --hard: 210 90 70; --expert: 176 112 160; --info: 120 150 190;
     --shadow: 0 0 0; --hairline: 255 255 255;
+  }
+
+  /* Force a clean light palette on a subtree (Apple/Google feel) — used by the
+     landing. Bright white, near-black text, soft grey surfaces, red accent. */
+  .theme-light {
+    color-scheme: light;
+    --bg: 255 255 255; --bg-2: 247 248 250;
+    --surface: 255 255 255; --surface-2: 250 251 253; --surface-3: 242 244 247;
+    --border: 226 229 235; --border-2: 208 213 221;
+    --text-1: 29 29 31; --text-2: 88 93 102; --text-3: 128 134 143; --text-4: 160 165 174;
+    --accent: 29 29 31; --accent-hover: 55 57 62; --accent-tint: 242 244 247; --accent-ink: 255 255 255;
+    --brand: 214 24 42; --brand-hover: 186 16 34; --brand-ink: 255 255 255;
+    --easy: 40 150 90; --medium: 170 120 20; --hard: 190 60 45; --expert: 150 80 140; --info: 26 115 232;
+    --shadow: 24 27 33; --hairline: 255 255 255;
   }
 
   html, body {
@@ -101,6 +118,7 @@
     font-feature-settings: "ss01", "cv11";
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
+    transition: background-color 0.25s ease, color 0.25s ease;
   }
 
   ::selection {

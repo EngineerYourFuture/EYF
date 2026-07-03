@@ -41,7 +41,7 @@ export default function Page() {
   }
 
   return (
-    <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-6xl mx-auto">
+    <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-7xl mx-auto">
       <PageHeader
         eyebrow="Find · save · track"
         title="Jobs"

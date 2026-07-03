@@ -28,7 +28,7 @@ export default function Page() {
   const diffTotal = data ? Object.values(data.byDifficulty).reduce((a, b) => a + b, 0) : 0;
 
   return (
-    <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-3xl mx-auto">
+    <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-5xl mx-auto">
       <div className="flex items-end justify-between gap-4">
         <div>
           <div className="text-xs font-mono uppercase tracking-widest text-accent mb-2">Year in review</div>

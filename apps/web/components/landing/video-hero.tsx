@@ -16,9 +16,9 @@ export function VideoHero() {
   const ref = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
   const reduce = useReducedMotion();
-  const fade = useTransform(scrollYProgress, [0, 0.65, 1], [1, 1, 0]);
-  const contentY = useTransform(scrollYProgress, [0, 1], [0, 90]);
-  const bgScale = useTransform(scrollYProgress, [0, 1], [1, 1.12]);
+  const fade = useTransform(scrollYProgress, [0, 0.65, 1], [1, 1, 0], { clamp: true });
+  const contentY = useTransform(scrollYProgress, [0, 1], [0, 90], { clamp: true });
+  const bgScale = useTransform(scrollYProgress, [0, 1], [1, 1.12], { clamp: true });
 
   const line1 = "You've been preparing.".split(" ");
   const line2 = "You're still not getting placed.".split(" ");
@@ -38,19 +38,19 @@ export function VideoHero() {
           )}
         </motion.div>
 
-        {/* Legibility overlays */}
-        <div className="absolute inset-0 bg-black/35" />
-        <div className="absolute inset-0 bg-gradient-to-b from-bg/30 via-transparent to-bg" />
+        {/* Legibility overlays (light) — soft white scrim so text reads over the grid */}
+        <div className="absolute inset-0 bg-bg/40" />
+        <div className="absolute inset-0 bg-gradient-to-b from-bg/50 via-transparent to-bg" />
 
-        {/* Foreground */}
+        {/* Foreground — centered, immersive */}
         <motion.div style={{ opacity: fade, y: reduce ? 0 : contentY }}
           className="relative h-full flex flex-col items-center justify-center px-6 text-center">
           {/* Brand — the animated iconic mark assembles on load. */}
-          <EyfAnimatedLogo width={220} className="mb-4 w-[180px] sm:w-[220px]" />
+          <EyfAnimatedLogo width={220} className="mb-5 w-[180px] sm:w-[220px]" />
 
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.3 }}
-            className="mb-6 inline-flex items-center gap-2 rounded-full border border-accent/30 bg-accent-tint/50 px-4 py-1.5 text-[11px] font-mono uppercase tracking-[0.2em] text-accent">
-            India&apos;s placement operating system
+            className="mb-6 inline-flex items-center gap-2 rounded-full border border-brand/25 bg-brand/[0.06] px-4 py-1.5 text-[11px] font-mono uppercase tracking-[0.2em] text-brand">
+            <span className="h-1.5 w-1.5 rounded-full bg-brand" /> India&apos;s placement operating system
           </motion.div>
 
           <h1 className="font-display tracking-tight leading-[1.04] max-w-4xl"
@@ -99,18 +99,14 @@ function Word({ children, delay }: { children: ReactNode; delay: number }) {
 }
 
 function Aurora({ reduce }: { reduce: boolean }) {
-  // Monochrome depth — no colored blobs. A single faint white light drifts
-  // slowly over near-black, with a fine grid and edge vignette. Premium, quiet.
+  // Light hero — transparent so the LandingBackground grid corridor shows
+  // through, with one soft cool wash drifting for a hint of depth/colour.
   return (
-    <div className="absolute inset-0 bg-bg overflow-hidden">
-      <motion.div className="absolute -top-[25%] left-1/2 -translate-x-1/2 h-[85vh] w-[85vh] rounded-full blur-[130px]"
-        style={{ background: "radial-gradient(circle, rgba(255,255,255,0.06), transparent 60%)" }}
+    <div className="absolute inset-0 overflow-hidden">
+      <motion.div className="absolute -top-[20%] left-1/2 -translate-x-1/2 h-[80vh] w-[80vh] rounded-full blur-[130px]"
+        style={{ background: "radial-gradient(circle, rgba(120,140,200,0.14), transparent 62%)" }}
         animate={reduce ? {} : { x: [0, 40, -30, 0], y: [0, 30, 10, 0] }}
         transition={{ duration: 28, repeat: Infinity, ease: "easeInOut" }} />
-      {/* fine grid texture + gentle edge vignette */}
-      <div className="absolute inset-0 opacity-[0.05]"
-        style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.6) 1px, transparent 1px)", backgroundSize: "64px 64px" }} />
-      <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at center, transparent 50%, rgba(10,10,10,0.75))" }} />
     </div>
   );
 }

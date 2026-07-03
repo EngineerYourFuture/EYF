@@ -86,7 +86,7 @@ export default function Page() {
     const pctCorrect = Math.round((result.correctAnswers / Math.max(1, result.totalQuestions)) * 100);
     const probTone = (p: number) => (p >= 0.6 ? "easy" : p >= 0.3 ? "medium" : "hard");
     return (
-      <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-3xl mx-auto">
+      <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-5xl mx-auto">
         <PageHeader
           eyebrow="Calibration complete"
           title="Your readout"
@@ -138,7 +138,7 @@ export default function Page() {
   /* ---------- loading ---------- */
   if (!questions) {
     return (
-      <div className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-3xl mx-auto">
+      <div className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-5xl mx-auto">
         <PageHeader eyebrow="Skill assessment" title="Generating your assessment…" subtitle="20 questions, hand-picked across DSA, core CS, and aptitude." />
         <div className="mt-8 space-y-4">
           {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-40 rounded-xl" />)}
@@ -156,7 +156,7 @@ export default function Page() {
     <PageMotion className="relative">
       {/* sticky progress */}
       <div className="sticky top-0 lg:top-0 z-30 bg-bg/90 backdrop-blur-md border-b border-border">
-        <div className="px-4 sm:px-6 lg:px-10 py-3 max-w-3xl mx-auto">
+        <div className="px-4 sm:px-6 lg:px-10 py-3 max-w-5xl mx-auto">
           <div className="flex items-center justify-between text-sm">
             <span className="font-medium">Skill assessment</span>
             <span className="text-text-3 font-mono">{answered}/{total} answered</span>
@@ -167,7 +167,7 @@ export default function Page() {
         </div>
       </div>
 
-      <div className="px-4 sm:px-6 lg:px-10 py-8 max-w-3xl mx-auto">
+      <div className="px-4 sm:px-6 lg:px-10 py-8 max-w-5xl mx-auto">
         <p className="text-text-3">~15 minutes. No grade — just calibration. Answer what you can; skips count as wrong.</p>
 
         <div className="mt-8 space-y-5">
@@ -207,7 +207,7 @@ export default function Page() {
 
       {/* sticky submit bar */}
       <div className="sticky bottom-0 z-30 bg-bg/90 backdrop-blur-md border-t border-border">
-        <div className="px-4 sm:px-6 lg:px-10 py-3 max-w-3xl mx-auto flex items-center justify-between gap-3">
+        <div className="px-4 sm:px-6 lg:px-10 py-3 max-w-5xl mx-auto flex items-center justify-between gap-3">
           <span className="text-text-3 text-sm">
             {answered === total ? "All answered — ready." : `${total - answered} left (skips count as wrong)`}
           </span>
