@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { Badge, PageHeader, SkeletonRows, EmptyState, ErrorState } from "@eyf/ui";
 import { useApi } from "@/lib/use-api";
 import { PageMotion } from "@/components/page-motion";
+import { PatternMastery } from "@/components/pattern-mastery";
 
 type Problem = {
   id: string;
@@ -41,7 +42,9 @@ export default function ProblemsPage() {
     <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-7xl">
       <PageHeader eyebrow="2,000+ problems · 15 patterns" title="Problems" subtitle="Patterns first. Grind second." />
 
-      <div className="mt-8 grid lg:grid-cols-[240px_1fr] gap-6 items-start">
+      <div className="mt-8"><PatternMastery /></div>
+
+      <div className="mt-6 grid lg:grid-cols-[240px_1fr] gap-6 items-start">
         {/* Filters rail */}
         <aside className="lg:sticky lg:top-6 space-y-6">
           <div>
