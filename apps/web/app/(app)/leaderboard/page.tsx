@@ -22,6 +22,7 @@ const METRICS = [
   { key: "xp", label: "XP", unit: "XP" },
   { key: "solved", label: "Solved", unit: "solved" },
   { key: "streak", label: "Streak", unit: "day best" },
+  { key: "weekly", label: "This week", unit: "XP this week" },
 ];
 
 export default function Page() {
