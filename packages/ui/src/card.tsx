@@ -1,7 +1,7 @@
 import { type HTMLAttributes, forwardRef } from "react";
 import { cn } from "./cn";
 
-type CardVariant = "default" | "elevated" | "glow" | "bare";
+type CardVariant = "default" | "elevated" | "glow" | "bare" | "glass";
 
 export type CardProps = HTMLAttributes<HTMLDivElement> & {
   variant?: CardVariant;
@@ -14,6 +14,8 @@ const variants: Record<CardVariant, string> = {
   elevated: "bg-surface-grad border border-edge shadow-card-lg",
   glow:     "bg-surface border border-accent/30 shadow-glow",
   bare:     "bg-surface border border-border",
+  // Frosted vibrancy — for panels that sit over textured/scrolling backgrounds.
+  glass:    "glass border shadow-card",
 };
 
 export const Card = forwardRef<HTMLDivElement, CardProps>(

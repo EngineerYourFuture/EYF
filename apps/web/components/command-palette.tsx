@@ -101,7 +101,7 @@ export function CommandPalette() {
           onClick={() => setOpen(false)}
         >
           <motion.div
-            className="w-full max-w-xl rounded-2xl border border-edge bg-surface shadow-card-lg overflow-hidden"
+            className="w-full max-w-xl rounded-2xl border border-edge glass-strong shadow-card-lg overflow-hidden"
             initial={{ opacity: 0, y: -8, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -8, scale: 0.98 }}
             transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
             onClick={(e) => e.stopPropagation()}
