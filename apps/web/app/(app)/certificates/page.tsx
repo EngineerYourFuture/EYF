@@ -12,7 +12,7 @@ export default function Page() {
   const apiBase = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000/v1";
 
   return (
-    <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-3xl mx-auto">
+    <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-5xl mx-auto">
       <PageHeader eyebrow="Proof of work" title="Certificates" subtitle="Verifiable, shareable on LinkedIn. PDF on demand." />
 
       <div className="mt-8 space-y-3">

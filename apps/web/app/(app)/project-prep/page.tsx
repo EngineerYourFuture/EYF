@@ -72,7 +72,7 @@ export default function Page() {
   /* ─── GUIDE ─────────────────────────────────────────── */
   if (prep) {
     return (
-      <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-3xl mx-auto">
+      <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-5xl mx-auto">
         <button onClick={() => setPrep(null)} className="text-text-4 text-sm hover:text-text-2 mb-4">← New prep</button>
         <PageHeader eyebrow="Defend your project" title={prep.projectTitle} subtitle={prep.summary} />
 
@@ -128,7 +128,7 @@ export default function Page() {
 
   /* ─── FORM ──────────────────────────────────────────── */
   return (
-    <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-3xl mx-auto">
+    <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-5xl mx-auto">
       <PageHeader
         eyebrow="Project interview prep"
         title="Get grilled on your project — before they do"

@@ -91,7 +91,7 @@ export default function Page() {
   /* ─── FEEDBACK ─────────────────────────────────────── */
   if (active && feedback) {
     return (
-      <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-3xl mx-auto">
+      <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-5xl mx-auto">
         <PageHeader eyebrow={active.kind} title="Coach feedback" subtitle={active.question} />
 
         <div className="mt-8 grid grid-cols-3 gap-4">
@@ -153,7 +153,7 @@ export default function Page() {
   if (active) {
     const recording = recState === "recording";
     return (
-      <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-3xl mx-auto">
+      <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-5xl mx-auto">
         <button onClick={() => setActive(null)} className="text-text-4 text-sm hover:text-text-2 mb-4">← All prompts</button>
         <PageHeader eyebrow={active.kind} title={active.question} />
 
@@ -202,7 +202,7 @@ export default function Page() {
   /* ─── HUB (list) ────────────────────────────────────── */
   const prompts = catalog?.prompts.filter((p) => p.kind === kind) ?? [];
   return (
-    <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-3xl mx-auto">
+    <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-5xl mx-auto">
       <PageHeader
         eyebrow="Communication"
         title="Speak like you'll get the offer"

@@ -93,7 +93,7 @@ export default function Page() {
   return (
     <PageMotion className="relative">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-64 bg-glow-radial" aria-hidden />
-      <div className="relative px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-3xl mx-auto">
+      <div className="relative px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-5xl mx-auto">
         <div className="text-xs font-mono uppercase tracking-widest text-accent mb-2">
           {new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" })}
         </div>

@@ -115,7 +115,7 @@ export default function Page() {
   if (phase === "review" && result) {
     const topics = Object.entries(result.byTopic).sort((a, b) => a[1].right / a[1].total - b[1].right / b[1].total);
     return (
-      <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-3xl mx-auto">
+      <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-5xl mx-auto">
         <PageHeader
           eyebrow={`${selectedCat?.name ?? category}${company ? ` · ${company}` : ""}`}
           title="Test complete"
@@ -195,7 +195,7 @@ export default function Page() {
     return (
       <PageMotion className="relative">
         <div className="sticky top-0 z-30 bg-bg/90 backdrop-blur-md border-b border-border">
-          <div className="px-4 sm:px-6 lg:px-10 py-3 max-w-3xl mx-auto">
+          <div className="px-4 sm:px-6 lg:px-10 py-3 max-w-5xl mx-auto">
             <div className="flex items-center justify-between text-sm">
               <span className="font-medium">{selectedCat?.name ?? category}{company ? ` · ${company}` : ""}</span>
               <span className={`font-mono flex items-center gap-1.5 ${low ? "text-hard" : "text-text-3"}`}>
@@ -209,7 +209,7 @@ export default function Page() {
           </div>
         </div>
 
-        <div className="px-4 sm:px-6 lg:px-10 py-8 max-w-3xl mx-auto">
+        <div className="px-4 sm:px-6 lg:px-10 py-8 max-w-5xl mx-auto">
           <div className="space-y-5">
             {questions.map((q, i) => {
               const done = answers[q.id] != null;
@@ -254,7 +254,7 @@ export default function Page() {
 
   /* ─── CONFIG ─────────────────────────────────────────── */
   return (
-    <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-3xl mx-auto">
+    <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-5xl mx-auto">
       <PageHeader
         eyebrow="Timed practice"
         title="MCQ Tests"

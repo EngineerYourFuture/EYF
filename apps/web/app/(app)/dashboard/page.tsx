@@ -52,7 +52,7 @@ export default function DashboardPage() {
       {/* ambient top glow */}
       <div className="pointer-events-none absolute inset-x-0 top-0 h-64 bg-glow-radial" aria-hidden />
 
-      <div className="relative px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-6xl mx-auto">
+      <div className="relative px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-7xl mx-auto">
         {/* Greeting */}
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div className="min-w-0">
