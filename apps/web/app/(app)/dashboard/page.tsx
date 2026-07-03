@@ -4,6 +4,7 @@ import { Card, Badge, Button, Skeleton } from "@eyf/ui";
 import { useApi } from "@/lib/use-api";
 import { Heatmap } from "@/components/heatmap";
 import { PageMotion } from "@/components/page-motion";
+import { CompanyFitRadar } from "@/components/company-fit-radar";
 import { Reveal } from "@/components/motion";
 import { Icons, type IconName } from "@/components/icons";
 import { useGuidance, type Guidance } from "@/lib/use-guidance";
@@ -123,6 +124,9 @@ export default function DashboardPage() {
             {QUICK_ACTIONS.map((q) => <QuickAction key={q.href} {...q} />)}
           </div>
         </Reveal>
+
+        {/* Company fit radar */}
+        <Reveal className="mt-8"><CompanyFitRadar /></Reveal>
 
         {/* Activity */}
         <Reveal className="mt-8">
