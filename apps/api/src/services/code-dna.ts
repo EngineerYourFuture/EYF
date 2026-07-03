@@ -16,6 +16,9 @@ export type CodeDna = {
   patternWeaknesses: { pattern: string; acceptanceRate: number; attempts: number }[];
   avgRuntimeMs: number | null;
   fastestSolveMin: number | null;
+  firstTryRate: number;          // solved on the first submission / solved problems
+  avgAttemptsToSolve: number;    // submissions up to & incl. the first AC, per solved problem
+  speedAccuracy: string;         // one-line read on the tradeoff
   habitFlags: string[];
 };
 
@@ -23,7 +26,7 @@ export async function computeCodeDna(userId: string): Promise<CodeDna> {
   const submissions = await prisma.problemSolution.findMany({
     where: { userId },
     select: {
-      verdict: true, language: true, runtimeMs: true, submittedAt: true,
+      problemId: true, verdict: true, language: true, runtimeMs: true, submittedAt: true,
       problem: { select: { difficulty: true, patterns: true } },
     },
     orderBy: { submittedAt: "asc" },
@@ -68,6 +71,30 @@ export async function computeCodeDna(userId: string): Promise<CodeDna> {
   // For now: fastest single accepted runtime is the closest signal.
   const fastestSolveMin = runtimes.length ? Math.round(Math.min(...runtimes) / 60_000 * 10) / 10 : null;
 
+  // Speed vs accuracy — per-problem, how many submissions until the first AC.
+  const byProblem = new Map<string, Verdict[]>();
+  for (const s of submissions) {
+    const arr = byProblem.get(s.problemId) ?? [];
+    arr.push(s.verdict);
+    byProblem.set(s.problemId, arr);
+  }
+  let solvedProblems = 0, firstTryACs = 0, attemptsSum = 0;
+  for (const verdicts of byProblem.values()) {
+    const firstAc = verdicts.indexOf(Verdict.ACCEPTED);
+    if (firstAc === -1) continue;
+    solvedProblems += 1;
+    attemptsSum += firstAc + 1;
+    if (firstAc === 0) firstTryACs += 1;
+  }
+  const firstTryRate = solvedProblems ? firstTryACs / solvedProblems : 0;
+  const avgAttemptsToSolve = solvedProblems ? Math.round((attemptsSum / solvedProblems) * 10) / 10 : 0;
+  const speedAccuracy =
+    solvedProblems < 3 ? "Solve a few more to read your style."
+    : avgAttemptsToSolve <= 1.4 ? "One-shot solver — you commit correct code first try."
+    : firstTryRate < 0.35 && avgAttemptsToSolve >= 2.4 ? "Fast but buggy — you rush the first submit. Dry-run on paper before running."
+    : avgAttemptsToSolve <= 2.2 ? "Iterates to correct — a couple of tries, then lands it."
+    : "Brute-forces via retries — slow down and trace edge cases before submitting.";
+
   const habitFlags: string[] = [];
   if (total >= 50 && accepted.length / total < 0.4) habitFlags.push("low-acceptance-grinder");
   if (total >= 20 && languageMix[0] && languageMix[0].pct > 0.85) habitFlags.push("monolingual");
@@ -85,6 +112,9 @@ export async function computeCodeDna(userId: string): Promise<CodeDna> {
     patternWeaknesses,
     avgRuntimeMs,
     fastestSolveMin,
+    firstTryRate,
+    avgAttemptsToSolve,
+    speedAccuracy,
     habitFlags,
   };
 }
