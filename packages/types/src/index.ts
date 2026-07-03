@@ -142,6 +142,7 @@ export function levelForXp(xp: number): number {
 export { computeReadiness, rankActions } from "./readiness";
 export type {
   ReadinessInput,
+  ReadinessGoal,
   Readiness,
   Pillar,
   GuidanceAction,

@@ -78,3 +78,37 @@ describe("rankActions", () => {
     expect(rankActions(computeReadiness(empty), 2)).toHaveLength(2);
   });
 });
+
+describe("goal-adaptive readiness (the differentiator)", () => {
+  // Strong aptitude, weak DSA, no interviews/projects yet.
+  const aptitudeHeavy: ReadinessInput = {
+    ...empty,
+    totalSolved: 20, acceptanceRate: 0.6,
+    mcqBest: { APTITUDE: 90, LOGICAL: 88 },
+    streak: 10, longestStreak: 14,
+  };
+
+  it("scores the SAME stats higher for a service target than a product target", () => {
+    const service = computeReadiness(aptitudeHeavy, { targetCompany: "TCS" });
+    const product = computeReadiness(aptitudeHeavy, { targetCompany: "Google" });
+    // An aptitude-heavy student is genuinely more ready for a service company.
+    expect(service.overall).toBeGreaterThan(product.overall);
+  });
+
+  it("weights the DSA gap ~2x more toward a product target than a service one", () => {
+    const product = rankActions(computeReadiness(aptitudeHeavy, { targetCompany: "Amazon" }));
+    const service = rankActions(computeReadiness(aptitudeHeavy, { targetCompany: "Infosys" }));
+    const dsaImpact = (as: typeof product) => as.find((a) => a.pillarKey === "dsa")?.impact ?? 0;
+    // Same weak DSA, but it's a bigger lever for a product SDE role than a service one.
+    expect(dsaImpact(product)).toBeGreaterThan(dsaImpact(service));
+  });
+
+  it("resolves the profile from the role when no company is set", () => {
+    const fe = computeReadiness({ ...empty, projects: [{ status: "COMPLETED" }] }, { targetRole: "Frontend Engineer" });
+    expect(fe.summary).toMatch(/frontend/i);
+  });
+
+  it("falls back to the balanced default when there's no goal", () => {
+    expect(computeReadiness(aptitudeHeavy).overall).toBe(computeReadiness(aptitudeHeavy, {}).overall);
+  });
+});

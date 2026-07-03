@@ -62,7 +62,44 @@ const TARGET_MOCKS = 4;
 const TARGET_PROJECTS = 2;
 const TARGET_STREAK = 21;
 
-export function computeReadiness(i: ReadinessInput): Readiness {
+/**
+ * The student's goal. Readiness is scored AGAINST this — a Product-SDE aspirant
+ * and a service-company aspirant with identical stats get different scores AND
+ * different next-best-actions, because different roles weight the pillars
+ * differently. This is what no single-purpose competitor computes: "how ready
+ * are you for YOUR target."
+ */
+export type ReadinessGoal = { targetRole?: string | null; targetCompany?: string | null };
+
+type WeightSet = { dsa: number; interview: number; aptitude: number; resume: number; consistency: number; projects: number };
+
+// Pillar weight profiles by goal archetype (each sums to 1.00).
+const WEIGHTS: Record<string, WeightSet> = {
+  //        dsa   interview aptitude resume consistency projects
+  balanced:  { dsa: 0.30, interview: 0.20, aptitude: 0.15, resume: 0.13, consistency: 0.12, projects: 0.10 },
+  product:   { dsa: 0.38, interview: 0.24, aptitude: 0.05, resume: 0.10, consistency: 0.13, projects: 0.10 }, // FAANG / product SDE — DSA + interviews dominate, aptitude barely matters
+  service:   { dsa: 0.20, interview: 0.12, aptitude: 0.26, resume: 0.13, consistency: 0.14, projects: 0.15 }, // TCS / Infosys / Wipro — aptitude-gated, lighter DSA
+  frontend:  { dsa: 0.24, interview: 0.20, aptitude: 0.05, resume: 0.12, consistency: 0.10, projects: 0.29 }, // frontend / full-stack — projects carry the interview
+  data:      { dsa: 0.28, interview: 0.17, aptitude: 0.15, resume: 0.10, consistency: 0.12, projects: 0.18 }, // data / ML — DSA + projects
+};
+
+const PRODUCT_COMPANIES = ["amazon", "google", "microsoft", "meta", "flipkart", "adobe", "uber", "atlassian", "razorpay", "cred", "swiggy", "zomato", "phonepe", "navi", "juspay", "directi", "arcesium", "salesforce", "linkedin", "apple", "netflix", "nvidia", "goldman", "de shaw", "sprinklr", "zepto"];
+const SERVICE_COMPANIES = ["tcs", "infosys", "wipro", "cognizant", "accenture", "capgemini", "techmahindra", "tech mahindra", "hcl", "deloitte", "ltimindtree", "mindtree", "mphasis", "dxc", "hexaware"];
+
+/** Resolve the goal to a weight profile. Company tier wins over role text. */
+function resolveProfile(goal?: ReadinessGoal): { key: string; weights: WeightSet } {
+  const role = (goal?.targetRole ?? "").toLowerCase();
+  const company = (goal?.targetCompany ?? "").toLowerCase();
+  if (company && SERVICE_COMPANIES.some((c) => company.includes(c))) return { key: "service", weights: WEIGHTS.service! };
+  if (company && PRODUCT_COMPANIES.some((c) => company.includes(c))) return { key: "product", weights: WEIGHTS.product! };
+  if (/front|full.?stack|\bweb\b|react|\bui\b/.test(role)) return { key: "frontend", weights: WEIGHTS.frontend! };
+  if (/data|\bml\b|\bai\b|analyst|scien/.test(role)) return { key: "data", weights: WEIGHTS.data! };
+  if (/sde|software|backend|product/.test(role)) return { key: "product", weights: WEIGHTS.product! };
+  return { key: "balanced", weights: WEIGHTS.balanced! };
+}
+
+export function computeReadiness(i: ReadinessInput, goal?: ReadinessGoal): Readiness {
+  const { key: profileKey, weights: w } = resolveProfile(goal);
   const solvedScore = clamp((i.totalSolved / TARGET_SOLVED) * 100);
   const hard = i.difficultyMix
     .filter((d) => d.difficulty === "HARD" || d.difficulty === "EXPERT")
@@ -95,22 +132,22 @@ export function computeReadiness(i: ReadinessInput): Readiness {
     + 0.35 * clamp((i.streak / 7) * 100));
 
   const pillars: Pillar[] = [
-    { key: "dsa", label: "Problem Solving", icon: "code", score: dsa, weight: 0.30,
+    { key: "dsa", label: "Problem Solving", icon: "code", score: dsa, weight: w.dsa,
       detail: i.totalSolved ? `${i.totalSolved} solved · ${Math.round(i.acceptanceRate * 100)}% acceptance` : "No problems solved yet",
       href: "/problems", action: "Solve problems daily" },
-    { key: "interview", label: "Interview Practice", icon: "mic", score: interview, weight: 0.20,
+    { key: "interview", label: "Interview Practice", icon: "mic", score: interview, weight: w.interview,
       detail: practiceCount ? `${mockCount} mock${mockCount === 1 ? "" : "s"} · ${i.commDrills.length} drill${i.commDrills.length === 1 ? "" : "s"}` : "No interview practice yet",
       href: mockCount || !i.commDrills.length ? "/mocks" : "/communication", action: "Do a mock or HR drill" },
-    { key: "aptitude", label: "Aptitude", icon: "clipboard", score: aptitude, weight: 0.15,
+    { key: "aptitude", label: "Aptitude", icon: "clipboard", score: aptitude, weight: w.aptitude,
       detail: aptScores.length ? `Best ${Math.round(Math.max(...aptScores))}% on MCQ tests` : "No aptitude tests taken",
       href: "/mcq", action: "Take timed aptitude tests" },
-    { key: "resume", label: "Resume", icon: "doc", score: resume, weight: 0.13,
+    { key: "resume", label: "Resume", icon: "doc", score: resume, weight: w.resume,
       detail: bestAts ? `${bestAts}/100 ATS score` : "No resume scored yet",
       href: "/resume", action: "Build & score your resume" },
-    { key: "consistency", label: "Consistency", icon: "flame", score: consistency, weight: 0.12,
+    { key: "consistency", label: "Consistency", icon: "flame", score: consistency, weight: w.consistency,
       detail: i.longestStreak ? `${i.streak}d streak · best ${i.longestStreak}d` : "No streak yet",
       href: "/dashboard", action: "Build a daily streak" },
-    { key: "projects", label: "Projects", icon: "cube", score: projects, weight: 0.10,
+    { key: "projects", label: "Projects", icon: "cube", score: projects, weight: w.projects,
       detail: i.projects.length ? `${i.projects.length} started · ${completed} shipped` : "No projects started",
       href: "/projects", action: "Ship a portfolio project" },
   ];
@@ -124,12 +161,21 @@ export function computeReadiness(i: ReadinessInput): Readiness {
     overall < 92 ? "Almost placement-ready" :
                    "Placement-ready";
 
-  const summary =
+  const base =
     overall < 35 ? "Pick one track and start the daily loop — small, consistent reps compound fast." :
     overall < 60 ? "Solid base forming. Layer in mock interviews and keep the streak alive." :
     overall < 80 ? "You're interview-shaped. Sharpen weak patterns and polish your resume." :
     overall < 92 ? "Genuinely close. Close the last gaps below and you're drive-ready." :
                    "You're placement-ready. Keep sharp and start applying with confidence.";
+
+  // Tell the student this score is tuned to their target — the differentiator.
+  const goalTune: Record<string, string> = {
+    product: "Scored for a product-SDE bar — DSA and interviews carry the most weight here.",
+    service: "Scored for a service-company bar — aptitude and consistency carry the most weight here.",
+    frontend: "Scored for a frontend/full-stack bar — shipped projects carry the most weight here.",
+    data: "Scored for a data/ML bar — DSA and projects carry the most weight here.",
+  };
+  const summary = profileKey === "balanced" ? base : `${base} ${goalTune[profileKey]}`;
 
   const nextActions = [...pillars]
     .filter((p) => p.score < 90)
