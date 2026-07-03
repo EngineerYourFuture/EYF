@@ -27,7 +27,7 @@ export default function Page() {
   return (
     <PageMotion className="relative">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-64 bg-glow-radial" aria-hidden />
-      <div className="relative px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-4xl mx-auto">
+      <div className="relative px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-6xl mx-auto">
         <PageHeader
           eyebrow="Your plan"
           title="Roadmap"
@@ -152,40 +152,40 @@ function PlanView({ roadmap, onRegenerate }: { roadmap: Roadmap; onRegenerate: (
   const pct = Math.round((Math.max(0, currentWeek - 1) / weeks) * 100);
 
   return (
-    <>
-      <Card variant="glow" className="mt-8">
-        <div className="flex items-start justify-between gap-4 flex-wrap">
-          <div>
-            <div className="text-xs font-mono uppercase tracking-widest text-text-3">Active roadmap</div>
-            <h2 className="font-display text-2xl font-bold mt-1">{roadmap.title}</h2>
-            <div className="mt-2 flex flex-wrap items-center gap-2">
-              {roadmap.targetRole && <Badge tone="accent">{roadmap.targetRole}</Badge>}
-              {roadmap.targetCompany && <Badge>{companyLabel(roadmap.targetCompany)}</Badge>}
-              <Badge>{roadmap.hoursPerDay} hrs/day</Badge>
-            </div>
-          </div>
-          <Button variant="secondary" size="sm" onClick={onRegenerate}>Regenerate</Button>
-        </div>
-        <div className="mt-5 flex items-center justify-between text-sm">
-          <span className="text-text-3">Week {currentWeek} of {weeks}</span>
-          <span className="text-text-4 font-mono">{pct}% elapsed</span>
-        </div>
-        <div className="mt-2 h-2 rounded-full bg-surface-3 overflow-hidden">
-          <div className="h-full bg-accent transition-all duration-700" style={{ width: `${Math.max(2, pct)}%` }} />
-        </div>
-      </Card>
-
-      <Reveal className="mt-8 space-y-3">
+    <div className="mt-8 grid lg:grid-cols-[1fr_320px] gap-6 items-start">
+      {/* Left: the week-by-week timeline */}
+      <Reveal className="space-y-3 order-2 lg:order-1">
         {plan.map((wk) => (
           <WeekCard key={wk.week} wk={wk} current={wk.week === currentWeek} />
         ))}
       </Reveal>
 
-      <div className="mt-8 flex items-center justify-between text-sm">
-        <Link href="/today" className="text-accent hover:underline">Start today&apos;s tasks →</Link>
-        <Link href="/skills" className="text-text-3 hover:text-text-1">See your skill graph</Link>
-      </div>
-    </>
+      {/* Right: sticky overview — always visible while you scroll the weeks */}
+      <aside className="lg:sticky lg:top-6 space-y-4 order-1 lg:order-2">
+        <Card variant="glow">
+          <div className="text-xs font-mono uppercase tracking-widest text-text-3">Active roadmap</div>
+          <h2 className="font-display text-xl font-bold mt-1 leading-tight">{roadmap.title}</h2>
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            {roadmap.targetRole && <Badge tone="accent">{roadmap.targetRole}</Badge>}
+            {roadmap.targetCompany && <Badge>{companyLabel(roadmap.targetCompany)}</Badge>}
+            <Badge>{roadmap.hoursPerDay} hrs/day</Badge>
+          </div>
+          <div className="mt-5 flex items-center justify-between text-sm">
+            <span className="text-text-2 font-medium">Week {currentWeek} of {weeks}</span>
+            <span className="text-text-4 font-mono">{pct}%</span>
+          </div>
+          <div className="mt-2 h-2 rounded-full bg-surface-3 overflow-hidden">
+            <div className="h-full bg-brand transition-all duration-700" style={{ width: `${Math.max(2, pct)}%` }} />
+          </div>
+          <Button variant="secondary" size="sm" onClick={onRegenerate} className="w-full mt-5">Regenerate</Button>
+        </Card>
+
+        <div className="flex flex-col gap-2 px-1 text-sm">
+          <Link href="/today" className="text-brand font-medium hover:underline">Start today&apos;s tasks →</Link>
+          <Link href="/skills" className="text-text-3 hover:text-text-1">See your skill graph →</Link>
+        </div>
+      </aside>
+    </div>
   );
 }
 
