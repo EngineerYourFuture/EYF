@@ -7,6 +7,7 @@ import { Icons } from "@/components/icons";
 import { companyLabel } from "@/lib/company";
 import { useReadiness } from "@/lib/use-readiness";
 import { companyReadiness, readinessBand, tierOf, biggestGap } from "@/lib/company-readiness";
+import { CompanyFunnel } from "@/components/company-funnel";
 
 type Problem = {
   id: string; slug: string; title: string;
@@ -133,6 +134,9 @@ function CompanyView({ label, data }: { label: string; data: Detail }) {
           )}
         </Card>
       </div>
+
+      {/* Hiring process funnel */}
+      <div className="mt-8"><CompanyFunnel tier={tier} /></div>
 
       {/* Problem list */}
       <h2 className="font-display text-xl font-bold mt-10 mb-4">The problem set</h2>
