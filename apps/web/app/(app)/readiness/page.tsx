@@ -5,7 +5,7 @@ import { PageMotion } from "@/components/page-motion";
 import { Reveal } from "@/components/motion";
 import { Icons } from "@/components/icons";
 import { useGuidance } from "@/lib/use-guidance";
-import { companyReadiness, readinessBand, tierOf, TIER_PROFILES, SPOTLIGHT_COMPANIES } from "@/lib/company-readiness";
+import { companyReadiness, readinessBand, tierOf, biggestGap, TIER_PROFILES, SPOTLIGHT_COMPANIES } from "@/lib/company-readiness";
 import { companyLabel } from "@/lib/company";
 import type { Readiness } from "@/lib/readiness";
 
@@ -128,7 +128,7 @@ function CompanyBoard({ r }: { r: Readiness }) {
     .map((slug) => {
       const tier = tierOf(slug);
       const pct = companyReadiness(r.pillars, tier);
-      return { slug, tier, pct, band: readinessBand(pct) };
+      return { slug, tier, pct, band: readinessBand(pct), gap: biggestGap(r.pillars, tier) };
     })
     .sort((a, b) => b.pct - a.pct);
 
@@ -156,6 +156,13 @@ function CompanyBoard({ r }: { r: Readiness }) {
               <div className={`h-full rounded-full transition-all duration-700 ${
                 c.pct >= 85 ? "bg-easy" : c.pct >= 65 ? "bg-accent" : c.pct >= 40 ? "bg-medium" : "bg-hard"
               }`} style={{ width: `${c.pct}%` }} />
+            </div>
+            <div className="mt-2 text-xs">
+              {c.pct >= 85
+                ? <span className="text-easy font-medium">Ready to apply →</span>
+                : c.gap
+                  ? <span className="text-text-3">Biggest gap: <span className="text-brand font-medium">{c.gap.label}</span></span>
+                  : <span className="text-text-4">Keep building</span>}
             </div>
           </Link>
         ))}
