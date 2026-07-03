@@ -6,6 +6,7 @@ import { useApi, useApiAction } from "@/lib/use-api";
 import { track, Events } from "@/lib/analytics";
 import { useState } from "react";
 import { PageMotion } from "@/components/page-motion";
+import { ComposureTrend } from "@/components/composure-trend";
 import { Icons, type IconName } from "@/components/icons";
 
 type Mock = {
@@ -72,6 +73,8 @@ export default function Page() {
           );
         })}
       </div>
+
+      <div className="mt-8"><ComposureTrend /></div>
 
       {/* AI mock starter */}
       <Card id="ai" variant="glow" className="mt-8 scroll-mt-24">

@@ -14,6 +14,40 @@ export async function mockRoutes(app: FastifyInstance) {
     return { success: true, data: list };
   });
 
+  // Composure trend — the Mock Interviews differentiator. Others record/playback
+  // a mock; EYF trends how you HANDLE PRESSURE over weeks. Composure = the
+  // approach-clarity + communication rubric dims (how you carry yourself),
+  // separate from raw technical scores.
+  app.get("/composure", { preHandler: app.requireAuth }, async (req) => {
+    const sessions = await prisma.mockSession.findMany({
+      where: { candidateId: req.session!.id, feedback: { not: undefined } },
+      orderBy: { createdAt: "asc" },
+      select: { company: true, createdAt: true, endedAt: true, feedback: true },
+    });
+
+    const series = sessions
+      .map((s) => {
+        const f = s.feedback as { overallScore?: number; rubric?: { approachClarity?: number; communication?: number } } | null;
+        if (!f) return null;
+        const r = f.rubric ?? {};
+        const clarity = r.approachClarity ?? f.overallScore ?? 0;
+        const comm = r.communication ?? f.overallScore ?? 0;
+        const composure = Math.round((clarity + comm) / 2);
+        if (composure <= 0) return null;
+        return { date: (s.endedAt ?? s.createdAt).toISOString().slice(0, 10), composure, overall: f.overallScore ?? 0, company: s.company };
+      })
+      .filter((p): p is NonNullable<typeof p> => p !== null);
+
+    const n = series.length;
+    const avg = n ? Math.round(series.reduce((a, p) => a + p.composure, 0) / n) : 0;
+    const first = n ? series[0]!.composure : 0;
+    const last = n ? series[n - 1]!.composure : 0;
+    const delta = last - first;
+    const best = n ? Math.max(...series.map((p) => p.composure)) : 0;
+    const trend = n < 2 ? "new" : delta >= 5 ? "improving" : delta <= -5 ? "declining" : "steady";
+    return { success: true, data: { series, sessions: n, avg, best, delta, trend } };
+  });
+
   app.get("/:id", { preHandler: app.requireAuth }, async (req, reply) => {
     const { id } = z.object({ id: z.string() }).parse(req.params);
     const m = await prisma.mockSession.findFirst({ where: { id, candidateId: req.session!.id } });
