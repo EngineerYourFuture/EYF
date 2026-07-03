@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Card, Button, Badge, Meter, PageHeader, Skeleton } from "@eyf/ui";
 import { PageMotion } from "@/components/page-motion";
 import { Reveal } from "@/components/motion";
+import { FunnelSim } from "@/components/funnel-sim";
 import { Icons } from "@/components/icons";
 import { useGuidance } from "@/lib/use-guidance";
 import { companyReadiness, readinessBand, tierOf, biggestGap, offerProbability, TIER_PROFILES, SPOTLIGHT_COMPANIES } from "@/lib/company-readiness";
@@ -109,7 +110,10 @@ export default function Page() {
               )}
             </Reveal>
 
-            {/* Am I ready for…? — per-company readiness */}
+            {/* Hiring-funnel simulation — where you'd fall out */}
+            <Reveal><FunnelSim pillars={r.pillars} /></Reveal>
+
+            {/* Am I ready for…? — per-company readiness + offer odds */}
             <Reveal><CompanyBoard r={r} /></Reveal>
 
             <p className="text-text-4 text-xs mt-8 max-w-2xl">
