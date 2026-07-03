@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { Card, Badge, Button, PageHeader, SkeletonRows, EmptyState } from "@eyf/ui";
 import { useApi, useApiAction } from "@/lib/use-api";
+import { PipelineFunnel } from "@/components/pipeline-funnel";
 import { PageMotion } from "@/components/page-motion";
 import { Reveal } from "@/components/motion";
 import { Icons, type IconName } from "@/components/icons";
@@ -66,6 +67,10 @@ export default function PipelinePage() {
         <Stat label="Offers" value={offers} icon="trophy" tone="easy" />
         <Stat label="Closed" value={closed.length} icon="doc" />
       </div>
+
+      {apps && apps.length >= 2 && (
+        <div className="mt-6"><PipelineFunnel apps={apps} /></div>
+      )}
 
       {isLoading ? (
         <SkeletonRows rows={6} className="mt-8" />
