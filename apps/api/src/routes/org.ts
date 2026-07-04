@@ -50,7 +50,10 @@ export async function orgRoutes(app: FastifyInstance) {
     const org = await orgCtx(req, reply); if (!org) return;
     const courses = await prisma.course.findMany({
       where: { orgId: org.id }, orderBy: { createdAt: "desc" },
-      include: { lessons: { orderBy: { orderIndex: "asc" }, select: { id: true, title: true, orderIndex: true } } },
+      include: {
+        lessons: { orderBy: { orderIndex: "asc" }, select: { id: true, title: true, orderIndex: true } },
+        _count: { select: { enrollments: true } },
+      },
     });
     return { success: true, data: courses };
   });
