@@ -1246,6 +1246,7 @@ model Course {
   published   Boolean        @default(false)
   createdAt   DateTime       @default(now())
   lessons     Lesson[]
+  enrollments Enrollment[]
   @@index([orgId])
   @@map("lms_courses")
 }
@@ -1257,6 +1258,7 @@ model Lesson {
   title      String
   content    String   @default("")
   orderIndex Int      @default(0)
+  progress   LessonProgress[]
   @@index([courseId])
   @@map("lms_lessons")
 }
@@ -1284,4 +1286,29 @@ model WebhookEvent {
   type      String
   createdAt DateTime @default(now())
   @@map("webhook_events")
+}
+
+// A student's enrollment in an LMS course. userId is a plain string (queried
+// directly); no User FK to avoid touching the large User model.
+model Enrollment {
+  id         String   @id @default(cuid())
+  courseId   String
+  course     Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  userId     String
+  enrolledAt DateTime @default(now())
+  @@unique([courseId, userId])
+  @@index([userId])
+  @@map("lms_enrollments")
+}
+
+// A student completing a lesson. Presence of a row = completed.
+model LessonProgress {
+  id          String   @id @default(cuid())
+  lessonId    String
+  lesson      Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  userId      String
+  completedAt DateTime @default(now())
+  @@unique([lessonId, userId])
+  @@index([userId])
+  @@map("lms_lesson_progress")
 }

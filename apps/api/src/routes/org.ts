@@ -156,4 +156,90 @@ export async function orgRoutes(app: FastifyInstance) {
       },
     };
   });
+
+  // ── Student LMS: catalog, enroll, learn, complete a lesson ──
+  app.get("/catalog", { preHandler: app.requireAuth }, async (req) => {
+    const userId = req.session!.id;
+    const courses = await prisma.course.findMany({
+      where: { published: true }, orderBy: { createdAt: "desc" }, take: 50,
+      include: { org: { select: { name: true } }, _count: { select: { lessons: true } } },
+    });
+    const [enrollments, progress] = await Promise.all([
+      prisma.enrollment.findMany({ where: { userId }, select: { courseId: true } }),
+      prisma.lessonProgress.findMany({ where: { userId }, select: { lesson: { select: { courseId: true } } } }),
+    ]);
+    const enrolled = new Set(enrollments.map((e) => e.courseId));
+    const doneByCourse = new Map<string, number>();
+    for (const p of progress) doneByCourse.set(p.lesson.courseId, (doneByCourse.get(p.lesson.courseId) ?? 0) + 1);
+    return {
+      success: true,
+      data: courses.map((c) => ({
+        id: c.id, title: c.title, description: c.description, org: c.org.name, audience: c.audience,
+        lessons: c._count.lessons, enrolled: enrolled.has(c.id),
+        progressPct: c._count.lessons ? Math.round(((doneByCourse.get(c.id) ?? 0) / c._count.lessons) * 100) : 0,
+      })),
+    };
+  });
+
+  app.post("/courses/:id/enroll", { preHandler: app.requireAuth }, async (req, reply) => {
+    const userId = req.session!.id;
+    const { id } = z.object({ id: z.string() }).parse(req.params);
+    const course = await prisma.course.findFirst({ where: { id, published: true }, select: { id: true } });
+    if (!course) return reply.code(404).send({ success: false, error: { code: "NOT_FOUND", message: "Course not found or not published." } });
+    await prisma.enrollment.upsert({ where: { courseId_userId: { courseId: id, userId } }, update: {}, create: { courseId: id, userId } });
+    return { success: true, data: { enrolled: true } };
+  });
+
+  app.get("/courses/:id/learn", { preHandler: app.requireAuth }, async (req, reply) => {
+    const userId = req.session!.id;
+    const { id } = z.object({ id: z.string() }).parse(req.params);
+    const course = await prisma.course.findFirst({
+      where: { id, published: true },
+      include: { org: { select: { name: true } }, lessons: { orderBy: { orderIndex: "asc" } } },
+    });
+    if (!course) return reply.code(404).send({ success: false, error: { code: "NOT_FOUND", message: "Course not found." } });
+    const done = new Set(
+      (await prisma.lessonProgress.findMany({ where: { userId, lesson: { courseId: id } }, select: { lessonId: true } })).map((p) => p.lessonId),
+    );
+    return {
+      success: true,
+      data: {
+        id: course.id, title: course.title, org: course.org.name,
+        lessons: course.lessons.map((l) => ({ id: l.id, title: l.title, content: l.content, completed: done.has(l.id) })),
+      },
+    };
+  });
+
+  app.post("/lessons/:id/complete", { preHandler: app.requireAuth }, async (req, reply) => {
+    const userId = req.session!.id;
+    const { id } = z.object({ id: z.string() }).parse(req.params);
+    const lesson = await prisma.lesson.findFirst({ where: { id, course: { published: true } }, select: { id: true } });
+    if (!lesson) return reply.code(404).send({ success: false, error: { code: "NOT_FOUND", message: "Lesson not found." } });
+    await prisma.lessonProgress.upsert({ where: { lessonId_userId: { lessonId: id, userId } }, update: {}, create: { lessonId: id, userId } });
+    return { success: true, data: { completed: true } };
+  });
+
+  // ── Org analytics: enrollment + completion for a course ──
+  app.get("/courses/:id/enrollments", async (req, reply) => {
+    const org = await orgCtx(req, reply); if (!org) return;
+    const { id } = z.object({ id: z.string() }).parse(req.params);
+    const course = await prisma.course.findFirst({
+      where: { id, orgId: org.id },
+      include: { _count: { select: { lessons: true, enrollments: true } } },
+    });
+    if (!course) return reply.code(404).send({ success: false, error: { code: "NOT_FOUND", message: "Course not found." } });
+    const totalLessons = course._count.lessons;
+    let completed = 0;
+    if (totalLessons > 0 && course._count.enrollments > 0) {
+      const progress = await prisma.lessonProgress.groupBy({ by: ["userId"], where: { lesson: { courseId: id } }, _count: true });
+      completed = progress.filter((p) => p._count >= totalLessons).length;
+    }
+    return {
+      success: true,
+      data: {
+        enrolled: course._count.enrollments, lessons: totalLessons, completed,
+        completionPct: course._count.enrollments ? Math.round((completed / course._count.enrollments) * 100) : 0,
+      },
+    };
+  });
 }
