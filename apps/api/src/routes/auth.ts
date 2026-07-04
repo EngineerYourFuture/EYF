@@ -4,6 +4,7 @@ import { Webhook } from "svix";
 import { prisma } from "@eyf/db";
 import { env } from "../env.js";
 import { upsertUserFromClerk } from "../services/clerk.js";
+import { resolveActivePlan } from "../lib/subscription.js";
 
 // Concurrent-session cap per account (account-sharing control). A login beyond
 // this evicts the oldest session, logging that device out.
@@ -28,7 +29,7 @@ export async function authRoutes(app: FastifyInstance) {
         error: { code: "USER_NOT_FOUND", message: "No user with that email." },
       });
     }
-    const plan = (user.subscription?.plan ?? "FREE").toLowerCase();
+    const plan = resolveActivePlan(user.subscription).toLowerCase();
 
     // Evict the oldest sessions so this login stays within the cap.
     const existing = await prisma.userSession.findMany({

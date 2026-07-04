@@ -1,6 +1,12 @@
 # EYF — Build Plan + Spec Coverage
 
 > Living doc. This is the current state of the EYF rebuild as of the latest round.
+>
+> ⚠️ **Staleness note (2026-07-04):** this doc predates a large build + hardening
+> round. Trust the code over this doc. Known-stale below: test counts (now 82
+> unit); cognitive games (all 5 built + Complexity Blitz, not "3 of 5 unbuilt");
+> and much is unlisted (Offer Predictor, LMS wedge, adaptive assessment, etc.).
+> See `STATUS.md`. Lines below are being corrected as each area is re-verified.
 
 ## Stack (locked)
 
@@ -35,7 +41,7 @@
 | DSA service: problem CRUD, Monaco editor, Judge0 dispatch + BullMQ worker, submission history, **2D D3-style visualizer (sort + BST)** | ✅ |
 | Skill assessment: 32-question bank, adaptive picker, gap report, sigmoid placement-probability | ✅ |
 | Roadmap templates (30/60/12-week) + daily challenge + streaks | ✅ |
-| Razorpay subscriptions + webhook + plan gating + certificate PDF | ✅ |
+| Razorpay subscriptions + webhook + plan gating + certificate PDF | ✅ webhook sig ✓ (HMAC + timingSafeEqual). **Plan-gating was BROKEN** (ignored `status`/`endsAt` → paid plans never expired, canceled kept access) — **fixed**: expiry + cancel-at-period-end aware, webhook idempotent (event-id dedup) + order-safe (`lastEventAt`). Verified by `apps/api/src/lib/subscription.test.ts` (14 tests: expiry denial, cancel-period-end, duplicate + out-of-order delivery). Branch `hardening/billing-gating`. |
 
 ### Phase 2 — Differentiation (Weeks 9–16)
 | Slice | Status |
@@ -105,9 +111,9 @@ pnpm --filter @eyf/web test:e2e   # playwright smoke
 
 | Suite | Count | What |
 |---|---|---|
-| `@eyf/types` vitest | 7 | XP curve invariants, plan-limit monotonicity |
-| `@eyf/api` vitest | 25 | ATS scorer, SRS (SM-2), assessment scoring, pressure budget + anxiety trend, WhatsApp command parser + XML escape |
-| `@eyf/web` playwright | 4 | Landing renders, pricing tiers, nav, auth gating redirects |
+| `@eyf/types` vitest | 23 | XP curve, plan limits, **goal-adaptive readiness** (differentiator) |
+| `@eyf/api` vitest | 59 | ATS scorer, SRS (SM-2), assessment, pressure, WhatsApp parser, **plan-gating expiry/cancel + webhook idempotency/ordering** (`lib/subscription.test.ts`) |
+| `@eyf/web` playwright | 4 | Landing renders, pricing tiers, nav, auth gating redirects (sign-in→solve E2E still TODO) |
 
 ## Real keys needed for full functionality
 
