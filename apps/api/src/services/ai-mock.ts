@@ -7,6 +7,9 @@
  * Phase 1 = text-only. Voice (Whisper) lands Phase 2 Week 11–12 per spec.
  */
 import { anthropic } from "./anthropic.js";
+import { parseMockFeedback, type MockFeedback } from "../lib/mock-feedback.js";
+
+export type { MockFeedback };
 
 const MODEL = "claude-sonnet-4-6";
 
@@ -46,19 +49,6 @@ export async function nextTurn(input: {
   return msg.content.find((c) => c.type === "text")?.text ?? "";
 }
 
-export type MockFeedback = {
-  overallScore: number; // 0-100
-  strengths: string[];
-  improvements: string[];
-  rubric: {
-    problemUnderstanding: number;
-    approachClarity: number;
-    codeQuality: number;
-    edgeCases: number;
-    communication: number;
-  };
-  summary: string;
-};
 
 export async function gradeMockSession(history: Turn[]): Promise<MockFeedback> {
   if (!anthropic) throw new Error("ANTHROPIC_API_KEY not set");
@@ -70,10 +60,7 @@ export async function gradeMockSession(history: Turn[]): Promise<MockFeedback> {
     messages: [{ role: "user", content: `Transcript:\n\n${transcript}` }],
   });
   const text = msg.content.find((c) => c.type === "text")?.text ?? "";
-  const start = text.indexOf("{");
-  const end = text.lastIndexOf("}");
-  if (start === -1 || end === -1) throw new Error("Grader returned non-JSON");
-  return JSON.parse(text.slice(start, end + 1)) as MockFeedback;
+  return parseMockFeedback(text);
 }
 
 function interviewerSystemPrompt(input: { candidateName: string; company?: string; problemFocus?: string }) {
