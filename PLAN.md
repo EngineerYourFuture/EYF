@@ -139,5 +139,11 @@ The repo runs without any of these (graceful 503s or dev-login fallbacks), but f
 - **Mobile app deep production polish** — push notifications registered but no remote push pipeline wired; offline caching for flashcards not done.
 - **E2E sign-in flow** — current Playwright only covers public surfaces; full signin→solve flow needs Clerk test-mode + Judge0 container in CI.
 - **Sonar / Lighthouse CI** — neither set up.
+- **Employer/LMS portal auth (post-PLAN.md feature)** — access-code login. `/org/verify`
+  now has a tight per-IP rate limit (5/min) guarding brute-force
+  (`apps/api/src/lib/rate-limits.test.ts`). **Still owed:** the raw code is sent
+  as a bearer header on every org request (long-lived static credential + per-
+  request DB lookup) — the proper fix is a short-lived org session token issued
+  at `/verify`, and/or Clerk orgs. Codes should also be long/random by generation.
 
 If a sentence above says ✅, the code exists and typechecks. If it says ✅ scaffold, the routes/UI exist but rely on a real service key to fully exercise. If it says TODO, it's deliberately unbuilt and listed here.
