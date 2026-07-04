@@ -19,6 +19,7 @@ import { trackRoutes } from "./tracks.js";
 import { editorialRoutes } from "./editorial.js";
 import { forumRoutes } from "./forum.js";
 import { internshipRoutes } from "./internships.js";
+import { orgRoutes } from "./org.js";
 import { codeDnaRoutes } from "./code-dna.js";
 import { oaRoutes } from "./oa.js";
 import { wrappedRoutes } from "./wrapped.js";
@@ -64,6 +65,7 @@ export async function registerRoutes(app: FastifyInstance) {
   await app.register(editorialRoutes,    { prefix: "/admin" });
   await app.register(forumRoutes,        { prefix: "/forum" });
   await app.register(internshipRoutes,   { prefix: "/internships" });
+  await app.register(orgRoutes,          { prefix: "/org" });
   await app.register(codeDnaRoutes,      { prefix: "/code-dna" });
   await app.register(oaRoutes,           { prefix: "/oa" });
   await app.register(wrappedRoutes,      { prefix: "/wrapped" });
