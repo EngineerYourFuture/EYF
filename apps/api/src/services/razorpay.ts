@@ -48,7 +48,12 @@ export function verifyWebhookSignature(rawBody: string, signature: string): bool
     .createHmac("sha256", env.RAZORPAY_WEBHOOK_SECRET)
     .update(rawBody)
     .digest("hex");
-  return crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(signature));
+  const a = Buffer.from(expected);
+  const b = Buffer.from(signature);
+  // timingSafeEqual throws on unequal lengths — a malformed/short signature must
+  // reject (→ 400), not crash the handler (→ 500).
+  if (a.length !== b.length) return false;
+  return crypto.timingSafeEqual(a, b);
 }
 
 /**
@@ -64,5 +69,8 @@ export function verifyCheckoutSignature(input: {
     .createHmac("sha256", env.RAZORPAY_KEY_SECRET)
     .update(`${input.orderId}|${input.paymentId}`)
     .digest("hex");
-  return crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(input.signature));
+  const a = Buffer.from(expected);
+  const b = Buffer.from(input.signature);
+  if (a.length !== b.length) return false; // reject malformed signature, don't throw
+  return crypto.timingSafeEqual(a, b);
 }

@@ -41,7 +41,7 @@
 | DSA service: problem CRUD, Monaco editor, Judge0 dispatch + BullMQ worker, submission history, **2D D3-style visualizer (sort + BST)** | ✅ |
 | Skill assessment: 32-question bank, adaptive picker, gap report, sigmoid placement-probability | ✅ |
 | Roadmap templates (30/60/12-week) + daily challenge + streaks | ✅ |
-| Razorpay subscriptions + webhook + plan gating + certificate PDF | ✅ webhook sig ✓ (HMAC + timingSafeEqual). **Plan-gating was BROKEN** (ignored `status`/`endsAt` → paid plans never expired, canceled kept access) — **fixed**: expiry + cancel-at-period-end aware, webhook idempotent (event-id dedup) + order-safe (`lastEventAt`). Verified by `apps/api/src/lib/subscription.test.ts` (14 tests: expiry denial, cancel-period-end, duplicate + out-of-order delivery). Branch `hardening/billing-gating`. |
+| Razorpay subscriptions + webhook + plan gating + certificate PDF | ✅ webhook sig ✓ (HMAC + timingSafeEqual). **Plan-gating was BROKEN** (ignored `status`/`endsAt` → paid plans never expired, canceled kept access) — **fixed**: expiry + cancel-at-period-end aware, webhook idempotent (event-id dedup) + order-safe (`lastEventAt`). Verified by `apps/api/src/lib/subscription.test.ts` (14 unit tests) AND a real route-level integration test through HTTP + signature + DB (`billing.integration.test.ts`: activate, dedup, out-of-order, bad-sig→400) — which **caught a latent bug**: `verifyWebhookSignature`/`verifyCheckoutSignature` called `timingSafeEqual` on unequal-length buffers → a malformed signature crashed with 500 instead of rejecting with 400; now length-guarded. |
 
 ### Phase 2 — Differentiation (Weeks 9–16)
 | Slice | Status |
@@ -112,7 +112,7 @@ pnpm --filter @eyf/web test:e2e   # playwright smoke
 | Suite | Count | What |
 |---|---|---|
 | `@eyf/types` vitest | 23 | XP curve, plan limits, **goal-adaptive readiness** (differentiator) |
-| `@eyf/api` vitest | 59 | ATS scorer, SRS (SM-2), assessment, pressure, WhatsApp parser, **plan-gating expiry/cancel + webhook idempotency/ordering** (`lib/subscription.test.ts`) |
+| `@eyf/api` vitest | 81 | ATS, SRS, assessment, pressure, WhatsApp, plan-gating + webhook idempotency, org rate-limit + session-token, AI-grader validation, Judge0 retry, **+ DB-backed webhook integration** (`billing.integration.test.ts`, auto-skips without a DB) |
 | `@eyf/web` playwright | 4 | Landing renders, pricing tiers, nav, auth gating redirects (sign-in→solve E2E still TODO) |
 
 ## Real keys needed for full functionality

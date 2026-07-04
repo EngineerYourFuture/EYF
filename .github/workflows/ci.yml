@@ -16,6 +16,21 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: eyf
+          POSTGRES_PASSWORD: eyf
+          POSTGRES_DB: eyf
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U eyf"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
@@ -40,8 +55,17 @@ jobs:
       - name: Lint
         run: pnpm lint
 
+      - name: Prepare test DB (for DB-backed integration tests)
+        run: pnpm --filter @eyf/db exec prisma db push --skip-generate
+        env:
+          DATABASE_URL: postgresql://eyf:eyf@localhost:5432/eyf
+
       - name: Test
         run: pnpm --filter @eyf/types test && pnpm --filter @eyf/api test
+        env:
+          DATABASE_URL: postgresql://eyf:eyf@localhost:5432/eyf
+          JWT_ACCESS_SECRET: ci-only-not-secret-32-character-key-pad
+          JWT_REFRESH_SECRET: ci-only-not-secret-32-character-key-padx
 
       - name: Build
         run: pnpm build
