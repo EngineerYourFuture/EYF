@@ -143,7 +143,11 @@ The repo runs without any of these (graceful 503s or dev-login fallbacks), but f
 - **EYF Daily audio** — spec calls for a daily-podcast-style 2-min audio. Not built.
 - **Mobile app deep production polish** — push notifications registered but no remote push pipeline wired; offline caching for flashcards not done.
 - **E2E sign-in flow** — current Playwright only covers public surfaces; full signin→solve flow needs Clerk test-mode + Judge0 container in CI.
-- **Sonar / Lighthouse CI** — neither set up.
+- **Sonar / Lighthouse CI** — ✅ both set up. `sonar.yml` (SonarCloud + API
+  coverage; needs the `SONAR_TOKEN` repo secret to run). `lighthouse.yml` +
+  `lighthouserc.json` added — audits the landing on PRs, **a11y < 0.9 fails the
+  build**; perf/best-practices/SEO warn. (PLAN.md previously said "neither set up"
+  — Sonar already existed; Lighthouse was the real gap.)
 - **Keyless/failure fail-safety (hardened #4):** AI-mock start path already 503s
   (no 500). Grader response now **validated** (`lib/mock-feedback.ts` — Zod +
   clamp) instead of an unchecked `as MockFeedback` cast, so malformed / wrong-shape
