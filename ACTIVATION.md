@@ -82,6 +82,11 @@ complexity analyzer, test-case generator, OA simulated coding.
   calendars. Needs a scraping worker + sources; the schema + UIs are ready to
   ingest.
 - **Video peer mocks** — Daily.co / 100ms room token service.
+- **TURN server (peer mocks NAT traversal)** — the WebRTC code is wired; set in
+  `apps/web/.env.local`:
+  `NEXT_PUBLIC_TURN_URL=turn:…` `NEXT_PUBLIC_TURN_USERNAME=…` `NEXT_PUBLIC_TURN_CREDENTIAL=…`
+  (managed: Twilio/Metered, or self-host coturn). Without it, peer mocks are
+  STUN-only and fail on strict NAT — the UI shows a clear "connection failed" state.
 
 ---
 

@@ -133,7 +133,12 @@ The repo runs without any of these (graceful 503s or dev-login fallbacks), but f
 
 - **WebSocket transport for peer signaling** — currently long-poll over Redis, fine for tens of peers, swap for ws at scale.
 - **3 of 5 cognitive games unbuilt** — Pattern Recall, Spatial, Stroop.
-- **WebRTC TURN server** — STUN-only setup works on same network; add coturn for NAT traversal in prod.
+- **WebRTC TURN server** — code now reads TURN creds from `NEXT_PUBLIC_TURN_URL/
+  USERNAME/CREDENTIAL` (falls back to STUN) via `buildIceServers`
+  (`packages/types/src/webrtc.test.ts`), and a failed P2P now shows a distinct
+  "connection failed — retry" UX instead of looking like a normal hangup. **Still
+  need YOU to provision the TURN server** (managed e.g. Twilio/Metered, or self-host
+  coturn) and set those env vars — until then it's STUN-only and fails on strict NAT.
 - **Real Resend integration** — cron worker logs intended sends; wire actual email push in a small later round.
 - **EYF Daily audio** — spec calls for a daily-podcast-style 2-min audio. Not built.
 - **Mobile app deep production polish** — push notifications registered but no remote push pipeline wired; offline caching for flashcards not done.

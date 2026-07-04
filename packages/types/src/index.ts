@@ -151,3 +151,5 @@ export type {
 // RBAC capability layer (admin/staff portal — scalable, shared web+api).
 export { CAPABILITIES, capabilitiesFor, hasCapability, isStaffRole } from "./permissions";
 export type { Capability, StaffRole } from "./permissions";
+
+export { buildIceServers, type IceServer } from "./webrtc";

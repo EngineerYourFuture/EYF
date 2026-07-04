@@ -4,17 +4,24 @@
  * long-polled signaling endpoint. One peer is the "initiator" (creates the
  * offer); the other waits for the offer and responds.
  */
+import { buildIceServers } from "@eyf/types";
 import type { SessionUser } from "@eyf/types";
 
 export type PeerEvents = {
   onRemoteStream: (stream: MediaStream) => void;
   onConnect: () => void;
   onClose: () => void;
+  /** P2P could not be established (e.g. symmetric NAT with no reachable TURN). */
+  onFailed?: () => void;
 };
 
-const ICE_SERVERS: RTCIceServer[] = [
-  { urls: "stun:stun.l.google.com:19302" },
-];
+// STUN + TURN (when NEXT_PUBLIC_TURN_* is configured) so connections survive
+// symmetric NAT on campus/corporate networks; STUN-only fails silently there.
+const ICE_SERVERS = buildIceServers({
+  turnUrl: process.env.NEXT_PUBLIC_TURN_URL,
+  turnUsername: process.env.NEXT_PUBLIC_TURN_USERNAME,
+  turnCredential: process.env.NEXT_PUBLIC_TURN_CREDENTIAL,
+}) as RTCIceServer[];
 
 export type PeerHandle = {
   pc: RTCPeerConnection;
@@ -33,8 +40,13 @@ export async function startPeer(opts: {
 
   pc.ontrack = (e) => opts.events.onRemoteStream(e.streams[0]!);
   pc.onconnectionstatechange = () => {
-    if (pc.connectionState === "connected") opts.events.onConnect();
-    if (pc.connectionState === "closed" || pc.connectionState === "failed") opts.events.onClose();
+    const s = pc.connectionState;
+    if (s === "connected") opts.events.onConnect();
+    else if (s === "failed") (opts.events.onFailed ?? opts.events.onClose)();
+    else if (s === "closed" || s === "disconnected") opts.events.onClose();
+  };
+  pc.oniceconnectionstatechange = () => {
+    if (pc.iceConnectionState === "failed") (opts.events.onFailed ?? opts.events.onClose)();
   };
   pc.onicecandidate = async (e) => {
     if (e.candidate) await send({ kind: "ice", payload: e.candidate.toJSON() });
