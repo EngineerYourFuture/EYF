@@ -5,6 +5,7 @@ import { Card, Badge, Button, Skeleton } from "@eyf/ui";
 import { useApi, useApiAction } from "@/lib/use-api";
 import { toast } from "sonner";
 import { PageMotion } from "@/components/page-motion";
+import { TodayFocus } from "@/components/today-focus";
 import { Reveal } from "@/components/motion";
 import { Icons, type IconName } from "@/components/icons";
 import { useGuidance, type Guidance } from "@/lib/use-guidance";
@@ -106,6 +107,8 @@ export default function Page() {
           <MiniStat icon="bolt" tone="medium" label="XP today" value={today ? `${today.xpToday}` : "—"} />
           <MiniStat icon="code" label="Solved today" value={today ? `${today.problemsSolvedToday}` : "—"} />
         </div>
+
+        <div className="mt-6"><TodayFocus /></div>
 
         {/* Two-column workspace — fills the width */}
         <div className="grid lg:grid-cols-[1.6fr_1fr] gap-x-6 items-start">
