@@ -1213,3 +1213,63 @@ model UserSession {
   @@index([userId, createdAt])
   @@map("user_sessions")
 }
+
+// ─── LMS + B2B (the scaling wedge: white-label LMS ↔ internship supply) ───
+
+enum CourseAudience {
+  STAFF      // org trains its own employees
+  CANDIDATE  // org screens EYF students as a pre-internship filter
+  BOTH
+}
+
+model Organization {
+  id          String           @id @default(cuid())
+  name        String
+  slug        String           @unique
+  accessCode  String           @unique // employer-portal login before Clerk orgs
+  logoUrl     String?
+  createdAt   DateTime         @default(now())
+  courses     Course[]
+  internships InternshipSlot[]
+  @@map("organizations")
+}
+
+model Course {
+  id          String         @id @default(cuid())
+  orgId       String
+  org         Organization   @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  title       String
+  description String         @default("")
+  audience    CourseAudience @default(BOTH)
+  published   Boolean        @default(false)
+  createdAt   DateTime       @default(now())
+  lessons     Lesson[]
+  @@index([orgId])
+  @@map("lms_courses")
+}
+
+model Lesson {
+  id         String   @id @default(cuid())
+  courseId   String
+  course     Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  title      String
+  content    String   @default("")
+  orderIndex Int      @default(0)
+  @@index([courseId])
+  @@map("lms_lessons")
+}
+
+model InternshipSlot {
+  id        String       @id @default(cuid())
+  orgId     String
+  org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  role      String
+  location  String?
+  stipend   String?
+  seats     Int          @default(1)
+  eliteOnly Boolean      @default(true) // the flywheel — Elite students get access
+  openUntil DateTime?
+  createdAt DateTime     @default(now())
+  @@index([orgId])
+  @@map("internship_slots")
+}
