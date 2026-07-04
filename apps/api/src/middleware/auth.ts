@@ -5,6 +5,7 @@ import { meetsPlan } from "@eyf/types";
 import { prisma } from "@eyf/db";
 import { verifyClerkSession, hasRealClerk } from "../services/clerk.js";
 import { resolveActivePlan } from "../lib/subscription.js";
+import { isOrgToken } from "../lib/org-token.js";
 import { env } from "../env.js";
 
 function planFromTier(tier: string): Plan {
@@ -42,6 +43,9 @@ async function resolveSession(
 
   try {
     const session = app.jwt.verify<SessionUser & { sid?: string }>(token) as SessionUser & { sid?: string };
+    // An org portal token is signed with the same secret but is NOT a user
+    // session — reject it here so it can't be used on user-authenticated routes.
+    if (isOrgToken(session)) return null;
     // Account-sharing control: a token carrying a `sid` is only valid while that
     // session row exists. Evicting the row (via the concurrent-session cap on a
     // new login) invalidates the token → that device is forced to re-auth.

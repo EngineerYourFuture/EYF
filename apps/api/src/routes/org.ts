@@ -2,29 +2,38 @@ import type { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import { z } from "zod";
 import { prisma } from "@eyf/db";
 import { ORG_VERIFY_RATE_LIMIT } from "../lib/rate-limits.js";
+import { buildOrgClaims, readOrgClaims, type OrgClaims } from "../lib/org-token.js";
 
 /**
- * Employer / LMS portal API (the B2B scaling wedge). Access-code auth for now
- * (an `x-org-code` header → the Organization), upgraded to Clerk orgs later.
- * Orgs manage courses (STAFF | CANDIDATE | BOTH) + post internship slots; the
- * student side reads published slots, Elite-gated.
+ * Employer / LMS portal API (the B2B scaling wedge). `/verify` checks the access
+ * code (rate-limited) and issues a short-lived signed session token; every other
+ * route authenticates with that token (Bearer or `x-org-token`) — the raw code
+ * is never a per-request credential. Upgraded to Clerk orgs later.
  */
-type Org = { id: string; name: string; slug: string };
-
-async function orgCtx(req: FastifyRequest, reply: FastifyReply): Promise<Org | null> {
-  const code = (req.headers["x-org-code"] as string | undefined)?.trim();
-  const org = code ? await prisma.organization.findUnique({ where: { accessCode: code }, select: { id: true, name: true, slug: true } }) : null;
-  if (!org) { reply.code(401).send({ success: false, error: { code: "INVALID_ORG_CODE", message: "Invalid or missing organisation access code." } }); return null; }
-  return org;
-}
+type Org = OrgClaims;
 
 export async function orgRoutes(app: FastifyInstance) {
-  // ── Login: validate an access code (tight rate limit — brute-force guard) ──
+  // Authenticate an org request via its session token (Bearer or x-org-token).
+  async function orgCtx(req: FastifyRequest, reply: FastifyReply): Promise<Org | null> {
+    const header = req.headers.authorization;
+    const token = header?.startsWith("Bearer ") ? header.slice(7) : (req.headers["x-org-token"] as string | undefined);
+    if (token) {
+      try {
+        const claims = readOrgClaims(app.jwt.verify(token));
+        if (claims) return claims;
+      } catch { /* invalid / expired → falls through to 401 */ }
+    }
+    reply.code(401).send({ success: false, error: { code: "ORG_UNAUTHORIZED", message: "Sign in to the employer portal." } });
+    return null;
+  }
+
+  // ── Login: validate the access code (rate-limited) → issue a session token ──
   app.post("/verify", { config: { rateLimit: ORG_VERIFY_RATE_LIMIT } }, async (req, reply) => {
     const { code } = z.object({ code: z.string().min(1) }).parse(req.body);
     const org = await prisma.organization.findUnique({ where: { accessCode: code }, select: { id: true, name: true, slug: true } });
     if (!org) return reply.code(401).send({ success: false, error: { code: "INVALID_ORG_CODE", message: "No organisation with that code." } });
-    return { success: true, data: org };
+    const token = app.jwt.sign(buildOrgClaims(org), { expiresIn: "8h" });
+    return { success: true, data: { ...org, token } };
   });
 
   app.get("/me", async (req, reply) => {

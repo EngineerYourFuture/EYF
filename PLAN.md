@@ -155,11 +155,13 @@ The repo runs without any of these (graceful 503s or dev-login fallbacks), but f
   Judge0 worker `failed` handler now marks the submission `INTERNAL_ERROR` once
   retries are exhausted (`lib/judge-retry.ts`) instead of leaving it PENDING
   forever. Tests: `mock-feedback.test.ts`, `judge-retry.test.ts`.
-- **Employer/LMS portal auth (post-PLAN.md feature)** — access-code login. `/org/verify`
-  now has a tight per-IP rate limit (5/min) guarding brute-force
-  (`apps/api/src/lib/rate-limits.test.ts`). **Still owed:** the raw code is sent
-  as a bearer header on every org request (long-lived static credential + per-
-  request DB lookup) — the proper fix is a short-lived org session token issued
-  at `/verify`, and/or Clerk orgs. Codes should also be long/random by generation.
+- **Employer/LMS portal auth (post-PLAN.md feature)** — ✅ hardened. `/org/verify`
+  is rate-limited (5/min per IP, `rate-limits.test.ts`) AND now issues a
+  **short-lived signed session token** (8h); every other org route authenticates
+  with that token (Bearer) — the raw code is no longer a per-request credential,
+  and there's no per-request DB code lookup. `scope: "org"` prevents token
+  confusion: a user token is rejected by org routes and an org token is rejected
+  by user routes (`org-token.test.ts` + verified at runtime: both cross-uses 401).
+  Remaining polish (not blocking): codes long/random by generation; Clerk orgs later.
 
 If a sentence above says ✅, the code exists and typechecks. If it says ✅ scaffold, the routes/UI exist but rely on a real service key to fully exercise. If it says TODO, it's deliberately unbuilt and listed here.
