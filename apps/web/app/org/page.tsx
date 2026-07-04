@@ -5,7 +5,7 @@ const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000/v1";
 const TOKEN_KEY = "eyf-org-token";
 
 type Org = { id: string; name: string; slug: string; counts: { courses: number; internships: number } };
-type Course = { id: string; title: string; description: string; audience: string; published: boolean; lessons: { id: string; title: string }[] };
+type Course = { id: string; title: string; description: string; audience: string; published: boolean; lessons: { id: string; title: string }[]; _count?: { enrollments: number } };
 type Slot = { id: string; role: string; location: string | null; stipend: string | null; seats: number; eliteOnly: boolean };
 
 export default function OrgPortal() {
@@ -114,7 +114,7 @@ export default function OrgPortal() {
             {courses.map((c) => (
               <div key={c.id} className="flex items-center gap-3 rounded-xl border border-border bg-surface px-4 py-3">
                 <div className="min-w-0 flex-1">
-                  <div className="font-medium text-sm">{c.title} <span className="text-text-4 text-xs ml-1">{c.audience.toLowerCase()} · {c.lessons.length} lessons</span></div>
+                  <div className="font-medium text-sm">{c.title} <span className="text-text-4 text-xs ml-1">{c.audience.toLowerCase()} · {c.lessons.length} lessons · {c._count?.enrollments ?? 0} enrolled</span></div>
                   {c.description && <div className="text-text-4 text-xs truncate">{c.description}</div>}
                 </div>
                 <button onClick={() => togglePublish(c)} className={`text-xs px-2 py-1 rounded border ${c.published ? "border-easy/40 text-easy" : "border-border text-text-3"}`}>{c.published ? "Published" : "Draft"}</button>

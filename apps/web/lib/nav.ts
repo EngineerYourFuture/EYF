@@ -46,6 +46,7 @@ export const NAV_GROUPS: NavGroup[] = [
       { href: "/resume", label: "Resume", icon: "doc", keywords: "cv ats score" },
       { href: "/projects", label: "Projects", icon: "cube", keywords: "btech build portfolio" },
       { href: "/project-prep", label: "Project Prep", icon: "cube", keywords: "defend project interview questions resume grilling explain viva tech stack" },
+      { href: "/learn", label: "Learn", icon: "book", keywords: "courses lessons lms partner enroll progress modules" },
       { href: "/internships", label: "Internships", icon: "building", keywords: "intern ppo stipend" },
       { href: "/jobs", label: "Jobs", icon: "briefcase", keywords: "apply tracker hiring" },
       { href: "/pipeline", label: "Pipeline", icon: "activity", keywords: "applications kanban tracker status offer deadline funnel" },
