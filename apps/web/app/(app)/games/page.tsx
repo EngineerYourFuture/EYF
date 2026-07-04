@@ -11,6 +11,7 @@ const GAMES: { slug: string; name: string; blurb: string; icon: IconName; tag: s
   { slug: "pattern-recall", name: "Pattern Recall",  blurb: "Memorize a 5×5 grid pattern. Recreate it. Six escalating rounds.", icon: "cube",    tag: "Memory" },
   { slug: "spatial",        name: "Mental Rotation", blurb: "Is the right shape the left one rotated? Or mirrored? 10 trials.", icon: "compass", tag: "Spatial" },
   { slug: "stroop",         name: "Stroop",          blurb: "Tap the INK color. Ignore what the word says. 20 trials.",         icon: "sparkle", tag: "Attention" },
+  { slug: "complexity-blitz", name: "Complexity Blitz", blurb: "Classify code fragments by Big-O against a 60-second clock.",     icon: "gauge",   tag: "Speed" },
 ];
 
 export default function Page() {
