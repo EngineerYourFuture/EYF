@@ -305,6 +305,8 @@ model Subscription {
   trialEndsAt     DateTime?
   amountInr       Int                @default(0) // paisa
   intervalMonths  Int                @default(1)
+  // created_at of the last-applied webhook event — guards against out-of-order delivery.
+  lastEventAt     DateTime?
   createdAt       DateTime           @default(now())
   updatedAt       DateTime           @updatedAt
 
@@ -1272,4 +1274,14 @@ model InternshipSlot {
   createdAt DateTime     @default(now())
   @@index([orgId])
   @@map("internship_slots")
+}
+
+// Webhook idempotency ledger — a processed provider event is recorded here (by
+// its unique event id); a duplicate delivery hits the unique constraint and no-ops.
+model WebhookEvent {
+  id        String   @id // the provider's event id (e.g. x-razorpay-event-id)
+  provider  String
+  type      String
+  createdAt DateTime @default(now())
+  @@map("webhook_events")
 }

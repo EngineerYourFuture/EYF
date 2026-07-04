@@ -8,6 +8,7 @@ import {
   PLAN_PRICING_INR,
   PLAN_TIER_MAP,
 } from "../services/razorpay.js";
+import { decideWebhook } from "../lib/subscription.js";
 
 export async function billingRoutes(app: FastifyInstance) {
   app.get("/plans", async () => ({
@@ -105,40 +106,61 @@ export async function billingRoutes(app: FastifyInstance) {
       }
       const event = JSON.parse(rawBody) as {
         event: string;
-        payload: { payment?: { entity: { notes?: { userId?: string; plan?: string; interval?: string }; amount: number; id: string } } };
+        created_at?: number;
+        payload: {
+          payment?: { entity: { notes?: { userId?: string; plan?: string; interval?: string }; amount: number; id: string } };
+          subscription?: { entity: { id: string } };
+        };
       };
+
+      // Idempotency: dedup by the provider's event id. The unique insert is the
+      // gate — a duplicate delivery hits the constraint and no-ops. `endsAt` is
+      // derived from the event's own timestamp so replays are deterministic.
+      const eventCreatedAt = event.created_at ? new Date(event.created_at * 1000) : new Date();
+      const eventId = (req.headers["x-razorpay-event-id"] as string | undefined)
+        ?? `${event.event}:${event.payload.payment?.entity.id ?? event.payload.subscription?.entity.id ?? "?"}:${event.created_at ?? ""}`;
+      try {
+        await prisma.webhookEvent.create({ data: { id: eventId, provider: "razorpay", type: event.event } });
+      } catch {
+        return reply.send({ success: true, data: { handled: event.event, deduped: true } });
+      }
+
       if (event.event === "payment.captured") {
         const notes = event.payload.payment?.entity.notes ?? {};
         const userId = notes.userId;
         const plan = notes.plan as "basic" | "pro" | "elite" | undefined;
         const interval = (notes.interval ?? "monthly") as "monthly" | "annual";
         if (userId && plan && plan in PLAN_PRICING_INR) {
-          const endsAt = new Date();
+          const existing = await prisma.subscription.findUnique({ where: { userId }, select: { lastEventAt: true } });
+          if (decideWebhook({ alreadyProcessed: false, eventCreatedAt, lastEventAt: existing?.lastEventAt ?? null }) === "stale") {
+            return reply.send({ success: true, data: { handled: event.event, stale: true } });
+          }
+          const endsAt = new Date(eventCreatedAt);
           endsAt.setMonth(endsAt.getMonth() + (interval === "annual" ? 12 : 1));
-          await prisma.subscription.upsert({
-            where: { userId },
-            update: {
-              plan: PLAN_TIER_MAP[plan],
-              status: SubscriptionStatus.ACTIVE,
-              amountInr: event.payload.payment!.entity.amount,
-              intervalMonths: interval === "annual" ? 12 : 1,
-              endsAt,
-              canceledAt: null,
-            },
-            create: {
-              userId,
-              plan: PLAN_TIER_MAP[plan],
-              status: SubscriptionStatus.ACTIVE,
-              amountInr: event.payload.payment!.entity.amount,
-              intervalMonths: interval === "annual" ? 12 : 1,
-              endsAt,
-            },
-          });
+          const data = {
+            plan: PLAN_TIER_MAP[plan],
+            status: SubscriptionStatus.ACTIVE,
+            amountInr: event.payload.payment!.entity.amount,
+            intervalMonths: interval === "annual" ? 12 : 1,
+            endsAt,
+            canceledAt: null,
+            lastEventAt: eventCreatedAt,
+          };
+          await prisma.subscription.upsert({ where: { userId }, update: data, create: { userId, ...data } });
         }
       } else if (event.event === "subscription.cancelled") {
-        // Recurring subscriptions aren't live yet (one-time orders for now);
-        // log for observability until the subscription lifecycle is wired.
-        req.log.info({ event: event.event }, "subscription cancelled webhook");
+        // Cancel-at-period-end: keep endsAt, mark CANCELED — gating keeps access
+        // until endsAt, then the plan resolves to FREE.
+        const subId = event.payload.subscription?.entity.id;
+        const sub = subId ? await prisma.subscription.findUnique({ where: { razorpaySubId: subId }, select: { lastEventAt: true } }) : null;
+        if (sub && decideWebhook({ alreadyProcessed: false, eventCreatedAt, lastEventAt: sub.lastEventAt }) === "apply") {
+          await prisma.subscription.update({
+            where: { razorpaySubId: subId! },
+            data: { status: SubscriptionStatus.CANCELED, canceledAt: eventCreatedAt, lastEventAt: eventCreatedAt },
+          });
+        } else {
+          req.log.info({ event: event.event, subId }, "subscription.cancelled — no matching sub or stale");
+        }
       }
       return reply.send({ success: true, data: { handled: event.event } });
     },

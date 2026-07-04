@@ -4,6 +4,7 @@ import type { Plan, SessionUser } from "@eyf/types";
 import { meetsPlan } from "@eyf/types";
 import { prisma } from "@eyf/db";
 import { verifyClerkSession, hasRealClerk } from "../services/clerk.js";
+import { resolveActivePlan } from "../lib/subscription.js";
 import { env } from "../env.js";
 
 function planFromTier(tier: string): Plan {
@@ -31,7 +32,7 @@ async function resolveSession(
           email: user.email,
           name: user.name,
           role: user.role,
-          plan: planFromTier(user.subscription?.plan ?? "FREE"),
+          plan: planFromTier(resolveActivePlan(user.subscription)),
         };
       }
     } catch {
