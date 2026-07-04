@@ -8,6 +8,7 @@
  */
 import { Worker } from "bullmq";
 import { prisma, Verdict } from "@eyf/db";
+import { isFinalFailure } from "../lib/judge-retry.js";
 import { redis } from "../lib/redis.js";
 import { submitToJudge0, getJudge0Result } from "../services/judge0.js";
 import { onAcceptedSubmission } from "../services/gamification.js";
@@ -92,8 +93,18 @@ export const judgeWorker = new Worker<{ submissionId: string }>(
   { connection: redis, concurrency: 4 },
 );
 
-judgeWorker.on("failed", (job, err) => {
+judgeWorker.on("failed", async (job, err) => {
   console.error(`[judge] job ${job?.id} failed:`, err);
+  // Don't leave the submission PENDING forever — once retries are exhausted,
+  // mark it INTERNAL_ERROR so the UI can show "judging failed, retry".
+  if (job?.data.submissionId && isFinalFailure(job.attemptsMade, job.opts.attempts)) {
+    await prisma.problemSolution
+      .update({
+        where: { id: job.data.submissionId },
+        data: { verdict: Verdict.INTERNAL_ERROR, errorMsg: "Judging failed — please retry." },
+      })
+      .catch((e) => console.error("[judge] failed to mark submission errored:", e));
+  }
 });
 
 console.log("[judge] worker started");

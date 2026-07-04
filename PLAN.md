@@ -139,6 +139,13 @@ The repo runs without any of these (graceful 503s or dev-login fallbacks), but f
 - **Mobile app deep production polish** — push notifications registered but no remote push pipeline wired; offline caching for flashcards not done.
 - **E2E sign-in flow** — current Playwright only covers public surfaces; full signin→solve flow needs Clerk test-mode + Judge0 container in CI.
 - **Sonar / Lighthouse CI** — neither set up.
+- **Keyless/failure fail-safety (hardened #4):** AI-mock start path already 503s
+  (no 500). Grader response now **validated** (`lib/mock-feedback.ts` — Zod +
+  clamp) instead of an unchecked `as MockFeedback` cast, so malformed / wrong-shape
+  LLM output throws cleanly instead of poisoning downstream (composure trend etc.).
+  Judge0 worker `failed` handler now marks the submission `INTERNAL_ERROR` once
+  retries are exhausted (`lib/judge-retry.ts`) instead of leaving it PENDING
+  forever. Tests: `mock-feedback.test.ts`, `judge-retry.test.ts`.
 - **Employer/LMS portal auth (post-PLAN.md feature)** — access-code login. `/org/verify`
   now has a tight per-IP rate limit (5/min) guarding brute-force
   (`apps/api/src/lib/rate-limits.test.ts`). **Still owed:** the raw code is sent
