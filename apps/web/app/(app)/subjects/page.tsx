@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Card, Badge } from "@eyf/ui";
 import { useApi } from "@/lib/use-api";
 import { WeaknessReview } from "@/components/weakness-review";
+import { ConceptMap } from "@/components/concept-map";
 
 type Subject = { id: "OS" | "DBMS" | "CN" | "OOP"; name: string; free: boolean };
 
@@ -14,6 +15,8 @@ export default function Page() {
       <p className="text-text-3 mt-2">Theory notes + spaced-repetition flashcards. The CS interview round.</p>
 
       <div className="mt-8"><WeaknessReview /></div>
+
+      <ConceptMap />
 
       <div className="mt-8 grid md:grid-cols-2 lg:grid-cols-4 gap-4">
         {data?.map((s) => (
