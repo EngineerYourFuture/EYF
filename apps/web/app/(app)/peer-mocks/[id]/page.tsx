@@ -18,7 +18,7 @@ export default function Page({ params }: { params: { id: string } }) {
   const localRef  = useRef<HTMLVideoElement>(null);
   const remoteRef = useRef<HTMLVideoElement>(null);
   const peerRef   = useRef<PeerHandle | null>(null);
-  const [connState, setConnState] = useState<"idle" | "connecting" | "connected" | "ended">("idle");
+  const [connState, setConnState] = useState<"idle" | "connecting" | "connected" | "ended" | "failed">("idle");
 
   useEffect(() => {
     return () => { peerRef.current?.stop(); };
@@ -45,6 +45,7 @@ export default function Page({ params }: { params: { id: string } }) {
           },
           onConnect: () => setConnState("connected"),
           onClose:   () => setConnState("ended"),
+          onFailed:  () => setConnState("failed"),
         },
       });
     } catch (e) { toast.error((e as Error).message); setConnState("ended"); }
@@ -63,10 +64,17 @@ export default function Page({ params }: { params: { id: string } }) {
       <div className="flex items-center gap-3">
         <Badge>PEER</Badge>
         <span className="font-display text-lg">{mock.problemFocus ?? "general"}</span>
-        <Badge tone={connState === "connected" ? "easy" : connState === "ended" ? "hard" : "accent"} className="ml-auto">
+        <Badge tone={connState === "connected" ? "easy" : (connState === "ended" || connState === "failed") ? "hard" : "accent"} className="ml-auto">
           {connState}
         </Badge>
       </div>
+
+      {connState === "failed" && (
+        <div className="mt-4 rounded-xl border border-hard/40 bg-hard/[0.06] px-4 py-3 text-sm">
+          <span className="font-medium text-hard">Connection failed.</span>{" "}
+          <span className="text-text-2">Your network likely blocks direct peer connections (strict NAT/firewall). Retry, or try a different network / hotspot.</span>
+        </div>
+      )}
 
       <div className="mt-6 grid md:grid-cols-2 gap-4">
         <VideoTile label="You"    ref={localRef}  mirrored />
@@ -75,6 +83,7 @@ export default function Page({ params }: { params: { id: string } }) {
 
       <div className="mt-6 flex gap-3">
         {connState === "idle"   && <Button onClick={startCall}>Start call</Button>}
+        {connState === "failed" && <Button onClick={startCall}>Retry connection</Button>}
         {connState === "connecting" && <Button disabled>Connecting…</Button>}
         {(connState === "connected" || connState === "connecting") && <Button variant="ghost" onClick={endCall}>End call</Button>}
       </div>
