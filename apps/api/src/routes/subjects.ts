@@ -50,7 +50,10 @@ export async function subjectRoutes(app: FastifyInstance) {
       ? Math.round([...agg.values()].reduce((a, t) => a + toMastery(t.sumEase / t.n), 0) / agg.size)
       : 0;
 
-    return { success: true, data: { weakTopics, overall, counts: { due: dueCount, new: newCount, reviewed: reviews.length } } };
+    // All reviewed topics (for the concept map to overlay mastery).
+    const allTopics = [...agg.values()].map((t) => ({ subject: t.subject, topic: t.topic, mastery: toMastery(t.sumEase / t.n) }));
+
+    return { success: true, data: { weakTopics, allTopics, overall, counts: { due: dueCount, new: newCount, reviewed: reviews.length } } };
   });
 
   app.get("/:subject/notes", async (req, reply) => {
