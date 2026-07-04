@@ -144,6 +144,10 @@
   /* Hairline divider that reads on both themes. */
   .hairline { height: 1px; @apply bg-hairline; }
 
+  /* Compact form input (employer portal + forms). */
+  .inp { @apply w-full h-10 bg-bg border border-border rounded-lg px-3 text-sm outline-none; }
+  .inp:focus { @apply border-accent; }
+
   /* Frosted-glass vibrancy (Apple/visionOS-style, not neon). Reads on both
      themes via tokens; only shows its blur over content behind it, so use it on
      chrome + overlays (nav bars, sidebars, sticky headers, modals). */
