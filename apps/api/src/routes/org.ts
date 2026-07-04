@@ -1,6 +1,7 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import { z } from "zod";
 import { prisma } from "@eyf/db";
+import { ORG_VERIFY_RATE_LIMIT } from "../lib/rate-limits.js";
 
 /**
  * Employer / LMS portal API (the B2B scaling wedge). Access-code auth for now
@@ -18,8 +19,8 @@ async function orgCtx(req: FastifyRequest, reply: FastifyReply): Promise<Org | n
 }
 
 export async function orgRoutes(app: FastifyInstance) {
-  // ── Login: validate an access code ──
-  app.post("/verify", async (req, reply) => {
+  // ── Login: validate an access code (tight rate limit — brute-force guard) ──
+  app.post("/verify", { config: { rateLimit: ORG_VERIFY_RATE_LIMIT } }, async (req, reply) => {
     const { code } = z.object({ code: z.string().min(1) }).parse(req.body);
     const org = await prisma.organization.findUnique({ where: { accessCode: code }, select: { id: true, name: true, slug: true } });
     if (!org) return reply.code(401).send({ success: false, error: { code: "INVALID_ORG_CODE", message: "No organisation with that code." } });
