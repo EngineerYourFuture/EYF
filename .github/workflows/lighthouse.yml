@@ -1,0 +1,39 @@
+name: Lighthouse
+
+on:
+  pull_request:
+    branches: [master, main]
+
+concurrency:
+  group: lighthouse-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lighthouse:
+    name: Lighthouse CI (landing perf + a11y)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+        with:
+          version: 9.12.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Generate Prisma client
+        run: pnpm db:generate
+      - name: Build web
+        run: pnpm --filter @eyf/web build
+        env:
+          DATABASE_URL: postgresql://eyf:eyf@localhost:5432/eyf
+          JWT_ACCESS_SECRET: ci-only-not-secret-32-character-key-pad
+          JWT_REFRESH_SECRET: ci-only-not-secret-32-character-key-padx
+          NEXT_PUBLIC_API_URL: http://localhost:4000/v1
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: pk_test_ci_placeholder
+          CLERK_SECRET_KEY: sk_test_ci_placeholder
+      - name: Lighthouse CI (asserts against lighthouserc.json — a11y regressions fail the build)
+        run: pnpm dlx @lhci/cli@0.14.x autorun
