@@ -108,25 +108,51 @@ export async function orgRoutes(app: FastifyInstance) {
     return { success: true, data: { id } };
   });
 
-  // ── Student-facing feed — org internship slots, Elite-gated (the flywheel) ──
+  // ── Student-facing feed — the merit exchange (the flywheel payoff) ──
+  // Internships are UNPAID and seats-limited. Elite = eligibility to compete;
+  // the top Elite members by EYF score (XP) within the seat count actually get
+  // each slot. Non-Elite see them locked with the upsell.
   app.get("/student/internships", { preHandler: app.requireAuth }, async (req) => {
+    const userId = req.session!.id;
     const isElite = req.session!.plan === "elite";
     const slots = await prisma.internshipSlot.findMany({
-      orderBy: { createdAt: "desc" },
-      take: 50,
-      include: { org: { select: { name: true, slug: true } } },
+      orderBy: { createdAt: "desc" }, take: 50,
+      include: { org: { select: { name: true } } },
     });
+
+    if (!isElite) {
+      return {
+        success: true,
+        data: {
+          isElite: false, eliteRank: null, totalElite: 0,
+          slots: slots.map((s) => ({ id: s.id, org: s.org.name, role: s.role, seats: s.seats, locked: true })),
+        },
+      };
+    }
+
+    // Rank the student among all Elite members by EYF score (XP).
+    const elite = await prisma.subscription.findMany({ where: { plan: "ELITE" }, select: { userId: true } });
+    const eliteIds = elite.map((e) => e.userId);
+    const profiles = await prisma.userProfile.findMany({
+      where: { userId: { in: eliteIds } },
+      select: { userId: true, currentXp: true },
+      orderBy: { currentXp: "desc" },
+    });
+    const totalElite = profiles.length || 1;
+    const found = profiles.findIndex((p) => p.userId === userId);
+    const eliteRank = found >= 0 ? found + 1 : totalElite;
+
     return {
       success: true,
-      data: slots.map((s) => {
-        const locked = s.eliteOnly && !isElite;
-        return {
-          id: s.id, org: s.org.name, role: s.role,
-          location: locked ? null : s.location,
-          stipend: locked ? null : s.stipend,
-          seats: s.seats, eliteOnly: s.eliteOnly, locked,
-        };
-      }),
+      data: {
+        isElite: true, eliteRank, totalElite,
+        slots: slots.map((s) => ({
+          id: s.id, org: s.org.name, role: s.role, location: s.location,
+          seats: s.seats, unpaid: true, locked: false,
+          inContention: eliteRank <= s.seats,       // top `seats` Elite get it
+          spotsFromCutoff: Math.max(0, eliteRank - s.seats),
+        })),
+      },
     };
   });
 }

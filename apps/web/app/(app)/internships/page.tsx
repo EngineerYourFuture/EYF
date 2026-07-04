@@ -5,6 +5,7 @@ import { useApi, useApiAction } from "@/lib/use-api";
 import { toast } from "sonner";
 import { useState } from "react";
 import { PageMotion } from "@/components/page-motion";
+import { InternshipExchange } from "@/components/internship-exchange";
 import { Icons } from "@/components/icons";
 
 type Internship = {
@@ -47,6 +48,8 @@ export default function Page() {
         title="Internships"
         subtitle="2nd or 3rd year? Start here. We surface PPO conversion data so you chase the internships that actually turn into jobs."
       />
+
+      <div className="mt-8"><InternshipExchange /></div>
 
       <div className="mt-8 grid lg:grid-cols-[1fr_300px] gap-8">
         <div>
