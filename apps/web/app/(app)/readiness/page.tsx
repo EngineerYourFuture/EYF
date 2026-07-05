@@ -6,6 +6,7 @@ import { Reveal } from "@/components/motion";
 import { FunnelSim } from "@/components/funnel-sim";
 import { Icons } from "@/components/icons";
 import { useGuidance } from "@/lib/use-guidance";
+import { ScoreShare } from "@/components/score-share";
 import { companyReadiness, readinessBand, tierOf, biggestGap, offerProbability, TIER_PROFILES, SPOTLIGHT_COMPANIES } from "@/lib/company-readiness";
 import { companyLabel } from "@/lib/company";
 import type { Readiness } from "@/lib/readiness";
@@ -48,6 +49,7 @@ export default function Page() {
                 <ReadinessRing score={r.overall} />
                 <Badge tone={r.overall >= 80 ? "easy" : r.overall >= 50 ? "accent" : "medium"} className="mt-5">{r.band}</Badge>
                 <p className="text-text-3 text-sm mt-4 max-w-xs leading-relaxed">{r.summary}</p>
+                <ScoreShare />
               </Card>
 
               {/* Pillar breakdown */}

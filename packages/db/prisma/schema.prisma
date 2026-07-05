@@ -246,6 +246,7 @@ model User {
   mcqAttempts     McqAttempt[]
   communicationDrills CommunicationDrill[]
   projectPreps    ProjectPrep[]
+  scoreShares     ScoreShare[]
 
   @@index([role])
   @@index([college])
@@ -613,6 +614,20 @@ model Certificate {
 
   @@index([userId])
   @@map("certificates")
+}
+
+// ─── Shareable EYF Score snapshot (server-computed, publicly verifiable) ───
+
+model ScoreShare {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  code      String   @unique
+  snapshot  Json // { overall, band, pillars[], name, college, graduationYear, targetRole, targetCompany }
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@map("score_shares")
 }
 
 // ─── 16. TheoryNote (Core Subjects) ───────────────────────────────
