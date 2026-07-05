@@ -191,13 +191,13 @@ function CoachCard({ guidance }: { guidance: Guidance | null }) {
   const tone = readiness.overall >= 80 ? "easy" : readiness.overall >= 50 ? "accent" : "medium";
   return (
     <Card variant="glow" className="mt-6">
-      <div className="flex items-center justify-between gap-3 mb-3">
+      <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
         <div className="flex items-center gap-2">
           <span className="text-accent"><Icons.sparkle width={18} height={18} /></span>
           <span className="font-mono text-[11px] uppercase tracking-widest text-accent">Your coach</span>
         </div>
-        <Link href="/readiness">
-          <Badge tone={tone}>{readiness.overall} · {readiness.band}</Badge>
+        <Link href="/readiness" className="min-w-0">
+          <Badge tone={tone} className="max-w-full truncate">{readiness.overall} · {readiness.band}</Badge>
         </Link>
       </div>
 
