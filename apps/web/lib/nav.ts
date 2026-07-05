@@ -23,6 +23,7 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [
       { href: "/tracks", label: "Career Tracks", icon: "compass", keywords: "role path sde frontend backend" },
       { href: "/subjects", label: "Core Subjects", icon: "book", keywords: "os dbms cn oop theory flashcards" },
+      { href: "/ask", label: "Ask EYF", icon: "sparkle", keywords: "question answer doubt tech stack explain why how intelligence kb knowledge" },
       { href: "/assessment", label: "Assessment", icon: "clipboard", keywords: "test quiz calibration placement" },
       { href: "/mcq", label: "MCQ Tests", icon: "clipboard", keywords: "aptitude verbal reasoning logical quant timed test company tcs infosys wipro amazon multiple choice quiz mcq core cs" },
       { href: "/roadmap", label: "Roadmap", icon: "map", keywords: "plan sprint schedule" },

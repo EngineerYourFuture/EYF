@@ -15,6 +15,7 @@ const tabs = [
   { href: "/admin/content/project-ideas", label: "Projects" },
   { href: "/admin/content/career-tracks", label: "Career tracks" },
   { href: "/admin/content/experiences", label: "Experiences" },
+  { href: "/admin/content/knowledge", label: "Knowledge" },
 ];
 
 /** Sub-nav shared across the content-management pages. */
