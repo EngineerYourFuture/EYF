@@ -111,9 +111,12 @@ export default function Page() {
         <div className="mt-6"><TodayFocus /></div>
 
         {/* Two-column workspace — fills the width */}
+        {/* min-w-0 on the columns lets fr tracks shrink below content width —
+            without it the coach badge forces the whole card past the viewport
+            on mobile. */}
         <div className="grid lg:grid-cols-[1.6fr_1fr] gap-x-6 items-start">
           {/* Left: coach + today's plan */}
-          <div>
+          <div className="min-w-0">
             {/* Your Coach — the active guidance engine (readiness → next best action) */}
             <CoachCard guidance={guidance} />
 
@@ -144,7 +147,7 @@ export default function Page() {
           </div>
 
           {/* Right: daily mission + deadlines */}
-          <div>
+          <div className="min-w-0">
             {/* Daily Mission — the retention loop */}
             <DailyMission />
 
