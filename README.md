@@ -2,63 +2,62 @@
 
 > India's end-to-end placement operating system — from your first DSA concept to your first offer letter.
 
-This is a green-field rebuild (May 2026) following [specs/EYF_Master_Docs_Final.md](specs/EYF_Master_Docs_Final.md) and [specs/EYF_Complete_SaaS_Build_Guide.md](specs/EYF_Complete_SaaS_Build_Guide.md).
+Two products in one platform:
+
+- **Student app** — the integrated placement OS: practice (DSA + judge, cognitive games, pressure mode), learn (core subjects with SRS, adaptive assessment, personalized roadmap), interview (AI mocks, peer mocks, company prep, OA fingerprints), career (resume ATS, pipeline, mentors, jobs) — all feeding one **Placement Readiness score**.
+- **B2B LMS** — a white-label course platform for companies and colleges, tied to Elite-tier internship access.
 
 ## Stack
 
 | Layer | Tech |
 |---|---|
-| Frontend | Next.js 14 (App Router), React 18, Tailwind, Framer Motion |
-| Backend | Fastify on Node 20, TypeScript |
-| Database | PostgreSQL 16 + Prisma 5 |
-| Cache / queues | Redis 7 + BullMQ |
-| Auth | Clerk (Google OAuth + phone OTP via MSG91) |
-| Payments | Razorpay (subscriptions + Connect for mentor payouts) |
-| Code judge | Judge0 (self-hosted) |
-| LLM | Anthropic Claude (Sonnet for analysis, Haiku for hints) |
-| Storage | Cloudflare R2 |
-| Email | Resend (transactional), Customer.io (marketing) |
-| SMS | MSG91 |
-| Monorepo | Turborepo + pnpm workspaces |
+| Web | Next.js 14 (App Router), React 18, Tailwind, Framer Motion |
+| API | Fastify 5 on Node 20, TypeScript, Zod |
+| Mobile | Expo SDK 52, expo-router |
+| Database | PostgreSQL 16 + Prisma (`db push` workflow, no migrations dir) |
+| Cache / queues | Redis 7 + BullMQ (judge + cron workers) |
+| Auth | Clerk (dev-login fallback without keys) |
+| Payments | Razorpay (subscriptions + Connect payouts) |
+| Code judge | Judge0 (self-hosted, docker `--profile judge`) |
+| AI | Anthropic Claude (interviewer, grader, coach, variants) + Whisper (voice) |
+| Infra | Turborepo + pnpm · GitHub Actions → Vercel (web) + Railway (api) |
 
 ## Layout
 
 ```
 apps/
-  web/        Next.js 14 — eyf.in
-  api/        Fastify — api.eyf.in
-  judge/      Judge0 deploy config (separate host in prod)
+  web/        Next.js — student app, admin back-office, org (LMS) portal
+  api/        Fastify — REST API under /v1, BullMQ workers (judge, cron)
+  mobile/     Expo — daily challenge, flashcards, streak
 packages/
-  db/         Prisma schema + generated client
-  ui/         Shared React component library
-  types/      Shared TypeScript types
+  db/         Prisma schema + seed
+  ui/         Shared React primitives
+  types/      Shared types + pure logic (readiness, plans, permissions)
   config/     Shared ESLint / Tailwind / TS bases
-specs/        Source-of-truth product docs
-PLAN.md       Build phases + what's done vs next
+docs/         STATUS (current state), PRODUCT-ROADMAP, GO-LIVE, DESIGN, visions
+specs/        Source-of-truth product specs
 ```
 
 ## Quick start
 
 ```bash
-# 1. Install deps
 pnpm install
-
-# 2. Copy env
 cp .env.example .env
 
-# 3. Start Postgres + Redis
-pnpm docker:up
+pnpm docker:up            # Postgres 16 + Redis 7 (Judge0: --profile judge)
+pnpm db:generate && pnpm db:migrate && pnpm db:seed
 
-# 4. Generate Prisma client + run migrations
-pnpm db:generate
-pnpm db:migrate
-pnpm db:seed
-
-# 5. Run everything (web on :3000, api on :4000)
-pnpm dev
+pnpm dev                  # web :3000 + api :4000
 ```
 
-Optional: start Judge0 locally with `docker compose --profile judge up -d` (heavy).
+Optional long-running workers (own terminals):
+
+```bash
+pnpm --filter @eyf/api dev:worker   # Judge0 dispatch + verdicts
+pnpm --filter @eyf/api dev:cron    # streaks, digests, leaderboard
+```
+
+Runs fully without external keys — integrations no-op safely and auth falls back to dev-login. To activate real services, see [docs/GO-LIVE.md](docs/GO-LIVE.md).
 
 ## Scripts
 
@@ -68,10 +67,14 @@ Optional: start Judge0 locally with `docker compose --profile judge up -d` (heav
 | `pnpm build` | Build all packages + apps |
 | `pnpm typecheck` | TS check everything |
 | `pnpm lint` | Lint everything |
-| `pnpm db:migrate` | Apply Prisma migrations |
+| `pnpm test` | Unit tests (vitest) |
+| `pnpm --filter @eyf/web test:e2e` | Playwright smoke |
 | `pnpm db:studio` | Prisma Studio GUI |
-| `pnpm db:seed` | Seed dev data (problems, dev users) |
 
-## Project status
+## Docs
 
-See [PLAN.md](PLAN.md) for what's built, what's next, and how the work maps to the 36-week roadmap in the build guide.
+- [docs/STATUS.md](docs/STATUS.md) — what's built, current state
+- [docs/PRODUCT-ROADMAP.md](docs/PRODUCT-ROADMAP.md) — spec ↔ status per feature
+- [docs/GO-LIVE.md](docs/GO-LIVE.md) — keys, deploy, security checklist
+- [docs/DESIGN.md](docs/DESIGN.md) — design system rules + tokens
+- [specs/](specs/) — the founding product specs
