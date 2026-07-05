@@ -638,6 +638,60 @@ model McqBankQuestion {
   @@map("mcq_bank_questions")
 }
 
+// ─── Assessment question bank (staff-authored; replaces the hardcoded TS bank) ───
+
+model AssessmentBankQuestion {
+  id           String   @id @default(cuid())
+  sourceId     String?  @unique // id from the legacy TS bank (idempotent import)
+  area         String   // dsa | cs | aptitude
+  topic        String
+  difficulty   String   @default("medium") // easy | medium | hard
+  prompt       String
+  choices      String[]
+  correctIndex Int
+  explanation  String?
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([area, active])
+  @@map("assessment_bank_questions")
+}
+
+// ─── Communication drill prompts (staff-authored; replaces the hardcoded TS bank) ───
+
+model CommunicationPromptBank {
+  id        String            @id @default(cuid())
+  sourceId  String?           @unique
+  kind      CommunicationKind
+  question  String
+  tip       String
+  covers    String[] // rubric checklist a strong answer must hit (anchors the AI grader)
+  active    Boolean           @default(true)
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  @@index([kind, active])
+  @@map("communication_prompt_bank")
+}
+
+// ─── Company aptitude-sim blueprints (staff-authored; replaces the hardcoded TS list) ───
+
+model CompanySimBlueprint {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  company   String
+  label     String
+  blurb     String
+  usedBy    String
+  sections  Json     // [{ name, category: McqCategory, questions, minutes }]
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("company_sim_blueprints")
+}
+
 // ─── Shareable EYF Score snapshot (server-computed, publicly verifiable) ───
 
 model ScoreShare {

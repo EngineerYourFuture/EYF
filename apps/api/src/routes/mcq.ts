@@ -4,7 +4,8 @@ import { prisma, McqCategory } from "@eyf/db";
 import { MCQ_CATEGORIES } from "../lib/mcq-bank.js";
 import { mcqCompaniesSource, mcqCountSource, pickTestSource, mcqLookupSource } from "../lib/mcq-source.js";
 import { scoreMcq } from "../services/mcq.js";
-import { COMPANY_SIMS, simSummary } from "../lib/company-sims.js";
+import { simSummary } from "../lib/company-sims.js";
+import { companySimsSource } from "../lib/company-sims-source.js";
 
 /** Verbal + Technical sections and company-pattern filters are premium. */
 const FREE_CATEGORIES = new Set(
@@ -39,7 +40,7 @@ export async function mcqRoutes(app: FastifyInstance) {
   // timing of the tests students actually sit (TCS NQT, AMCAT, InfyTQ, CoCubes).
   app.get("/sims", async () => ({
     success: true,
-    data: COMPANY_SIMS.map((s) => ({ ...s, ...simSummary(s) })),
+    data: (await companySimsSource()).map((s) => ({ ...s, ...simSummary(s) })),
   }));
 
   // Start a test — returns questions WITHOUT the correct answer.

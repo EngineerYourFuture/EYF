@@ -1,11 +1,8 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { prisma, CommunicationKind } from "@eyf/db";
-import {
-  COMMUNICATION_KINDS,
-  promptsByKind,
-  getPrompt,
-} from "../lib/communication-bank.js";
+import { COMMUNICATION_KINDS } from "../lib/communication-bank.js";
+import { promptsSource, getPromptSource } from "../lib/communication-source.js";
 import { gradeCommunicationAnswer } from "../services/communication.js";
 import { transcribeAudio } from "../services/whisper.js";
 
@@ -15,7 +12,7 @@ export async function communicationRoutes(app: FastifyInstance) {
     success: true,
     data: {
       kinds: COMMUNICATION_KINDS,
-      prompts: promptsByKind().map((p) => ({ id: p.id, kind: p.kind, question: p.question, tip: p.tip })),
+      prompts: (await promptsSource()).map((p) => ({ id: p.id, kind: p.kind, question: p.question, tip: p.tip })),
     },
   }));
 
@@ -63,7 +60,7 @@ export async function communicationRoutes(app: FastifyInstance) {
         durationSeconds: z.number().int().min(0).max(1800).default(0),
       }).parse(req.body);
 
-      const prompt = getPrompt(body.promptId);
+      const prompt = await getPromptSource(body.promptId);
       if (!prompt) {
         return reply.code(404).send({
           success: false,
