@@ -80,7 +80,7 @@ Legend: ✅ built & deep · 🟡 built, more depth possible · 🔒 shell built,
 
 ---
 
-## 4. PLANNED — needs YOUR keys (all pre-wired; see `ACTIVATION.md`)
+## 4. PLANNED — needs YOUR keys (all pre-wired; see `GO-LIVE.md`)
 | Key / service | Unlocks |
 |---|---|
 | **Anthropic** | AI-mock personas + tone analysis, Roast + Offer, interview-experience synthesis, resume bullet-rewriter, LLM coach note |
@@ -101,8 +101,8 @@ Legend: ✅ built & deep · 🟡 built, more depth possible · 🔒 shell built,
 
 ## 6. Repo & quality
 - **40 PRs merged this session**, all on `main`, all green.
-- Docs: `PRODUCT-ROADMAP.md` (full spec ↔ status), `ACTIVATION.md` (key runbook),
-  `GO-LIVE.md` (deploy + security checklist), this `STATUS.md`.
+- Docs: `PRODUCT-ROADMAP.md` (full spec ↔ status), `GO-LIVE.md` (keys + deploy +
+  security runbook), `DESIGN.md` (design system), this `STATUS.md`.
 - Certified: typecheck 6/6 · lint clean · 68 tests · production build (57 pages).
 - **Note:** Prisma client is gitignored + project uses `db push` (no migration
   files) — after pulling, run `pnpm --filter @eyf/db prisma:generate` + `db push`.
