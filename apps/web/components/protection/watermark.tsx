@@ -16,7 +16,7 @@ export function Watermark() {
 
   const tile = encodeURIComponent(
     `<svg xmlns='http://www.w3.org/2000/svg' width='340' height='210'>` +
-      `<text x='0' y='120' fill='rgba(140,140,140,0.10)' font-family='ui-monospace,monospace' font-size='13' ` +
+      `<text x='0' y='120' fill='rgba(128,128,128,0.055)' font-family='ui-monospace,monospace' font-size='13' ` +
       `transform='rotate(-28 170 105)'>${label} · EYF</text></svg>`,
   );
 
