@@ -190,7 +190,7 @@ function ReadinessStrip({ guidance: g }: { guidance: Guidance | null }) {
             <Badge tone={tone}>{r.band}</Badge>
           </div>
           {/* The active coaching line — personalised guidance on the landing screen. */}
-          <p className="text-text-3 text-sm mt-1 truncate">
+          <p className="text-text-3 text-sm mt-1 line-clamp-2">
             {top ? g.coachNote : "Every pillar is strong — start applying with confidence."}
           </p>
         </div>
