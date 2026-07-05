@@ -8,11 +8,11 @@ const KEY = "eyf-theme";
  * Blocking script injected in <head> so the correct theme class is on <html>
  * before first paint — no flash of the wrong theme. Defaults to dark.
  */
-export const themeScript = `(function(){try{var t=localStorage.getItem("${KEY}");if(!t){t="light";}var r=document.documentElement;r.classList.remove("light","dark");r.classList.add(t);}catch(e){document.documentElement.classList.add("light");}})();`;
+export const themeScript = `(function(){try{var t=localStorage.getItem("${KEY}");if(!t){t="dark";}var r=document.documentElement;r.classList.remove("light","dark");r.classList.add(t);}catch(e){document.documentElement.classList.add("dark");}})();`;
 
 function getTheme(): Theme {
-  if (typeof window === "undefined") return "light";
-  return (localStorage.getItem(KEY) as Theme) || "light";
+  if (typeof window === "undefined") return "dark";
+  return (localStorage.getItem(KEY) as Theme) || "dark";
 }
 
 function apply(theme: Theme) {
@@ -23,7 +23,7 @@ function apply(theme: Theme) {
 }
 
 export function useTheme() {
-  const [theme, setThemeState] = useState<Theme>("light");
+  const [theme, setThemeState] = useState<Theme>("dark");
   useEffect(() => { setThemeState(getTheme()); }, []);
   const setTheme = useCallback((t: Theme) => { apply(t); setThemeState(t); }, []);
   const toggle = useCallback(() => setTheme(getTheme() === "dark" ? "light" : "dark"), [setTheme]);
