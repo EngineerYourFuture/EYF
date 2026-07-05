@@ -130,6 +130,18 @@ async function resolveGoal(userId: string): Promise<ReadinessGoal | undefined> {
   }
 }
 
+/** Readiness only — no coach note, no LLM. Used for server-verified score
+ *  snapshots (ScoreShare) where the number must be EYF-computed, not client-sent. */
+export async function computeUserReadiness(
+  userId: string,
+): Promise<{ readiness: Readiness; goal: ReadinessGoal | undefined }> {
+  const [{ input }, goal] = await Promise.all([
+    gatherReadinessInput(userId),
+    resolveGoal(userId),
+  ]);
+  return { readiness: computeReadiness(input, goal), goal };
+}
+
 export async function computeGuidance(userId: string): Promise<Guidance> {
   const [{ input, partial }, goal] = await Promise.all([
     gatherReadinessInput(userId),
