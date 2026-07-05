@@ -108,7 +108,7 @@ export default function DashboardPage() {
           <Metric icon="flame" tone="accent" label="Current streak"
             value={gam?.streak ?? 0} unit="d" sub={gam ? `Best ${gam.longestStreak}d` : undefined} />
           <Metric icon="bolt" tone="medium" label="Earned today"
-            value={today?.xpToday ?? 0} unit="xp" sub="Today" />
+            value={today?.xpToday ?? 0} unit="XP" sub="Today" />
           <Metric icon="code" label="Total solved" value={gam?.totalSolved ?? 0} sub="All time" />
           <Metric icon="trophy" tone="info" label="Badges"
             value={gam?.badges.length ?? 0} sub={gam?.badges.length ? "Earned" : "None yet"} />
