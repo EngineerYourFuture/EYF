@@ -35,7 +35,15 @@ export function Roadmap3D({ progress }: { progress: MotionValue<number> }) {
       const scene = new THREE.Scene();
       const camera = new THREE.PerspectiveCamera(55, el.clientWidth / el.clientHeight, 0.1, 200);
 
-      const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      // WebGL isn't guaranteed (old GPUs, remote desktops, strict browsers).
+      // The scroll-film section still reads without the 3D layer — degrade to
+      // nothing rather than throwing an unhandled rejection mid-scroll.
+      let renderer: InstanceType<typeof THREE.WebGLRenderer>;
+      try {
+        renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      } catch {
+        return;
+      }
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
       renderer.setSize(el.clientWidth, el.clientHeight);
       el.appendChild(renderer.domElement);
@@ -53,7 +61,8 @@ export function Roadmap3D({ progress }: { progress: MotionValue<number> }) {
 
       // Tube along the path.
       const tubeGeo = new THREE.TubeGeometry(curve, 200, 0.06, 8, false);
-      const tubeMat = new THREE.MeshBasicMaterial({ color: 0x2a3208 });
+      // Neutral dark tube — 0x2a3208 was a leftover from the old lime palette.
+      const tubeMat = new THREE.MeshBasicMaterial({ color: 0x262626 });
       scene.add(new THREE.Mesh(tubeGeo, tubeMat));
 
       // Node spheres + labels.
