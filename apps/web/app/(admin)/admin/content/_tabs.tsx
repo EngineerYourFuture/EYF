@@ -6,6 +6,7 @@ const tabs = [
   { href: "/admin/content/problems", label: "Problems" },
   { href: "/admin/content/jobs", label: "Jobs" },
   { href: "/admin/content/career-tracks", label: "Career tracks" },
+  { href: "/admin/content/experiences", label: "Experiences" },
 ];
 
 /** Sub-nav shared across the content-management pages. */

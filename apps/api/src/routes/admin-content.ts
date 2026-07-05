@@ -6,7 +6,7 @@
  */
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
-import { prisma, Difficulty, JobRole, DemandLevel } from "@eyf/db";
+import { prisma, Difficulty, JobRole, DemandLevel, InterviewOutcome } from "@eyf/db";
 import { requirePermission } from "../middleware/permissions.js";
 import { recordAudit } from "../lib/audit.js";
 
@@ -208,6 +208,65 @@ export async function adminContentRoutes(app: FastifyInstance) {
     if (!existing) return reply.code(404).send({ success: false, error: { code: "NOT_FOUND", message: "Track not found." } });
     await prisma.careerTrack.delete({ where: { id } });
     await recordAudit(req, { action: "delete", entity: "career-track", entityId: id, summary: "Deleted a career track" });
+    return { success: true, data: { id } };
+  });
+
+  // ── Interview experiences ──────────────────────────────────────────
+  // Staff-curated round-by-round writeups. Created rows are attributed to the
+  // staff member and surface on the student /experiences feed immediately —
+  // this is how the feed gets seeded and moderated without touching code.
+  const experienceInput = z.object({
+    company: z.string().min(1),
+    role: z.string().min(1),
+    outcome: z.nativeEnum(InterviewOutcome).default(InterviewOutcome.OFFER),
+    difficulty: z.number().int().min(1).max(5).default(3),
+    rounds: z.number().int().min(1).max(15).default(1),
+    body: z.string().min(1),
+    tips: z.string().nullable().optional(),
+  });
+
+  app.get("/experiences", guard, async () => {
+    const rows = await prisma.interviewExperience.findMany({
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true, company: true, role: true, outcome: true, difficulty: true,
+        rounds: true, upvotes: true, createdAt: true,
+        author: { select: { name: true } },
+      },
+    });
+    return { success: true, data: rows };
+  });
+  app.get("/experiences/:id", guard, async (req, reply) => {
+    const { id } = req.params as { id: string };
+    const row = await prisma.interviewExperience.findUnique({ where: { id } });
+    if (!row) return reply.code(404).send({ success: false, error: { code: "NOT_FOUND", message: "Experience not found." } });
+    return { success: true, data: row };
+  });
+  app.post("/experiences", guard, async (req, reply) => {
+    const parsed = experienceInput.safeParse(req.body);
+    if (!parsed.success) return badRequest(reply, parsed.error.issues[0]?.message ?? "Invalid input");
+    const created = await prisma.interviewExperience.create({
+      data: { ...parsed.data, authorId: req.session!.id },
+    });
+    await recordAudit(req, { action: "create", entity: "experience", entityId: created.id, summary: `Added experience: ${created.company} · ${created.role}` });
+    return reply.code(201).send({ success: true, data: created });
+  });
+  app.patch("/experiences/:id", guard, async (req, reply) => {
+    const { id } = req.params as { id: string };
+    const parsed = experienceInput.partial().safeParse(req.body);
+    if (!parsed.success) return badRequest(reply, parsed.error.issues[0]?.message ?? "Invalid input");
+    const existing = await prisma.interviewExperience.findUnique({ where: { id }, select: { id: true } });
+    if (!existing) return reply.code(404).send({ success: false, error: { code: "NOT_FOUND", message: "Experience not found." } });
+    const updated = await prisma.interviewExperience.update({ where: { id }, data: parsed.data });
+    await recordAudit(req, { action: "update", entity: "experience", entityId: id, summary: `Edited experience: ${updated.company} · ${updated.role}` });
+    return { success: true, data: updated };
+  });
+  app.delete("/experiences/:id", guard, async (req, reply) => {
+    const { id } = req.params as { id: string };
+    const existing = await prisma.interviewExperience.findUnique({ where: { id }, select: { id: true } });
+    if (!existing) return reply.code(404).send({ success: false, error: { code: "NOT_FOUND", message: "Experience not found." } });
+    await prisma.interviewExperience.delete({ where: { id } });
+    await recordAudit(req, { action: "delete", entity: "experience", entityId: id, summary: "Deleted an interview experience" });
     return { success: true, data: { id } };
   });
 }
