@@ -4,7 +4,12 @@ import { usePathname } from "next/navigation";
 
 const tabs = [
   { href: "/admin/content/problems", label: "Problems" },
+  { href: "/admin/content/mcq", label: "MCQ bank" },
+  { href: "/admin/content/theory-notes", label: "Theory notes" },
+  { href: "/admin/content/flashcards", label: "Flashcards" },
   { href: "/admin/content/jobs", label: "Jobs" },
+  { href: "/admin/content/internships", label: "Internships" },
+  { href: "/admin/content/project-ideas", label: "Projects" },
   { href: "/admin/content/career-tracks", label: "Career tracks" },
   { href: "/admin/content/experiences", label: "Experiences" },
 ];
@@ -13,7 +18,7 @@ const tabs = [
 export function ContentTabs() {
   const pathname = usePathname();
   return (
-    <div className="flex items-center gap-1 mt-4 border-b border-border">
+    <div className="flex items-center gap-1 mt-4 border-b border-border flex-wrap">
       {tabs.map((t) => {
         const active = pathname.startsWith(t.href);
         return (

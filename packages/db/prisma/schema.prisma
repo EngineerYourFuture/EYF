@@ -22,6 +22,7 @@ enum Role {
   STUDENT_PRO
   STUDENT_ELITE
   MENTOR
+  MODERATOR
   CONTENT_CREATOR
   ADMIN
 }
@@ -614,6 +615,27 @@ model Certificate {
 
   @@index([userId])
   @@map("certificates")
+}
+
+// ─── MCQ question bank (staff-authored; replaces the hardcoded TS bank) ───
+
+model McqBankQuestion {
+  id           String      @id @default(cuid())
+  sourceId     String?     @unique // id from the legacy TS bank (idempotent import)
+  category     McqCategory
+  topic        String
+  difficulty   String      @default("medium") // easy | medium | hard
+  prompt       String
+  choices      String[]
+  correctIndex Int
+  explanation  String
+  companies    String[]    // recruiter patterns this question drills (TCS, Infosys…)
+  active       Boolean     @default(true)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  @@index([category, active])
+  @@map("mcq_bank_questions")
 }
 
 // ─── Shareable EYF Score snapshot (server-computed, publicly verifiable) ───

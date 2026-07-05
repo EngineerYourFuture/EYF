@@ -13,6 +13,7 @@ type EyfRole =
   | "STUDENT_PRO"
   | "STUDENT_ELITE"
   | "MENTOR"
+  | "MODERATOR"
   | "CONTENT_CREATOR"
   | "ADMIN";
 

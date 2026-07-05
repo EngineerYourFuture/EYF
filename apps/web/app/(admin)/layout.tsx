@@ -5,19 +5,23 @@ import { useEffect } from "react";
 import { useRole } from "@/lib/use-role";
 import { useAdminGate, AdminGate } from "@/components/admin-gate";
 
-const adminNav = [
-  { href: "/admin",                 label: "Overview" },
-  { href: "/admin/content/problems", label: "Content" },
-  { href: "/admin/users",           label: "Users" },
-  { href: "/admin/payments",        label: "Payments" },
-  { href: "/admin/mentors",         label: "Mentor queue" },
-  { href: "/admin/forum",           label: "Forum" },
-  { href: "/admin/oa",              label: "OA reports" },
-  { href: "/admin/audit",           label: "Audit" },
+import type { Capability } from "@eyf/types";
+
+// Each section declares the capability it needs — the nav only shows what the
+// signed-in staff role can actually do (api routes enforce the same map).
+const adminNav: { href: string; label: string; cap: Capability }[] = [
+  { href: "/admin",                  label: "Overview",     cap: "moderate" },
+  { href: "/admin/content/problems", label: "Content",      cap: "manage:content" },
+  { href: "/admin/users",            label: "Users",        cap: "manage:users" },
+  { href: "/admin/payments",         label: "Payments",     cap: "manage:payments" },
+  { href: "/admin/mentors",          label: "Mentor queue", cap: "verify:mentors" },
+  { href: "/admin/forum",            label: "Forum",        cap: "moderate" },
+  { href: "/admin/oa",               label: "OA reports",   cap: "moderate" },
+  { href: "/admin/audit",            label: "Audit",        cap: "view:analytics" },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  const { loading, isStaff } = useRole();
+  const { loading, isStaff, can } = useRole();
   const gate = useAdminGate(!loading && isStaff);
   const router = useRouter();
   const pathname = usePathname();
@@ -60,7 +64,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <span className="text-xs font-mono uppercase tracking-widest text-hard border border-hard/40 rounded px-1.5 py-0.5">Admin</span>
           </div>
           <nav className="flex items-center gap-1 text-sm ml-2">
-            {adminNav.map((i) => {
+            {adminNav.filter((i) => can(i.cap)).map((i) => {
               const active = i.href === "/admin" ? pathname === "/admin" : pathname.startsWith(i.href);
               return (
                 <Link key={i.href} href={i.href}

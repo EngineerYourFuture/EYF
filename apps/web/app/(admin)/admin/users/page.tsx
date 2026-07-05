@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Card, Badge, Button, SkeletonRows } from "@eyf/ui";
 import { useApi, useApiAction } from "@/lib/use-api";
 
-const ROLES = ["GUEST", "STUDENT_FREE", "STUDENT_BASIC", "STUDENT_PRO", "STUDENT_ELITE", "MENTOR", "CONTENT_CREATOR", "ADMIN"] as const;
+const ROLES = ["GUEST", "STUDENT_FREE", "STUDENT_BASIC", "STUDENT_PRO", "STUDENT_ELITE", "MENTOR", "MODERATOR", "CONTENT_CREATOR", "ADMIN"] as const;
 const PLANS = ["FREE", "BASIC", "PRO", "ELITE"] as const;
 
 type Row = {

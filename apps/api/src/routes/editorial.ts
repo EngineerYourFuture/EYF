@@ -3,17 +3,18 @@ import { z } from "zod";
 import { prisma } from "@eyf/db";
 import { anthropic } from "../services/anthropic.js";
 import { generateProblemVariant } from "../services/anthropic.js";
+import { requirePermission } from "../middleware/permissions.js";
 
 const MODEL_SONNET = "claude-sonnet-4-6";
 
 /**
- * Editorial + variant generation. Admin-only (uses requireRole).
+ * Editorial + variant generation. Staff-only (manage:content capability).
  * Editorial generation streams through Claude Sonnet with a fixed JSON schema.
  */
 export async function editorialRoutes(app: FastifyInstance) {
   app.post(
     "/problems/:slug/generate",
-    { preHandler: [app.requireAuth, app.requireRole(["ADMIN", "CONTENT_CREATOR"])] },
+    { preHandler: [app.requireAuth, requirePermission("manage:content")] },
     async (req, reply) => {
       if (!anthropic) return reply.code(503).send({ success: false, error: { code: "AI_UNAVAILABLE", message: "ANTHROPIC_API_KEY not set." } });
       const { slug } = z.object({ slug: z.string() }).parse(req.params);
@@ -52,7 +53,7 @@ export async function editorialRoutes(app: FastifyInstance) {
 
   app.post(
     "/problems/:slug/variants/generate",
-    { preHandler: [app.requireAuth, app.requireRole(["ADMIN", "CONTENT_CREATOR"])] },
+    { preHandler: [app.requireAuth, requirePermission("manage:content")] },
     async (req, reply) => {
       const { slug } = z.object({ slug: z.string() }).parse(req.params);
       const problem = await prisma.problem.findUnique({ where: { slug } });

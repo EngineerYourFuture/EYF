@@ -1,12 +1,8 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { prisma, McqCategory } from "@eyf/db";
-import {
-  MCQ_CATEGORIES,
-  mcqCompanies,
-  mcqCount,
-  pickTest,
-} from "../lib/mcq-bank.js";
+import { MCQ_CATEGORIES } from "../lib/mcq-bank.js";
+import { mcqCompaniesSource, mcqCountSource, pickTestSource, mcqLookupSource } from "../lib/mcq-source.js";
 import { scoreMcq } from "../services/mcq.js";
 import { COMPANY_SIMS, simSummary } from "../lib/company-sims.js";
 
@@ -25,13 +21,19 @@ function upgradeRequired(reply: import("fastify").FastifyReply, message: string)
 export async function mcqRoutes(app: FastifyInstance) {
   // Catalog — categories with live counts + available company filters. Public so
   // the config screen renders instantly.
-  app.get("/catalog", async () => ({
-    success: true,
-    data: {
-      categories: MCQ_CATEGORIES.map((c) => ({ ...c, count: mcqCount(c.id) })),
-      companies: mcqCompanies(),
-    },
-  }));
+  app.get("/catalog", async () => {
+    const [counts, companies] = await Promise.all([
+      Promise.all(MCQ_CATEGORIES.map((c) => mcqCountSource(c.id))),
+      mcqCompaniesSource(),
+    ]);
+    return {
+      success: true,
+      data: {
+        categories: MCQ_CATEGORIES.map((c, i) => ({ ...c, count: counts[i] ?? 0 })),
+        companies,
+      },
+    };
+  });
 
   // Real-company sims — the Aptitude differentiator. The exact section layout +
   // timing of the tests students actually sit (TCS NQT, AMCAT, InfyTQ, CoCubes).
@@ -56,7 +58,7 @@ export async function mcqRoutes(app: FastifyInstance) {
       return upgradeRequired(reply, "Company-specific tests are on Basic. Upgrade to target a company.");
     }
 
-    const questions = pickTest(body).map((q) => ({
+    const questions = (await pickTestSource(body)).map((q) => ({
       id: q.id,
       category: q.category,
       topic: q.topic,
@@ -89,7 +91,8 @@ export async function mcqRoutes(app: FastifyInstance) {
       })).min(1).max(25),
     }).parse(req.body);
 
-    const result = scoreMcq(body.answers);
+    const lookup = await mcqLookupSource(body.answers.map((a) => a.questionId));
+    const result = scoreMcq(body.answers, lookup);
     if (result.totalQuestions === 0) {
       return reply.code(400).send({
         success: false,

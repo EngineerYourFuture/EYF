@@ -3,6 +3,7 @@ import { z } from "zod";
 import { randomBytes } from "node:crypto";
 import { prisma, CertificateType } from "@eyf/db";
 import { renderCertificatePdf } from "../services/pdf.js";
+import { requirePermission } from "../middleware/permissions.js";
 
 export async function certificateRoutes(app: FastifyInstance) {
   app.get("/me", { preHandler: app.requireAuth }, async (req) => {
@@ -52,7 +53,7 @@ export async function certificateRoutes(app: FastifyInstance) {
 
   // Issue a certificate. Admin-only — clients earn certs via system events,
   // not by self-minting (the body takes an arbitrary userId).
-  app.post("/issue", { preHandler: [app.requireAuth, app.requireRole(["ADMIN"])] }, async (req) => {
+  app.post("/issue", { preHandler: [app.requireAuth, requirePermission("issue:certificates")] }, async (req) => {
     const body = z.object({
       userId: z.string(),
       type: z.nativeEnum(CertificateType),
