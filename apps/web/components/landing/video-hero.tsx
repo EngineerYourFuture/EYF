@@ -9,6 +9,7 @@ import Link from "next/link";
 import { motion, useScroll, useTransform, useReducedMotion } from "framer-motion";
 import { Button } from "@eyf/ui";
 import { EyfAnimatedLogo } from "@/components/brand/eyf-animated-logo";
+import { ScoreRing } from "@/components/score-ring";
 
 const HERO_VIDEO: string | null = null; // → "/hero.mp4" when the cinematic scroll video is ready
 
@@ -75,10 +76,47 @@ export function VideoHero() {
             </Link>
             <div className="mt-4 text-text-4 text-xs font-mono">14,847 students preparing right now</div>
           </motion.div>
+
+          {/* The product's soul, live in the hero: one number for your entire
+              prep. The ring draws itself — this is the thing students join for. */}
+          <motion.div
+            initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.9, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+            className="mt-12 w-full max-w-sm hidden [@media(min-height:800px)]:block"
+          >
+            <div className="rounded-2xl border border-border bg-surface/80 backdrop-blur px-6 py-6 shadow-card-lg text-left">
+              <div className="flex items-center justify-between">
+                <span className="font-mono text-[10px] uppercase tracking-widest text-text-3">Your EYF Score</span>
+                <span className="font-mono text-[10px] uppercase tracking-widest text-text-4">Live</span>
+              </div>
+              <div className="mt-4 flex items-center gap-6">
+                <ScoreRing score={73} size={104} stroke={8} label="/100" duration={2.2} />
+                <div className="min-w-0 flex-1 space-y-2.5">
+                  {[["DSA", 62], ["Interviews", 81], ["Consistency", 90]].map(([l, v]) => (
+                    <div key={l as string}>
+                      <div className="flex justify-between text-[11px] mb-1">
+                        <span className="text-text-3">{l}</span>
+                        <span className="text-text-4 font-mono">{v}</span>
+                      </div>
+                      <div className="h-1 rounded-full bg-surface-3 overflow-hidden">
+                        <motion.div className="h-full rounded-full bg-accent"
+                          initial={{ width: 0 }} animate={{ width: `${v}%` }}
+                          transition={{ delay: 2.2, duration: 1.1, ease: [0.16, 1, 0.3, 1] }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="mt-4 pt-4 border-t border-border text-[11px] text-text-3 font-mono flex justify-between">
+                <span>TCS Ready 92%</span>
+                <span>Amazon Ready 41%</span>
+              </div>
+            </div>
+          </motion.div>
         </motion.div>
 
-        {/* Scroll cue */}
-        <motion.div style={{ opacity: fade }} className="absolute bottom-10 left-1/2 -translate-x-1/2">
+        {/* Scroll cue — hidden when the score card occupies the lower fold */}
+        <motion.div style={{ opacity: fade }} className="absolute bottom-10 left-1/2 -translate-x-1/2 [@media(min-height:800px)]:hidden">
           <motion.div className="w-px h-10 bg-text-3 mx-auto"
             animate={reduce ? {} : { opacity: [0.2, 1, 0.2], scaleY: [0.7, 1, 0.7] }}
             transition={{ duration: 2, repeat: Infinity }} />
