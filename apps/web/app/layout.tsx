@@ -1,20 +1,42 @@
 import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import { AnalyticsProvider } from "@/components/analytics-provider";
+import { SwrProvider } from "@/components/swr-provider";
 import { themeScript } from "@/components/theme";
 import { Toaster } from "sonner";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "EYF — Engineer Your Future",
+  title: { default: "EYF — Engineer Your Future", template: "%s · EYF" },
   description:
     "India's end-to-end placement operating system. DSA, core CS, mock interviews, mentors, projects, jobs — one platform from Day 1 of college to your first offer letter.",
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"),
+  manifest: "/manifest.webmanifest",
+  icons: {
+    icon: [{ url: "/icon-192.png", sizes: "192x192" }, { url: "/icon-512.png", sizes: "512x512" }],
+    apple: "/apple-touch-icon.png",
+  },
+  appleWebApp: { capable: true, statusBarStyle: "black-translucent", title: "EYF" },
   openGraph: {
     title: "EYF — Engineer Your Future",
-    description: "The placement OS for the 95% of engineering students everyone else ignores.",
+    description: "One score for your entire placement prep — DSA, interviews, aptitude, resume, projects. India's placement OS.",
     type: "website",
+    siteName: "EYF",
+    images: [{ url: "/og.png", width: 1200, height: 630, alt: "EYF — one score for your entire placement prep" }],
   },
+  twitter: {
+    card: "summary_large_image",
+    title: "EYF — Engineer Your Future",
+    description: "One score for your entire placement prep. India's placement OS.",
+    images: ["/og.png"],
+  },
+};
+
+export const viewport = {
+  themeColor: "#0A0A0A",
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover" as const,
 };
 
 const PK = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ?? "";
@@ -32,7 +54,7 @@ const clerkAppearance = {
 
 function Shell({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="light" suppressHydrationWarning>
+    <html lang="en" className="dark" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -43,7 +65,7 @@ function Shell({ children }: { children: React.ReactNode }) {
         />
       </head>
       <body>
-        <AnalyticsProvider>{children}</AnalyticsProvider>
+        <SwrProvider><AnalyticsProvider>{children}</AnalyticsProvider></SwrProvider>
         <Toaster position="bottom-right" richColors closeButton
           toastOptions={{
             style: {
