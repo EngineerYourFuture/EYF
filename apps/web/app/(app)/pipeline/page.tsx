@@ -7,6 +7,8 @@ import { PipelineFunnel } from "@/components/pipeline-funnel";
 import { PageMotion } from "@/components/page-motion";
 import { Reveal } from "@/components/motion";
 import { Icons, type IconName } from "@/components/icons";
+import { ComebackPlanModal } from "@/components/comeback-plan";
+import { rememberRejectionStage, type RejectionStage } from "@/lib/comeback";
 
 type App = {
   id: string;
@@ -35,6 +37,7 @@ export default function PipelinePage() {
   const { data: apps, isLoading, mutate } = useApi<App[]>("/jobs/me/applications");
   const action = useApiAction();
   const [busy, setBusy] = useState<string | null>(null);
+  const [comebackFor, setComebackFor] = useState<App | null>(null);
 
   async function setStatus(id: string, status: Status) {
     setBusy(id);
@@ -44,6 +47,15 @@ export default function PipelinePage() {
     } finally {
       setBusy(null);
     }
+  }
+
+  // Rejection is the moment students quit — capture the stage it died at and
+  // open the comeback plan immediately instead of letting the card just vanish.
+  async function reject(a: App) {
+    const stage: RejectionStage = a.status === "OA" ? "OA" : a.status === "INTERVIEW" ? "INTERVIEW" : "APPLIED";
+    rememberRejectionStage(a.id, stage);
+    await setStatus(a.id, "REJECTED");
+    setComebackFor({ ...a, status: "REJECTED" });
   }
 
   const active = (apps ?? []).filter((a) => a.status !== "REJECTED" && a.status !== "WITHDRAWN");
@@ -102,7 +114,7 @@ export default function PipelinePage() {
                       app={a}
                       busy={busy === a.id}
                       onAdvance={NEXT[a.status] ? () => setStatus(a.id, NEXT[a.status]!) : undefined}
-                      onReject={() => setStatus(a.id, "REJECTED")}
+                      onReject={() => void reject(a)}
                     />
                   ))}
                 </div>
@@ -120,18 +132,32 @@ export default function PipelinePage() {
           </summary>
           <div className="mt-3 grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {closed.map((a) => (
-              <Card key={a.id} className="opacity-70">
+              <Card key={a.id} className="opacity-80">
                 <div className="text-sm font-medium">{a.job.title}</div>
                 <div className="text-text-4 text-xs">{a.job.company}</div>
-                <div className="mt-2 flex items-center gap-2">
+                <div className="mt-2 flex items-center gap-2 flex-wrap">
                   <Badge tone={a.status === "OFFER" ? "easy" : "default"}>{a.status}</Badge>
-                  <button onClick={() => setStatus(a.id, "SAVED")} className="text-accent text-xs hover:underline">Reopen</button>
+                  {a.status === "REJECTED" && (
+                    <button onClick={() => setComebackFor(a)} className="text-easy text-xs font-medium hover:underline">
+                      Comeback plan →
+                    </button>
+                  )}
+                  <button onClick={() => setStatus(a.id, "SAVED")} className="text-text-4 text-xs hover:underline">Reopen</button>
                 </div>
               </Card>
             ))}
           </div>
         </details>
         </Reveal>
+      )}
+
+      {comebackFor && (
+        <ComebackPlanModal
+          appId={comebackFor.id}
+          companyName={comebackFor.job.company}
+          jobTitle={comebackFor.job.title}
+          onClose={() => setComebackFor(null)}
+        />
       )}
     </PageMotion>
   );
