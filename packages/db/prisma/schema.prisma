@@ -248,6 +248,7 @@ model User {
   communicationDrills CommunicationDrill[]
   projectPreps    ProjectPrep[]
   scoreShares     ScoreShare[]
+  orgMemberships  OrgMember[]
 
   @@index([role])
   @@index([college])
@@ -1343,16 +1344,129 @@ enum CourseAudience {
   BOTH
 }
 
+// ─── Enterprise platform (PRD specs/EYF_Enterprise_Learning_Platform_PRD.md §13) ───
+
+enum OrgPlan {
+  TRIAL
+  TEAM
+  BUSINESS
+  ENTERPRISE
+  EDUCATION
+}
+
+enum OrgRole {
+  OWNER
+  ADMIN
+  HR
+  RECRUITER
+  LND
+  ENG_MANAGER
+  INSTRUCTOR
+  MENTOR
+  REVIEWER
+  MEMBER
+  INTERN
+}
+
+enum OrgMemberStatus {
+  ACTIVE
+  SUSPENDED
+  OFFBOARDED
+}
+
 model Organization {
-  id          String           @id @default(cuid())
-  name        String
-  slug        String           @unique
-  accessCode  String           @unique // employer-portal login before Clerk orgs
-  logoUrl     String?
-  createdAt   DateTime         @default(now())
-  courses     Course[]
-  internships InternshipSlot[]
+  id            String           @id @default(cuid())
+  name          String
+  slug          String           @unique
+  accessCode    String           @unique // legacy employer-portal login (pre-membership)
+  logoUrl       String?
+  brandColor    String?
+  plan          OrgPlan          @default(TRIAL)
+  seatsLicensed Int              @default(10)
+  settings      Json?
+  createdAt     DateTime         @default(now())
+  courses       Course[]
+  internships   InternshipSlot[]
+  members       OrgMember[]
+  departments   Department[]
+  teams         Team[]
+  invites       OrgInvite[]
   @@map("organizations")
+}
+
+// Membership = the identity spine of the enterprise platform. A user can be
+// a member of many orgs with different role sets (PRD §9).
+model OrgMember {
+  id           String          @id @default(cuid())
+  orgId        String
+  org          Organization    @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  roles        OrgRole[]
+  departmentId String?
+  department   Department?     @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  title        String?
+  status       OrgMemberStatus @default(ACTIVE)
+  joinedAt     DateTime        @default(now())
+  teams        TeamMember[]
+
+  @@unique([orgId, userId])
+  @@index([orgId, departmentId])
+  @@map("org_members")
+}
+
+model Department {
+  id       String       @id @default(cuid())
+  orgId    String
+  org      Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  name     String
+  parentId String?
+  parent   Department?  @relation("DeptTree", fields: [parentId], references: [id], onDelete: SetNull)
+  children Department[] @relation("DeptTree")
+  members  OrgMember[]
+  teams    Team[]
+
+  @@index([orgId])
+  @@map("org_departments")
+}
+
+model Team {
+  id           String       @id @default(cuid())
+  orgId        String
+  org          Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  departmentId String?
+  department   Department?  @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  name         String
+  members      TeamMember[]
+
+  @@index([orgId])
+  @@map("org_teams")
+}
+
+model TeamMember {
+  teamId   String
+  team     Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  memberId String
+  member   OrgMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@id([teamId, memberId])
+  @@map("org_team_members")
+}
+
+model OrgInvite {
+  id          String       @id @default(cuid())
+  orgId       String
+  org         Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  email       String
+  roles       OrgRole[]
+  token       String       @unique
+  invitedById String
+  expiresAt   DateTime
+  acceptedAt  DateTime?
+  createdAt   DateTime     @default(now())
+
+  @@index([orgId])
+  @@map("org_invites")
 }
 
 model Course {

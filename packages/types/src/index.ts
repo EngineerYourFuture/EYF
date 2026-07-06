@@ -154,3 +154,15 @@ export { CAPABILITIES, capabilitiesFor, hasCapability, isStaffRole } from "./per
 export type { Capability, StaffRole } from "./permissions";
 
 export { buildIceServers, type IceServer } from "./webrtc";
+
+// Org-scoped RBAC+ABAC (enterprise platform — PRD §9). Named re-exports per
+// the tsx-watch linker note above.
+export {
+  ORG_CAPABILITIES,
+  orgGrantsFor,
+  canInOrg,
+  hasOrgCapability,
+  isOrgStaff,
+  canGrantRoles,
+} from "./org-permissions";
+export type { OrgCapability, OrgRoleName, OrgScope, OrgDecision } from "./org-permissions";
