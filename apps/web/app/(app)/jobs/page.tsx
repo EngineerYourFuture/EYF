@@ -102,8 +102,8 @@ export default function Page() {
 
 function JobCard({ j, saved, saving, onSave }: { j: Job; saved: boolean; saving: boolean; onSave: () => void }) {
   return (
-    <Link href={`/jobs/${j.slug}`}>
-      <Card interactive className="flex h-full flex-col">
+    <Link href={`/jobs/${j.slug}`} className="min-w-0">
+      <Card interactive className="flex h-full flex-col min-w-0">
         <div className="flex items-start gap-3">
           <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-accent/20 bg-accent-tint font-display font-bold text-accent">
             {j.company[0]}

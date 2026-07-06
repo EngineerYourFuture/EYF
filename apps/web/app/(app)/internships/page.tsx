@@ -97,8 +97,8 @@ export default function Page() {
 function InternCard({ i, saved, saving, onSave }: { i: Internship; saved: boolean; saving: boolean; onSave: () => void }) {
   const ppo = i.ppoConversion != null ? Math.round(i.ppoConversion * 100) : null;
   return (
-    <Link href={`/internships/${i.slug}`}>
-      <Card interactive className="flex h-full flex-col">
+    <Link href={`/internships/${i.slug}`} className="min-w-0">
+      <Card interactive className="flex h-full flex-col min-w-0">
         <div className="flex items-start gap-3">
           <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-accent/20 bg-accent-tint font-display font-bold text-accent">
             {i.company[0]}

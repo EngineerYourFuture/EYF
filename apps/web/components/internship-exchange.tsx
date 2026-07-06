@@ -34,7 +34,7 @@ export function InternshipExchange() {
 
       <div className="mt-5 grid sm:grid-cols-2 gap-3">
         {data.slots.map((s) => (
-          <div key={s.id} className="rounded-xl border border-border bg-surface px-4 py-3">
+          <div key={s.id} className="min-w-0 rounded-xl border border-border bg-surface px-4 py-3">
             <div className="flex items-center justify-between gap-2">
               <div className="min-w-0">
                 <div className="font-medium text-sm truncate">{s.role}</div>

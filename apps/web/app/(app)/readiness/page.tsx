@@ -148,8 +148,8 @@ function CompanyBoard({ r }: { r: Readiness }) {
       <div className="grid sm:grid-cols-2 gap-3">
         {rows.map((c) => (
           <Link key={c.slug} href={`/companies/${c.slug}`}
-            className="block rounded-xl border border-border bg-surface px-4 py-3 shadow-card hover:border-edge transition-colors">
-            <div className="flex items-center justify-between gap-3">
+            className="block min-w-0 rounded-xl border border-border bg-surface px-4 py-3 shadow-card hover:border-edge transition-colors">
+            <div className="flex items-center justify-between gap-3 flex-wrap">
               <div className="min-w-0">
                 <span className="font-medium">{companyLabel(c.slug)}</span>
                 <span className="text-text-4 text-xs ml-2">{TIER_PROFILES[c.tier].label}</span>

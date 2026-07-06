@@ -154,7 +154,7 @@ function PlanView({ roadmap, onRegenerate }: { roadmap: Roadmap; onRegenerate: (
   return (
     <div className="mt-8 grid lg:grid-cols-[1fr_320px] gap-6 items-start">
       {/* Left: the week-by-week timeline */}
-      <Reveal className="space-y-3 order-2 lg:order-1">
+      <Reveal className="space-y-3 order-2 lg:order-1 min-w-0">
         {plan.map((wk) => (
           <WeekCard key={wk.week} wk={wk} current={wk.week === currentWeek} />
         ))}
