@@ -1483,28 +1483,69 @@ model OrgInvite {
   @@map("org_invites")
 }
 
+// Course lifecycle (PRD §16): DRAFT → IN_REVIEW → PUBLISHED → ARCHIVED.
+// `published` stays in sync (status == PUBLISHED) for the legacy org portal.
+enum CourseStatus {
+  DRAFT
+  IN_REVIEW
+  PUBLISHED
+  ARCHIVED
+}
+
+enum LessonType {
+  RICH_TEXT
+  VIDEO
+  JUDGED_CODE
+  QUIZ_INLINE
+  EMBED
+  FILE
+}
+
 model Course {
-  id          String         @id @default(cuid())
-  orgId       String
-  org         Organization   @relation(fields: [orgId], references: [id], onDelete: Cascade)
-  title       String
-  description String         @default("")
-  audience    CourseAudience @default(BOTH)
-  published   Boolean        @default(false)
-  createdAt   DateTime       @default(now())
-  lessons     Lesson[]
-  enrollments Enrollment[]
-  @@index([orgId])
+  id             String          @id @default(cuid())
+  orgId          String
+  org            Organization    @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  title          String
+  description    String          @default("")
+  audience       CourseAudience  @default(BOTH)
+  status         CourseStatus    @default(DRAFT)
+  published      Boolean         @default(false) // legacy mirror of status
+  version        Int             @default(1)
+  estMinutes     Int             @default(0)
+  authorMemberId String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @default(now()) @updatedAt
+  lessons        Lesson[]
+  enrollments    Enrollment[]
+  versions       CourseVersion[]
+  @@index([orgId, status])
   @@map("lms_courses")
 }
 
+// Immutable snapshot taken at every publish — running cohorts pin a version;
+// rollback = republish an old snapshot (PRD §16).
+model CourseVersion {
+  id            String   @id @default(cuid())
+  courseId      String
+  course        Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  version       Int
+  snapshot      Json // { title, description, lessons: [{title,type,blocks,estMinutes,orderIndex}] }
+  publishedById String
+  publishedAt   DateTime @default(now())
+  @@unique([courseId, version])
+  @@map("lms_course_versions")
+}
+
 model Lesson {
-  id         String   @id @default(cuid())
+  id         String     @id @default(cuid())
   courseId   String
-  course     Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  course     Course     @relation(fields: [courseId], references: [id], onDelete: Cascade)
   title      String
-  content    String   @default("")
-  orderIndex Int      @default(0)
+  content    String     @default("") // legacy plain text (pre-blocks)
+  type       LessonType @default(RICH_TEXT)
+  blocks     Json? // ordered block array (PRD §16 block model)
+  estMinutes Int        @default(5)
+  orderIndex Int        @default(0)
   progress   LessonProgress[]
   @@index([courseId])
   @@map("lms_lessons")

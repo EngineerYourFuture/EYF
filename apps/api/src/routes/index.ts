@@ -45,6 +45,7 @@ import { adminContentBanksRoutes } from "./admin-content-banks.js";
 import { askRoutes } from "./ask.js";
 import { adminContentKnowledgeRoutes } from "./admin-content-knowledge.js";
 import { orgsRoutes } from "./orgs.js";
+import { orgLearnRoutes } from "./org-learn.js";
 import { guidanceRoutes } from "./guidance.js";
 import { adminGateRoutes } from "./admin-gate.js";
 import { adminContentRoutes } from "./admin-content.js";
@@ -95,6 +96,7 @@ export async function registerRoutes(app: FastifyInstance) {
   await app.register(adminContentKnowledgeRoutes, { prefix: "/admin/content" });
   await app.register(askRoutes,          { prefix: "/ask" });
   await app.register(orgsRoutes,         { prefix: "/orgs" });
+  await app.register(orgLearnRoutes,     { prefix: "/orgs" });
   await app.register(adminUsersRoutes,   { prefix: "/admin/users" });
   await app.register(adminPaymentsRoutes, { prefix: "/admin/payments" });
   await app.register(adminAuditRoutes,   { prefix: "/admin/audit" });
