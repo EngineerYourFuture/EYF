@@ -145,7 +145,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         )}
       </AnimatePresence>
 
-      <main className="min-h-screen min-w-0 overflow-x-hidden lg:col-start-2">
+      <main className="min-h-screen min-w-0 overflow-x-hidden lg:col-start-2 pb-20 lg:pb-0">
         <DesktopBackBar />
         {/* Route transition — content fades + rises in on every navigation. */}
         <motion.div
@@ -157,6 +157,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           {children}
         </motion.div>
       </main>
+
+      {/* Mobile bottom tab bar — the core daily loop one thumb-tap away.
+          The 5th tab opens the full drawer for everything else. */}
+      <MobileTabBar onMenu={() => setOpen(true)} />
 
       <CommandPalette />
       {/* Content protection: forensic watermark + client deterrents. */}
@@ -178,5 +182,51 @@ function DesktopBackBar() {
     <div className="hidden lg:block px-6 lg:px-10 pt-6 -mb-2">
       <BackButton />
     </div>
+  );
+}
+
+/**
+ * Mobile bottom tab bar — app-grade navigation for the daily loop. Fixed,
+ * glass, safe-area aware; the Menu tab opens the full drawer. Hidden on lg+
+ * where the sidebar owns navigation.
+ */
+function MobileTabBar({ onMenu }: { onMenu: () => void }) {
+  const pathname = usePathname();
+  const tabs = [
+    { href: "/today", label: "Today", icon: Icons.bolt },
+    { href: "/problems", label: "Solve", icon: Icons.code },
+    { href: "/readiness", label: "Score", icon: Icons.target },
+    { href: "/ask", label: "Ask", icon: Icons.sparkle },
+  ];
+  return (
+    <nav
+      className="lg:hidden fixed inset-x-0 bottom-0 z-40 border-t border-border glass"
+      style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+      aria-label="Primary"
+    >
+      <div className="grid grid-cols-5 h-16">
+        {tabs.map((t) => {
+          const active = pathname.startsWith(t.href);
+          const Icon = t.icon;
+          return (
+            <Link key={t.href} href={t.href}
+              className={`flex flex-col items-center justify-center gap-1 text-[10px] font-mono uppercase tracking-wide transition-colors ${active ? "text-text-1" : "text-text-4 hover:text-text-2"}`}>
+              <span className={`flex h-7 w-12 items-center justify-center rounded-full transition-colors ${active ? "bg-surface-3" : ""}`}>
+                <Icon width={19} height={19} />
+              </span>
+              {t.label}
+            </Link>
+          );
+        })}
+        <button onClick={onMenu}
+          className="flex flex-col items-center justify-center gap-1 text-[10px] font-mono uppercase tracking-wide text-text-4 hover:text-text-2 transition-colors"
+          aria-label="Open full menu">
+          <span className="flex h-7 w-12 items-center justify-center rounded-full">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
+          </span>
+          Menu
+        </button>
+      </div>
+    </nav>
   );
 }
