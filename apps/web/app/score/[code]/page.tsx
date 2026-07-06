@@ -2,6 +2,7 @@ import { cache } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { companyReadiness, readinessBand, tierOf, SPOTLIGHT_COMPANIES } from "@/lib/company-readiness";
+import { ScoreRing } from "@/components/score-ring";
 import { companyLabel } from "@/lib/company";
 import type { Pillar } from "@/lib/readiness";
 
@@ -81,7 +82,7 @@ export default async function ScorePage({ params }: { params: { code: string } }
         </div>
 
         <div className="mt-8 grid sm:grid-cols-[auto_1fr] gap-8 items-center">
-          <ScoreRing score={s.overall} />
+          <PageRing score={s.overall} />
           <div>
             <h1 className="font-display text-2xl font-bold">{s.name}</h1>
             {who && <p className="text-text-3 text-sm mt-1">{who}</p>}
@@ -151,19 +152,10 @@ function Shell({ children, wide = false }: { children: React.ReactNode; wide?: b
   );
 }
 
-function ScoreRing({ score }: { score: number }) {
-  const radius = 62, c = 2 * Math.PI * radius;
+function PageRing({ score }: { score: number }) {
   return (
-    <div className="relative h-40 w-40 mx-auto">
-      <svg viewBox="0 0 150 150" className="h-40 w-40 -rotate-90">
-        <circle cx="75" cy="75" r={radius} className="fill-none stroke-surface-3" strokeWidth="10" />
-        <circle cx="75" cy="75" r={radius} className="fill-none stroke-accent" strokeWidth="10" strokeLinecap="round"
-          strokeDasharray={c} strokeDashoffset={c - (c * score) / 100} />
-      </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="font-display text-5xl font-bold leading-none">{score}</span>
-        <span className="text-text-3 text-xs font-mono mt-1">/ 100</span>
-      </div>
+    <div className="mx-auto w-40">
+      <ScoreRing score={score} size={160} stroke={10} label="/ 100" />
     </div>
   );
 }

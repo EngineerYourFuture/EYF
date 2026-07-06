@@ -7,6 +7,8 @@ import { PageMotion } from "@/components/page-motion";
 import { CompanyFitRadar } from "@/components/company-fit-radar";
 import { Reveal } from "@/components/motion";
 import { Icons, type IconName } from "@/components/icons";
+import { ScoreRing } from "@/components/score-ring";
+import { AnimatedNumber } from "@/components/animated-number";
 import { useGuidance, type Guidance } from "@/lib/use-guidance";
 import { PERSONAS, type PersonaId } from "@/lib/persona";
 
@@ -106,12 +108,12 @@ export default function DashboardPage() {
         {/* Metric tiles */}
         <div className="mt-5 grid grid-cols-2 lg:grid-cols-4 gap-4">
           <Metric icon="flame" tone="accent" label="Current streak"
-            value={gam?.streak ?? 0} unit="d" sub={gam ? `Best ${gam.longestStreak}d` : undefined} />
+            value={<AnimatedNumber value={gam?.streak ?? 0} />} unit="d" sub={gam ? `Best ${gam.longestStreak}d` : undefined} />
           <Metric icon="bolt" tone="medium" label="Earned today"
-            value={today?.xpToday ?? 0} unit="XP" sub="Today" />
-          <Metric icon="code" label="Total solved" value={gam?.totalSolved ?? 0} sub="All time" />
+            value={<AnimatedNumber value={today?.xpToday ?? 0} />} unit="XP" sub="Today" />
+          <Metric icon="code" label="Total solved" value={<AnimatedNumber value={gam?.totalSolved ?? 0} />} sub="All time" />
           <Metric icon="trophy" tone="info" label="Badges"
-            value={gam?.badges.length ?? 0} sub={gam?.badges.length ? "Earned" : "None yet"} />
+            value={<AnimatedNumber value={gam?.badges.length ?? 0} />} sub={gam?.badges.length ? "Earned" : "None yet"} />
         </div>
 
         {/* Quick actions */}
@@ -210,21 +212,7 @@ function ReadinessStrip({ guidance: g }: { guidance: Guidance | null }) {
 }
 
 function MiniRing({ score }: { score: number }) {
-  const r = 28, c = 2 * Math.PI * r;
-  return (
-    <div className="relative h-[72px] w-[72px] shrink-0">
-      <svg viewBox="0 0 72 72" className="h-[72px] w-[72px] -rotate-90">
-        <circle cx="36" cy="36" r={r} className="fill-none stroke-surface-3" strokeWidth="7" />
-        <circle cx="36" cy="36" r={r} className="fill-none stroke-accent" strokeWidth="7" strokeLinecap="round"
-          strokeDasharray={c} strokeDashoffset={c - (c * score) / 100}
-          style={{ transition: "stroke-dashoffset 1s cubic-bezier(0.16,1,0.3,1)" }} />
-      </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="font-display text-xl font-bold leading-none">{score}</span>
-        <span className="text-text-4 text-[9px] font-mono">/100</span>
-      </div>
-    </div>
-  );
+  return <div className="shrink-0"><ScoreRing score={score} size={72} stroke={7} label="/100" duration={1} /></div>;
 }
 
 function YourJourney({ persona }: { persona: PersonaId }) {
@@ -339,7 +327,7 @@ function ProgressRing({ pct, label }: { pct: number; label: string }) {
 }
 
 function Metric({ icon, label, value, unit, sub, tone = "default" }: {
-  icon: IconName; label: string; value: number; unit?: string; sub?: string;
+  icon: IconName; label: string; value: React.ReactNode; unit?: string; sub?: string;
   tone?: "default" | "accent" | "medium" | "info";
 }) {
   const Icon = Icons[icon];
@@ -351,7 +339,7 @@ function Metric({ icon, label, value, unit, sub, tone = "default" }: {
         <span className={toneCls}><Icon width={16} height={16} /></span>
       </div>
       <div className="mt-2 font-display text-3xl font-bold leading-none">
-        {value.toLocaleString()}{unit && <span className="text-text-3 text-lg font-semibold"> {unit}</span>}
+        {value}{unit && <span className="text-text-3 text-lg font-semibold"> {unit}</span>}
       </div>
       {sub && <div className="text-text-4 text-xs mt-1.5">{sub}</div>}
     </div>

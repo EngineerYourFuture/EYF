@@ -7,6 +7,7 @@ import { FunnelSim } from "@/components/funnel-sim";
 import { Icons } from "@/components/icons";
 import { useGuidance } from "@/lib/use-guidance";
 import { ScoreShare } from "@/components/score-share";
+import { ScoreRing } from "@/components/score-ring";
 import { companyReadiness, readinessBand, tierOf, biggestGap, offerProbability, TIER_PROFILES, SPOTLIGHT_COMPANIES } from "@/lib/company-readiness";
 import { companyLabel } from "@/lib/company";
 import type { Readiness } from "@/lib/readiness";
@@ -179,19 +180,7 @@ function CompanyBoard({ r }: { r: Readiness }) {
 }
 
 function ReadinessRing({ score }: { score: number }) {
-  const radius = 76, c = 2 * Math.PI * radius;
   return (
-    <div className="relative h-48 w-48">
-      <svg viewBox="0 0 180 180" className="h-48 w-48 -rotate-90">
-        <circle cx="90" cy="90" r={radius} className="fill-none stroke-surface-3" strokeWidth="12" />
-        <circle cx="90" cy="90" r={radius} className="fill-none stroke-accent" strokeWidth="12" strokeLinecap="round"
-          strokeDasharray={c} strokeDashoffset={c - (c * score) / 100}
-          style={{ transition: "stroke-dashoffset 1s cubic-bezier(0.16,1,0.3,1)" }} />
-      </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="font-display text-6xl font-bold leading-none">{score}</span>
-        <span className="text-text-3 text-xs font-mono mt-1">/ 100 ready</span>
-      </div>
-    </div>
+    <ScoreRing score={score} size={192} stroke={12} label="/ 100 ready" />
   );
 }
