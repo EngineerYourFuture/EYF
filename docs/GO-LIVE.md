@@ -60,6 +60,7 @@ Plus **Judge0 itself** (`docker compose --profile judge up`) or a hosted Judge0.
 ```bash
 pnpm db:generate                        # generate Prisma client (gitignored)
 cd packages/db && npx prisma db push    # this repo uses db push, not migrations
+pnpm --filter @eyf/db db:rls            # apply tenant-isolation RLS policies (idempotent — rerun after every db push)
 pnpm db:seed                            # seed problems, tracks, jobs, seed users
 ```
 

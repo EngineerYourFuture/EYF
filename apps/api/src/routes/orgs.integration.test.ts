@@ -64,6 +64,7 @@ describe.skipIf(!hasDb)("org tenant isolation (real DB)", () => {
 
   afterAll(async () => {
     for (const orgId of [orgA, orgB].filter(Boolean)) {
+      await prisma.usageCounter.deleteMany({ where: { orgId } }).catch(() => {});
       await prisma.organization.delete({ where: { id: orgId } }).catch(() => {});
     }
     for (const u of [userA, userB].filter(Boolean)) {
@@ -148,5 +149,39 @@ describe.skipIf(!hasDb)("org tenant isolation (real DB)", () => {
     const inv = await inject(userA.token, "POST", `/v1/orgs/${orgA}/invites`, { email: `third-${stamp}@test.eyf` });
     expect(inv.statusCode).toBe(402);
     expect(inv.json().error.code).toBe("SEATS_EXHAUSTED");
+  });
+
+  it("RLS backstop: an UNFILTERED query inside org A's context cannot see org B", async () => {
+    // Simulates the bug class the backstop exists for — application code that
+    // forgot the orgId filter entirely. Requires apply-rls.ts policies.
+    const { withOrgContext } = await import("../lib/org-scoped.js");
+    const leaked = await withOrgContext(orgA, (tx) =>
+      tx.orgMember.findMany({ select: { orgId: true } }), // deliberately no where!
+    );
+    expect(leaked.length).toBeGreaterThan(0); // org A's own rows visible
+    expect(leaked.every((m) => m.orgId === orgA)).toBe(true); // org B invisible
+  });
+
+  it("RLS is a tripwire, not a wall: no-context queries still see everything (workers/admin)", async () => {
+    const all = await prisma.orgMember.findMany({
+      where: { orgId: { in: [orgA, orgB] } },
+      select: { orgId: true },
+    });
+    expect(new Set(all.map((m) => m.orgId)).size).toBe(2);
+  });
+
+  it("usage metering: invites bump the counter; /usage reports seats + counters", async () => {
+    const { currentPeriod } = await import("../lib/usage.js");
+    const counter = await prisma.usageCounter.findUnique({
+      where: { orgId_metric_period: { orgId: orgA, metric: "invites_sent", period: currentPeriod() } },
+    });
+    expect(counter?.value).toBeGreaterThanOrEqual(2); // two successful invites above
+    const res = await inject(userA.token, "GET", `/v1/orgs/${orgA}/usage`);
+    expect(res.statusCode).toBe(200);
+    expect(res.json().data.seats).toEqual({ used: 2, licensed: 2 });
+    expect(res.json().data.counters.invites_sent).toBeGreaterThanOrEqual(2);
+    // org:billing is OWNER-only — HR-role userB is refused:
+    const denied = await inject(userB.token, "GET", `/v1/orgs/${orgA}/usage`);
+    expect(denied.statusCode).toBe(403);
   });
 });

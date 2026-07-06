@@ -13,6 +13,8 @@ import { prisma, OrgRole, Prisma } from "@eyf/db";
 import { canGrantRoles } from "@eyf/types";
 import { requireOrgCapability } from "../middleware/org.js";
 import { recordAudit } from "../lib/audit.js";
+import { withOrgContext } from "../lib/org-scoped.js";
+import { bumpUsage, getUsage } from "../lib/usage.js";
 
 const ORG_ROLES = Object.values(OrgRole);
 const rolesInput = z.array(z.nativeEnum(OrgRole)).min(1).max(5);
@@ -68,6 +70,12 @@ export async function orgsRoutes(app: FastifyInstance) {
     return { success: true, data: org };
   });
 
+  // Usage + seats — plan/limits surface for billing (EPIC-04).
+  app.get("/:orgId/usage", { preHandler: [app.requireAuth, requireOrgCapability("org:billing")] }, async (req) => {
+    const q = z.object({ period: z.string().regex(/^\d{4}-\d{2}$/).optional() }).parse(req.query);
+    return { success: true, data: await getUsage(req.orgCtx!.orgId, q.period) };
+  });
+
   // ── Members ──────────────────────────────────────────────────────
   app.get("/:orgId/members", { preHandler: [app.requireAuth, requireOrgCapability("org:members")] }, async (req) => {
     const q = z.object({
@@ -77,21 +85,25 @@ export async function orgsRoutes(app: FastifyInstance) {
       limit: z.coerce.number().int().min(1).max(100).default(50),
     }).parse(req.query);
 
-    const members = await prisma.orgMember.findMany({
-      where: {
-        orgId: req.orgCtx!.orgId,
-        ...(q.departmentId ? { departmentId: q.departmentId } : {}),
-        ...(q.role ? { roles: { has: q.role } } : {}),
-        status: { not: "OFFBOARDED" },
-      },
-      select: {
-        id: true, roles: true, title: true, status: true, joinedAt: true, departmentId: true,
-        user: { select: { id: true, name: true, email: true } },
-      },
-      orderBy: { joinedAt: "asc" },
-      take: q.limit + 1,
-      ...(q.cursor ? { cursor: { id: q.cursor }, skip: 1 } : {}),
-    });
+    // Crown-jewel people read runs inside the RLS backstop: even a future
+    // regression that drops the orgId filter cannot leak another tenant.
+    const members = await withOrgContext(req.orgCtx!.orgId, (tx) =>
+      tx.orgMember.findMany({
+        where: {
+          orgId: req.orgCtx!.orgId,
+          ...(q.departmentId ? { departmentId: q.departmentId } : {}),
+          ...(q.role ? { roles: { has: q.role } } : {}),
+          status: { not: "OFFBOARDED" },
+        },
+        select: {
+          id: true, roles: true, title: true, status: true, joinedAt: true, departmentId: true,
+          user: { select: { id: true, name: true, email: true } },
+        },
+        orderBy: { joinedAt: "asc" },
+        take: q.limit + 1,
+        ...(q.cursor ? { cursor: { id: q.cursor }, skip: 1 } : {}),
+      }),
+    );
     const nextCursor = members.length > q.limit ? members.pop()!.id : null;
     return { success: true, data: { items: members, nextCursor } };
   });
@@ -161,6 +173,7 @@ export async function orgsRoutes(app: FastifyInstance) {
       },
       select: { id: true, email: true, roles: true, token: true, expiresAt: true },
     });
+    await bumpUsage(req.orgCtx!.orgId, "invites_sent");
     await recordAudit(req, { action: "create", entity: "org-invite", entityId: invite.id, summary: `Invited ${body.email} → ${body.roles.join(",")}` });
     return reply.code(201).send({ success: true, data: invite });
   });

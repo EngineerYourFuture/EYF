@@ -1453,6 +1453,20 @@ model TeamMember {
   @@map("org_team_members")
 }
 
+// Usage metering (PRD §23) — one row per org × metric × month. Incremented
+// via atomic upsert; billing and limit checks read the current period.
+model UsageCounter {
+  id     String @id @default(cuid())
+  orgId  String
+  metric String // exec_minutes | ai_credits | proctored_attempts | storage_mb | invites_sent
+  period String // "YYYY-MM"
+  value  Int    @default(0)
+
+  @@unique([orgId, metric, period])
+  @@index([orgId, period])
+  @@map("org_usage_counters")
+}
+
 model OrgInvite {
   id          String       @id @default(cuid())
   orgId       String
