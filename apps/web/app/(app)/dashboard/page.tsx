@@ -1,5 +1,7 @@
 "use client";
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import { Card, Badge, Button, Skeleton } from "@eyf/ui";
 import { useApi } from "@/lib/use-api";
 import { Heatmap } from "@/components/heatmap";
@@ -9,6 +11,7 @@ import { Reveal } from "@/components/motion";
 import { Icons, type IconName } from "@/components/icons";
 import { ScoreRing } from "@/components/score-ring";
 import { AnimatedNumber } from "@/components/animated-number";
+import { takeScoreDelta } from "@/lib/score-memory";
 import { useGuidance, type Guidance } from "@/lib/use-guidance";
 import { PERSONAS, type PersonaId } from "@/lib/persona";
 
@@ -176,6 +179,14 @@ export default function DashboardPage() {
 /* ---------- pieces ---------- */
 
 function ReadinessStrip({ guidance: g }: { guidance: Guidance | null }) {
+  // The score moment: remember what the student last saw, animate from there,
+  // and celebrate the delta. Hook order is safe — early return happens after.
+  const [moment, setMoment] = useState<{ from: number | null; delta: number } | null>(null);
+  const overall = g?.readiness.overall;
+  useEffect(() => {
+    if (overall != null && moment == null) setMoment(takeScoreDelta(overall));
+  }, [overall, moment]);
+
   if (!g) return <Skeleton className="mt-6 h-24 rounded-2xl" />;
   const r = g.readiness;
   const top = g.actions[0];
@@ -185,11 +196,26 @@ function ReadinessStrip({ guidance: g }: { guidance: Guidance | null }) {
   return (
     <div className="mt-6 flex items-center gap-5 rounded-2xl border border-border bg-surface px-5 py-4 shadow-card">
       <Link href="/today" className="flex min-w-0 flex-1 items-center gap-5 rounded-xl card-interactive">
-        <MiniRing score={r.overall} />
+        <div className="shrink-0">
+          <ScoreRing score={r.overall} size={72} stroke={7} label="/100" duration={1.2}
+            from={moment?.from ?? undefined} />
+        </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="font-display text-lg font-bold">Placement Readiness</span>
             <Badge tone={tone}>{r.band}</Badge>
+            {moment && moment.delta !== 0 && (
+              <motion.span
+                initial={{ opacity: 0, scale: 0.8, y: 4 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{ delay: 1.1, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                className={`font-mono text-[11px] px-1.5 py-0.5 rounded border ${
+                  moment.delta > 0 ? "text-easy border-easy/40 bg-easy/10" : "text-hard border-hard/40 bg-hard/10"
+                }`}
+              >
+                {moment.delta > 0 ? `▲ +${moment.delta}` : `▼ ${moment.delta}`} since your last visit
+              </motion.span>
+            )}
           </div>
           {/* The active coaching line — personalised guidance on the landing screen. */}
           <p className="text-text-3 text-sm mt-1 line-clamp-2">
@@ -211,9 +237,6 @@ function ReadinessStrip({ guidance: g }: { guidance: Guidance | null }) {
   );
 }
 
-function MiniRing({ score }: { score: number }) {
-  return <div className="shrink-0"><ScoreRing score={score} size={72} stroke={7} label="/100" duration={1} /></div>;
-}
 
 function YourJourney({ persona }: { persona: PersonaId }) {
   const p = PERSONAS[persona];

@@ -16,14 +16,18 @@ type Props = {
   stroke?: number;        // px
   label?: string;         // under the number, e.g. "/ 100 ready"
   duration?: number;      // seconds
+  /** Animate from this value instead of 0 — the "score moment": returning
+   *  students watch the ring travel from their LAST score to today's. */
+  from?: number;
   className?: string;
 };
 
-export function ScoreRing({ score, size = 192, stroke = 12, label = "/ 100 ready", duration = 1.4, className }: Props) {
+export function ScoreRing({ score, size = 192, stroke = 12, label = "/ 100 ready", duration = 1.4, from, className }: Props) {
   const reduce = useReducedMotion();
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, amount: 0.4 });
-  const [shown, setShown] = useState(reduce ? score : 0);
+  const start = Math.max(0, Math.min(100, from ?? 0));
+  const [shown, setShown] = useState(reduce ? score : start);
 
   const radius = (size - stroke) / 2 - 2;
   const c = 2 * Math.PI * radius;
@@ -32,13 +36,13 @@ export function ScoreRing({ score, size = 192, stroke = 12, label = "/ 100 ready
   useEffect(() => {
     if (reduce) { setShown(target); return; }
     if (!inView) return;
-    const controls = animate(0, target, {
+    const controls = animate(start, target, {
       duration,
       ease: [0.16, 1, 0.3, 1],
       onUpdate: (v) => setShown(Math.round(v)),
     });
     return () => controls.stop();
-  }, [inView, target, duration, reduce]);
+  }, [inView, target, duration, reduce, start]);
 
   // Quarter ticks — faint wayfinding marks, not decoration.
   const ticks = [0, 90, 180, 270];
@@ -66,7 +70,7 @@ export function ScoreRing({ score, size = 192, stroke = 12, label = "/ 100 ready
           strokeWidth={stroke}
           strokeLinecap="round"
           strokeDasharray={c}
-          initial={{ strokeDashoffset: reduce ? c - (c * target) / 100 : c }}
+          initial={{ strokeDashoffset: reduce ? c - (c * target) / 100 : c - (c * start) / 100 }}
           animate={inView || reduce ? { strokeDashoffset: c - (c * target) / 100 } : undefined}
           transition={{ duration: reduce ? 0 : duration, ease: [0.16, 1, 0.3, 1] }}
         />
