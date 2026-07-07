@@ -166,3 +166,7 @@ export {
   canGrantRoles,
 } from "./org-permissions";
 export type { OrgCapability, OrgRoleName, OrgScope, OrgDecision } from "./org-permissions";
+
+// Skill Ledger (enterprise evidence layer — PRD §15.13). Named re-exports.
+export { computeSkillLevel, barFit, EVIDENCE_WEIGHT } from "./skill-ledger";
+export type { Evidence, SkillLevel, RoleBarReq, BarGap } from "./skill-ledger";

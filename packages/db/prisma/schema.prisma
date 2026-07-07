@@ -1393,6 +1393,7 @@ model Organization {
   invites       OrgInvite[]
   learningPaths LearningPath[]
   cohorts       Cohort[]
+  roleBars      RoleBar[]
   @@map("organizations")
 }
 
@@ -1454,6 +1455,88 @@ model TeamMember {
 
   @@id([teamId, memberId])
   @@map("org_team_members")
+}
+
+// ─── Skill Ledger (PRD §15.13 — the evidence layer / moat) ─────────
+// Global skill taxonomy; per-person append-only evidence from every source;
+// a materialized decay-weighted snapshot; role bars to measure against.
+enum EvidenceSource {
+  LESSON
+  ASSESSMENT
+  JUDGED_CODE
+  PROJECT_REVIEW
+  MOCK
+  CERT
+  MENTOR_RATING
+  IMPORT
+}
+
+model Skill {
+  id       String   @id @default(cuid())
+  slug     String   @unique
+  name     String
+  category String?
+  parentId String?
+  parent   Skill?   @relation("SkillTree", fields: [parentId], references: [id], onDelete: SetNull)
+  children Skill[]  @relation("SkillTree")
+  lessons  Lesson[]
+  @@map("skills")
+}
+
+// One immutable observation that a user demonstrated a skill at some level.
+// Never updated — the ledger is the sum of history, decayed by recency.
+model SkillEvidence {
+  id              String         @id @default(cuid())
+  userId          String
+  orgId           String? // null = platform-wide (B2C activity); set = earned inside an org
+  skillId         String
+  level           Int // 0..100 demonstrated on this occasion
+  weight          Float          @default(1) // source trust (lesson < assessment < judged code)
+  sourceType      EvidenceSource
+  sourceId        String?
+  decayHalfLifeDays Int          @default(180)
+  createdAt       DateTime       @default(now())
+  @@index([userId, skillId])
+  @@index([orgId, skillId])
+  @@map("skill_evidence")
+}
+
+// Materialized ledger — recomputed from evidence on write (a worker takes over
+// at scale). Unique per (user, org-context, skill).
+model SkillSnapshot {
+  id            String   @id @default(cuid())
+  userId        String
+  orgId         String?
+  skillId       String
+  level         Int
+  evidenceCount Int      @default(0)
+  computedAt    DateTime @default(now())
+  @@unique([userId, orgId, skillId])
+  @@index([orgId, skillId])
+  @@map("skill_snapshots")
+}
+
+model RoleBar {
+  id          String        @id @default(cuid())
+  orgId       String
+  org         Organization  @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  name        String
+  basedOnTier String?
+  skills      RoleBarSkill[]
+  createdAt   DateTime      @default(now())
+  @@index([orgId])
+  @@map("org_role_bars")
+}
+
+model RoleBarSkill {
+  id            String  @id @default(cuid())
+  roleBarId     String
+  roleBar       RoleBar @relation(fields: [roleBarId], references: [id], onDelete: Cascade)
+  skillId       String
+  requiredLevel Int // 0..100 bar to clear
+  weight        Float   @default(1)
+  @@unique([roleBarId, skillId])
+  @@map("org_role_bar_skills")
 }
 
 // Learning paths (PRD §15.12) — ordered programs composed of courses (more
@@ -1626,6 +1709,9 @@ model Lesson {
   blocks     Json? // ordered block array (PRD §16 block model)
   estMinutes Int        @default(5)
   orderIndex Int        @default(0)
+  skillId    String?
+  skill      Skill?     @relation(fields: [skillId], references: [id], onDelete: SetNull)
+  skillLevel Int        @default(60) // evidence level emitted when a tagged lesson is completed
   progress   LessonProgress[]
   @@index([courseId])
   @@map("lms_lessons")

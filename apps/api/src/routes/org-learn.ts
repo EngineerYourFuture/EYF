@@ -12,6 +12,8 @@ import { z } from "zod";
 import { prisma, CourseStatus, LessonType, Prisma } from "@eyf/db";
 import { requireOrgCapability, requireOrgMember } from "../middleware/org.js";
 import { recordAudit } from "../lib/audit.js";
+import { findOrCreateSkill, recordEvidence } from "../lib/skill-ledger.js";
+import { EVIDENCE_WEIGHT } from "@eyf/types";
 
 // Block model (PRD §16) — validated loosely on type, strictly on shape caps.
 const blockInput = z.object({
@@ -26,6 +28,10 @@ const lessonInput = z.object({
   blocks: blocksInput.default([]),
   estMinutes: z.number().int().min(1).max(240).default(5),
   orderIndex: z.number().int().min(0).default(0),
+  // Skill tagging (PRD §15.13) — a tagged lesson emits Skill Ledger evidence
+  // on completion. slug is findOrCreate'd into the global taxonomy.
+  skillSlug: z.string().min(1).max(60).nullable().optional(),
+  skillLevel: z.number().int().min(0).max(100).default(60),
 });
 
 const EDITABLE: CourseStatus[] = [CourseStatus.DRAFT, CourseStatus.IN_REVIEW];
@@ -90,8 +96,10 @@ export async function orgLearnRoutes(app: FastifyInstance) {
     if (!EDITABLE.includes(course.status)) {
       return reply.code(409).send({ success: false, error: { code: "NOT_EDITABLE", message: "This course is published — draft a revision to edit lessons." } });
     }
+    const { skillSlug, ...lessonData } = body;
+    const skillId = skillSlug ? await findOrCreateSkill(skillSlug) : null;
     const lesson = await prisma.lesson.create({
-      data: { ...body, blocks: body.blocks as Prisma.InputJsonValue, courseId },
+      data: { ...lessonData, blocks: body.blocks as Prisma.InputJsonValue, courseId, skillId },
     });
     // Keep the course's estimated time honest as content grows.
     await prisma.course.update({
@@ -236,14 +244,31 @@ export async function orgLearnRoutes(app: FastifyInstance) {
     const { lessonId } = req.params as { lessonId: string };
     const lesson = await prisma.lesson.findFirst({
       where: { id: lessonId, course: { orgId: req.orgCtx!.orgId, status: CourseStatus.PUBLISHED } },
-      select: { id: true },
+      select: { id: true, skillId: true, skillLevel: true },
     });
     if (!lesson) return reply.code(404).send({ success: false, error: { code: "NOT_FOUND", message: "Lesson not found." } });
+    // Only the FIRST completion emits evidence — re-completing shouldn't stack
+    // the ledger (createMany-of-progress is idempotent; guard evidence too).
+    const existing = await prisma.lessonProgress.findUnique({
+      where: { lessonId_userId: { lessonId, userId: req.session!.id } },
+      select: { id: true },
+    });
     await prisma.lessonProgress.upsert({
       where: { lessonId_userId: { lessonId, userId: req.session!.id } },
       update: {},
       create: { lessonId, userId: req.session!.id },
     });
+    if (!existing && lesson.skillId) {
+      await recordEvidence({
+        userId: req.session!.id,
+        orgId: req.orgCtx!.orgId,
+        skillId: lesson.skillId,
+        level: lesson.skillLevel,
+        weight: EVIDENCE_WEIGHT.LESSON ?? 0.5,
+        sourceType: "LESSON",
+        sourceId: lessonId,
+      });
+    }
     return { success: true, data: { lessonId, completed: true } };
   });
 }

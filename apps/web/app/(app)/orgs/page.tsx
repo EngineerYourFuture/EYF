@@ -96,12 +96,15 @@ function OrgConsole({ orgId, roles }: { orgId: string; roles: string[] }) {
   const canAuthor = canInOrg(roles, "learn:author").granted;
   const canPublish = canInOrg(roles, "learn:publish").granted;
   const canEnroll = canInOrg(roles, "learn:enroll").granted;
-  const [tab, setTab] = useState<"programs" | "courses" | "people">("programs");
+  const skillsDecision = canInOrg(roles, "people:skills-read");
+  const canSkills = skillsDecision.granted && skillsDecision.scope !== "own";
+  const tabs = ["programs", "courses", ...(canSkills ? ["skills"] : []), "people"] as const;
+  const [tab, setTab] = useState<(typeof tabs)[number]>("programs");
 
   return (
     <div className="min-w-0">
       <div className="flex items-center gap-1 border-b border-border">
-        {(["programs", "courses", "people"] as const).map((t) => (
+        {tabs.map((t) => (
           <button key={t} onClick={() => setTab(t)}
             className={`px-3 py-2 text-sm border-b-2 -mb-px capitalize transition-colors ${tab === t ? "border-accent text-text-1" : "border-transparent text-text-3 hover:text-text-1"}`}>
             {t}
@@ -112,8 +115,62 @@ function OrgConsole({ orgId, roles }: { orgId: string; roles: string[] }) {
         canMembers ? <PeopleTab orgId={orgId} /> : <p className="text-text-3 text-sm mt-6">Your role doesn&apos;t include people management.</p>
       ) : tab === "courses" ? (
         <CoursesTab orgId={orgId} canAuthor={canAuthor} canPublish={canPublish} />
+      ) : tab === "skills" ? (
+        <SkillsTab orgId={orgId} />
       ) : (
         <ProgramsTab orgId={orgId} canAuthor={canAuthor} canPublish={canPublish} canEnroll={canEnroll} />
+      )}
+    </div>
+  );
+}
+
+type Matrix = { skills: { id: string; slug: string; name: string }[]; matrix: { department: string; cells: { skillId: string; level: number | null; coverage: number }[] }[]; memberCount: number };
+
+function SkillsTab({ orgId }: { orgId: string }) {
+  const { data } = useApi<Matrix>(`/orgs/${orgId}/skills/matrix`);
+  const heat = (level: number | null) =>
+    level == null ? "bg-surface-2 text-text-4"
+      : level >= 75 ? "bg-easy/20 text-easy"
+      : level >= 50 ? "bg-accent/15 text-text-1"
+      : level >= 25 ? "bg-medium/15 text-medium"
+      : "bg-hard/15 text-hard";
+
+  return (
+    <div className="mt-6">
+      <div className="font-mono text-[11px] uppercase tracking-widest text-text-3 mb-1">Skill matrix</div>
+      <p className="text-text-4 text-xs mb-3">Average level per department × skill — every number traces to real completed work.</p>
+      {!data && <SkeletonRows rows={3} />}
+      {data && data.skills.length === 0 && (
+        <p className="text-text-4 text-sm">No skill evidence yet. Tag lessons with a skill; completions build the matrix.</p>
+      )}
+      {data && data.skills.length > 0 && (
+        <div className="overflow-x-auto pb-2">
+          <table className="border-separate border-spacing-1">
+            <thead>
+              <tr>
+                <th className="text-left text-text-3 text-xs font-mono uppercase px-2">Department</th>
+                {data.skills.map((s) => (
+                  <th key={s.id} className="text-text-3 text-xs font-mono px-2 whitespace-nowrap">{s.slug}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {data.matrix.map((row) => (
+                <tr key={row.department}>
+                  <td className="text-sm font-medium pr-3 whitespace-nowrap">{row.department}</td>
+                  {data.skills.map((s) => {
+                    const cell = row.cells.find((c) => c.skillId === s.id);
+                    return (
+                      <td key={s.id} className={`text-center text-sm font-mono tabular-nums rounded-md w-14 h-9 ${heat(cell?.level ?? null)}`}>
+                        {cell?.level ?? "—"}
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );
