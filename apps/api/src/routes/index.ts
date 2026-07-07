@@ -50,6 +50,8 @@ import { orgPathsRoutes } from "./org-paths.js";
 import { orgSkillsRoutes } from "./org-skills.js";
 import { orgAssessRoutes } from "./org-assess.js";
 import { orgCertificatesRoutes } from "./org-certificates.js";
+import { orgHireRoutes } from "./org-hire.js";
+import { talentRoutes } from "./talent.js";
 import { guidanceRoutes } from "./guidance.js";
 import { adminGateRoutes } from "./admin-gate.js";
 import { adminContentRoutes } from "./admin-content.js";
@@ -105,6 +107,8 @@ export async function registerRoutes(app: FastifyInstance) {
   await app.register(orgSkillsRoutes,    { prefix: "/orgs" });
   await app.register(orgAssessRoutes,    { prefix: "/orgs" });
   await app.register(orgCertificatesRoutes, { prefix: "/orgs" });
+  await app.register(orgHireRoutes,      { prefix: "/orgs" });
+  await app.register(talentRoutes,       { prefix: "/talent" });
   await app.register(adminUsersRoutes,   { prefix: "/admin/users" });
   await app.register(adminPaymentsRoutes, { prefix: "/admin/payments" });
   await app.register(adminAuditRoutes,   { prefix: "/admin/audit" });

@@ -51,6 +51,9 @@ export default function Page() {
           subtitle="Your companies and colleges on EYF — onboard, train, and grow your people from one console."
         />
 
+        <TalentConsentCard />
+
+
         <div className="mt-8 grid lg:grid-cols-[260px_1fr] gap-6 items-start">
           {/* Switcher */}
           <div className="space-y-2 min-w-0">
@@ -91,6 +94,39 @@ export default function Page() {
   );
 }
 
+function TalentConsentCard() {
+  const action = useApiAction();
+  const { data, mutate } = useApi<{ inPool: boolean; scope: string | null }>("/talent/consent");
+  const [busy, setBusy] = useState(false);
+  async function set(op: "POOL_FULL" | "POOL_ANON" | "revoke") {
+    setBusy(true);
+    try {
+      if (op === "revoke") await action("/talent/consent/revoke", { method: "POST" });
+      else await action("/talent/consent", { method: "POST", body: JSON.stringify({ scope: op }) });
+      await mutate();
+    } catch { /* toasted */ } finally { setBusy(false); }
+  }
+  if (!data) return null;
+  return (
+    <div className="mt-6 rounded-xl border border-border bg-surface-2/40 px-5 py-4 flex items-center gap-4 flex-wrap">
+      <div className="min-w-0 flex-1">
+        <div className="font-medium">Talent pool {data.inPool && <Badge tone="easy" className="ml-1">in · {data.scope === "POOL_FULL" ? "visible" : "anonymous"}</Badge>}</div>
+        <div className="text-text-3 text-sm">Let companies hiring on EYF discover you by your evidence — readiness, skills, certificates. Revoke any time.</div>
+      </div>
+      <div className="flex gap-2 shrink-0">
+        {!data.inPool ? (
+          <>
+            <Button size="sm" variant="secondary" onClick={() => set("POOL_ANON")} disabled={busy}>Join (anonymous)</Button>
+            <Button size="sm" onClick={() => set("POOL_FULL")} disabled={busy}>Join (visible)</Button>
+          </>
+        ) : (
+          <Button size="sm" variant="ghost" onClick={() => set("revoke")} disabled={busy}>Leave pool</Button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function OrgConsole({ orgId, roles }: { orgId: string; roles: string[] }) {
   const canMembers = canInOrg(roles, "org:members").granted;
   const canAuthor = canInOrg(roles, "learn:author").granted;
@@ -99,7 +135,8 @@ function OrgConsole({ orgId, roles }: { orgId: string; roles: string[] }) {
   const skillsDecision = canInOrg(roles, "people:skills-read");
   const canSkills = skillsDecision.granted && skillsDecision.scope !== "own";
   const canAssess = canInOrg(roles, "assess:author").granted;
-  const tabs = ["programs", "courses", ...(canAssess ? ["assess"] : []), ...(canSkills ? ["skills"] : []), "people"] as const;
+  const canHire = canInOrg(roles, "talent:search").granted || canInOrg(roles, "hire:pipeline").granted;
+  const tabs = ["programs", "courses", ...(canAssess ? ["assess"] : []), ...(canSkills ? ["skills"] : []), ...(canHire ? ["hire"] : []), "people"] as const;
   const [tab, setTab] = useState<(typeof tabs)[number]>("programs");
 
   return (
@@ -120,9 +157,116 @@ function OrgConsole({ orgId, roles }: { orgId: string; roles: string[] }) {
         <SkillsTab orgId={orgId} />
       ) : tab === "assess" ? (
         <AssessTab orgId={orgId} />
+      ) : tab === "hire" ? (
+        <HireTab orgId={orgId} />
       ) : (
         <ProgramsTab orgId={orgId} canAuthor={canAuthor} canPublish={canPublish} canEnroll={canEnroll} />
       )}
+    </div>
+  );
+}
+
+type Candidate = { userId: string; name: string; college: string | null; gradYear: number | null; anon: boolean; readiness: number; band: string };
+type Profile = { identity: { name?: string; email?: string; college?: string | null; anon?: boolean }; readiness: { overall: number; band: string; pillars: { key: string; label: string; score: number }[] }; certificates: { title: string; score: number | null; verifyCode: string }[]; skills: { slug: string; level: number }[] };
+
+function HireTab({ orgId }: { orgId: string }) {
+  const action = useApiAction();
+  const [minR, setMinR] = useState(0);
+  const search = useApi<{ total: number; candidates: Candidate[] }>(`/orgs/${orgId}/talent/search?minReadiness=${minR}`);
+  const [openUser, setOpenUser] = useState<string | null>(null);
+  const profile = useApi<Profile>(openUser ? `/orgs/${orgId}/talent/${openUser}/profile` : null);
+  const reqs = useApi<{ id: string; title: string; status: string; _count: { candidates: number } }[]>(`/orgs/${orgId}/requisitions`);
+  const [reqTitle, setReqTitle] = useState("");
+
+  async function createReq() {
+    if (reqTitle.trim().length < 2) return;
+    try { await action(`/orgs/${orgId}/requisitions`, { method: "POST", body: JSON.stringify({ title: reqTitle.trim() }) }); setReqTitle(""); await reqs.mutate(); }
+    catch { /* toasted */ }
+  }
+  async function shortlist(userId: string) {
+    const req = reqs.data?.[0];
+    if (!req) return;
+    try { await action(`/orgs/${orgId}/requisitions/${req.id}/candidates`, { method: "POST", body: JSON.stringify({ userId }) }); await reqs.mutate(); }
+    catch { /* toasted */ }
+  }
+  const band = (n: number) => n >= 80 ? "text-easy" : n >= 50 ? "text-text-1" : "text-medium";
+
+  return (
+    <div className="mt-6 grid lg:grid-cols-[1fr_320px] gap-6 items-start">
+      <div className="min-w-0">
+        <div className="flex items-center justify-between mb-3">
+          <div className="font-mono text-[11px] uppercase tracking-widest text-text-3">Talent pool · evidence-ranked</div>
+          <label className="text-xs text-text-3 flex items-center gap-2">min readiness
+            <input type="number" min={0} max={100} value={minR} onChange={(e) => setMinR(Number(e.target.value))} className="w-16 h-8 px-2 rounded bg-surface border border-border text-text-1" />
+          </label>
+        </div>
+        <div className="space-y-2">
+          {!search.data && <SkeletonRows rows={3} />}
+          {search.data?.candidates.map((c) => (
+            <Card key={c.userId} className="flex items-center gap-3 py-3">
+              <div className="min-w-0 flex-1">
+                <div className="font-medium truncate">{c.name}{c.anon && <span className="text-text-4 text-xs ml-2">anon</span>}</div>
+                <div className="text-text-4 text-xs truncate">{c.college ?? "—"}{c.gradYear ? ` · ${c.gradYear}` : ""} · {c.band}</div>
+              </div>
+              <span className={`font-display text-xl font-bold tabular-nums ${band(c.readiness)}`}>{c.readiness}</span>
+              <Button size="sm" variant="secondary" onClick={() => setOpenUser(c.userId)}>Profile</Button>
+              <Button size="sm" onClick={() => shortlist(c.userId)} disabled={!reqs.data?.length}>Shortlist</Button>
+            </Card>
+          ))}
+          {search.data?.candidates.length === 0 && <p className="text-text-4 text-sm">No consented candidates match yet.</p>}
+        </div>
+
+        {openUser && profile.data && (
+          <Card className="mt-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-display text-lg font-bold">{profile.data.identity.name}{profile.data.identity.anon && <span className="text-text-4 text-xs ml-2">identity hidden until shortlisted</span>}</h3>
+              <button onClick={() => setOpenUser(null)} className="text-text-4 hover:text-text-1 text-sm">close</button>
+            </div>
+            <div className="mt-3 flex items-baseline gap-2">
+              <span className={`font-display text-3xl font-bold ${band(profile.data.readiness.overall)}`}>{profile.data.readiness.overall}</span>
+              <span className="text-text-3 text-sm">/100 · {profile.data.readiness.band}</span>
+            </div>
+            <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {profile.data.readiness.pillars.map((p) => (
+                <div key={p.key} className="rounded-lg bg-surface-2 px-3 py-2">
+                  <div className="text-text-4 text-[10px] uppercase font-mono truncate">{p.label}</div>
+                  <div className="font-mono text-sm">{p.score}</div>
+                </div>
+              ))}
+            </div>
+            {profile.data.certificates.length > 0 && (
+              <div className="mt-4">
+                <div className="font-mono text-[11px] uppercase tracking-widest text-text-3 mb-1">Verified certificates</div>
+                {profile.data.certificates.map((c) => (
+                  <a key={c.verifyCode} href={`/verify/${c.verifyCode}`} target="_blank" className="block text-sm text-accent hover:underline">✓ {c.title}{c.score != null ? ` · ${c.score}` : ""}</a>
+                ))}
+              </div>
+            )}
+            {profile.data.skills.length > 0 && (
+              <div className="mt-4 flex flex-wrap gap-1.5">
+                {profile.data.skills.map((s) => <Badge key={s.slug} tone="accent">{s.slug} · {s.level}</Badge>)}
+              </div>
+            )}
+          </Card>
+        )}
+      </div>
+
+      <aside className="min-w-0">
+        <div className="font-mono text-[11px] uppercase tracking-widest text-text-3 mb-2">Requisitions</div>
+        <div className="flex gap-2 mb-3">
+          <input className="flex-1 h-9 px-3 rounded-lg bg-surface border border-border text-sm focus:outline-none focus:border-accent" placeholder="New role" value={reqTitle} onChange={(e) => setReqTitle(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") void createReq(); }} />
+          <Button size="sm" onClick={createReq} disabled={reqTitle.trim().length < 2}>+</Button>
+        </div>
+        <div className="space-y-2">
+          {reqs.data?.map((r) => (
+            <Card key={r.id} className="py-2.5">
+              <div className="font-medium text-sm truncate">{r.title}</div>
+              <div className="text-text-4 text-xs">{r._count.candidates} in pipeline · {r.status}</div>
+            </Card>
+          ))}
+          {reqs.data?.length === 0 && <p className="text-text-4 text-xs">Create a role to start shortlisting.</p>}
+        </div>
+      </aside>
     </div>
   );
 }

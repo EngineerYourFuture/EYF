@@ -249,6 +249,7 @@ model User {
   projectPreps    ProjectPrep[]
   scoreShares     ScoreShare[]
   orgMemberships  OrgMember[]
+  talentConsent   TalentConsent?
 
   @@index([role])
   @@index([college])
@@ -1426,6 +1427,7 @@ model Organization {
   assessmentBlueprints AssessmentBlueprint[]
   assessmentRuns AssessmentRun[]
   certificateTemplates CertificateTemplate[]
+  requisitions  JobRequisition[]
   @@map("organizations")
 }
 
@@ -1487,6 +1489,79 @@ model TeamMember {
 
   @@id([teamId, memberId])
   @@map("org_team_members")
+}
+
+// ─── Hiring (PRD §21) — consent-first evidence-based hiring from the pool.
+enum TalentScope {
+  POOL_ANON // searchable, identity hidden until the candidate accepts an interview
+  POOL_FULL // fully visible to recruiters
+}
+
+enum RequisitionStatus {
+  OPEN
+  PAUSED
+  CLOSED
+}
+
+enum PipelineStage {
+  SOURCED
+  SCREEN
+  ASSESSMENT
+  INTERVIEW
+  DECISION
+  OFFER
+  HIRED
+  REJECTED
+}
+
+enum CandidateSource {
+  ELITE_POOL
+  INTERNAL
+  APPLY
+  REFERRAL
+}
+
+// A student opts into the talent pool. One row per user (unique); revocable.
+model TalentConsent {
+  id        String      @id @default(cuid())
+  userId    String      @unique
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  scope     TalentScope @default(POOL_ANON)
+  grantedAt DateTime    @default(now())
+  revokedAt DateTime?
+  @@map("talent_consents")
+}
+
+model JobRequisition {
+  id               String             @id @default(cuid())
+  orgId            String
+  org              Organization       @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  title            String
+  roleBarId        String?
+  minReadiness     Int                @default(0)
+  status           RequisitionStatus  @default(OPEN)
+  hiringManagerId  String?
+  createdAt        DateTime           @default(now())
+  candidates       PipelineCandidate[]
+  @@index([orgId, status])
+  @@map("org_requisitions")
+}
+
+model PipelineCandidate {
+  id               String          @id @default(cuid())
+  reqId            String
+  req              JobRequisition  @relation(fields: [reqId], references: [id], onDelete: Cascade)
+  userId           String
+  source           CandidateSource @default(ELITE_POOL)
+  stage            PipelineStage   @default(SOURCED)
+  fitScore         Int? // barFit / readiness at time of sourcing
+  note             String?
+  evidenceSnapshot Json? // frozen evidence summary when sourced
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @default(now()) @updatedAt
+  @@unique([reqId, userId])
+  @@index([reqId, stage])
+  @@map("org_pipeline_candidates")
 }
 
 // ─── Assessment engine (PRD §17/18) — reuses McqBankQuestion + scoring;

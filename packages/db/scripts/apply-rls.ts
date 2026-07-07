@@ -29,6 +29,7 @@ const ORG_TABLES = [
   "org_assessment_blueprints",
   "org_assessment_runs",
   "org_certificate_templates",
+  "org_requisitions",
   "lms_courses",
   "internship_slots",
 ];
