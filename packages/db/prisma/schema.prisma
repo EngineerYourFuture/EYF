@@ -1428,6 +1428,8 @@ model Organization {
   assessmentRuns AssessmentRun[]
   certificateTemplates CertificateTemplate[]
   requisitions  JobRequisition[]
+  apiKeys       ApiKey[]
+  webhooks      WebhookEndpoint[]
   @@map("organizations")
 }
 
@@ -1489,6 +1491,51 @@ model TeamMember {
 
   @@id([teamId, memberId])
   @@map("org_team_members")
+}
+
+// ─── Enterprise: API keys + webhooks (PRD §24/§14) ─────────────────
+model ApiKey {
+  id         String    @id @default(cuid())
+  orgId      String
+  org        Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  name       String
+  prefix     String    @unique // shown to the user (eyf_live_xxxx); the rest is hashed
+  hashedKey  String // sha-256 hash of the full key — the raw key is shown ONCE
+  scopes     String[] // subset of org capabilities
+  lastUsedAt DateTime?
+  revokedAt  DateTime?
+  createdAt  DateTime  @default(now())
+  @@index([orgId])
+  @@map("org_api_keys")
+}
+
+model WebhookEndpoint {
+  id        String   @id @default(cuid())
+  orgId     String
+  org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  url       String
+  secret    String // HMAC signing secret
+  events    String[] // event names to deliver
+  active    Boolean  @default(true)
+  failCount Int      @default(0)
+  createdAt DateTime @default(now())
+  deliveries WebhookDelivery[]
+  @@index([orgId])
+  @@map("org_webhook_endpoints")
+}
+
+model WebhookDelivery {
+  id         String          @id @default(cuid())
+  endpointId String
+  endpoint   WebhookEndpoint @relation(fields: [endpointId], references: [id], onDelete: Cascade)
+  event      String
+  payload    Json
+  status     String          @default("pending") // pending | delivered | failed
+  attempts   Int             @default(0)
+  lastAt     DateTime?
+  createdAt  DateTime        @default(now())
+  @@index([endpointId, createdAt])
+  @@map("org_webhook_deliveries")
 }
 
 // ─── Hiring (PRD §21) — consent-first evidence-based hiring from the pool.

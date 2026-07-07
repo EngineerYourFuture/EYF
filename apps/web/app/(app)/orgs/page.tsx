@@ -8,6 +8,7 @@
  */
 import Link from "next/link";
 import { useState } from "react";
+import { toast } from "sonner";
 import { Card, Badge, Button, PageHeader, EmptyState, SkeletonRows } from "@eyf/ui";
 import { PageMotion } from "@/components/page-motion";
 import { Icons } from "@/components/icons";
@@ -137,7 +138,8 @@ function OrgConsole({ orgId, roles }: { orgId: string; roles: string[] }) {
   const canSkills = skillsDecision.granted && skillsDecision.scope !== "own";
   const canAssess = canInOrg(roles, "assess:author").granted;
   const canHire = canInOrg(roles, "talent:search").granted || canInOrg(roles, "hire:pipeline").granted;
-  const tabs = ["programs", "courses", ...(canAssess ? ["assess"] : []), ...(canSkills ? ["skills"] : []), ...(canHire ? ["hire"] : []), "people"] as const;
+  const canSettings = canInOrg(roles, "org:manage").granted;
+  const tabs = ["programs", "courses", ...(canAssess ? ["assess"] : []), ...(canSkills ? ["skills"] : []), ...(canHire ? ["hire"] : []), "people", ...(canSettings ? ["settings"] : [])] as const;
   const [tab, setTab] = useState<(typeof tabs)[number]>("programs");
 
   return (
@@ -160,9 +162,102 @@ function OrgConsole({ orgId, roles }: { orgId: string; roles: string[] }) {
         <AssessTab orgId={orgId} />
       ) : tab === "hire" ? (
         <HireTab orgId={orgId} />
+      ) : tab === "settings" ? (
+        <SettingsTab orgId={orgId} />
       ) : (
         <ProgramsTab orgId={orgId} canAuthor={canAuthor} canPublish={canPublish} canEnroll={canEnroll} />
       )}
+    </div>
+  );
+}
+
+type ApiKey = { id: string; name: string; prefix: string; scopes: string[]; lastUsedAt: string | null };
+type Hook = { id: string; url: string; events: string[]; active: boolean; failCount: number };
+
+function SettingsTab({ orgId }: { orgId: string }) {
+  const action = useApiAction();
+  const brand = useApi<{ logoUrl: string | null; brandColor: string | null }>(`/orgs/${orgId}/branding`);
+  const keys = useApi<ApiKey[]>(`/orgs/${orgId}/api-keys`);
+  const hooks = useApi<{ endpoints: Hook[]; availableEvents: string[] }>(`/orgs/${orgId}/webhooks`);
+  const [color, setColor] = useState("");
+  const [logo, setLogo] = useState("");
+  const [keyName, setKeyName] = useState("");
+  const [newKey, setNewKey] = useState<string | null>(null);
+  const [hookUrl, setHookUrl] = useState("");
+  const [newSecret, setNewSecret] = useState<string | null>(null);
+
+  async function saveBrand() {
+    try { await action(`/orgs/${orgId}/branding`, { method: "PATCH", body: JSON.stringify({ ...(color ? { brandColor: color } : {}), ...(logo ? { logoUrl: logo } : {}) }) }); await brand.mutate(); toast.success("Branding saved"); }
+    catch { /* toasted */ }
+  }
+  async function createKey() {
+    if (keyName.trim().length < 1) return;
+    try { const k = await action<{ key: string }>(`/orgs/${orgId}/api-keys`, { method: "POST", body: JSON.stringify({ name: keyName.trim(), scopes: ["talent:search"] }) }); setNewKey(k.key); setKeyName(""); await keys.mutate(); }
+    catch { /* toasted */ }
+  }
+  async function createHook() {
+    if (!hookUrl.trim()) return;
+    try { const h = await action<{ secret: string }>(`/orgs/${orgId}/webhooks`, { method: "POST", body: JSON.stringify({ url: hookUrl.trim(), events: ["certificate.issued", "offer.accepted"] }) }); setNewSecret(h.secret); setHookUrl(""); await hooks.mutate(); }
+    catch { /* toasted */ }
+  }
+
+  return (
+    <div className="mt-6 space-y-8 max-w-2xl">
+      <section>
+        <div className="font-mono text-[11px] uppercase tracking-widest text-text-3 mb-2">White-label branding</div>
+        <div className="flex flex-wrap gap-2 items-center">
+          <input className="h-10 px-3 rounded-lg bg-surface border border-border text-sm w-32" placeholder="#E8192C" value={color} onChange={(e) => setColor(e.target.value)} />
+          <input className="flex-1 min-w-[200px] h-10 px-3 rounded-lg bg-surface border border-border text-sm" placeholder="Logo URL" value={logo} onChange={(e) => setLogo(e.target.value)} />
+          <Button size="sm" onClick={saveBrand}>Save</Button>
+        </div>
+        {brand.data?.brandColor && <div className="text-text-4 text-xs mt-2">Active accent: <span className="inline-block w-3 h-3 rounded-sm align-middle" style={{ background: brand.data.brandColor }} /> {brand.data.brandColor}</div>}
+      </section>
+
+      <section>
+        <div className="font-mono text-[11px] uppercase tracking-widest text-text-3 mb-2">API keys</div>
+        {newKey && (
+          <div className="rounded-lg border border-accent/40 bg-accent-tint/30 p-3 mb-3">
+            <div className="text-xs text-text-3 mb-1">Copy this now — it won&apos;t be shown again.</div>
+            <code className="text-sm break-all">{newKey}</code>
+          </div>
+        )}
+        <div className="flex gap-2 mb-3">
+          <input className="flex-1 h-10 px-3 rounded-lg bg-surface border border-border text-sm" placeholder="Key name (e.g. ATS integration)" value={keyName} onChange={(e) => setKeyName(e.target.value)} />
+          <Button size="sm" onClick={createKey}>Create key</Button>
+        </div>
+        <div className="space-y-1.5">
+          {keys.data?.map((k) => (
+            <Card key={k.id} className="flex items-center gap-3 py-2.5">
+              <div className="min-w-0 flex-1"><span className="font-medium text-sm">{k.name}</span> <code className="text-text-4 text-xs ml-2">{k.prefix}…</code></div>
+              <button onClick={async () => { await action(`/orgs/${orgId}/api-keys/${k.id}/revoke`, { method: "POST" }); await keys.mutate(); }} className="text-text-4 hover:text-hard text-xs">revoke</button>
+            </Card>
+          ))}
+          {keys.data?.length === 0 && <p className="text-text-4 text-sm">No API keys yet.</p>}
+        </div>
+      </section>
+
+      <section>
+        <div className="font-mono text-[11px] uppercase tracking-widest text-text-3 mb-2">Webhooks</div>
+        {newSecret && (
+          <div className="rounded-lg border border-accent/40 bg-accent-tint/30 p-3 mb-3">
+            <div className="text-xs text-text-3 mb-1">Signing secret — verify the x-eyf-signature header with it.</div>
+            <code className="text-sm break-all">{newSecret}</code>
+          </div>
+        )}
+        <div className="flex gap-2 mb-3">
+          <input className="flex-1 h-10 px-3 rounded-lg bg-surface border border-border text-sm" placeholder="https://your-app.com/eyf-webhook" value={hookUrl} onChange={(e) => setHookUrl(e.target.value)} />
+          <Button size="sm" onClick={createHook}>Add endpoint</Button>
+        </div>
+        <div className="space-y-1.5">
+          {hooks.data?.endpoints.map((h) => (
+            <Card key={h.id} className="flex items-center gap-3 py-2.5">
+              <div className="min-w-0 flex-1"><div className="text-sm truncate">{h.url}</div><div className="text-text-4 text-xs">{h.events.join(", ")}{h.failCount > 0 ? ` · ${h.failCount} fails` : ""}</div></div>
+              <Badge tone={h.active ? "easy" : "default"}>{h.active ? "active" : "off"}</Badge>
+            </Card>
+          ))}
+          {hooks.data?.endpoints.length === 0 && <p className="text-text-4 text-sm">No webhook endpoints. Add one to receive events like certificate.issued.</p>}
+        </div>
+      </section>
     </div>
   );
 }

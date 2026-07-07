@@ -5,6 +5,7 @@
  */
 import { prisma, CertificateType } from "@eyf/db";
 import { randomBytes } from "node:crypto";
+import { fireWebhook } from "./webhooks.js";
 
 const CODE_ALPHABET = "abcdefghjkmnpqrstuvwxyz23456789"; // no 0/O/1/l
 
@@ -42,6 +43,7 @@ export async function issueCertificate(input: {
     },
     select: { id: true, verificationCode: true },
   });
+  void fireWebhook(input.orgId, "certificate.issued", { certificateId: cert.id, userId: input.userId, title: input.title, verificationCode: cert.verificationCode });
   return cert;
 }
 

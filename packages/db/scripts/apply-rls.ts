@@ -35,6 +35,8 @@ const ORG_TABLES = [
   "org_assessment_runs",
   "org_certificate_templates",
   "org_requisitions",
+  "org_api_keys",
+  "org_webhook_endpoints",
   // org_offers: no orgId column — isolated via reqId→JobRequisition; RLS N/A.
   "lms_courses",
   "internship_slots",
