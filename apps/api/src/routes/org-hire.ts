@@ -37,6 +37,7 @@ async function evidenceProfile(userId: string, reveal: boolean) {
 export async function orgHireRoutes(app: FastifyInstance) {
   const search = { preHandler: [app.requireAuth, requireOrgCapability("talent:search")] };
   const pipeline = { preHandler: [app.requireAuth, requireOrgCapability("hire:pipeline")] };
+  const offerer = { preHandler: [app.requireAuth, requireOrgCapability("hire:offer")] };
 
   // ── Talent pool search (consented students, ranked by readiness) ────
   app.get("/:orgId/talent/search", search, async (req) => {
@@ -151,6 +152,56 @@ export async function orgHireRoutes(app: FastifyInstance) {
     if (!cand) return reply.code(404).send({ success: false, error: { code: "NOT_FOUND", message: "Candidate not found." } });
     const updated = await prisma.pipelineCandidate.update({ where: { id: candId }, data: body });
     return { success: true, data: updated };
+  });
+
+  // ── Offers — two-person chain (PRD §9/§21) ─────────────────────────
+  // Recruiter drafts (hire:pipeline). Candidate must be in the pipeline.
+  app.post("/:orgId/requisitions/:reqId/offer", pipeline, async (req, reply) => {
+    const { reqId } = req.params as { reqId: string };
+    const body = z.object({
+      userId: z.string(),
+      title: z.string().trim().min(2).max(100),
+      ctcInr: z.number().int().min(0).max(1_00_00_00_000),
+      startDate: z.string().datetime().nullable().optional(),
+    }).parse(req.body);
+    const requisition = await prisma.jobRequisition.findFirst({ where: { id: reqId, orgId: req.orgCtx!.orgId }, select: { id: true } });
+    if (!requisition) return reply.code(404).send({ success: false, error: { code: "NOT_FOUND", message: "Requisition not found." } });
+    const cand = await prisma.pipelineCandidate.findUnique({ where: { reqId_userId: { reqId, userId: body.userId } }, select: { id: true } });
+    if (!cand) return reply.code(409).send({ success: false, error: { code: "NOT_IN_PIPELINE", message: "Add the candidate to the pipeline before drafting an offer." } });
+
+    const offer = await prisma.offer.upsert({
+      where: { reqId_userId: { reqId, userId: body.userId } },
+      update: { title: body.title, ctcInr: body.ctcInr, startDate: body.startDate ? new Date(body.startDate) : null, status: "DRAFT" },
+      create: { reqId, userId: body.userId, title: body.title, ctcInr: body.ctcInr, startDate: body.startDate ? new Date(body.startDate) : null, draftedById: req.orgCtx!.memberId },
+    });
+    await recordAudit(req, { action: "create", entity: "org-offer", entityId: offer.id, summary: `Drafted offer "${body.title}"` });
+    return reply.code(201).send({ success: true, data: offer });
+  });
+
+  // Approve + send — hire:offer only. The second person in the chain; the
+  // drafter cannot be the sender (two-person rule).
+  app.post("/:orgId/offers/:offerId/send", offerer, async (req, reply) => {
+    const { offerId } = req.params as { offerId: string };
+    const offer = await prisma.offer.findFirst({ where: { id: offerId, req: { orgId: req.orgCtx!.orgId } }, select: { id: true, status: true, draftedById: true } });
+    if (!offer) return reply.code(404).send({ success: false, error: { code: "NOT_FOUND", message: "Offer not found." } });
+    if (offer.status !== "DRAFT") return reply.code(409).send({ success: false, error: { code: "BAD_STATE", message: `Cannot send from ${offer.status}.` } });
+    if (offer.draftedById === req.orgCtx!.memberId) {
+      return reply.code(403).send({ success: false, error: { code: "TWO_PERSON_RULE", message: "The person who drafted an offer cannot also approve and send it." } });
+    }
+    const sent = await prisma.offer.update({ where: { id: offerId }, data: { status: "SENT", sentById: req.orgCtx!.memberId, sentAt: new Date() } });
+    await recordAudit(req, { action: "update", entity: "org-offer", entityId: offerId, summary: "Approved + sent offer" });
+    return { success: true, data: sent };
+  });
+
+  app.get("/:orgId/offers", pipeline, async (req) => {
+    const offers = await prisma.offer.findMany({
+      where: { req: { orgId: req.orgCtx!.orgId } },
+      select: { id: true, title: true, ctcInr: true, status: true, userId: true, sentAt: true, respondedAt: true, req: { select: { title: true } } },
+      orderBy: { createdAt: "desc" },
+    });
+    const users = await prisma.user.findMany({ where: { id: { in: offers.map((o) => o.userId) } }, select: { id: true, name: true } });
+    const nameOf = new Map(users.map((u) => [u.id, u.name]));
+    return { success: true, data: offers.map((o) => ({ ...o, candidateName: nameOf.get(o.userId) ?? "—" })) };
   });
 
   // Close/pause a requisition.

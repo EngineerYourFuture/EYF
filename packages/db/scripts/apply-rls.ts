@@ -12,6 +12,11 @@
  *
  * Idempotent. Run: `pnpm --filter @eyf/db db:rls` (local + every deploy —
  * documented in docs/GO-LIVE.md).
+ *
+ * INVARIANT: only tables with a literal `orgId` column belong in ORG_TABLES.
+ * A table isolated transitively (e.g. org_offers via reqId→JobRequisition)
+ * must NOT be listed — the policy references "orgId" and would deny every
+ * write on a column-less table. Route-level filtering isolates those.
  */
 import { PrismaClient } from "../src/generated/client";
 
@@ -30,6 +35,7 @@ const ORG_TABLES = [
   "org_assessment_runs",
   "org_certificate_templates",
   "org_requisitions",
+  // org_offers: no orgId column — isolated via reqId→JobRequisition; RLS N/A.
   "lms_courses",
   "internship_slots",
 ];

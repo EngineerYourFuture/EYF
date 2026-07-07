@@ -33,4 +33,46 @@ export async function talentRoutes(app: FastifyInstance) {
     await prisma.talentConsent.updateMany({ where: { userId: req.session!.id, revokedAt: null }, data: { revokedAt: new Date() } });
     return { success: true, data: { inPool: false } };
   });
+
+  // ── Offers the candidate has received (SENT and beyond) ────────────
+  app.get("/offers", { preHandler: app.requireAuth }, async (req) => {
+    const offers = await prisma.offer.findMany({
+      where: { userId: req.session!.id, status: { in: ["SENT", "ACCEPTED", "DECLINED"] } },
+      select: { id: true, title: true, ctcInr: true, startDate: true, status: true, sentAt: true, req: { select: { org: { select: { name: true } } } } },
+      orderBy: { sentAt: "desc" },
+    });
+    return { success: true, data: offers.map((o) => ({ id: o.id, title: o.title, ctcInr: o.ctcInr, startDate: o.startDate, status: o.status, company: o.req.org.name })) };
+  });
+
+  // Respond — accept flips the F10 spine: the candidate's B2C profile becomes
+  // an org membership (MEMBER), and the pipeline card moves to HIRED. Same
+  // profile from campus to career (PRD §21 / F10).
+  app.post("/offers/:offerId/respond", { preHandler: app.requireAuth }, async (req, reply) => {
+    const { offerId } = req.params as { offerId: string };
+    const { accept } = z.object({ accept: z.boolean() }).parse(req.body ?? {});
+    const offer = await prisma.offer.findFirst({
+      where: { id: offerId, userId: req.session!.id },
+      include: { req: { select: { id: true, orgId: true } } },
+    });
+    if (!offer) return reply.code(404).send({ success: false, error: { code: "NOT_FOUND", message: "Offer not found." } });
+    if (offer.status !== "SENT") return reply.code(409).send({ success: false, error: { code: "BAD_STATE", message: "This offer can no longer be responded to." } });
+
+    if (!accept) {
+      const declined = await prisma.offer.update({ where: { id: offerId }, data: { status: "DECLINED", respondedAt: new Date() } });
+      return { success: true, data: { status: declined.status } };
+    }
+
+    await prisma.$transaction(async (tx) => {
+      await tx.offer.update({ where: { id: offerId }, data: { status: "ACCEPTED", respondedAt: new Date() } });
+      await tx.pipelineCandidate.updateMany({ where: { reqId: offer.req.id, userId: req.session!.id }, data: { stage: "HIRED" } });
+      // The carry-over: hire becomes a member. Idempotent — a re-accept or an
+      // existing membership (e.g. former intern) just stays ACTIVE.
+      await tx.orgMember.upsert({
+        where: { orgId_userId: { orgId: offer.req.orgId, userId: req.session!.id } },
+        update: { status: "ACTIVE" },
+        create: { orgId: offer.req.orgId, userId: req.session!.id, roles: ["MEMBER"] },
+      });
+    });
+    return { success: true, data: { status: "ACCEPTED", joinedOrgId: offer.req.orgId } };
+  });
 }

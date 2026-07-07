@@ -251,7 +251,9 @@ function HireTab({ orgId }: { orgId: string }) {
         )}
       </div>
 
-      <aside className="min-w-0">
+      <aside className="min-w-0 space-y-6">
+        <MyOffers />
+        <div>
         <div className="font-mono text-[11px] uppercase tracking-widest text-text-3 mb-2">Requisitions</div>
         <div className="flex gap-2 mb-3">
           <input className="flex-1 h-9 px-3 rounded-lg bg-surface border border-border text-sm focus:outline-none focus:border-accent" placeholder="New role" value={reqTitle} onChange={(e) => setReqTitle(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") void createReq(); }} />
@@ -266,7 +268,40 @@ function HireTab({ orgId }: { orgId: string }) {
           ))}
           {reqs.data?.length === 0 && <p className="text-text-4 text-xs">Create a role to start shortlisting.</p>}
         </div>
+        </div>
       </aside>
+    </div>
+  );
+}
+
+type MyOffer = { id: string; title: string; ctcInr: number; company: string; status: string };
+function MyOffers() {
+  const action = useApiAction();
+  const { data, mutate } = useApi<MyOffer[]>("/talent/offers");
+  const [busy, setBusy] = useState<string | null>(null);
+  async function respond(id: string, accept: boolean) {
+    setBusy(id);
+    try { await action(`/talent/offers/${id}/respond`, { method: "POST", body: JSON.stringify({ accept }) }); await mutate(); }
+    catch { /* toasted */ } finally { setBusy(null); }
+  }
+  if (!data || data.length === 0) return null;
+  return (
+    <div>
+      <div className="font-mono text-[11px] uppercase tracking-widest text-accent mb-2">Your offers</div>
+      <div className="space-y-2">
+        {data.map((o) => (
+          <Card key={o.id} variant="glow" className="py-3">
+            <div className="font-medium text-sm">{o.title}</div>
+            <div className="text-text-3 text-xs">{o.company} · ₹{(o.ctcInr / 100000).toFixed(1)}L</div>
+            {o.status === "SENT" ? (
+              <div className="flex gap-2 mt-2">
+                <Button size="sm" onClick={() => respond(o.id, true)} disabled={busy === o.id}>Accept</Button>
+                <Button size="sm" variant="ghost" onClick={() => respond(o.id, false)} disabled={busy === o.id}>Decline</Button>
+              </div>
+            ) : <Badge tone={o.status === "ACCEPTED" ? "easy" : "default"} className="mt-2">{o.status}</Badge>}
+          </Card>
+        ))}
+      </div>
     </div>
   );
 }

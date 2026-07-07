@@ -1543,8 +1543,40 @@ model JobRequisition {
   hiringManagerId  String?
   createdAt        DateTime           @default(now())
   candidates       PipelineCandidate[]
+  offers           Offer[]
   @@index([orgId, status])
   @@map("org_requisitions")
+}
+
+enum OfferStatus {
+  DRAFT
+  SENT
+  ACCEPTED
+  DECLINED
+  EXPIRED
+}
+
+// Offer with a two-person chain (PRD §9/§21): a recruiter drafts (hire:pipeline),
+// someone with hire:offer sends, the candidate responds. On accept, the hire's
+// B2C profile becomes an org membership (F10 — campus→career spine).
+model Offer {
+  id           String       @id @default(cuid())
+  reqId        String
+  req          JobRequisition @relation(fields: [reqId], references: [id], onDelete: Cascade)
+  userId       String // the candidate (a platform user)
+  title        String
+  ctcInr       Int          @default(0) // annual, rupees
+  startDate    DateTime?
+  status       OfferStatus  @default(DRAFT)
+  draftedById  String // OrgMember who drafted
+  sentById     String? // OrgMember who approved+sent (hire:offer)
+  sentAt       DateTime?
+  respondedAt  DateTime?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @default(now()) @updatedAt
+  @@unique([reqId, userId])
+  @@index([userId, status])
+  @@map("org_offers")
 }
 
 model PipelineCandidate {
