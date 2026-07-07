@@ -12,6 +12,7 @@ import { EVIDENCE_WEIGHT } from "@eyf/types";
 import { requireOrgCapability, requireOrgMember } from "../middleware/org.js";
 import { recordAudit } from "../lib/audit.js";
 import { findOrCreateSkill, recordEvidence } from "../lib/skill-ledger.js";
+import { maybeIssueForAssessment } from "../lib/org-certificates.js";
 
 export async function orgAssessRoutes(app: FastifyInstance) {
   const author = { preHandler: [app.requireAuth, requireOrgCapability("assess:author")] };
@@ -225,6 +226,15 @@ export async function orgAssessRoutes(app: FastifyInstance) {
     }
 
     const passed = score >= attempt.run.blueprint.passingScore;
+    // Auto-issue a certificate if a template vouches for this blueprint.
+    await maybeIssueForAssessment({
+      userId: req.session!.id,
+      orgId: req.orgCtx!.orgId,
+      blueprintId: attempt.run.blueprintId,
+      score,
+      passingScore: attempt.run.blueprint.passingScore,
+      skillId: attempt.run.blueprint.skillId,
+    });
     return { success: true, data: { score, passed, integrityScore, passingScore: attempt.run.blueprint.passingScore } };
   });
 }

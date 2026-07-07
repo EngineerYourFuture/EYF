@@ -613,9 +613,38 @@ model Certificate {
   pdfUrl           String?
   linkedinShared   Boolean         @default(false)
   issuedAt         DateTime        @default(now())
+  // Enterprise (PRD §15.9): org-issued, skill-anchored, revocable.
+  orgId            String?
+  templateId       String?
+  skillsAsserted   Json? // [{ slug, level }] — what this cert vouches for
+  revokedAt        DateTime?
+  revokeReason     String?
 
   @@index([userId])
+  @@index([orgId])
   @@map("certificates")
+}
+
+// Certificate template (PRD §15.9). Criteria compile to auto-issue: pass a
+// blueprint's run at/above its bar, or manual issue by a reviewer.
+enum CertCriteria {
+  ASSESSMENT_PASS
+  MANUAL
+}
+
+model CertificateTemplate {
+  id             String       @id @default(cuid())
+  orgId          String
+  org            Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  name           String
+  skills         Json // [{ slug, level }] asserted on issue
+  criteria       CertCriteria @default(MANUAL)
+  blueprintId    String? // when criteria = ASSESSMENT_PASS
+  active         Boolean      @default(true)
+  createdAt      DateTime     @default(now())
+
+  @@index([orgId])
+  @@map("org_certificate_templates")
 }
 
 // ─── MCQ question bank (staff-authored; replaces the hardcoded TS bank) ───
@@ -1396,6 +1425,7 @@ model Organization {
   roleBars      RoleBar[]
   assessmentBlueprints AssessmentBlueprint[]
   assessmentRuns AssessmentRun[]
+  certificateTemplates CertificateTemplate[]
   @@map("organizations")
 }
 

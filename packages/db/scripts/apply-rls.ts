@@ -28,6 +28,7 @@ const ORG_TABLES = [
   "org_role_bars",
   "org_assessment_blueprints",
   "org_assessment_runs",
+  "org_certificate_templates",
   "lms_courses",
   "internship_slots",
 ];
