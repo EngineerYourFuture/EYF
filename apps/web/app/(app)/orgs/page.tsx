@@ -6,6 +6,7 @@
  * SAME shared capability map the API enforces (canInOrg from @eyf/types);
  * the API remains the authority. Grows into the full /org console per PRD §10.
  */
+import Link from "next/link";
 import { useState } from "react";
 import { Card, Badge, Button, PageHeader, EmptyState, SkeletonRows } from "@eyf/ui";
 import { PageMotion } from "@/components/page-motion";
@@ -632,6 +633,7 @@ function CoursesTab({ orgId, canAuthor, canPublish }: { orgId: string; canAuthor
                 </div>
                 <Badge tone={statusTone[c.status]}>{c.status.replace("_", " ")}</Badge>
                 <div className="flex gap-1.5 shrink-0">
+                  <Link href={`/orgs/${orgId}/build/${c.id}`}><Button size="sm" variant="secondary">Edit</Button></Link>
                   {c.status === "DRAFT" && <Button size="sm" variant="secondary" disabled={busy === c.id} onClick={() => run(c.id, "submit")}>Submit</Button>}
                   {(c.status === "IN_REVIEW" || c.status === "DRAFT") && canPublish && (
                     <Button size="sm" disabled={busy === c.id} onClick={() => run(c.id, "publish")}>Publish</Button>
@@ -652,19 +654,21 @@ function CoursesTab({ orgId, canAuthor, canPublish }: { orgId: string; canAuthor
         <div className="space-y-2">
           {!work.data && <SkeletonRows rows={2} />}
           {work.data?.map((c) => (
-            <Card key={c.id} className="py-3">
-              <div className="flex items-center gap-3">
-                <div className="min-w-0 flex-1">
-                  <div className="font-medium truncate">{c.title}</div>
-                  <div className="text-text-4 text-xs truncate">{c.description || "—"}</div>
+            <Link key={c.id} href={`/orgs/${orgId}/course/${c.id}`}>
+              <Card interactive className="py-3">
+                <div className="flex items-center gap-3">
+                  <div className="min-w-0 flex-1">
+                    <div className="font-medium truncate">{c.title}</div>
+                    <div className="text-text-4 text-xs truncate">{c.description || "—"}</div>
+                  </div>
+                  <span className="font-mono text-xs text-text-3 shrink-0 tabular-nums">{c.completedCount}/{c.lessonCount}</span>
                 </div>
-                <span className="font-mono text-xs text-text-3 shrink-0 tabular-nums">{c.completedCount}/{c.lessonCount}</span>
-              </div>
-              <div className="mt-2 h-1.5 rounded-full bg-surface-3 overflow-hidden">
-                <div className="h-full rounded-full bg-accent transition-all duration-500"
-                  style={{ width: `${c.lessonCount ? (c.completedCount / c.lessonCount) * 100 : 0}%` }} />
-              </div>
-            </Card>
+                <div className="mt-2 h-1.5 rounded-full bg-surface-3 overflow-hidden">
+                  <div className="h-full rounded-full bg-accent transition-all duration-500"
+                    style={{ width: `${c.lessonCount ? (c.completedCount / c.lessonCount) * 100 : 0}%` }} />
+                </div>
+              </Card>
+            </Link>
           ))}
           {work.data?.length === 0 && <p className="text-text-4 text-sm">Nothing assigned yet — published courses appear here.</p>}
         </div>
