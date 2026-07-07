@@ -98,7 +98,8 @@ function OrgConsole({ orgId, roles }: { orgId: string; roles: string[] }) {
   const canEnroll = canInOrg(roles, "learn:enroll").granted;
   const skillsDecision = canInOrg(roles, "people:skills-read");
   const canSkills = skillsDecision.granted && skillsDecision.scope !== "own";
-  const tabs = ["programs", "courses", ...(canSkills ? ["skills"] : []), "people"] as const;
+  const canAssess = canInOrg(roles, "assess:author").granted;
+  const tabs = ["programs", "courses", ...(canAssess ? ["assess"] : []), ...(canSkills ? ["skills"] : []), "people"] as const;
   const [tab, setTab] = useState<(typeof tabs)[number]>("programs");
 
   return (
@@ -117,8 +118,99 @@ function OrgConsole({ orgId, roles }: { orgId: string; roles: string[] }) {
         <CoursesTab orgId={orgId} canAuthor={canAuthor} canPublish={canPublish} />
       ) : tab === "skills" ? (
         <SkillsTab orgId={orgId} />
+      ) : tab === "assess" ? (
+        <AssessTab orgId={orgId} />
       ) : (
         <ProgramsTab orgId={orgId} canAuthor={canAuthor} canPublish={canPublish} canEnroll={canEnroll} />
+      )}
+    </div>
+  );
+}
+
+type Blueprint = { id: string; name: string; category: string; questionCount: number; passingScore: number; skillId: string | null; _count: { runs: number } };
+type Run = { id: string; purpose: string; blueprint: { name: string; passingScore: number }; _count: { attempts: number } };
+type Results = { run: { name: string; passingScore: number }; stats: { attempts: number; submitted: number; passed: number; avgScore: number | null }; rows: { name: string; score: number | null; passed: boolean; integrityScore: number; status: string }[] };
+const CATS = ["TECHNICAL", "APTITUDE", "LOGICAL", "VERBAL"] as const;
+
+function AssessTab({ orgId }: { orgId: string }) {
+  const action = useApiAction();
+  const bps = useApi<Blueprint[]>(`/orgs/${orgId}/blueprints`);
+  const runs = useApi<Run[]>(`/orgs/${orgId}/runs`);
+  const [name, setName] = useState("");
+  const [cat, setCat] = useState<(typeof CATS)[number]>("TECHNICAL");
+  const [skill, setSkill] = useState("");
+  const [resultsFor, setResultsFor] = useState<string | null>(null);
+  const results = useApi<Results>(resultsFor ? `/orgs/${orgId}/runs/${resultsFor}/results` : null);
+  const [busy, setBusy] = useState(false);
+
+  async function create() {
+    if (name.trim().length < 2) return;
+    setBusy(true);
+    try {
+      await action(`/orgs/${orgId}/blueprints`, { method: "POST", body: JSON.stringify({ name: name.trim(), category: cat, questionCount: 5, skillSlug: skill.trim() || null }) });
+      setName(""); setSkill(""); await bps.mutate();
+    } catch { /* toasted */ } finally { setBusy(false); }
+  }
+  async function run(blueprintId: string) {
+    try { await action(`/orgs/${orgId}/runs`, { method: "POST", body: JSON.stringify({ blueprintId }) }); await runs.mutate(); }
+    catch { /* toasted */ }
+  }
+
+  return (
+    <div className="mt-6 space-y-6">
+      <div>
+        <div className="font-mono text-[11px] uppercase tracking-widest text-text-3 mb-2">Assessment blueprints</div>
+        <div className="flex flex-wrap gap-2 mb-3">
+          <input className="flex-1 min-w-[160px] h-10 px-3 rounded-lg bg-surface border border-border text-sm focus:outline-none focus:border-accent" placeholder="Name (e.g. Kafka Check)" value={name} onChange={(e) => setName(e.target.value)} />
+          <select className="h-10 px-3 rounded-lg bg-surface border border-border text-sm" value={cat} onChange={(e) => setCat(e.target.value as typeof cat)}>{CATS.map((c) => <option key={c}>{c}</option>)}</select>
+          <input className="w-36 h-10 px-3 rounded-lg bg-surface border border-border text-sm focus:outline-none focus:border-accent" placeholder="skill tag" value={skill} onChange={(e) => setSkill(e.target.value)} />
+          <Button size="sm" onClick={create} disabled={busy || name.trim().length < 2}>New (5Q)</Button>
+        </div>
+        <div className="space-y-2">
+          {bps.data?.map((b) => (
+            <Card key={b.id} className="flex items-center gap-3 py-3 flex-wrap">
+              <div className="min-w-0 flex-1">
+                <div className="font-medium truncate">{b.name}</div>
+                <div className="text-text-4 text-xs">{b.category} · {b.questionCount}Q · pass {b.passingScore}% · {b._count.runs} runs</div>
+              </div>
+              <Button size="sm" variant="secondary" onClick={() => run(b.id)}>Run it</Button>
+            </Card>
+          ))}
+          {bps.data?.length === 0 && <p className="text-text-4 text-sm">No blueprints yet. Tag one with a skill so scores feed the matrix.</p>}
+        </div>
+      </div>
+
+      {runs.data && runs.data.length > 0 && (
+        <div>
+          <div className="font-mono text-[11px] uppercase tracking-widest text-text-3 mb-2">Runs</div>
+          <div className="space-y-2">
+            {runs.data.map((r) => (
+              <Card key={r.id} className="py-3">
+                <div className="flex items-center gap-3 flex-wrap">
+                  <div className="min-w-0 flex-1">
+                    <div className="font-medium truncate">{r.blueprint.name}</div>
+                    <div className="text-text-4 text-xs">{r.purpose} · {r._count.attempts} attempts</div>
+                  </div>
+                  <Button size="sm" variant="secondary" onClick={() => setResultsFor(resultsFor === r.id ? null : r.id)}>{resultsFor === r.id ? "Hide" : "Results"}</Button>
+                </div>
+                {resultsFor === r.id && results.data && (
+                  <div className="mt-3 border-t border-border pt-3">
+                    <div className="text-text-3 text-xs mb-2">{results.data.stats.submitted} submitted · {results.data.stats.passed} passed · avg {results.data.stats.avgScore ?? "—"}%</div>
+                    <div className="space-y-1">
+                      {results.data.rows.map((row, i) => (
+                        <div key={i} className="flex items-center gap-2 text-sm">
+                          <span className="flex-1 truncate">{row.name}</span>
+                          {row.integrityScore < 100 && <Badge tone="medium">⚑ {row.integrityScore}</Badge>}
+                          <Badge tone={row.passed ? "easy" : "hard"}>{row.score ?? "—"}%</Badge>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </Card>
+            ))}
+          </div>
+        </div>
       )}
     </div>
   );

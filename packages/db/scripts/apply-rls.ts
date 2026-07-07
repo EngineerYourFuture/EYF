@@ -25,6 +25,9 @@ const ORG_TABLES = [
   "org_usage_counters",
   "org_learning_paths",
   "org_cohorts",
+  "org_role_bars",
+  "org_assessment_blueprints",
+  "org_assessment_runs",
   "lms_courses",
   "internship_slots",
 ];

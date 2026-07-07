@@ -1394,6 +1394,8 @@ model Organization {
   learningPaths LearningPath[]
   cohorts       Cohort[]
   roleBars      RoleBar[]
+  assessmentBlueprints AssessmentBlueprint[]
+  assessmentRuns AssessmentRun[]
   @@map("organizations")
 }
 
@@ -1455,6 +1457,71 @@ model TeamMember {
 
   @@id([teamId, memberId])
   @@map("org_team_members")
+}
+
+// ─── Assessment engine (PRD §17/18) — reuses McqBankQuestion + scoring;
+// emits higher-trust ASSESSMENT evidence into the Skill Ledger on submit.
+enum AssessmentPurpose {
+  TRAINING
+  CERTIFICATION
+  HIRING
+}
+
+enum AttemptStatus {
+  IN_PROGRESS
+  SUBMITTED
+  EXPIRED
+}
+
+model AssessmentBlueprint {
+  id            String          @id @default(cuid())
+  orgId         String
+  org           Organization    @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  name          String
+  skillId       String? // the skill this run measures → evidence target
+  category      McqCategory     @default(TECHNICAL) // bank section to draw from
+  questionCount Int             @default(10)
+  durationMin   Int             @default(20)
+  passingScore  Int             @default(60)
+  proctorLevel  Int             @default(1) // 0 honor · 1 telemetry (L2/L3 later)
+  active        Boolean         @default(true)
+  createdAt     DateTime        @default(now())
+  runs          AssessmentRun[]
+  @@index([orgId])
+  @@map("org_assessment_blueprints")
+}
+
+model AssessmentRun {
+  id          String              @id @default(cuid())
+  orgId       String
+  org         Organization        @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  blueprintId String
+  blueprint   AssessmentBlueprint @relation(fields: [blueprintId], references: [id], onDelete: Cascade)
+  purpose     AssessmentPurpose   @default(TRAINING)
+  windowStart DateTime            @default(now())
+  windowEnd   DateTime?
+  createdAt   DateTime            @default(now())
+  attempts    AssessmentAttempt[]
+  @@index([orgId])
+  @@map("org_assessment_runs")
+}
+
+model AssessmentAttempt {
+  id             String        @id @default(cuid())
+  runId          String
+  run            AssessmentRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+  userId         String
+  questionIds    String[] // frozen draw at start (answers never sent to client)
+  answers        Json? // [{ questionId, choice }] submitted
+  score          Int? // 0..100
+  integrityScore Int           @default(100)
+  proctorEvents  Int           @default(0) // L1 tab-blur/fullscreen-exit tally
+  status         AttemptStatus @default(IN_PROGRESS)
+  startedAt      DateTime      @default(now())
+  submittedAt    DateTime?
+  @@unique([runId, userId])
+  @@index([runId])
+  @@map("org_assessment_attempts")
 }
 
 // ─── Skill Ledger (PRD §15.13 — the evidence layer / moat) ─────────
