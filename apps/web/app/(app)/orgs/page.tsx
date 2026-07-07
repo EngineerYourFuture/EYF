@@ -95,12 +95,13 @@ function OrgConsole({ orgId, roles }: { orgId: string; roles: string[] }) {
   const canMembers = canInOrg(roles, "org:members").granted;
   const canAuthor = canInOrg(roles, "learn:author").granted;
   const canPublish = canInOrg(roles, "learn:publish").granted;
-  const [tab, setTab] = useState<"courses" | "people">("courses");
+  const canEnroll = canInOrg(roles, "learn:enroll").granted;
+  const [tab, setTab] = useState<"programs" | "courses" | "people">("programs");
 
   return (
     <div className="min-w-0">
       <div className="flex items-center gap-1 border-b border-border">
-        {(["courses", "people"] as const).map((t) => (
+        {(["programs", "courses", "people"] as const).map((t) => (
           <button key={t} onClick={() => setTab(t)}
             className={`px-3 py-2 text-sm border-b-2 -mb-px capitalize transition-colors ${tab === t ? "border-accent text-text-1" : "border-transparent text-text-3 hover:text-text-1"}`}>
             {t}
@@ -109,9 +110,126 @@ function OrgConsole({ orgId, roles }: { orgId: string; roles: string[] }) {
       </div>
       {tab === "people" ? (
         canMembers ? <PeopleTab orgId={orgId} /> : <p className="text-text-3 text-sm mt-6">Your role doesn&apos;t include people management.</p>
-      ) : (
+      ) : tab === "courses" ? (
         <CoursesTab orgId={orgId} canAuthor={canAuthor} canPublish={canPublish} />
+      ) : (
+        <ProgramsTab orgId={orgId} canAuthor={canAuthor} canPublish={canPublish} canEnroll={canEnroll} />
       )}
+    </div>
+  );
+}
+
+type PathRow = { id: string; title: string; published: boolean; _count: { items: number; cohorts: number } };
+type CohortRow = { id: string; name: string; startsAt: string; path: { title: string }; _count: { enrollments: number } };
+type WorkPath = { cohortId: string; cohortName: string; pathTitle: string; progressPct: number; courses: { id: string; title: string; lessonCount: number; completedCount: number }[] };
+type Funnel = { cohort: { name: string; path: string }; funnel: { enrolled: number; started: number; halfway: number; completed: number; stuck: number }; rows: { member: { name: string }; progressPct: number; stuckFlag: boolean }[] };
+
+function ProgramsTab({ orgId, canAuthor, canPublish, canEnroll }: { orgId: string; canAuthor: boolean; canPublish: boolean; canEnroll: boolean }) {
+  const action = useApiAction();
+  const paths = useApi<PathRow[]>(canAuthor ? `/orgs/${orgId}/paths` : null);
+  const cohorts = useApi<CohortRow[]>(canEnroll ? `/orgs/${orgId}/cohorts` : null);
+  const work = useApi<WorkPath[]>(`/orgs/${orgId}/work/paths`);
+  const [title, setTitle] = useState("");
+  const [funnelFor, setFunnelFor] = useState<string | null>(null);
+  const funnel = useApi<Funnel>(funnelFor ? `/orgs/${orgId}/cohorts/${funnelFor}/funnel` : null);
+  const [busy, setBusy] = useState<string | null>(null);
+
+  async function draftPath() {
+    if (title.trim().length < 2) return;
+    setBusy("new");
+    try { await action(`/orgs/${orgId}/paths`, { method: "POST", body: JSON.stringify({ title: title.trim() }) }); setTitle(""); await paths.mutate(); }
+    catch { /* toasted */ } finally { setBusy(null); }
+  }
+
+  return (
+    <div className="mt-6 space-y-6">
+      {canAuthor && (
+        <div>
+          <div className="font-mono text-[11px] uppercase tracking-widest text-text-3 mb-2">Learning programs</div>
+          <div className="flex gap-2 mb-3">
+            <input className="flex-1 h-10 px-3 rounded-lg bg-surface border border-border text-sm text-text-1 focus:outline-none focus:border-accent"
+              placeholder="New program title (e.g. Fresher Onboarding)" value={title} onChange={(e) => setTitle(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") void draftPath(); }} />
+            <Button size="sm" onClick={draftPath} disabled={busy === "new" || title.trim().length < 2}>New program</Button>
+          </div>
+          <div className="space-y-2">
+            {paths.data?.map((p) => (
+              <Card key={p.id} className="flex items-center gap-3 py-3 flex-wrap">
+                <div className="min-w-0 flex-1">
+                  <div className="font-medium truncate">{p.title}</div>
+                  <div className="text-text-4 text-xs">{p._count.items} courses · {p._count.cohorts} cohorts</div>
+                </div>
+                <Badge tone={p.published ? "easy" : "default"}>{p.published ? "PUBLISHED" : "DRAFT"}</Badge>
+              </Card>
+            ))}
+            {paths.data?.length === 0 && <p className="text-text-4 text-sm">No programs yet. Create one, then add published courses to it.</p>}
+          </div>
+        </div>
+      )}
+
+      {canEnroll && cohorts.data && cohorts.data.length > 0 && (
+        <div>
+          <div className="font-mono text-[11px] uppercase tracking-widest text-text-3 mb-2">Cohorts</div>
+          <div className="space-y-2">
+            {cohorts.data.map((c) => (
+              <Card key={c.id} className="py-3">
+                <div className="flex items-center gap-3 flex-wrap">
+                  <div className="min-w-0 flex-1">
+                    <div className="font-medium truncate">{c.name}</div>
+                    <div className="text-text-4 text-xs truncate">{c.path.title} · {c._count.enrollments} enrolled</div>
+                  </div>
+                  <Button size="sm" variant="secondary" onClick={() => setFunnelFor(funnelFor === c.id ? null : c.id)}>
+                    {funnelFor === c.id ? "Hide funnel" : "View funnel"}
+                  </Button>
+                </div>
+                {funnelFor === c.id && funnel.data && (
+                  <div className="mt-3 border-t border-border pt-3">
+                    <div className="grid grid-cols-5 gap-2 text-center">
+                      {([["Enrolled", funnel.data.funnel.enrolled, "default"], ["Started", funnel.data.funnel.started, "accent"], ["Halfway", funnel.data.funnel.halfway, "accent"], ["Done", funnel.data.funnel.completed, "easy"], ["Stuck", funnel.data.funnel.stuck, "hard"]] as const).map(([l, v, tone]) => (
+                        <div key={l} className="rounded-lg bg-surface-2 py-2">
+                          <div className={`font-display text-lg font-bold ${tone === "easy" ? "text-easy" : tone === "hard" && v > 0 ? "text-hard" : ""}`}>{v}</div>
+                          <div className="text-text-4 text-[10px] font-mono uppercase">{l}</div>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mt-3 space-y-1">
+                      {funnel.data.rows.map((r, i) => (
+                        <div key={i} className="flex items-center gap-2 text-sm">
+                          <span className="flex-1 truncate">{r.member.name}</span>
+                          {r.stuckFlag && <Badge tone="hard">stuck</Badge>}
+                          <span className="font-mono text-xs text-text-3 tabular-nums w-10 text-right">{r.progressPct}%</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div>
+        <div className="font-mono text-[11px] uppercase tracking-widest text-text-3 mb-2">My programs</div>
+        <div className="space-y-2">
+          {!work.data && <SkeletonRows rows={2} />}
+          {work.data?.map((p) => (
+            <Card key={p.cohortId} className="py-3">
+              <div className="flex items-center gap-3">
+                <div className="min-w-0 flex-1">
+                  <div className="font-medium truncate">{p.pathTitle}</div>
+                  <div className="text-text-4 text-xs truncate">{p.cohortName} · {p.courses.length} courses</div>
+                </div>
+                <span className="font-mono text-xs text-text-3 shrink-0 tabular-nums">{p.progressPct}%</span>
+              </div>
+              <div className="mt-2 h-1.5 rounded-full bg-surface-3 overflow-hidden">
+                <div className="h-full rounded-full bg-accent transition-all duration-500" style={{ width: `${p.progressPct}%` }} />
+              </div>
+            </Card>
+          ))}
+          {work.data?.length === 0 && <p className="text-text-4 text-sm">No programs assigned yet.</p>}
+        </div>
+      </div>
     </div>
   );
 }

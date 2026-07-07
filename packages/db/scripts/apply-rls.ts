@@ -23,6 +23,8 @@ const ORG_TABLES = [
   "org_teams",
   "org_invites",
   "org_usage_counters",
+  "org_learning_paths",
+  "org_cohorts",
   "lms_courses",
   "internship_slots",
 ];

@@ -1391,6 +1391,8 @@ model Organization {
   departments   Department[]
   teams         Team[]
   invites       OrgInvite[]
+  learningPaths LearningPath[]
+  cohorts       Cohort[]
   @@map("organizations")
 }
 
@@ -1409,6 +1411,7 @@ model OrgMember {
   status       OrgMemberStatus @default(ACTIVE)
   joinedAt     DateTime        @default(now())
   teams        TeamMember[]
+  cohortEnrollments CohortEnrollment[]
 
   @@unique([orgId, userId])
   @@index([orgId, departmentId])
@@ -1451,6 +1454,82 @@ model TeamMember {
 
   @@id([teamId, memberId])
   @@map("org_team_members")
+}
+
+// Learning paths (PRD §15.12) — ordered programs composed of courses (more
+// item types arrive with the assessment engine). Cohorts run a path against
+// an audience with dates; enrollment rows carry the funnel + stuck state.
+enum PathItemType {
+  COURSE
+}
+
+enum CohortEnrollStatus {
+  ENROLLED
+  COMPLETED
+  DROPPED
+}
+
+model LearningPath {
+  id          String       @id @default(cuid())
+  orgId       String
+  org         Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  title       String
+  description String       @default("")
+  published   Boolean      @default(false)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @default(now()) @updatedAt
+  items       PathItem[]
+  cohorts     Cohort[]
+
+  @@index([orgId])
+  @@map("org_learning_paths")
+}
+
+model PathItem {
+  id         String       @id @default(cuid())
+  pathId     String
+  path       LearningPath @relation(fields: [pathId], references: [id], onDelete: Cascade)
+  itemType   PathItemType @default(COURSE)
+  courseId   String
+  course     Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  orderIndex Int          @default(0)
+  required   Boolean      @default(true)
+
+  @@unique([pathId, courseId])
+  @@map("org_path_items")
+}
+
+model Cohort {
+  id          String             @id @default(cuid())
+  orgId       String
+  org         Organization       @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  pathId      String
+  path        LearningPath       @relation(fields: [pathId], references: [id], onDelete: Cascade)
+  name        String
+  startsAt    DateTime
+  endsAt      DateTime?
+  createdAt   DateTime           @default(now())
+  enrollments CohortEnrollment[]
+
+  @@index([orgId])
+  @@map("org_cohorts")
+}
+
+model CohortEnrollment {
+  id             String             @id @default(cuid())
+  cohortId       String
+  cohort         Cohort             @relation(fields: [cohortId], references: [id], onDelete: Cascade)
+  memberId       String
+  member         OrgMember          @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  status         CohortEnrollStatus @default(ENROLLED)
+  progressPct    Int                @default(0)
+  lastActivityAt DateTime?
+  stuckFlag      Boolean            @default(false)
+  enrolledAt     DateTime           @default(now())
+
+  @@unique([cohortId, memberId])
+  @@index([cohortId, stuckFlag])
+  @@map("org_cohort_enrollments")
 }
 
 // Usage metering (PRD §23) — one row per org × metric × month. Incremented
@@ -1518,6 +1597,7 @@ model Course {
   lessons        Lesson[]
   enrollments    Enrollment[]
   versions       CourseVersion[]
+  pathItems      PathItem[]
   @@index([orgId, status])
   @@map("lms_courses")
 }
