@@ -51,10 +51,50 @@ export async function authRoutes(app: FastifyInstance) {
       plan,
       sid: sess.id,
     });
+    const refreshToken = await reply.refreshJwtSign({ sid: sess.id, uid: user.id });
     return reply.send({
       success: true,
-      data: { token, user: { id: user.id, email: user.email, role: user.role, plan } },
+      data: { token, refreshToken, user: { id: user.id, email: user.email, role: user.role, plan } },
     });
+  });
+
+  // ─── Rotate a short-lived access token from a refresh token ──────
+  // Client sends the refresh token as `Authorization: Bearer <refresh>`. We
+  // verify it (separate secret), confirm the session row still exists (so an
+  // evicted/again-capped session can't be revived), then issue a fresh access
+  // token AND a rotated refresh token.
+  app.post("/refresh", async (req, reply) => {
+    let claims: { sid?: string; uid?: string };
+    try {
+      claims = await req.refreshJwtVerify<{ sid?: string; uid?: string }>();
+    } catch {
+      return reply.code(401).send({ success: false, error: { code: "INVALID_REFRESH", message: "Session expired. Please sign in again." } });
+    }
+    if (!claims.sid || !claims.uid) {
+      return reply.code(401).send({ success: false, error: { code: "INVALID_REFRESH", message: "Invalid refresh token." } });
+    }
+    const sess = await prisma.userSession.findUnique({ where: { id: claims.sid }, select: { id: true, userId: true } });
+    if (!sess || sess.userId !== claims.uid) {
+      return reply.code(401).send({ success: false, error: { code: "SESSION_REVOKED", message: "This session is no longer active." } });
+    }
+    const user = await prisma.user.findUnique({ where: { id: claims.uid }, include: { subscription: true } });
+    if (!user || user.deletedAt) {
+      return reply.code(401).send({ success: false, error: { code: "SESSION_REVOKED", message: "This session is no longer active." } });
+    }
+    const plan = resolveActivePlan(user.subscription).toLowerCase();
+    await prisma.userSession.update({ where: { id: sess.id }, data: { lastSeenAt: new Date() } }).catch(() => {});
+    const token = await reply.jwtSign({ id: user.id, email: user.email, name: user.name, role: user.role, plan, sid: sess.id });
+    const refreshToken = await reply.refreshJwtSign({ sid: sess.id, uid: user.id });
+    return reply.send({ success: true, data: { token, refreshToken } });
+  });
+
+  // ─── Explicit sign-out: evict the session row (kills access + refresh) ──
+  app.post("/logout", async (req, reply) => {
+    try {
+      const claims = await req.refreshJwtVerify<{ sid?: string }>();
+      if (claims.sid) await prisma.userSession.delete({ where: { id: claims.sid } }).catch(() => {});
+    } catch { /* no/expired refresh token — nothing to evict */ }
+    return reply.send({ success: true, data: { ok: true } });
   });
 
   // ─── Clerk webhook (verified via svix) ──────────────────────────

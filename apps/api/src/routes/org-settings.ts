@@ -10,6 +10,7 @@ import { requireOrgCapability } from "../middleware/org.js";
 import { recordAudit } from "../lib/audit.js";
 import { mintApiKey } from "../lib/api-keys.js";
 import { newWebhookSecret } from "../lib/webhooks.js";
+import { assertPublicUrl } from "../lib/ssrf.js";
 
 const WEBHOOK_EVENTS = [
   "member.joined", "cohort.completed", "enrollment.stuck", "assessment.submitted",
@@ -89,6 +90,16 @@ export async function orgSettingsRoutes(app: FastifyInstance) {
       url: z.string().url(),
       events: z.array(z.enum(WEBHOOK_EVENTS)).min(1),
     }).parse(req.body);
+    // SSRF guard: reject non-https / private / metadata targets before we store
+    // the endpoint (re-checked again at delivery time against DNS rebinding).
+    try {
+      await assertPublicUrl(body.url);
+    } catch (e) {
+      return reply.code(400).send({
+        success: false,
+        error: { code: "INVALID_WEBHOOK_URL", message: e instanceof Error ? e.message : "Invalid URL." },
+      });
+    }
     const secret = newWebhookSecret();
     const ep = await prisma.webhookEndpoint.create({ data: { orgId: req.orgCtx!.orgId, url: body.url, events: body.events, secret } });
     // The signing secret is shown once so the receiver can verify signatures.

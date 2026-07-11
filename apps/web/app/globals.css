@@ -23,8 +23,11 @@
 
     --text-1:      244 245 248;
     --text-2:      166 171 182;
-    --text-3:      118 123 134;
-    --text-4:      80 85 96;
+    /* text-3/text-4 lifted to clear WCAG AA (≥4.5:1) on --bg — these carry
+       nav group labels, stat sub-text and other meta copy, so they must be
+       readable, not decorative. */
+    --text-3:      138 144 156;
+    --text-4:      116 121 132;
 
     /* Monochrome primary — cool near-white. Premium, not neon. */
     --accent:      244 245 248;
@@ -62,8 +65,9 @@
 
     --text-1:      17 19 24;
     --text-2:      66 71 82;
-    --text-3:      114 120 132;
-    --text-4:      154 159 170;
+    /* Lifted to clear WCAG AA (≥4.5:1) on the light --bg. */
+    --text-3:      92 98 110;
+    --text-4:      104 110 122;
 
     /* Monochrome primary — cool near-black on white. */
     --accent:      17 19 24;
@@ -92,7 +96,7 @@
     --bg: 9 10 13; --bg-2: 12 13 17;
     --surface: 17 19 24; --surface-2: 22 25 31; --surface-3: 29 32 40;
     --border: 33 36 44; --border-2: 48 52 63;
-    --text-1: 244 245 248; --text-2: 166 171 182; --text-3: 118 123 134; --text-4: 80 85 96;
+    --text-1: 244 245 248; --text-2: 166 171 182; --text-3: 138 144 156; --text-4: 116 121 132;
     --accent: 244 245 248; --accent-hover: 210 214 222; --accent-tint: 29 32 40; --accent-ink: 9 10 13;
     --brand: 235 38 55; --brand-hover: 205 28 46; --brand-ink: 255 255 255;
     --easy: 90 190 120; --medium: 200 160 70; --hard: 210 90 70; --expert: 176 112 160; --info: 120 150 190;
@@ -106,7 +110,7 @@
     --bg: 255 255 255; --bg-2: 247 248 250;
     --surface: 255 255 255; --surface-2: 250 251 253; --surface-3: 242 244 247;
     --border: 226 229 235; --border-2: 208 213 221;
-    --text-1: 29 29 31; --text-2: 88 93 102; --text-3: 128 134 143; --text-4: 160 165 174;
+    --text-1: 29 29 31; --text-2: 88 93 102; --text-3: 92 98 110; --text-4: 104 110 122;
     --accent: 29 29 31; --accent-hover: 55 57 62; --accent-tint: 242 244 247; --accent-ink: 255 255 255;
     --brand: 214 24 42; --brand-hover: 186 16 34; --brand-ink: 255 255 255;
     --easy: 40 150 90; --medium: 170 120 20; --hard: 190 60 45; --expert: 150 80 140; --info: 26 115 232;

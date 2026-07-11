@@ -89,43 +89,28 @@ describe.skipIf(!hasDb)("org settings — branding, api keys, webhooks (real DB)
     expect((await inject(member.token, "GET", `/v1/orgs/${orgId}/api-keys`)).statusCode).toBe(403);
   });
 
-  it("webhook fires on certificate.issued, HMAC-signed and recorded", async () => {
-    // Stand up a receiver.
-    const received: { sig: string | null; body: string }[] = [];
-    const http = await import("node:http");
-    const server = http.createServer((r, res) => {
-      let body = "";
-      r.on("data", (c) => (body += c));
-      r.on("end", () => { received.push({ sig: r.headers["x-eyf-signature"] as string, body }); res.writeHead(200).end("ok"); });
-    });
-    await new Promise<void>((ok) => server.listen(0, ok));
-    const port = (server.address() as { port: number }).port;
-
-    const hook = await inject(owner.token, "POST", `/v1/orgs/${orgId}/webhooks`, { url: `http://127.0.0.1:${port}/hook`, events: ["certificate.issued"] });
+  it("webhook enqueues a durable, HMAC-signed delivery on certificate.issued", async () => {
+    const hook = await inject(owner.token, "POST", `/v1/orgs/${orgId}/webhooks`, { url: "https://hooks.example.com/eyf", events: ["certificate.issued"] });
     expect(hook.statusCode).toBe(201);
-    const secret = hook.json().data.secret;
+    const secret = hook.json().data.secret as string;
     expect(secret).toMatch(/^whsec_/);
 
-    // Trigger the event.
+    // Trigger the event. Delivery is durable: fireWebhook records a pending row
+    // and enqueues a BullMQ job (the webhook worker performs the actual POST).
     const { issueCertificate } = await import("../lib/org-certificates.js");
     await issueCertificate({ userId: member.id, orgId, templateId: "tpl_x", title: "Test Cert", score: 90, skillsAsserted: [] });
-    // Let the fire-and-forget delivery land.
-    await new Promise((r) => setTimeout(r, 400));
+    await new Promise((r) => setTimeout(r, 200)); // let the async enqueue settle
 
-    expect(received.length).toBe(1);
-    const rec = received[0]!;
-    const payload = JSON.parse(rec.body);
-    expect(payload.event).toBe("certificate.issued");
-    expect(payload.data.title).toBe("Test Cert");
-    // Signature verifies with the secret the receiver was given.
-    const expectSig = createHmac("sha256", secret).update(rec.body).digest("hex");
-    expect(rec.sig).toBe(expectSig);
-
-    // Delivery recorded as delivered.
+    // A pending delivery for the event was recorded.
     const deliveries = await inject(owner.token, "GET", `/v1/orgs/${orgId}/webhooks/${hook.json().data.id}/deliveries`);
-    expect(deliveries.json().data[0]).toMatchObject({ event: "certificate.issued", status: "delivered" });
+    expect(deliveries.json().data[0]).toMatchObject({ event: "certificate.issued", status: "pending" });
 
-    await new Promise<void>((ok) => server.close(() => ok()));
+    // The signature is a deterministic HMAC over `<timestamp>.<body>` (replay-safe).
+    const { signPayload } = await import("../lib/webhooks.js");
+    const body = JSON.stringify({ event: "certificate.issued", data: { title: "Test Cert" } });
+    expect(signPayload(secret, body, 1234567890)).toBe(
+      createHmac("sha256", secret).update(`1234567890.${body}`).digest("hex"),
+    );
   });
 
   it("outsider is walled off from all settings", async () => {

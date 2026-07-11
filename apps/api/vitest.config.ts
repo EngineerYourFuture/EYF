@@ -5,6 +5,10 @@ export default defineConfig({
     include: ["src/**/*.test.ts"],
     environment: "node",
     globals: false,
+    // The DB-backed integration tests share one Postgres, so running test files
+    // in parallel races on shared fixtures (skill upserts, seeded ids). Run them
+    // sequentially for deterministic, flake-free results.
+    fileParallelism: false,
     coverage: {
       provider: "v8",
       reporter: ["text", "lcov"],

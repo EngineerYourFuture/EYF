@@ -57,7 +57,6 @@ export default function WelcomePage() {
 
   return (
     <div className="min-h-screen bg-bg text-text-1 flex flex-col">
-      <div className="pointer-events-none fixed inset-x-0 top-0 h-80 bg-glow-radial" aria-hidden />
 
       <header className="relative flex items-center justify-between px-5 sm:px-8 h-16">
         <Link href="/" className="font-display font-bold text-xl tracking-tight">EYF</Link>

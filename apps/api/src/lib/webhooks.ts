@@ -1,21 +1,28 @@
 /**
- * Outbound webhooks (PRD §14/§24). Fire-and-forget from event sites; each
- * delivery is HMAC-signed and recorded. Best-effort with a short retry — a
- * durable BullMQ delivery worker replaces this inline path at scale (noted).
+ * Outbound webhooks (PRD §14/§24). Delivery is durable: the triggering request
+ * only records a pending delivery and enqueues a BullMQ job, so a slow or dead
+ * customer endpoint never adds latency to (or fails) the request that fired it.
+ * The webhook worker performs the HTTP POST with retry/backoff and a dead-letter.
+ *
+ * Each payload is HMAC-signed over `<timestamp>.<body>` and sent with the
+ * timestamp header so receivers can reject replays. See jobs/webhook.worker.ts.
  */
 import { createHmac, randomBytes } from "node:crypto";
 import { prisma, Prisma } from "@eyf/db";
+import { webhookQueue } from "../jobs/webhook.queue.js";
 
 export function newWebhookSecret(): string {
   return `whsec_${randomBytes(24).toString("base64url")}`;
 }
 
-export function signPayload(secret: string, body: string): string {
-  return createHmac("sha256", secret).update(body).digest("hex");
+/** Sign `<timestamp>.<body>` so the signature is bound to a moment in time. */
+export function signPayload(secret: string, body: string, timestamp: number): string {
+  return createHmac("sha256", secret).update(`${timestamp}.${body}`).digest("hex");
 }
 
-/** Deliver `event` to every active endpoint of `orgId` subscribed to it.
- *  Never throws — webhook failure must not break the triggering request. */
+/** Record a pending delivery for every subscribed endpoint of `orgId` and
+ *  enqueue it for the worker. Never throws — webhook wiring must not break the
+ *  triggering request. */
 export async function fireWebhook(orgId: string, event: string, data: unknown): Promise<void> {
   try {
     const endpoints = await prisma.webhookEndpoint.findMany({
@@ -26,24 +33,17 @@ export async function fireWebhook(orgId: string, event: string, data: unknown): 
       endpoints.map(async (ep) => {
         const body = JSON.stringify({ event, data, ts: new Date().toISOString() });
         const delivery = await prisma.webhookDelivery.create({
-          data: { endpointId: ep.id, event, payload: { event, data } as Prisma.InputJsonValue },
+          data: { endpointId: ep.id, event, payload: { event, data } as Prisma.InputJsonValue, status: "pending" },
           select: { id: true },
         });
-        let ok = false;
-        try {
-          const res = await fetch(ep.url, {
-            method: "POST",
-            headers: { "content-type": "application/json", "x-eyf-signature": signPayload(ep.secret, body), "x-eyf-event": event },
-            body,
-            signal: AbortSignal.timeout(5000),
-          });
-          ok = res.ok;
-        } catch { ok = false; }
-        await prisma.webhookDelivery.update({ where: { id: delivery.id }, data: { status: ok ? "delivered" : "failed", attempts: 1, lastAt: new Date() } }).catch(() => {});
-        if (!ok) await prisma.webhookEndpoint.update({ where: { id: ep.id }, data: { failCount: { increment: 1 } } }).catch(() => {});
+        await webhookQueue.add(
+          "deliver",
+          { endpointId: ep.id, deliveryId: delivery.id, event, body, secret: ep.secret },
+          { jobId: delivery.id }, // idempotent enqueue
+        );
       }),
     );
   } catch {
-    /* webhooks are best-effort; never surface to the caller */
+    /* webhooks are best-effort at the enqueue boundary; never surface to the caller */
   }
 }

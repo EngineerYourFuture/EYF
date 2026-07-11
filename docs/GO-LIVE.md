@@ -47,22 +47,27 @@ EYF is code-complete for launch. What stands between it and a live product is **
 
 Turborepo monorepo (pnpm), Node 20+.
 
-**Services to stand up (5 — two are easy to forget):**
-1. **web** — Next.js 14 → Vercel. Set all `NEXT_PUBLIC_*` env.
-2. **api** — Fastify 5 (Node 20) → Railway/Render. Start: `pnpm --filter @eyf/api start` (build first). Set all server env.
-3. **Postgres 16** + **Redis 7** — managed.
-4. **Judge0 worker** — `pnpm --filter @eyf/api dev:worker` (dispatch + verdict polling). **Must run as its own long-lived process.**
-5. **Cron worker** — `pnpm --filter @eyf/api dev:cron` (streak alerts 21:00 IST, digest 07:00 IST, leaderboard Mon 08:00 IST). **Own process too — this fires the retention loop.**
+**Services to stand up (6 — three are easy to forget):**
+1. **web** — Next.js 14 (standalone/Docker → `apps/web/Dockerfile`) → Vercel or a container host. Set all `NEXT_PUBLIC_*` env (build-time).
+2. **api** — Fastify 5 (Node 20, `apps/api/Dockerfile`). Start: `pnpm --filter @eyf/api start`. Set all server env.
+3. **Postgres 16** (pooled `DATABASE_URL` + `DIRECT_DATABASE_URL`) + **Redis 7** — managed.
+4. **Judge0 worker** — `start:worker` (dispatch + verdict polling). **Own long-lived process.**
+5. **Cron worker** — `start:cron` (streak alerts 21:00 IST, digest 07:00 IST, leaderboard Mon 08:00 IST). **Own process — the retention loop.**
+6. **Webhook worker** — `start:webhook` (durable outbound webhook delivery + retries). **Own process.**
 
-Plus **Judge0 itself** (`docker compose --profile judge up`) or a hosted Judge0.
+Everything is containerised: `docker compose -f docker-compose.prod.yml up -d --build` brings up all six + datastores. Plus **Judge0 itself** (`docker compose --profile judge up`) or a hosted Judge0.
 
-**DB on first deploy:**
+**DB on first deploy (migrations, not `db push`):**
 ```bash
-pnpm db:generate                        # generate Prisma client (gitignored)
-cd packages/db && npx prisma db push    # this repo uses db push, not migrations
-pnpm --filter @eyf/db db:rls            # apply tenant-isolation RLS policies (idempotent — rerun after every db push)
-pnpm db:seed                            # seed problems, tracks, jobs, seed users
+pnpm db:generate                                    # generate Prisma client (gitignored)
+pnpm --filter @eyf/db exec prisma migrate deploy    # apply versioned migrations (reviewed, reversible)
+# Baselining an EXISTING prod DB created via the old db push? Run once:
+#   pnpm --filter @eyf/db exec prisma migrate resolve --applied 0_init
+pnpm --filter @eyf/db db:rls                         # tenant-isolation RLS policies (idempotent)
+pnpm db:seed                                         # seed problems, tracks, jobs, seed users
 ```
+See **`docs/OPERATIONS.md`** for the full runbook: rolling/rollback, health probes,
+backups + PITR + restore drills, disaster recovery, and observability/SLOs.
 
 **One-pass activation order (when keys arrive):**
 1. Paste keys into the platform env (or the three local env files).

@@ -10,7 +10,13 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  // Runtime uses the POOLED endpoint (PgBouncer / Neon pooled / Prisma Accelerate)
+  // so N app + worker instances don't exhaust Postgres connections. Migrations
+  // and introspection use directUrl, which must bypass the pooler (transaction
+  // pooling can't run DDL). When DIRECT_DATABASE_URL is unset, Prisma falls back
+  // to url — safe for single-node/local dev.
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_DATABASE_URL")
 }
 
 // ─── Enums ────────────────────────────────────────────────────────

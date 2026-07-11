@@ -33,7 +33,6 @@ export default function Page() {
 
   return (
     <PageMotion className="relative">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-64 bg-glow-radial" aria-hidden />
       <div className="relative px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-5xl mx-auto">
         <PageHeader
           eyebrow="Where you rank"
@@ -110,7 +109,14 @@ export default function Page() {
   );
 }
 
-const MEDAL = ["🥇", "🥈", "🥉"];
+// Metallic tones for the top three — a styled disc that keeps the actual rank
+// number legible (more informative than a medal glyph) and renders identically
+// on every platform, unlike emoji.
+const MEDAL_TONE: Record<number, { bg: string; fg: string }> = {
+  1: { bg: "#f6c844", fg: "#3b2f00" },
+  2: { bg: "#c7ced8", fg: "#2a2f38" },
+  3: { bg: "#d79a63", fg: "#3a2410" },
+};
 
 function RankRow({ r, unit }: { r: Row; unit: string }) {
   return (
@@ -118,7 +124,16 @@ function RankRow({ r, unit }: { r: Row; unit: string }) {
       r.isMe ? "border-accent bg-accent-tint" : "border-border bg-surface"
     }`}>
       <div className="w-8 shrink-0 text-center font-display font-bold">
-        {r.rank <= 3 ? <span className="text-xl">{MEDAL[r.rank - 1]}</span> : <span className="text-text-3">{r.rank}</span>}
+        {r.rank <= 3 ? (
+          <span
+            className="inline-flex h-7 w-7 items-center justify-center rounded-full text-sm font-bold tabular-nums"
+            style={{ background: MEDAL_TONE[r.rank]!.bg, color: MEDAL_TONE[r.rank]!.fg }}
+          >
+            {r.rank}
+          </span>
+        ) : (
+          <span className="text-text-3 tabular-nums">{r.rank}</span>
+        )}
       </div>
       <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-accent/20 bg-surface-2 font-display text-sm font-bold text-accent">
         {r.name[0]}

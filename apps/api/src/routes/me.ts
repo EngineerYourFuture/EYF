@@ -57,4 +57,36 @@ export async function meRoutes(app: FastifyInstance) {
     });
     return { success: true, data: { user } };
   });
+
+  // ─── GDPR / DPDP: data portability (Right of Access) ────────────
+  // Returns a machine-readable copy of the personal data we hold for the caller.
+  app.get("/export", { preHandler: app.requireAuth }, async (req, reply) => {
+    const id = req.session!.id;
+    const [user, profile, submissions, subscription, sessions] = await Promise.all([
+      prisma.user.findUnique({ where: { id }, select: profileSelect }),
+      prisma.userProfile.findUnique({ where: { userId: id } }),
+      prisma.problemSolution.findMany({ where: { userId: id }, select: { problemId: true, verdict: true, language: true, submittedAt: true } }),
+      prisma.subscription.findUnique({ where: { userId: id }, select: { plan: true, status: true, startedAt: true, endsAt: true } }),
+      prisma.userSession.findMany({ where: { userId: id }, select: { userAgent: true, ip: true, createdAt: true, lastSeenAt: true } }),
+    ]);
+    reply.header("content-disposition", `attachment; filename="eyf-data-export-${id}.json"`);
+    return reply.send({
+      success: true,
+      data: { exportedAt: new Date().toISOString(), user, profile, subscription, submissions, sessions },
+    });
+  });
+
+  // ─── GDPR / DPDP: Right to Erasure ──────────────────────────────
+  // Soft-deletes the account and evicts all sessions immediately. PII is purged
+  // on the retention schedule (see docs). Requires typing the exact confirmation.
+  app.post("/delete", { preHandler: app.requireAuth }, async (req, reply) => {
+    const { confirm } = z.object({ confirm: z.literal("DELETE") }).parse(req.body);
+    void confirm;
+    const id = req.session!.id;
+    await prisma.$transaction([
+      prisma.user.update({ where: { id }, data: { deletedAt: new Date() } }),
+      prisma.userSession.deleteMany({ where: { userId: id } }),
+    ]);
+    return reply.send({ success: true, data: { deleted: true } });
+  });
 }

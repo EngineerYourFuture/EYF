@@ -2,7 +2,7 @@
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { AppSidebar } from "./app-sidebar";
 import { BackButton } from "./back-button";
@@ -70,6 +70,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const pathname = usePathname();
+  const menuBtnRef = useRef<HTMLButtonElement>(null);
+  const drawerRef = useRef<HTMLElement>(null);
 
   // Restore the collapsed preference (desktop sidebar).
   useEffect(() => { try { setCollapsed(localStorage.getItem("eyf-sidebar-collapsed") === "1"); } catch {} }, []);
@@ -84,8 +86,39 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     return () => { document.body.style.overflow = ""; };
   }, [open]);
 
+  // Drawer focus management: trap Tab within the dialog, Escape closes, and
+  // focus returns to the trigger on close (WCAG 2.4.3 / 2.1.2).
+  useEffect(() => {
+    if (!open) return;
+    const opener = menuBtnRef.current;
+    const sel = 'a[href], button:not([disabled]), input, [tabindex]:not([tabindex="-1"])';
+    const focusables = () => Array.from(drawerRef.current?.querySelectorAll<HTMLElement>(sel) ?? []);
+    focusables()[0]?.focus();
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") { setOpen(false); return; }
+      if (e.key !== "Tab") return;
+      const f = focusables();
+      if (f.length === 0) return;
+      const first = f[0]!, last = f[f.length - 1]!;
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      opener?.focus();
+    };
+  }, [open]);
+
   return (
     <div className={`min-h-screen lg:grid ${collapsed ? "lg:grid-cols-[0_1fr]" : "lg:grid-cols-[248px_1fr]"}`}>
+      {/* Skip link — first focusable element, visible only on keyboard focus (WCAG 2.4.1). */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[60] focus:rounded-lg focus:bg-accent focus:text-accent-ink focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:shadow-card"
+      >
+        Skip to content
+      </a>
       {/* Desktop sidebar — collapsible, hidden on mobile (mobile uses the drawer) */}
       <aside className={`${collapsed ? "hidden" : "hidden lg:flex"} border-r border-border glass flex-col h-screen sticky top-0`}>
         <SidebarInner onCollapse={() => setCol(true)} />
@@ -101,7 +134,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* Mobile top bar */}
       <header className="lg:hidden sticky top-0 z-40 h-14 px-4 flex items-center gap-3 border-b border-border glass">
-        <button onClick={() => setOpen(true)} aria-label="Open menu" className="p-1 -ml-1 text-text-2 hover:text-text-1">
+        <button ref={menuBtnRef} onClick={() => setOpen(true)} aria-label="Open menu" aria-haspopup="dialog" aria-expanded={open} className="p-1 -ml-1 text-text-2 hover:text-text-1">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
             <path d="M3 12h18M3 6h18M3 18h18" />
           </svg>
@@ -126,6 +159,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               onClick={() => setOpen(false)}
             />
             <motion.aside
+              ref={drawerRef}
+              role="dialog"
+              aria-modal="true"
+              aria-label="Navigation menu"
               className="lg:hidden fixed inset-y-0 left-0 z-50 w-[78%] max-w-xs bg-bg border-r border-border flex flex-col"
               initial={{ x: "-100%" }} animate={{ x: 0 }} exit={{ x: "-100%" }}
               transition={{ type: "spring", stiffness: 320, damping: 34 }}
@@ -145,7 +182,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         )}
       </AnimatePresence>
 
-      <main className="min-h-screen min-w-0 overflow-x-hidden lg:col-start-2 pb-20 lg:pb-0">
+      <main id="main-content" tabIndex={-1} className="min-h-screen min-w-0 overflow-x-hidden lg:col-start-2 pb-20 lg:pb-0 focus:outline-none">
         <DesktopBackBar />
         {/* Route transition — content fades + rises in on every navigation. */}
         <motion.div

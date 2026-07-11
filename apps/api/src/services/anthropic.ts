@@ -116,3 +116,29 @@ export async function answerTechQuestion(input: { question: string }): Promise<{
     return { answer: text.trim(), topic: "general", tags: [] };
   }
 }
+
+/**
+ * AI Course Builder (PRD §20) — draft a course outline from a topic. Returns
+ * lessons with block outlines the instructor then edits. LLM path only; the
+ * CALLER (lib/ai-course.ts) owns the deterministic fallback so this feature
+ * works with no Anthropic key. Plain-text block data (no markdown) — the
+ * builder/player render pre-wrap.
+ */
+export async function generateCourseOutline(input: {
+  topic: string;
+  audience: string;
+  lessonCount: number;
+}): Promise<{ title: string; description: string; lessons: { title: string; skillSlug: string; blocks: { type: string; data: Record<string, string> }[] }[] }> {
+  if (!anthropic) throw new Error("ANTHROPIC_API_KEY not set");
+  const msg = await anthropic.messages.create({
+    model: MODEL_SONNET,
+    max_tokens: 2400,
+    system:
+      "You are an instructional designer building an engineering onboarding/training course. Given a topic and audience, produce a course of the requested lesson count. Each lesson has 3-5 blocks. Block types: heading (data.text), rich_text (data.text, 2-4 sentences, plain text no markdown), callout (data.text, one interview/practical tip), code (data.code, a short real snippet), judged_code (data.problemSlug, a plausible kebab-case exercise slug). Every lesson names ONE skillSlug it teaches (lowercase-hyphen). Respond ONLY as JSON: { \"title\": string, \"description\": string, \"lessons\": [{ \"title\": string, \"skillSlug\": string, \"blocks\": [{ \"type\": string, \"data\": object }] }] }.",
+    messages: [{ role: "user", content: `Topic: ${input.topic}\nAudience: ${input.audience}\nLessons: ${input.lessonCount}` }],
+  });
+  const text = msg.content.find((c) => c.type === "text")?.text ?? "";
+  const start = text.indexOf("{");
+  const end = text.lastIndexOf("}");
+  return JSON.parse(text.slice(start, end + 1));
+}

@@ -51,9 +51,11 @@ module.exports = {
         info:    v("info"),
       },
       fontFamily: {
-        display: ["Geist", "ui-sans-serif", "system-ui"],
-        sans:    ["Geist", "ui-sans-serif", "system-ui"],
-        mono:    ["Geist Mono", "JetBrains Mono", "ui-monospace", "monospace"],
+        // Self-hosted via the `geist` package (next/font) — no third-party font
+        // request, no FOUT, size-adjusted fallback. Vars set on <html>.
+        display: ["var(--font-geist-sans)", "ui-sans-serif", "system-ui"],
+        sans:    ["var(--font-geist-sans)", "ui-sans-serif", "system-ui"],
+        mono:    ["var(--font-geist-mono)", "JetBrains Mono", "ui-monospace", "monospace"],
       },
       spacing: {
         "4.5": "1.125rem",

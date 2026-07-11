@@ -4,10 +4,17 @@
  * `Authorization: Bearer eyf_live_…`; we look up by prefix, verify the hash,
  * and resolve the key's scoped org capabilities.
  */
-import { createHash, randomBytes } from "node:crypto";
+import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
 import { prisma } from "@eyf/db";
 
 const sha256 = (s: string) => createHash("sha256").update(s).digest("hex");
+
+/** Constant-time hash comparison — avoids leaking the hash via timing. */
+function hashEquals(a: string, b: string): boolean {
+  const ab = Buffer.from(a, "hex");
+  const bb = Buffer.from(b, "hex");
+  return ab.length === bb.length && timingSafeEqual(ab, bb);
+}
 
 export function mintApiKey(): { raw: string; prefix: string; hashedKey: string } {
   const prefix = `eyf_live_${randomBytes(4).toString("hex")}`;
@@ -24,7 +31,7 @@ export async function resolveApiKey(raw: string): Promise<ApiKeyContext | null> 
   if (!prefix?.startsWith("eyf_live_")) return null;
   const key = await prisma.apiKey.findUnique({ where: { prefix }, select: { id: true, hashedKey: true, scopes: true, orgId: true, revokedAt: true } });
   if (!key || key.revokedAt) return null;
-  if (key.hashedKey !== sha256(raw)) return null;
+  if (!hashEquals(key.hashedKey, sha256(raw))) return null;
   void prisma.apiKey.update({ where: { id: key.id }, data: { lastUsedAt: new Date() } }).catch(() => {});
   return { orgId: key.orgId, scopes: key.scopes };
 }

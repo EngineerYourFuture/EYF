@@ -11,7 +11,6 @@ export default function ErrorPage({ error, reset }: { error: Error & { digest?: 
 
   return (
     <div className="min-h-screen bg-bg text-text-1 flex items-center justify-center px-6 relative overflow-hidden">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-80 bg-glow-radial" aria-hidden />
       <div className="relative text-center max-w-md">
         <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-hard/10 border border-hard/30 text-hard text-2xl">!</div>
         <h1 className="font-display text-2xl font-bold mt-5">Something broke on our end.</h1>

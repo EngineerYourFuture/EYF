@@ -106,7 +106,7 @@ export default function Page() {
           </Link>
         ))}
         {data && data.length === 0 && (
-          <EmptyState icon="💬" title="No threads here yet"
+          <EmptyState icon={<Icons.chat width={22} height={22} />} title="No threads here yet"
             description={cat ? "Nothing in this category. Be the first to post." : "Start the conversation — ask a doubt, share a win, debrief an interview."}
             action={<Button onClick={() => setOpen(true)}>Start a thread</Button>} />
         )}

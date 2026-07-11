@@ -30,6 +30,15 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
@@ -55,10 +64,17 @@ jobs:
       - name: Lint
         run: pnpm lint
 
-      - name: Prepare test DB (for DB-backed integration tests)
-        run: pnpm --filter @eyf/db exec prisma db push --skip-generate
+      - name: Prepare test DB (apply migrations — same path as production)
+        run: pnpm --filter @eyf/db exec prisma migrate deploy
         env:
           DATABASE_URL: postgresql://eyf:eyf@localhost:5432/eyf
+          DIRECT_DATABASE_URL: postgresql://eyf:eyf@localhost:5432/eyf
+
+      - name: Apply tenant-isolation RLS policies (prod parity)
+        run: pnpm --filter @eyf/db db:rls
+        env:
+          DATABASE_URL: postgresql://eyf:eyf@localhost:5432/eyf
+          DIRECT_DATABASE_URL: postgresql://eyf:eyf@localhost:5432/eyf
 
       - name: Test
         run: pnpm --filter @eyf/types test && pnpm --filter @eyf/api test

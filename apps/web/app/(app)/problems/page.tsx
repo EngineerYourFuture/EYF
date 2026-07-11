@@ -5,6 +5,7 @@ import { Badge, PageHeader, SkeletonRows, EmptyState, ErrorState } from "@eyf/ui
 import { useApi } from "@/lib/use-api";
 import { PageMotion } from "@/components/page-motion";
 import { PatternMastery } from "@/components/pattern-mastery";
+import { Icons } from "@/components/icons";
 
 type Problem = {
   id: string;
@@ -50,9 +51,11 @@ export default function ProblemsPage() {
             const pool = (catalog ?? shown);
             if (pool.length) window.location.href = `/problems/${pool[Math.floor(Math.random() * pool.length)]!.slug}?blind=1`;
           }}
-          className="text-sm font-medium text-brand hover:underline"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-brand hover:underline"
         >
-          🎯 Blind practice — random problem, no tags, timer on →
+          <Icons.target width={15} height={15} />
+          Blind practice — random problem, no tags, timer on
+          <span aria-hidden>→</span>
         </button>
       </div>
 
@@ -95,7 +98,7 @@ export default function ProblemsPage() {
             {isLoading && <SkeletonRows rows={10} />}
             {error && <ErrorState message={error.message} retry={() => mutate()} />}
             {data && shown.length === 0 && (
-              <EmptyState icon="🔍" title="No problems match" description="Try a different search, difficulty, or pattern."
+              <EmptyState icon={<Icons.search width={22} height={22} />} title="No problems match" description="Try a different search, difficulty, or pattern."
                 action={<button onClick={() => { setQ(""); setDiff(""); setPattern(""); }} className="text-accent text-sm hover:underline">Clear filters</button>} />
             )}
             {data && shown.length > 0 && (

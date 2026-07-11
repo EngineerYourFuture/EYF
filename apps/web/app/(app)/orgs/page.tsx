@@ -705,20 +705,34 @@ function CoursesTab({ orgId, canAuthor, canPublish }: { orgId: string; canAuthor
       await builder.mutate();
     } catch { /* toasted */ } finally { setBusy(null); }
   }
+  async function aiDraft() {
+    if (title.trim().length < 2) return;
+    setBusy("ai");
+    try {
+      const r = await action<{ source: string; lessons: number }>(`/orgs/${orgId}/ai/course-draft`, { method: "POST", body: JSON.stringify({ topic: title.trim(), audience: "fresher", lessonCount: 5 }) });
+      setTitle("");
+      await builder.mutate();
+      toast.success(`${r.source === "ai" ? "AI-drafted" : "Drafted"} ${r.lessons} lessons — edit and publish.`);
+    } catch { /* toasted */ } finally { setBusy(null); }
+  }
 
   return (
     <div className="mt-6 space-y-6">
       {canAuthor && (
         <div>
           <div className="font-mono text-[11px] uppercase tracking-widest text-text-3 mb-2">Builder</div>
-          <div className="flex gap-2 mb-3">
+          <div className="flex gap-2 mb-2">
             <input
               className="flex-1 h-10 px-3 rounded-lg bg-surface border border-border text-sm text-text-1 focus:outline-none focus:border-accent"
               placeholder="New course title" value={title} onChange={(e) => setTitle(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter") void draft(); }}
             />
-            <Button size="sm" onClick={draft} disabled={busy === "new" || title.trim().length < 2}>Draft course</Button>
+            <Button size="sm" variant="secondary" onClick={draft} disabled={busy === "new" || title.trim().length < 2}>Blank</Button>
+            <Button size="sm" onClick={aiDraft} disabled={busy === "ai" || title.trim().length < 2}>
+              {busy === "ai" ? "Drafting…" : "✨ AI draft"}
+            </Button>
           </div>
+          <p className="text-text-4 text-xs mb-3">Type a topic, then let EYF outline the full course — lessons, blocks, skill tags — for you to edit.</p>
           <div className="space-y-2">
             {builder.data?.map((c) => (
               <Card key={c.id} className="flex items-center gap-3 py-3 flex-wrap">

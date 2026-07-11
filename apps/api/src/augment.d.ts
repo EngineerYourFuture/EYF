@@ -37,5 +37,11 @@ declare module "fastify" {
     // EYF-specific session, populated by requireAuth. Use this instead of
     // `req.user` (which @fastify/jwt types as the raw signed payload).
     session?: EyfSessionUser;
+    // Namespaced refresh-JWT verifier (registered with namespace: "refresh").
+    refreshJwtVerify<T = unknown>(options?: Record<string, unknown>): Promise<T>;
+  }
+  interface FastifyReply {
+    // Namespaced refresh-JWT signer.
+    refreshJwtSign(payload: Record<string, unknown>, options?: Record<string, unknown>): Promise<string>;
   }
 }

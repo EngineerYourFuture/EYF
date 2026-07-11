@@ -22,7 +22,6 @@ export default function SkillsPage() {
 
   return (
     <PageMotion className="relative">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-glow-radial" aria-hidden />
       <div className="relative px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-5xl mx-auto">
         <PageHeader
           eyebrow="Your engineering skill graph"

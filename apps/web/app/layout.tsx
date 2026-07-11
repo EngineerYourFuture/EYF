@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
+import { GeistSans } from "geist/font/sans";
+import { GeistMono } from "geist/font/mono";
 import { ClerkProvider } from "@clerk/nextjs";
 import { AnalyticsProvider } from "@/components/analytics-provider";
 import { SwrProvider } from "@/components/swr-provider";
 import { themeScript } from "@/components/theme";
+import { ConsentBanner } from "@/components/consent-banner";
 import { Toaster } from "sonner";
 import "./globals.css";
 
@@ -54,18 +57,13 @@ const clerkAppearance = {
 
 function Shell({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="dark" suppressHydrationWarning>
+    <html lang="en" className={`dark ${GeistSans.variable} ${GeistMono.variable}`} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap"
-        />
       </head>
       <body>
         <SwrProvider><AnalyticsProvider>{children}</AnalyticsProvider></SwrProvider>
+        <ConsentBanner />
         <Toaster position="bottom-right" richColors closeButton
           toastOptions={{
             style: {

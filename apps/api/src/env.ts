@@ -9,7 +9,24 @@ const schema = z.object({
   API_LOG_LEVEL: z.enum(["fatal", "error", "warn", "info", "debug", "trace"]).default("info"),
 
   DATABASE_URL: z.string().url(),
+  // Direct (non-pooled) connection for migrations/DDL. Optional — Prisma falls
+  // back to DATABASE_URL when unset (single-node/local). In prod set the pooled
+  // URL as DATABASE_URL and the direct URL here.
+  DIRECT_DATABASE_URL: z.string().url().optional(),
   REDIS_URL: z.string().url().default("redis://localhost:6379"),
+
+  // Number of trusted proxy hops in front of the API (LB/CDN). trustProxy is set
+  // to this exact count so X-Forwarded-For can't be spoofed past the real edge.
+  TRUST_PROXY_HOPS: z.coerce.number().int().min(0).default(1),
+
+  // ── Observability (all optional; no-op without values) ──────────────
+  SENTRY_DSN: z.string().optional(),
+  SENTRY_TRACES_SAMPLE_RATE: z.coerce.number().min(0).max(1).default(0.1),
+  // Service version/commit surfaced to Sentry + /metrics for release tracking.
+  RELEASE: z.string().default("dev"),
+  // When set, GET /metrics requires `Authorization: Bearer <token>` so the
+  // Prometheus endpoint isn't world-readable. Unset = open (scrape via network policy).
+  METRICS_TOKEN: z.string().optional(),
 
   // 32+ chars (256-bit). Generate with `openssl rand -hex 32`. A short secret
   // makes HS256 tokens offline-forgeable — including admin tokens.
