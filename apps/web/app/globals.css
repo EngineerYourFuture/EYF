@@ -144,6 +144,21 @@
   *::-webkit-scrollbar-thumb:hover { background: rgb(var(--text-4)); background-clip: content-box; }
 }
 
+/* ── Marketing landing tokens — "night-shift to offer-morning" ────────
+   The ground luminance is JS-driven (NightToMorning cross-fades ink→paper on
+   scroll). These are the named endpoints + the single chroma (brand red) and
+   the earned payoff (placed green, used once at the offer). Space-separated
+   RGB channels so /alpha modifiers keep working. Scoped to .landing-root so
+   none of this leaks into the authenticated app. */
+.landing-root {
+  --lp-ink:      11 13 19;
+  --lp-paper:    241 242 245;
+  --lp-graphite: 58 63 75;
+  --lp-brand:    235 38 55;
+  --lp-placed:   46 158 91;
+}
+
+
 @layer components {
   /* Hairline divider that reads on both themes. */
   .hairline { height: 1px; @apply bg-hairline; }
@@ -193,6 +208,12 @@
   .card-interactive:hover {
     @apply border-edge -translate-y-0.5 shadow-card-lg;
   }
+
+  /* Landing proof-ticker marquee — seamless because the row content is doubled. */
+  @keyframes lp-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+  .lp-marquee { animation: lp-marquee 42s linear infinite; }
+  .lp-marquee-rev { animation: lp-marquee 42s linear infinite reverse; }
+  @media (prefers-reduced-motion: reduce) { .lp-marquee, .lp-marquee-rev { animation: none; } }
 
   /* Shimmer sweep for skeletons (richer than a flat pulse). */
   .shimmer {

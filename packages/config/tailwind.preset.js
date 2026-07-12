@@ -56,6 +56,9 @@ module.exports = {
         display: ["var(--font-geist-sans)", "ui-sans-serif", "system-ui"],
         sans:    ["var(--font-geist-sans)", "ui-sans-serif", "system-ui"],
         mono:    ["var(--font-geist-mono)", "JetBrains Mono", "ui-monospace", "monospace"],
+        // Marketing display face (Bricolage Grotesque). Falls back to Geist where
+        // --font-display isn't defined, so it's inert outside the landing.
+        brand:   ["var(--font-display)", "var(--font-geist-sans)", "ui-sans-serif", "system-ui"],
       },
       spacing: {
         "4.5": "1.125rem",
