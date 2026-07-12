@@ -16,7 +16,6 @@ export function Footer() {
         ]} />
         <FooterCol title="Company" links={[
           ["About", "/about"], ["Contact", "/contact"],
-          ["Pricing", "/pricing"],
         ]} />
         <FooterCol title="Legal" links={[
           ["Terms", "/terms"], ["Privacy", "/privacy"],
