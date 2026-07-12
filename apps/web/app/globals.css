@@ -148,6 +148,18 @@
   /* Hairline divider that reads on both themes. */
   .hairline { height: 1px; @apply bg-hairline; }
 
+  /* Long-form legal / policy prose (terms, privacy, refund). Token-styled so it
+     reads on both themes and matches the app's type system. */
+  .legal { @apply text-text-2 leading-relaxed; }
+  .legal h2 { @apply font-display text-xl font-bold text-text-1 mt-10 mb-3 tracking-tight; }
+  .legal h3 { @apply font-display text-base font-bold text-text-1 mt-6 mb-2; }
+  .legal p { @apply my-3; }
+  .legal ul { @apply my-3 space-y-1.5 pl-5 list-disc marker:text-text-4; }
+  .legal li { @apply pl-1; }
+  .legal strong { @apply text-text-1 font-semibold; }
+  .legal a { @apply text-accent hover:underline; }
+  .legal hr { @apply my-8 border-border; }
+
   /* Compact form input (employer portal + forms). */
   .inp { @apply w-full h-10 bg-bg border border-border rounded-lg px-3 text-sm outline-none; }
   .inp:focus { @apply border-accent; }

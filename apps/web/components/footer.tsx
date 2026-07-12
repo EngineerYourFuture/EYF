@@ -15,8 +15,8 @@ export function Footer() {
           ["Mentors", "/mentors"], ["Pricing", "/pricing"],
         ]} />
         <FooterCol title="Company" links={[
-          ["About", "/about"], ["Blog", "/blog"],
-          ["Careers", "/careers"], ["Contact", "/contact"],
+          ["About", "/about"], ["Contact", "/contact"],
+          ["Pricing", "/pricing"],
         ]} />
         <FooterCol title="Legal" links={[
           ["Terms", "/terms"], ["Privacy", "/privacy"],
@@ -25,7 +25,7 @@ export function Footer() {
       </div>
       <div className="border-t border-border">
         <div className="mx-auto max-w-7xl px-6 py-6 text-xs text-text-3 flex justify-between">
-          <span>© {new Date().getFullYear()} EYF Labs Pvt. Ltd.</span>
+          <span>© {new Date().getFullYear()} Engineer Your Future Private Limited</span>
           <span className="font-mono">v0.1.0</span>
         </div>
       </div>

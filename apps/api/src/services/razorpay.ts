@@ -32,7 +32,10 @@ export async function createOrder(input: {
   const order = await razorpay.orders.create({
     amount: amountInr * 100, // paisa
     currency: "INR",
-    receipt: `eyf_${input.userId}_${Date.now()}`,
+    // Razorpay caps receipt at 40 chars. A full cuid userId + timestamp blows
+    // past that, so key on a base36 timestamp (unique per ms) + the userId tail;
+    // the full userId lives in `notes` for reconciliation.
+    receipt: `eyf_${Date.now().toString(36)}_${input.userId.slice(-8)}`,
     notes: { plan: input.plan, interval: input.interval, userId: input.userId },
   });
   return { orderId: order.id, amountInr, currency: "INR", keyId: env.RAZORPAY_KEY_ID };
