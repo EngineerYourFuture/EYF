@@ -21,6 +21,13 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import { useScroll, useSpring, type MotionValue } from "framer-motion";
 import * as THREE from "three";
 
+// Projects the normalised cursor (-1..1) onto the ring plane for the repulsion
+// field. This factor is IMPLICITLY COUPLED to the Canvas camera distance/FOV
+// (see the `camera` prop below): it's tuned so the world-space cursor point
+// tracks the on-screen cursor. Changing the camera position or fov requires
+// re-tuning this constant to preserve the repulsion feel.
+const MOUSE_PROJECTION_SCALE = 1.3;
+
 // ── Shaders ──────────────────────────────────────────────────────────
 const vertexShader = /* glsl */ `
   uniform float uTime;
@@ -109,7 +116,11 @@ function bumpAt(x: number, c: number, w: number): number {
   return Math.exp(-t * t);
 }
 
-function smoothstep(a: number, b: number, x: number): number {
+// NB: named smoothstepJS (not smoothstep) to stay disambiguated from GLSL's
+// built-in smoothstep() used inside the shader template strings above — so this
+// helper can't be conflated with the shader function if those strings are ever
+// extracted to .glsl files, and it stays safe to import elsewhere.
+function smoothstepJS(a: number, b: number, x: number): number {
   const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
   return t * t * (3 - 2 * t);
 }
@@ -217,11 +228,16 @@ function ParticleRing({
       const scatter = bumpAt(s, 0.20, 0.14); // fracture: fragments fly apart
       const bloom = bumpAt(s, 0.66, 0.12) * 0.55; // proof: a softer second breath, decays before the meters
       disp = reduced ? 0 : (scatter + bloom) * ringThickness * 1.7;
-      uniforms.uDisperse.value += (disp - uniforms.uDisperse.value) * k;
       // vivid through hero + gauge, then recede hard behind the dense lower content
       // (pillars meters, pricing cards); dip while dispersed so dust never fights copy
-      const fade = smoothstep(0.5, 0.92, s) * 0.62;
+      const fade = smoothstepJS(0.5, 0.92, s) * 0.62;
       const targetOp = 0.92 - fade - Math.min(disp / (ringThickness * 1.7), 1) * 0.12;
+      // Both lines below are a standard damped-lerp toward a target, NOT an
+      // accumulator: value += (target - value) * k. Don't "fix" the `+=` away.
+      // NB: this damps a second time on top of the smoothScroll spring (see its
+      // declaration) — intentional double-smoothing. If the morph ever feels
+      // laggy, stiffen the useSpring config or raise k's rate; do not add more.
+      uniforms.uDisperse.value += (disp - uniforms.uDisperse.value) * k;
       uniforms.uOpacity.value += (targetOp - uniforms.uOpacity.value) * k;
     }
 
@@ -240,7 +256,13 @@ function ParticleRing({
     }
 
     if (interactive && !reduced) {
-      mouseWorld.current.set(mouse.current.x * ringRadius * 1.3, 0, -mouse.current.y * ringRadius * 1.3);
+      // MOUSE_PROJECTION_SCALE is coupled to the camera distance/FOV — see its
+      // definition at the top of the file before changing the camera framing.
+      mouseWorld.current.set(
+        mouse.current.x * ringRadius * MOUSE_PROJECTION_SCALE,
+        0,
+        -mouse.current.y * ringRadius * MOUSE_PROJECTION_SCALE,
+      );
       uniforms.uMouse.value.lerp(mouseWorld.current, 0.08);
     }
   });
@@ -305,7 +327,12 @@ export default function AntigravityBackground({
   const wrapRef = useRef<HTMLDivElement>(null);
   const mouse = useRef({ x: 0, y: 0 });
 
-  // global page scroll → spring-smoothed, drives the per-section morph
+  // global page scroll → spring-smoothed, drives the per-section morph.
+  // NOTE: this is the FIRST of two smoothing layers — the morph targets derived
+  // from this value are damped again per-frame in useFrame (the `k` lerp). That
+  // double-smoothing is deliberate but can add latency; if the scroll morph ever
+  // feels laggy, stiffen this spring (higher stiffness / lower mass) or raise k's
+  // rate — do not stack a third layer of smoothing on top.
   const { scrollYProgress } = useScroll();
   const smoothScroll = useSpring(scrollYProgress, { stiffness: 60, damping: 22, mass: 0.6 });
 
@@ -360,9 +387,15 @@ export default function AntigravityBackground({
   }, [isTouch, reduced]);
 
   const count = isTouch ? Math.floor(particleCount * 0.5) : particleCount;
-  const active = inView && visible && !reduced;
+  // Drives the Canvas frameloop only. Unrelated to any GLSL variable in the
+  // shader strings (which has its own `mot`/dispersion state) — don't conflate.
+  const isAnimating = inView && visible && !reduced;
 
   return (
+    // Decorative-only layer: purely visual, no semantic content, pointer-events
+    // disabled. The ref exists solely for the IntersectionObserver (render-loop
+    // pause) — it isn't referenced by any parent for layout or non-visual state —
+    // so aria-hidden is correct and it's safe to hide from assistive tech.
     <div
       ref={wrapRef}
       aria-hidden
@@ -379,7 +412,7 @@ export default function AntigravityBackground({
         <Canvas
           // 'always' animates; 'demand' renders once (static ring for reduced /
           // holds the last frame while paused) — keeps the GPU idle when hidden
-          frameloop={active ? "always" : "demand"}
+          frameloop={isAnimating ? "always" : "demand"}
           dpr={[1, 2]}
           gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}
           camera={{ position: [0, ringRadius * 0.72, ringRadius * 1.95], fov: 55 }}
