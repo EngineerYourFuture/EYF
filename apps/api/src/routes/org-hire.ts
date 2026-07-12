@@ -10,7 +10,6 @@ import { prisma, RequisitionStatus, PipelineStage } from "@eyf/db";
 import { requireOrgCapability } from "../middleware/org.js";
 import { recordAudit } from "../lib/audit.js";
 import { computeUserReadiness } from "../services/guidance.js";
-import { memberLedger } from "../lib/skill-ledger.js";
 
 /** Full evidence profile for one candidate — the screen that replaces the CV.
  *  POOL_ANON hides identity until shortlisted. */

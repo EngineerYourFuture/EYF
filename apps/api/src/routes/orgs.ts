@@ -16,7 +16,6 @@ import { recordAudit } from "../lib/audit.js";
 import { withOrgContext } from "../lib/org-scoped.js";
 import { bumpUsage, getUsage } from "../lib/usage.js";
 
-const ORG_ROLES = Object.values(OrgRole);
 const rolesInput = z.array(z.nativeEnum(OrgRole)).min(1).max(5);
 
 const slugify = (s: string) =>

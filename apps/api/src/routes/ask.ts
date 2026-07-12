@@ -77,7 +77,7 @@ export async function askRoutes(app: FastifyInstance) {
     return { success: true, data: publicEntry(row) };
   });
 
-  app.post("/", { preHandler: app.requireAuth }, async (req, reply) => {
+  app.post("/", { preHandler: app.requireAuth }, async (req) => {
     const { question } = z.object({ question: z.string().trim().min(8).max(300) }).parse(req.body);
 
     const matches = await searchKnowledge(question);

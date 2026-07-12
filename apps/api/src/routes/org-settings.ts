@@ -34,7 +34,7 @@ export async function orgSettingsRoutes(app: FastifyInstance) {
     return { success: true, data: { name: org.name, slug: org.slug, logoUrl: org.logoUrl, brandColor: whiteLabel ? org.brandColor : null } };
   });
 
-  app.patch("/:orgId/branding", branding, async (req, reply) => {
+  app.patch("/:orgId/branding", branding, async (req) => {
     const body = z.object({
       logoUrl: z.string().url().nullable().optional(),
       brandColor: z.string().regex(/^#[0-9a-fA-F]{6}$/).nullable().optional(),

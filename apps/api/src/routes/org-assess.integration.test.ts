@@ -17,7 +17,6 @@ describe.skipIf(!hasDb)("assessment engine (real DB)", () => {
   let lnd: { id: string; token: string };
   let learner: { id: string; token: string };
   let orgId: string;
-  let learnerMemberId: string;
   let blueprintId: string;
   let runId: string;
   const bankIds: string[] = [];
@@ -40,7 +39,6 @@ describe.skipIf(!hasDb)("assessment engine (real DB)", () => {
       include: { members: true },
     });
     orgId = org.id;
-    learnerMemberId = org.members.find((m) => m.userId === learner.id)!.id;
 
     // 5 TECHNICAL bank questions with known correct answers.
     for (let i = 0; i < 5; i++) {
