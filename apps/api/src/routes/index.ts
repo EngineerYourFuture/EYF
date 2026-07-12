@@ -25,7 +25,6 @@ import { oaRoutes } from "./oa.js";
 import { wrappedRoutes } from "./wrapped.js";
 import { adminRoutes } from "./admin.js";
 import { pressureRoutes } from "./pressure.js";
-import { whatsappRoutes } from "./whatsapp.js";
 import { peerRoutes } from "./peer.js";
 import { funRoutes } from "./fun.js";
 import { pushRoutes } from "./push.js";
@@ -88,7 +87,6 @@ export async function registerRoutes(app: FastifyInstance) {
   await app.register(wrappedRoutes,      { prefix: "/wrapped" });
   await app.register(adminRoutes,        { prefix: "/admin/mod" });
   await app.register(pressureRoutes,     { prefix: "/pressure" });
-  await app.register(whatsappRoutes,     { prefix: "/whatsapp" });
   await app.register(peerRoutes,         { prefix: "/peer" });
   await app.register(funRoutes,          { prefix: "/fun" });
   await app.register(pushRoutes,         { prefix: "/push" });

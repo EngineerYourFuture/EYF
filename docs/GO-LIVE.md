@@ -19,7 +19,6 @@ EYF is code-complete for launch. What stands between it and a live product is **
 | `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET` + `BILLING_ENABLED=true` | subscriptions + **paywall enforcement** (`requirePlan` gates go live) | dashboard.razorpay.com |
 | `JUDGE0_URL`, `JUDGE0_TOKEN` | code submission → verdict | self-host (docker `--profile judge`) or Judge0 RapidAPI |
 | `RESEND_API_KEY`, `RESEND_FROM` | **the retention loop** — streak alerts, daily digest, weekly leaderboard emails (cron already sends them) | resend.com |
-| `MSG91_AUTH_KEY`, `MSG91_SENDER_ID`, `MSG91_TEMPLATE_ID` | phone OTP + WhatsApp | msg91.com |
 | `R2_ACCOUNT_ID`, `R2_ACCESS_KEY`, `R2_SECRET_KEY`, `R2_BUCKET`, `R2_PUBLIC_URL` | resume / certificate PDF hosting | Cloudflare R2 |
 | `NEXT_PUBLIC_POSTHOG_KEY`, `NEXT_PUBLIC_POSTHOG_HOST` | product analytics on every pillar | posthog.com |
 | `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` (mobile) | mobile auth | Clerk (same instance) |
