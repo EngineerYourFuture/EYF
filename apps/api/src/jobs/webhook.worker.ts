@@ -25,7 +25,15 @@ const worker = new Worker<WebhookJobData, void, "deliver">(
       where: { id: endpointId },
       select: { url: true, active: true },
     });
-    if (!ep || !ep.active) return; // endpoint deleted/disabled since enqueue
+    if (!ep || !ep.active) {
+      // endpoint deleted/disabled since enqueue — close the row out instead of
+      // leaving it "pending" forever.
+      await prisma.webhookDelivery.update({
+        where: { id: deliveryId },
+        data: { status: "skipped", attempts: job.attemptsMade + 1, lastAt: new Date() },
+      }).catch(() => {});
+      return;
+    }
 
     // Re-check the URL at delivery time (guards against DNS rebinding).
     await assertPublicUrl(ep.url);
@@ -47,7 +55,9 @@ const worker = new Worker<WebhookJobData, void, "deliver">(
     await prisma.webhookDelivery.update({
       where: { id: deliveryId },
       data: { status: "delivered", attempts: job.attemptsMade + 1, lastAt: new Date() },
-    }).catch(() => {});
+      // The webhook DID deliver; if we can't record it, surface that rather than
+      // swallow it, so a delivered row isn't silently left looking un-delivered.
+    }).catch((e) => captureException(e, { deliveryId, phase: "mark-delivered" }));
   },
   { connection: redis, concurrency: 8 },
 );

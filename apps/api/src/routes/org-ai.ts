@@ -10,7 +10,10 @@ import { requireOrgCapability } from "../middleware/org.js";
 import { recordAudit } from "../lib/audit.js";
 import { buildCourseOutline } from "../lib/ai-course.js";
 import { findOrCreateSkill } from "../lib/skill-ledger.js";
-import { bumpUsage } from "../lib/usage.js";
+import { bumpUsage, hasAiCredits } from "../lib/usage.js";
+
+// One AI course-draft costs this many ai_credits (matches the bumpUsage below).
+const AI_DRAFT_COST = 5;
 
 export async function orgAiRoutes(app: FastifyInstance) {
   const author = { preHandler: [app.requireAuth, requireOrgCapability("learn:author")] };
@@ -23,8 +26,22 @@ export async function orgAiRoutes(app: FastifyInstance) {
       lessonCount: z.number().int().min(3).max(8).default(5),
     }).parse(req.body);
 
+    // Enforce the monthly ai_credits ceiling BEFORE spending Anthropic tokens —
+    // metering alone let an authed author burn unbounded spend.
+    const credits = await hasAiCredits(req.orgCtx!.orgId, AI_DRAFT_COST);
+    if (!credits.ok) {
+      return reply.code(402).send({
+        success: false,
+        error: {
+          code: "AI_CREDITS_EXHAUSTED",
+          message: `Monthly AI credit limit reached (${credits.used}/${credits.cap} on the ${credits.plan} plan). Upgrade for more.`,
+          upgradeRequired: true,
+        },
+      });
+    }
+
     const outline = await buildCourseOutline(body);
-    await bumpUsage(req.orgCtx!.orgId, "ai_credits", outline.source === "ai" ? 5 : 0);
+    await bumpUsage(req.orgCtx!.orgId, "ai_credits", outline.source === "ai" ? AI_DRAFT_COST : 0);
 
     // Materialize the outline into real editable rows.
     const course = await prisma.course.create({

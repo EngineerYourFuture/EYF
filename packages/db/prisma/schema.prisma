@@ -1536,7 +1536,7 @@ model WebhookDelivery {
   endpoint   WebhookEndpoint @relation(fields: [endpointId], references: [id], onDelete: Cascade)
   event      String
   payload    Json
-  status     String          @default("pending") // pending | delivered | failed
+  status     String          @default("pending") // pending | delivered | failed | skipped
   attempts   Int             @default(0)
   lastAt     DateTime?
   createdAt  DateTime        @default(now())
