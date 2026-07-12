@@ -40,7 +40,7 @@ export default function Page() {
   }
 
   return (
-    <div className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-5xl">
+    <div className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-5xl mx-auto">
       <div className="flex items-baseline justify-between">
         <div>
           <h1 className="font-display text-4xl font-bold tracking-tight">OA Fingerprint</h1>

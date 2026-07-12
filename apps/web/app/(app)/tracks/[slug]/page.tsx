@@ -15,7 +15,7 @@ export default function Page({ params }: { params: { slug: string } }) {
   if (!data) return <div className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 text-text-3">Loading…</div>;
 
   return (
-    <div className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-4xl">
+    <div className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-4xl mx-auto">
       <h1 className="font-display text-4xl font-bold tracking-tight">{data.name}</h1>
       <p className="text-text-3 mt-2 text-lg">{data.tagline}</p>
 

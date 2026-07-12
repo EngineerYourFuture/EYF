@@ -16,7 +16,7 @@ export default function CompaniesPage() {
   const filtered = (data ?? []).filter((c) => companyLabel(c.slug).toLowerCase().includes(q.toLowerCase()));
 
   return (
-    <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-6xl">
+    <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-6xl mx-auto">
       <PageHeader
         eyebrow="Targeted prep"
         title="Company Prep"

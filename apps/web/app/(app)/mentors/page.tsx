@@ -15,7 +15,7 @@ type Mentor = {
 export default function Page() {
   const { data, isLoading } = useApi<Mentor[]>("/mentors");
   return (
-    <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-5xl">
+    <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-5xl mx-auto">
       <PageHeader title="Mentors" subtitle="Real engineers from real companies. Verified offer letters. Honest hours." />
 
       {isLoading && <SkeletonCards count={4} className="mt-10 md:grid-cols-2" />}

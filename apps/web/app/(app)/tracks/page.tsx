@@ -30,7 +30,7 @@ export default function Page() {
   }
 
   return (
-    <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-6xl">
+    <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-6xl mx-auto">
       <h1 className="font-display text-5xl font-bold tracking-tight">Choose your path.</h1>
       <p className="text-text-3 mt-3 max-w-2xl text-lg">
         Pick one. The assessment, roadmap, and problem weighting will all calibrate to your target role.

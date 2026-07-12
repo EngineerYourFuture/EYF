@@ -29,7 +29,7 @@ export default function LearnPage() {
 
   return (
     <PageMotion>
-      <div className="px-4 sm:px-6 lg:px-10 py-8 max-w-5xl">
+      <div className="px-4 sm:px-6 lg:px-10 py-8 max-w-5xl mx-auto">
         <PageHeader title="Learn" subtitle="Courses from partner organisations — enroll and track your progress." />
         {isLoading ? (
           <div className="mt-6"><SkeletonRows /></div>

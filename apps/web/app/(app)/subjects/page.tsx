@@ -10,7 +10,7 @@ type Subject = { id: "OS" | "DBMS" | "CN" | "OOP"; name: string; free: boolean }
 export default function Page() {
   const { data } = useApi<Subject[]>("/subjects");
   return (
-    <div className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-6xl">
+    <div className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-6xl mx-auto">
       <h1 className="font-display text-4xl font-bold tracking-tight">Core Subjects</h1>
       <p className="text-text-3 mt-2">Theory notes + spaced-repetition flashcards. The CS interview round.</p>
 

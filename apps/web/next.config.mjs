@@ -5,6 +5,23 @@
 // are locked down hard; script/style/connect stay permissive enough for the
 // third-party stack (Clerk, PostHog, Monaco, R2) so nothing silently breaks.
 // Tightening script-src to per-request nonces is the documented next step.
+const isDev = process.env.NODE_ENV !== "production";
+
+// The browser talks directly to the API (NEXT_PUBLIC_API_URL) — its origin must
+// be in connect-src or every client fetch is blocked. In prod the API is HTTPS
+// (covered by `https:`); in local dev it's http://localhost:4000, so we allow
+// localhost + the HMR websocket explicitly. Never loosens production.
+const apiOrigin = (() => {
+  try { return new URL(process.env.NEXT_PUBLIC_API_URL ?? "").origin; } catch { return ""; }
+})();
+const connectSrc = [
+  "'self'",
+  apiOrigin,
+  "https:",
+  "wss:",
+  ...(isDev ? ["http://localhost:*", "http://127.0.0.1:*", "ws://localhost:*", "ws://127.0.0.1:*"] : []),
+].filter(Boolean).join(" ");
+
 const csp = [
   "default-src 'self'",
   "base-uri 'self'",
@@ -15,10 +32,10 @@ const csp = [
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https:",
   "font-src 'self' data:",
-  "connect-src 'self' https: wss:",
+  `connect-src ${connectSrc}`,
   "worker-src 'self' blob:",
   "frame-src 'self' https:",
-  "upgrade-insecure-requests",
+  ...(isDev ? [] : ["upgrade-insecure-requests"]),
 ].join("; ");
 
 const securityHeaders = [

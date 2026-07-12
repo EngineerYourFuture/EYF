@@ -60,7 +60,7 @@ export default function Page({ params }: { params: { id: string } }) {
   if (!mock) return <div className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 text-text-3">Loading…</div>;
 
   return (
-    <div className="px-4 sm:px-6 lg:px-10 py-8 max-w-5xl">
+    <div className="px-4 sm:px-6 lg:px-10 py-8 max-w-5xl mx-auto">
       <div className="flex items-center gap-3">
         <Badge>PEER</Badge>
         <span className="font-display text-lg">{mock.problemFocus ?? "general"}</span>

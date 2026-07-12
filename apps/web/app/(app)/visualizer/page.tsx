@@ -25,7 +25,7 @@ export default function Page() {
   const [tab, setTab] = useState("sort");
   const is3d = tab === "recursion3d" || tab === "graph3d";
   return (
-    <div className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-4xl">
+    <div className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-4xl mx-auto">
       <div className="flex items-baseline justify-between">
         <h1 className="font-display text-4xl font-bold tracking-tight">Visualizer</h1>
         {is3d && <Badge tone="accent">3D · desktop</Badge>}

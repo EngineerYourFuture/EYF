@@ -24,6 +24,37 @@ export async function verifyClerkSession(token: string): Promise<ClerkClaims> {
 }
 
 /**
+ * Fallback sync: fetch a Clerk user by id from the Backend API and upsert them.
+ * Used when a valid Clerk session arrives before the user.created webhook has
+ * synced the account (or in local dev, where Clerk can't reach localhost). The
+ * webhook remains the primary path; this just closes the pre-sync gap so a fresh
+ * signup isn't 401'd on its first authenticated request. Returns null if Clerk
+ * isn't configured or the user can't be fetched.
+ */
+export async function ensureUserFromClerk(userId: string) {
+  if (!clerk) return null;
+  try {
+    const cu = await clerk.users.getUser(userId);
+    await upsertUserFromClerk({
+      id: cu.id,
+      email_addresses: cu.emailAddresses.map((e) => ({
+        email_address: e.emailAddress,
+        verification: { status: e.verification?.status ?? undefined },
+      })),
+      phone_numbers: cu.phoneNumbers.map((p) => ({
+        phone_number: p.phoneNumber,
+        verification: { status: p.verification?.status ?? undefined },
+      })),
+      first_name: cu.firstName,
+      last_name: cu.lastName,
+    });
+    return prisma.user.findUnique({ where: { clerkId: userId }, include: { subscription: true } });
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Upsert an EYF user from a Clerk user.created / user.updated webhook.
  * Caller already verified the svix signature.
  */

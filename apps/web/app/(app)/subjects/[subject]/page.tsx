@@ -16,7 +16,7 @@ export default function Page({ params }: { params: { subject: string } }) {
   const { data: cards, mutate } = useApi<Flash[]>(subj ? `/subjects/${subj}/flashcards/due` : null);
 
   return (
-    <div className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-5xl">
+    <div className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-5xl mx-auto">
       <h1 className="font-display text-4xl font-bold tracking-tight">{TITLES[subj ?? ""] ?? "Subject"}</h1>
       <p className="text-text-3 mt-2">Theory first. Flashcards keep it sticky.</p>
 

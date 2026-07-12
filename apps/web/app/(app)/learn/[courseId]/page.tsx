@@ -35,7 +35,7 @@ export default function CoursePlayer({ params }: { params: { courseId: string } 
 
   return (
     <PageMotion>
-      <div className="px-4 sm:px-6 lg:px-10 py-8 max-w-5xl">
+      <div className="px-4 sm:px-6 lg:px-10 py-8 max-w-5xl mx-auto">
         <BackButton className="mb-4" />
         <PageHeader title={data.title} subtitle={`${data.org} · ${done}/${lessons.length} lessons complete`} />
         <div className="mt-6 grid md:grid-cols-[240px_1fr] gap-6">

@@ -39,7 +39,7 @@ export default function Page({ params }: { params: { id: string } }) {
   }
 
   return (
-    <div className="px-4 sm:px-6 lg:px-10 py-8 grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-8 max-w-7xl">
+    <div className="px-4 sm:px-6 lg:px-10 py-8 grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-8 max-w-7xl mx-auto">
       <div className="space-y-5">
         <h1 className="font-display text-3xl font-bold">{data.title}</h1>
 

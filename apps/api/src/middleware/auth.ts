@@ -3,7 +3,7 @@ import fp from "fastify-plugin";
 import type { Plan, SessionUser } from "@eyf/types";
 import { meetsPlan } from "@eyf/types";
 import { prisma } from "@eyf/db";
-import { verifyClerkSession, hasRealClerk } from "../services/clerk.js";
+import { verifyClerkSession, hasRealClerk, ensureUserFromClerk } from "../services/clerk.js";
 import { resolveActivePlan } from "../lib/subscription.js";
 import { isOrgToken } from "../lib/org-token.js";
 import { env } from "../env.js";
@@ -23,10 +23,15 @@ async function resolveSession(
   if (hasRealClerk()) {
     try {
       const claims = await verifyClerkSession(token);
-      const user = await prisma.user.findUnique({
+      let user = await prisma.user.findUnique({
         where: { clerkId: claims.sub },
         include: { subscription: true },
       });
+      // First authenticated request before the user.created webhook synced them
+      // (or local dev without a webhook tunnel): upsert from Clerk on the fly.
+      if (!user) {
+        user = await ensureUserFromClerk(claims.sub);
+      }
       if (user) {
         return {
           id: user.id,
