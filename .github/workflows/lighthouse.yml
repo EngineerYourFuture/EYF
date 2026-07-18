@@ -10,7 +10,7 @@ concurrency:
 
 jobs:
   lighthouse:
-    name: Lighthouse CI (landing perf + a11y)
+    name: Lighthouse CI (public pages — perf + a11y)
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -33,7 +33,7 @@ jobs:
           JWT_ACCESS_SECRET: ci-only-not-secret-32-character-key-pad
           JWT_REFRESH_SECRET: ci-only-not-secret-32-character-key-padx
           NEXT_PUBLIC_API_URL: http://localhost:4000/v1
-          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: pk_test_ci_placeholder
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: pk_test_ZGV2LnBsYWNlaG9sZGVyLmNsZXJrLmFjY291bnRzLmRldiQ
           CLERK_SECRET_KEY: sk_test_ci_placeholder
       - name: Lighthouse CI (asserts against lighthouserc.json — a11y regressions fail the build)
         run: pnpm dlx @lhci/cli@0.14.x autorun

@@ -1,8 +1,13 @@
 name: CD
 
-# Build + publish container images and run DB migrations on a push to main.
-# Deploy step is intentionally a documented hook — wire it to your platform
-# (Railway/Render/Fly/ECS) via its GitHub integration or CLI + secrets.
+# Continuous delivery on push to main:
+#   1. migrate  — expand-phase DB migration + RLS apply + RLS verification gate
+#   2. images   — build & push api/web container images to GHCR, tagged :<sha>
+#   3. deploy   — provider-agnostic rolling deploy, then a hard /readyz health gate
+#
+# The deploy job auto-detects the target platform from which secret is present
+# (Railway / Fly.io / Render / Vercel). If none is configured it FAILS — a
+# no-op that reported success is exactly the bug this pipeline replaced.
 on:
   push:
     branches: [main]
@@ -14,8 +19,10 @@ concurrency:
 
 jobs:
   migrate:
-    name: Run DB migrations (expand phase)
+    name: Migrate + apply & verify RLS (expand phase)
     runs-on: ubuntu-latest
+    env:
+      DIRECT_DATABASE_URL: ${{ secrets.DIRECT_DATABASE_URL }}
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -24,11 +31,30 @@ jobs:
         with: { node-version: 20, cache: pnpm }
       - run: pnpm install --frozen-lockfile
       - run: pnpm db:generate
+
       - name: prisma migrate deploy
         run: pnpm --filter @eyf/db exec prisma migrate deploy
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          DIRECT_DATABASE_URL: ${{ secrets.DIRECT_DATABASE_URL }}
+
+      # RLS policies are NOT part of Prisma migrations, so they must be reapplied
+      # on every deploy or a newly-migrated org table ships without isolation.
+      # Idempotent (DROP POLICY IF EXISTS + CREATE). Applied via the DIRECT
+      # (migration/owner) connection — ENABLE RLS + CREATE POLICY need DDL rights.
+      - name: Apply RLS policies
+        run: pnpm --filter @eyf/db db:rls
+        env:
+          DATABASE_URL: ${{ secrets.DIRECT_DATABASE_URL }}
+
+      # Fail the deploy if isolation is not actually enforced. Verifies the
+      # RUNTIME connection (pooled DATABASE_URL) — the role that serves traffic
+      # must be subject to RLS. RLS_STRICT makes a superuser/BYPASSRLS runtime
+      # role a hard failure, so tenant isolation cannot be silently bypassed.
+      - name: Verify RLS is enforced (runtime role)
+        run: pnpm --filter @eyf/db db:rls:verify
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          RLS_STRICT: "true"
 
   images:
     name: Build & push images
@@ -55,7 +81,10 @@ jobs:
           context: .
           file: ${{ matrix.dockerfile }}
           push: true
-          tags: ghcr.io/${{ github.repository }}/${{ matrix.name }}:${{ github.sha }}
+          # Tag both the immutable sha (rollback target) and a moving latest.
+          tags: |
+            ghcr.io/${{ github.repository }}/${{ matrix.name }}:${{ github.sha }}
+            ghcr.io/${{ github.repository }}/${{ matrix.name }}:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
           build-args: |
@@ -70,7 +99,103 @@ jobs:
     runs-on: ubuntu-latest
     needs: images
     steps:
-      - run: |
-          echo "Trigger your platform's rolling deploy of the :$GITHUB_SHA images here."
-          echo "Deploy order: api + workers first (backward-compatible), then web."
-          echo "Gate promotion on GET /readyz == 200 before shifting traffic; roll back on failure."
+      - uses: actions/checkout@v4
+
+      # Detect the deployment target from which secret is configured. Priority:
+      # Railway → Fly → Render → Vercel. Exactly one is expected.
+      - name: Detect platform
+        id: detect
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          if   [ -n "$RAILWAY_TOKEN" ];          then echo "platform=railway" >> "$GITHUB_OUTPUT"
+          elif [ -n "$FLY_API_TOKEN" ];          then echo "platform=fly"     >> "$GITHUB_OUTPUT"
+          elif [ -n "$RENDER_DEPLOY_HOOK_URL" ]; then echo "platform=render"  >> "$GITHUB_OUTPUT"
+          elif [ -n "$VERCEL_TOKEN" ];           then echo "platform=vercel"  >> "$GITHUB_OUTPUT"
+          else echo "platform=none" >> "$GITHUB_OUTPUT"; fi
+          echo "Detected platform: $(tail -n1 "$GITHUB_OUTPUT")"
+
+      # Deploy api + workers FIRST (backward-compatible with the running web),
+      # then web — the order the expand-phase migration requires.
+      - name: Deploy — Railway
+        if: steps.detect.outputs.platform == 'railway'
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          npm i -g @railway/cli
+          railway redeploy --service api --yes
+          railway redeploy --service worker --yes || true
+          railway redeploy --service cron --yes || true
+          railway redeploy --service webhook --yes || true
+          railway redeploy --service web --yes
+
+      - name: Deploy — Fly.io
+        if: steps.detect.outputs.platform == 'fly'
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+          IMAGE: ghcr.io/${{ github.repository }}/api:${{ github.sha }}
+          WEB_IMAGE: ghcr.io/${{ github.repository }}/web:${{ github.sha }}
+        run: |
+          curl -L https://fly.io/install.sh | sh
+          export PATH="$HOME/.fly/bin:$PATH"
+          flyctl deploy --app eyf-api --image "$IMAGE"
+          flyctl deploy --app eyf-web --image "$WEB_IMAGE"
+
+      - name: Deploy — Render
+        if: steps.detect.outputs.platform == 'render'
+        env:
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+        run: |
+          # Render pulls the new image itself; the hook triggers a rolling deploy.
+          curl -fsSL -X POST "$RENDER_DEPLOY_HOOK_URL"
+
+      - name: Deploy — Vercel (web)
+        if: steps.detect.outputs.platform == 'vercel'
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          npm i -g vercel
+          vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+          vercel build --prod --token="$VERCEL_TOKEN"
+          vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN"
+
+      - name: No deployment target configured
+        if: steps.detect.outputs.platform == 'none'
+        run: |
+          echo "::error::No deployment platform is configured."
+          echo "Images for ${{ github.sha }} are published to GHCR, but nothing was deployed."
+          echo "Configure ONE of these repository secrets to enable automated deploys:"
+          echo "  - RAILWAY_TOKEN"
+          echo "  - FLY_API_TOKEN"
+          echo "  - RENDER_DEPLOY_HOOK_URL"
+          echo "  - VERCEL_TOKEN (+ VERCEL_ORG_ID, VERCEL_PROJECT_ID)"
+          echo "And set the PRODUCTION_API_URL repository variable for the health gate."
+          exit 1
+
+      # Hard gate: the release only counts as deployed if /readyz (Postgres +
+      # Redis) returns 200. A failure here fails the workflow so the bad release
+      # is visible and the platform's previous version stays serving.
+      - name: Health gate (/readyz)
+        if: steps.detect.outputs.platform != 'none'
+        env:
+          PRODUCTION_API_URL: ${{ vars.PRODUCTION_API_URL }}
+        run: |
+          if [ -z "$PRODUCTION_API_URL" ]; then
+            echo "::error::PRODUCTION_API_URL repository variable is not set — cannot health-gate the deploy."
+            exit 1
+          fi
+          chmod +x scripts/health-gate.sh
+          scripts/health-gate.sh "${PRODUCTION_API_URL%/}/readyz" 30 10
+
+      - name: Rollback guidance
+        if: failure() && steps.detect.outputs.platform != 'none'
+        run: |
+          echo "::error::Deploy or health gate failed. The previous release is still serving."
+          echo "Roll back by re-running CD on the last good commit, or redeploy"
+          echo "ghcr.io/${{ github.repository }}/{api,web}:<previous-sha> on your platform."
