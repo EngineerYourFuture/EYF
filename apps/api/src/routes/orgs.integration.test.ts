@@ -154,10 +154,48 @@ describe.skipIf(!hasDb)("org tenant isolation (real DB)", () => {
   it("RLS backstop: an UNFILTERED query inside org A's context cannot see org B", async () => {
     // Simulates the bug class the backstop exists for — application code that
     // forgot the orgId filter entirely. Requires apply-rls.ts policies.
-    const { withOrgContext } = await import("../lib/org-scoped.js");
-    const leaked = await withOrgContext(orgA, (tx) =>
-      tx.orgMember.findMany({ select: { orgId: true } }), // deliberately no where!
+    //
+    // Postgres SKIPS RLS for superuser / BYPASSRLS roles. The local + CI dev
+    // container connects as the superuser `eyf`, so a naive query here would see
+    // both tenants and the test would be a false negative. To exercise the
+    // policy for real regardless of the session role, when the current role
+    // bypasses RLS we run the unfiltered query under a throwaway non-superuser
+    // role via `SET LOCAL ROLE` (RLS is evaluated against the *effective* role).
+    // A properly-configured production role (non-superuser) takes the direct
+    // withOrgContext path — the real runtime behaviour.
+    const roleRows = await prisma.$queryRawUnsafe<{ bypasses: boolean }[]>(
+      `SELECT COALESCE(rolsuper OR rolbypassrls, false) AS bypasses
+         FROM pg_roles WHERE rolname = current_user`,
     );
+    const bypasses = roleRows[0]?.bypasses ?? false;
+
+    let leaked: { orgId: string }[];
+    if (bypasses) {
+      const PROBE = "eyf_rls_test_probe";
+      await prisma.$executeRawUnsafe(`DROP ROLE IF EXISTS ${PROBE}`);
+      await prisma.$executeRawUnsafe(`CREATE ROLE ${PROBE} NOSUPERUSER`);
+      await prisma.$executeRawUnsafe(`GRANT USAGE ON SCHEMA public TO ${PROBE}`);
+      await prisma.$executeRawUnsafe(`GRANT SELECT ON org_members TO ${PROBE}`);
+      try {
+        leaked = await prisma.$transaction(async (tx) => {
+          await tx.$executeRawUnsafe(`SET LOCAL ROLE ${PROBE}`);
+          await tx.$executeRawUnsafe(`SET LOCAL app.org_id = '${orgA}'`);
+          return tx.$queryRawUnsafe<{ orgId: string }[]>(
+            `SELECT "orgId" FROM org_members`, // deliberately no where!
+          );
+        });
+      } finally {
+        await prisma.$executeRawUnsafe(`REVOKE ALL ON org_members FROM ${PROBE}`);
+        await prisma.$executeRawUnsafe(`REVOKE USAGE ON SCHEMA public FROM ${PROBE}`);
+        await prisma.$executeRawUnsafe(`DROP ROLE IF EXISTS ${PROBE}`);
+      }
+    } else {
+      const { withOrgContext } = await import("../lib/org-scoped.js");
+      leaked = await withOrgContext(orgA, (tx) =>
+        tx.orgMember.findMany({ select: { orgId: true } }), // deliberately no where!
+      );
+    }
+
     expect(leaked.length).toBeGreaterThan(0); // org A's own rows visible
     expect(leaked.every((m) => m.orgId === orgA)).toBe(true); // org B invisible
   });

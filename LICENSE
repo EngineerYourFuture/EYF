@@ -1,0 +1,20 @@
+Copyright (c) 2026 Engineer Your Future (EYF). All rights reserved.
+
+TODO: choose and apply a license.
+
+This repository is currently marked private ("private": true in package.json)
+and ships with NO open-source grant. Absent an explicit license, default
+copyright law applies: no one may use, copy, modify, or distribute this software.
+
+To finalize licensing, replace this file with the intended terms:
+
+  - Proprietary / all-rights-reserved (keep it closed): state the terms
+    explicitly, or leave this notice in place.
+
+  - Open source: adopt a standard license verbatim from https://choosealicense.com
+    and set the "license" field in package.json (SPDX id). Common choices:
+      * MIT         — permissive, minimal conditions.
+      * Apache-2.0  — permissive, adds a patent grant + NOTICE requirements.
+      * BSD-3-Clause — permissive, no-endorsement clause.
+
+Do not treat this placeholder as a grant of any rights.

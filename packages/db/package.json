@@ -17,6 +17,7 @@
     "prisma:studio": "prisma studio",
     "seed": "tsx prisma/seed.ts",
     "db:rls": "tsx scripts/apply-rls.ts",
+    "db:rls:verify": "tsx scripts/verify-rls.ts",
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf src/generated .turbo"
   },

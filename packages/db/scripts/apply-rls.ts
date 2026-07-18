@@ -19,53 +19,34 @@
  * write on a column-less table. Route-level filtering isolates those.
  */
 import { PrismaClient } from "../src/generated/client";
+import { ORG_TABLES, TENANT_TABLE, POLICY_NAME } from "./rls-tables";
 
 const prisma = new PrismaClient();
-
-const ORG_TABLES = [
-  "org_members",
-  "org_departments",
-  "org_teams",
-  "org_invites",
-  "org_usage_counters",
-  "org_learning_paths",
-  "org_cohorts",
-  "org_role_bars",
-  "org_assessment_blueprints",
-  "org_assessment_runs",
-  "org_certificate_templates",
-  "org_requisitions",
-  "org_api_keys",
-  "org_webhook_endpoints",
-  // org_offers: no orgId column — isolated via reqId→JobRequisition; RLS N/A.
-  "lms_courses",
-  "internship_slots",
-];
 
 async function main() {
   for (const table of ORG_TABLES) {
     await prisma.$executeRawUnsafe(`ALTER TABLE "${table}" ENABLE ROW LEVEL SECURITY`);
     await prisma.$executeRawUnsafe(`ALTER TABLE "${table}" FORCE ROW LEVEL SECURITY`);
-    await prisma.$executeRawUnsafe(`DROP POLICY IF EXISTS org_isolation ON "${table}"`);
+    await prisma.$executeRawUnsafe(`DROP POLICY IF EXISTS ${POLICY_NAME} ON "${table}"`);
     await prisma.$executeRawUnsafe(
-      `CREATE POLICY org_isolation ON "${table}"
+      `CREATE POLICY ${POLICY_NAME} ON "${table}"
        USING (current_setting('app.org_id', true) IS NULL
               OR current_setting('app.org_id', true) = ''
               OR "orgId" = current_setting('app.org_id', true))`,
     );
-    console.log(`RLS: org_isolation applied on ${table}`);
+    console.log(`RLS: ${POLICY_NAME} applied on ${table}`);
   }
   // organizations itself: the row IS the tenant — same escape-hatch shape.
-  await prisma.$executeRawUnsafe(`ALTER TABLE "organizations" ENABLE ROW LEVEL SECURITY`);
-  await prisma.$executeRawUnsafe(`ALTER TABLE "organizations" FORCE ROW LEVEL SECURITY`);
-  await prisma.$executeRawUnsafe(`DROP POLICY IF EXISTS org_isolation ON "organizations"`);
+  await prisma.$executeRawUnsafe(`ALTER TABLE "${TENANT_TABLE}" ENABLE ROW LEVEL SECURITY`);
+  await prisma.$executeRawUnsafe(`ALTER TABLE "${TENANT_TABLE}" FORCE ROW LEVEL SECURITY`);
+  await prisma.$executeRawUnsafe(`DROP POLICY IF EXISTS ${POLICY_NAME} ON "${TENANT_TABLE}"`);
   await prisma.$executeRawUnsafe(
-    `CREATE POLICY org_isolation ON "organizations"
+    `CREATE POLICY ${POLICY_NAME} ON "${TENANT_TABLE}"
      USING (current_setting('app.org_id', true) IS NULL
             OR current_setting('app.org_id', true) = ''
             OR "id" = current_setting('app.org_id', true))`,
   );
-  console.log("RLS: org_isolation applied on organizations");
+  console.log(`RLS: ${POLICY_NAME} applied on ${TENANT_TABLE}`);
 }
 
 main()

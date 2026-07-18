@@ -62,6 +62,19 @@ const schema = z.object({
   OPENAI_API_KEY: z.string().optional(),
   RESEND_API_KEY: z.string().optional(),
   RESEND_FROM: z.string().default("EYF <noreply@eyf.in>"),
+
+  // ── Storage (Cloudflare R2; all optional — no-op without values) ─────
+  // Validated here so a typo'd key fails fast at boot instead of at first
+  // upload, matching every other integration. Not required: object storage
+  // is not wired yet, so the app runs without these.
+  R2_ACCOUNT_ID: z.string().optional(),
+  R2_ACCESS_KEY: z.string().optional(),
+  R2_SECRET_KEY: z.string().optional(),
+  R2_BUCKET: z.string().optional(),
+  R2_PUBLIC_URL: z.string().url().optional(),
+
+  // Public app origin — used for absolute links in transactional email.
+  NEXT_PUBLIC_APP_URL: z.string().url().default("https://eyf.in"),
 });
 
 export const env = schema.parse(process.env);

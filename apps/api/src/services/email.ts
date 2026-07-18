@@ -27,7 +27,7 @@ export async function sendEmail(msg: EmailSend): Promise<{ sent: boolean; id?: s
 
 // ─── Templates ────────────────────────────────────────────────────
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://eyf.in";
+const APP_URL = env.NEXT_PUBLIC_APP_URL;
 
 function shell(title: string, body: string): string {
   return `<!doctype html><html><body style="margin:0;padding:0;background:#0a0a0a;color:#fafaf9;font-family:Inter,-apple-system,sans-serif;">
