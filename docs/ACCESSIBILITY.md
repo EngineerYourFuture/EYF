@@ -142,13 +142,13 @@ Other structure: `app/layout.tsx` sets the document shell, `not-found.tsx` and `
 | --- | --- |
 | Command palette (⌘K) | ✅ `components/command-palette.tsx` |
 | Native controls | ✅ Buttons/inputs/links from `@eyf/ui` are real elements |
-| Focus-visible styling | ⚠️ Unverified — no documented token |
-| Skip-to-content link | ❌ **Not implemented** |
-| Focus trap in modals | ⚠️ Unverified |
+| Focus-visible styling | ✅ `focus-visible:ring-2 ring-accent` on `@eyf/ui` Button + interactive controls |
+| Skip-to-content link | ✅ `components/app-shell.tsx` — first focusable, targets `#main-content` (WCAG 2.4.1) |
+| Focus trap in modals | ✅ Mobile drawer traps Tab, Escape closes, focus returns to trigger (`app-shell.tsx`) |
 | Documented tab order | ❌ **Needs implementation** |
 
-> [!WARNING]
-> **No skip-link exists.** With a persistent sidebar (`app-sidebar.tsx`) and top nav, keyboard users must tab through the full navigation on every page load. A skip-to-content link is the single highest-value a11y fix available and is a WCAG 2.4.1 (Level A) requirement.
+> [!NOTE]
+> The authenticated app (`AppShell`) implements the skip link, the `<main id="main-content" tabIndex={-1}>` target, and a full drawer focus trap. The **marketing/legal pages** (outside `AppShell`) do not yet carry a skip link — lower priority since their navigation is shallow, but worth adding for full coverage.
 
 ---
 
@@ -187,11 +187,11 @@ Theming uses CSS custom properties with light and dark modes and an app-wide tog
 | Light + dark themes | ✅ |
 | Token system (no hardcoded hex) | ✅ |
 | Lighthouse contrast check on landing | ✅ (part of the ≥0.90 gate) |
-| Contrast ratios documented per token | ❌ **Needs implementation** |
-| Contrast verified in **dark** mode | ⚠️ Lighthouse runs one theme only |
+| Contrast ratios computed per token (both themes) | ✅ text-1…text-4 measured against bg + surface…surface-3 |
+| Contrast verified + fixed in **dark** mode | ✅ `text-4` lifted to clear AA on card surfaces |
 
-> [!WARNING]
-> Lighthouse audits whichever theme renders by default. **The other theme is unverified.** Low-contrast tokens like `text-text-4` (used for hints and secondary text) are the most likely failures — a hint at `text-text-4` on a card background is exactly the pattern that fails WCAG 1.4.3 (4.5:1 for body text).
+> [!NOTE]
+> **Measured (WCAG 1.4.3, 4.5:1 for normal text).** Light mode: `text-3`/`text-4` clear AA on every background (4.5–6.1:1). Dark mode: `text-3` clears AA everywhere; `text-4` previously passed only on `--bg` (4.53) and **failed on card surfaces** (4.26 / 4.03 / 3.73 on surface / surface-2 / surface-3). Fixed by lifting dark `--text-4` from `116 121 132` → `130 135 146`, which now measures **4.52–5.50:1** across all surfaces while staying dimmer than `text-3` (hierarchy preserved). `text-1`/`text-2` are well above AA in both themes.
 
 Related history: a past commit fixed *"footer readability on the landing"* and *"light-theme artifacts"* — contrast issues have been real here.
 
@@ -242,20 +242,19 @@ Ranked by user impact:
 
 | # | Gap | WCAG |
 | --- | --- | --- |
-| 1 | **No skip-to-content link** | 2.4.1 (A) |
+| 1 | Skip-to-content link missing on **marketing/legal** pages (present in the app) | 2.4.1 (A) |
 | 2 | **Only the landing page is audited** | — |
 | 3 | **No mobile audit** despite a mobile-first audience | — |
-| 4 | **Dark-mode contrast unverified** | 1.4.3 (AA) |
+| 4 | ~~Dark-mode contrast unverified~~ — measured + `text-4` fixed to AA | 1.4.3 (AA) ✅ |
 | 5 | **No audio alternative** for drills/mocks | 1.2.x (A/AA) |
 | 6 | No screen-reader testing | Multiple |
 | 7 | No declared conformance level or statement page | — |
-| 8 | Live regions for async updates unverified | 4.1.3 (AA) |
-| 9 | Focus-visible styling unverified | 2.4.7 (AA) |
-| 10 | `lenis` smooth scroll + WebGL vs. reduced motion unverified | 2.3.3 (AAA) |
+| 8 | Live regions for async updates — now present on key surfaces (dashboard, mock chat, verdicts); remainder unverified | 4.1.3 (AA) |
+| 9 | `lenis` smooth scroll + WebGL vs. reduced motion unverified | 2.3.3 (AAA) |
 
 ### Recommended next steps
 
-1. Add a skip-link (hours; Level A).
+1. Extend the skip-link to the marketing/legal layouts (the app already has it).
 2. Add authenticated routes + a mobile preset to `lighthouserc.json`.
 3. Audit dark-mode contrast per token and record ratios in [DESIGN](DESIGN.md).
 4. Verify `lenis`/WebGL honour `prefers-reduced-motion`.
