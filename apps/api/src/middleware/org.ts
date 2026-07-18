@@ -9,7 +9,7 @@
  */
 import type { FastifyRequest, FastifyReply } from "fastify";
 import { prisma } from "@eyf/db";
-import { canInOrg, type OrgCapability, type OrgScope } from "@eyf/types";
+import { resolveOrgAccess, type OrgCapability, type OrgScope, type GrantSource } from "@eyf/types";
 
 export type OrgContext = {
   orgId: string;
@@ -17,6 +17,9 @@ export type OrgContext = {
   roles: string[];
   departmentId: string | null;
   scope: OrgScope;
+  /** Which permission source granted access, and why — for audit logging. */
+  grantSource?: GrantSource;
+  grantReason?: string;
 };
 
 declare module "fastify" {
@@ -42,7 +45,11 @@ export function requireOrgCapability(capability: OrgCapability) {
     if (!member || member.status !== "ACTIVE") {
       return reply.code(404).send({ success: false, error: { code: "NOT_FOUND", message: "Not found." } });
     }
-    const decision = canInOrg(member.roles, capability);
+    // Resolve through the deterministic engine. Role-only input here is
+    // equivalent to the legacy canInOrg (proven in authz.test.ts); the engine
+    // additionally surfaces the grant source + reason for audit and is ready to
+    // accept direct/group/temporary/platform entries when those sources land.
+    const decision = resolveOrgAccess(capability, { roles: member.roles });
     if (!decision.granted) {
       return reply.code(403).send({ success: false, error: { code: "FORBIDDEN", message: "You don't have permission for this." } });
     }
@@ -52,6 +59,8 @@ export function requireOrgCapability(capability: OrgCapability) {
       roles: member.roles,
       departmentId: member.departmentId,
       scope: decision.scope,
+      grantSource: decision.source,
+      grantReason: decision.reason,
     };
   };
 }

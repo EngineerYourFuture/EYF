@@ -167,6 +167,35 @@ export {
 } from "./org-permissions";
 export type { OrgCapability, OrgRoleName, OrgScope, OrgDecision } from "./org-permissions";
 
+// Deterministic permission-resolution engine (allow/deny, temporary access,
+// multi-source) + composable policies + platform/tenant role separation.
+// Additive superset of canInOrg — see docs/AUTHORIZATION.md.
+export {
+  resolveOrgAccess,
+  isAllowed,
+  invalidTenantRoles,
+  isOrgRoleName,
+  isPlatformRole,
+  ORG_ROLE_NAMES,
+  CanManageOrg,
+  CanViewBilling,
+  CanInviteMember,
+  CanViewAudit,
+  CanManageBranding,
+  CanAuthorCourse,
+  CanPublishCourse,
+  CanEnrollLearners,
+  CanAuthorAssessment,
+  CanGradeAssessment,
+  CanViewResults,
+  CanReadSkills,
+  CanSearchTalent,
+  CanManagePipeline,
+  CanMakeOffer,
+  CanViewOrgReports,
+} from "./authz";
+export type { Effect, GrantSource, PermissionEntry, ResolveInput, AccessDecision, Policy } from "./authz";
+
 // Skill Ledger (enterprise evidence layer — PRD §15.13). Named re-exports.
 export { computeSkillLevel, barFit, EVIDENCE_WEIGHT } from "./skill-ledger";
 export type { Evidence, SkillLevel, RoleBarReq, BarGap } from "./skill-ledger";
