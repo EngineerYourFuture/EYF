@@ -8,7 +8,6 @@
  */
 import {
   computeReadiness as computeReadinessShared,
-  rankActions as rankActionsShared,
   type ReadinessInput,
   type Readiness as SharedReadiness,
   type Pillar as SharedPillar,
@@ -26,4 +25,3 @@ export type GuidanceAction = Omit<SharedGuidanceAction, "icon"> & { icon: IconNa
 
 // The engine emits IconName-valued strings; the cast is safe at this boundary.
 export const computeReadiness = computeReadinessShared as (i: ReadinessInput) => Readiness;
-export const rankActions = rankActionsShared as (r: Readiness, limit?: number) => GuidanceAction[];

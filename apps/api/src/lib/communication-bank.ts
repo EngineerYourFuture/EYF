@@ -97,7 +97,3 @@ export const COMMUNICATION_BANK: CommunicationPrompt[] = [
 
 const BY_ID = new Map(COMMUNICATION_BANK.map((p) => [p.id, p]));
 export const getPrompt = (id: string): CommunicationPrompt | undefined => BY_ID.get(id);
-
-export function promptsByKind(kind?: CommunicationKind): CommunicationPrompt[] {
-  return kind ? COMMUNICATION_BANK.filter((p) => p.kind === kind) : COMMUNICATION_BANK;
-}

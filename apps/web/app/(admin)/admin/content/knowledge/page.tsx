@@ -4,6 +4,7 @@ import { Card, Badge, Button, EmptyState, SkeletonRows } from "@eyf/ui";
 import { useApi, useApiAction } from "@/lib/use-api";
 import { Icons } from "@/components/icons";
 import { ContentTabs } from "../_tabs";
+import { Field } from "../_field";
 
 const FILTERS = [
   { id: "all", label: "All" },
@@ -114,14 +115,5 @@ export default function Page() {
         {data?.length === 0 && <EmptyState icon={<Icons.sparkle width={28} height={28} />} title="No answers yet" description="Answers appear here as students use Ask EYF — or write the first one yourself." />}
       </div>
     </div>
-  );
-}
-
-function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
-  return (
-    <label className="block">
-      <span className="text-text-3 text-xs uppercase tracking-wider">{label}{hint && <span className="text-text-4 normal-case tracking-normal"> · {hint}</span>}</span>
-      <div className="mt-1.5">{children}</div>
-    </label>
   );
 }

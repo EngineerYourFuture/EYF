@@ -4,6 +4,7 @@ import { Card, Badge, Button, EmptyState, SkeletonRows } from "@eyf/ui";
 import { useApi, useApiAction } from "@/lib/use-api";
 import { Icons } from "@/components/icons";
 import { ContentTabs } from "../_tabs";
+import { Field } from "../_field";
 
 const DURATIONS = ["MONTHS_2", "MONTHS_3", "MONTHS_6", "SEMESTER", "FULL_YEAR"] as const;
 type Duration = (typeof DURATIONS)[number];
@@ -122,14 +123,5 @@ export default function Page() {
         {data?.length === 0 && <EmptyState icon={<Icons.briefcase width={28} height={28} />} title="No internships yet" description="Post the first slot — Elite students see it on the internship board immediately." />}
       </div>
     </div>
-  );
-}
-
-function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
-  return (
-    <label className="block">
-      <span className="text-text-3 text-xs uppercase tracking-wider">{label}{hint && <span className="text-text-4 normal-case tracking-normal"> · {hint}</span>}</span>
-      <div className="mt-1.5">{children}</div>
-    </label>
   );
 }

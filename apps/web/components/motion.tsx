@@ -26,34 +26,3 @@ export function Reveal({
     </motion.div>
   );
 }
-
-/** Stagger container — children with StaggerItem animate in on mount, in sequence. */
-export function Stagger({
-  children, className, gap = 0.06, delay = 0,
-}: { children: ReactNode; className?: string; gap?: number; delay?: number }) {
-  const reduce = useReducedMotion();
-  return (
-    <motion.div
-      className={className}
-      initial={reduce ? false : "hidden"}
-      animate="show"
-      variants={{ hidden: {}, show: { transition: { staggerChildren: gap, delayChildren: delay } } }}
-    >
-      {children}
-    </motion.div>
-  );
-}
-
-/** One item inside a Stagger. */
-export function StaggerItem({
-  children, className, y = 14,
-}: { children: ReactNode; className?: string; y?: number }) {
-  return (
-    <motion.div
-      className={className}
-      variants={{ hidden: { opacity: 0, y }, show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: EASE } } }}
-    >
-      {children}
-    </motion.div>
-  );
-}

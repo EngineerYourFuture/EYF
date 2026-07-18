@@ -7,7 +7,7 @@
  */
 const KEY = "eyf-last-seen-score";
 
-export function lastSeenScore(): number | null {
+function lastSeenScore(): number | null {
   try {
     const raw = localStorage.getItem(KEY);
     if (raw == null) return null;
@@ -18,7 +18,7 @@ export function lastSeenScore(): number | null {
   }
 }
 
-export function rememberScore(score: number) {
+function rememberScore(score: number) {
   try { localStorage.setItem(KEY, String(Math.round(score))); } catch { /* private mode */ }
 }
 

@@ -5,6 +5,7 @@ import { Card, Badge, Button, EmptyState, SkeletonRows } from "@eyf/ui";
 import { useApi, useApiAction } from "@/lib/use-api";
 import { Icons } from "@/components/icons";
 import { ContentTabs } from "../_tabs";
+import { Field } from "../_field";
 
 const CATEGORIES = ["APTITUDE", "LOGICAL", "VERBAL", "TECHNICAL"] as const;
 type Category = (typeof CATEGORIES)[number];
@@ -134,14 +135,5 @@ export default function Page() {
         {data?.length === 0 && <EmptyState icon={<Icons.clipboard width={28} height={28} />} title="No sim blueprints in the DB yet" description="Students currently get the built-in defaults (TCS NQT, AMCAT, InfyTQ, CoCubes). Import them to take over editing." />}
       </div>
     </div>
-  );
-}
-
-function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
-  return (
-    <label className="block">
-      <span className="text-text-3 text-xs uppercase tracking-wider">{label}{hint && <span className="text-text-4 normal-case tracking-normal"> · {hint}</span>}</span>
-      <div className="mt-1.5">{children}</div>
-    </label>
   );
 }

@@ -1,12 +1,11 @@
 /**
- * Phase 1 assessment question bank.
+ * Legacy assessment question bank — the fallback pool behind assessment-source.ts.
  *
  * Spec (Doc 07 §Skill Assessment): 20 questions per session — 12 DSA, 4 CS, 4 aptitude.
- * Adaptive picker draws from this bank weighted by topic + difficulty.
- *
- * Each question is stateless; we don't persist the bank in the DB at this stage
- * because the set is small and editorial. Migrate to a table in Phase 2 once
- * content-creator role lands.
+ * Staff-authored AssessmentBankQuestion rows win the moment they exist; this
+ * hardcoded set keeps a fresh install alive and resolves legacy question ids
+ * for sessions in flight across a bank→DB cutover. Selection now lives in
+ * assessment-source.ts (pickQuestionsSource) — this file is data only.
  */
 
 export type Difficulty = "easy" | "medium" | "hard";
@@ -69,45 +68,3 @@ const APTI: AssessmentQuestion[] = [
 ];
 
 export const ASSESSMENT_BANK: AssessmentQuestion[] = [...DSA, ...CS, ...APTI];
-export const BY_AREA = {
-  dsa: DSA,
-  cs: CS,
-  aptitude: APTI,
-};
-
-/**
- * Adaptive picker — start at medium, escalate/de-escalate per area.
- * Phase 1: simple weighted random; replace with IRT/elo in Phase 2.
- */
-export function pickQuestions(opts: {
-  countDsa?: number;
-  countCs?: number;
-  countAptitude?: number;
-  seed?: number;
-}): AssessmentQuestion[] {
-  const r = mulberry32(opts.seed ?? Date.now());
-  const pick = (pool: AssessmentQuestion[], n: number) => {
-    const copy = [...pool];
-    const out: AssessmentQuestion[] = [];
-    for (let i = 0; i < n && copy.length > 0; i++) {
-      const idx = Math.floor(r() * copy.length);
-      out.push(copy.splice(idx, 1)[0]!);
-    }
-    return out;
-  };
-  return [
-    ...pick(DSA,  opts.countDsa      ?? 12),
-    ...pick(CS,   opts.countCs       ?? 4),
-    ...pick(APTI, opts.countAptitude ?? 4),
-  ];
-}
-
-function mulberry32(a: number) {
-  return function () {
-    a |= 0; a = (a + 0x6D2B79F5) | 0;
-    let t = a;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
