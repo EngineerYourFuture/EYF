@@ -1,7 +1,8 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, Badge, Button, SkeletonRows } from "@eyf/ui";
 import { useApi, useApiAction } from "@/lib/use-api";
+import { useConfirm } from "@/components/confirm";
 
 const ROLES = ["GUEST", "STUDENT_FREE", "STUDENT_BASIC", "STUDENT_PRO", "STUDENT_ELITE", "MENTOR", "MODERATOR", "CONTENT_CREATOR", "ADMIN"] as const;
 const PLANS = ["FREE", "BASIC", "PRO", "ELITE"] as const;
@@ -15,9 +16,16 @@ const selectCls = "h-8 px-2 rounded-md bg-surface border border-border text-text
 
 export default function Page() {
   const [q, setQ] = useState("");
-  const { data, mutate } = useApi<Row[]>(`/admin/users${q.trim() ? `?q=${encodeURIComponent(q.trim())}` : ""}`);
+  const [debouncedQ, setDebouncedQ] = useState("");
+  // Debounce so typing a name doesn't fire one admin search per keystroke.
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedQ(q.trim()), 300);
+    return () => clearTimeout(t);
+  }, [q]);
+  const { data, mutate } = useApi<Row[]>(`/admin/users${debouncedQ ? `?q=${encodeURIComponent(debouncedQ)}` : ""}`);
   const { data: me } = useApi<{ user: { id: string } }>("/me");
   const action = useApiAction();
+  const confirm = useConfirm();
   const myId = me?.user?.id;
 
   async function patch(path: string, body: object) {
@@ -27,7 +35,13 @@ export default function Page() {
   const setRole = (id: string, role: string) => patch(`/admin/users/${id}/role`, { role });
   const setPlan = (id: string, plan: string) => patch(`/admin/users/${id}/plan`, { plan });
   async function toggleSuspend(u: Row) {
-    if (!confirm(`${u.suspended ? "Restore" : "Suspend"} ${u.name}?`)) return;
+    const ok = await confirm({
+      title: `${u.suspended ? "Restore" : "Suspend"} ${u.name}?`,
+      message: u.suspended ? "They'll regain access immediately." : "They'll be signed out and lose access until restored.",
+      confirmLabel: u.suspended ? "Restore" : "Suspend",
+      danger: !u.suspended,
+    });
+    if (!ok) return;
     await patch(`/admin/users/${u.id}/status`, { suspended: !u.suspended });
   }
 
@@ -37,6 +51,7 @@ export default function Page() {
       <p className="text-text-3 mt-2">{data?.length ?? 0} users · manage roles, plans, and access.</p>
 
       <input
+        type="search" aria-label="Search users by name or email"
         value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search by name or email…"
         className="mt-6 w-full max-w-sm h-10 px-3 rounded-lg bg-surface border border-border text-text-1 focus:outline-none focus:border-accent"
       />
@@ -60,10 +75,12 @@ export default function Page() {
 
               <div className="flex items-center gap-2 shrink-0">
                 <select className={selectCls} value={u.role} disabled={isSelf}
+                  aria-label={`Role for ${u.name}`}
                   onChange={(e) => setRole(u.id, e.target.value)} title={isSelf ? "You can't change your own role" : "Role"}>
                   {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
                 </select>
                 <select className={selectCls} value={u.plan}
+                  aria-label={`Plan for ${u.name}`}
                   onChange={(e) => setPlan(u.id, e.target.value)} title="Plan">
                   {PLANS.map((p) => <option key={p} value={p}>{p}</option>)}
                 </select>

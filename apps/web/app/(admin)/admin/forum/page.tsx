@@ -1,6 +1,7 @@
 "use client";
 import { Card, Badge, Button, EmptyState, SkeletonRows } from "@eyf/ui";
 import { useApi, useApiAction } from "@/lib/use-api";
+import { useConfirm } from "@/components/confirm";
 import { Icons } from "@/components/icons";
 
 type Thread = {
@@ -12,13 +13,14 @@ type Thread = {
 export default function Page() {
   const { data, mutate } = useApi<Thread[]>("/forum/threads?limit=50");
   const action = useApiAction();
+  const confirm = useConfirm();
 
   async function toggle(t: Thread, op: "lock" | "unlock" | "pin") {
     await action(`/admin/mod/forum/threads/${t.id}/${op}`, { method: "POST" });
     await mutate();
   }
   async function del(t: Thread) {
-    if (!confirm(`Delete "${t.title}"? Irreversible.`)) return;
+    if (!(await confirm({ title: `Delete "${t.title}"? Irreversible.`, confirmLabel: "Delete", danger: true }))) return;
     await action(`/admin/mod/forum/threads/${t.id}`, { method: "DELETE" });
     await mutate();
   }

@@ -1,6 +1,7 @@
 "use client";
 import { Card, Badge, Button, EmptyState, SkeletonRows } from "@eyf/ui";
 import { useApi, useApiAction } from "@/lib/use-api";
+import { useConfirm } from "@/components/confirm";
 import { Icons } from "@/components/icons";
 
 type Pending = {
@@ -13,14 +14,15 @@ type Pending = {
 export default function Page() {
   const { data, mutate } = useApi<Pending[]>("/admin/mod/mentors/pending");
   const action = useApiAction();
+  const confirm = useConfirm();
 
   async function verify(id: string) {
-    if (!confirm("Verify this mentor?")) return;
+    if (!(await confirm({ title: "Verify this mentor?", message: "They'll be able to offer paid sessions to students.", confirmLabel: "Verify" }))) return;
     await action(`/admin/mod/mentors/${id}/verify`, { method: "POST" });
     await mutate();
   }
   async function reject(id: string) {
-    if (!confirm("Reject + delete this application?")) return;
+    if (!(await confirm({ title: "Reject application?", message: "This deletes the application permanently.", confirmLabel: "Reject", danger: true }))) return;
     await action(`/admin/mod/mentors/${id}/reject`, { method: "POST" });
     await mutate();
   }
@@ -48,8 +50,8 @@ export default function Page() {
                 )}
               </div>
               <div className="flex flex-col gap-2">
-                <Button size="sm" onClick={() => verify(m.id)}>Verify</Button>
-                <Button size="sm" variant="ghost" onClick={() => reject(m.id)}>Reject</Button>
+                <Button size="sm" onClick={() => verify(m.id)} aria-label={`Verify ${m.user.name}`}>Verify</Button>
+                <Button size="sm" variant="ghost" onClick={() => reject(m.id)} aria-label={`Reject ${m.user.name}`}>Reject</Button>
               </div>
             </div>
           </Card>

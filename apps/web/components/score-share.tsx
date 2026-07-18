@@ -10,6 +10,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@eyf/ui";
 import { useApiAction } from "@/lib/use-api";
+import { Modal } from "@/components/modal";
 import { Icons } from "@/components/icons";
 
 type Snapshot = {
@@ -50,10 +51,15 @@ export function ScoreShare() {
         {busy ? "Generating…" : "Share my EYF Score"}
       </Button>
 
-      {share && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" onClick={() => setShare(null)}>
-          <div className="w-full max-w-md rounded-2xl border border-border bg-surface p-6 shadow-card-lg text-left" onClick={(e) => e.stopPropagation()}>
-            <h3 className="font-display text-lg font-bold">Your EYF Score is live</h3>
+      <Modal
+        open={!!share}
+        onClose={() => setShare(null)}
+        labelledBy="score-share-title"
+        panelClassName="relative w-full max-w-md rounded-2xl border border-border bg-surface p-6 shadow-card-lg text-left focus:outline-none"
+      >
+        {share && (
+          <>
+            <h3 id="score-share-title" className="font-display text-lg font-bold">Your EYF Score is live</h3>
             <p className="text-text-3 text-sm mt-1">
               Anyone with this link sees a <span className="text-text-1">verified, EYF-computed</span> snapshot of your score — recruiters can trust it.
             </p>
@@ -86,9 +92,9 @@ export function ScoreShare() {
             <p className="text-text-4 text-xs mt-4">
               The snapshot is frozen at {share.snapshot.overall}/100 — share a new one as your score climbs.
             </p>
-          </div>
-        </div>
-      )}
+          </>
+        )}
+      </Modal>
     </>
   );
 }

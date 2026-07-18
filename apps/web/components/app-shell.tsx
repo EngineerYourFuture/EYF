@@ -3,7 +3,7 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { AppSidebar } from "./app-sidebar";
 import { BackButton } from "./back-button";
 import { ThemeToggle } from "./theme";
@@ -70,6 +70,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const pathname = usePathname();
+  const reduce = useReducedMotion();
   const menuBtnRef = useRef<HTMLButtonElement>(null);
   const drawerRef = useRef<HTMLElement>(null);
 
@@ -184,12 +185,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       <main id="main-content" tabIndex={-1} className="min-h-screen min-w-0 overflow-x-hidden lg:col-start-2 pb-20 lg:pb-0 focus:outline-none">
         <DesktopBackBar />
-        {/* Route transition — content fades + rises in on every navigation. */}
+        {/* Route transition — content fades + rises in on every navigation.
+            Disabled under prefers-reduced-motion (WCAG 2.3.3). */}
         <motion.div
           key={pathname}
-          initial={{ opacity: 0, y: 8 }}
+          initial={reduce ? false : { opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.34, ease: [0.16, 1, 0.3, 1] }}
+          transition={reduce ? { duration: 0 } : { duration: 0.34, ease: [0.16, 1, 0.3, 1] }}
         >
           {children}
         </motion.div>

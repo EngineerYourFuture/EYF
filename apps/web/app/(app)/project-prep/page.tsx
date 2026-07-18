@@ -137,32 +137,34 @@ export default function Page() {
 
       {started && started.length > 0 && (
         <Card className="mt-8">
-          <label className="text-text-3 text-xs uppercase tracking-wider">Use a project you&apos;ve started</label>
-          <select value={userProjectId} onChange={(e) => pickStarted(e.target.value)}
-            className="mt-2 w-full h-11 px-3 rounded-lg bg-surface border border-border text-text-1 focus:outline-none focus:border-accent">
-            <option value="">Custom project (fill in below)</option>
-            {started.map((s) => <option key={s.id} value={s.id}>{s.idea.title}</option>)}
-          </select>
+          <label className="block">
+            <span className="text-text-3 text-xs uppercase tracking-wider">Use a project you&apos;ve started</span>
+            <select value={userProjectId} onChange={(e) => pickStarted(e.target.value)}
+              className="mt-2 w-full h-11 px-3 rounded-lg bg-surface border border-border text-text-1 focus:outline-none focus:border-accent">
+              <option value="">Custom project (fill in below)</option>
+              {started.map((s) => <option key={s.id} value={s.id}>{s.idea.title}</option>)}
+            </select>
+          </label>
         </Card>
       )}
 
       <Card className="mt-4 space-y-4">
-        <div>
-          <label className="text-text-3 text-xs uppercase tracking-wider">Project title</label>
+        <label className="block">
+          <span className="text-text-3 text-xs uppercase tracking-wider">Project title</span>
           <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Real-time chat app with presence"
             className="mt-2 w-full h-11 px-3.5 rounded-lg bg-surface border border-border text-text-1 focus:outline-none focus:border-accent placeholder:text-text-4" />
-        </div>
-        <div>
-          <label className="text-text-3 text-xs uppercase tracking-wider">What it does / your role</label>
+        </label>
+        <label className="block">
+          <span className="text-text-3 text-xs uppercase tracking-wider">What it does / your role</span>
           <textarea value={summary} onChange={(e) => setSummary(e.target.value)} rows={4}
             placeholder="1–3 sentences: the problem it solves, what you built, and your specific contribution."
             className="mt-2 w-full rounded-lg bg-surface border border-border text-text-1 p-3.5 text-sm leading-relaxed focus:outline-none focus:border-accent placeholder:text-text-4" />
-        </div>
-        <div>
-          <label className="text-text-3 text-xs uppercase tracking-wider">Tech stack <span className="text-text-4 normal-case">(comma-separated)</span></label>
+        </label>
+        <label className="block">
+          <span className="text-text-3 text-xs uppercase tracking-wider">Tech stack <span className="text-text-4 normal-case">(comma-separated)</span></span>
           <input value={stack} onChange={(e) => setStack(e.target.value)} placeholder="React, Node, PostgreSQL, WebSocket, Redis"
             className="mt-2 w-full h-11 px-3.5 rounded-lg bg-surface border border-border text-text-1 focus:outline-none focus:border-accent placeholder:text-text-4" />
-        </div>
+        </label>
         <div className="flex items-center gap-3 pt-1">
           <Button onClick={generate} disabled={loading || !title.trim() || !summary.trim()}>
             {loading ? "Generating grilling…" : "Generate interview prep"}

@@ -48,14 +48,14 @@ export default function Page() {
         subtitle="Roles worth your time, with real comp bands — saved straight into a pipeline you can drive to an offer."
       />
 
-      <div className="mt-6 flex items-center gap-2 text-sm">
-        <label className="text-text-3 uppercase text-xs tracking-wider">Role</label>
+      <label className="mt-6 flex items-center gap-2 text-sm">
+        <span className="text-text-3 uppercase text-xs tracking-wider">Role</span>
         <select value={role} onChange={(e) => setRole(e.target.value)}
           className="bg-surface border border-border rounded-md px-2.5 py-1.5 focus:border-accent/50 outline-none">
           <option value="">All</option>
           {ROLES.map((r) => <option key={r}>{r}</option>)}
         </select>
-      </div>
+      </label>
 
       <div className="mt-8 grid lg:grid-cols-[1fr_300px] gap-8">
         <div>

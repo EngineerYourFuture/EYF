@@ -167,7 +167,7 @@ export default function Page() {
 
         <div className="mt-6">
           <div className="flex items-center justify-between mb-2">
-            <label className="text-text-3 text-xs uppercase tracking-wider">Your answer</label>
+            <label htmlFor="comm-answer" className="text-text-3 text-xs uppercase tracking-wider">Your answer</label>
             <div className="flex items-center gap-2">
               {!recording ? (
                 <Button size="sm" variant="secondary" onClick={start} disabled={transcribing}>
@@ -183,7 +183,7 @@ export default function Page() {
               )}
             </div>
           </div>
-          <textarea value={answer} onChange={(e) => setAnswer(e.target.value)} rows={8}
+          <textarea id="comm-answer" value={answer} onChange={(e) => setAnswer(e.target.value)} rows={8}
             placeholder="Speak your answer with the mic, or type it here. Aim for 60–120 seconds of spoken content."
             className="w-full rounded-lg bg-surface border border-border text-text-1 p-3.5 text-sm leading-relaxed focus:outline-none focus:border-accent placeholder:text-text-4" />
           {recError && <p className="text-hard text-xs mt-1.5">Mic error: {recError}. You can type instead.</p>}

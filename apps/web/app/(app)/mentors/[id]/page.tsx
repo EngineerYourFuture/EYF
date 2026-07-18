@@ -54,12 +54,15 @@ export default function Page({ params }: { params: { id: string } }) {
         <p className="text-text-3 text-sm mt-2">Expert mocks require <Badge tone="accent">Elite</Badge> plan.</p>
         <div className="mt-4 space-y-2">
           {slots?.length === 0 && <p className="text-text-3 text-sm">No upcoming slots. Check back later.</p>}
-          {slots?.map((s) => (
-            <div key={s.id} className="flex items-center justify-between border border-border rounded-md p-3">
-              <span className="text-sm">{new Date(s.startAt).toLocaleString()}</span>
-              <Button size="sm" onClick={() => book(s.id)}>Book</Button>
-            </div>
-          ))}
+          {slots?.map((s) => {
+            const when = new Date(s.startAt).toLocaleString();
+            return (
+              <div key={s.id} className="flex items-center justify-between border border-border rounded-md p-3">
+                <span className="text-sm">{when}</span>
+                <Button size="sm" onClick={() => book(s.id)} aria-label={`Book session at ${when}`}>Book</Button>
+              </div>
+            );
+          })}
         </div>
       </Card>
     </div>

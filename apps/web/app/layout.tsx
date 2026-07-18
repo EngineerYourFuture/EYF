@@ -4,6 +4,7 @@ import { GeistMono } from "geist/font/mono";
 import { ClerkProvider } from "@clerk/nextjs";
 import { AnalyticsProvider } from "@/components/analytics-provider";
 import { SwrProvider } from "@/components/swr-provider";
+import { ConfirmProvider } from "@/components/confirm";
 import { themeScript } from "@/components/theme";
 import { ConsentBanner } from "@/components/consent-banner";
 import { Toaster } from "sonner";
@@ -62,7 +63,7 @@ function Shell({ children }: { children: React.ReactNode }) {
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
       <body>
-        <SwrProvider><AnalyticsProvider>{children}</AnalyticsProvider></SwrProvider>
+        <SwrProvider><AnalyticsProvider><ConfirmProvider>{children}</ConfirmProvider></AnalyticsProvider></SwrProvider>
         <ConsentBanner />
         <Toaster position="bottom-right" richColors closeButton
           toastOptions={{

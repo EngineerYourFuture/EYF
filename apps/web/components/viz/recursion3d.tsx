@@ -146,8 +146,8 @@ export function Recursion3D() {
 
   return (
     <div>
-      <div className="flex items-center gap-3 mb-3 text-sm">
-        <label className="text-text-3 uppercase text-xs tracking-wider">Fibonacci n =</label>
+      <label className="flex items-center gap-3 mb-3 text-sm">
+        <span className="text-text-3 uppercase text-xs tracking-wider">Fibonacci n =</span>
         <input
           type="range" min={1} max={10} value={n}
           onChange={(e) => setN(Number(e.target.value))}
@@ -155,7 +155,7 @@ export function Recursion3D() {
         />
         <span className="font-mono">{n}</span>
         <span className="text-text-3 text-xs ml-auto">{n >= 8 ? "⚠ many duplicate subproblems" : null}</span>
-      </div>
+      </label>
       <div ref={containerRef} className="w-full bg-bg border border-border rounded-md" style={{ height: 420 }}>
         {error && <div className="p-4 text-hard text-sm">3D failed: {error}</div>}
       </div>

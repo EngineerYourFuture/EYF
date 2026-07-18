@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { Card, Badge, Button, EmptyState, SkeletonRows } from "@eyf/ui";
 import { useApi, useApiAction } from "@/lib/use-api";
+import { useConfirm } from "@/components/confirm";
 import { Icons } from "@/components/icons";
 import { ContentTabs } from "../_tabs";
 import { Field } from "../_field";
@@ -21,6 +22,7 @@ export default function Page() {
   const [filter, setFilter] = useState<(typeof SUBJECTS)[number]>("ALL");
   const { data, mutate } = useApi<Row[]>(`/admin/content/flashcards${filter === "ALL" ? "" : `?subject=${filter}`}`);
   const action = useApiAction();
+  const confirm = useConfirm();
   const [editing, setEditing] = useState<null | { id: string | null }>(null);
   const [form, setForm] = useState<Form>(EMPTY);
   const [saving, setSaving] = useState(false);
@@ -41,7 +43,7 @@ export default function Page() {
     } catch { /* toasted */ } finally { setSaving(false); }
   }
   async function remove(id: string) {
-    if (!confirm("Delete this card? Only allowed when no student has reviewed it.")) return;
+    if (!(await confirm({ title: "Delete this card? Only allowed when no student has reviewed it.", confirmLabel: "Delete", danger: true }))) return;
     try { await action(`/admin/content/flashcards/${id}`, { method: "DELETE" }); await mutate(); } catch { /* toasted */ }
   }
 

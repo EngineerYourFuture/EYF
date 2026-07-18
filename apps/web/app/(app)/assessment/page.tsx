@@ -1,8 +1,9 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Button, Card, Badge, MetricTile, Meter, PageHeader, Skeleton } from "@eyf/ui";
+import { Button, Card, Badge, MetricTile, Meter, PageHeader, Skeleton, ErrorState } from "@eyf/ui";
 import { useApiAction } from "@/lib/use-api";
+import { useConfirm } from "@/components/confirm";
 import { track, Events } from "@/lib/analytics";
 import { PageMotion } from "@/components/page-motion";
 import { AdaptiveDiagnostic } from "@/components/adaptive-diagnostic";
@@ -46,23 +47,41 @@ function NextStep({ href, icon, title, desc, primary }: {
 
 export default function Page() {
   const action = useApiAction();
+  const confirm = useConfirm();
   const [questions, setQuestions] = useState<Q[] | null>(null);
   const [answers, setAnswers]   = useState<Record<string, number>>({});
   const [startedAt, setStarted] = useState<number>(0);
   const [result, setResult]     = useState<Scored["scored"] | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [mode, setMode] = useState<"choose" | "full" | "adaptive">("choose");
+  const [loadError, setLoadError] = useState(false);
+
+  // Called imperatively (effect + retry) so `action`'s unstable identity doesn't
+  // re-trigger the effect. On failure we surface a retry instead of hanging on
+  // the loading skeleton forever.
+  function startFull() {
+    setLoadError(false);
+    action<{ questions: Q[] }>("/assessment/start")
+      .then((d) => { setQuestions(d.questions); setStarted(Date.now()); })
+      .catch(() => setLoadError(true));
+  }
 
   useEffect(() => {
     if (mode !== "full" || questions) return;
-    action<{ questions: Q[] }>("/assessment/start").then((d) => {
-      setQuestions(d.questions);
-      setStarted(Date.now());
-    });
+    startFull();
   }, [mode]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function onSubmit() {
     if (!questions) return;
+    const blanks = questions.length - Object.keys(answers).length;
+    if (blanks > 0) {
+      const ok = await confirm({
+        title: "Submit with unanswered questions?",
+        message: `${blanks} question${blanks === 1 ? "" : "s"} left blank — blanks count as wrong.`,
+        confirmLabel: "Submit anyway",
+      });
+      if (!ok) return;
+    }
     setSubmitting(true);
     const payload = {
       durationSeconds: Math.round((Date.now() - startedAt) / 1000),
@@ -80,7 +99,8 @@ export default function Page() {
         durationSec: payload.durationSeconds,
       });
       setResult(data.scored);
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+      window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
     } finally { setSubmitting(false); }
   }
 
@@ -170,8 +190,18 @@ export default function Page() {
     );
   }
 
-  /* ---------- loading ---------- */
+  /* ---------- loading / load error ---------- */
   if (!questions) {
+    if (loadError) {
+      return (
+        <div className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-3xl mx-auto">
+          <PageHeader eyebrow="Skill assessment" title="Couldn't start the assessment" subtitle="Something went wrong loading your questions." />
+          <div className="mt-8">
+            <ErrorState message="We couldn't load your assessment. Check your connection and try again." retry={startFull} />
+          </div>
+        </div>
+      );
+    }
     return (
       <div className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-5xl mx-auto">
         <PageHeader eyebrow="Skill assessment" title="Generating your assessment…" subtitle="20 questions, hand-picked across DSA, core CS, and aptitude." />
@@ -216,12 +246,12 @@ export default function Page() {
                   <Badge tone="accent">{q.difficulty}</Badge>
                   {done && <span className="ml-auto text-easy"><Icons.target width={16} height={16} /></span>}
                 </div>
-                <p className="mt-4 text-text-1 font-medium">{q.prompt}</p>
-                <div className="mt-4 grid gap-2">
+                <p className="mt-4 text-text-1 font-medium" id={`q-${q.id}`}>{q.prompt}</p>
+                <div className="mt-4 grid gap-2" role="radiogroup" aria-labelledby={`q-${q.id}`}>
                   {q.choices.map((c, idx) => {
                     const on = answers[q.id] === idx;
                     return (
-                      <label key={idx} className={`flex items-center gap-3 px-3 py-2.5 rounded-lg border cursor-pointer transition-colors ${
+                      <label key={idx} className={`flex items-center gap-3 px-3 py-2.5 rounded-lg border cursor-pointer transition-colors focus-within:ring-2 focus-within:ring-accent ${
                         on ? "border-accent bg-accent-tint" : "border-border hover:border-edge hover:bg-surface-2"
                       }`}>
                         <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-xs font-mono font-bold ${

@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { Card, Badge, Button, Skeleton } from "@eyf/ui";
 import { useApi } from "@/lib/use-api";
 import { Heatmap } from "@/components/heatmap";
@@ -107,13 +107,13 @@ export default function DashboardPage() {
 
         {/* Metric tiles */}
         <div className="mt-5 grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <Metric icon="flame" tone="accent" label="Current streak"
+          <Metric icon="flame" tone="accent" label="Current streak" loading={!gam}
             value={<AnimatedNumber value={gam?.streak ?? 0} />} unit="d" sub={gam ? `Best ${gam.longestStreak}d` : undefined} />
-          <Metric icon="bolt" tone="medium" label="Earned today"
+          <Metric icon="bolt" tone="medium" label="Earned today" loading={!today}
             value={<AnimatedNumber value={today?.xpToday ?? 0} />} unit="XP" sub="Today" />
-          <Metric icon="code" label="Total solved" value={<AnimatedNumber value={gam?.totalSolved ?? 0} />} sub="All time" />
-          <Metric icon="trophy" tone="info" label="Badges"
-            value={<AnimatedNumber value={gam?.badges.length ?? 0} />} sub={gam?.badges.length ? "Earned" : "None yet"} />
+          <Metric icon="code" label="Total solved" loading={!gam} value={<AnimatedNumber value={gam?.totalSolved ?? 0} />} sub="All time" />
+          <Metric icon="trophy" tone="info" label="Badges" loading={!gam}
+            value={<AnimatedNumber value={gam?.badges.length ?? 0} />} sub={gam ? (gam.badges.length ? "Earned" : "None yet") : undefined} />
         </div>
 
         {/* Quick actions */}
@@ -178,6 +178,7 @@ export default function DashboardPage() {
 function ReadinessStrip({ guidance: g }: { guidance: Guidance | null }) {
   // The score moment: remember what the student last saw, animate from there,
   // and celebrate the delta. Hook order is safe — early return happens after.
+  const reduce = useReducedMotion();
   const [moment, setMoment] = useState<{ from: number | null; delta: number } | null>(null);
   const overall = g?.readiness.overall;
   useEffect(() => {
@@ -203,9 +204,9 @@ function ReadinessStrip({ guidance: g }: { guidance: Guidance | null }) {
             <Badge tone={tone}>{r.band}</Badge>
             {moment && moment.delta !== 0 && (
               <motion.span
-                initial={{ opacity: 0, scale: 0.8, y: 4 }}
+                initial={reduce ? false : { opacity: 0, scale: 0.8, y: 4 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
-                transition={{ delay: 1.1, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                transition={reduce ? { duration: 0 } : { delay: 1.1, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
                 className={`font-mono text-[11px] px-1.5 py-0.5 rounded border ${
                   moment.delta > 0 ? "text-easy border-easy/40 bg-easy/10" : "text-hard border-hard/40 bg-hard/10"
                 }`}
@@ -346,9 +347,9 @@ function ProgressRing({ pct, label }: { pct: number; label: string }) {
   );
 }
 
-function Metric({ icon, label, value, unit, sub, tone = "default" }: {
+function Metric({ icon, label, value, unit, sub, tone = "default", loading = false }: {
   icon: IconName; label: string; value: React.ReactNode; unit?: string; sub?: string;
-  tone?: "default" | "accent" | "medium" | "info";
+  tone?: "default" | "accent" | "medium" | "info"; loading?: boolean;
 }) {
   const Icon = Icons[icon];
   const toneCls = tone === "accent" ? "text-accent" : tone === "medium" ? "text-medium" : tone === "info" ? "text-info" : "text-text-2";
@@ -358,10 +359,14 @@ function Metric({ icon, label, value, unit, sub, tone = "default" }: {
         <span className="font-mono text-[11px] uppercase tracking-wider text-text-3">{label}</span>
         <span className={toneCls}><Icon width={16} height={16} /></span>
       </div>
-      <div className="mt-2 font-display text-3xl font-bold leading-none">
-        {value}{unit && <span className="text-text-3 text-lg font-semibold"> {unit}</span>}
-      </div>
-      {sub && <div className="text-text-4 text-xs mt-1.5">{sub}</div>}
+      {loading ? (
+        <Skeleton className="mt-2 h-8 w-16" />
+      ) : (
+        <div className="mt-2 font-display text-3xl font-bold leading-none">
+          {value}{unit && <span className="text-text-3 text-lg font-semibold"> {unit}</span>}
+        </div>
+      )}
+      {loading ? <Skeleton className="mt-2 h-3 w-20" /> : sub && <div className="text-text-4 text-xs mt-1.5">{sub}</div>}
     </div>
   );
 }

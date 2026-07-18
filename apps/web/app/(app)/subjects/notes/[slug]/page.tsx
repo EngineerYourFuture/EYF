@@ -22,7 +22,7 @@ export default function Page({ params }: { params: { slug: string } }) {
         <span className="text-text-3 text-xs">{data.estMinutes} min</span>
       </div>
       <h1 className="font-display text-4xl font-bold tracking-tight mt-3">{data.title}</h1>
-      <Card className="mt-8 whitespace-pre-wrap text-text-2 leading-relaxed prose prose-invert max-w-none">
+      <Card className="mt-8 whitespace-pre-wrap text-text-2 leading-relaxed">
         {data.content}
       </Card>
     </div>

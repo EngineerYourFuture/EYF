@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { Button } from "@eyf/ui";
 import { useApiAction } from "@/lib/use-api";
 import { ThemeToggle } from "@/components/theme";
@@ -26,6 +26,7 @@ const STEPS = 4;
 export default function WelcomePage() {
   const router = useRouter();
   const action = useApiAction();
+  const reduce = useReducedMotion();
   const [step, setStep] = useState(0);
   const [persona, setPersona] = useState<PersonaId | null>(null);
   const [role, setRole] = useState<string | null>(null);
@@ -69,7 +70,15 @@ export default function WelcomePage() {
       <main className="relative flex-1 flex items-center justify-center px-5 py-8">
         <div className="w-full max-w-lg">
           {/* progress */}
-          <div className="flex items-center gap-2 mb-8">
+          <div
+            className="flex items-center gap-2 mb-8"
+            role="progressbar"
+            aria-valuemin={1}
+            aria-valuemax={STEPS}
+            aria-valuenow={step + 1}
+            aria-valuetext={`Step ${step + 1} of ${STEPS}`}
+            aria-label="Onboarding progress"
+          >
             {Array.from({ length: STEPS }).map((_, i) => (
               <div key={i} className={`h-1 flex-1 rounded-full transition-colors duration-300 ${i <= step ? "bg-accent" : "bg-surface-3"}`} />
             ))}
@@ -77,8 +86,10 @@ export default function WelcomePage() {
 
           <AnimatePresence mode="wait">
             <motion.div key={step}
-              initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }}
-              transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}>
+              initial={reduce ? { opacity: 0 } : { opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={reduce ? { opacity: 0 } : { opacity: 0, y: -12 }}
+              transition={reduce ? { duration: 0 } : { duration: 0.3, ease: [0.16, 1, 0.3, 1] }}>
 
               {step === 0 && (
                 <div>
@@ -90,7 +101,7 @@ export default function WelcomePage() {
                       const Icon = Icons[p.icon];
                       const on = persona === p.id;
                       return (
-                        <button key={p.id} onClick={() => setPersona(p.id)}
+                        <button key={p.id} onClick={() => setPersona(p.id)} aria-pressed={on}
                           className={`flex w-full items-center gap-4 rounded-xl border p-4 text-left transition-all ${
                             on ? "border-accent bg-accent-tint shadow-glow-sm" : "border-border bg-surface hover:border-edge"}`}>
                           <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${on ? "bg-accent text-accent-ink" : "bg-surface-2 text-text-3"}`}>
@@ -120,7 +131,7 @@ export default function WelcomePage() {
                       const Icon = Icons[r.icon];
                       const on = role === r.v;
                       return (
-                        <button key={r.v} onClick={() => setRole(r.v)}
+                        <button key={r.v} onClick={() => setRole(r.v)} aria-pressed={on}
                           className={`flex items-center gap-3 rounded-xl border p-4 text-left transition-all ${
                             on ? "border-accent bg-accent-tint shadow-glow-sm" : "border-border bg-surface hover:border-edge"}`}>
                           <span className={on ? "text-accent" : "text-text-3"}><Icon width={20} height={20} /></span>
@@ -143,7 +154,7 @@ export default function WelcomePage() {
                   <p className="text-text-3 mt-2">This sets how aggressive your prep timeline should be.</p>
                   <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3">
                     {YEARS.map((y) => (
-                      <button key={y} onClick={() => setYear(y)}
+                      <button key={y} onClick={() => setYear(y)} aria-pressed={year === y}
                         className={`rounded-xl border p-4 font-display text-xl font-bold transition-all ${
                           year === y ? "border-accent bg-accent-tint text-accent shadow-glow-sm" : "border-border bg-surface hover:border-edge"}`}>
                         {y}

@@ -58,14 +58,16 @@ export default function Page() {
 
       <Card className="mt-10">
         <h2 className="font-display text-xl font-bold mb-3">Find a partner</h2>
-        <label className="text-xs text-text-3 uppercase tracking-wider">Problem focus</label>
+        <div role="group" aria-labelledby="peer-focus-label">
+        <span id="peer-focus-label" className="text-xs text-text-3 uppercase tracking-wider">Problem focus</span>
         <div className="mt-2 flex flex-wrap gap-2">
           {FOCUSES.map((f) => (
-            <button key={f} onClick={() => setFocus(f)}
-              className={`px-3 py-1 text-sm border rounded ${focus === f ? "border-accent text-text-1 bg-accent-tint" : "border-border text-text-3"}`}>
+            <button key={f} onClick={() => setFocus(f)} aria-pressed={focus === f}
+              className={`px-3 py-1 text-sm border rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${focus === f ? "border-accent text-text-1 bg-accent-tint" : "border-border text-text-3"}`}>
               {f}
             </button>
           ))}
+        </div>
         </div>
 
         {!inQueue

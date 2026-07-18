@@ -114,32 +114,32 @@ export default function Page() {
       <Card className="mt-8">
         <h2 className="font-display text-xl font-bold mb-3">Start a session</h2>
         <div className="space-y-3">
-          <div>
-            <label className="text-xs text-text-3 uppercase tracking-wider">Problem (optional, slug)</label>
+          <label className="block">
+            <span className="text-xs text-text-3 uppercase tracking-wider">Problem (optional, slug)</span>
             <input value={problemSlug} onChange={(e) => setProblemSlug(e.target.value)}
               placeholder="e.g. two-sum"
               className="w-full mt-1 bg-bg border border-border rounded-md px-3 py-2 text-sm font-mono" />
-          </div>
-          <div>
-            <label className="text-xs text-text-3 uppercase tracking-wider">Pressure level</label>
+          </label>
+          <div role="group" aria-labelledby="pressure-level-label">
+            <span id="pressure-level-label" className="text-xs text-text-3 uppercase tracking-wider">Pressure level</span>
             <div className="mt-2 grid grid-cols-2 md:grid-cols-4 gap-2">
               {LEVELS.map((l) => (
-                <button key={l.id} onClick={() => setLevel(l.id)}
-                  className={`text-left p-3 border rounded-md ${level === l.id ? "border-accent bg-accent-tint" : "border-border hover:border-text-3"}`}>
+                <button key={l.id} onClick={() => setLevel(l.id)} aria-pressed={level === l.id}
+                  className={`text-left p-3 border rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${level === l.id ? "border-accent bg-accent-tint" : "border-border hover:border-text-3"}`}>
                   <div className="font-semibold text-sm">{l.label}</div>
                   <div className="text-text-3 text-xs mt-1">{l.blurb}</div>
                 </button>
               ))}
             </div>
           </div>
-          <div>
-            <label className="text-xs text-text-3 uppercase tracking-wider">Anxiety BEFORE (1 calm — 10 panicked)</label>
+          <label className="block">
+            <span className="text-xs text-text-3 uppercase tracking-wider">Anxiety BEFORE (1 calm — 10 panicked)</span>
             <div className="flex items-center gap-3 mt-2">
               <input type="range" min={1} max={10} value={anxietyBefore} onChange={(e) => setAnxietyBefore(Number(e.target.value))}
                 className="accent-accent flex-1" />
               <span className="font-mono">{anxietyBefore}</span>
             </div>
-          </div>
+          </label>
           <Button onClick={start}>Start</Button>
         </div>
       </Card>

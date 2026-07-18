@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { Card, Badge, Button, EmptyState, SkeletonRows } from "@eyf/ui";
 import { useApi, useApiAction } from "@/lib/use-api";
+import { useConfirm } from "@/components/confirm";
 import { Icons } from "@/components/icons";
 import { ContentTabs } from "../_tabs";
 import { Field } from "../_field";
@@ -18,6 +19,7 @@ const inputCls = "w-full h-11 px-3 rounded-lg bg-surface border border-border te
 export default function Page() {
   const { data, mutate } = useApi<Row[]>("/admin/content/theory-notes");
   const action = useApiAction();
+  const confirm = useConfirm();
   const [editing, setEditing] = useState<null | { id: string | null }>(null);
   const [form, setForm] = useState<Form>(EMPTY);
   const [saving, setSaving] = useState(false);
@@ -38,7 +40,7 @@ export default function Page() {
     } catch { /* toasted */ } finally { setSaving(false); }
   }
   async function remove(id: string, title: string) {
-    if (!confirm(`Delete "${title}"?`)) return;
+    if (!(await confirm({ title: `Delete "${title}"?`, confirmLabel: "Delete", danger: true }))) return;
     try { await action(`/admin/content/theory-notes/${id}`, { method: "DELETE" }); await mutate(); } catch { /* toasted */ }
   }
 

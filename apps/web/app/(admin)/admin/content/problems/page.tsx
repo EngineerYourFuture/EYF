@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { Card, Badge, Button, EmptyState, SkeletonRows } from "@eyf/ui";
 import { useApi, useApiAction } from "@/lib/use-api";
+import { useConfirm } from "@/components/confirm";
 import { Icons } from "@/components/icons";
 import { ContentTabs } from "../_tabs";
 import { Field } from "../_field";
@@ -32,6 +33,7 @@ const csv = (s: string) => s.split(",").map((x) => x.trim()).filter(Boolean);
 export default function Page() {
   const { data, mutate } = useApi<ProblemRow[]>("/admin/content/problems");
   const action = useApiAction();
+  const confirm = useConfirm();
   const [editing, setEditing] = useState<null | { id: string | null }>(null);
   const [form, setForm] = useState<FormState>(EMPTY);
   const [saving, setSaving] = useState(false);
@@ -59,7 +61,7 @@ export default function Page() {
     } catch { /* useApiAction already toasts */ } finally { setSaving(false); }
   }
   async function remove(id: string, title: string) {
-    if (!confirm(`Delete "${title}"? Only allowed if it has no student submissions.`)) return;
+    if (!(await confirm({ title: `Delete "${title}"? Only allowed if it has no student submissions.`, confirmLabel: "Delete", danger: true }))) return;
     try { await action(`/admin/content/problems/${id}`, { method: "DELETE" }); await mutate(); }
     catch { /* toasted (e.g. 409 has dependents) */ }
   }

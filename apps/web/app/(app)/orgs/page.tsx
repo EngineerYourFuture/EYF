@@ -7,12 +7,13 @@
  * the API remains the authority. Grows into the full /org console per PRD §10.
  */
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Card, Badge, Button, PageHeader, EmptyState, SkeletonRows } from "@eyf/ui";
+import { Card, Badge, Button, PageHeader, EmptyState, SkeletonRows, Tabs, TabPanel } from "@eyf/ui";
 import { PageMotion } from "@/components/page-motion";
 import { Icons } from "@/components/icons";
 import { useApi, useApiAction } from "@/lib/use-api";
+import { useConfirm } from "@/components/confirm";
 import { canInOrg } from "@eyf/types";
 
 type Membership = { roles: string[]; org: { id: string; name: string; slug: string; plan: string } };
@@ -62,7 +63,8 @@ export default function Page() {
             {!memberships && <SkeletonRows rows={3} />}
             {memberships?.map((m) => (
               <button key={m.org.id} onClick={() => setSelected(m.org.id)}
-                className={`w-full text-left rounded-xl border px-4 py-3 transition-colors ${active?.org.id === m.org.id ? "border-accent/50 bg-surface" : "border-border bg-surface-2/40 hover:border-edge"}`}>
+                aria-current={active?.org.id === m.org.id ? "true" : undefined}
+                className={`w-full text-left rounded-xl border px-4 py-3 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${active?.org.id === m.org.id ? "border-accent/50 bg-surface" : "border-border bg-surface-2/40 hover:border-edge"}`}>
                 <div className="font-medium truncate">{m.org.name}</div>
                 <div className="text-text-4 text-xs mt-0.5">{m.roles.join(" · ")} · {m.org.plan}</div>
               </button>
@@ -144,14 +146,8 @@ function OrgConsole({ orgId, roles }: { orgId: string; roles: string[] }) {
 
   return (
     <div className="min-w-0">
-      <div className="flex items-center gap-1 border-b border-border">
-        {tabs.map((t) => (
-          <button key={t} onClick={() => setTab(t)}
-            className={`px-3 py-2 text-sm border-b-2 -mb-px capitalize transition-colors ${tab === t ? "border-accent text-text-1" : "border-transparent text-text-3 hover:text-text-1"}`}>
-            {t}
-          </button>
-        ))}
-      </div>
+      <Tabs tabs={tabs} value={tab} onChange={setTab} idBase="org" aria-label="Organization console" />
+      <TabPanel idBase="org" value={tab}>
       {tab === "people" ? (
         canMembers ? <PeopleTab orgId={orgId} /> : <p className="text-text-3 text-sm mt-6">Your role doesn&apos;t include people management.</p>
       ) : tab === "courses" ? (
@@ -167,6 +163,7 @@ function OrgConsole({ orgId, roles }: { orgId: string; roles: string[] }) {
       ) : (
         <ProgramsTab orgId={orgId} canAuthor={canAuthor} canPublish={canPublish} canEnroll={canEnroll} />
       )}
+      </TabPanel>
     </div>
   );
 }
@@ -176,6 +173,7 @@ type Hook = { id: string; url: string; events: string[]; active: boolean; failCo
 
 function SettingsTab({ orgId }: { orgId: string }) {
   const action = useApiAction();
+  const confirm = useConfirm();
   const brand = useApi<{ logoUrl: string | null; brandColor: string | null }>(`/orgs/${orgId}/branding`);
   const keys = useApi<ApiKey[]>(`/orgs/${orgId}/api-keys`);
   const hooks = useApi<{ endpoints: Hook[]; availableEvents: string[] }>(`/orgs/${orgId}/webhooks`);
@@ -206,8 +204,8 @@ function SettingsTab({ orgId }: { orgId: string }) {
       <section>
         <div className="font-mono text-[11px] uppercase tracking-widest text-text-3 mb-2">White-label branding</div>
         <div className="flex flex-wrap gap-2 items-center">
-          <input className="h-10 px-3 rounded-lg bg-surface border border-border text-sm w-32" placeholder="#E8192C" value={color} onChange={(e) => setColor(e.target.value)} />
-          <input className="flex-1 min-w-[200px] h-10 px-3 rounded-lg bg-surface border border-border text-sm" placeholder="Logo URL" value={logo} onChange={(e) => setLogo(e.target.value)} />
+          <input aria-label="Brand color (hex)" className="h-10 px-3 rounded-lg bg-surface border border-border text-sm w-32" placeholder="#E8192C" value={color} onChange={(e) => setColor(e.target.value)} />
+          <input aria-label="Logo URL" type="url" className="flex-1 min-w-[200px] h-10 px-3 rounded-lg bg-surface border border-border text-sm" placeholder="Logo URL" value={logo} onChange={(e) => setLogo(e.target.value)} />
           <Button size="sm" onClick={saveBrand}>Save</Button>
         </div>
         {brand.data?.brandColor && <div className="text-text-4 text-xs mt-2">Active accent: <span className="inline-block w-3 h-3 rounded-sm align-middle" style={{ background: brand.data.brandColor }} /> {brand.data.brandColor}</div>}
@@ -218,18 +216,35 @@ function SettingsTab({ orgId }: { orgId: string }) {
         {newKey && (
           <div className="rounded-lg border border-accent/40 bg-accent-tint/30 p-3 mb-3">
             <div className="text-xs text-text-3 mb-1">Copy this now — it won&apos;t be shown again.</div>
-            <code className="text-sm break-all">{newKey}</code>
+            <div className="flex items-center gap-2">
+              <code className="text-sm break-all flex-1">{newKey}</code>
+              <CopyButton value={newKey} label="Copy API key" />
+            </div>
           </div>
         )}
         <div className="flex gap-2 mb-3">
-          <input className="flex-1 h-10 px-3 rounded-lg bg-surface border border-border text-sm" placeholder="Key name (e.g. ATS integration)" value={keyName} onChange={(e) => setKeyName(e.target.value)} />
+          <input aria-label="API key name" className="flex-1 h-10 px-3 rounded-lg bg-surface border border-border text-sm" placeholder="Key name (e.g. ATS integration)" value={keyName} onChange={(e) => setKeyName(e.target.value)} />
           <Button size="sm" onClick={createKey}>Create key</Button>
         </div>
         <div className="space-y-1.5">
           {keys.data?.map((k) => (
             <Card key={k.id} className="flex items-center gap-3 py-2.5">
               <div className="min-w-0 flex-1"><span className="font-medium text-sm">{k.name}</span> <code className="text-text-4 text-xs ml-2">{k.prefix}…</code></div>
-              <button onClick={async () => { await action(`/orgs/${orgId}/api-keys/${k.id}/revoke`, { method: "POST" }); await keys.mutate(); }} className="text-text-4 hover:text-hard text-xs">revoke</button>
+              <button
+                aria-label={`Revoke API key ${k.name}`}
+                onClick={async () => {
+                  const ok = await confirm({
+                    title: `Revoke API key "${k.name}"?`,
+                    message: "Any integration using it will stop working immediately.",
+                    confirmLabel: "Revoke",
+                    danger: true,
+                  });
+                  if (!ok) return;
+                  await action(`/orgs/${orgId}/api-keys/${k.id}/revoke`, { method: "POST" });
+                  await keys.mutate();
+                }}
+                className="text-text-4 hover:text-hard text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded px-1"
+              >revoke</button>
             </Card>
           ))}
           {keys.data?.length === 0 && <p className="text-text-4 text-sm">No API keys yet.</p>}
@@ -241,11 +256,14 @@ function SettingsTab({ orgId }: { orgId: string }) {
         {newSecret && (
           <div className="rounded-lg border border-accent/40 bg-accent-tint/30 p-3 mb-3">
             <div className="text-xs text-text-3 mb-1">Signing secret — verify the x-eyf-signature header with it.</div>
-            <code className="text-sm break-all">{newSecret}</code>
+            <div className="flex items-center gap-2">
+              <code className="text-sm break-all flex-1">{newSecret}</code>
+              <CopyButton value={newSecret} label="Copy signing secret" />
+            </div>
           </div>
         )}
         <div className="flex gap-2 mb-3">
-          <input className="flex-1 h-10 px-3 rounded-lg bg-surface border border-border text-sm" placeholder="https://your-app.com/eyf-webhook" value={hookUrl} onChange={(e) => setHookUrl(e.target.value)} />
+          <input aria-label="Webhook endpoint URL" type="url" className="flex-1 h-10 px-3 rounded-lg bg-surface border border-border text-sm" placeholder="https://your-app.com/eyf-webhook" value={hookUrl} onChange={(e) => setHookUrl(e.target.value)} />
           <Button size="sm" onClick={createHook}>Add endpoint</Button>
         </div>
         <div className="space-y-1.5">
@@ -262,13 +280,42 @@ function SettingsTab({ orgId }: { orgId: string }) {
   );
 }
 
+/** One-click copy for a secret shown only once (API key, webhook signing secret). */
+function CopyButton({ value, label }: { value: string; label: string }) {
+  const [done, setDone] = useState(false);
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      onClick={async () => {
+        try {
+          await navigator.clipboard.writeText(value);
+          setDone(true);
+          setTimeout(() => setDone(false), 1500);
+        } catch {
+          toast.error("Couldn't copy — select the text and copy manually.");
+        }
+      }}
+      className="shrink-0 text-xs rounded-md border border-border px-2 py-1 hover:bg-surface-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+    >
+      {done ? "Copied ✓" : "Copy"}
+    </button>
+  );
+}
+
 type Candidate = { userId: string; name: string; college: string | null; gradYear: number | null; anon: boolean; readiness: number; band: string };
 type Profile = { identity: { name?: string; email?: string; college?: string | null; anon?: boolean }; readiness: { overall: number; band: string; pillars: { key: string; label: string; score: number }[] }; certificates: { title: string; score: number | null; verifyCode: string }[]; skills: { slug: string; level: number }[] };
 
 function HireTab({ orgId }: { orgId: string }) {
   const action = useApiAction();
   const [minR, setMinR] = useState(0);
-  const search = useApi<{ total: number; candidates: Candidate[] }>(`/orgs/${orgId}/talent/search?minReadiness=${minR}`);
+  // Debounce so dragging/typing the readiness filter doesn't fire a search per keystroke.
+  const [debouncedMinR, setDebouncedMinR] = useState(0);
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedMinR(minR), 300);
+    return () => clearTimeout(t);
+  }, [minR]);
+  const search = useApi<{ total: number; candidates: Candidate[] }>(`/orgs/${orgId}/talent/search?minReadiness=${debouncedMinR}`);
   const [openUser, setOpenUser] = useState<string | null>(null);
   const profile = useApi<Profile>(openUser ? `/orgs/${orgId}/talent/${openUser}/profile` : null);
   const reqs = useApi<{ id: string; title: string; status: string; _count: { candidates: number } }[]>(`/orgs/${orgId}/requisitions`);
@@ -304,14 +351,15 @@ function HireTab({ orgId }: { orgId: string }) {
                 <div className="font-medium truncate">{c.name}{c.anon && <span className="text-text-4 text-xs ml-2">anon</span>}</div>
                 <div className="text-text-4 text-xs truncate">{c.college ?? "—"}{c.gradYear ? ` · ${c.gradYear}` : ""} · {c.band}</div>
               </div>
-              <span className={`font-display text-xl font-bold tabular-nums ${band(c.readiness)}`}>{c.readiness}</span>
-              <Button size="sm" variant="secondary" onClick={() => setOpenUser(c.userId)}>Profile</Button>
-              <Button size="sm" onClick={() => shortlist(c.userId)} disabled={!reqs.data?.length}>Shortlist</Button>
+              <span className={`font-display text-xl font-bold tabular-nums ${band(c.readiness)}`} aria-label={`Readiness ${c.readiness} of 100`}>{c.readiness}</span>
+              <Button size="sm" variant="secondary" onClick={() => setOpenUser(c.userId)} aria-label={`View ${c.anon ? "candidate" : c.name}'s profile`}>Profile</Button>
+              <Button size="sm" onClick={() => shortlist(c.userId)} disabled={!reqs.data?.length} aria-label={`Shortlist ${c.anon ? "candidate" : c.name}`}>Shortlist</Button>
             </Card>
           ))}
           {search.data?.candidates.length === 0 && <p className="text-text-4 text-sm">No consented candidates match yet.</p>}
         </div>
 
+        {openUser && !profile.data && <Card className="mt-4"><SkeletonRows rows={3} /></Card>}
         {openUser && profile.data && (
           <Card className="mt-4">
             <div className="flex items-center justify-between">

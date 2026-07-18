@@ -1,5 +1,5 @@
 "use client";
-import { Card, Button, Badge } from "@eyf/ui";
+import { Card, Button, Badge, TextField, Field } from "@eyf/ui";
 import { useApi, useApiAction } from "@/lib/use-api";
 import { ResumeGap } from "@/components/resume-gap";
 import { track, Events } from "@/lib/analytics";
@@ -14,13 +14,50 @@ type Resume = {
   json: ResumeDocument;
 };
 
+const draftKey = (id: string) => `eyf:resume:${id}`;
+
 export default function Page({ params }: { params: { id: string } }) {
   const { data, mutate } = useApi<Resume>(`/resume/${params.id}`);
   const action = useApiAction();
   const [doc, setDoc] = useState<ResumeDocument | null>(null);
   const [saving, setSaving] = useState(false);
+  const [restored, setRestored] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
 
-  useEffect(() => { if (data && !doc) setDoc(data.json); }, [data, doc]);
+  // Load once: restore an unsaved local draft if it differs from the server copy,
+  // so a refresh never loses edits (the draft is decoupled from Save + rescoring).
+  useEffect(() => {
+    if (!data || hydrated) return;
+    let initial = data.json;
+    try {
+      const raw = localStorage.getItem(draftKey(params.id));
+      if (raw) {
+        const draft = JSON.parse(raw) as { json?: ResumeDocument };
+        if (draft.json && JSON.stringify(draft.json) !== JSON.stringify(data.json)) {
+          initial = draft.json;
+          setRestored(true);
+        }
+      }
+    } catch { /* private mode / corrupt draft */ }
+    setDoc(initial);
+    setHydrated(true);
+  }, [data, hydrated, params.id]);
+
+  // Autosave the draft (debounced) on every edit.
+  useEffect(() => {
+    if (!hydrated || !doc) return;
+    const t = setTimeout(() => {
+      try { localStorage.setItem(draftKey(params.id), JSON.stringify({ json: doc, ts: Date.now() })); } catch { /* quota */ }
+    }, 500);
+    return () => clearTimeout(t);
+  }, [doc, hydrated, params.id]);
+
+  function discardDraft() {
+    if (!data) return;
+    setDoc(data.json);
+    setRestored(false);
+    try { localStorage.removeItem(draftKey(params.id)); } catch { /* ignore */ }
+  }
 
   if (!data || !doc) return <div className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 text-text-3">Loading…</div>;
 
@@ -33,6 +70,9 @@ export default function Page({ params }: { params: { id: string } }) {
       track(Events.ResumeScored, { score: r.atsScore });
       toast.success(r.atsScore != null ? `Saved · ATS ${r.atsScore}/100` : "Saved");
       await mutate();
+      // Server is now the source of truth — clear the local draft.
+      try { localStorage.removeItem(draftKey(params.id)); } catch { /* ignore */ }
+      setRestored(false);
     } finally {
       setSaving(false);
     }
@@ -42,6 +82,16 @@ export default function Page({ params }: { params: { id: string } }) {
     <div className="px-4 sm:px-6 lg:px-10 py-8 grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-8 max-w-7xl mx-auto">
       <div className="space-y-5">
         <h1 className="font-display text-3xl font-bold">{data.title}</h1>
+
+        {restored && (
+          <div className="flex items-center justify-between gap-3 rounded-lg border border-accent/40 bg-accent-tint/40 px-4 py-2.5 text-sm" role="status">
+            <span className="text-text-2">Restored unsaved changes from your last session.</span>
+            <button
+              onClick={discardDraft}
+              className="shrink-0 text-accent hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded px-1"
+            >Discard</button>
+          </div>
+        )}
 
         <Card>
           <h3 className="font-display text-lg font-bold mb-3">Contact</h3>
@@ -59,6 +109,7 @@ export default function Page({ params }: { params: { id: string } }) {
           <h3 className="font-display text-lg font-bold mb-3">Summary</h3>
           <textarea
             rows={4}
+            aria-label="Professional summary"
             className="w-full bg-bg border border-border rounded-md px-3 py-2 text-sm"
             value={doc.summary ?? ""}
             onChange={(e) => setDoc({ ...doc, summary: e.target.value })}
@@ -86,15 +137,14 @@ export default function Page({ params }: { params: { id: string } }) {
               <TextField label="Role"    value={e.role}    onChange={(v) => set({ ...e, role: v })} />
               <TextField label="Start"   value={e.start}   onChange={(v) => set({ ...e, start: v })} />
               <TextField label="End"     value={e.end ?? ""} onChange={(v) => set({ ...e, end: v })} />
-              <div className="col-span-2">
-                <label className="text-xs text-text-3 uppercase tracking-wider">Bullets (one per line)</label>
+              <Field label="Bullets (one per line)" className="col-span-2">
                 <textarea
                   rows={4}
-                  className="w-full bg-bg border border-border rounded-md px-3 py-2 text-sm mt-1"
+                  className="w-full bg-bg border border-border rounded-md px-3 py-2 text-sm"
                   value={(e.bullets ?? []).join("\n")}
                   onChange={(ev) => set({ ...e, bullets: ev.target.value.split("\n").filter((s) => s.trim()) })}
                 />
-              </div>
+              </Field>
             </div>
           )}
           empty={{ company: "", role: "", start: "", bullets: [] }}
@@ -108,15 +158,14 @@ export default function Page({ params }: { params: { id: string } }) {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <TextField label="Name" value={p.name} onChange={(v) => set({ ...p, name: v })} />
               <TextField label="Link" value={p.link ?? ""} onChange={(v) => set({ ...p, link: v })} />
-              <div className="col-span-2">
-                <label className="text-xs text-text-3 uppercase tracking-wider">Description</label>
+              <Field label="Description" className="col-span-2">
                 <textarea
                   rows={3}
-                  className="w-full bg-bg border border-border rounded-md px-3 py-2 text-sm mt-1"
+                  className="w-full bg-bg border border-border rounded-md px-3 py-2 text-sm"
                   value={p.description}
                   onChange={(e) => set({ ...p, description: e.target.value })}
                 />
-              </div>
+              </Field>
             </div>
           )}
           empty={{ name: "", description: "" }}
@@ -177,19 +226,6 @@ export default function Page({ params }: { params: { id: string } }) {
   );
 }
 
-function TextField({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
-  return (
-    <div>
-      <label className="text-xs text-text-3 uppercase tracking-wider">{label}</label>
-      <input
-        className="w-full mt-1 bg-bg border border-border rounded-md px-3 py-2 text-sm"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-      />
-    </div>
-  );
-}
-
 function ListSection<T extends object>({
   title, items, onChange, render, empty,
 }: {
@@ -203,15 +239,16 @@ function ListSection<T extends object>({
     <Card>
       <div className="flex items-center justify-between mb-3">
         <h3 className="font-display text-lg font-bold">{title}</h3>
-        <Button size="sm" variant="secondary" onClick={() => onChange([...items, empty])}>+ Add</Button>
+        <Button size="sm" variant="secondary" onClick={() => onChange([...items, empty])} aria-label={`Add ${title.replace(/s$/, "").toLowerCase()}`}>+ Add</Button>
       </div>
       <div className="space-y-4">
         {items.map((it, i) => (
           <div key={i} className="border border-border rounded-md p-3">
             {render(it, (next) => onChange(items.map((x, j) => (j === i ? next : x))))}
             <button
-              className="mt-2 text-xs text-hard hover:underline"
+              className="mt-2 text-xs text-hard hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded px-1"
               onClick={() => onChange(items.filter((_, j) => j !== i))}
+              aria-label={`Remove ${title.replace(/s$/, "").toLowerCase()} ${i + 1}`}
             >Remove</button>
           </div>
         ))}

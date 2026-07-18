@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { Card, Badge, Button } from "@eyf/ui";
+import { Card, Badge, Button, Tabs, TabPanel } from "@eyf/ui";
 import { useApi } from "@/lib/use-api";
 
 type Editorial = {
@@ -14,23 +14,18 @@ type Variant = {
   id: string; title: string; description: string; twistExplanation: string; createdAt: string;
 };
 
+const TABS = ["editorial", "variants"] as const;
+type Tab = (typeof TABS)[number];
+
 export function EditorialPanel({ slug }: { slug: string }) {
-  const [tab, setTab] = useState<"editorial" | "variants">("editorial");
+  const [tab, setTab] = useState<Tab>("editorial");
   return (
     <Card className="mt-4">
-      <div className="flex gap-1 border-b border-border mb-4">
-        {(["editorial", "variants"] as const).map((t) => (
-          <button
-            key={t}
-            onClick={() => setTab(t)}
-            className={`px-3 py-1.5 text-sm border-b-2 transition-colors capitalize ${
-              tab === t ? "border-accent text-text-1" : "border-transparent text-text-3 hover:text-text-2"
-            }`}
-          >{t}</button>
-        ))}
-      </div>
-      {tab === "editorial" && <EditorialTab slug={slug} />}
-      {tab === "variants"  && <VariantsTab slug={slug} />}
+      <Tabs tabs={TABS} value={tab} onChange={setTab} idBase="ed" aria-label="Problem help" className="mb-4" />
+      <TabPanel idBase="ed" value={tab}>
+        {tab === "editorial" && <EditorialTab slug={slug} />}
+        {tab === "variants"  && <VariantsTab slug={slug} />}
+      </TabPanel>
     </Card>
   );
 }

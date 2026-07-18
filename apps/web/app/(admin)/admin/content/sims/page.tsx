@@ -3,6 +3,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Card, Badge, Button, EmptyState, SkeletonRows } from "@eyf/ui";
 import { useApi, useApiAction } from "@/lib/use-api";
+import { useConfirm } from "@/components/confirm";
 import { Icons } from "@/components/icons";
 import { ContentTabs } from "../_tabs";
 import { Field } from "../_field";
@@ -21,6 +22,7 @@ const inputCls = "w-full h-11 px-3 rounded-lg bg-surface border border-border te
 export default function Page() {
   const { data, mutate } = useApi<Row[]>("/admin/content/sims");
   const action = useApiAction();
+  const confirm = useConfirm();
   const [editing, setEditing] = useState<null | { id: string | null }>(null);
   const [form, setForm] = useState<Form>(EMPTY);
   const [saving, setSaving] = useState(false);
@@ -43,7 +45,7 @@ export default function Page() {
     } catch { /* toasted */ } finally { setSaving(false); }
   }
   async function remove(id: string, label: string) {
-    if (!confirm(`Delete "${label}"?`)) return;
+    if (!(await confirm({ title: `Delete "${label}"?`, confirmLabel: "Delete", danger: true }))) return;
     try { await action(`/admin/content/sims/${id}`, { method: "DELETE" }); await mutate(); } catch { /* toasted */ }
   }
   async function importDefaults() {

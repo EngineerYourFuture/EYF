@@ -56,23 +56,23 @@ export default function Page() {
             <Input label="Role"     value={form.role}     onChange={(v) => setForm({ ...form, role: v })} />
             <Input label="Date"     type="date" value={form.driveDate} onChange={(v) => setForm({ ...form, driveDate: v })} />
             <Input label="Duration (min)" type="number" value={String(form.durationMin)} onChange={(v) => setForm({ ...form, durationMin: Number(v) })} />
-            <div>
-              <label className="text-xs text-text-3 uppercase tracking-wider">Difficulty</label>
+            <label className="block">
+              <span className="text-xs text-text-3 uppercase tracking-wider">Difficulty</span>
               <select value={form.difficulty} onChange={(e) => setForm({ ...form, difficulty: e.target.value })}
                 className="w-full mt-1 bg-bg border border-border rounded-md px-3 py-2 text-sm">
                 {["EASY","MEDIUM","HARD","EXPERT"].map((d) => <option key={d}>{d}</option>)}
               </select>
-            </div>
+            </label>
           </div>
-          <div>
-            <label className="text-xs text-text-3 uppercase tracking-wider">Sections</label>
+          <div role="group" aria-labelledby="oa-sections-label">
+            <span id="oa-sections-label" className="text-xs text-text-3 uppercase tracking-wider">Sections</span>
             <div className="mt-1 flex flex-wrap gap-2">
               {SECTIONS.map((s) => {
                 const on = form.sections.includes(s);
                 return (
-                  <button key={s} onClick={() => setForm({ ...form,
+                  <button key={s} aria-pressed={on} onClick={() => setForm({ ...form,
                     sections: on ? form.sections.filter((x) => x !== s) : [...form.sections, s],
-                  })} className={`px-2 py-1 text-xs border rounded ${on ? "border-accent text-text-1" : "border-border text-text-3"}`}>
+                  })} className={`px-2 py-1 text-xs border rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${on ? "border-accent text-text-1" : "border-border text-text-3"}`}>
                     {s}
                   </button>
                 );
@@ -80,11 +80,11 @@ export default function Page() {
             </div>
           </div>
           <Input label="Patterns seen (comma-separated)" value={form.patterns} onChange={(v) => setForm({ ...form, patterns: v })} />
-          <div>
-            <label className="text-xs text-text-3 uppercase tracking-wider">Notes (markdown)</label>
+          <label className="block">
+            <span className="text-xs text-text-3 uppercase tracking-wider">Notes (markdown)</span>
             <textarea rows={5} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })}
               className="w-full mt-1 bg-bg border border-border rounded-md px-3 py-2 font-mono text-sm" />
-          </div>
+          </label>
           <Button onClick={submit}>Post report</Button>
         </Card>
       )}

@@ -29,7 +29,8 @@ export default function Page({ params }: { params: { id: string } }) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+    const reduce = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: reduce ? "auto" : "smooth" });
   }, [data?.transcript?.length, sending]);
 
   if (!data) return <div className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 text-text-3">Loading…</div>;
@@ -64,7 +65,7 @@ export default function Page({ params }: { params: { id: string } }) {
           <Badge tone={data.status === "COMPLETED" ? "default" : "accent"} className="ml-auto">{data.status}</Badge>
         </header>
 
-        <div ref={scrollRef} className="flex-1 overflow-auto px-6 py-8 space-y-4 max-w-3xl">
+        <div ref={scrollRef} role="log" aria-live="polite" aria-label="Interview transcript" className="flex-1 overflow-auto px-6 py-8 space-y-4 max-w-3xl">
           {(data.transcript ?? []).map((t, i) => (
             <div key={i} className={t.role === "assistant" ? "" : "ml-12"}>
               <div className="text-text-3 text-xs uppercase tracking-wider mb-1">
@@ -81,9 +82,9 @@ export default function Page({ params }: { params: { id: string } }) {
           {sending && (
             <div className="flex items-center gap-2 text-text-3 text-sm">
               <span className="flex gap-1">
-                <span className="h-1.5 w-1.5 rounded-full bg-text-3 animate-bounce" style={{ animationDelay: "0ms" }} />
-                <span className="h-1.5 w-1.5 rounded-full bg-text-3 animate-bounce" style={{ animationDelay: "150ms" }} />
-                <span className="h-1.5 w-1.5 rounded-full bg-text-3 animate-bounce" style={{ animationDelay: "300ms" }} />
+                <span className="h-1.5 w-1.5 rounded-full bg-text-3 animate-bounce motion-reduce:animate-none" style={{ animationDelay: "0ms" }} />
+                <span className="h-1.5 w-1.5 rounded-full bg-text-3 animate-bounce motion-reduce:animate-none" style={{ animationDelay: "150ms" }} />
+                <span className="h-1.5 w-1.5 rounded-full bg-text-3 animate-bounce motion-reduce:animate-none" style={{ animationDelay: "300ms" }} />
               </span>
               Interviewer is thinking…
             </div>
@@ -183,6 +184,7 @@ function Composer({ onSend, onEnd, mockId }: { onSend: (m: string) => Promise<vo
     <div className="border-t border-border p-4 flex gap-2">
       <textarea
         rows={2}
+        aria-label="Your message"
         value={text}
         onChange={(e) => setText(e.target.value)}
         onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) send(text); }}
@@ -190,7 +192,7 @@ function Composer({ onSend, onEnd, mockId }: { onSend: (m: string) => Promise<vo
         className="flex-1 bg-bg border border-border rounded-md px-3 py-2 text-sm font-mono"
       />
       <div className="flex flex-col gap-2">
-        <select value={lang} onChange={(e) => setLang(e.target.value)}
+        <select value={lang} onChange={(e) => setLang(e.target.value)} aria-label="Transcription language"
           className="bg-surface border border-border rounded-md px-2 py-1 text-xs">
           {WHISPER_LANGS.map((l) => <option key={l.code} value={l.code}>{l.label}</option>)}
         </select>

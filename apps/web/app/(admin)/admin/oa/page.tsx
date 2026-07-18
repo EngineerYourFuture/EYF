@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { Card, Badge, Button, EmptyState, SkeletonRows } from "@eyf/ui";
 import { useApi, useApiAction } from "@/lib/use-api";
+import { useConfirm } from "@/components/confirm";
 import { toast } from "sonner";
 import { Icons } from "@/components/icons";
 
@@ -15,9 +16,10 @@ type Report = {
 export default function Page() {
   const { data, mutate } = useApi<Report[]>("/oa?limit=50");
   const action = useApiAction();
+  const confirm = useConfirm();
 
   async function del(r: Report) {
-    if (!confirm(`Delete OA report for ${r.company} · ${r.role}?`)) return;
+    if (!(await confirm({ title: `Delete OA report for ${r.company} · ${r.role}?`, confirmLabel: "Delete", danger: true }))) return;
     try {
       await action(`/admin/mod/oa/${r.id}`, { method: "DELETE" }, { silent: true });
       toast.success("Deleted.");

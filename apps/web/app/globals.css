@@ -23,11 +23,12 @@
 
     --text-1:      244 245 248;
     --text-2:      166 171 182;
-    /* text-3/text-4 lifted to clear WCAG AA (≥4.5:1) on --bg — these carry
-       nav group labels, stat sub-text and other meta copy, so they must be
-       readable, not decorative. */
+    /* text-3/text-4 carry nav group labels, stat sub-text and other meta copy,
+       so they must be readable, not decorative. Both clear WCAG AA (≥4.5:1)
+       on the card surfaces they actually sit on (surface … surface-3), not
+       just on --bg — text-4 measures 4.52:1 on the lightest card (surface-3). */
     --text-3:      138 144 156;
-    --text-4:      116 121 132;
+    --text-4:      130 135 146;
 
     /* Monochrome primary — cool near-white. Premium, not neon. */
     --accent:      244 245 248;
@@ -96,7 +97,7 @@
     --bg: 9 10 13; --bg-2: 12 13 17;
     --surface: 17 19 24; --surface-2: 22 25 31; --surface-3: 29 32 40;
     --border: 33 36 44; --border-2: 48 52 63;
-    --text-1: 244 245 248; --text-2: 166 171 182; --text-3: 138 144 156; --text-4: 116 121 132;
+    --text-1: 244 245 248; --text-2: 166 171 182; --text-3: 138 144 156; --text-4: 130 135 146;
     --accent: 244 245 248; --accent-hover: 210 214 222; --accent-tint: 29 32 40; --accent-ink: 9 10 13;
     --brand: 235 38 55; --brand-hover: 205 28 46; --brand-ink: 255 255 255;
     --easy: 90 190 120; --medium: 200 160 70; --hard: 210 90 70; --expert: 176 112 160; --info: 120 150 190;

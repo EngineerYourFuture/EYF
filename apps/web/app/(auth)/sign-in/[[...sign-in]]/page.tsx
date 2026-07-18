@@ -1,9 +1,12 @@
 "use client";
 import Link from "next/link";
 import { SignIn } from "@clerk/nextjs";
+import { dark } from "@clerk/themes";
 import { HAS_REAL_CLERK } from "@/lib/auth";
+import { useTheme } from "@/components/theme";
 
 export default function Page() {
+  const { theme } = useTheme();
   // Without real Clerk keys the app runs in dev-login mode and Clerk's
   // components crash (no ClerkProvider). Render a clear card instead of a 500.
   if (!HAS_REAL_CLERK) {
@@ -25,7 +28,7 @@ export default function Page() {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-6 py-16">
-      <SignIn appearance={{ elements: { card: "bg-surface border border-border" } }} />
+      <SignIn appearance={{ baseTheme: theme === "dark" ? dark : undefined, elements: { card: "bg-surface border border-border" } }} />
     </div>
   );
 }

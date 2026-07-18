@@ -39,20 +39,22 @@ export default function CoursePlayer({ params }: { params: { courseId: string } 
         <BackButton className="mb-4" />
         <PageHeader title={data.title} subtitle={`${data.org} · ${done}/${lessons.length} lessons complete`} />
         <div className="mt-6 grid md:grid-cols-[240px_1fr] gap-6">
-          <aside className="flex flex-col gap-1">
+          <nav aria-label="Lessons" className="flex flex-col gap-1">
             {lessons.map((l, i) => (
               <button
                 key={l.id}
                 onClick={() => setActive(i)}
-                className={`text-left px-3 py-2 rounded-lg text-sm flex items-center gap-2 transition-colors ${i === active ? "bg-surface-3" : "hover:bg-surface-2"}`}
+                aria-current={i === active ? "true" : undefined}
+                className={`text-left px-3 py-2 rounded-lg text-sm flex items-center gap-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${i === active ? "bg-surface-3" : "hover:bg-surface-2"}`}
               >
-                <span className={`h-4 w-4 rounded-full flex-shrink-0 grid place-items-center text-[10px] ${l.completed ? "bg-easy text-white" : "border border-border"}`}>
+                <span className={`h-4 w-4 rounded-full flex-shrink-0 grid place-items-center text-[10px] ${l.completed ? "bg-easy text-white" : "border border-border"}`} aria-hidden="true">
                   {l.completed ? "✓" : ""}
                 </span>
                 <span className="truncate">{l.title}</span>
+                {l.completed && <span className="sr-only">(completed)</span>}
               </button>
             ))}
-          </aside>
+          </nav>
           <main>
             {lesson ? (
               <Card className="p-6">

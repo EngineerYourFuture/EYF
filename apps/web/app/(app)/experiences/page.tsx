@@ -40,14 +40,14 @@ export default function Page() {
 
       {open && <SubmitForm companies={companies ?? []} onDone={async () => { setOpen(false); await mutate(); }} />}
 
-      <div className="mt-8 flex items-center gap-2 text-sm">
-        <label className="text-text-3 uppercase text-xs tracking-wider">Company</label>
+      <label className="mt-8 flex items-center gap-2 text-sm">
+        <span className="text-text-3 uppercase text-xs tracking-wider">Company</span>
         <select value={company} onChange={(e) => setCompany(e.target.value)}
           className="bg-surface border border-border rounded-md px-2.5 py-1.5 focus:border-accent/50 outline-none">
           <option value="">All companies</option>
           {(companies ?? []).map((c) => <option key={c.slug} value={c.slug}>{companyLabel(c.slug)}</option>)}
         </select>
-      </div>
+      </label>
 
       <div className="mt-6 space-y-3">
         {isLoading && <SkeletonRows rows={4} />}
@@ -138,52 +138,52 @@ function SubmitForm({ companies, onDone }: { companies: { slug: string }[]; onDo
   return (
     <Card variant="glow" className="mt-6 space-y-4">
       <div className="grid sm:grid-cols-2 gap-4">
-        <div>
-          <label className="text-sm font-medium">Company</label>
+        <label className="block">
+          <span className="text-sm font-medium">Company</span>
           <select value={f.company} onChange={(e) => setF({ ...f, company: e.target.value })}
             className="mt-1.5 w-full bg-bg border border-border rounded-md px-3 py-2.5 text-sm focus:border-accent/50 outline-none">
             <option value="">Select…</option>
             {companies.map((c) => <option key={c.slug} value={c.slug}>{companyLabel(c.slug)}</option>)}
           </select>
-        </div>
-        <div>
-          <label className="text-sm font-medium">Role</label>
+        </label>
+        <label className="block">
+          <span className="text-sm font-medium">Role</span>
           <input value={f.role} onChange={(e) => setF({ ...f, role: e.target.value })} placeholder="e.g. SDE-1"
             className="mt-1.5 w-full bg-bg border border-border rounded-md px-3 py-2.5 text-sm focus:border-accent/50 outline-none" />
-        </div>
+        </label>
       </div>
       <div className="grid grid-cols-3 gap-4">
-        <div>
-          <label className="text-sm font-medium">Outcome</label>
+        <label className="block">
+          <span className="text-sm font-medium">Outcome</span>
           <select value={f.outcome} onChange={(e) => setF({ ...f, outcome: e.target.value })}
             className="mt-1.5 w-full bg-bg border border-border rounded-md px-3 py-2.5 text-sm focus:border-accent/50 outline-none">
             {OUTCOMES.map((o) => <option key={o} value={o}>{OUTCOME_LABEL[o]}</option>)}
           </select>
-        </div>
-        <div>
-          <label className="text-sm font-medium">Difficulty</label>
+        </label>
+        <label className="block">
+          <span className="text-sm font-medium">Difficulty</span>
           <select value={f.difficulty} onChange={(e) => setF({ ...f, difficulty: Number(e.target.value) })}
             className="mt-1.5 w-full bg-bg border border-border rounded-md px-3 py-2.5 text-sm focus:border-accent/50 outline-none">
             {[1, 2, 3, 4, 5].map((n) => <option key={n} value={n}>{n}/5</option>)}
           </select>
-        </div>
-        <div>
-          <label className="text-sm font-medium">Rounds</label>
+        </label>
+        <label className="block">
+          <span className="text-sm font-medium">Rounds</span>
           <input type="number" min={1} max={15} value={f.rounds} onChange={(e) => setF({ ...f, rounds: Number(e.target.value) })}
             className="mt-1.5 w-full bg-bg border border-border rounded-md px-3 py-2.5 text-sm focus:border-accent/50 outline-none" />
-        </div>
+        </label>
       </div>
-      <div>
-        <label className="text-sm font-medium">Round-by-round writeup</label>
+      <label className="block">
+        <span className="text-sm font-medium">Round-by-round writeup</span>
         <textarea rows={5} value={f.body} onChange={(e) => setF({ ...f, body: e.target.value })}
           placeholder="OA: 2 DP problems. R1: graphs + sliding window. R2: system design. R3: behavioral / bar-raiser…"
           className="mt-1.5 w-full bg-bg border border-border rounded-md px-3 py-2.5 text-sm focus:border-accent/50 outline-none" />
-      </div>
-      <div>
-        <label className="text-sm font-medium">One tip <span className="text-text-4 font-normal">(optional)</span></label>
+      </label>
+      <label className="block">
+        <span className="text-sm font-medium">One tip <span className="text-text-4 font-normal">(optional)</span></span>
         <input value={f.tips} onChange={(e) => setF({ ...f, tips: e.target.value })} placeholder="The one thing you'd tell the next candidate"
           className="mt-1.5 w-full bg-bg border border-border rounded-md px-3 py-2.5 text-sm focus:border-accent/50 outline-none" />
-      </div>
+      </label>
       <Button glow onClick={submit} disabled={busy}>{busy ? "Posting…" : "Post experience"}</Button>
     </Card>
   );

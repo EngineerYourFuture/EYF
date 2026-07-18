@@ -8,8 +8,8 @@
  */
 import { useState } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
 import { Badge, Button } from "@eyf/ui";
+import { Modal } from "@/components/modal";
 import { Icons } from "@/components/icons";
 import { useReadiness } from "@/lib/use-readiness";
 import {
@@ -35,17 +35,16 @@ export function ComebackPlanModal({ appId, companyName, jobTitle, onClose }: {
   const plan = stage && readiness ? buildComebackPlan({ stage, companyName, pillars: readiness.pillars }) : null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm p-0 sm:p-4" onClick={onClose}>
-      <motion.div
-        initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-        className="w-full sm:max-w-lg max-h-[92vh] overflow-y-auto rounded-t-2xl sm:rounded-2xl border border-border bg-surface p-6 shadow-card-lg"
-        onClick={(e) => e.stopPropagation()}
-      >
+    <Modal
+      open
+      onClose={onClose}
+      labelledBy="comeback-title"
+      panelClassName="relative w-full sm:max-w-lg max-h-[92vh] overflow-y-auto rounded-t-2xl sm:rounded-2xl border border-border bg-surface p-6 shadow-card-lg focus:outline-none"
+    >
         <div className="flex items-start justify-between gap-3">
           <div>
             <div className="font-mono text-[11px] uppercase tracking-widest text-accent">Comeback plan</div>
-            <h2 className="font-display text-xl font-bold mt-1">{jobTitle} · {companyName}</h2>
+            <h2 id="comeback-title" className="font-display text-xl font-bold mt-1">{jobTitle} · {companyName}</h2>
           </div>
           <button onClick={onClose} aria-label="Close" className="text-text-4 hover:text-text-1 p-1 -m-1">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
@@ -129,7 +128,6 @@ export function ComebackPlanModal({ appId, companyName, jobTitle, onClose }: {
             </div>
           </div>
         )}
-      </motion.div>
-    </div>
+    </Modal>
   );
 }

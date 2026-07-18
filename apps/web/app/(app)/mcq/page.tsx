@@ -224,12 +224,12 @@ export default function Page() {
                     <Badge tone="accent">{q.difficulty}</Badge>
                     {done && <span className="ml-auto text-easy"><Icons.target width={16} height={16} /></span>}
                   </div>
-                  <p className="mt-4 text-text-1 font-medium">{q.prompt}</p>
-                  <div className="mt-4 grid gap-2">
+                  <p className="mt-4 text-text-1 font-medium" id={`mcq-${q.id}`}>{q.prompt}</p>
+                  <div className="mt-4 grid gap-2" role="radiogroup" aria-labelledby={`mcq-${q.id}`}>
                     {q.choices.map((c, idx) => {
                       const on = answers[q.id] === idx;
                       return (
-                        <label key={idx} className={`flex items-center gap-3 px-3 py-2.5 rounded-lg border cursor-pointer transition-colors ${
+                        <label key={idx} className={`flex items-center gap-3 px-3 py-2.5 rounded-lg border cursor-pointer transition-colors focus-within:ring-2 focus-within:ring-accent ${
                           on ? "border-accent bg-accent-tint" : "border-border hover:border-edge hover:bg-surface-2"
                         }`}>
                           <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-xs font-mono font-bold ${
@@ -295,20 +295,20 @@ export default function Page() {
 
           <Card className="mt-6">
             <div className="grid sm:grid-cols-2 gap-5">
-              <div>
-                <label className="text-text-3 text-xs uppercase tracking-wider">Target company <span className="text-text-4 normal-case">(optional)</span></label>
+              <label className="block">
+                <span className="text-text-3 text-xs uppercase tracking-wider">Target company <span className="text-text-4 normal-case">(optional)</span></span>
                 <select value={company} onChange={(e) => setCompany(e.target.value)}
                   className="mt-2 w-full h-11 px-3 rounded-lg bg-surface border border-border text-text-1 focus:outline-none focus:border-accent">
                   <option value="">Any company</option>
                   {catalog.companies.map((co) => <option key={co} value={co}>{co}</option>)}
                 </select>
-              </div>
-              <div>
-                <label className="text-text-3 text-xs uppercase tracking-wider">Questions</label>
+              </label>
+              <div role="group" aria-labelledby="mcq-count-label">
+                <span id="mcq-count-label" className="text-text-3 text-xs uppercase tracking-wider">Questions</span>
                 <div className="mt-2 flex gap-2">
                   {[5, 10, 15, 20].map((n) => (
-                    <button key={n} onClick={() => setCount(n)}
-                      className={`flex-1 h-11 rounded-lg border text-sm font-medium transition-colors ${
+                    <button key={n} onClick={() => setCount(n)} aria-pressed={count === n}
+                      className={`flex-1 h-11 rounded-lg border text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
                         count === n ? "border-accent bg-accent-tint text-text-1" : "border-border text-text-3 hover:border-edge"
                       }`}>{n}</button>
                   ))}

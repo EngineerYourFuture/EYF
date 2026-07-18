@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Badge, PageHeader, SkeletonRows, EmptyState, ErrorState } from "@eyf/ui";
 import { useApi } from "@/lib/use-api";
 import { PageMotion } from "@/components/page-motion";
@@ -22,11 +23,18 @@ const tone = { EASY: "easy", MEDIUM: "medium", HARD: "hard", EXPERT: "expert" } 
 const DIFFS = ["EASY", "MEDIUM", "HARD", "EXPERT"] as const;
 
 export default function ProblemsPage() {
+  const router = useRouter();
   const [q, setQ] = useState("");
+  const [debouncedQ, setDebouncedQ] = useState("");
   const [diff, setDiff] = useState<string>("");
   const [pattern, setPattern] = useState<string>("");
+  // Debounce the search so typing doesn't fire one API request per keystroke.
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedQ(q.trim()), 300);
+    return () => clearTimeout(t);
+  }, [q]);
   // Server-side filters (difficulty + pattern + search); API caps limit at 50.
-  const qs = new URLSearchParams({ limit: "50", ...(q && { q }), ...(diff && { difficulty: diff }), ...(pattern && { pattern }) }).toString();
+  const qs = new URLSearchParams({ limit: "50", ...(debouncedQ && { q: debouncedQ }), ...(diff && { difficulty: diff }), ...(pattern && { pattern }) }).toString();
   const { data, isLoading, error, mutate } = useApi<Problem[]>(`/problems?${qs}`);
 
   // Stable pattern list for the rail — derived from an unfiltered load so the
@@ -49,7 +57,7 @@ export default function ProblemsPage() {
         <button
           onClick={() => {
             const pool = (catalog ?? shown);
-            if (pool.length) window.location.href = `/problems/${pool[Math.floor(Math.random() * pool.length)]!.slug}?blind=1`;
+            if (pool.length) router.push(`/problems/${pool[Math.floor(Math.random() * pool.length)]!.slug}?blind=1`);
           }}
           className="inline-flex items-center gap-1.5 text-sm font-medium text-brand hover:underline"
         >
@@ -88,6 +96,8 @@ export default function ProblemsPage() {
         {/* Main list */}
         <div className="min-w-0">
           <input
+            type="search"
+            aria-label="Search problems"
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Search problems…"
@@ -109,11 +119,11 @@ export default function ProblemsPage() {
                 <table className="w-full text-sm">
                   <thead className="bg-surface/40 text-text-3 text-xs uppercase tracking-wider">
                     <tr>
-                      <th className="text-left px-4 py-3 font-medium">Title</th>
-                      <th className="text-left px-4 py-3 font-medium">Difficulty</th>
-                      <th className="text-left px-4 py-3 font-medium hidden sm:table-cell">Patterns</th>
-                      <th className="text-left px-4 py-3 font-medium hidden lg:table-cell">Companies</th>
-                      <th className="text-right px-4 py-3 font-medium hidden md:table-cell">Acceptance</th>
+                      <th scope="col" className="text-left px-4 py-3 font-medium">Title</th>
+                      <th scope="col" className="text-left px-4 py-3 font-medium">Difficulty</th>
+                      <th scope="col" className="text-left px-4 py-3 font-medium hidden sm:table-cell">Patterns</th>
+                      <th scope="col" className="text-left px-4 py-3 font-medium hidden lg:table-cell">Companies</th>
+                      <th scope="col" className="text-right px-4 py-3 font-medium hidden md:table-cell">Acceptance</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -144,7 +154,8 @@ function FilterChip({ label, active, onClick, tone }: { label: string; active: b
   return (
     <button
       onClick={onClick}
-      className={`px-3 py-1.5 text-xs rounded-md border transition-colors ${
+      aria-pressed={active}
+      className={`px-3 py-1.5 text-xs rounded-md border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
         active ? "border-accent text-text-1 bg-accent-tint" : "border-border text-text-3 hover:text-text-2"
       }`}
     >
@@ -157,7 +168,8 @@ function FilterRow({ label, active, onClick }: { label: string; active: boolean;
   return (
     <button
       onClick={onClick}
-      className={`text-left px-2.5 py-1.5 text-sm rounded-md transition-colors ${
+      aria-pressed={active}
+      className={`text-left px-2.5 py-1.5 text-sm rounded-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
         active ? "bg-accent-tint text-text-1 font-medium" : "text-text-3 hover:text-text-1 hover:bg-surface-3"
       }`}
     >

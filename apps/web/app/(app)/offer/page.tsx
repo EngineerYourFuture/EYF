@@ -41,22 +41,22 @@ export default function Page() {
         />
 
         <div className="mt-8 grid sm:grid-cols-2 gap-4">
-          <div>
-            <label className="text-sm font-medium text-text-1">Target role</label>
+          <label className="block">
+            <span className="text-sm font-medium text-text-1">Target role</span>
             <select value={trackSlug} onChange={(e) => setTrackSlug(e.target.value)}
               className="mt-2 w-full bg-bg border border-border rounded-md px-3 py-2.5 text-sm focus:border-accent/50 outline-none">
               <option value="">Select a role…</option>
               {(tracks ?? []).map((t) => <option key={t.slug} value={t.slug}>{t.name}</option>)}
             </select>
-          </div>
-          <div>
-            <label className="text-sm font-medium text-text-1">Target company <span className="text-text-4 font-normal">(optional)</span></label>
+          </label>
+          <label className="block">
+            <span className="text-sm font-medium text-text-1">Target company <span className="text-text-4 font-normal">(optional)</span></span>
             <select value={companySlug} onChange={(e) => setCompanySlug(e.target.value)}
               className="mt-2 w-full bg-bg border border-border rounded-md px-3 py-2.5 text-sm focus:border-accent/50 outline-none">
               <option value="">Typical product company</option>
               {(companies ?? []).map((c) => <option key={c.slug} value={c.slug}>{companyLabel(c.slug)}</option>)}
             </select>
-          </div>
+          </label>
         </div>
 
         {loading ? (

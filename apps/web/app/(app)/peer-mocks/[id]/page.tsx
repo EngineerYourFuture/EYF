@@ -102,6 +102,7 @@ const VideoTile = (function () {
   ) => (
     <Card className="p-0 overflow-hidden">
       <div className="px-3 py-2 text-text-3 text-xs uppercase tracking-wider border-b border-border">{label}</div>
+      {/* eslint-disable-next-line jsx-a11y/media-has-caption -- live WebRTC peer stream; no caption track exists for a real-time call. */}
       <video ref={ref} autoPlay playsInline muted={mirrored}
         style={{ width: "100%", aspectRatio: "16/9", background: "#000", transform: mirrored ? "scaleX(-1)" : undefined }} />
     </Card>
