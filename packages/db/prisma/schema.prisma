@@ -1226,7 +1226,8 @@ model PeerQueue {
   status      PeerQueueStatus @default(WAITING)
   problemFocus String?
   joinedAt    DateTime        @default(now())
-  matchedMockId String?       @unique
+  // NOT unique: a matched pair is two queue rows referencing the same mock session.
+  matchedMockId String?
 
   @@index([status, joinedAt])
   @@map("peer_queue")
