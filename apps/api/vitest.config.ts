@@ -9,6 +9,10 @@ export default defineConfig({
     // in parallel races on shared fixtures (skill upserts, seeded ids). Run them
     // sequentially for deterministic, flake-free results.
     fileParallelism: false,
+    // Explicitly disable the SSRF guard and rate limiter for the suite. These are
+    // dedicated flags (not NODE_ENV) so production can never turn a security
+    // control off by env-name; the test env opts in on purpose.
+    env: { DISABLE_SSRF_GUARD: "true", DISABLE_RATE_LIMIT: "true" },
     coverage: {
       provider: "v8",
       reporter: ["text", "lcov"],

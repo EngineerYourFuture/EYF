@@ -38,6 +38,13 @@ const schema = z.object({
   // tokens. Never set this in production.
   DEV_LOGIN_ENABLED: z.string().default("false").transform((v) => v === "true"),
 
+  // Test-only escape hatches for the SSRF guard and the rate limiter. Gated on
+  // dedicated flags (NOT NODE_ENV) so no production value of NODE_ENV can silently
+  // disable a security control — a deploy misconfigured as NODE_ENV=test still
+  // keeps both on. Set true ONLY in the test env (see vitest.config). Fail-closed.
+  DISABLE_SSRF_GUARD: z.string().default("false").transform((v) => v === "true"),
+  DISABLE_RATE_LIMIT: z.string().default("false").transform((v) => v === "true"),
+
   // Second gate on the admin portal: staff must enter this shared access code
   // (on top of being logged in with a staff role) to reach /admin. Unset = gate
   // disabled (dev). Set a strong value in production for defense-in-depth.

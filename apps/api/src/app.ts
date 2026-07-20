@@ -75,7 +75,8 @@ export async function buildApp() {
     max: (req) => {
       // Tests hammer many endpoints from one IP; the limiter runs before auth
       // (so it can't see the plan) — disable it under test to avoid false 429s.
-      if (env.NODE_ENV === "test") return 1_000_000;
+      // Dedicated flag (not NODE_ENV) so prod can't disable the limiter by env-name.
+      if (env.DISABLE_RATE_LIMIT) return 1_000_000;
       const plan = (req.session?.plan ?? "free") as Plan;
       return RATE_LIMIT_PER_MIN[plan];
     },

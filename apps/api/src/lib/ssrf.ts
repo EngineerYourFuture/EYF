@@ -37,8 +37,9 @@ export function isPrivateIp(ip: string): boolean {
 
 export async function assertPublicUrl(raw: string): Promise<void> {
   // Tests exercise delivery against a trusted localhost receiver — the guard
-  // protects against UNTRUSTED input, which tests don't provide.
-  if (env.NODE_ENV === "test") return;
+  // protects against UNTRUSTED input, which tests don't provide. Gated on a
+  // dedicated flag (not NODE_ENV) so prod can never disable it by env-name.
+  if (env.DISABLE_SSRF_GUARD) return;
   let u: URL;
   try { u = new URL(raw); } catch { throw new Error("Invalid URL."); }
   if (u.protocol !== "https:") throw new Error("Webhook URLs must use https://.");

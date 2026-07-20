@@ -125,7 +125,7 @@ the page degrades instead of erroring.
 
 ---
 
-## HARD-5 — Gate test-only security bypasses on an explicit flag, not NODE_ENV  `[P4 · hardening · XS]`
+## HARD-5 — Gate test-only security bypasses on an explicit flag, not NODE_ENV  `[DONE 2026-07-20]`
 
 **Context.** Two controls short-circuit on `NODE_ENV === "test"`: the SSRF guard
 (`apps/api/src/lib/ssrf.ts:41`) and the rate limiter
