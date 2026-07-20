@@ -57,6 +57,7 @@ import { guidanceRoutes } from "./guidance.js";
 import { adminGateRoutes } from "./admin-gate.js";
 import { adminContentRoutes } from "./admin-content.js";
 import { adminUsersRoutes } from "./admin-users.js";
+import { adminCollegeRoutes } from "./admin-colleges.js";
 import { adminPaymentsRoutes } from "./admin-payments.js";
 import { adminAuditRoutes } from "./admin-audit.js";
 
@@ -112,6 +113,7 @@ export async function registerRoutes(app: FastifyInstance) {
   await app.register(orgSettingsRoutes,  { prefix: "/orgs" });
   await app.register(orgAiRoutes,        { prefix: "/orgs" });
   await app.register(adminUsersRoutes,   { prefix: "/admin/users" });
+  await app.register(adminCollegeRoutes, { prefix: "/admin/colleges" });
   await app.register(adminPaymentsRoutes, { prefix: "/admin/payments" });
   await app.register(adminAuditRoutes,   { prefix: "/admin/audit" });
   await app.register(missionRoutes,      { prefix: "/missions" });

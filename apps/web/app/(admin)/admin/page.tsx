@@ -46,6 +46,7 @@ export default function Page() {
           badge={data && data.mentorsPending > 0 ? data.mentorsPending : undefined} />
         <AdminCard href="/admin/forum" icon="chat" title="Forum moderation" body="Pin, lock, or delete threads. Remove abusive posts." />
         <AdminCard href="/admin/oa" icon="target" title="OA reports" body="Curate the community-submitted online-assessment patterns." />
+        <AdminCard href="/admin/colleges" icon="building" title="College batch health" body="See which colleges have engaged batches — the TPO-partnership pitch list." />
       </div>
     </PageMotion>
   );
