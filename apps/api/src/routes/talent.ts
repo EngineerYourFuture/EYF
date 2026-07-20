@@ -7,6 +7,7 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { prisma, TalentScope } from "@eyf/db";
+import { computePlacementFee, DEFAULT_FEE_BPS } from "../services/placement-fee.js";
 
 export async function talentRoutes(app: FastifyInstance) {
   app.get("/consent", { preHandler: app.requireAuth }, async (req) => {
@@ -72,6 +73,17 @@ export async function talentRoutes(app: FastifyInstance) {
         update: { status: "ACTIVE" },
         create: { orgId: offer.req.orgId, userId: req.session!.id, roles: ["MEMBER"] },
       });
+      // Record the employer placement fee (Roadmap C1). Only on paid offers —
+      // unpaid internships owe nothing. Upsert keeps it idempotent; the SENT
+      // guard above means this normally runs exactly once per offer.
+      if (offer.ctcInr > 0) {
+        const feeInr = computePlacementFee(offer.ctcInr, DEFAULT_FEE_BPS);
+        await tx.placementFee.upsert({
+          where: { offerId },
+          create: { offerId, orgId: offer.req.orgId, ctcInr: offer.ctcInr, feeBps: DEFAULT_FEE_BPS, feeInr },
+          update: {},
+        });
+      }
     });
     return { success: true, data: { status: "ACCEPTED", joinedOrgId: offer.req.orgId } };
   });

@@ -53,7 +53,7 @@ the pipeline. Magic moment. Larger scope (external application surfaces).
 
 ## Track C — More profit (employer-paid, the safe version)
 
-### C1. Placement success fees  `[net-new]`
+### C1. Placement success fees  `[DONE 2026-07-20]`
 Standard recruiting model: employer pays a fee (8–15% of first-year salary) when a vetted
 candidate is hired through EYF. Proven, no warranty/ISA liability. Employer revenue dwarfs
 B2C subs. **Exists:** org-hire pipeline (requisitions/candidates/offers) — the fee/billing

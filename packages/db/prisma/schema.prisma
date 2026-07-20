@@ -1470,6 +1470,7 @@ model Organization {
   requisitions  JobRequisition[]
   apiKeys       ApiKey[]
   webhooks      WebhookEndpoint[]
+  placementFees PlacementFee[]
   @@map("organizations")
 }
 
@@ -1661,9 +1662,37 @@ model Offer {
   respondedAt  DateTime?
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @default(now()) @updatedAt
+  placementFee PlacementFee?
   @@unique([reqId, userId])
   @@index([userId, status])
   @@map("org_offers")
+}
+
+// Employer-paid placement success fee (Innovation Roadmap C1). Recorded when a
+// candidate ACCEPTS an offer (the hire event). EYF is the recruiter; the fee is
+// a slice of the CTC. No student liability, no warranty — standard recruiting.
+enum PlacementFeeStatus {
+  PENDING
+  INVOICED
+  PAID
+  WAIVED
+}
+
+model PlacementFee {
+  id         String             @id @default(cuid())
+  offerId    String             @unique
+  offer      Offer              @relation(fields: [offerId], references: [id], onDelete: Cascade)
+  orgId      String
+  org        Organization       @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  ctcInr     Int // the CTC the fee is computed from
+  feeBps     Int // fee rate in basis points (1000 = 10%)
+  feeInr     Int // computed fee amount, rupees
+  status     PlacementFeeStatus @default(PENDING)
+  createdAt  DateTime           @default(now())
+  invoicedAt DateTime?
+  paidAt     DateTime?
+  @@index([orgId, status])
+  @@map("placement_fees")
 }
 
 model PipelineCandidate {
