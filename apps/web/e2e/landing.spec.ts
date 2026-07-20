@@ -10,8 +10,9 @@ test.describe("landing page", () => {
     await expect(page.getByRole("link", { name: "Pricing" }).first()).toBeVisible();
     await expect(page.getByRole("link", { name: "Tracks" }).first()).toBeVisible();
 
-    // Primary CTA into the app.
-    await expect(page.getByRole("button", { name: /start free/i })).toBeVisible();
+    // Primary CTA into the app. It's a styled <Link> to /sign-up (role "link",
+    // not "button") — navigation is the correct semantics for a nav CTA.
+    await expect(page.getByRole("link", { name: /start free/i }).first()).toBeVisible();
   });
 
   test("nav links to pricing", async ({ page }) => {
