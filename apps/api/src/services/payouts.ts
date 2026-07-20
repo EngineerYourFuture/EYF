@@ -16,6 +16,15 @@ import { razorpay } from "./razorpay.js";
 
 export const PLATFORM_FEE_PCT = 0.20; // 20% to EYF, 80% to mentor
 
+/** Pure payout split — mentor gets (1 - fee) of the pro-rated hourly rate (in paisa). */
+export function computePayoutSplit(hourlyRateInr: number, durationMin: number): { platformFeeInr: number; mentorShareInr: number } {
+  const totalInrPaisa = hourlyRateInr * 100 * (durationMin / 60);
+  const platformFeeInr = Math.round(totalInrPaisa * PLATFORM_FEE_PCT);
+  const mentorShareInr = Math.round(totalInrPaisa - platformFeeInr);
+  return { platformFeeInr, mentorShareInr };
+}
+
+
 /**
  * Called when an EXPERT mock moves to COMPLETED. Idempotent on mockSessionId.
  */
@@ -24,16 +33,14 @@ export async function settleExpertMockPayout(mockSessionId: string): Promise<voi
     where: { id: mockSessionId },
     include: { mentor: true },
   });
-  if (!mock || mock.type !== MockType.EXPERT || mock.status !== MockStatus.COMPLETED) return;
+  if (mock?.type !== MockType.EXPERT || mock?.status !== MockStatus.COMPLETED) return;
   if (!mock.mentor) return;
 
   // Idempotency — already settled?
   const existing = await prisma.mentorPayout.findUnique({ where: { mockSessionId } });
   if (existing) return;
 
-  const totalInrPaisa = mock.mentor.hourlyRateInr * 100 * (mock.durationMin / 60);
-  const platformFeeInr = Math.round(totalInrPaisa * PLATFORM_FEE_PCT);
-  const mentorShareInr = Math.round(totalInrPaisa - platformFeeInr);
+  const { platformFeeInr, mentorShareInr } = computePayoutSplit(mock.mentor.hourlyRateInr, mock.durationMin);
 
   const payout = await prisma.mentorPayout.create({
     data: {
@@ -49,6 +56,9 @@ export async function settleExpertMockPayout(mockSessionId: string): Promise<voi
   // — a finance ops job processes it manually later.
   if (!razorpay || !mock.mentor.razorpayAccountId) return;
 
+  /* c8 ignore start -- live Razorpay Transfers SDK path; unreachable in tests
+     (no razorpay client / linked account). The payout math + PENDING create above
+     are covered; this is external-service glue exercised only against real keys. */
   try {
     // Razorpay Transfers API. Payment splitting via Route would normally happen
     // at order-creation time; this fallback creates a transfer from platform
@@ -78,4 +88,5 @@ export async function settleExpertMockPayout(mockSessionId: string): Promise<voi
       },
     });
   }
+  /* c8 ignore stop */
 }

@@ -95,7 +95,7 @@ export async function getJudge0Result(token: string): Promise<Judge0Result> {
   const verdict = mapStatus(j.status.id);
   return {
     verdict,
-    runtimeMs: j.time ? Math.round(parseFloat(j.time) * 1000) : null,
+    runtimeMs: j.time ? Math.round(Number.parseFloat(j.time) * 1000) : null,
     memoryKb: j.memory ?? null,
     stdout: j.stdout ? Buffer.from(j.stdout, "base64").toString("utf8") : null,
     stderr: j.stderr ? Buffer.from(j.stderr, "base64").toString("utf8") : null,

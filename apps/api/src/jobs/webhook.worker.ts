@@ -25,7 +25,7 @@ const worker = new Worker<WebhookJobData, void, "deliver">(
       where: { id: endpointId },
       select: { url: true, active: true },
     });
-    if (!ep || !ep.active) {
+    if (!ep?.active) {
       // endpoint deleted/disabled since enqueue — close the row out instead of
       // leaving it "pending" forever.
       await prisma.webhookDelivery.update({

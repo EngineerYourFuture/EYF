@@ -1,8 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { prisma } from "@eyf/db";
-import { anthropic } from "../services/anthropic.js";
-import { generateProblemVariant } from "../services/anthropic.js";
+import { anthropic, generateProblemVariant } from "../services/anthropic.js";
 import { requirePermission } from "../middleware/permissions.js";
 
 const MODEL_SONNET = "claude-sonnet-4-6";

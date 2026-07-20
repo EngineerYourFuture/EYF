@@ -53,7 +53,7 @@ async function dbActive(): Promise<boolean> {
 export async function mcqCompaniesSource(): Promise<string[]> {
   if (!(await dbActive())) return mcqCompanies();
   const rows = await prisma.mcqBankQuestion.findMany({ where: { active: true }, select: { companies: true } });
-  return [...new Set(rows.flatMap((r) => r.companies))].sort();
+  return [...new Set(rows.flatMap((r) => r.companies))].sort((a, b) => a.localeCompare(b));
 }
 
 export async function mcqCountSource(category: McqCategory, company?: string): Promise<number> {

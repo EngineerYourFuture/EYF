@@ -15,6 +15,19 @@ import { recordAudit } from "../lib/audit.js";
 
 const STUCK_AFTER_DAYS = 7;
 
+type PathItem = { required: boolean; course: { id: string; title: string; estMinutes: number; lessons: { id: string }[] } };
+const lessonIdsOf = (item: PathItem) => item.course.lessons.map((l) => l.id);
+function buildCourse(item: PathItem, done: Set<string>) {
+  return {
+    id: item.course.id,
+    title: item.course.title,
+    estMinutes: item.course.estMinutes,
+    lessonCount: item.course.lessons.length,
+    completedCount: item.course.lessons.filter((l) => done.has(l.id)).length,
+    required: item.required,
+  };
+}
+
 export async function orgPathsRoutes(app: FastifyInstance) {
   const author = { preHandler: [app.requireAuth, requireOrgCapability("learn:author")] };
   const enroller = { preHandler: [app.requireAuth, requireOrgCapability("learn:enroll")] };
@@ -232,20 +245,13 @@ export async function orgPathsRoutes(app: FastifyInstance) {
       },
     });
     const userId = req.session!.id;
-    const allLessonIds = enrollments.flatMap((e) => e.cohort.path.items.flatMap((i) => i.course.lessons.map((l) => l.id)));
+    const allLessonIds = enrollments.flatMap((e) => e.cohort.path.items.flatMap(lessonIdsOf));
     const done = allLessonIds.length
       ? new Set((await prisma.lessonProgress.findMany({ where: { userId, lessonId: { in: allLessonIds } }, select: { lessonId: true } })).map((p) => p.lessonId))
       : new Set<string>();
 
     const data = enrollments.map((e) => {
-      const courses = e.cohort.path.items.map((i) => ({
-        id: i.course.id,
-        title: i.course.title,
-        estMinutes: i.course.estMinutes,
-        lessonCount: i.course.lessons.length,
-        completedCount: i.course.lessons.filter((l) => done.has(l.id)).length,
-        required: i.required,
-      }));
+      const courses = e.cohort.path.items.map((i) => buildCourse(i, done));
       const total = courses.reduce((a, c) => a + c.lessonCount, 0);
       const completed = courses.reduce((a, c) => a + c.completedCount, 0);
       return {

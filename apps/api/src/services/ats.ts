@@ -24,7 +24,10 @@ export function scoreResume(doc: ResumeDocument): AtsBreakdown {
 
   // 2. Has summary
   const sum = (doc.summary ?? "").trim();
-  factors.push({ name: "Summary", score: sum.length >= 50 && sum.length <= 400 ? 8 : sum.length === 0 ? 0 : 4, max: 8 });
+  let summaryScore = 4;
+  if (sum.length >= 50 && sum.length <= 400) summaryScore = 8;
+  else if (sum.length === 0) summaryScore = 0;
+  factors.push({ name: "Summary", score: summaryScore, max: 8 });
 
   // 3. Experience entries with bullets
   const expBullets = doc.experience?.reduce((a, e) => a + (e.bullets?.length ?? 0), 0) ?? 0;
@@ -45,10 +48,11 @@ export function scoreResume(doc: ResumeDocument): AtsBreakdown {
 
   // 6. Skills count
   const skills = doc.skills?.length ?? 0;
-  factors.push({ name: "Skills listed", score: Math.min(10, Math.floor(skills / 2)), max: 10 });
-
-  // 7. Education present
-  factors.push({ name: "Education", score: (doc.education?.length ?? 0) > 0 ? 8 : 0, max: 8 });
+  factors.push(
+    { name: "Skills listed", score: Math.min(10, Math.floor(skills / 2)), max: 10 },
+    // 7. Education present
+    { name: "Education", score: (doc.education?.length ?? 0) > 0 ? 8 : 0, max: 8 },
+  );
 
   // 8. Projects with link
   const projWithLink = doc.projects?.filter((p) => p.link).length ?? 0;
@@ -58,9 +62,12 @@ export function scoreResume(doc: ResumeDocument): AtsBreakdown {
   const wordCount =
     (doc.summary ?? "").split(/\s+/).length +
     allBullets.join(" ").split(/\s+/).length;
+  let lengthScore = 2;
+  if (wordCount <= 700) lengthScore = 10;
+  else if (wordCount <= 1000) lengthScore = 6;
   factors.push({
     name: "Length",
-    score: wordCount <= 700 ? 10 : wordCount <= 1000 ? 6 : 2,
+    score: lengthScore,
     max: 10,
     note: `${wordCount} words`,
   });

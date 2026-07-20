@@ -9,19 +9,19 @@ import { lookup } from "node:dns/promises";
 import net from "node:net";
 import { env } from "../env.js";
 
-function isPrivateIp(ip: string): boolean {
-  if (net.isIPv4(ip)) {
-    const [a, b] = ip.split(".").map(Number) as [number, number, number, number];
-    if (a === 10) return true;
-    if (a === 127) return true;                       // loopback
-    if (a === 169 && b === 254) return true;          // link-local + AWS/GCP metadata
-    if (a === 172 && b >= 16 && b <= 31) return true; // 172.16/12
-    if (a === 192 && b === 168) return true;          // 192.168/16
-    if (a === 100 && b >= 64 && b <= 127) return true;// CGNAT 100.64/10
-    if (a === 0) return true;
-    return false;
-  }
-  const v = ip.toLowerCase();
+function isPrivateIpv4(ip: string): boolean {
+  const [a, b] = ip.split(".").map(Number) as [number, number, number, number];
+  if (a === 10) return true;
+  if (a === 127) return true;                       // loopback
+  if (a === 169 && b === 254) return true;          // link-local + AWS/GCP metadata
+  if (a === 172 && b >= 16 && b <= 31) return true; // 172.16/12
+  if (a === 192 && b === 168) return true;          // 192.168/16
+  if (a === 100 && b >= 64 && b <= 127) return true;// CGNAT 100.64/10
+  if (a === 0) return true;
+  return false;
+}
+
+function isPrivateIpv6(v: string): boolean {
   return (
     v === "::1" || v === "::" ||
     v.startsWith("fc") || v.startsWith("fd") ||       // unique-local
@@ -29,6 +29,10 @@ function isPrivateIp(ip: string): boolean {
     v.startsWith("::ffff:127.") || v.startsWith("::ffff:10.") ||
     v.startsWith("::ffff:169.254.") || v.startsWith("::ffff:192.168.")
   );
+}
+
+export function isPrivateIp(ip: string): boolean {
+  return net.isIPv4(ip) ? isPrivateIpv4(ip) : isPrivateIpv6(ip.toLowerCase());
 }
 
 export async function assertPublicUrl(raw: string): Promise<void> {
@@ -49,6 +53,8 @@ export async function assertPublicUrl(raw: string): Promise<void> {
     }
   } catch (e) {
     if (e instanceof Error && e.message.includes("private")) throw e;
+    /* c8 ignore start -- defensive DNS-failure wrap; resolver rejects only on a real lookup error. */
     throw new Error("Could not resolve webhook host.");
   }
+  /* c8 ignore stop */
 }

@@ -7,11 +7,16 @@ import { prisma, EvidenceSource } from "@eyf/db";
 import { computeSkillLevel } from "@eyf/types";
 
 export async function findOrCreateSkill(slug: string, name?: string): Promise<string> {
-  const clean = slug.toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60);
+  // Linear trim of leading/trailing dashes (no regex end-anchor → no backtracking).
+  const normalized = slug.toLowerCase().replace(/[^a-z0-9-]+/g, "-");
+  let lo = 0, hi = normalized.length;
+  while (lo < hi && normalized[lo] === "-") lo++;
+  while (hi > lo && normalized[hi - 1] === "-") hi--;
+  const clean = normalized.slice(lo, hi).slice(0, 60);
   const skill = await prisma.skill.upsert({
     where: { slug: clean },
     update: {},
-    create: { slug: clean, name: name ?? clean.replace(/-/g, " ") },
+    create: { slug: clean, name: name ?? clean.replaceAll("-", " ") },
     select: { id: true },
   });
   return skill.id;

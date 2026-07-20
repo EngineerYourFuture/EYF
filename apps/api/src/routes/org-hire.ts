@@ -160,7 +160,7 @@ export async function orgHireRoutes(app: FastifyInstance) {
     const body = z.object({
       userId: z.string(),
       title: z.string().trim().min(2).max(100),
-      ctcInr: z.number().int().min(0).max(1_00_00_00_000),
+      ctcInr: z.number().int().min(0).max(1_000_000_000),
       startDate: z.string().datetime().nullable().optional(),
     }).parse(req.body);
     const requisition = await prisma.jobRequisition.findFirst({ where: { id: reqId, orgId: req.orgCtx!.orgId }, select: { id: true } });

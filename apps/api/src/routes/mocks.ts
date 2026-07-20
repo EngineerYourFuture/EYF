@@ -44,7 +44,11 @@ export async function mockRoutes(app: FastifyInstance) {
     const last = n ? series[n - 1]!.composure : 0;
     const delta = last - first;
     const best = n ? Math.max(...series.map((p) => p.composure)) : 0;
-    const trend = n < 2 ? "new" : delta >= 5 ? "improving" : delta <= -5 ? "declining" : "steady";
+    let trend: string;
+    if (n < 2) trend = "new";
+    else if (delta >= 5) trend = "improving";
+    else if (delta <= -5) trend = "declining";
+    else trend = "steady";
     return { success: true, data: { series, sessions: n, avg, best, delta, trend } };
   });
 

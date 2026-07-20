@@ -80,8 +80,7 @@ export async function meRoutes(app: FastifyInstance) {
   // Soft-deletes the account and evicts all sessions immediately. PII is purged
   // on the retention schedule (see docs). Requires typing the exact confirmation.
   app.post("/delete", { preHandler: app.requireAuth }, async (req, reply) => {
-    const { confirm } = z.object({ confirm: z.literal("DELETE") }).parse(req.body);
-    void confirm;
+    z.object({ confirm: z.literal("DELETE") }).parse(req.body);
     const id = req.session!.id;
     await prisma.$transaction([
       prisma.user.update({ where: { id }, data: { deletedAt: new Date() } }),

@@ -43,7 +43,9 @@ export async function fireWebhook(orgId: string, event: string, data: unknown): 
         );
       }),
     );
+  /* c8 ignore start -- best-effort enqueue; the catch only fires if the queue is down. */
   } catch {
     /* webhooks are best-effort at the enqueue boundary; never surface to the caller */
   }
+  /* c8 ignore stop */
 }

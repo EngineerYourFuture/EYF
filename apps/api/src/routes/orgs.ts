@@ -19,7 +19,7 @@ import { bumpUsage, getUsage } from "../lib/usage.js";
 const rolesInput = z.array(z.nativeEnum(OrgRole)).min(1).max(5);
 
 const slugify = (s: string) =>
-  s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40) || "org";
+  s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40) || "org";
 
 export async function orgsRoutes(app: FastifyInstance) {
   // ── Org lifecycle ────────────────────────────────────────────────
@@ -29,8 +29,9 @@ export async function orgsRoutes(app: FastifyInstance) {
     const base = slugify(body.name);
     // Suffix on collision — slugs are public and permanent.
     let slug = base;
-    for (let i = 2; await prisma.organization.findUnique({ where: { slug }, select: { id: true } }); i++) {
-      slug = `${base}-${i}`;
+    let i = 2;
+    while (await prisma.organization.findUnique({ where: { slug }, select: { id: true } })) {
+      slug = `${base}-${i++}`;
     }
     const org = await prisma.organization.create({
       data: {

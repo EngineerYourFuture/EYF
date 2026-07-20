@@ -34,7 +34,7 @@ const lessonInput = z.object({
   skillLevel: z.number().int().min(0).max(100).default(60),
 });
 
-const EDITABLE: CourseStatus[] = [CourseStatus.DRAFT, CourseStatus.IN_REVIEW];
+const EDITABLE = new Set<CourseStatus>([CourseStatus.DRAFT, CourseStatus.IN_REVIEW]);
 
 export async function orgLearnRoutes(app: FastifyInstance) {
   const author = { preHandler: [app.requireAuth, requireOrgCapability("learn:author")] };
@@ -81,7 +81,7 @@ export async function orgLearnRoutes(app: FastifyInstance) {
     const body = z.object({ title: z.string().trim().min(2).max(120).optional(), description: z.string().max(2000).optional() }).parse(req.body);
     const course = await courseInOrg(req.orgCtx!.orgId, courseId);
     if (!course) return reply.code(404).send({ success: false, error: { code: "NOT_FOUND", message: "Course not found." } });
-    if (!EDITABLE.includes(course.status)) {
+    if (!EDITABLE.has(course.status)) {
       return reply.code(409).send({ success: false, error: { code: "NOT_EDITABLE", message: "Published courses are edited as a new draft (archive or create a revision)." } });
     }
     const updated = await prisma.course.update({ where: { id: courseId }, data: body });
@@ -93,7 +93,7 @@ export async function orgLearnRoutes(app: FastifyInstance) {
     const body = lessonInput.parse(req.body);
     const course = await courseInOrg(req.orgCtx!.orgId, courseId);
     if (!course) return reply.code(404).send({ success: false, error: { code: "NOT_FOUND", message: "Course not found." } });
-    if (!EDITABLE.includes(course.status)) {
+    if (!EDITABLE.has(course.status)) {
       return reply.code(409).send({ success: false, error: { code: "NOT_EDITABLE", message: "This course is published — draft a revision to edit lessons." } });
     }
     const { skillSlug, ...lessonData } = body;
@@ -117,7 +117,7 @@ export async function orgLearnRoutes(app: FastifyInstance) {
       include: { course: { select: { status: true } } },
     });
     if (!lesson) return reply.code(404).send({ success: false, error: { code: "NOT_FOUND", message: "Lesson not found." } });
-    if (!EDITABLE.includes(lesson.course.status)) {
+    if (!EDITABLE.has(lesson.course.status)) {
       return reply.code(409).send({ success: false, error: { code: "NOT_EDITABLE", message: "This course is published — draft a revision to edit lessons." } });
     }
     const { blocks, ...rest } = body;

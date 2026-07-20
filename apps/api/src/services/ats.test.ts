@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { scoreResume } from "./ats.js";
+import { scoreResume, resumeGapToTarget } from "./ats.js";
 import type { ResumeDocument } from "@eyf/types";
 
 const empty: ResumeDocument = { contact: { name: "", email: "" } };
@@ -70,5 +70,64 @@ describe("ATS scorer", () => {
     const result = scoreResume(empty);
     const contact = result.factors.find((f) => f.name === "Contact info");
     expect(contact?.score).toBe(0);
+  });
+});
+
+describe("resumeGapToTarget — role resolution", () => {
+  it.each([
+    ["Frontend Engineer", "Frontend"],
+    ["Full Stack Developer", "Full-stack"],
+    ["Backend / Server", "Backend"],
+    ["Data Scientist", "Data / ML"],
+    ["", "Software Engineer"], // default
+    [null, "Software Engineer"],
+  ])("maps target %s to %s", (role, label) => {
+    expect(resumeGapToTarget({ contact: { name: "", email: "" } }, role).roleLabel).toBe(label);
+  });
+});
+
+describe("resumeGapToTarget — matching & fixes", () => {
+  it("matches keywords found across skills, bullets, projects and summary", () => {
+    const doc: ResumeDocument = {
+      contact: { name: "A", email: "a@b.co" },
+      summary: "Built REST apis with authentication",
+      skills: ["SQL", "Docker", "Redis"],
+      experience: [{ company: "X", role: "SWE", start: "2024", bullets: ["Designed a database with caching"] }],
+      projects: [{ name: "microservices demo", description: "system design practice", link: "https://x" }],
+    };
+    const gap = resumeGapToTarget(doc, "backend");
+    expect(gap.matchPct).toBeGreaterThan(0);
+    expect(gap.matched).toEqual(expect.arrayContaining(["api", "sql", "docker", "authentication"]));
+    // has a linked project + plenty of matches → no "add a link" fix
+    expect(gap.fixes.some((f) => f.label.includes("live link"))).toBe(false);
+  });
+
+  it("flags every gap on an empty resume", () => {
+    const gap = resumeGapToTarget({ contact: { name: "", email: "" } }, "frontend");
+    expect(gap.matchPct).toBe(0);
+    const labels = gap.fixes.map((f) => f.label).join(" | ");
+    expect(labels).toContain("Show");           // missing keywords
+    expect(labels).toContain("live link");       // no linked project
+    expect(labels).toContain("Expand your skills"); // < 8 skills
+  });
+
+  it("asks to quantify bullets that have no numbers", () => {
+    const doc: ResumeDocument = {
+      contact: { name: "A", email: "a@b.co" },
+      experience: [{ company: "X", role: "SWE", start: "2024", bullets: ["Led the migration", "Shipped 3 features"] }],
+    };
+    const gap = resumeGapToTarget(doc, "sde");
+    expect(gap.fixes.some((f) => f.label.startsWith("Quantify 1 more bullet"))).toBe(true);
+  });
+});
+
+describe("scoreResume — length band", () => {
+  it("scores a medium-length resume (701–1000 words) at 6/10", () => {
+    const doc: ResumeDocument = {
+      contact: { name: "A", email: "a@b.co" },
+      summary: Array.from({ length: 850 }, () => "word").join(" "),
+    };
+    const length = scoreResume(doc).factors.find((f) => f.name === "Length");
+    expect(length?.score).toBe(6);
   });
 });

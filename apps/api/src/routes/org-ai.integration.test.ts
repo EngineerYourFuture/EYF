@@ -74,7 +74,7 @@ describe.skipIf(!hasDb)("AI course builder (real DB)", () => {
     // A member can now open it in the player.
     const open = await inject(member.token, "GET", `/v1/orgs/${orgId}/work/courses/${courseId}`);
     expect(open.statusCode).toBe(200);
-    expect(open.json().data.lessons.length).toBe(3);
+    expect(open.json().data.lessons).toHaveLength(3);
   });
 
   it("MEMBER cannot AI-draft; outsider 404; ai_credits metered only for real AI", async () => {

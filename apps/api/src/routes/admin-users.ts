@@ -21,7 +21,7 @@ export async function adminUsersRoutes(app: FastifyInstance) {
   // List (recent 100, optional case-insensitive search by name/email).
   app.get("/", guard, async (req) => {
     const { q } = req.query as { q?: string };
-    const where = q && q.trim()
+    const where = q?.trim()
       ? { OR: [
           { email: { contains: q.trim(), mode: "insensitive" as const } },
           { name: { contains: q.trim(), mode: "insensitive" as const } },

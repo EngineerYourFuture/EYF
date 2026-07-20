@@ -29,9 +29,7 @@ async function resolveSession(
       });
       // First authenticated request before the user.created webhook synced them
       // (or local dev without a webhook tunnel): upsert from Clerk on the fly.
-      if (!user) {
-        user = await ensureUserFromClerk(claims.sub);
-      }
+      user ??= await ensureUserFromClerk(claims.sub);
       if (user) {
         return {
           id: user.id,

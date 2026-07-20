@@ -73,6 +73,9 @@ export async function buildApp() {
     // isolated (a shared store would leak counts across test files).
     ...(env.NODE_ENV === "test" ? {} : { redis, nameSpace: "eyf-rl:" }),
     max: (req) => {
+      // Tests hammer many endpoints from one IP; the limiter runs before auth
+      // (so it can't see the plan) — disable it under test to avoid false 429s.
+      if (env.NODE_ENV === "test") return 1_000_000;
       const plan = (req.session?.plan ?? "free") as Plan;
       return RATE_LIMIT_PER_MIN[plan];
     },
