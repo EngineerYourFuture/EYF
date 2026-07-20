@@ -21,7 +21,7 @@ colleges; students carry a free-text `college`). **v1 (this pass):** batch-analy
 + admin-gated view (EYF targets strong colleges to pitch). **v2:** TPO self-serve accounts;
 readiness-based batch stats (needs HARD-6 materialized readiness).
 
-### A2. Warm alumni referral network  `[net-new, extends A: referral engine done]`
+### A2. Warm alumni referral network  `[DONE 2026-07-20]`
 Placed alumni refer juniors into their own companies, with the junior's verified readiness
 attached. Warm referral is the #1 real-world hiring channel; only EYF has the placement
 graph + the proof. Builds on the shipped referral engine.

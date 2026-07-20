@@ -1704,6 +1704,9 @@ model PipelineCandidate {
   stage            PipelineStage   @default(SOURCED)
   fitScore         Int? // barFit / readiness at time of sourcing
   note             String?
+  // Warm-referral (Roadmap A2): the OrgMember (a placed alum) who referred this
+  // candidate in. Null for pool/apply sources.
+  referredById     String?
   evidenceSnapshot Json? // frozen evidence summary when sourced
   createdAt        DateTime        @default(now())
   updatedAt        DateTime        @default(now()) @updatedAt
