@@ -42,7 +42,7 @@ Cross-mock pattern analysis ("you freeze on system-design scaling; you talk too 
 pressure") → targeted drill. **Exists:** `weakness-review` component (single-view). Net-new:
 the cross-mock compounding analysis.
 
-### B3. Parent progress digest  `[net-new]`
+### B3. Parent progress digest  `[DONE 2026-07-20]`
 Weekly WhatsApp/email to the parent (the payer + the anxious party in India): "Rahul —
 12-day streak, readiness +6, on track." Drives conversion + retention. Email/push infra
 exists. Self-contained; a strong early build.

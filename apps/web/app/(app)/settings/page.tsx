@@ -6,6 +6,7 @@ import { useApi, useApiAction } from "@/lib/use-api";
 import { PageMotion } from "@/components/page-motion";
 import { ThemeToggle } from "@/components/theme";
 import { ReferralCard } from "@/components/referral-card";
+import { ParentDigestCard } from "@/components/parent-digest-card";
 import { Icons } from "@/components/icons";
 import { PERSONA_LIST, type PersonaId } from "@/lib/persona";
 
@@ -82,6 +83,8 @@ export default function Page() {
       <PageHeader eyebrow="Account" title="Settings" subtitle="Manage your profile and how EYF looks." />
 
       <div className="mt-8"><ReferralCard /></div>
+
+      <div className="mt-5"><ParentDigestCard /></div>
 
       <Card className="mt-5">
         <h2 className="font-display text-lg font-bold mb-4">Profile</h2>

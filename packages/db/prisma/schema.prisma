@@ -210,6 +210,9 @@ model User {
   clerkId         String    @unique
   email           String    @unique
   phone           String?   @unique
+  // Opt-in: a parent/guardian email for the weekly progress digest. Presence =
+  // opted in. In India the parent is often the payer and the anxious party.
+  parentEmail     String?
   name            String
   college         String?
   graduationYear  Int?

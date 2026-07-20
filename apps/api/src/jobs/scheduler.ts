@@ -8,7 +8,7 @@
 import { Queue } from "bullmq";
 import { redis } from "../lib/redis.js";
 
-export type CronJobName = "streak-break-alert" | "weekly-leaderboard" | "daily-digest";
+export type CronJobName = "streak-break-alert" | "weekly-leaderboard" | "daily-digest" | "parent-digest";
 
 export const cronQueue = new Queue<unknown, void, CronJobName>("cron", { connection: redis });
 
@@ -27,5 +27,10 @@ export async function registerCronJobs(): Promise<void> {
     "weekly-leaderboard",
     { pattern: "30 2 * * 1" }, // Monday 08:00 IST
     { name: "weekly-leaderboard", data: {} },
+  );
+  await cronQueue.upsertJobScheduler(
+    "parent-digest",
+    { pattern: "30 2 * * 0" }, // Sunday 08:00 IST — parents read the week's recap
+    { name: "parent-digest", data: {} },
   );
 }

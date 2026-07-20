@@ -5,6 +5,7 @@ import {
   getOrCreateReferralCode, settleReferralFor, validateRedeem,
   REWARD_DAYS, QUALIFY_XP, type RedeemCheck,
 } from "../services/referral.js";
+import { parentDigestFor } from "../services/parent-digest.js";
 
 function redeemError(reason: Exclude<RedeemCheck, { ok: true }>["reason"]): string {
   switch (reason) {
@@ -147,5 +148,24 @@ export async function meRoutes(app: FastifyInstance) {
     }
     await prisma.referral.create({ data: { referrerId: referrer!.id, refereeId: uid, rewardDays: REWARD_DAYS } });
     return { success: true, data: { redeemed: true, rewardDays: REWARD_DAYS, qualifyXp: QUALIFY_XP } };
+  });
+
+  // ── Parent progress digest (opt-in) ───────────────────────────────
+  // Set (or clear, with null/empty) the parent email that receives the weekly
+  // digest. Presence of the email = opted in.
+  app.post("/parent-email", { preHandler: app.requireAuth }, async (req) => {
+    const { email } = z.object({ email: z.string().email().nullish().or(z.literal("")) }).parse(req.body);
+    const parentEmail = email && email.length > 0 ? email : null;
+    await prisma.user.update({ where: { id: req.session!.id }, data: { parentEmail } });
+    return { success: true, data: { parentEmail } };
+  });
+
+  // Preview the digest the parent would receive this week, plus the opt-in state.
+  app.get("/parent-digest", { preHandler: app.requireAuth }, async (req) => {
+    const [me, digest] = await Promise.all([
+      prisma.user.findUnique({ where: { id: req.session!.id }, select: { parentEmail: true } }),
+      parentDigestFor(req.session!.id),
+    ]);
+    return { success: true, data: { parentEmail: me?.parentEmail ?? null, digest } };
   });
 }
