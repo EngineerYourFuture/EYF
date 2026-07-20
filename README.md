@@ -42,7 +42,8 @@ specs/        Source-of-truth product specs
 
 ```bash
 pnpm install
-cp .env.example .env
+cp .env.example .env      # root .env feeds packages/db
+cp .env.example apps/api/.env   # the API reads its OWN .env (CWD-local dotenv), not the root one
 
 pnpm docker:up            # Postgres 16 + Redis 7 (Judge0: --profile judge)
 pnpm db:generate && pnpm db:migrate && pnpm db:seed
@@ -50,6 +51,8 @@ pnpm --filter @eyf/db db:rls          # tenant-isolation RLS policies (idempoten
 
 pnpm dev                  # web :3000 + api :4000
 ```
+
+> Env-file gotcha: locally the **API reads `apps/api/.env`** (its `dotenv/config` loads from the working dir), the **web reads `apps/web/.env.local`**, and the root `.env` feeds `packages/db`. Full map in [docs/GO-LIVE.md](docs/GO-LIVE.md).
 
 Optional long-running workers (own terminals):
 
