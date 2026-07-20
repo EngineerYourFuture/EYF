@@ -169,3 +169,26 @@ a small **tested** pure helper, since it is currently untested inline logic.
 **Files.** `packages/db/prisma/schema.prisma` (UserProfile column + migration),
 `apps/api/src/jobs/*`, `apps/api/src/routes/org.ts`, a new tested ranking helper.
 **Effort.** human ~1 day / CC ~30 min.
+
+## HARD-7 — Self-host Monaco instead of the jsdelivr CDN  `[P3 · resilience · M]`
+
+**Context.** The code editor (`@monaco-editor/react`, `apps/web/app/(app)/problems/[slug]/page.tsx`)
+loads Monaco (JS + `editor.main.css`) from `cdn.jsdelivr.net` at runtime. CSP now
+allows it (fixed), but the editor still depends on a third-party CDN being reachable.
+
+**Problem.** EYF's users are on Indian college/campus networks that sometimes block
+or throttle public CDNs. If jsdelivr is unreachable, the core practice editor breaks
+entirely — the single worst place for a hard dependency.
+
+**Proposed change.** Bundle `monaco-editor` locally (it's already a transitive dep):
+configure `@monaco-editor/react`'s loader to use the local package (`loader.config({ monaco })`)
+with the Next.js webpack setup (e.g. `monaco-editor-webpack-plugin` or serving `vs/` from
+`public/`). Removes the runtime CDN dependency; editor works offline / on locked-down
+networks. Also lets CSP drop the jsdelivr allowance.
+
+**Acceptance criteria.**
+- The editor loads with the network's CDN access blocked (verify with jsdelivr blocked).
+- `style-src`/`script-src` no longer need `cdn.jsdelivr.net` / broad `https:` for Monaco.
+
+**Files.** `apps/web/app/(app)/problems/[slug]/page.tsx`, `apps/web/next.config.mjs`.
+**Effort.** human ~half day / CC ~30 min.
