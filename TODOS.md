@@ -100,7 +100,7 @@ org data), then change it. No standalone refactor PR — fold it into feature wo
 
 ---
 
-## HARD-4 — Graceful WebGL-unavailable fallback for the 3D background  `[P3 · resilience · S]`
+## HARD-4 — Graceful WebGL-unavailable fallback for the 3D background  `[DONE 2026-07-20]`
 
 **Context.** `apps/web/components/AntigravityBackground.tsx` renders a Three.js /
 react-three-fiber Canvas. QA (headless, no GPU) hit

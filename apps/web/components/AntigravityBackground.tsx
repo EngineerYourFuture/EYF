@@ -28,6 +28,23 @@ import * as THREE from "three";
 // re-tuning this constant to preserve the repulsion feel.
 const MOUSE_PROJECTION_SCALE = 1.3;
 
+/**
+ * True when the browser can actually create a WebGL context. Some users block
+ * WebGL, run locked-down enterprise browsers, or sit on old hardware — there the
+ * <Canvas> throws on mount and crashes the subtree into the error boundary. We
+ * detect up front and render a static CSS fallback instead of erroring.
+ */
+function detectWebGL(): boolean {
+  try {
+    const c = document.createElement("canvas");
+    return !!(
+      window.WebGLRenderingContext && (c.getContext("webgl") || c.getContext("experimental-webgl"))
+    );
+  } catch {
+    return false;
+  }
+}
+
 // ── Shaders ──────────────────────────────────────────────────────────
 const vertexShader = /* glsl */ `
   uniform float uTime;
@@ -341,9 +358,13 @@ export default function AntigravityBackground({
   const [isTouch, setIsTouch] = useState(false);
   const [inView, setInView] = useState(true);
   const [visible, setVisible] = useState(true);
+  const [webglOk, setWebglOk] = useState(true);
 
   // env detection (post-mount → no SSR mismatch)
   useEffect(() => {
+    // Set WebGL support before mounting so the <Canvas> never mounts on a
+    // browser that can't create a context (both batch into the same render).
+    setWebglOk(detectWebGL());
     setMounted(true);
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
     const coarse = window.matchMedia("(pointer: coarse)");
@@ -408,7 +429,18 @@ export default function AntigravityBackground({
         background: backgroundTransparent ? "transparent" : "#05060a",
       }}
     >
-      {mounted && (
+      {mounted && !webglOk && (
+        // Graceful degradation: a static brand-tinted glow that echoes the ring,
+        // so WebGL-less browsers get atmosphere instead of an error boundary.
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            background: `radial-gradient(60% 50% at 50% 45%, ${particleColor}22 0%, transparent 70%)`,
+          }}
+        />
+      )}
+      {mounted && webglOk && (
         <Canvas
           // 'always' animates; 'demand' renders once (static ring for reduced /
           // holds the last frame while paused) — keeps the GPU idle when hidden
