@@ -6,43 +6,38 @@ Each item is scoped enough to pick up and implement. Priority order.
 
 ---
 
-## HARD-1 — Make RLS tenant isolation live for all org routes  `[P1 · security · S]`
+## HARD-1 — Make RLS tenant isolation live for all org routes  `[PARTIAL 2026-07-20 · remaining: route adoption]`
 
-**Context.** Tenant isolation has three layers: (1) `requireOrgMember`/`requireOrgCapability`
-authz middleware, (2) hand-written `where: { orgId }` filters, (3) a Postgres RLS
-backstop (`org_isolation` policy, `packages/db/scripts/apply-rls.ts`). The RLS policy is
-an escape-hatch tripwire: it only isolates when the request has run
-`SET LOCAL app.org_id = …`, which today happens **only** inside
-`withOrgContext()` (`apps/api/src/lib/org-scoped.ts`).
+**DONE (2026-07-20): the backstop mechanism is fixed and proven.** `orgDb()` now runs
+every query through `withOrgContext` (a transaction with `SET LOCAL app.org_id`), so the
+sanctioned repository path provides BOTH the `orgId` filter AND a live RLS backstop —
+previously it was filter-only and RLS stayed dormant (context never set). Proven by
+`apps/api/src/lib/rls-isolation.integration.test.ts` (4 tests, live DB, non-superuser
+role): a wrong-tenant read by exact id inside `withOrgContext(A)` returns null, a
+no-filter `findMany` returns only org-A rows, and the same row IS visible with no context
+(proving RLS — not the app filter — does the blocking). The earlier "SET LOCAL in
+middleware" idea was rejected: `SET LOCAL` needs a transaction, and Prisma's pool would
+scatter the context across connections — it would look fixed while isolating nothing.
 
-**Problem.** `withOrgContext` is imported by exactly **1 of 10** org route files
-(`apps/api/src/routes/orgs.ts`). The other nine (`org-learn`, `org-hire`, `org-assess`,
-`org-certificates`, `org-paths`, `org-skills`, `org-ai`, `org-settings`, `org.ts`) hit the
-raw `prisma` client, so `app.org_id` is never set and RLS passes every row. The
-`requireOrgMember`/`requireOrgCapability` middleware sets `req.orgCtx` (a JS object) but
-NOT the DB session var. Net: for 90% of org data access, isolation rests entirely on the
-manual `where` filter — one forgotten filter is a cross-tenant leak with no backstop.
-The `orgDb()` repository that would inject `orgId` automatically has zero route adoption.
+**REMAINING (the real exposure): route adoption.** `withOrgContext`/`orgDb` is still
+imported by only ~1-2 of 10 org route files; the rest (`org-learn`, `org-hire`,
+`org-assess`, `org-certificates`, `org-paths`, `org-skills`, `org-ai`, `org-settings`,
+`org.ts`) hit raw `prisma` on org tables, so RLS stays dormant for them and isolation
+rests on the manual `where`. Now that the backstop is proven, this is mechanical: route
+org-table access through `orgDb()` (extend `orgDb` to cover the tables those routes use —
+courses, requisitions, slots, blueprints, etc.). Ties into HARD-3.
 
 **Why it matters.** The B2B LMS gates Elite-tier internship access; a cross-tenant leak is
-a deal-ending incident. Cheapest to close now, before B2B pilots. One-way door.
+a deal-ending incident. One-way door — close before B2B pilots.
 
-**Proposed change.** Set the RLS context once, at the org-authz middleware boundary, so
-every org route is covered regardless of which client it uses. In
-`apps/api/src/middleware/org.ts`, after resolving an ACTIVE member, run
-`SET LOCAL app.org_id = <orgId>` on the request-scoped connection (or route org requests
-through a transaction that does). Keep `withOrgContext` for the explicit-transaction cases.
+**Acceptance criteria (remaining).**
+- `orgDb` covers every org-scoped table the 9 raw-prisma routes touch; those routes adopt it.
+- The isolation test is extended to the newly-covered tables.
+- No regression: full suite stays green.
 
-**Acceptance criteria.**
-- An integration test proves an org-scoped request with a mismatched `app.org_id` returns
-  zero rows for each of the 16 `ORG_TABLES` (extend `org-scoped.integration.test.ts`).
-- All 10 org route files exercise a path where RLS is active (context set), verified by a
-  test that unsets the manual `where` and confirms RLS still blocks cross-tenant reads.
-- No regression: existing 401 tests stay green.
-
-**Files.** `apps/api/src/middleware/org.ts`, `apps/api/src/lib/org-scoped.ts`,
-`apps/api/src/lib/org-scoped.integration.test.ts`.
-**Effort.** human ~1 day / CC ~30 min.
+**Files.** `apps/api/src/lib/org-scoped.ts` (extend coverage), the 9 org route files,
+`apps/api/src/lib/rls-isolation.integration.test.ts`.
+**Effort remaining.** human ~1 day / CC ~30-45 min (mechanical, backstop already proven).
 
 ---
 
