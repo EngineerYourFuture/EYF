@@ -146,29 +146,31 @@ no production value of `NODE_ENV` can turn the control off.
 **Files.** `apps/api/src/lib/ssrf.ts`, `apps/api/src/app.ts`, `apps/api/src/env.ts`.
 **Effort.** human ~1 hr / CC ~10 min.
 
-## HARD-6 — Materialize a Readiness Index for internship ranking  `[P2 · flywheel · M]`
+## HARD-6 — Rank the internship flywheel on a materialized Readiness Index (not XP)  `[P2 · flywheel · M]`
 
-**Context.** The internship merit-gate (`GET /internships/standing`,
-`services/internship-ranking.ts`) ranks the consented talent pool to decide who
-clears the open-Elite-seat cutoff. v1 ranks on stored `UserProfile.currentXp` (a
-cheap single indexed read) because the real Readiness Index is computed per-user
-(`computeUserReadiness`) and recomputing it for the whole cohort per request would
-be O(N) heavy.
+**Context.** The internship merit-gate already exists: `GET /org/student/internships`
+(`apps/api/src/routes/org.ts:128`, rendered by `components/internship-exchange.tsx`)
+ranks Elite members and sets `inContention = eliteRank <= slot.seats` with a
+`spotsFromCutoff` gap. It ranks on stored `UserProfile.currentXp` (`orderBy currentXp
+desc`) — cheap, but XP is a proxy.
 
-**Problem.** XP is a proxy, not the Readiness Index the flywheel narrative sells
-("grind readiness to climb"). Ranking should be on the real, moat metric.
+**Problem.** XP is not the Readiness Index the flywheel narrative sells ("grind
+readiness to climb"). The ranking that gates scarce internship seats should be on the
+real, moat metric — otherwise a student can top the ranking on activity volume without
+being the most placement-ready.
 
-**Proposed change.** Add a cron job (`apps/api/src/jobs/`) that periodically computes
-each consented student's Readiness Index and writes it to a materialized column
-(e.g. `UserProfile.readinessIndex Int`) plus a `rankedAt` timestamp. Point the
-`standingFor` cohort at that column. The pure engine is signal-agnostic — swapping
-`score: currentXp` → `score: readinessIndex` is a one-line change in the route.
+**Proposed change.** Add a cron (`apps/api/src/jobs/`) that periodically computes each
+Elite member's Readiness Index (`computeUserReadiness`) and writes it to a materialized
+column (`UserProfile.readinessIndex Int` + `rankedAt`). Change `org.ts:128`'s ranking
+`orderBy` from `currentXp` to the materialized column — no per-request O(N) recompute.
+While there, extract the inline ranking (`orderBy` + `findIndex` + `inContention`) into
+a small **tested** pure helper, since it is currently untested inline logic.
 
 **Acceptance criteria.**
-- Consented students carry a materialized readiness score refreshed on a schedule.
-- `GET /internships/standing` ranks on it; no per-request O(N) readiness recompute.
-- `internship-ranking.ts` tests unchanged (engine is signal-agnostic).
+- Elite members carry a materialized readiness score refreshed on a schedule.
+- `/org/student/internships` ranks on it; the extracted ranking helper has unit tests.
+- No regression in `internship-exchange` rendering.
 
 **Files.** `packages/db/prisma/schema.prisma` (UserProfile column + migration),
-`apps/api/src/jobs/*`, `apps/api/src/routes/internships.ts`.
+`apps/api/src/jobs/*`, `apps/api/src/routes/org.ts`, a new tested ranking helper.
 **Effort.** human ~1 day / CC ~30 min.
