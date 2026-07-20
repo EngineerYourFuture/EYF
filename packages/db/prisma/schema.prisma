@@ -257,6 +257,12 @@ model User {
   orgMemberships  OrgMember[]
   talentConsent   TalentConsent?
 
+  // Referral engine: the user's own shareable code, the referrals they made,
+  // and the (at most one) referral they received.
+  referralCode    String?    @unique
+  referralsMade   Referral[] @relation("referrer")
+  referralReceived Referral? @relation("referee")
+
   @@index([role])
   @@index([college])
   @@map("users")
@@ -769,6 +775,30 @@ model ScoreShare {
 
   @@index([userId])
   @@map("score_shares")
+}
+
+// Referral engine: one row per referred student. refereeId is unique — a student
+// can be referred exactly once. Reward pays out (both parties get promo Pro days)
+// only when the referee crosses the qualifying-activity bar, so fake accounts
+// earn nothing. Reward is premium days, never XP/score — keeps merit honest.
+enum ReferralStatus {
+  PENDING
+  REWARDED
+}
+
+model Referral {
+  id         String         @id @default(cuid())
+  referrerId String
+  referrer   User           @relation("referrer", fields: [referrerId], references: [id], onDelete: Cascade)
+  refereeId  String         @unique
+  referee    User           @relation("referee", fields: [refereeId], references: [id], onDelete: Cascade)
+  rewardDays Int
+  status     ReferralStatus @default(PENDING)
+  createdAt  DateTime       @default(now())
+  rewardedAt DateTime?
+
+  @@index([referrerId])
+  @@map("referrals")
 }
 
 // ─── 16. TheoryNote (Core Subjects) ───────────────────────────────

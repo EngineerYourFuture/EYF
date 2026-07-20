@@ -1,6 +1,19 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { prisma, Persona } from "@eyf/db";
+import {
+  getOrCreateReferralCode, settleReferralFor, validateRedeem,
+  REWARD_DAYS, QUALIFY_XP, type RedeemCheck,
+} from "../services/referral.js";
+
+function redeemError(reason: Exclude<RedeemCheck, { ok: true }>["reason"]): string {
+  switch (reason) {
+    case "unknown-code": return "That referral code isn't valid.";
+    case "self": return "You can't redeem your own referral code.";
+    case "already-referred": return "You've already redeemed a referral.";
+    case "not-new": return "Referrals are for new members — you're already past the welcome window.";
+  }
+}
 
 const profileSelect = {
   id: true,
@@ -87,5 +100,52 @@ export async function meRoutes(app: FastifyInstance) {
       prisma.userSession.deleteMany({ where: { userId: id } }),
     ]);
     return reply.send({ success: true, data: { deleted: true } });
+  });
+
+  // ── Referral engine ("bring a friend, both get Pro") ──────────────
+  // The caller's own code + stats. Settling on read self-heals the caller's
+  // reward when they (as a referee) have just crossed the activity bar — no cron
+  // needed for v1.
+  app.get("/referral", { preHandler: app.requireAuth }, async (req) => {
+    const uid = req.session!.id;
+    await settleReferralFor(uid).catch(() => {});
+    const [code, made] = await Promise.all([
+      getOrCreateReferralCode(uid),
+      prisma.referral.findMany({ where: { referrerId: uid }, select: { status: true } }),
+    ]);
+    const qualified = made.filter((r) => r.status === "REWARDED").length;
+    return {
+      success: true,
+      data: {
+        code,
+        path: `/?ref=${code}`,
+        rewardDays: REWARD_DAYS,
+        qualifyXp: QUALIFY_XP,
+        stats: { invited: made.length, qualified, daysEarned: qualified * REWARD_DAYS },
+      },
+    };
+  });
+
+  // A new member redeems a friend's code. Records a PENDING referral; the reward
+  // pays out later when this member does real activity (see settleReferralFor).
+  app.post("/referral/redeem", { preHandler: app.requireAuth }, async (req, reply) => {
+    const { code } = z.object({ code: z.string().trim().min(1).max(16) }).parse(req.body);
+    const uid = req.session!.id;
+    const [referrer, existing, profile] = await Promise.all([
+      prisma.user.findUnique({ where: { referralCode: code.toUpperCase() }, select: { id: true } }),
+      prisma.referral.findUnique({ where: { refereeId: uid }, select: { id: true } }),
+      prisma.userProfile.findUnique({ where: { userId: uid }, select: { currentXp: true } }),
+    ]);
+    const check = validateRedeem({
+      refereeId: uid,
+      referrerId: referrer?.id ?? null,
+      refereeAlreadyReferred: !!existing,
+      refereeXp: profile?.currentXp ?? 0,
+    });
+    if (!check.ok) {
+      return reply.code(400).send({ success: false, error: { code: "REFERRAL_INVALID", message: redeemError(check.reason) } });
+    }
+    await prisma.referral.create({ data: { referrerId: referrer!.id, refereeId: uid, rewardDays: REWARD_DAYS } });
+    return { success: true, data: { redeemed: true, rewardDays: REWARD_DAYS, qualifyXp: QUALIFY_XP } };
   });
 }
