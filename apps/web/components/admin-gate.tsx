@@ -18,7 +18,7 @@ export function useAdminGate(enabled: boolean) {
 }
 
 /** Access-code screen — the second gate on top of the staff login. */
-export function AdminGate({ onPassed }: { onPassed: () => void }) {
+export function AdminGate({ onPassed }: Readonly<{ onPassed: () => void }>) {
   const act = useApiAction();
   const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);

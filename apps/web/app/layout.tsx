@@ -56,7 +56,7 @@ const clerkAppearance = {
   },
 };
 
-function Shell({ children }: { children: React.ReactNode }) {
+function Shell({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={`dark ${GeistSans.variable} ${GeistMono.variable}`} suppressHydrationWarning>
       <head>
@@ -79,7 +79,7 @@ function Shell({ children }: { children: React.ReactNode }) {
   );
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   // Without real Clerk keys, render without ClerkProvider so the public site
   // works for development. Auth-gated pages will surface their own prompt.
   if (!HAS_REAL_CLERK) return <Shell>{children}</Shell>;

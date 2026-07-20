@@ -21,7 +21,7 @@ function DefaultIcon() {
 }
 
 /** Consistent empty state — used when a list/section has no data yet. */
-export function EmptyState({ icon, title, description, action, className }: EmptyStateProps) {
+export function EmptyState({ icon, title, description, action, className }: Readonly<EmptyStateProps>) {
   return (
     <div className={cn("border border-dashed border-border rounded-xl py-14 px-6 text-center", className)}>
       <div className="mx-auto mb-4 flex h-11 w-11 items-center justify-center rounded-full border border-border bg-surface-2 text-text-3">
@@ -39,11 +39,11 @@ export function ErrorState({
   title = "Couldn’t load this",
   message,
   retry,
-}: {
+}: Readonly<{
   title?: string;
   message: string;
   retry?: () => void;
-}) {
+}>) {
   return (
     <div className="border border-hard/30 bg-hard/5 rounded-xl py-10 px-6 text-center" role="alert">
       <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full border border-hard/30 bg-hard/10 text-hard">

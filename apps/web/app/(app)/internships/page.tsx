@@ -53,17 +53,21 @@ export default function Page() {
 
       <div className="mt-8 grid lg:grid-cols-[1fr_300px] gap-8">
         <div>
-          {isLoading ? (
+          {(() => {
+  if (isLoading) return (
             <SkeletonRows rows={5} />
-          ) : data && data.length === 0 ? (
+          );
+  if (data?.length === 0) return (
             <EmptyState icon={<Icons.building width={28} height={28} />} title="No internships listed" description="New roles are added each drive season. Check back soon." />
-          ) : (
+          );
+  return (
             <div className="grid sm:grid-cols-2 gap-4">
               {data?.map((i) => (
                 <InternCard key={i.id} i={i} saved={savedSlugs.has(i.slug)} saving={saving === i.slug} onSave={() => save(i.slug)} />
               ))}
             </div>
-          )}
+          );
+})()}
         </div>
 
         <aside>
@@ -81,7 +85,7 @@ export default function Page() {
                 </Card>
               </Link>
             ))}
-            {apps && apps.length === 0 && (
+            {apps?.length === 0 && (
               <div className="rounded-xl border border-dashed border-border p-5 text-center">
                 <p className="text-text-3 text-sm">Nothing saved yet.</p>
                 <p className="text-text-4 text-xs mt-1">Save internships to track them here.</p>
@@ -94,7 +98,7 @@ export default function Page() {
   );
 }
 
-function InternCard({ i, saved, saving, onSave }: { i: Internship; saved: boolean; saving: boolean; onSave: () => void }) {
+function InternCard({ i, saved, saving, onSave }: Readonly<{ i: Internship; saved: boolean; saving: boolean; onSave: () => void }>) {
   const ppo = i.ppoConversion != null ? Math.round(i.ppoConversion * 100) : null;
   return (
     <Link href={`/internships/${i.slug}`} className="min-w-0">

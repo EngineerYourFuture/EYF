@@ -23,7 +23,7 @@ export default function Page() {
   // Pre-filter when arrived from a company's prep page (?company=amazon).
   const [company, setCompany] = useState(() =>
     typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("company") ?? "" : "");
-  const { data, isLoading, mutate } = useApi<Exp[]>(`/experiences${company ? `?company=${company}` : ""}`);
+  const { data, isLoading, mutate } = useApi<Exp[]>(`/experiences${company ? "?company=" + company : ""}`);
   const { data: companies } = useApi<{ slug: string }[]>("/companies");
   const [open, setOpen] = useState(false);
 
@@ -52,7 +52,7 @@ export default function Page() {
       <div className="mt-6 space-y-3">
         {isLoading && <SkeletonRows rows={4} />}
         {data?.map((e) => <ExpCard key={e.id} e={e} onUpvote={mutate} />)}
-        {data && data.length === 0 && (
+        {data?.length === 0 && (
           <EmptyState icon={<Icons.mic width={28} height={28} />} title="No experiences yet"
             description={company ? "None for this company. Be the first to share." : "Be the first to debrief your interview and help the next batch."}
             action={<Button onClick={() => setOpen(true)}>Share your experience</Button>} />
@@ -62,7 +62,7 @@ export default function Page() {
   );
 }
 
-function ExpCard({ e, onUpvote }: { e: Exp; onUpvote: () => void }) {
+function ExpCard({ e, onUpvote }: Readonly<{ e: Exp; onUpvote: () => void }>) {
   const action = useApiAction();
   const [expanded, setExpanded] = useState(false);
   const [votes, setVotes] = useState(e.upvotes);
@@ -119,7 +119,7 @@ function ExpCard({ e, onUpvote }: { e: Exp; onUpvote: () => void }) {
   );
 }
 
-function SubmitForm({ companies, onDone }: { companies: { slug: string }[]; onDone: () => void }) {
+function SubmitForm({ companies, onDone }: Readonly<{ companies: { slug: string }[]; onDone: () => void }>) {
   const action = useApiAction();
   const [f, setF] = useState({ company: "", role: "", outcome: "OFFER", difficulty: 3, rounds: 3, body: "", tips: "" });
   const [busy, setBusy] = useState(false);

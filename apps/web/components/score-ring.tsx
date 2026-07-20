@@ -22,7 +22,7 @@ type Props = {
   className?: string;
 };
 
-export function ScoreRing({ score, size = 192, stroke = 12, label = "/ 100 ready", duration = 1.4, from, className }: Props) {
+export function ScoreRing({ score, size = 192, stroke = 12, label = "/ 100 ready", duration = 1.4, from, className }: Readonly<Props>) {
   const reduce = useReducedMotion();
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, amount: 0.4 });

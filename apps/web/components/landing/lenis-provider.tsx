@@ -9,7 +9,7 @@ import Lenis from "lenis";
  * scrolling still works if it never mounts — and it fully bows out when the user
  * prefers reduced motion (no eased scroll, no rAF loop).
  */
-export function LenisProvider({ children }: { children: ReactNode }) {
+export function LenisProvider({ children }: Readonly<{ children: ReactNode }>) {
   useEffect(() => {
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (reduce) return;

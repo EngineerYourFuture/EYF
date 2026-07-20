@@ -15,16 +15,20 @@ const C = 2 * Math.PI * R;
 const TICKS = 72;
 const CENTER = SIZE / 2;
 
-const band = (v: number) =>
-  v < 40 ? "Not ready yet" : v < 66 ? "Getting there" : v < 85 ? "Interview-ready" : "Placement-ready";
+const band = (v: number) => {
+  if (v < 40) return "Not ready yet";
+  if (v < 66) return "Getting there";
+  if (v < 85) return "Interview-ready";
+  return "Placement-ready";
+};
 
 export function ReadinessGauge({
   value,
   label = "Placement readiness",
-}: {
+}: Readonly<{
   value: MotionValue<number>;
   label?: string;
-}) {
+}>) {
   const clamped = useTransform(value, (v) => Math.max(0, Math.min(100, v)));
   const offset = useTransform(clamped, (v) => C * (1 - v / 100));
   const stroke = useTransform(

@@ -10,6 +10,7 @@ import { PageMotion } from "@/components/page-motion";
 import { StarBuilder } from "@/components/star-builder";
 import { Icons } from "@/components/icons";
 import { ReadinessNudge } from "@/components/readiness-nudge";
+import { toneTextClass } from "@/lib/ui-helpers";
 
 type Kind = "INTRO" | "HR" | "BEHAVIORAL" | "SITUATIONAL";
 type KindMeta = { id: Kind; name: string; blurb: string };
@@ -28,7 +29,7 @@ type Drill = { id: string; promptId: string; kind: Kind; score: number; duration
 type History = { drills: Drill[]; bestByKind: Partial<Record<Kind, number>> };
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000/v1";
-const scoreTone = (p: number) => (p >= 70 ? "easy" : p >= 40 ? "medium" : "hard");
+const scoreTone = (p: number) => { if (p >= 70) { return "easy"; } if (p >= 40) { return "medium"; } return "hard"; };
 const DIMENSIONS: [keyof Feedback["dimensions"], string][] = [
   ["clarity", "Clarity"], ["structure", "Structure"], ["relevance", "Relevance"],
   ["confidence", "Confidence"], ["conciseness", "Conciseness"],
@@ -55,7 +56,7 @@ export default function Page() {
   }
 
   async function transcribe() {
-    if (!blob) return;
+    if (!blob) { return; }
     setTranscribing(true);
     try {
       const token = await getToken();
@@ -75,7 +76,7 @@ export default function Page() {
   }
 
   async function submit() {
-    if (!active || !answer.trim()) return;
+    if (!active || !answer.trim()) { return; }
     setGrading(true);
     try {
       const data = await action<{ drillId: string; feedback: Feedback }>("/communication/feedback", {
@@ -115,13 +116,13 @@ export default function Page() {
           <Card className="border-easy/30">
             <h3 className="font-medium text-easy flex items-center gap-2"><Icons.target width={16} height={16} /> Strengths</h3>
             <ul className="mt-3 space-y-2 text-sm text-text-2 list-disc pl-4">
-              {feedback.strengths.map((s, i) => <li key={i}>{s}</li>)}
+              {feedback.strengths.map((s) => <li key={s}>{s}</li>)}
             </ul>
           </Card>
           <Card className="border-medium/30">
             <h3 className="font-medium text-medium flex items-center gap-2"><Icons.activity width={16} height={16} /> Improve</h3>
             <ul className="mt-3 space-y-2 text-sm text-text-2 list-disc pl-4">
-              {feedback.improvements.map((s, i) => <li key={i}>{s}</li>)}
+              {feedback.improvements.map((s) => <li key={s}>{s}</li>)}
             </ul>
           </Card>
         </div>
@@ -130,7 +131,7 @@ export default function Page() {
           <Card className="mt-5">
             <h3 className="font-medium text-text-1">Filler words to cut</h3>
             <div className="mt-3 flex flex-wrap gap-2">
-              {feedback.fillerWords.map((w, i) => <Badge key={i} tone="hard">{w}</Badge>)}
+              {feedback.fillerWords.map((w) => <Badge key={w} tone="hard">{w}</Badge>)}
             </div>
           </Card>
         )}
@@ -276,7 +277,7 @@ export default function Page() {
               <div key={d.id} className="flex items-center gap-3 rounded-lg border border-border bg-surface px-4 py-3 text-sm">
                 <Badge>{d.kind}</Badge>
                 <span className="text-text-4 text-xs truncate flex-1">{catalog?.prompts.find((p) => p.id === d.promptId)?.question}</span>
-                <span className={`font-mono font-bold ${scoreTone(d.score) === "easy" ? "text-easy" : scoreTone(d.score) === "medium" ? "text-medium" : "text-hard"}`}>
+                <span className={`font-mono font-bold ${toneTextClass(scoreTone(d.score))}`}>
                   {d.score}%
                 </span>
               </div>
@@ -285,7 +286,7 @@ export default function Page() {
         </div>
       )}
 
-      {history && history.drills.length === 0 && catalog && (
+      {history?.drills.length === 0 && catalog && (
         <div className="mt-10"><EmptyState title="No drills yet" description="Pick a prompt above and record your first answer — your scores show up here." /></div>
       )}
     </PageMotion>

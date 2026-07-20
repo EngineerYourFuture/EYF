@@ -31,13 +31,16 @@ export default function LearnPage() {
     <PageMotion>
       <div className="px-4 sm:px-6 lg:px-10 py-8 max-w-5xl mx-auto">
         <PageHeader title="Learn" subtitle="Courses from partner organisations — enroll and track your progress." />
-        {isLoading ? (
+        {(() => {
+  if (isLoading) return (
           <div className="mt-6"><SkeletonRows /></div>
-        ) : !data?.length ? (
+        );
+  if (!data?.length) return (
           <div className="mt-6">
             <EmptyState title="No courses yet" description="Partner organisations haven't published courses yet. Check back soon." />
           </div>
-        ) : (
+        );
+  return (
           <div className="mt-6 grid gap-4 sm:grid-cols-2">
             {data.map((c) => (
               <Card key={c.id} className="p-5 flex flex-col gap-3">
@@ -71,7 +74,8 @@ export default function LearnPage() {
               </Card>
             ))}
           </div>
-        )}
+        );
+})()}
       </div>
     </PageMotion>
   );

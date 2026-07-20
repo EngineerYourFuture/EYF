@@ -38,7 +38,7 @@ const getShare = cache(async (code: string): Promise<Share | null> => {
 
 export async function generateMetadata({ params }: { params: { code: string } }): Promise<Metadata> {
   const share = await getShare(params.code);
-  if (!share) return { title: "EYF Score — not found" };
+  if (!share) { return { title: "EYF Score — not found" }; }
   const s = share.snapshot;
   return {
     title: `${s.name} — EYF Score ${s.overall}/100`,
@@ -46,7 +46,7 @@ export async function generateMetadata({ params }: { params: { code: string } })
   };
 }
 
-export default async function ScorePage({ params }: { params: { code: string } }) {
+export default async function ScorePage({ params }: Readonly<{ params: { code: string } }>) {
   const share = await getShare(params.code);
 
   if (!share) {
@@ -115,7 +115,7 @@ export default async function ScorePage({ params }: { params: { code: string } }
               <div key={c.slug} className="rounded-xl border border-border bg-surface-2 px-3 py-2.5">
                 <div className="text-sm font-medium truncate">{companyLabel(c.slug)}</div>
                 <div className="font-display text-lg font-bold">{c.pct}%</div>
-                <div className={`text-[11px] ${c.band.tone === "easy" ? "text-easy" : c.band.tone === "hard" ? "text-hard" : "text-text-3"}`}>{c.band.label}</div>
+                <div className={`text-[11px] ${(() => { if (c.band.tone === "easy") { return "text-easy"; } if (c.band.tone === "hard") { return "text-hard"; } return "text-text-3"; })()}`}>{c.band.label}</div>
               </div>
             ))}
           </div>
@@ -135,7 +135,7 @@ export default async function ScorePage({ params }: { params: { code: string } }
   );
 }
 
-function Shell({ children, wide = false }: { children: React.ReactNode; wide?: boolean }) {
+function Shell({ children, wide = false }: Readonly<{ children: React.ReactNode; wide?: boolean }>) {
   return (
     <main className="min-h-screen bg-bg text-text-1 flex items-center justify-center px-4 py-16">
       <div className={`w-full ${wide ? "max-w-2xl" : "max-w-md"}`}>
@@ -152,7 +152,7 @@ function Shell({ children, wide = false }: { children: React.ReactNode; wide?: b
   );
 }
 
-function PageRing({ score }: { score: number }) {
+function PageRing({ score }: Readonly<{ score: number }>) {
   return (
     <div className="mx-auto w-40">
       <ScoreRing score={score} size={160} stroke={10} label="/ 100" />

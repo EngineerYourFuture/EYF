@@ -18,10 +18,10 @@ export type TabsProps<T extends string> = {
  * <TabPanel> using the same `idBase`. Extracted so the pattern is written once
  * instead of re-implemented per screen.
  */
-export function Tabs<T extends string>({ tabs, value, onChange, idBase, className, ...rest }: TabsProps<T>) {
+export function Tabs<T extends string>({ tabs, value, onChange, idBase, className, ...rest }: Readonly<TabsProps<T>>) {
   function onKeyDown(e: KeyboardEvent) {
     const i = tabs.indexOf(value);
-    let next = i;
+    let next: number;
     if (e.key === "ArrowRight") next = (i + 1) % tabs.length;
     else if (e.key === "ArrowLeft") next = (i - 1 + tabs.length) % tabs.length;
     else if (e.key === "Home") next = 0;
@@ -37,7 +37,6 @@ export function Tabs<T extends string>({ tabs, value, onChange, idBase, classNam
     <div
       role="tablist"
       aria-label={rest["aria-label"]}
-      onKeyDown={onKeyDown}
       className={cn("flex items-center gap-1 border-b border-border", className)}
     >
       {tabs.map((t) => {
@@ -50,6 +49,7 @@ export function Tabs<T extends string>({ tabs, value, onChange, idBase, classNam
             aria-selected={selected}
             aria-controls={`${idBase}-panel`}
             tabIndex={selected ? 0 : -1}
+            onKeyDown={onKeyDown}
             onClick={() => onChange(t)}
             className={cn(
               "px-3 py-2 text-sm border-b-2 -mb-px capitalize transition-colors rounded-t focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
@@ -67,7 +67,7 @@ export function Tabs<T extends string>({ tabs, value, onChange, idBase, classNam
 /** The panel half of a Tabs widget. `idBase`/`value` must match its <Tabs>. */
 export function TabPanel({
   idBase, value, children, className,
-}: { idBase: string; value: string; children: ReactNode; className?: string }) {
+}: Readonly<{ idBase: string; value: string; children: ReactNode; className?: string }>) {
   return (
     <div
       id={`${idBase}-panel`}

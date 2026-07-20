@@ -51,7 +51,7 @@ export default function Page() {
   );
 }
 
-function AdminCard({ href, icon, title, body, badge }: { href: string; icon: IconName; title: string; body: string; badge?: number }) {
+function AdminCard({ href, icon, title, body, badge }: Readonly<{ href: string; icon: IconName; title: string; body: string; badge?: number }>) {
   const Icon = Icons[icon];
   return (
     <Link href={href} className="block">

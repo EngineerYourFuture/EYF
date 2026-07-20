@@ -8,6 +8,7 @@ import { companyLabel } from "@/lib/company";
 import { useReadiness } from "@/lib/use-readiness";
 import { companyReadiness, readinessBand, tierOf, biggestGap } from "@/lib/company-readiness";
 import { CompanyFunnel } from "@/components/company-funnel";
+import { difficultyTone, readinessBarClass } from "@/lib/ui-helpers";
 
 type Problem = {
   id: string; slug: string; title: string;
@@ -25,7 +26,7 @@ type Detail = {
 
 const tone = { EASY: "easy", MEDIUM: "medium", HARD: "hard", EXPERT: "expert" } as const;
 
-export default function Page({ params }: { params: { slug: string } }) {
+export default function Page({ params }: Readonly<{ params: { slug: string } }>) {
   const { data, isLoading, error, mutate } = useApi<Detail>(`/companies/${params.slug}`);
   const label = companyLabel(params.slug);
 
@@ -36,22 +37,26 @@ export default function Page({ params }: { params: { slug: string } }) {
           <span className="rotate-180"><Icons.arrow width={14} height={14} /></span> All companies
         </Link>
 
-        {error ? (
+        {(() => {
+  if (error) return (
           <div className="mt-8"><ErrorState message="Couldn't load this company." retry={() => mutate()} /></div>
-        ) : isLoading || !data ? (
+        );
+  if (isLoading || !data) return (
           <div className="mt-6 grid lg:grid-cols-[320px_1fr] gap-6">
             <Skeleton className="h-64 rounded-2xl" />
             <div className="space-y-3">{Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-14 rounded-xl" />)}</div>
           </div>
-        ) : (
+        );
+  return (
           <CompanyView label={label} data={data} />
-        )}
+        );
+})()}
       </div>
     </PageMotion>
   );
 }
 
-function CompanyView({ label, data }: { label: string; data: Detail }) {
+function CompanyView({ label, data }: Readonly<{ label: string; data: Detail }>) {
   const nextUnsolved = data.problems.find((p) => !p.solved);
   const { readiness } = useReadiness();
   const tier = tierOf(data.company);
@@ -79,7 +84,7 @@ function CompanyView({ label, data }: { label: string; data: Detail }) {
           <Badge tone={band.tone}>{band.label}</Badge>
           <div className="h-2 flex-1 min-w-32 bg-surface-3 rounded-full overflow-hidden">
             <div className={`h-full rounded-full transition-all duration-700 ${
-              ready >= 85 ? "bg-easy" : ready >= 65 ? "bg-accent" : ready >= 40 ? "bg-medium" : "bg-hard"
+              readinessBarClass(ready)
             }`} style={{ width: `${ready}%` }} />
           </div>
           {gap && (
@@ -96,9 +101,11 @@ function CompanyView({ label, data }: { label: string; data: Detail }) {
           <CoverageRing pct={data.coverage} />
           <div className="mt-4 font-display text-lg font-bold">{data.counts.solved}/{data.counts.total} solved</div>
           <p className="text-text-3 text-sm mt-1 max-w-xs">
-            {data.coverage >= 70 ? "Strong coverage — keep it sharp." :
-             data.coverage >= 35 ? "Good start. Close the gaps below." :
-             "Lots of upside here. Start with the easy wins."}
+            {(() => {
+              if (data.coverage >= 70) return "Strong coverage — keep it sharp.";
+              if (data.coverage >= 35) return "Good start. Close the gaps below.";
+              return "Lots of upside here. Start with the easy wins.";
+            })()}
           </p>
           {nextUnsolved && (
             <Link href={`/problems/${nextUnsolved.slug}`} className="mt-5 w-full">
@@ -114,7 +121,7 @@ function CompanyView({ label, data }: { label: string; data: Detail }) {
             {data.breakdown.map((b) => (
               <Meter
                 key={b.difficulty}
-                tone={b.difficulty === "EASY" ? "easy" : b.difficulty === "MEDIUM" ? "medium" : "hard"}
+                tone={difficultyTone(b.difficulty)}
                 pct={b.total ? b.solved / b.total : 0}
                 label={<span className="capitalize">{b.difficulty.toLowerCase()}</span>}
                 value={`${b.solved}/${b.total}`}
@@ -159,7 +166,7 @@ function CompanyView({ label, data }: { label: string; data: Detail }) {
   );
 }
 
-function CoverageRing({ pct }: { pct: number }) {
+function CoverageRing({ pct }: Readonly<{ pct: number }>) {
   const r = 60, c = 2 * Math.PI * r;
   return (
     <div className="relative h-40 w-40">

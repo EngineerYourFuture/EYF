@@ -21,9 +21,9 @@ const GAME_LABEL: Record<string, string> = {
  */
 export function CognitiveRank() {
   const { data } = useApi<Rank>("/cognitive/percentile");
-  if (!data) return null;
+  if (!data) { return null; }
   const rated = data.games.filter((g) => g.percentile !== null);
-  if (rated.length === 0) return null;
+  if (rated.length === 0) { return null; }
 
   return (
     <div className="rounded-2xl border border-border bg-surface p-5 sm:p-6 shadow-card">
@@ -46,7 +46,7 @@ export function CognitiveRank() {
             </div>
             <div className="mt-1.5 h-1.5 rounded-full bg-surface-3 overflow-hidden">
               <div
-                className={`h-full rounded-full transition-all duration-500 ${(g.percentile ?? 0) >= 66 ? "bg-easy" : (g.percentile ?? 0) >= 33 ? "bg-medium" : "bg-brand"}`}
+                className={`h-full rounded-full transition-all duration-500 ${(() => { const p = g.percentile ?? 0; if (p >= 66) { return "bg-easy"; } if (p >= 33) { return "bg-medium"; } return "bg-brand"; })()}`}
                 style={{ width: `${Math.max(3, g.percentile ?? 0)}%` }}
               />
             </div>

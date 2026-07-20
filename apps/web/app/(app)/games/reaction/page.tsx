@@ -75,23 +75,21 @@ export default function Page() {
 
   const avg = times.length ? Math.round(times.reduce((a, b) => a + b, 0) / times.length) : 0;
 
-  const bg =
-    phase === "go"      ? "bg-easy"     :
-    phase === "waiting" ? "bg-hard"     :
-    phase === "tooSoon" ? "bg-medium"   :
-                          "bg-surface";
+  let bg: string;
+  if (phase === "go") bg = "bg-easy";
+  else if (phase === "waiting") bg = "bg-hard";
+  else if (phase === "tooSoon") bg = "bg-medium";
+  else bg = "bg-surface";
 
   return (
     <div className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-3xl">
       <h1 className="font-display text-3xl font-bold tracking-tight">Reaction Time</h1>
       <p className="text-text-3 mt-2">Click as soon as the box turns green. 5 rounds. Don&apos;t jump the gun.</p>
 
-      <div
-        role="button"
-        tabIndex={0}
-        className={`mt-10 cursor-pointer select-none rounded-xl border border-border h-80 flex items-center justify-center transition-colors ${bg}`}
+      <button
+        type="button"
+        className={`mt-10 w-full cursor-pointer select-none rounded-xl border border-border h-80 flex items-center justify-center transition-colors ${bg}`}
         onClick={onClick}
-        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick(); } }}
       >
         <div className="text-center">
           {phase === "idle"    && <div className="font-display text-3xl">Click to start</div>}
@@ -100,7 +98,7 @@ export default function Page() {
           {phase === "tooSoon" && <div className="font-display text-3xl text-bg">Too soon — click to retry</div>}
           {phase === "done"    && <div className="font-display text-3xl text-text-1">Avg {avg}ms</div>}
         </div>
-      </div>
+      </button>
 
       <div className="mt-6 flex items-center gap-3">
         <Badge>Round {Math.min(round, ROUNDS)}/{ROUNDS}</Badge>

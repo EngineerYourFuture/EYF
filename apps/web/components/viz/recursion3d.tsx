@@ -31,7 +31,7 @@ function layoutTidy(root: Node): Map<number, { x: number; y: number }> {
     }
     n.children.forEach(visit);
     const c0 = positions.get(n.children[0]!.id)!;
-    const c1 = positions.get(n.children[n.children.length - 1]!.id)!;
+    const c1 = positions.get(n.children.at(-1)!.id)!;
     positions.set(n.id, { x: (c0.x + c1.x) / 2, y: n.depth });
   }
   visit(root);

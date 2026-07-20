@@ -65,7 +65,7 @@ export default function Page() {
   const loaded = !!today;
 
   const plan: PlanItem[] = useMemo(() => {
-    if (!today) return [];
+    if (!today) { return []; }
     const items: PlanItem[] = [];
     if (today.challenge) {
       items.push({
@@ -129,19 +129,23 @@ export default function Page() {
                 <div className="h-full bg-accent transition-all duration-500" style={{ width: `${pct}%` }} />
               </div>
 
-              {!loaded ? (
+              {(() => {
+  if (!loaded) { return (
                 <div className="space-y-3">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-16 rounded-xl" />)}</div>
-              ) : allDone ? (
+              ); }
+  if (allDone) { return (
                 <div className="text-center py-8">
                   <div className="text-easy mb-3 flex justify-center"><Icons.trophy width={32} height={32} /></div>
                   <p className="font-display text-lg font-bold">Plan complete. 🎯</p>
                   <p className="text-text-3 text-sm mt-1">You showed up today — that&apos;s how offers get built. See you tomorrow.</p>
                 </div>
-              ) : (
+              ); }
+  return (
                 <div className="space-y-2.5">
                   {plan.map((item) => <PlanRow key={item.id} item={item} onToggle={() => toggle(item.id)} />)}
                 </div>
-              )}
+              );
+})()}
             </Card>
           </div>
 
@@ -167,7 +171,7 @@ export default function Page() {
                         <div className="text-sm font-medium truncate">{d.job.title}</div>
                         <div className="text-text-4 text-xs truncate">{d.job.company} · {d.status}</div>
                       </div>
-                      <Badge tone={d.days <= 2 ? "hard" : d.days <= 5 ? "medium" : "default"}>
+                      <Badge tone={(() => { if (d.days <= 2) { return "hard" as const; } if (d.days <= 5) { return "medium" as const; } return "default" as const; })()}>
                         {d.days === 0 ? "Today" : `${d.days}d`}
                       </Badge>
                     </Link>
@@ -187,10 +191,13 @@ export default function Page() {
   );
 }
 
-function CoachCard({ guidance }: { guidance: Guidance | null }) {
-  if (!guidance) return <Skeleton className="mt-6 h-40 rounded-2xl" />;
+function CoachCard({ guidance }: Readonly<{ guidance: Guidance | null }>) {
+  if (!guidance) { return <Skeleton className="mt-6 h-40 rounded-2xl" />; }
   const { readiness, actions, coachNote } = guidance;
-  const tone = readiness.overall >= 80 ? "easy" : readiness.overall >= 50 ? "accent" : "medium";
+  let tone: "easy" | "accent" | "medium";
+  if (readiness.overall >= 80) tone = "easy";
+  else if (readiness.overall >= 50) tone = "accent";
+  else tone = "medium";
   return (
     <Card variant="glow" className="mt-6">
       <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
@@ -254,7 +261,7 @@ function DailyMission() {
   const action = useApiAction();
   const [claiming, setClaiming] = useState(false);
 
-  if (!data) return <Skeleton className="mt-6 h-44 rounded-2xl" />;
+  if (!data) { return <Skeleton className="mt-6 h-44 rounded-2xl" />; }
 
   const doneCount = data.tasks.filter((t) => t.done).length;
   const pct = Math.round((doneCount / data.tasks.length) * 100);
@@ -280,7 +287,7 @@ function DailyMission() {
           <h2 className="font-display text-xl font-bold">Daily mission</h2>
         </div>
         <Badge tone={data.allDone ? "easy" : "accent"}>
-          {data.claimed ? "Claimed" : data.allDone ? "Ready to claim" : `+${data.bonusXp} XP`}
+          {(() => { if (data.claimed) { return "Claimed"; } if (data.allDone) { return "Ready to claim"; } return `+${data.bonusXp} XP`; })()}
         </Badge>
       </div>
       <p className="text-text-3 text-sm mb-4">Clear all three to bank a {data.bonusXp} XP bonus and protect your streak.</p>
@@ -330,7 +337,7 @@ function DailyMission() {
   );
 }
 
-function PlanRow({ item, onToggle }: { item: PlanItem; onToggle: () => void }) {
+function PlanRow({ item, onToggle }: Readonly<{ item: PlanItem; onToggle: () => void }>) {
   const Icon = Icons[item.icon];
   const tone = item.detail in diffTone ? diffTone[item.detail as keyof typeof diffTone] : undefined;
   return (
@@ -358,11 +365,14 @@ function PlanRow({ item, onToggle }: { item: PlanItem; onToggle: () => void }) {
   );
 }
 
-function MiniStat({ icon, label, value, unit, tone = "default" }: {
+function MiniStat({ icon, label, value, unit, tone = "default" }: Readonly<{
   icon: IconName; label: string; value: string; unit?: string; tone?: "default" | "accent" | "medium";
-}) {
+}>) {
   const Icon = Icons[icon];
-  const cls = tone === "accent" ? "text-accent" : tone === "medium" ? "text-medium" : "text-text-2";
+  let cls;
+  if (tone === "accent") cls = "text-accent";
+  else if (tone === "medium") cls = "text-medium";
+  else cls = "text-text-2";
   return (
     <div className="rounded-xl border border-border bg-surface p-4 shadow-card">
       <div className="flex items-center justify-between">

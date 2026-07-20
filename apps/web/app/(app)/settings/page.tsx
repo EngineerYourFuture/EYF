@@ -140,7 +140,7 @@ export default function Page() {
   );
 }
 
-function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
+function Field({ label, hint, children }: Readonly<{ label: string; hint?: string; children: React.ReactNode }>) {
   return (
     <label className="block">
       <div className="flex items-baseline justify-between mb-1.5">
@@ -152,9 +152,9 @@ function Field({ label, hint, children }: { label: string; hint?: string; childr
   );
 }
 
-function Input({ value, onChange, placeholder, inputMode }: {
+function Input({ value, onChange, placeholder, inputMode }: Readonly<{
   value: string; onChange: (v: string) => void; placeholder?: string; inputMode?: "numeric" | "text";
-}) {
+}>) {
   return (
     <input
       value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} inputMode={inputMode}

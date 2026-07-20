@@ -13,7 +13,7 @@ type Invoice = {
 
 const rupees = (n: number) => "₹" + n.toLocaleString("en-IN");
 const fromPaisa = (p: number) => rupees(Math.round(p / 100));
-const statusTone = (s: string) => (s === "paid" ? "easy" : s === "failed" ? "hard" : "medium");
+const statusTone = (s: string) => { if (s === "paid") { return "easy"; } if (s === "failed") { return "hard"; } return "medium"; };
 
 export default function Page() {
   const { data: ov } = useApi<Overview>("/admin/payments/overview");
@@ -87,7 +87,7 @@ export default function Page() {
   );
 }
 
-function Metric({ label, value, hint }: { label: string; value?: string; hint: string }) {
+function Metric({ label, value, hint }: Readonly<{ label: string; value?: string; hint: string }>) {
   return (
     <Card>
       <div className="text-text-3 text-xs uppercase tracking-wider">{label}</div>

@@ -16,7 +16,7 @@
  */
 import { SWRConfig } from "swr";
 
-export function SwrProvider({ children }: { children: React.ReactNode }) {
+export function SwrProvider({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <SWRConfig
       value={{

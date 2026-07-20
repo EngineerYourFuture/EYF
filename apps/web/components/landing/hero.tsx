@@ -62,7 +62,7 @@ export function Hero() {
             href="/dashboard"
             className="group inline-flex items-center gap-2 rounded-full bg-[rgb(var(--lp-brand))] px-8 py-4 text-sm font-semibold text-white transition-[filter] hover:brightness-95"
           >
-            Start your path
+            Start your path{" "}
             <span className="transition-transform group-hover:translate-x-0.5">→</span>
           </MagneticLink>
           <Link href="/pricing" className="font-mono text-xs uppercase tracking-widest text-[rgb(var(--lp-ink))]/55 hover:text-[rgb(var(--lp-ink))] transition-colors">

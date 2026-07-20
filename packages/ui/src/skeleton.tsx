@@ -4,7 +4,7 @@ import { cn } from "./cn";
 export type SkeletonProps = HTMLAttributes<HTMLDivElement>;
 
 /** Skeleton placeholder — spec bans spinners; use these while data loads. */
-export function Skeleton({ className, ...props }: SkeletonProps) {
+export function Skeleton({ className, ...props }: Readonly<SkeletonProps>) {
   return (
     <div
       className={cn("shimmer rounded-md bg-surface-3/70", className)}
@@ -14,7 +14,7 @@ export function Skeleton({ className, ...props }: SkeletonProps) {
 }
 
 /** A few stacked skeleton lines, for list/card loading. */
-export function SkeletonText({ lines = 3, className }: { lines?: number; className?: string }) {
+export function SkeletonText({ lines = 3, className }: Readonly<{ lines?: number; className?: string }>) {
   return (
     <div className={cn("space-y-2", className)}>
       {Array.from({ length: lines }).map((_, i) => (
@@ -25,7 +25,7 @@ export function SkeletonText({ lines = 3, className }: { lines?: number; classNa
 }
 
 /** A grid of skeleton cards. */
-export function SkeletonCards({ count = 6, className }: { count?: number; className?: string }) {
+export function SkeletonCards({ count = 6, className }: Readonly<{ count?: number; className?: string }>) {
   return (
     <div className={cn("grid md:grid-cols-2 lg:grid-cols-3 gap-4", className)}>
       {Array.from({ length: count }).map((_, i) => (
@@ -41,7 +41,7 @@ export function SkeletonCards({ count = 6, className }: { count?: number; classN
 }
 
 /** Skeleton table rows. */
-export function SkeletonRows({ rows = 6, className }: { rows?: number; className?: string }) {
+export function SkeletonRows({ rows = 6, className }: Readonly<{ rows?: number; className?: string }>) {
   return (
     <div className={cn("space-y-2", className)}>
       {Array.from({ length: rows }).map((_, i) => (

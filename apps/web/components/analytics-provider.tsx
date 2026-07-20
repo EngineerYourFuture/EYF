@@ -6,7 +6,7 @@ import { ClerkBoundIdentity } from "./analytics-clerk";
 const PK = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ?? "";
 const HAS_REAL_CLERK = !!PK && PK !== "pk_test_replace" && PK !== "pk_test_ZGV2LnBsYWNlaG9sZGVyLmNsZXJrLmFjY291bnRzLmRldiQ";
 
-export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
+export function AnalyticsProvider({ children }: Readonly<{ children: React.ReactNode }>) {
   useEffect(() => { initAnalytics(); }, []);
   return (
     <>

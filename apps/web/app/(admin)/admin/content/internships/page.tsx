@@ -6,6 +6,7 @@ import { useConfirm } from "@/components/confirm";
 import { Icons } from "@/components/icons";
 import { ContentTabs } from "../_tabs";
 import { Field } from "../_field";
+import { saveLabel } from "@/lib/ui-helpers";
 
 const DURATIONS = ["MONTHS_2", "MONTHS_3", "MONTHS_6", "SEMESTER", "FULL_YEAR"] as const;
 type Duration = (typeof DURATIONS)[number];
@@ -85,7 +86,7 @@ export default function Page() {
             <label className="flex items-center gap-2 text-sm text-text-2"><input type="checkbox" checked={form.isActive} onChange={(e) => set("isActive", e.target.checked)} /> Active (visible to students)</label>
           </div>
           <div className="flex gap-3 pt-2">
-            <Button onClick={save} disabled={saving || !form.role || !form.slug || !form.company || !form.applyUrl || !form.description}>{saving ? "Saving…" : editing.id ? "Save changes" : "Create internship"}</Button>
+            <Button onClick={save} disabled={saving || !form.role || !form.slug || !form.company || !form.applyUrl || !form.description}>{saveLabel(saving, editing.id, "Create internship")}</Button>
             <Button variant="ghost" onClick={() => setEditing(null)}>Cancel</Button>
           </div>
         </Card>

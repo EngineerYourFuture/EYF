@@ -5,6 +5,7 @@ import { useApi, useApiAction } from "@/lib/use-api";
 import { useState } from "react";
 import { PageMotion } from "@/components/page-motion";
 import { Icons } from "@/components/icons";
+import { difficultyTone } from "@/lib/ui-helpers";
 
 type Dna = {
   totalSubmissions: number; acceptedCount: number; acceptanceRate: number;
@@ -125,7 +126,7 @@ export default function Page() {
                 ? <EmptyState title="No data yet" description="Your difficulty spread appears as you solve." className="py-8" />
                 : <div className="space-y-3">{dna.difficultyMix.map((d) => (
                     <Meter key={d.difficulty}
-                      tone={d.difficulty === "HARD" || d.difficulty === "EXPERT" ? "hard" : d.difficulty === "EASY" ? "easy" : "medium"}
+                      tone={difficultyTone(d.difficulty)}
                       label={d.difficulty} value={d.count} pct={d.pct} />
                   ))}</div>}
             </Card>
@@ -154,7 +155,7 @@ export default function Page() {
             <p className="text-text-3 text-sm mt-2 max-w-md">Claude reads your DNA and writes a personalised 4-week playbook — what to drill, what to ship, where to aim.</p>
           </div>
           <Button onClick={generate} disabled={loading} glow>
-            {loading ? "Thinking…" : plan ? "Regenerate" : "Generate plan"}
+            {(() => { if (loading) { return "Thinking…"; } if (plan) { return "Regenerate"; } return "Generate plan"; })()}
           </Button>
         </div>
 
@@ -171,7 +172,7 @@ export default function Page() {
                     <span className="font-medium">{w.focus}</span>
                   </div>
                   <ul className="mt-2 text-sm text-text-2 space-y-1">
-                    {w.actions.map((a, i) => <li key={i} className="flex gap-2"><span className="text-accent">›</span>{a}</li>)}
+                    {w.actions.map((a) => <li key={a} className="flex gap-2"><span className="text-accent">›</span>{a}</li>)}
                   </ul>
                 </div>
               ))}
@@ -181,13 +182,13 @@ export default function Page() {
               {plan.greenFlags.length > 0 && (
                 <div>
                   <h4 className="text-text-3 uppercase text-xs tracking-wider mb-2">Green flags</h4>
-                  <ul className="text-sm space-y-1.5">{plan.greenFlags.map((g, i) => <li key={i} className="flex gap-2"><span className="text-easy">✓</span>{g}</li>)}</ul>
+                  <ul className="text-sm space-y-1.5">{plan.greenFlags.map((g) => <li key={g} className="flex gap-2"><span className="text-easy">✓</span>{g}</li>)}</ul>
                 </div>
               )}
               {plan.redFlags.length > 0 && (
                 <div>
                   <h4 className="text-text-3 uppercase text-xs tracking-wider mb-2">Red flags</h4>
-                  <ul className="text-sm space-y-1.5">{plan.redFlags.map((r, i) => <li key={i} className="flex gap-2"><span className="text-hard">→</span>{r}</li>)}</ul>
+                  <ul className="text-sm space-y-1.5">{plan.redFlags.map((r) => <li key={r} className="flex gap-2"><span className="text-hard">→</span>{r}</li>)}</ul>
                 </div>
               )}
             </div>

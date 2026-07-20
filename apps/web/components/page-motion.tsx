@@ -3,6 +3,6 @@
  * (fires on every navigation, for every page). This stays as a passthrough so
  * existing `<PageMotion>` usages keep their layout without double-animating.
  */
-export function PageMotion({ children, className }: { children: React.ReactNode; className?: string }) {
+export function PageMotion({ children, className }: Readonly<{ children: React.ReactNode; className?: string }>) {
   return <div className={className}>{children}</div>;
 }

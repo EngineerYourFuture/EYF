@@ -13,14 +13,14 @@ const toneText: Record<Tone, string> = {
 };
 
 /** Compact metric tile — the dense, icon-led stat used across dashboards. */
-export function MetricTile({ label, value, unit, sub, icon, tone = "default" }: {
+export function MetricTile({ label, value, unit, sub, icon, tone = "default" }: Readonly<{
   label: string;
   value: ReactNode;
   unit?: string;
   sub?: ReactNode;
   icon?: ReactNode;
   tone?: Tone;
-}) {
+}>) {
   return (
     <div className="rounded-xl border border-border bg-surface p-4 shadow-card">
       <div className="flex items-center justify-between gap-2">
@@ -36,12 +36,12 @@ export function MetricTile({ label, value, unit, sub, icon, tone = "default" }: 
 }
 
 /** Labelled horizontal meter — language / difficulty distributions. */
-export function Meter({ label, value, pct, tone = "accent" }: {
+export function Meter({ label, value, pct, tone = "accent" }: Readonly<{
   label: ReactNode;
   value?: ReactNode;
   pct: number; // 0..1
   tone?: "accent" | "easy" | "medium" | "hard";
-}) {
+}>) {
   const fill = { accent: "bg-accent", easy: "bg-easy", medium: "bg-medium", hard: "bg-hard" }[tone];
   return (
     <div>

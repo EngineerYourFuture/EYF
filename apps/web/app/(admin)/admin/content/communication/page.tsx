@@ -7,6 +7,7 @@ import { useConfirm } from "@/components/confirm";
 import { Icons } from "@/components/icons";
 import { ContentTabs } from "../_tabs";
 import { Field } from "../_field";
+import { saveLabel } from "@/lib/ui-helpers";
 
 const KINDS = ["ALL", "INTRO", "HR", "BEHAVIORAL", "SITUATIONAL"] as const;
 type Kind = "INTRO" | "HR" | "BEHAVIORAL" | "SITUATIONAL";
@@ -20,7 +21,7 @@ const csv = (s: string) => s.split(",").map((x) => x.trim()).filter(Boolean);
 
 export default function Page() {
   const [filter, setFilter] = useState<(typeof KINDS)[number]>("ALL");
-  const { data, mutate } = useApi<Row[]>(`/admin/content/communication${filter === "ALL" ? "" : `?kind=${filter}`}`);
+  const { data, mutate } = useApi<Row[]>(`/admin/content/communication${filter === "ALL" ? "" : "?kind=" + filter}`);
   const action = useApiAction();
   const confirm = useConfirm();
   const [editing, setEditing] = useState<null | { id: string | null }>(null);
@@ -68,7 +69,7 @@ export default function Page() {
           <Field label="Covers" hint="comma-separated rubric points"><textarea className={`${inputCls} min-h-20 py-3 h-auto`} value={form.covers} onChange={(e) => set("covers", e.target.value)} placeholder="clear situation, specific actions, concrete result" /></Field>
           <label className="flex items-center gap-2 text-sm text-text-2"><input type="checkbox" checked={form.active} onChange={(e) => set("active", e.target.checked)} /> Active (served to students)</label>
           <div className="flex gap-3 pt-2">
-            <Button onClick={save} disabled={saving || !form.question || !form.tip || csv(form.covers).length === 0}>{saving ? "Saving…" : editing.id ? "Save changes" : "Add prompt"}</Button>
+            <Button onClick={save} disabled={saving || !form.question || !form.tip || csv(form.covers).length === 0}>{saveLabel(saving, editing.id, "Add prompt")}</Button>
             <Button variant="ghost" onClick={() => setEditing(null)}>Cancel</Button>
           </div>
         </Card>

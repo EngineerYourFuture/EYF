@@ -108,13 +108,13 @@ export default function Page() {
                 <div className="text-text-4 text-xs mt-1">{new Date(m.scheduledFor).toLocaleString()}</div>
               </div>
               <div className="flex items-center gap-3">
-                {m.feedback && <Badge tone={m.feedback.overallScore >= 70 ? "easy" : m.feedback.overallScore >= 50 ? "medium" : "hard"}>{m.feedback.overallScore}/100</Badge>}
+                {m.feedback && <Badge tone={(() => { const sc = m.feedback.overallScore; if (sc >= 70) { return "easy" as const; } if (sc >= 50) { return "medium" as const; } return "hard" as const; })()}>{m.feedback.overallScore}/100</Badge>}
                 <Badge tone={m.status === "COMPLETED" ? "default" : "accent"}>{m.status}</Badge>
               </div>
             </Card>
           </Link>
         ))}
-        {data && data.length === 0 && (
+        {data?.length === 0 && (
           <div className="rounded-xl border border-dashed border-border p-8 text-center">
             <div className="text-text-4 flex justify-center mb-3"><Icons.mic width={26} height={26} /></div>
             <p className="text-text-2 font-medium">No mocks yet</p>
@@ -126,7 +126,7 @@ export default function Page() {
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({ label, children }: Readonly<{ label: string; children: React.ReactNode }>) {
   return (
     <div>
       <label className="text-xs text-text-3 uppercase tracking-wider">{label}</label>

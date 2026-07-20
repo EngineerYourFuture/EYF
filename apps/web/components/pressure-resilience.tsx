@@ -1,4 +1,5 @@
 "use client";
+import { masteryBarClass } from "@/lib/ui-helpers";
 
 type S = { level: string; completed: boolean; confidence: number | null; anxietyBefore: number | null; anxietyAfter: number | null };
 
@@ -12,7 +13,7 @@ const nn = (x: number | null): x is number => x != null;
  * own sessions to quantify how much they degrade under pressure (completion +
  * confidence, calm vs high-pressure). That gap is the interview risk.
  */
-export function PressureResilience({ sessions }: { sessions: S[] }) {
+export function PressureResilience({ sessions }: Readonly<{ sessions: S[] }>) {
   if (!sessions || sessions.length < 2) return null;
 
   const byLevel = new Map<string, S[]>();
@@ -32,12 +33,12 @@ export function PressureResilience({ sessions }: { sessions: S[] }) {
   const c = stat(calm), h = stat(heat);
   const gap = c.completion - h.completion;
 
-  const read =
-    heat.length === 0 ? "Run a High or Extreme session to measure how you hold up under real pressure."
-    : calm.length === 0 ? "Run a Normal session too, so we can compare calm vs pressure."
-    : gap >= 25 ? `Under pressure your completion drops ${gap} points (${c.completion}% → ${h.completion}%). That gap is your interview risk — drill Extreme to close it.`
-    : gap >= 10 ? `You hold up fairly well — a ${gap}-point dip under pressure. Keep drilling High to erase it.`
-    : `Rock steady — barely a ${Math.max(0, gap)}-point dip under pressure. You perform when it counts.`;
+  let read: string;
+  if (heat.length === 0) read = "Run a High or Extreme session to measure how you hold up under real pressure.";
+  else if (calm.length === 0) read = "Run a Normal session too, so we can compare calm vs pressure.";
+  else if (gap >= 25) read = `Under pressure your completion drops ${gap} points (${c.completion}% → ${h.completion}%). That gap is your interview risk — drill Extreme to close it.`;
+  else if (gap >= 10) read = `You hold up fairly well — a ${gap}-point dip under pressure. Keep drilling High to erase it.`;
+  else read = `Rock steady — barely a ${Math.max(0, gap)}-point dip under pressure. You perform when it counts.`;
 
   const levels = ORDER.map((lv) => ({ lv, ...stat(byLevel.get(lv) ?? []) })).filter((x) => x.n > 0);
 
@@ -54,7 +55,7 @@ export function PressureResilience({ sessions }: { sessions: S[] }) {
               <span className="text-text-4 text-xs font-mono">{l.completion}% done{l.conf ? ` · conf ${l.conf}` : ""}</span>
             </div>
             <div className="mt-1 h-1.5 rounded-full bg-surface-3 overflow-hidden">
-              <div className={`h-full rounded-full ${l.completion >= 70 ? "bg-easy" : l.completion >= 40 ? "bg-medium" : "bg-brand"}`} style={{ width: `${Math.max(3, l.completion)}%` }} />
+              <div className={`h-full rounded-full ${masteryBarClass(l.completion)}`} style={{ width: `${Math.max(3, l.completion)}%` }} />
             </div>
           </div>
         ))}

@@ -29,7 +29,7 @@ export function useConfirm(): Confirm {
   return ctx;
 }
 
-export function ConfirmProvider({ children }: { children: ReactNode }) {
+export function ConfirmProvider({ children }: Readonly<{ children: ReactNode }>) {
   const [state, setState] = useState<{ opts: ConfirmOptions; resolve: (ok: boolean) => void } | null>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
   const confirmBtnRef = useRef<HTMLButtonElement>(null);
@@ -57,7 +57,7 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
       if (e.key !== "Tab") return;
       const f = Array.from(dialogRef.current?.querySelectorAll<HTMLElement>("button:not([disabled])") ?? []);
       if (f.length === 0) return;
-      const first = f[0]!, last = f[f.length - 1]!;
+      const first = f[0]!, last = f.at(-1)!;
       if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
       else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
     }

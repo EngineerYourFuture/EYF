@@ -35,7 +35,7 @@ export default function Page() {
   const orgId = active?.org.id ?? null;
 
   async function createOrg() {
-    if (newOrg.trim().length < 2) return;
+    if (newOrg.trim().length < 2) { return; }
     setBusy(true);
     try {
       const org = await action<{ id: string }>("/orgs", { method: "POST", body: JSON.stringify({ name: newOrg.trim() }) });
@@ -110,7 +110,7 @@ function TalentConsentCard() {
       await mutate();
     } catch { /* toasted */ } finally { setBusy(false); }
   }
-  if (!data) return null;
+  if (!data) { return null; }
   return (
     <div className="mt-6 rounded-xl border border-border bg-surface-2/40 px-5 py-4 flex items-center gap-4 flex-wrap">
       <div className="min-w-0 flex-1">
@@ -131,7 +131,7 @@ function TalentConsentCard() {
   );
 }
 
-function OrgConsole({ orgId, roles }: { orgId: string; roles: string[] }) {
+function OrgConsole({ orgId, roles }: Readonly<{ orgId: string; roles: string[] }>) {
   const canMembers = canInOrg(roles, "org:members").granted;
   const canAuthor = canInOrg(roles, "learn:author").granted;
   const canPublish = canInOrg(roles, "learn:publish").granted;
@@ -148,21 +148,29 @@ function OrgConsole({ orgId, roles }: { orgId: string; roles: string[] }) {
     <div className="min-w-0">
       <Tabs tabs={tabs} value={tab} onChange={setTab} idBase="org" aria-label="Organization console" />
       <TabPanel idBase="org" value={tab}>
-      {tab === "people" ? (
+      {(() => {
+  if (tab === "people") { return (
         canMembers ? <PeopleTab orgId={orgId} /> : <p className="text-text-3 text-sm mt-6">Your role doesn&apos;t include people management.</p>
-      ) : tab === "courses" ? (
+      ); }
+  if (tab === "courses") { return (
         <CoursesTab orgId={orgId} canAuthor={canAuthor} canPublish={canPublish} />
-      ) : tab === "skills" ? (
+      ); }
+  if (tab === "skills") { return (
         <SkillsTab orgId={orgId} />
-      ) : tab === "assess" ? (
+      ); }
+  if (tab === "assess") { return (
         <AssessTab orgId={orgId} />
-      ) : tab === "hire" ? (
+      ); }
+  if (tab === "hire") { return (
         <HireTab orgId={orgId} />
-      ) : tab === "settings" ? (
+      ); }
+  if (tab === "settings") { return (
         <SettingsTab orgId={orgId} />
-      ) : (
+      ); }
+  return (
         <ProgramsTab orgId={orgId} canAuthor={canAuthor} canPublish={canPublish} canEnroll={canEnroll} />
-      )}
+      );
+})()}
       </TabPanel>
     </div>
   );
@@ -171,7 +179,7 @@ function OrgConsole({ orgId, roles }: { orgId: string; roles: string[] }) {
 type ApiKey = { id: string; name: string; prefix: string; scopes: string[]; lastUsedAt: string | null };
 type Hook = { id: string; url: string; events: string[]; active: boolean; failCount: number };
 
-function SettingsTab({ orgId }: { orgId: string }) {
+function SettingsTab({ orgId }: Readonly<{ orgId: string }>) {
   const action = useApiAction();
   const confirm = useConfirm();
   const brand = useApi<{ logoUrl: string | null; brandColor: string | null }>(`/orgs/${orgId}/branding`);
@@ -189,12 +197,12 @@ function SettingsTab({ orgId }: { orgId: string }) {
     catch { /* toasted */ }
   }
   async function createKey() {
-    if (keyName.trim().length < 1) return;
+    if (keyName.trim().length < 1) { return; }
     try { const k = await action<{ key: string }>(`/orgs/${orgId}/api-keys`, { method: "POST", body: JSON.stringify({ name: keyName.trim(), scopes: ["talent:search"] }) }); setNewKey(k.key); setKeyName(""); await keys.mutate(); }
     catch { /* toasted */ }
   }
   async function createHook() {
-    if (!hookUrl.trim()) return;
+    if (!hookUrl.trim()) { return; }
     try { const h = await action<{ secret: string }>(`/orgs/${orgId}/webhooks`, { method: "POST", body: JSON.stringify({ url: hookUrl.trim(), events: ["certificate.issued", "offer.accepted"] }) }); setNewSecret(h.secret); setHookUrl(""); await hooks.mutate(); }
     catch { /* toasted */ }
   }
@@ -239,7 +247,7 @@ function SettingsTab({ orgId }: { orgId: string }) {
                     confirmLabel: "Revoke",
                     danger: true,
                   });
-                  if (!ok) return;
+                  if (!ok) { return; }
                   await action(`/orgs/${orgId}/api-keys/${k.id}/revoke`, { method: "POST" });
                   await keys.mutate();
                 }}
@@ -281,7 +289,7 @@ function SettingsTab({ orgId }: { orgId: string }) {
 }
 
 /** One-click copy for a secret shown only once (API key, webhook signing secret). */
-function CopyButton({ value, label }: { value: string; label: string }) {
+function CopyButton({ value, label }: Readonly<{ value: string; label: string }>) {
   const [done, setDone] = useState(false);
   return (
     <button
@@ -306,7 +314,7 @@ function CopyButton({ value, label }: { value: string; label: string }) {
 type Candidate = { userId: string; name: string; college: string | null; gradYear: number | null; anon: boolean; readiness: number; band: string };
 type Profile = { identity: { name?: string; email?: string; college?: string | null; anon?: boolean }; readiness: { overall: number; band: string; pillars: { key: string; label: string; score: number }[] }; certificates: { title: string; score: number | null; verifyCode: string }[]; skills: { slug: string; level: number }[] };
 
-function HireTab({ orgId }: { orgId: string }) {
+function HireTab({ orgId }: Readonly<{ orgId: string }>) {
   const action = useApiAction();
   const [minR, setMinR] = useState(0);
   // Debounce so dragging/typing the readiness filter doesn't fire a search per keystroke.
@@ -322,24 +330,24 @@ function HireTab({ orgId }: { orgId: string }) {
   const [reqTitle, setReqTitle] = useState("");
 
   async function createReq() {
-    if (reqTitle.trim().length < 2) return;
+    if (reqTitle.trim().length < 2) { return; }
     try { await action(`/orgs/${orgId}/requisitions`, { method: "POST", body: JSON.stringify({ title: reqTitle.trim() }) }); setReqTitle(""); await reqs.mutate(); }
     catch { /* toasted */ }
   }
   async function shortlist(userId: string) {
     const req = reqs.data?.[0];
-    if (!req) return;
+    if (!req) { return; }
     try { await action(`/orgs/${orgId}/requisitions/${req.id}/candidates`, { method: "POST", body: JSON.stringify({ userId }) }); await reqs.mutate(); }
     catch { /* toasted */ }
   }
-  const band = (n: number) => n >= 80 ? "text-easy" : n >= 50 ? "text-text-1" : "text-medium";
+  const band = (n: number) => { if (n >= 80) { return "text-easy"; } if (n >= 50) { return "text-text-1"; } return "text-medium"; };
 
   return (
     <div className="mt-6 grid lg:grid-cols-[1fr_320px] gap-6 items-start">
       <div className="min-w-0">
         <div className="flex items-center justify-between mb-3">
           <div className="font-mono text-[11px] uppercase tracking-widest text-text-3">Talent pool · evidence-ranked</div>
-          <label className="text-xs text-text-3 flex items-center gap-2">min readiness
+          <label className="text-xs text-text-3 flex items-center gap-2">min readiness{" "}
             <input type="number" min={0} max={100} value={minR} onChange={(e) => setMinR(Number(e.target.value))} className="w-16 h-8 px-2 rounded bg-surface border border-border text-text-1" />
           </label>
         </div>
@@ -428,7 +436,7 @@ function MyOffers() {
     try { await action(`/talent/offers/${id}/respond`, { method: "POST", body: JSON.stringify({ accept }) }); await mutate(); }
     catch { /* toasted */ } finally { setBusy(null); }
   }
-  if (!data || data.length === 0) return null;
+  if (!data || data.length === 0) { return null; }
   return (
     <div>
       <div className="font-mono text-[11px] uppercase tracking-widest text-accent mb-2">Your offers</div>
@@ -455,7 +463,7 @@ type Run = { id: string; purpose: string; blueprint: { name: string; passingScor
 type Results = { run: { name: string; passingScore: number }; stats: { attempts: number; submitted: number; passed: number; avgScore: number | null }; rows: { name: string; score: number | null; passed: boolean; integrityScore: number; status: string }[] };
 const CATS = ["TECHNICAL", "APTITUDE", "LOGICAL", "VERBAL"] as const;
 
-function AssessTab({ orgId }: { orgId: string }) {
+function AssessTab({ orgId }: Readonly<{ orgId: string }>) {
   const action = useApiAction();
   const bps = useApi<Blueprint[]>(`/orgs/${orgId}/blueprints`);
   const runs = useApi<Run[]>(`/orgs/${orgId}/runs`);
@@ -467,7 +475,7 @@ function AssessTab({ orgId }: { orgId: string }) {
   const [busy, setBusy] = useState(false);
 
   async function create() {
-    if (name.trim().length < 2) return;
+    if (name.trim().length < 2) { return; }
     setBusy(true);
     try {
       await action(`/orgs/${orgId}/blueprints`, { method: "POST", body: JSON.stringify({ name: name.trim(), category: cat, questionCount: 5, skillSlug: skill.trim() || null }) });
@@ -541,21 +549,22 @@ function AssessTab({ orgId }: { orgId: string }) {
 
 type Matrix = { skills: { id: string; slug: string; name: string }[]; matrix: { department: string; cells: { skillId: string; level: number | null; coverage: number }[] }[]; memberCount: number };
 
-function SkillsTab({ orgId }: { orgId: string }) {
+function SkillsTab({ orgId }: Readonly<{ orgId: string }>) {
   const { data } = useApi<Matrix>(`/orgs/${orgId}/skills/matrix`);
-  const heat = (level: number | null) =>
-    level == null ? "bg-surface-2 text-text-4"
-      : level >= 75 ? "bg-easy/20 text-easy"
-      : level >= 50 ? "bg-accent/15 text-text-1"
-      : level >= 25 ? "bg-medium/15 text-medium"
-      : "bg-hard/15 text-hard";
+  const heat = (level: number | null) => {
+    if (level == null) { return "bg-surface-2 text-text-4"; }
+    if (level >= 75) { return "bg-easy/20 text-easy"; }
+    if (level >= 50) { return "bg-accent/15 text-text-1"; }
+    if (level >= 25) { return "bg-medium/15 text-medium"; }
+    return "bg-hard/15 text-hard";
+  };
 
   return (
     <div className="mt-6">
       <div className="font-mono text-[11px] uppercase tracking-widest text-text-3 mb-1">Skill matrix</div>
       <p className="text-text-4 text-xs mb-3">Average level per department × skill — every number traces to real completed work.</p>
       {!data && <SkeletonRows rows={3} />}
-      {data && data.skills.length === 0 && (
+      {data?.skills.length === 0 && (
         <p className="text-text-4 text-sm">No skill evidence yet. Tag lessons with a skill; completions build the matrix.</p>
       )}
       {data && data.skills.length > 0 && (
@@ -596,7 +605,7 @@ type CohortRow = { id: string; name: string; startsAt: string; path: { title: st
 type WorkPath = { cohortId: string; cohortName: string; pathTitle: string; progressPct: number; courses: { id: string; title: string; lessonCount: number; completedCount: number }[] };
 type Funnel = { cohort: { name: string; path: string }; funnel: { enrolled: number; started: number; halfway: number; completed: number; stuck: number }; rows: { member: { name: string }; progressPct: number; stuckFlag: boolean }[] };
 
-function ProgramsTab({ orgId, canAuthor, canPublish, canEnroll }: { orgId: string; canAuthor: boolean; canPublish: boolean; canEnroll: boolean }) {
+function ProgramsTab({ orgId, canAuthor, canPublish, canEnroll }: Readonly<{ orgId: string; canAuthor: boolean; canPublish: boolean; canEnroll: boolean }>) {
   const action = useApiAction();
   const paths = useApi<PathRow[]>(canAuthor ? `/orgs/${orgId}/paths` : null);
   const cohorts = useApi<CohortRow[]>(canEnroll ? `/orgs/${orgId}/cohorts` : null);
@@ -607,7 +616,7 @@ function ProgramsTab({ orgId, canAuthor, canPublish, canEnroll }: { orgId: strin
   const [busy, setBusy] = useState<string | null>(null);
 
   async function draftPath() {
-    if (title.trim().length < 2) return;
+    if (title.trim().length < 2) { return; }
     setBusy("new");
     try { await action(`/orgs/${orgId}/paths`, { method: "POST", body: JSON.stringify({ title: title.trim() }) }); setTitle(""); await paths.mutate(); }
     catch { /* toasted */ } finally { setBusy(null); }
@@ -659,7 +668,7 @@ function ProgramsTab({ orgId, canAuthor, canPublish, canEnroll }: { orgId: strin
                     <div className="grid grid-cols-5 gap-2 text-center">
                       {([["Enrolled", funnel.data.funnel.enrolled, "default"], ["Started", funnel.data.funnel.started, "accent"], ["Halfway", funnel.data.funnel.halfway, "accent"], ["Done", funnel.data.funnel.completed, "easy"], ["Stuck", funnel.data.funnel.stuck, "hard"]] as const).map(([l, v, tone]) => (
                         <div key={l} className="rounded-lg bg-surface-2 py-2">
-                          <div className={`font-display text-lg font-bold ${tone === "easy" ? "text-easy" : tone === "hard" && v > 0 ? "text-hard" : ""}`}>{v}</div>
+                          <div className={`font-display text-lg font-bold ${(() => { if (tone === "easy") { return "text-easy"; } if (tone === "hard" && v > 0) { return "text-hard"; } return ""; })()}`}>{v}</div>
                           <div className="text-text-4 text-[10px] font-mono uppercase">{l}</div>
                         </div>
                       ))}
@@ -706,7 +715,7 @@ function ProgramsTab({ orgId, canAuthor, canPublish, canEnroll }: { orgId: strin
   );
 }
 
-function PeopleTab({ orgId }: { orgId: string }) {
+function PeopleTab({ orgId }: Readonly<{ orgId: string }>) {
   const { data } = useApi<{ items: Member[] }>(`/orgs/${orgId}/members`);
   return (
     <div className="mt-6 space-y-2">
@@ -726,7 +735,7 @@ function PeopleTab({ orgId }: { orgId: string }) {
   );
 }
 
-function CoursesTab({ orgId, canAuthor, canPublish }: { orgId: string; canAuthor: boolean; canPublish: boolean }) {
+function CoursesTab({ orgId, canAuthor, canPublish }: Readonly<{ orgId: string; canAuthor: boolean; canPublish: boolean }>) {
   const action = useApiAction();
   const builder = useApi<CourseRow[]>(canAuthor ? `/orgs/${orgId}/courses` : null);
   const work = useApi<WorkCourse[]>(`/orgs/${orgId}/work/courses`);
@@ -739,7 +748,7 @@ function CoursesTab({ orgId, canAuthor, canPublish }: { orgId: string; canAuthor
     catch { /* toasted */ } finally { setBusy(null); }
   }
   async function draft() {
-    if (title.trim().length < 2) return;
+    if (title.trim().length < 2) { return; }
     setBusy("new");
     try {
       const c = await action<{ id: string }>(`/orgs/${orgId}/courses`, { method: "POST", body: JSON.stringify({ title: title.trim() }) });
@@ -754,7 +763,7 @@ function CoursesTab({ orgId, canAuthor, canPublish }: { orgId: string; canAuthor
     } catch { /* toasted */ } finally { setBusy(null); }
   }
   async function aiDraft() {
-    if (title.trim().length < 2) return;
+    if (title.trim().length < 2) { return; }
     setBusy("ai");
     try {
       const r = await action<{ source: string; lessons: number }>(`/orgs/${orgId}/ai/course-draft`, { method: "POST", body: JSON.stringify({ topic: title.trim(), audience: "fresher", lessonCount: 5 }) });

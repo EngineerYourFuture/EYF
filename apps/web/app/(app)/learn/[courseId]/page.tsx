@@ -9,7 +9,7 @@ import { BackButton } from "@/components/back-button";
 type Lesson = { id: string; title: string; content: string; completed: boolean };
 type CourseLearn = { id: string; title: string; org: string; lessons: Lesson[] };
 
-export default function CoursePlayer({ params }: { params: { courseId: string } }) {
+export default function CoursePlayer({ params }: Readonly<{ params: { courseId: string } }>) {
   const { data, isLoading, mutate } = useApi<CourseLearn>(`/org/courses/${params.courseId}/learn`);
   const action = useApiAction();
   const [active, setActive] = useState(0);

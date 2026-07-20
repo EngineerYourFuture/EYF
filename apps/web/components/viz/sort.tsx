@@ -40,7 +40,7 @@ export function SortViz() {
   const barW = arr.length ? (W - PAD * 2) / arr.length : 0;
 
   function load() {
-    const parsed = src.split(",").map((s) => parseInt(s.trim(), 10)).filter(Number.isFinite);
+    const parsed = src.split(",").map((s) => Number.parseInt(s.trim(), 10)).filter(Number.isFinite);
     setSteps(bubbleSortSteps(parsed.length ? parsed : [5, 3, 8, 1, 9, 2]));
     setIdx(0);
     setPlaying(false);
@@ -48,7 +48,7 @@ export function SortViz() {
   useEffect(() => { load(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (!playing) return;
+    if (!playing) { return; }
     if (idx >= steps.length - 1) { setPlaying(false); return; }
     timerRef.current = setTimeout(() => setIdx((i) => i + 1), 200);
     return () => { if (timerRef.current) clearTimeout(timerRef.current); };
@@ -82,7 +82,7 @@ export function SortViz() {
                 y={y}
                 width={Math.max(1, barW - 2)}
                 height={h}
-                fill={isSwapped ? "#F5F5F5" : isComparing ? "#FFB020" : "#3B4A0F"}
+                fill={(() => { if (isSwapped) { return "#F5F5F5"; } if (isComparing) { return "#FFB020"; } return "#3B4A0F"; })()}
               />
               <text x={x + barW / 2} y={H - 2} textAnchor="middle" fontSize="9" fill="#8A8A87" fontFamily="JetBrains Mono">
                 {v}

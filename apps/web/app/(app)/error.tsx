@@ -6,7 +6,7 @@ import { captureError } from "@/lib/analytics";
 
 /** Error boundary scoped to /(app) — renders inside the shell so navigation
  *  survives, and reports the error to analytics/Sentry (via the API). */
-export default function AppError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
+export default function AppError({ error, reset }: Readonly<{ error: Error & { digest?: string }; reset: () => void }>) {
   useEffect(() => { captureError(error); }, [error]);
 
   return (

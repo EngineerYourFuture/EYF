@@ -7,6 +7,7 @@ import { track, Events } from "@/lib/analytics";
 import { useState } from "react";
 import { PageMotion } from "@/components/page-motion";
 import { Icons } from "@/components/icons";
+import { difficultyTone } from "@/lib/ui-helpers";
 
 type Wrapped = {
   year: number;
@@ -68,7 +69,7 @@ export default function Page() {
               : <div className="space-y-3">
                   {Object.entries(data.byDifficulty).map(([d, n]) => (
                     <Meter key={d}
-                      tone={d === "HARD" || d === "EXPERT" ? "hard" : d === "EASY" ? "easy" : "medium"}
+                      tone={difficultyTone(d)}
                       label={d} value={n} pct={n / diffTotal} />
                   ))}
                 </div>}
@@ -92,7 +93,7 @@ export default function Page() {
 }
 
 /* ─────────── The shareable poster ─────────── */
-function ShareCard({ data }: { data: Wrapped }) {
+function ShareCard({ data }: Readonly<{ data: Wrapped }>) {
   return (
     <div className="mt-8 theme-dark relative overflow-hidden rounded-2xl border border-accent/20 bg-bg p-7 sm:p-9 shadow-glow-sm">
       <div className="pointer-events-none absolute -top-1/3 -right-10 h-72 w-72 rounded-full blur-[90px]" style={{ background: "radial-gradient(circle, rgba(255, 255, 255,0.28), transparent 60%)" }} />
@@ -123,7 +124,7 @@ function ShareCard({ data }: { data: Wrapped }) {
     </div>
   );
 }
-function PosterStat({ value, label }: { value: number | string; label: string }) {
+function PosterStat({ value, label }: Readonly<{ value: number | string; label: string }>) {
   return (
     <div>
       <div className="font-display text-3xl sm:text-4xl font-bold text-accent leading-none tabular-nums">{value}</div>
@@ -133,8 +134,8 @@ function PosterStat({ value, label }: { value: number | string; label: string })
 }
 
 /* ─────────── Share actions ─────────── */
-function ShareRow({ data }: { data: Wrapped }) {
-  const shareText = `My ${data.year} on EYF: ${data.totalSolved} problems solved, a ${data.bestStreakDays}-day best streak${data.mockSessions ? `, ${data.mockSessions} mock interviews` : ""} 🔥 Engineering my future.`;
+function ShareRow({ data }: Readonly<{ data: Wrapped }>) {
+  const shareText = `My ${data.year} on EYF: ${data.totalSolved} problems solved, a ${data.bestStreakDays}-day best streak${data.mockSessions ? ", " + data.mockSessions + " mock interviews" : ""} 🔥 Engineering my future.`;
   const shareUrl = typeof window !== "undefined" ? window.location.origin : "https://engineeryourfuture.app";
 
   async function share() {
@@ -159,7 +160,7 @@ function ShareRow({ data }: { data: Wrapped }) {
   );
 }
 
-function DownloadPdf({ year }: { year: number }) {
+function DownloadPdf({ year }: Readonly<{ year: number }>) {
   const { getToken } = useAuth();
   const [busy, setBusy] = useState(false);
   async function download() {

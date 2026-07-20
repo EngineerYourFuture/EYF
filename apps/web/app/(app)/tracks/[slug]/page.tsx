@@ -9,7 +9,7 @@ type Track = {
   curriculum: { week: number; focus: string; problems?: string[]; notes?: string }[];
 };
 
-export default function Page({ params }: { params: { slug: string } }) {
+export default function Page({ params }: Readonly<{ params: { slug: string } }>) {
   const { data } = useApi<Track>(`/tracks/${params.slug}`);
   const action = useApiAction();
   if (!data) return <div className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 text-text-3">Loading…</div>;

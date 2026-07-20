@@ -64,9 +64,11 @@ export default function Page() {
           </div>
         </div>
 
-        {isLoading || !data ? (
+        {(() => {
+  if (isLoading || !data) return (
           <div className="mt-6 space-y-2">{Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="h-14 rounded-xl" />)}</div>
-        ) : !data.scopeReady ? (
+        );
+  if (!data.scopeReady) return (
           <Card className="mt-8 text-center py-10">
             <div className="text-text-4 flex justify-center mb-3"><Icons.building width={28} height={28} /></div>
             <p className="font-display text-lg font-bold">
@@ -75,7 +77,8 @@ export default function Page() {
             <p className="text-text-3 text-sm mt-1">We rank you against peers once we know your {scope === "college" ? "college" : "class"}.</p>
             <Link href="/settings" className="inline-block mt-4 text-accent hover:underline">Update in settings →</Link>
           </Card>
-        ) : (
+        );
+  return (
           <>
             {/* Your rank hero */}
             {data.me && (
@@ -86,7 +89,11 @@ export default function Page() {
                     <div className="text-text-3 text-sm">of {data.total} in {data.scopeLabel}</div>
                     {data.total > 1 && (() => {
                       const topPct = Math.max(1, Math.ceil((data.me!.rank / data.total) * 100));
-                      return <Badge tone={topPct <= 10 ? "easy" : topPct <= 50 ? "accent" : "medium"} className="mt-1">Top {topPct}%</Badge>;
+                      let rankTone: "easy" | "accent" | "medium";
+                      if (topPct <= 10) rankTone = "easy";
+                      else if (topPct <= 50) rankTone = "accent";
+                      else rankTone = "medium";
+                      return <Badge tone={rankTone} className="mt-1">Top {topPct}%</Badge>;
                     })()}
                   </div>
                 </div>
@@ -103,7 +110,8 @@ export default function Page() {
               {data.rows.map((r) => <RankRow key={r.rank} r={r} unit={unit} />)}
             </Reveal>
           </>
-        )}
+        );
+})()}
       </div>
     </PageMotion>
   );
@@ -118,7 +126,7 @@ const MEDAL_TONE: Record<number, { bg: string; fg: string }> = {
   3: { bg: "#d79a63", fg: "#3a2410" },
 };
 
-function RankRow({ r, unit }: { r: Row; unit: string }) {
+function RankRow({ r, unit }: Readonly<{ r: Row; unit: string }>) {
   return (
     <div className={`flex items-center gap-3 rounded-xl border px-4 py-3 shadow-card transition-colors ${
       r.isMe ? "border-accent bg-accent-tint" : "border-border bg-surface"

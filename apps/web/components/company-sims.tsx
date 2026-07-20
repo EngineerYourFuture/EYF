@@ -13,7 +13,7 @@ type Sim = {
  * practice; EYF lets students rehearse the EXACT test they'll sit — the real
  * sections, counts and per-section timing of TCS NQT, AMCAT, InfyTQ, CoCubes.
  */
-export function CompanySims({ onStart }: { onStart: (category: Category, count: number, seconds: number) => void }) {
+export function CompanySims({ onStart }: Readonly<{ onStart: (category: Category, count: number, seconds: number) => void }>) {
   const { data } = useApi<Sim[]>("/mcq/sims");
   if (!data || data.length === 0) return null;
 

@@ -105,13 +105,13 @@ export default function Page() {
           <Card className="border-hard/30">
             <h3 className="font-medium text-hard flex items-center gap-2"><Icons.gauge width={16} height={16} /> Red flags</h3>
             <ul className="mt-3 space-y-2 text-sm text-text-2 list-disc pl-4">
-              {prep.tips.redFlags.map((f, i) => <li key={i}>{f}</li>)}
+              {prep.tips.redFlags.map((f) => <li key={f}>{f}</li>)}
             </ul>
           </Card>
           <Card className="border-accent/30">
             <h3 className="font-medium text-accent flex items-center gap-2"><Icons.sparkle width={16} height={16} /> STAR story hooks</h3>
             <ul className="mt-3 space-y-2 text-sm text-text-2 list-disc pl-4">
-              {prep.tips.starHooks.map((h, i) => <li key={i}>{h}</li>)}
+              {prep.tips.starHooks.map((h) => <li key={h}>{h}</li>)}
             </ul>
           </Card>
         </div>
@@ -174,9 +174,11 @@ export default function Page() {
       </Card>
 
       {/* History */}
-      {history === undefined ? (
+      {(() => {
+  if (history === undefined) return (
         <div className="mt-10 space-y-3">{Array.from({ length: 2 }).map((_, i) => <Skeleton key={i} className="h-14 rounded-xl" />)}</div>
-      ) : history.length > 0 ? (
+      );
+  if (history.length > 0) return (
         <div className="mt-10">
           <h2 className="font-display text-lg font-bold">Your prep guides</h2>
           <div className="mt-4 space-y-2">
@@ -191,9 +193,11 @@ export default function Page() {
             ))}
           </div>
         </div>
-      ) : (
+      );
+  return (
         <div className="mt-10"><EmptyState title="No prep guides yet" description="Generate your first one above — it'll be saved here to revisit before the interview." /></div>
-      )}
+      );
+})()}
     </PageMotion>
   );
 }

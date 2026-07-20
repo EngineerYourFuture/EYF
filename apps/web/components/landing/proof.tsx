@@ -18,7 +18,7 @@ const ROW_B = [
   ["Meera", "COEP Pune", "Atlassian", "₹31 LPA"],
 ];
 
-function Pill({ row }: { row: string[] }) {
+function Pill({ row }: Readonly<{ row: string[] }>) {
   const [name, college, company, ctc] = row;
   return (
     <div className="mx-3 flex shrink-0 items-center gap-3 rounded-full border border-black/10 bg-white/60 px-5 py-2.5 backdrop-blur-sm">
@@ -31,7 +31,7 @@ function Pill({ row }: { row: string[] }) {
   );
 }
 
-function Track({ rows, reverse }: { rows: string[][]; reverse?: boolean }) {
+function Track({ rows, reverse }: Readonly<{ rows: string[][]; reverse?: boolean }>) {
   const doubled = [...rows, ...rows];
   return (
     <div className="group flex w-max flex-nowrap py-1" aria-hidden>

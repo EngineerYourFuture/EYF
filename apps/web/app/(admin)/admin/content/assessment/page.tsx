@@ -7,6 +7,7 @@ import { useConfirm } from "@/components/confirm";
 import { Icons } from "@/components/icons";
 import { ContentTabs } from "../_tabs";
 import { Field } from "../_field";
+import { saveLabel } from "@/lib/ui-helpers";
 
 const AREAS = ["ALL", "dsa", "cs", "aptitude"] as const;
 type Area = "dsa" | "cs" | "aptitude";
@@ -21,7 +22,7 @@ const inputCls = "w-full h-11 px-3 rounded-lg bg-surface border border-border te
 
 export default function Page() {
   const [filter, setFilter] = useState<(typeof AREAS)[number]>("ALL");
-  const { data, mutate } = useApi<Row[]>(`/admin/content/assessment${filter === "ALL" ? "" : `?area=${filter}`}`);
+  const { data, mutate } = useApi<Row[]>(`/admin/content/assessment${filter === "ALL" ? "" : "?area=" + filter}`);
   const action = useApiAction();
   const confirm = useConfirm();
   const [editing, setEditing] = useState<null | { id: string | null }>(null);
@@ -83,7 +84,7 @@ export default function Page() {
           <Field label="Explanation" hint="optional"><textarea className={`${inputCls} min-h-20 py-3 h-auto`} value={form.explanation} onChange={(e) => set("explanation", e.target.value)} /></Field>
           <label className="flex items-center gap-2 text-sm text-text-2"><input type="checkbox" checked={form.active} onChange={(e) => set("active", e.target.checked)} /> Active (served to students)</label>
           <div className="flex gap-3 pt-2">
-            <Button onClick={save} disabled={saving || !form.prompt || !form.topic || filled.length < 2 || !form.choices[form.correctIndex]?.trim()}>{saving ? "Saving…" : editing.id ? "Save changes" : "Add question"}</Button>
+            <Button onClick={save} disabled={saving || !form.prompt || !form.topic || filled.length < 2 || !form.choices[form.correctIndex]?.trim()}>{saveLabel(saving, editing.id, "Add question")}</Button>
             <Button variant="ghost" onClick={() => setEditing(null)}>Cancel</Button>
           </div>
         </Card>

@@ -18,7 +18,7 @@ type Thread = {
 const CATS = ["GENERAL","PLACEMENTS","DSA","CORE_SUBJECTS","PROJECTS","RESUME","INTERVIEWS","OFF_TOPIC"];
 const catLabel = (c: string) => {
   if (c === "DSA") return "DSA";
-  const s = c.replace(/_/g, " ").toLowerCase();
+  const s = c.replaceAll("_", " ").toLowerCase();
   return s.charAt(0).toUpperCase() + s.slice(1);
 };
 const relTime = (iso: string) => {
@@ -31,7 +31,7 @@ const relTime = (iso: string) => {
 
 export default function Page() {
   const [cat, setCat] = useState("");
-  const { data, isLoading, mutate } = useApi<Thread[]>(`/forum/threads${cat ? `?category=${cat}` : ""}`);
+  const { data, isLoading, mutate } = useApi<Thread[]>(`/forum/threads${cat ? "?category=" + cat : ""}`);
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ title: "", body: "", category: "GENERAL" });
   const action = useApiAction();
@@ -105,7 +105,7 @@ export default function Page() {
             </Card>
           </Link>
         ))}
-        {data && data.length === 0 && (
+        {data?.length === 0 && (
           <EmptyState icon={<Icons.chat width={22} height={22} />} title="No threads here yet"
             description={cat ? "Nothing in this category. Be the first to post." : "Start the conversation — ask a doubt, share a win, debrief an interview."}
             action={<Button onClick={() => setOpen(true)}>Start a thread</Button>} />
@@ -115,7 +115,7 @@ export default function Page() {
   );
 }
 
-function Chip({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+function Chip({ active, onClick, children }: Readonly<{ active: boolean; onClick: () => void; children: React.ReactNode }>) {
   return (
     <button onClick={onClick}
       className={`px-3 py-1.5 rounded-lg border transition-colors ${

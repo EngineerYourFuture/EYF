@@ -12,7 +12,7 @@ type Mentor = {
 };
 type Slot = { id: string; startAt: string; endAt: string };
 
-export default function Page({ params }: { params: { id: string } }) {
+export default function Page({ params }: Readonly<{ params: { id: string } }>) {
   const { data: mentor } = useApi<Mentor>(`/mentors/${params.id}`);
   const { data: slots, mutate } = useApi<Slot[]>(`/mentors/${params.id}/slots`);
   const action = useApiAction();

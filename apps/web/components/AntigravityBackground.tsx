@@ -152,7 +152,7 @@ function ParticleRing({
   particleSize,
   scroll,
   mouse,
-}: RingProps) {
+}: Readonly<RingProps>) {
   const tiltRef = useRef<THREE.Group>(null);
   const spinRef = useRef<THREE.Points>(null);
   const matRef = useRef<THREE.ShaderMaterial>(null);
@@ -323,7 +323,7 @@ export default function AntigravityBackground({
   particleSize = 7,
   scrollDriven = false,
   className,
-}: AntigravityBackgroundProps) {
+}: Readonly<AntigravityBackgroundProps>) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const mouse = useRef({ x: 0, y: 0 });
 

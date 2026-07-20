@@ -20,7 +20,7 @@ const adminNav: { href: string; label: string; cap: Capability }[] = [
   { href: "/admin/audit",            label: "Audit",        cap: "view:analytics" },
 ];
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default function AdminLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const { loading, isStaff, can } = useRole();
   const gate = useAdminGate(!loading && isStaff);
   const router = useRouter();

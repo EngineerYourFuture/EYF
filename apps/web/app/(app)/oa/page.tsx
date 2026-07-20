@@ -4,6 +4,7 @@ import { Card, Badge, Button, EmptyState } from "@eyf/ui";
 import { useApi, useApiAction } from "@/lib/use-api";
 import { useState } from "react";
 import { Icons } from "@/components/icons";
+import { difficultyTone } from "@/lib/ui-helpers";
 
 type Report = {
   id: string; company: string; role: string; driveDate: string;
@@ -16,7 +17,7 @@ const SECTIONS = ["DSA","APTITUDE","CORE_CS","DEBUG","ENGLISH","PSYCHOMETRIC","S
 
 export default function Page() {
   const [company, setCompany] = useState("");
-  const { data, mutate } = useApi<Report[]>(`/oa${company ? `?company=${encodeURIComponent(company)}` : ""}`);
+  const { data, mutate } = useApi<Report[]>(`/oa${company ? "?company=" + encodeURIComponent(company) : ""}`);
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({
     company: "", role: "", driveDate: new Date().toISOString().slice(0, 10),
@@ -64,7 +65,7 @@ export default function Page() {
               </select>
             </label>
           </div>
-          <div role="group" aria-labelledby="oa-sections-label">
+          <fieldset className="min-w-0 border-0 p-0 m-0" aria-labelledby="oa-sections-label">
             <span id="oa-sections-label" className="text-xs text-text-3 uppercase tracking-wider">Sections</span>
             <div className="mt-1 flex flex-wrap gap-2">
               {SECTIONS.map((s) => {
@@ -78,7 +79,7 @@ export default function Page() {
                 );
               })}
             </div>
-          </div>
+          </fieldset>
           <Input label="Patterns seen (comma-separated)" value={form.patterns} onChange={(v) => setForm({ ...form, patterns: v })} />
           <label className="block">
             <span className="text-xs text-text-3 uppercase tracking-wider">Notes (markdown)</span>
@@ -103,7 +104,7 @@ export default function Page() {
                   <div className="flex items-center gap-2">
                     <span className="font-display text-base font-semibold">{r.company}</span>
                     <Badge>{r.role}</Badge>
-                    <Badge tone={r.difficulty === "HARD" ? "hard" : r.difficulty === "EASY" ? "easy" : "medium"}>{r.difficulty}</Badge>
+                    <Badge tone={difficultyTone(r.difficulty)}>{r.difficulty}</Badge>
                   </div>
                   <div className="text-text-3 text-xs mt-1">
                     {new Date(r.driveDate).toLocaleDateString()} · {r.durationMin}m · by {r.author.name} · 👍 {r.helpfulCount}
@@ -118,7 +119,7 @@ export default function Page() {
             </Card>
           </Link>
         ))}
-        {data && data.length === 0 && (
+        {data?.length === 0 && (
           <EmptyState
             icon={<Icons.target width={28} height={28} />}
             title={company ? `No reports for “${company}” yet` : "No reports yet"}
@@ -131,7 +132,7 @@ export default function Page() {
   );
 }
 
-function Input({ label, value, onChange, type = "text" }: { label: string; value: string; onChange: (v: string) => void; type?: string }) {
+function Input({ label, value, onChange, type = "text" }: Readonly<{ label: string; value: string; onChange: (v: string) => void; type?: string }>) {
   return (
     <div>
       <label className="text-xs text-text-3 uppercase tracking-wider">{label}</label>

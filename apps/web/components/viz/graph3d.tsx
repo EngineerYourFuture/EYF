@@ -16,7 +16,7 @@ const SAMPLE: { nodes: number; edges: Edge[] } = {
   ],
 };
 
-function bfsOrder(n: number, edges: Edge[], start: number): number[] {
+function bfsOrder(_n: number, edges: Edge[], start: number): number[] {
   const adj = new Map<number, number[]>();
   for (const [a, b] of edges) {
     adj.set(a, [...(adj.get(a) ?? []), b]);
@@ -32,7 +32,7 @@ function bfsOrder(n: number, edges: Edge[], start: number): number[] {
       if (!visited.has(v)) { visited.add(v); queue.push(v); }
     }
   }
-  void n; return order;
+  return order;
 }
 
 export function Graph3D() {
@@ -76,7 +76,8 @@ export function Graph3D() {
         const REPULSE = 6;
         const SPRING = 0.05;
         const REST = 3;
-        const force = pos.map(() => new THREE.Vector3());
+        const force: THREE.Vector3[] = [];
+        for (const _ of pos) force.push(new THREE.Vector3());
         for (let i = 0; i < pos.length; i++) {
           for (let j = i + 1; j < pos.length; j++) {
             const d = new THREE.Vector3().subVectors(pos[i]!, pos[j]!);
@@ -127,9 +128,8 @@ export function Graph3D() {
       function applyHighlight(s: number) {
         if (s === activeStep) return;
         activeStep = s;
-        meshes.forEach((m, i) => {
-          m.material = order.slice(0, s + 1).includes(i) ? on : off;
-        });
+        const shown = order.slice(0, s + 1);
+        for (let i = 0; i < meshes.length; i++) meshes[i]!.material = shown.includes(i) ? on : off;
       }
 
       const stepRef = { current: step };

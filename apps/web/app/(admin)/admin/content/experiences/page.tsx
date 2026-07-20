@@ -6,6 +6,7 @@ import { useConfirm } from "@/components/confirm";
 import { Icons } from "@/components/icons";
 import { ContentTabs } from "../_tabs";
 import { Field } from "../_field";
+import { saveLabel } from "@/lib/ui-helpers";
 
 const OUTCOMES = ["OFFER", "REJECTED", "PENDING", "WITHDRAWN"] as const;
 type Outcome = (typeof OUTCOMES)[number];
@@ -68,7 +69,7 @@ export default function Page() {
           <Field label="Writeup" hint="markdown, round-by-round"><textarea className={`${inputCls} min-h-64 py-3 h-auto`} value={form.body} onChange={(e) => set("body", e.target.value)} placeholder={"**Round 1 — Online Assessment**\nTwo mediums (arrays + DP)…\n\n**Round 2 — Technical**\n…"} /></Field>
           <Field label="Top tip" hint="optional, one takeaway"><textarea className={`${inputCls} min-h-20 py-3 h-auto`} value={form.tips} onChange={(e) => set("tips", e.target.value)} /></Field>
           <div className="flex gap-3 pt-2">
-            <Button onClick={save} disabled={saving || !form.company || !form.role || !form.body}>{saving ? "Saving…" : editing.id ? "Save changes" : "Publish experience"}</Button>
+            <Button onClick={save} disabled={saving || !form.company || !form.role || !form.body}>{saveLabel(saving, editing.id, "Publish experience")}</Button>
             <Button variant="ghost" onClick={() => setEditing(null)}>Cancel</Button>
           </div>
         </Card>

@@ -6,6 +6,7 @@ import { useConfirm } from "@/components/confirm";
 import { Icons } from "@/components/icons";
 import { ContentTabs } from "../_tabs";
 import { Field } from "../_field";
+import { saveLabel } from "@/lib/ui-helpers";
 
 const DIFFICULTIES = ["EASY", "MEDIUM", "HARD", "EXPERT"] as const;
 type Diff = (typeof DIFFICULTIES)[number];
@@ -83,7 +84,7 @@ export default function Page() {
             </Field>
             <Field label="Premium">
               <label className="flex items-center gap-2 h-11 text-sm text-text-2">
-                <input type="checkbox" checked={form.premium} onChange={(e) => set("premium", e.target.checked)} />
+                <input type="checkbox" checked={form.premium} onChange={(e) => set("premium", e.target.checked)} />{" "}
                 Requires a paid plan
               </label>
             </Field>
@@ -99,7 +100,7 @@ export default function Page() {
             <Field label="Memory limit (KB)"><input type="number" className={inputCls} value={form.memoryLimitKb} onChange={(e) => set("memoryLimitKb", Number(e.target.value))} /></Field>
           </div>
           <div className="flex gap-3 pt-2">
-            <Button onClick={save} disabled={saving || !form.title || !form.slug}>{saving ? "Saving…" : editing.id ? "Save changes" : "Create problem"}</Button>
+            <Button onClick={save} disabled={saving || !form.title || !form.slug}>{saveLabel(saving, editing.id, "Create problem")}</Button>
             <Button variant="ghost" onClick={() => setEditing(null)}>Cancel</Button>
           </div>
         </Card>

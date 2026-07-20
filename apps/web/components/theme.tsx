@@ -42,7 +42,7 @@ const MoonIcon = (p: { className?: string }) => (
 );
 
 /** Compact theme toggle. */
-export function ThemeToggle({ className = "" }: { className?: string }) {
+export function ThemeToggle({ className = "" }: Readonly<{ className?: string }>) {
   const { theme, toggle } = useTheme();
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);

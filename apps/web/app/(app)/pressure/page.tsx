@@ -32,7 +32,7 @@ export default function Page() {
   const [now, setNow] = useState(Date.now());
 
   useEffect(() => {
-    if (!active) return;
+    if (!active) { return; }
     const i = setInterval(() => setNow(Date.now()), 500);
     return () => clearInterval(i);
   }, [active]);
@@ -46,7 +46,7 @@ export default function Page() {
   }
 
   async function end(completed: boolean) {
-    if (!active) return;
+    if (!active) { return; }
     const actualSeconds = Math.round((Date.now() - active.startedAt) / 1000);
     const anxietyAfter = Number(prompt("Anxiety AFTER (1-10):", "5") ?? "5");
     const confidence = Number(prompt("Confidence in your solution (1-10):", "5") ?? "5");
@@ -63,7 +63,10 @@ export default function Page() {
     const elapsed = Math.round((now - active.startedAt) / 1000);
     const remaining = active.targetSeconds - elapsed;
     const pct = Math.min(100, (elapsed / active.targetSeconds) * 100);
-    const tone = remaining < 60 ? "text-hard" : remaining < 300 ? "text-medium" : "text-text-1";
+    let tone;
+  if (remaining < 60) tone = "text-hard";
+  else if (remaining < 300) tone = "text-medium";
+  else tone = "text-text-1";
     return (
       <div className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-3xl">
         <h1 className="font-display text-3xl font-bold">Pressure session live</h1>
@@ -73,7 +76,7 @@ export default function Page() {
             {Math.max(0, Math.floor(remaining / 60))}:{String(Math.max(0, remaining % 60)).padStart(2, "0")}
           </div>
           <div className="mt-4 h-1.5 bg-border rounded-full overflow-hidden">
-            <div className={`h-full ${pct > 80 ? "bg-hard" : pct > 50 ? "bg-medium" : "bg-accent"}`} style={{ width: `${pct}%` }} />
+            <div className={`h-full ${(() => { if (pct > 80) { return "bg-hard"; } if (pct > 50) { return "bg-medium"; } return "bg-accent"; })()}`} style={{ width: `${pct}%` }} />
           </div>
           <div className="mt-6 flex gap-3">
             <Button onClick={() => end(true)}>Done — submit</Button>
@@ -97,7 +100,7 @@ export default function Page() {
             <div><div className="text-text-3 uppercase text-xs">Sessions</div><div className="font-display text-2xl font-bold">{trend.sessions}</div></div>
             <div>
               <div className="text-text-3 uppercase text-xs">Avg Δ (after − before)</div>
-              <div className={`font-display text-2xl font-bold ${trend.avgDelta < 0 ? "text-easy" : trend.avgDelta > 0 ? "text-hard" : ""}`}>
+              <div className={`font-display text-2xl font-bold ${(() => { if (trend.avgDelta < 0) { return "text-easy"; } if (trend.avgDelta > 0) { return "text-hard"; } return ""; })()}`}>
                 {trend.avgDelta > 0 ? "+" : ""}{trend.avgDelta}
               </div>
             </div>
@@ -120,7 +123,7 @@ export default function Page() {
               placeholder="e.g. two-sum"
               className="w-full mt-1 bg-bg border border-border rounded-md px-3 py-2 text-sm font-mono" />
           </label>
-          <div role="group" aria-labelledby="pressure-level-label">
+          <fieldset className="min-w-0 border-0 p-0 m-0" aria-labelledby="pressure-level-label">
             <span id="pressure-level-label" className="text-xs text-text-3 uppercase tracking-wider">Pressure level</span>
             <div className="mt-2 grid grid-cols-2 md:grid-cols-4 gap-2">
               {LEVELS.map((l) => (
@@ -131,7 +134,7 @@ export default function Page() {
                 </button>
               ))}
             </div>
-          </div>
+          </fieldset>
           <label className="block">
             <span className="text-xs text-text-3 uppercase tracking-wider">Anxiety BEFORE (1 calm — 10 panicked)</span>
             <div className="flex items-center gap-3 mt-2">

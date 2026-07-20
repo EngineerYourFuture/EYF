@@ -6,6 +6,7 @@ import { useConfirm } from "@/components/confirm";
 import { Icons } from "@/components/icons";
 import { ContentTabs } from "../_tabs";
 import { Field } from "../_field";
+import { difficultyTone, saveLabel } from "@/lib/ui-helpers";
 
 const DIFFICULTIES = ["EASY", "MEDIUM", "HARD", "EXPERT"] as const;
 type Diff = (typeof DIFFICULTIES)[number];
@@ -66,7 +67,7 @@ export default function Page() {
           <Field label="Outcomes" hint="comma-separated"><input className={inputCls} value={form.outcomes} onChange={(e) => set("outcomes", e.target.value)} placeholder="deploy to vercel, auth flow" /></Field>
           <label className="flex items-center gap-2 text-sm text-text-2"><input type="checkbox" checked={form.premium} onChange={(e) => set("premium", e.target.checked)} /> Premium (paid plans only)</label>
           <div className="flex gap-3 pt-2">
-            <Button onClick={save} disabled={saving || !form.title || !form.slug || !form.description}>{saving ? "Saving…" : editing.id ? "Save changes" : "Create idea"}</Button>
+            <Button onClick={save} disabled={saving || !form.title || !form.slug || !form.description}>{saveLabel(saving, editing.id, "Create idea")}</Button>
             <Button variant="ghost" onClick={() => setEditing(null)}>Cancel</Button>
           </div>
         </Card>
@@ -91,7 +92,7 @@ export default function Page() {
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="font-medium truncate">{x.title}</span>
-                <Badge tone={x.difficulty === "EASY" ? "easy" : x.difficulty === "MEDIUM" ? "medium" : "hard"}>{x.difficulty}</Badge>
+                <Badge tone={difficultyTone(x.difficulty)}>{x.difficulty}</Badge>
                 <Badge>{x.weeks}w</Badge>
                 {x.premium && <Badge tone="accent">Premium</Badge>}
               </div>

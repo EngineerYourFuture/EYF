@@ -22,7 +22,7 @@ function groupOfPath(pathname: string): string | null {
  * (Hick's Law). The user's expand/collapse choices persist; the active group
  * is always kept open so the current section never hides itself.
  */
-export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
+export function AppSidebar({ onNavigate }: Readonly<{ onNavigate?: () => void }>) {
   const pathname = usePathname();
   const activeGroup = groupOfPath(pathname);
   const [open, setOpen] = useState<Record<string, boolean>>({});

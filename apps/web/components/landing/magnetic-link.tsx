@@ -15,12 +15,12 @@ export function MagneticLink({
   children,
   className,
   strength = 0.35,
-}: {
+}: Readonly<{
   href: string;
   children: ReactNode;
   className?: string;
   strength?: number;
-}) {
+}>) {
   const reduce = useIsReduced();
   const ref = useRef<HTMLDivElement>(null);
   const x = useMotionValue(0);

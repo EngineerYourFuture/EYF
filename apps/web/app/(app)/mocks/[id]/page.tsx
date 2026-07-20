@@ -6,6 +6,7 @@ import { track, Events } from "@/lib/analytics";
 import { useEyfAuth as useAuth } from "@/lib/auth";
 import { useRecorder } from "@/lib/use-recorder";
 import { useState, useRef, useEffect } from "react";
+import { scoreTone } from "@/lib/ui-helpers";
 
 type Turn = { role: "user" | "assistant"; content: string; ts: number };
 type Mock = {
@@ -21,11 +22,10 @@ type Mock = {
   } | null;
 };
 
-export default function Page({ params }: { params: { id: string } }) {
+export default function Page({ params }: Readonly<{ params: { id: string } }>) {
   const { data, mutate } = useApi<Mock>(`/mocks/${params.id}`);
   const action = useApiAction();
   const [sending, setSending] = useState(false);
-  const [ending, setEnding] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -46,14 +46,9 @@ export default function Page({ params }: { params: { id: string } }) {
   }
 
   async function end() {
-    setEnding(true);
-    try {
-      await action(`/mocks/${params.id}/end`, { method: "POST" });
-      track(Events.MockEnded, { mockId: params.id });
-      await mutate();
-    } finally {
-      setEnding(false);
-    }
+    await action(`/mocks/${params.id}/end`, { method: "POST" });
+    track(Events.MockEnded, { mockId: params.id });
+    await mutate();
   }
 
   return (
@@ -85,7 +80,7 @@ export default function Page({ params }: { params: { id: string } }) {
                 <span className="h-1.5 w-1.5 rounded-full bg-text-3 animate-bounce motion-reduce:animate-none" style={{ animationDelay: "0ms" }} />
                 <span className="h-1.5 w-1.5 rounded-full bg-text-3 animate-bounce motion-reduce:animate-none" style={{ animationDelay: "150ms" }} />
                 <span className="h-1.5 w-1.5 rounded-full bg-text-3 animate-bounce motion-reduce:animate-none" style={{ animationDelay: "300ms" }} />
-              </span>
+              </span>{" "}
               Interviewer is thinking…
             </div>
           )}
@@ -112,19 +107,19 @@ export default function Page({ params }: { params: { id: string } }) {
                 {Object.entries(data.feedback.rubric).map(([k, v]) => (
                   <Meter key={k} label={<span className="capitalize">{k.replace(/([A-Z])/g, " $1")}</span>}
                     value={`${v}/100`} pct={v / 100}
-                    tone={v >= 70 ? "easy" : v >= 40 ? "medium" : "hard"} />
+                    tone={scoreTone(v)} />
                 ))}
               </div>
             </Card>
 
             <Card className="mt-4">
               <h3 className="font-display text-sm uppercase tracking-wider text-text-3 mb-2">Strengths</h3>
-              <ul className="text-sm space-y-1.5">{data.feedback.strengths.map((s, i) => <li key={i} className="flex gap-2"><span className="text-easy">✓</span>{s}</li>)}</ul>
+              <ul className="text-sm space-y-1.5">{data.feedback.strengths.map((s) => <li key={s} className="flex gap-2"><span className="text-easy">✓</span>{s}</li>)}</ul>
             </Card>
 
             <Card className="mt-4">
               <h3 className="font-display text-sm uppercase tracking-wider text-text-3 mb-2">Improve</h3>
-              <ul className="text-sm space-y-1.5">{data.feedback.improvements.map((s, i) => <li key={i} className="flex gap-2"><span className="text-hard">→</span>{s}</li>)}</ul>
+              <ul className="text-sm space-y-1.5">{data.feedback.improvements.map((s) => <li key={s} className="flex gap-2"><span className="text-hard">→</span>{s}</li>)}</ul>
             </Card>
           </>
         ) : (
@@ -145,7 +140,7 @@ const WHISPER_LANGS = [
   { code: "bn", label: "Bengali" },
 ];
 
-function Composer({ onSend, onEnd, mockId }: { onSend: (m: string) => Promise<void>; onEnd: () => void; mockId: string }) {
+function Composer({ onSend, onEnd, mockId }: Readonly<{ onSend: (m: string) => Promise<void>; onEnd: () => void; mockId: string }>) {
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
   const [transcribing, setTranscribing] = useState(false);
