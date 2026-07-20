@@ -145,3 +145,30 @@ no production value of `NODE_ENV` can turn the control off.
 
 **Files.** `apps/api/src/lib/ssrf.ts`, `apps/api/src/app.ts`, `apps/api/src/env.ts`.
 **Effort.** human ~1 hr / CC ~10 min.
+
+## HARD-6 — Materialize a Readiness Index for internship ranking  `[P2 · flywheel · M]`
+
+**Context.** The internship merit-gate (`GET /internships/standing`,
+`services/internship-ranking.ts`) ranks the consented talent pool to decide who
+clears the open-Elite-seat cutoff. v1 ranks on stored `UserProfile.currentXp` (a
+cheap single indexed read) because the real Readiness Index is computed per-user
+(`computeUserReadiness`) and recomputing it for the whole cohort per request would
+be O(N) heavy.
+
+**Problem.** XP is a proxy, not the Readiness Index the flywheel narrative sells
+("grind readiness to climb"). Ranking should be on the real, moat metric.
+
+**Proposed change.** Add a cron job (`apps/api/src/jobs/`) that periodically computes
+each consented student's Readiness Index and writes it to a materialized column
+(e.g. `UserProfile.readinessIndex Int`) plus a `rankedAt` timestamp. Point the
+`standingFor` cohort at that column. The pure engine is signal-agnostic — swapping
+`score: currentXp` → `score: readinessIndex` is a one-line change in the route.
+
+**Acceptance criteria.**
+- Consented students carry a materialized readiness score refreshed on a schedule.
+- `GET /internships/standing` ranks on it; no per-request O(N) readiness recompute.
+- `internship-ranking.ts` tests unchanged (engine is signal-agnostic).
+
+**Files.** `packages/db/prisma/schema.prisma` (UserProfile column + migration),
+`apps/api/src/jobs/*`, `apps/api/src/routes/internships.ts`.
+**Effort.** human ~1 day / CC ~30 min.

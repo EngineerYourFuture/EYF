@@ -1,6 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { prisma, InternshipStatus } from "@eyf/db";
+import { standingFor, type RankCandidate } from "../services/internship-ranking.js";
 
 export async function internshipRoutes(app: FastifyInstance) {
   app.get("/", async (req) => {
@@ -58,6 +59,43 @@ export async function internshipRoutes(app: FastifyInstance) {
       update: {},
     });
     return { success: true, data: created };
+  });
+
+  /**
+   * The student-facing "rank-to-internship" magnet (design doc: internship
+   * flywheel). Ranks the consented talent pool and tells the caller where they
+   * stand against the number of OPEN Elite slot seats — the cutoff that only
+   * exists insofar as startups have actually sourced seats.
+   *
+   * v1 ranks on stored XP (a cheap, single indexed read). The ranking signal is
+   * expected to become a materialized Readiness Index (TODOS HARD-6); the pure
+   * `standingFor` engine is signal-agnostic, so that swap won't touch this route.
+   */
+  app.get("/standing", { preHandler: app.requireAuth }, async (req) => {
+    const caller = req.session!.id;
+    const [consents, slots] = await Promise.all([
+      prisma.talentConsent.findMany({ where: { revokedAt: null }, select: { userId: true } }),
+      prisma.internshipSlot.findMany({
+        where: { eliteOnly: true, OR: [{ openUntil: null }, { openUntil: { gt: new Date() } }] },
+        select: { seats: true },
+      }),
+    ]);
+    const seats = slots.reduce((sum, s) => sum + s.seats, 0);
+
+    // A consented student with no profile row can't be ranked — exclude them
+    // from the cohort so the ranking reflects only rankable candidates.
+    const ids = consents.map((x) => x.userId);
+    const profiles = ids.length
+      ? await prisma.userProfile.findMany({ where: { userId: { in: ids } }, select: { userId: true, currentXp: true } })
+      : [];
+    const cohort: RankCandidate[] = profiles.map((p) => ({ userId: p.userId, score: p.currentXp }));
+
+    const standing = standingFor(cohort, seats, caller);
+    if (!standing) {
+      // Caller hasn't opted into the talent pool (or has no profile yet).
+      return { success: true, data: { inPool: false, seats, cohortSize: cohort.length } };
+    }
+    return { success: true, data: { inPool: true, ...standing } };
   });
 
   app.patch("/me/applications/:id", { preHandler: app.requireAuth }, async (req, reply) => {
