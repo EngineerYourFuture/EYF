@@ -1,7 +1,33 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { prisma, InternshipStatus } from "@eyf/db";
-import { standingFor, type RankCandidate } from "../services/internship-ranking.js";
+import { standingFor, type RankCandidate, type InternshipStanding } from "../services/internship-ranking.js";
+
+/**
+ * Builds the caller's standing in the internship flywheel: rank the consented
+ * talent pool (v1 signal = stored XP; see TODOS HARD-6) against the count of OPEN
+ * Elite slot seats (the cutoff). Shared by /standing (the magnet surface) and
+ * /elite-slots (the eligibility gate). `standing` is null when the caller hasn't
+ * opted into the talent pool.
+ */
+async function loadStanding(userId: string): Promise<{ standing: InternshipStanding | null; seats: number; cohortSize: number }> {
+  const [consents, slots] = await Promise.all([
+    prisma.talentConsent.findMany({ where: { revokedAt: null }, select: { userId: true } }),
+    prisma.internshipSlot.findMany({
+      where: { eliteOnly: true, OR: [{ openUntil: null }, { openUntil: { gt: new Date() } }] },
+      select: { seats: true },
+    }),
+  ]);
+  const seats = slots.reduce((sum, s) => sum + s.seats, 0);
+  const ids = consents.map((x) => x.userId);
+  // A consented student with no profile row can't be ranked — exclude them so the
+  // ranking reflects only rankable candidates.
+  const profiles = ids.length
+    ? await prisma.userProfile.findMany({ where: { userId: { in: ids } }, select: { userId: true, currentXp: true } })
+    : [];
+  const cohort: RankCandidate[] = profiles.map((p) => ({ userId: p.userId, score: p.currentXp }));
+  return { standing: standingFor(cohort, seats, userId), seats, cohortSize: cohort.length };
+}
 
 export async function internshipRoutes(app: FastifyInstance) {
   app.get("/", async (req) => {
@@ -72,30 +98,34 @@ export async function internshipRoutes(app: FastifyInstance) {
    * `standingFor` engine is signal-agnostic, so that swap won't touch this route.
    */
   app.get("/standing", { preHandler: app.requireAuth }, async (req) => {
-    const caller = req.session!.id;
-    const [consents, slots] = await Promise.all([
-      prisma.talentConsent.findMany({ where: { revokedAt: null }, select: { userId: true } }),
-      prisma.internshipSlot.findMany({
-        where: { eliteOnly: true, OR: [{ openUntil: null }, { openUntil: { gt: new Date() } }] },
-        select: { seats: true },
-      }),
-    ]);
-    const seats = slots.reduce((sum, s) => sum + s.seats, 0);
-
-    // A consented student with no profile row can't be ranked — exclude them
-    // from the cohort so the ranking reflects only rankable candidates.
-    const ids = consents.map((x) => x.userId);
-    const profiles = ids.length
-      ? await prisma.userProfile.findMany({ where: { userId: { in: ids } }, select: { userId: true, currentXp: true } })
-      : [];
-    const cohort: RankCandidate[] = profiles.map((p) => ({ userId: p.userId, score: p.currentXp }));
-
-    const standing = standingFor(cohort, seats, caller);
+    const { standing, seats, cohortSize } = await loadStanding(req.session!.id);
     if (!standing) {
       // Caller hasn't opted into the talent pool (or has no profile yet).
-      return { success: true, data: { inPool: false, seats, cohortSize: cohort.length } };
+      return { success: true, data: { inPool: false, seats, cohortSize } };
     }
     return { success: true, data: { inPool: true, ...standing } };
+  });
+
+  /**
+   * The eligibility gate: the scarce, org-sourced Elite internship seats are only
+   * revealed to students who earned the rank (rank ≤ open seats). Everyone else
+   * gets their standing back so the UI can show the "earn your seat" state — the
+   * seats stay aspirational, not hidden. This is what makes the ranking a prize.
+   */
+  app.get("/elite-slots", { preHandler: app.requireAuth }, async (req) => {
+    const { standing } = await loadStanding(req.session!.id);
+    if (!standing) {
+      return { success: true, data: { eligible: false, inPool: false } };
+    }
+    if (!standing.eligible) {
+      return { success: true, data: { eligible: false, inPool: true, standing } };
+    }
+    const slots = await prisma.internshipSlot.findMany({
+      where: { eliteOnly: true, OR: [{ openUntil: null }, { openUntil: { gt: new Date() } }] },
+      include: { org: { select: { name: true } } },
+      orderBy: { createdAt: "desc" },
+    });
+    return { success: true, data: { eligible: true, inPool: true, standing, slots } };
   });
 
   app.patch("/me/applications/:id", { preHandler: app.requireAuth }, async (req, reply) => {
