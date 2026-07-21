@@ -18,6 +18,12 @@ type Batch = {
   avgSolved: number;
   topTargetRoles: { role: string; count: number }[];
   gradYears: { year: number; count: number }[];
+  placements: {
+    verified: number;
+    total: number;
+    companies: string[];
+    medianPackageBand: string | null;
+  };
 };
 
 export default function Page() {
@@ -103,6 +109,40 @@ function BatchDetail({ selected, batch }: Readonly<{ selected: string | null; ba
         <Metric label="Avg level" value={batch.avgLevel} />
         <Metric label="Avg XP" value={batch.avgXp} />
         <Metric label="Avg solved" value={batch.avgSolved} />
+      </div>
+
+      <div className="mt-5 rounded-lg border border-border bg-surface-2 p-4">
+        <div className="flex items-baseline justify-between">
+          <h3 className="font-display text-sm font-bold text-text-2">Verified placements</h3>
+          <span className="font-mono text-xs text-text-4">the pitch data</span>
+        </div>
+        {batch.placements.verified === 0 && batch.placements.total === 0 ? (
+          <p className="text-text-4 text-sm mt-2">No placements captured yet — this fills in as hires close through EYF.</p>
+        ) : (
+          <div className="mt-2 space-y-2">
+            <div className="flex flex-wrap gap-4">
+              <Metric label="Verified placed" value={batch.placements.verified} />
+              <Metric label="Total placed" value={batch.placements.total} sub="incl. self-reported" />
+            </div>
+            {batch.placements.medianPackageBand && (
+              <p className="text-sm text-text-2">
+                Median verified package <span className="font-semibold text-text-1">{batch.placements.medianPackageBand}</span>
+              </p>
+            )}
+            {batch.placements.companies.length > 0 ? (
+              <div>
+                <p className="text-xs text-text-4 mb-1">Hiring companies</p>
+                <div className="flex flex-wrap gap-2">
+                  {batch.placements.companies.map((c) => (
+                    <span key={c} className="rounded-full border border-accent/30 bg-accent-tint px-3 py-1 text-xs text-text-1">{c}</span>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <p className="text-text-4 text-xs">Company detail appears once ≥ 5 students place at the same employer (privacy floor).</p>
+            )}
+          </div>
+        )}
       </div>
 
       {batch.topTargetRoles.length > 0 && (

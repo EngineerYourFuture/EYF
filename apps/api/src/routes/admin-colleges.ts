@@ -1,6 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { prisma } from "@eyf/db";
+import { collegeSlug, descriptiveCohortProof, type ProofRow } from "@eyf/types";
 import { requirePermission } from "../middleware/permissions.js";
 import { collegeBatchHealth, type StudentStat } from "../services/college-analytics.js";
 
@@ -47,6 +48,30 @@ export async function adminCollegeRoutes(app: FastifyInstance) {
       targetRole: u.targetRole,
       graduationYear: u.graduationYear,
     }));
-    return { success: true, data: { college, ...collegeBatchHealth(stats) } };
+
+    // Proof Loop (Phase 1): verified placement outcomes for this cohort — the real pitch
+    // data. Keyed on the canonical slug, not the raw string. Descriptive + k-floored:
+    // package/company detail only appears once a cohort clears COHORT_K.
+    const outcomes = await prisma.placementOutcome.findMany({
+      where: { collegeSlug: collegeSlug(college) },
+      select: { companyName: true, ctcInr: true, status: true, verifiedAt: true },
+    });
+    const proofRows: ProofRow[] = outcomes.map((o) => ({
+      companyName: o.companyName,
+      ctcInr: o.ctcInr,
+      status: o.status,
+      verified: o.verifiedAt != null,
+    }));
+    const proof = descriptiveCohortProof(proofRows);
+    const placements = {
+      // Aggregate counts are non-identifying and always shown.
+      verified: outcomes.filter((o) => o.status === "JOINED" && o.verifiedAt != null).length,
+      total: outcomes.filter((o) => o.status === "JOINED").length,
+      // Company/package detail is k-floored (null/[] until the cohort clears COHORT_K).
+      companies: proof?.companies ?? [],
+      medianPackageBand: proof?.medianPackageBand ?? null,
+    };
+
+    return { success: true, data: { college, ...collegeBatchHealth(stats), placements } };
   });
 }
