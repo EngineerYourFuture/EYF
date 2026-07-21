@@ -1,7 +1,10 @@
 <!-- /autoplan plan file -->
 # EYF Plan — The Proof Loop (close the skill → outcome graph)
 
-Status: LOCKED (autoplan, 2026-07-21) — Sequenced Hybrid chosen · Author: Praneeth
+Status: Phase 1 SHIPPED (2026-07-21) · Sequenced Hybrid · Author: Praneeth
+Phase 1 delivered: PlacementOutcome spine + migration, collegeSlug cohort key, versioned
+snapshot, verified-pipeline capture, self-report + DPDP consent, TPO + student proof
+surfaces. ~40 tests. Phase 2 (TPO system-of-record + calibration) is the next project.
 Builds on: shipped readiness engine, org-hire pipeline (requisitions/candidates/offers),
 placement success fees (C1), TPO college analytics (A1 v1), parent digest (B3),
 warm referrals (A2). Grounds in `docs/INNOVATION-ROADMAP.md` +
