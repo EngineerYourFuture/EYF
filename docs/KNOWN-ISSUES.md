@@ -117,6 +117,20 @@ screenshot `/design-review` pass is the complement. Findings:
   (share-card export, canvas/WebGL, games, 3D viz, OG/theme meta — CSS vars don't apply there);
   the 2 raw tables handle mobile via progressive column-hiding, not overflow (a valid pattern).
 
+### Performance pass (Phase 11 audit, 2026-07-21)
+Baseline is strong: three.js + Monaco are code-split (`dynamic()`, landing is 161KB without three),
+N+1 is near-zero, 93/93 models carry indexes, SWR caching is tuned. One real finding:
+
+- **P1 — Talent search computes readiness for the whole consented pool · High (at scale) · OPEN.**
+  `org-hire.ts` search fetches ALL opted-in students, runs `computeUserReadiness` (≈9 queries each)
+  for every one via `Promise.all`, THEN filters by `minReadiness` and slices to `limit` (≤50). So a
+  platform with N consented students fires ≈N×9 concurrent queries per search — thousands at a few
+  hundred users. Masked now by low volume; a scaling cliff. Code comment already flags it: "v1
+  synchronous; precompute at scale." **Fix (needs a decision, not a blind change — it's core B2B
+  ranking):** the materialized Readiness Index (HARD-6) so search sorts/limits in SQL and computes
+  live readiness only for the top-N; or a scoped readiness cache for the search path. Don't pre-filter
+  by an activity proxy without accepting the ranking-correctness trade-off.
+
 ## How to use this file
 
 Add an entry the moment a known issue is discovered rather than losing it in a PR thread.
