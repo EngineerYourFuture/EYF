@@ -41,8 +41,9 @@ handlers. Chase *risk*, not the percentage. Prioritized roadmap (integration tes
 - **Tier 1 — trust / money / execution (do first):**
   - `score.ts` (was 17%) — public score verify. ✅ **DONE** (`score.integration.test.ts`).
   - `submissions.ts` (30%) — code submission/judging (execution surface).
-  - `me.ts` (51%) — self-service incl. financial/PII endpoints (partly covered by referral/
-    self-report tests; fill the account-export/delete + subscription paths).
+  - `me.ts` — self-service incl. financial/PII. ✅ **GDPR/DPDP export + erasure covered**
+    (`me-privacy.integration.test.ts`); referral/self-report already covered. Remaining: a couple
+    of minor placements-endpoint branches.
   - `org.ts` (16%) — org creation/membership (tenant boundary).
 - **Tier 2 — important product paths:** `mocks.ts` (31%), `mcq.ts` (37%), `mentors.ts` (32%),
   `resume.ts` (40%), `roadmap.ts` (57%), `leaderboard.ts` (50%).
