@@ -14,6 +14,7 @@
  * The pure functions (code gen, qualification, redeem validation) are the tested
  * core; the DB helpers below are thin glue.
  */
+import { randomInt } from "node:crypto";
 import { prisma, PlanTier, SubscriptionStatus, ReferralStatus } from "@eyf/db";
 import { resolveActivePlan } from "../lib/subscription.js";
 
@@ -27,8 +28,10 @@ const CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 /** A random 8-char referral code. Collisions are astronomically unlikely but the
  * caller still upserts against a unique column and retries. */
 export function newReferralCode(): string {
+  // crypto-random so codes are unguessable (a guessable code could misattribute
+  // a referral); also clears the pseudorandom-in-security-context lint.
   let out = "";
-  for (let i = 0; i < 8; i++) out += CODE_ALPHABET[Math.floor(Math.random() * CODE_ALPHABET.length)];
+  for (let i = 0; i < 8; i++) out += CODE_ALPHABET[randomInt(CODE_ALPHABET.length)];
   return out;
 }
 
