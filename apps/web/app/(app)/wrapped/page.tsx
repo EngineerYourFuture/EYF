@@ -96,8 +96,9 @@ export default function Page() {
 function ShareCard({ data }: Readonly<{ data: Wrapped }>) {
   return (
     <div className="mt-8 theme-dark relative overflow-hidden rounded-2xl border border-accent/20 bg-bg p-7 sm:p-9 shadow-glow-sm">
-      <div className="pointer-events-none absolute -top-1/3 -right-10 h-72 w-72 rounded-full blur-[90px]" style={{ background: "radial-gradient(circle, rgba(255, 255, 255,0.28), transparent 60%)" }} />
-      <div className="pointer-events-none absolute -bottom-20 -left-10 h-72 w-72 rounded-full blur-[100px]" style={{ background: "radial-gradient(circle, rgba(255, 255, 255,0.18), transparent 60%)" }} />
+      {/* DESIGN.md: no aurora blobs / colored radial glows. A near-invisible neutral
+          vignette for depth is the sanctioned alternative; the dot-grid is a subtle material. */}
+      <div className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(120% 100% at 50% -10%, transparent 55%, rgba(0,0,0,0.35))" }} />
       <div className="pointer-events-none absolute inset-0 opacity-[0.05]" style={{ backgroundImage: "radial-gradient(rgba(255, 255, 255,0.8) 1px, transparent 1px)", backgroundSize: "26px 26px" }} />
 
       <div className="relative">
