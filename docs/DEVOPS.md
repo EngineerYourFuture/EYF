@@ -212,35 +212,64 @@ Suggested first alerts, using signals that already exist:
 
 ## Backups
 
-**Needs implementation.** No backup automation, retention policy, or restore runbook exists in-repo.
+**Preferred: your managed Postgres provider's PITR** (Railway/Render/Fly/Supabase all offer it) —
+enable it and confirm the retention window. In-repo tooling for self-hosted, verification, and
+manual pre-migration snapshots now exists: **`scripts/db-backup.sh`** (tested) and
+**`scripts/db-restore.sh`**.
 
 | Store | Contains | Backup |
 | --- | --- | --- |
-| PostgreSQL | All business data | Provider-managed (assumed) — **not configured here** |
+| PostgreSQL | All business data | Managed PITR (enable it) **+** `scripts/db-backup.sh` for snapshots/verification |
 | Redis | Queues, rate-limit counters | `--appendonly yes` + named volume (compose only) |
 | R2 | Resumes, certificates | Provider durability |
+
+> [!IMPORTANT]
+> **Two EYF gotchas the backup script handles — don't hand-roll `pg_dump` without them:**
+> 1. **RLS.** HARD-1 sets `FORCE ROW LEVEL SECURITY`, so `pg_dump` fails for the app's own role.
+>    Back up as a **dedicated `BYPASSRLS` role**, never the app role:
+>    `CREATE ROLE eyf_backup LOGIN BYPASSRLS PASSWORD '…'; GRANT pg_read_all_data TO eyf_backup;`
+>    Point `BACKUP_DATABASE_URL` at it.
+> 2. **Prisma's `?schema=public`** query param — `pg_dump` rejects it; the script strips it.
+
+```bash
+# Daily off-site snapshot (schedule via cron / your provider's scheduler / a CI cron):
+BACKUP_DATABASE_URL='postgres://eyf_backup:…@host/eyf' \
+BACKUP_S3_URI='s3://eyf-backups' BACKUP_S3_ENDPOINT='https://<acct>.r2.cloudflarestorage.com' \
+  scripts/db-backup.sh
+```
 
 > [!WARNING]
 > Redis is **not** purely ephemeral. Rate-limit counters self-heal, but **in-flight judge jobs live only in Redis**. Losing Redis loses queued submissions. Treat it as semi-durable.
 
-Minimum recommended: automated daily PITR-capable Postgres backups + a **tested** restore procedure. An untested backup is not a backup.
+**An untested backup is not a backup** — run the restore drill below quarterly.
 
 ---
 
 ## Disaster recovery
 
-**No documented RTO/RPO — Needs implementation.**
-
-What the codebase does support:
+**Targets:** **RPO ≤ 24h** (with `scripts/db-backup.sh` on a daily schedule; **≤ 5 min** if the
+provider's PITR is enabled — prefer PITR) · **RTO ≤ 1h** for a Postgres restore (provision a fresh
+instance → `db-restore.sh` → point the app at it → verify).
 
 ```mermaid
 flowchart TD
     I["Incident"] --> T{Type}
     T -->|Bad deploy| R1["Redeploy previous :sha<br/>(images are immutable)"]
     T -->|Bad additive migration| R2["Redeploy previous :sha<br/>old code ignores new columns"]
-    T -->|Destructive migration| R3["⚠️ No path<br/>forward-fix or restore"]
+    T -->|Destructive migration| R3["⚠️ No down-migration<br/>forward-fix or restore from backup"]
     T -->|Redis loss| R4["Rate limits self-heal<br/>queued jobs lost"]
-    T -->|Postgres loss| R5["Restore from backup<br/>⚠️ not configured"]
+    T -->|Postgres loss| R5["Provision fresh DB → db-restore.sh<br/>→ verify RLS → repoint app"]
+```
+
+### Restore drill (run quarterly — an untested backup is not a backup)
+
+```bash
+# 1. Take a fresh backup (or grab the latest off-site dump).
+BACKUP_DATABASE_URL='…bypassrls…' BACKUP_DIR=/tmp scripts/db-backup.sh
+# 2. Restore it into a THROWAWAY database and confirm it comes back clean.
+RESTORE_DATABASE_URL='postgres://…/eyf_restore_test' scripts/db-restore.sh /tmp/eyf-<ts>.dump
+pnpm --filter @eyf/db db:rls:verify   # RLS policies survive the round-trip
+# 3. Record the wall-clock time — that's your real RTO. Drop the throwaway DB.
 ```
 
 | Property | Status |
@@ -248,7 +277,7 @@ flowchart TD
 | Immutable image tags | ✅ commit SHA |
 | Down-migrations | ❌ Prisma has none — rely on expand/contract |
 | Automated rollback | ❌ deploy job is a stub |
-| Backup restore | ❌ not configured |
+| Backup + restore | ✅ tooling + runbook (`scripts/db-backup.sh` / `db-restore.sh`); **enable managed PITR + schedule the backup** |
 | Multi-region | ❌ not implemented |
 
 ---

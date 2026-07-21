@@ -131,6 +131,20 @@ N+1 is near-zero, 93/93 models carry indexes, SWR caching is tuned. One real fin
   a cold first search of a large pool still computes N; the complete answer is the materialized
   Readiness Index (HARD-6) so search sorts/limits in SQL and computes live only for the top-N.
 
+### DevOps pass (Phase 12 audit, 2026-07-21)
+Strong baseline: split `/livez`+`/readyz` probes, Dockerfiles + compose healthchecks, a
+health-gated rolling CD with immutable-SHA rollback tags (multi-platform), Sentry + Prometheus.
+One Critical gap (the docs already flagged it):
+
+- **D1 — No DB backup / restore / RTO-RPO · Critical · TOOLING SHIPPED, needs ops action.**
+  `docs/DEVOPS.md` said "Restore from backup ⚠️ not configured" — for a SaaS holding PII + payments,
+  a Postgres loss was unrecoverable. **Surfaced by testing:** a naive `pg_dump` also *fails* under
+  HARD-1's `FORCE ROW LEVEL SECURITY` (needs a BYPASSRLS role) and on Prisma's `?schema` param.
+  **Shipped:** tested `scripts/db-backup.sh` + `scripts/db-restore.sh` (both gotchas handled),
+  RTO/RPO targets, and a quarterly restore drill in DEVOPS.md. **You must still:** create the
+  `eyf_backup` BYPASSRLS role, enable the provider's PITR, schedule the backup, and run the drill —
+  those are infra actions, not code.
+
 ## How to use this file
 
 Add an entry the moment a known issue is discovered rather than losing it in a PR thread.
