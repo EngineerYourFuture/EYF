@@ -11,6 +11,18 @@ import { getConsent, setConsent } from "@/lib/analytics";
 export function ConsentBanner() {
   const [show, setShow] = useState(false);
   useEffect(() => { setShow(getConsent() === null); }, []);
+
+  // While the banner floats over the bottom of the viewport, reserve a matching
+  // safe-area on the scroll region so tall content (readiness gauge, skill
+  // radar) can always be scrolled clear of it. Removed the moment it's dismissed.
+  useEffect(() => {
+    if (!show) return;
+    const main = document.getElementById("main-content");
+    if (!main) return;
+    main.style.paddingBottom = "7rem";
+    return () => { main.style.paddingBottom = ""; };
+  }, [show]);
+
   if (!show) return null;
 
   const decide = (v: "granted" | "denied") => { setConsent(v); setShow(false); };
