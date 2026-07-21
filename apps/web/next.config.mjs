@@ -41,8 +41,31 @@ const csp = [
   ...(isDev ? [] : ["upgrade-insecure-requests"]),
 ].join("; ");
 
+// Security finding S1 (docs/KNOWN-ISSUES.md): the enforced script-src above allows scripts
+// from ANY https origin. We can't safely enforce a tighter allowlist blind — Clerk's prod
+// domain is deployment-specific and CSP breakage only surfaces at runtime — so we ship the
+// tightened policy in REPORT-ONLY mode first. It blocks nothing; the browser just reports
+// what WOULD be blocked. Confirm zero violations on staging, then promote this to the
+// enforced `Content-Security-Policy` header and delete the permissive one.
+//
+// Monaco (unsafe-eval, jsdelivr) and Next hydration (unsafe-inline) are intentionally kept —
+// dropping them needs per-request nonces + dynamic rendering (a separate, larger task).
+const scriptSrcTight = [
+  "'self'", "'unsafe-inline'", "'unsafe-eval'", "blob:",
+  "https://cdn.jsdelivr.net", // Monaco editor loader/workers
+  "https://*.posthog.com", // PostHog analytics (assets + surveys)
+  "https://*.clerk.accounts.dev", "https://*.clerk.com", "https://*.clerk.services", // Clerk auth
+  "https://challenges.cloudflare.com", // Clerk bot protection (Turnstile)
+].join(" ");
+const cspReportOnly = csp.replace(
+  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https: blob:",
+  `script-src ${scriptSrcTight}`,
+);
+
 const securityHeaders = [
   { key: "Content-Security-Policy", value: csp },
+  // Report-only shadow of the tightened script-src (S1). Promote to enforced after staging QA.
+  { key: "Content-Security-Policy-Report-Only", value: cspReportOnly },
   { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
   { key: "X-Frame-Options", value: "DENY" },
   { key: "X-Content-Type-Options", value: "nosniff" },

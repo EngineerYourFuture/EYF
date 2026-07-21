@@ -53,10 +53,16 @@ Overall posture is strong (dual Clerk+JWT auth with separate access/refresh secr
 RLS tenant isolation, per-plan Redis rate limiting, verified Razorpay webhooks, no SQLi/secret
 leakage). Findings, ranked:
 
-- **S1 — Web CSP `script-src` is `'unsafe-inline' 'unsafe-eval' https:` · Medium · OPEN.**
-  Largely defeats CSP's XSS mitigation. XSS *surface* is small (one safe `dangerouslySetInnerHTML`,
-  React escaping elsewhere), so Medium not High. **Fix:** per-request nonces + drop `https:` to an
-  allowlist (its own scoped task — touches middleware + layout).
+- **S1 — Web CSP `script-src` allows any `https:` origin · Medium · IN PROGRESS (report-only shipped).**
+  The enforced policy lets scripts load from any https host. A tightened `script-src` allowlist
+  (self + jsdelivr/PostHog/Clerk/Turnstile, dropping bare `https:`) now ships as
+  `Content-Security-Policy-Report-Only` — it blocks nothing, the browser just reports what *would*
+  break. **To promote:** exercise the app on staging (esp. sign-in/Clerk, the Monaco editor, and
+  analytics), confirm zero `report-only` CSP violations in the browser console, add any missing
+  origin, then replace the enforced header value with `cspReportOnly` and delete the report-only one.
+  `'unsafe-inline'`/`'unsafe-eval'` are intentionally kept — Monaco needs eval and Next hydration
+  needs inline; removing them requires per-request nonces + dynamic rendering (71 static pages would
+  go dynamic — a separate, larger task, deferred).
 - **S2 — `/metrics` fail-open · Medium · FIXED (this PR).** Was unauthenticated when `METRICS_TOKEN`
   unset. Now fails closed in production (404) with a constant-time token compare.
 - **S3 — No log redaction · Low-Med · FIXED (this PR).** Added pino `redact` for
