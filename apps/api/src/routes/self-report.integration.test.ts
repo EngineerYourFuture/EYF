@@ -57,4 +57,13 @@ describe.skipIf(!hasDb)("self-reported placement (integration)", () => {
     expect(row!.collegeSlug).toBe("nit-trichy");
     expect(row!.snapshotVersion).toBe("r1");
   });
+
+  it("proof endpoint returns the college but null proof below the k-anonymity floor", async () => {
+    const token = app.jwt.sign({ id: userId, email: "sr@x", name: "SR", role: "STUDENT", plan: "free" }, { expiresIn: "5m" });
+    const res = await app.inject({ method: "GET", url: "/v1/me/placement-proof", headers: { authorization: `Bearer ${token}` } });
+    expect(res.statusCode).toBe(200);
+    const body = res.json().data;
+    expect(body.college).toBe("NIT Trichy");
+    expect(body.proof).toBeNull(); // 1 outcome < COHORT_K ⇒ suppressed
+  });
 });

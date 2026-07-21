@@ -1,7 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { prisma, Persona, PlacementSource } from "@eyf/db";
-import { collegeSlug, validateSelfReport, READINESS_ALGO_VERSION } from "@eyf/types";
+import { collegeSlug, validateSelfReport, descriptiveCohortProof, READINESS_ALGO_VERSION, type ProofRow } from "@eyf/types";
 import {
   getOrCreateReferralCode, settleReferralFor, validateRedeem,
   REWARD_DAYS, QUALIFY_XP, type RedeemCheck,
@@ -229,5 +229,24 @@ export async function meRoutes(app: FastifyInstance) {
       select: { id: true, companyName: true, role: true, status: true },
     });
     return reply.code(201).send({ success: true, data: { ...created, verified: false } });
+  });
+
+  // Student-facing proof: what verified alumni from THIS student's college achieved.
+  // Aggregate-only and k-floored (descriptiveCohortProof) so it never exposes an
+  // individual, and strictly descriptive/past-tense — proof as hope, not a promise.
+  app.get("/placement-proof", { preHandler: app.requireAuth }, async (req) => {
+    const me = await prisma.user.findUnique({ where: { id: req.session!.id }, select: { college: true } });
+    if (!me?.college) return { success: true, data: { college: null, proof: null } };
+    const outcomes = await prisma.placementOutcome.findMany({
+      where: { collegeSlug: collegeSlug(me.college) },
+      select: { companyName: true, ctcInr: true, status: true, verifiedAt: true },
+    });
+    const rows: ProofRow[] = outcomes.map((o) => ({
+      companyName: o.companyName,
+      ctcInr: o.ctcInr,
+      status: o.status,
+      verified: o.verifiedAt != null,
+    }));
+    return { success: true, data: { college: me.college, proof: descriptiveCohortProof(rows) } };
   });
 }

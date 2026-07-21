@@ -7,6 +7,7 @@ import { PageMotion } from "@/components/page-motion";
 import { ThemeToggle } from "@/components/theme";
 import { ReferralCard } from "@/components/referral-card";
 import { ParentDigestCard } from "@/components/parent-digest-card";
+import { PlacementReportCard } from "@/components/placement-report-card";
 import { Icons } from "@/components/icons";
 import { PERSONA_LIST, type PersonaId } from "@/lib/persona";
 
@@ -85,6 +86,8 @@ export default function Page() {
       <div className="mt-8"><ReferralCard /></div>
 
       <div className="mt-5"><ParentDigestCard /></div>
+
+      <div className="mt-5"><PlacementReportCard /></div>
 
       <Card className="mt-5">
         <h2 className="font-display text-lg font-bold mb-4">Profile</h2>

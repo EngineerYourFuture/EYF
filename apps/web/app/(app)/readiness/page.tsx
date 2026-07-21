@@ -8,6 +8,7 @@ import { Icons } from "@/components/icons";
 import { useGuidance } from "@/lib/use-guidance";
 import { ScoreShare } from "@/components/score-share";
 import { ScoreRing } from "@/components/score-ring";
+import { CollegeProofCard } from "@/components/college-proof-card";
 import { companyReadiness, readinessBand, tierOf, biggestGap, offerProbability, TIER_PROFILES, SPOTLIGHT_COMPANIES } from "@/lib/company-readiness";
 import { companyLabel } from "@/lib/company";
 import type { Readiness } from "@/lib/readiness";
@@ -36,6 +37,9 @@ export default function Page() {
             </div>
           </div>
         )}
+
+        {/* Proof from verified alumni at this student's college (retention lever). */}
+        <div className="mt-6"><CollegeProofCard /></div>
 
         {!r ? (
           <div className="mt-8 grid lg:grid-cols-[320px_1fr] gap-6">
