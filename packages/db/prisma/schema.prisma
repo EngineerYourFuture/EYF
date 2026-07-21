@@ -268,6 +268,8 @@ model User {
 
   // Proof Loop: verified placement outcomes for this user (the skill→outcome graph).
   placementOutcomes PlacementOutcome[]
+  // Proof Loop Phase 2: this user's membership in TPO-managed graduating batches.
+  batchMemberships  BatchMember[]
 
   @@index([role])
   @@index([college])
@@ -1755,11 +1757,76 @@ model PlacementOutcome {
   placedAt         DateTime               @default(now())
   createdAt        DateTime               @default(now())
   updatedAt        DateTime               @default(now()) @updatedAt
+  batchMember      BatchMember? // Phase 2: the batch-roster row this outcome verifies, if any.
 
   @@index([collegeSlug, verifiedAt])
   @@index([userId])
   @@index([source, status])
   @@map("placement_outcomes")
+}
+
+// Proof Loop Phase 2 (docs/PLAN-proof-loop.md). The cohort-complete data model — the piece
+// that makes HONEST calibration possible. A TPO owns a College and, per graduating batch,
+// records the WHOLE roster's placement status (including the students who did NOT place).
+// That denominator is what Phase-1 self-report structurally could not provide. Calibration
+// (packages/types/calibration.ts) refuses any batch whose `dataComplete` is false, so a
+// survivorship-biased number can never be produced.
+model College {
+  id        String        @id @default(cuid())
+  slug      String        @unique // canonical cohort key (see collegeSlug in @eyf/types)
+  name      String // canonical display name
+  tier      String? // e.g. "IIT" | "NIT" | "TIER2" — a confounder to control for in calibration
+  createdAt DateTime      @default(now())
+  batches   BatchCohort[]
+
+  @@map("colleges")
+}
+
+model BatchCohort {
+  id           String        @id @default(cuid())
+  collegeId    String
+  college      College       @relation(fields: [collegeId], references: [id], onDelete: Cascade)
+  gradYear     Int
+  // THE survivorship guard: calibration only runs on a batch the TPO has marked complete
+  // (the whole roster's status is recorded, so the non-placed denominator is real).
+  dataComplete Boolean       @default(false)
+  completedAt  DateTime?
+  createdAt    DateTime      @default(now())
+  members      BatchMember[]
+
+  @@unique([collegeId, gradYear])
+  @@map("batch_cohorts")
+}
+
+enum PlacementStatus {
+  PLACED
+  SEARCHING
+  NOT_PLACED
+  HIGHER_STUDIES
+  OPTED_OUT
+}
+
+model BatchMember {
+  id              String            @id @default(cuid())
+  batchId         String
+  batch           BatchCohort       @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  // Links an EYF user when known — their frozen readiness is what calibration correlates.
+  // Many roster members aren't EYF users; those carry a name but no readiness band.
+  userId          String?
+  user            User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
+  studentName     String
+  status          PlacementStatus   @default(SEARCHING)
+  // Frozen readiness snapshot (from the member's PlacementOutcome, or a batch-time snapshot).
+  readinessBand   String?
+  snapshotVersion String?
+  // The verified placement outcome this roster row corresponds to, when placed through EYF.
+  outcomeId       String?           @unique
+  outcome         PlacementOutcome? @relation(fields: [outcomeId], references: [id], onDelete: SetNull)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @default(now()) @updatedAt
+
+  @@index([batchId, status])
+  @@map("batch_members")
 }
 
 model PipelineCandidate {

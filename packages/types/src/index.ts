@@ -153,6 +153,10 @@ export type {
 export { collegeSlug, ctcBand, descriptiveCohortProof, validateSelfReport, COHORT_K, MAX_SELF_REPORT_CTC } from "./placement";
 export type { ProofRow, CohortProof, SelfReportInput, SelfReportCheck } from "./placement";
 
+// Proof Loop Phase 2 — denominator-aware readiness calibration (INTERNAL-only output).
+export { calibrateBatch, pooledCalibration, CALIBRATION_K } from "./calibration";
+export type { PlacementStatus, CalibrationMember, BandCalibration } from "./calibration";
+
 // RBAC capability layer (admin/staff portal — scalable, shared web+api).
 export { CAPABILITIES, capabilitiesFor, hasCapability, isStaffRole } from "./permissions";
 export type { Capability, StaffRole } from "./permissions";
