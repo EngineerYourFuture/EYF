@@ -1,4 +1,5 @@
 "use client";
+import { useParams } from "next/navigation";
 import { Card, Button, Badge, TextField, Field } from "@eyf/ui";
 import { useApi, useApiAction } from "@/lib/use-api";
 import { ResumeGap } from "@/components/resume-gap";
@@ -16,7 +17,8 @@ type Resume = {
 
 const draftKey = (id: string) => `eyf:resume:${id}`;
 
-export default function Page({ params }: Readonly<{ params: { id: string } }>) {
+export default function Page() {
+  const params = useParams<{ id: string }>();
   const { data, mutate } = useApi<Resume>(`/resume/${params.id}`);
   const action = useApiAction();
   const [doc, setDoc] = useState<ResumeDocument | null>(null);

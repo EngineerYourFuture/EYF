@@ -1,4 +1,5 @@
 "use client";
+import { useParams } from "next/navigation";
 import { Card, Badge, Button } from "@eyf/ui";
 import { useApi, useApiAction } from "@/lib/use-api";
 import { useState } from "react";
@@ -12,7 +13,8 @@ type Thread = {
   _count: { reactions: number };
 };
 
-export default function Page({ params }: Readonly<{ params: { slug: string } }>) {
+export default function Page() {
+  const params = useParams<{ slug: string }>();
   const { data, mutate } = useApi<Thread>(`/forum/threads/${params.slug}`);
   const [reply, setReply] = useState("");
   const [sending, setSending] = useState(false);

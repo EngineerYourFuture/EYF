@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import Link from "next/link";
 import { Button, Card, Badge, PageHeader, Skeleton, EmptyState } from "@eyf/ui";
 import { useApi, useApiAction } from "@/lib/use-api";
 import { track, Events } from "@/lib/analytics";
@@ -120,7 +121,7 @@ export default function Page() {
 
         <div className="mt-8 flex gap-3">
           <Button onClick={() => setPrep(null)}>Prep another project</Button>
-          <a href="/communication"><Button variant="ghost">Practice answering aloud →</Button></a>
+          <Link href="/communication"><Button variant="ghost">Practice answering aloud →</Button></Link>
         </div>
       </PageMotion>
     );

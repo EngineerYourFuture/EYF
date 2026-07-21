@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import Link from "next/link";
 import { Card, Badge, Button, Tabs, TabPanel } from "@eyf/ui";
 import { useApi } from "@/lib/use-api";
 
@@ -36,7 +37,7 @@ function EditorialTab({ slug }: Readonly<{ slug: string }>) {
     return (
       <div className="text-center py-8">
         <Badge tone="accent">Basic+</Badge>
-        <p className="text-text-3 text-sm mt-3">Editorials are part of Basic. <a href="/billing" className="text-accent hover:underline">Upgrade</a> to read.</p>
+        <p className="text-text-3 text-sm mt-3">Editorials are part of Basic. <Link href="/billing" className="text-accent hover:underline">Upgrade</Link> to read.</p>
       </div>
     );
   }

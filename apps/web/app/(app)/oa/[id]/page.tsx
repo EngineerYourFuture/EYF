@@ -1,4 +1,5 @@
 "use client";
+import { useParams } from "next/navigation";
 import { Card, Badge, Button } from "@eyf/ui";
 import { useApi, useApiAction } from "@/lib/use-api";
 import { difficultyTone } from "@/lib/ui-helpers";
@@ -10,7 +11,8 @@ type Report = {
   author: { name: string; college: string | null };
 };
 
-export default function Page({ params }: Readonly<{ params: { id: string } }>) {
+export default function Page() {
+  const params = useParams<{ id: string }>();
   const { data, mutate } = useApi<Report>(`/oa/${params.id}`);
   const action = useApiAction();
   if (!data) return <div className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 text-text-3">Loading…</div>;

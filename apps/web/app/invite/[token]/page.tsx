@@ -1,4 +1,5 @@
 "use client";
+import { useParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Button } from "@eyf/ui";
@@ -18,7 +19,8 @@ type Result =
  * each outcome the API defines: expired/invalid, email mismatch, or not signed
  * in (which sends the invitee through sign-in and back here).
  */
-export default function InviteAcceptPage({ params }: Readonly<{ params: { token: string } }>) {
+export default function InviteAcceptPage() {
+  const params = useParams<{ token: string }>();
   const { token } = params;
   const action = useApiAction();
   const [result, setResult] = useState<Result>({ kind: "loading" });

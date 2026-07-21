@@ -1,4 +1,5 @@
 "use client";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Card, Badge, Button, Meter, Skeleton, ErrorState } from "@eyf/ui";
 import { useApi } from "@/lib/use-api";
@@ -26,7 +27,8 @@ type Detail = {
 
 const tone = { EASY: "easy", MEDIUM: "medium", HARD: "hard", EXPERT: "expert" } as const;
 
-export default function Page({ params }: Readonly<{ params: { slug: string } }>) {
+export default function Page() {
+  const params = useParams<{ slug: string }>();
   const { data, isLoading, error, mutate } = useApi<Detail>(`/companies/${params.slug}`);
   const label = companyLabel(params.slug);
 

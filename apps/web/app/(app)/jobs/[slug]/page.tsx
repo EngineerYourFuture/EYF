@@ -1,4 +1,5 @@
 "use client";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Card, Badge, Button, Skeleton } from "@eyf/ui";
 import { useApi, useApiAction } from "@/lib/use-api";
@@ -16,7 +17,8 @@ type App = { id: string; status: string; job: { slug: string } };
 
 const lpa = (n: number) => Math.round(n / 100_000);
 
-export default function Page({ params }: Readonly<{ params: { slug: string } }>) {
+export default function Page() {
+  const params = useParams<{ slug: string }>();
   const { data } = useApi<Job>(`/jobs/${params.slug}`);
   const { data: apps, mutate } = useApi<App[]>("/jobs/me/applications");
   const action = useApiAction();

@@ -1,6 +1,6 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import { Badge, Button } from "@eyf/ui";
 import { useApi, useApiAction } from "@/lib/use-api";
@@ -79,7 +79,8 @@ const Icon = {
   ),
 };
 
-export default function Page({ params }: Readonly<{ params: { slug: string } }>) {
+export default function Page() {
+  const params = useParams<{ slug: string }>();
   const { data: problem } = useApi<Problem>(`/problems/${params.slug}`);
   const { theme } = useTheme();
   const [lang, setLang] = useState<Lang>("CPP");

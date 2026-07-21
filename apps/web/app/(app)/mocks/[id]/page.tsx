@@ -1,4 +1,5 @@
 "use client";
+import { useParams } from "next/navigation";
 import { toast } from "sonner";
 import { Card, Badge, Button, Meter } from "@eyf/ui";
 import { useApi, useApiAction } from "@/lib/use-api";
@@ -22,7 +23,8 @@ type Mock = {
   } | null;
 };
 
-export default function Page({ params }: Readonly<{ params: { id: string } }>) {
+export default function Page() {
+  const params = useParams<{ id: string }>();
   const { data, mutate } = useApi<Mock>(`/mocks/${params.id}`);
   const action = useApiAction();
   const [sending, setSending] = useState(false);

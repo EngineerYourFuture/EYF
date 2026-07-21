@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import Link from "next/link";
 import { Card, Badge, Button } from "@eyf/ui";
 import { useApi, useApiAction } from "@/lib/use-api";
 import { useEyfAuth as useAuth } from "@/lib/auth";
@@ -39,7 +40,7 @@ export default function Page() {
         <h2 className="font-display text-xl font-bold">Get Roasted <Badge tone="accent" className="ml-2">Pro+</Badge></h2>
         <p className="text-text-3 text-sm mt-1">Claude reads your resume in 30 seconds. Brutal. No softening.</p>
         {!defaultId
-          ? <p className="text-text-3 mt-4 text-sm">Build a resume first → <a href="/resume" className="text-accent hover:underline">resume editor</a></p>
+          ? <p className="text-text-3 mt-4 text-sm">Build a resume first → <Link href="/resume" className="text-accent hover:underline">resume editor</Link></p>
           : <Button className="mt-4" onClick={() => roastIt(defaultId)} disabled={roasting}>
               {roasting ? "Reading…" : "Roast my default resume"}
             </Button>}

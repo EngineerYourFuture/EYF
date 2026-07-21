@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { LegalLayout } from "@/components/legal-layout";
 
 export const metadata: Metadata = {
@@ -35,7 +36,7 @@ export default function ContactPage() {
         For payment or subscription queries, email{" "}
         <a href="mailto:eyf.support@gmail.com">eyf.support@gmail.com</a> with your registered
         email and transaction reference. Please review our{" "}
-        <a href="/refund">Cancellation &amp; Refund Policy</a> first.
+        <Link href="/refund">Cancellation &amp; Refund Policy</Link> first.
       </p>
     </LegalLayout>
   );

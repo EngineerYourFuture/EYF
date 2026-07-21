@@ -36,8 +36,9 @@ const getShare = cache(async (code: string): Promise<Share | null> => {
   }
 });
 
-export async function generateMetadata({ params }: { params: { code: string } }): Promise<Metadata> {
-  const share = await getShare(params.code);
+export async function generateMetadata({ params }: { params: Promise<{ code: string }> }): Promise<Metadata> {
+  const { code } = await params;
+  const share = await getShare(code);
   if (!share) { return { title: "EYF Score — not found" }; }
   const s = share.snapshot;
   return {
@@ -46,8 +47,9 @@ export async function generateMetadata({ params }: { params: { code: string } })
   };
 }
 
-export default async function ScorePage({ params }: Readonly<{ params: { code: string } }>) {
-  const share = await getShare(params.code);
+export default async function ScorePage({ params }: Readonly<{ params: Promise<{ code: string }> }>) {
+  const { code } = await params;
+  const share = await getShare(code);
 
   if (!share) {
     return (
