@@ -121,15 +121,15 @@ screenshot `/design-review` pass is the complement. Findings:
 Baseline is strong: three.js + Monaco are code-split (`dynamic()`, landing is 161KB without three),
 N+1 is near-zero, 93/93 models carry indexes, SWR caching is tuned. One real finding:
 
-- **P1 — Talent search computes readiness for the whole consented pool · High (at scale) · OPEN.**
-  `org-hire.ts` search fetches ALL opted-in students, runs `computeUserReadiness` (≈9 queries each)
-  for every one via `Promise.all`, THEN filters by `minReadiness` and slices to `limit` (≤50). So a
-  platform with N consented students fires ≈N×9 concurrent queries per search — thousands at a few
-  hundred users. Masked now by low volume; a scaling cliff. Code comment already flags it: "v1
-  synchronous; precompute at scale." **Fix (needs a decision, not a blind change — it's core B2B
-  ranking):** the materialized Readiness Index (HARD-6) so search sorts/limits in SQL and computes
-  live readiness only for the top-N; or a scoped readiness cache for the search path. Don't pre-filter
-  by an activity proxy without accepting the ranking-correctness trade-off.
+- **P1 — Talent search computes readiness for the whole consented pool · High (at scale) · MITIGATED.**
+  `org-hire.ts` search ran `computeUserReadiness` (≈9 queries each) for every opted-in student before
+  limiting to ≤50 → ≈N×9 queries per search, a scaling cliff. **Shipped mitigation:** the search path
+  now uses `computeUserReadinessCached` — a scoped Redis cache (5-min TTL, keyed by algorithm version
+  so a scoring change auto-invalidates), so repeated/overlapping searches hit cache instead of
+  recomputing. Correctness-preserving (same values), best-effort (a Redis miss just computes), and
+  scoped to search — a student's own live score stays uncached/fresh. **Still open for the full fix:**
+  a cold first search of a large pool still computes N; the complete answer is the materialized
+  Readiness Index (HARD-6) so search sorts/limits in SQL and computes live only for the top-N.
 
 ## How to use this file
 
