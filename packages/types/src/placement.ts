@@ -93,3 +93,38 @@ export function descriptiveCohortProof(rows: readonly ProofRow[]): CohortProof |
 
   return { placed: joined.length, companies, medianPackageBand };
 }
+
+/** Sanity cap on a self-reported annual CTC (₹10 crore) — rejects fat-finger/garbage input. */
+export const MAX_SELF_REPORT_CTC = 100_000_000;
+
+export type SelfReportInput = {
+  companyName: string;
+  role: string;
+  ctcInr?: number | null;
+  status?: "OFFERED" | "JOINED";
+  /** Explicit DPDP consent to store employer/CTC/placement (financial PII). Required true. */
+  consent: boolean;
+};
+
+export type SelfReportCheck =
+  | { ok: true; value: { companyName: string; role: string; ctcInr: number | null; status: "OFFERED" | "JOINED" } }
+  | { ok: false; reason: "no-consent" | "no-company" | "no-role" | "bad-ctc" };
+
+/**
+ * Pure guard for a student-submitted placement. Enforces the DPDP consent gate and basic
+ * hygiene in one testable place. A self-report is ALWAYS unverified (never sets verifiedAt),
+ * so a passing check here still keeps the row out of every money aggregate until an offer
+ * letter verifies it — the trust boundary lives in `descriptiveCohortProof`, not here.
+ */
+export function validateSelfReport(input: SelfReportInput): SelfReportCheck {
+  if (input.consent !== true) return { ok: false, reason: "no-consent" };
+  const companyName = input.companyName?.trim() ?? "";
+  if (companyName.length < 2) return { ok: false, reason: "no-company" };
+  const role = input.role?.trim() ?? "";
+  if (role.length < 2) return { ok: false, reason: "no-role" };
+  const ctc = input.ctcInr ?? null;
+  if (ctc !== null && (!Number.isInteger(ctc) || ctc < 0 || ctc > MAX_SELF_REPORT_CTC)) {
+    return { ok: false, reason: "bad-ctc" };
+  }
+  return { ok: true, value: { companyName, role, ctcInr: ctc, status: input.status ?? "JOINED" } };
+}

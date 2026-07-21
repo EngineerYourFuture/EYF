@@ -150,8 +150,8 @@ export type {
 } from "./readiness";
 
 // Proof Loop — cohort key + descriptive-verified proof (docs/PLAN-proof-loop.md).
-export { collegeSlug, ctcBand, descriptiveCohortProof, COHORT_K } from "./placement";
-export type { ProofRow, CohortProof } from "./placement";
+export { collegeSlug, ctcBand, descriptiveCohortProof, validateSelfReport, COHORT_K, MAX_SELF_REPORT_CTC } from "./placement";
+export type { ProofRow, CohortProof, SelfReportInput, SelfReportCheck } from "./placement";
 
 // RBAC capability layer (admin/staff portal — scalable, shared web+api).
 export { CAPABILITIES, capabilitiesFor, hasCapability, isStaffRole } from "./permissions";

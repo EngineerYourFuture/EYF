@@ -1,11 +1,13 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
-import { prisma, Persona } from "@eyf/db";
+import { prisma, Persona, PlacementSource } from "@eyf/db";
+import { collegeSlug, validateSelfReport, READINESS_ALGO_VERSION } from "@eyf/types";
 import {
   getOrCreateReferralCode, settleReferralFor, validateRedeem,
   REWARD_DAYS, QUALIFY_XP, type RedeemCheck,
 } from "../services/referral.js";
 import { parentDigestFor } from "../services/parent-digest.js";
+import { computeUserReadiness } from "../services/guidance.js";
 
 function redeemError(reason: Exclude<RedeemCheck, { ok: true }>["reason"]): string {
   switch (reason) {
@@ -167,5 +169,65 @@ export async function meRoutes(app: FastifyInstance) {
       parentDigestFor(req.session!.id),
     ]);
     return { success: true, data: { parentEmail: me?.parentEmail ?? null, digest } };
+  });
+
+  // ── Proof Loop: self-reported placements (docs/PLAN-proof-loop.md, S6) ──────
+  // The bootstrap for outcomes that happen OUTSIDE EYF's pipeline (most early
+  // placements). Always stored UNVERIFIED — the verified/self-report trust
+  // boundary keeps these out of every money aggregate until an offer letter
+  // confirms them. Requires explicit DPDP consent (financial PII).
+  app.get("/placements", { preHandler: app.requireAuth }, async (req) => {
+    const rows = await prisma.placementOutcome.findMany({
+      where: { userId: req.session!.id, source: PlacementSource.SELF_REPORT },
+      select: { id: true, companyName: true, role: true, ctcInr: true, status: true, verifiedAt: true, placedAt: true },
+      orderBy: { placedAt: "desc" },
+    });
+    return { success: true, data: rows.map((r) => ({ ...r, verified: r.verifiedAt != null })) };
+  });
+
+  app.post("/placements", { preHandler: app.requireAuth }, async (req, reply) => {
+    const body = z.object({
+      companyName: z.string(),
+      role: z.string(),
+      ctcInr: z.number().int().nullish(),
+      status: z.enum(["OFFERED", "JOINED"]).optional(),
+      consent: z.boolean(),
+    }).parse(req.body ?? {});
+
+    const check = validateSelfReport(body);
+    if (!check.ok) {
+      const msg = check.reason === "no-consent"
+        ? "We need your consent to store your placement details."
+        : check.reason === "bad-ctc"
+          ? "That package figure doesn't look right."
+          : "Add the company and role.";
+      return reply.code(400).send({ success: false, error: { code: "SELF_REPORT_INVALID", message: msg, details: { reason: check.reason } } });
+    }
+
+    // Snapshot readiness now — user-initiated and off any hot path, so the one
+    // compute is fine. Frozen + versioned so calibration never crosses algorithm changes.
+    const [user, { readiness }] = await Promise.all([
+      prisma.user.findUnique({ where: { id: req.session!.id }, select: { college: true } }),
+      computeUserReadiness(req.session!.id),
+    ]);
+
+    const created = await prisma.placementOutcome.create({
+      data: {
+        userId: req.session!.id,
+        source: PlacementSource.SELF_REPORT,
+        status: check.value.status,
+        companyName: check.value.companyName,
+        role: check.value.role,
+        ctcInr: check.value.ctcInr,
+        verifiedAt: null, // self-reports are never verified — stays out of money stats
+        readinessOverall: readiness.overall,
+        readinessBand: readiness.band,
+        snapshotVersion: READINESS_ALGO_VERSION,
+        snapshot: { readiness: readiness.overall, band: readiness.band, at: new Date().toISOString() },
+        collegeSlug: collegeSlug(user?.college ?? null),
+      },
+      select: { id: true, companyName: true, role: true, status: true },
+    });
+    return reply.code(201).send({ success: true, data: { ...created, verified: false } });
   });
 }

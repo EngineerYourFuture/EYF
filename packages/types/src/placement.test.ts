@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { collegeSlug, ctcBand, descriptiveCohortProof, COHORT_K, type ProofRow } from "./placement";
+import { collegeSlug, ctcBand, descriptiveCohortProof, validateSelfReport, MAX_SELF_REPORT_CTC, COHORT_K, type ProofRow } from "./placement";
 
 describe("collegeSlug", () => {
   it("collapses case, punctuation, and whitespace variants to one slug", () => {
@@ -98,5 +98,34 @@ describe("descriptiveCohortProof — k-anonymity + provenance", () => {
     ];
     const proof = descriptiveCohortProof(rows)!;
     expect(proof.placed).toBe(COHORT_K);
+  });
+});
+
+describe("validateSelfReport — DPDP consent gate + hygiene", () => {
+  const base = { companyName: "Acme Corp", role: "SDE-1", ctcInr: 900_000, consent: true } as const;
+
+  it("rejects without explicit consent (financial PII cannot be stored)", () => {
+    expect(validateSelfReport({ ...base, consent: false })).toEqual({ ok: false, reason: "no-consent" });
+  });
+
+  it("requires a company and a role", () => {
+    expect(validateSelfReport({ ...base, companyName: " " })).toEqual({ ok: false, reason: "no-company" });
+    expect(validateSelfReport({ ...base, role: "" })).toEqual({ ok: false, reason: "no-role" });
+  });
+
+  it("rejects garbage CTC (negative, non-integer, or above the sanity cap)", () => {
+    expect(validateSelfReport({ ...base, ctcInr: -1 }).ok).toBe(false);
+    expect(validateSelfReport({ ...base, ctcInr: 1.5 }).ok).toBe(false);
+    expect(validateSelfReport({ ...base, ctcInr: MAX_SELF_REPORT_CTC + 1 }).ok).toBe(false);
+  });
+
+  it("accepts a valid report, trims, and defaults status to JOINED", () => {
+    const res = validateSelfReport({ companyName: "  Acme  ", role: " SDE ", consent: true });
+    expect(res).toEqual({ ok: true, value: { companyName: "Acme", role: "SDE", ctcInr: null, status: "JOINED" } });
+  });
+
+  it("allows a null/omitted package (unpaid or undisclosed)", () => {
+    const res = validateSelfReport({ companyName: "Acme", role: "Intern", ctcInr: null, consent: true });
+    expect(res.ok).toBe(true);
   });
 });
