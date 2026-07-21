@@ -44,9 +44,12 @@ handlers. Chase *risk*, not the percentage. Prioritized roadmap (integration tes
     (`submissions.integration.test.ts`).
   - `me.ts` — GDPR/DPDP export + erasure (`me-privacy.integration.test.ts`) + referral/self-report.
   - `org.ts` routes 16%→84% — employer-portal auth boundary (`org-portal.integration.test.ts`).
-- **Tier 2 — important product paths:** `resume.ts` 40%→81% ✅ (CRUD + ownership + ATS + single-
-  default, `resume.integration.test.ts`). Remaining: `mocks.ts` (31%), `mcq.ts` (37%),
-  `mentors.ts` (32%), `roadmap.ts` (57%), `leaderboard.ts` (50%).
+- **Tier 2 — important product paths:** `resume.ts` 40%→81% ✅ (CRUD + ownership + ATS).
+  `mcq.ts` + `leaderboard.ts` — public contracts + scope-resolution + param validation covered
+  (`mcq`/`leaderboard.integration.test.ts`); the heavy auth'd flows (mcq start/submit, per-metric
+  leaderboard building) are deferred — they need substantial data seeding for lower-risk code.
+  Remaining: `mocks.ts` (31%), `mentors.ts` (32%), `roadmap.ts` (57%). **Diminishing returns from
+  here** — the risk-worthy paths are covered; prioritize other work over chasing the percentage.
 - **Tier 3 — low-risk display/utility (accept as-is or smoke-test only):** `fun.ts` (20%),
   `wrapped.ts` (24%), `missions.ts` (40%), `push.ts` (31%), `project-prep.ts` (27%).
 
