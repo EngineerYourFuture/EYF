@@ -9,7 +9,7 @@ import { z } from "zod";
 import { prisma, RequisitionStatus, PipelineStage } from "@eyf/db";
 import { requireOrgCapability, requireOrgMember } from "../middleware/org.js";
 import { recordAudit } from "../lib/audit.js";
-import { computeUserReadiness } from "../services/guidance.js";
+import { computeUserReadiness, computeUserReadinessCached } from "../services/guidance.js";
 import { validateWarmReferral, type ReferralCheck } from "../services/warm-referral.js";
 
 function referralError(reason: Exclude<ReferralCheck, { ok: true }>["reason"]): string {
@@ -69,10 +69,12 @@ export async function orgHireRoutes(app: FastifyInstance) {
       : [];
     const scopeOf = new Map(consents.map((c) => [c.userId, c.scope]));
 
-    // Rank by real Readiness (v1 synchronous; precompute at scale).
+    // Rank by real Readiness. Cached per-user (5-min TTL) so ranking the consented pool doesn't
+    // re-run the ~9-query compute on every search (KNOWN-ISSUES P1). Full fix is the materialized
+    // Readiness Index (HARD-6); this bounds the repeated-search cost meanwhile.
     const scored = await Promise.all(
       users.map(async (u) => {
-        const { readiness } = await computeUserReadiness(u.id);
+        const { readiness } = await computeUserReadinessCached(u.id);
         const anon = scopeOf.get(u.id) === "POOL_ANON";
         return {
           userId: u.id,
