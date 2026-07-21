@@ -38,13 +38,12 @@ The shape is healthy: **business-logic services are ~100% covered**; the gap is 
 handlers. Chase *risk*, not the percentage. Prioritized roadmap (integration tests, `app.inject`
 + DB pattern):
 
-- **Tier 1 — trust / money / execution (do first):**
-  - `score.ts` (was 17%) — public score verify. ✅ **DONE** (`score.integration.test.ts`).
-  - `submissions.ts` (30%) — code submission/judging (execution surface).
-  - `me.ts` — self-service incl. financial/PII. ✅ **GDPR/DPDP export + erasure covered**
-    (`me-privacy.integration.test.ts`); referral/self-report already covered. Remaining: a couple
-    of minor placements-endpoint branches.
-  - `org.ts` (16%) — org creation/membership (tenant boundary).
+- **Tier 1 — trust / money / execution — ✅ COMPLETE:**
+  - `score.ts` 17%→100% — public score verify (`score.integration.test.ts`).
+  - `submissions.ts` 30%→100% — daily-cap + premium gate (402s) + ownership; judge queue mocked
+    (`submissions.integration.test.ts`).
+  - `me.ts` — GDPR/DPDP export + erasure (`me-privacy.integration.test.ts`) + referral/self-report.
+  - `org.ts` routes 16%→84% — employer-portal auth boundary (`org-portal.integration.test.ts`).
 - **Tier 2 — important product paths:** `mocks.ts` (31%), `mcq.ts` (37%), `mentors.ts` (32%),
   `resume.ts` (40%), `roadmap.ts` (57%), `leaderboard.ts` (50%).
 - **Tier 3 — low-risk display/utility (accept as-is or smoke-test only):** `fun.ts` (20%),
