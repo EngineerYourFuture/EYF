@@ -33,9 +33,24 @@ Some feature statuses predate recently shipped work (Offer Predictor engine, Pro
 ⬜/🟡 marks understate reality. **Action:** reconcile each status against code (a verification
 pass, tracked separately from routine roadmap edits).
 
-### KI-4 — Test coverage 61.1% is below a mature-org bar · Medium
-Pure-function core is well covered; the gap is concentrated in routes/web. **Action:** produce
-a targeted testing roadmap (untested critical paths first), not a blanket coverage chase.
+### KI-4 — Test coverage ~64% · Medium · IN PROGRESS (roadmap below)
+The shape is healthy: **business-logic services are ~100% covered**; the gap is thin HTTP route
+handlers. Chase *risk*, not the percentage. Prioritized roadmap (integration tests, `app.inject`
++ DB pattern):
+
+- **Tier 1 — trust / money / execution (do first):**
+  - `score.ts` (was 17%) — public score verify. ✅ **DONE** (`score.integration.test.ts`).
+  - `submissions.ts` (30%) — code submission/judging (execution surface).
+  - `me.ts` (51%) — self-service incl. financial/PII endpoints (partly covered by referral/
+    self-report tests; fill the account-export/delete + subscription paths).
+  - `org.ts` (16%) — org creation/membership (tenant boundary).
+- **Tier 2 — important product paths:** `mocks.ts` (31%), `mcq.ts` (37%), `mentors.ts` (32%),
+  `resume.ts` (40%), `roadmap.ts` (57%), `leaderboard.ts` (50%).
+- **Tier 3 — low-risk display/utility (accept as-is or smoke-test only):** `fun.ts` (20%),
+  `wrapped.ts` (24%), `missions.ts` (40%), `push.ts` (31%), `project-prep.ts` (27%).
+
+Target: Tier 1 to ~90%, Tier 2 to ~75%; leave Tier 3 unless a bug surfaces. That lifts overall
+coverage while spending effort only where a regression would actually hurt.
 
 ### KI-5 — `apps/mobile` is outside the CI health stack · Medium
 The Expo app is real but not referenced by any workflow in `.github/workflows/`, so its
