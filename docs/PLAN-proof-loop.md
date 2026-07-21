@@ -172,11 +172,20 @@ package/placement claims from unverified self-report are India misleading-ad + D
 **Split success metrics:** capture-rate (any outcome) vs calibratable-rate (outcome WITH a
 same-era versioned snapshot). Backfilled outcomes power descriptive proof, not calibration.
 
-**Phase 2 (the moat, next):** EYF as the TPO placement system-of-record — cohort-complete
-verified outcomes (incl. the non-placed denominator) as a byproduct of the cell's NIRF/NAAC
-reporting workflow. Only THEN do calibration + statistical proof + employer hire-fit become
-defensible. Materialized `CohortCalibration` table refreshed by a scheduled job; t0 capture
-(first persisted snapshot) for any time-to-offer claim.
+**Phase 2 (the moat) — foundation SHIPPED 2026-07-21:** EYF as the TPO placement
+system-of-record. Delivered: the honest calibration engine (`calibrateBatch`/`pooledCalibration`,
+9 tests) that refuses any batch not marked cohort-complete — so a survivorship-biased number
+can't be produced; the `College`/`BatchCohort`/`BatchMember` cohort-complete data model
+(`dataComplete` = the guard, roster incl. non-placed = the denominator); and admin-gated TPO
+batch endpoints (create batch, roster members with readiness-band copy, mark complete, read
+calibration), 3 integration tests. Calibration output is INTERNAL-only (Goodhart).
+
+**Phase 2 — still deferred (needs a design-partner college):** self-serve TPO accounts +
+roster-upload UX + NIRF/NAAC/AICTE exports (the reporting byproduct that earns the TPO's
+time); batch-time readiness snapshots for non-placed EYF members; a materialized
+`CohortCalibration` table refreshed by a scheduled job; college-tier confounding controls;
+t0 capture for any time-to-offer claim. These are speculative without a real placement cell
+in the loop — validate with 1 design partner before building the product surface.
 
 ### Build order (Phase 1)
 S1 schema+migration → S2 college-slug util (+test) → S3 snapshot version const →
