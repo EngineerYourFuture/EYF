@@ -67,10 +67,14 @@ leakage). Findings, ranked:
   unset. Now fails closed in production (404) with a constant-time token compare.
 - **S3 — No log redaction · Low-Med · FIXED (this PR).** Added pino `redact` for
   `authorization`/`cookie`/admin-gate/signature headers + password/token fields (defense-in-depth).
-- **S4 — `API_CORS_ORIGINS` has no prod guard · Low · OPEN.** Defaults to localhost; nothing stops a
-  misconfigured `*`. **Fix:** assert non-wildcard HTTPS origins at boot in production.
-- **S5 — File-upload constraints unverified · Info · OPEN.** No upload route found (likely presigned
-  R2). **Fix:** confirm presigned URLs constrain content-type + size; check image `remotePatterns` for SSRF.
+- **S4 — `API_CORS_ORIGINS` prod guard · Low · FIXED.** The env schema now `superRefine`s in
+  production: a wildcard (`*`) or non-`https://` CORS origin fails boot (with `credentials:true`, a
+  wildcard would let any site make authenticated cross-origin calls). Dev/test keep the localhost default.
+- **S5 — File-upload constraints · Info · RESOLVED (no surface).** Inspection found **no
+  object-storage upload path** in the request handlers (no `@aws-sdk`/`S3Client`/`getSignedUrl`/
+  `PutObject` anywhere). The only binary intake is audio for Whisper transcription, capped by the
+  global 1MB `bodyLimit`. Resume/certificate assets are generated server-side (React-PDF), not
+  uploaded. No untrusted-upload vector exists; nothing to fix.
 
 ## How to use this file
 

@@ -82,6 +82,21 @@ const schema = z.object({
 
   // Public app origin — used for absolute links in transactional email.
   NEXT_PUBLIC_APP_URL: z.string().url().default("https://eyf.in"),
+}).superRefine((cfg, ctx) => {
+  // S4 (docs/KNOWN-ISSUES.md): in production, CORS origins must be explicit HTTPS hosts —
+  // never a wildcard (with credentials:true, "*" would let ANY site make authenticated
+  // cross-origin calls) and never plaintext http (downgrade). Fails boot if misconfigured.
+  // Dev/test keep the localhost default.
+  if (cfg.NODE_ENV !== "production") return;
+  for (const raw of cfg.API_CORS_ORIGINS.split(",")) {
+    const origin = raw.trim();
+    if (!origin) continue;
+    if (origin.includes("*")) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["API_CORS_ORIGINS"], message: `wildcard CORS origin "${origin}" is not allowed in production` });
+    } else if (!origin.startsWith("https://")) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["API_CORS_ORIGINS"], message: `production CORS origin "${origin}" must be https://` });
+    }
+  }
 });
 
 export const env = schema.parse(process.env);
