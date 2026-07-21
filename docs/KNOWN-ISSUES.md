@@ -95,6 +95,25 @@ leakage). Findings, ranked:
   global 1MB `bodyLimit`. Resume/certificate assets are generated server-side (React-PDF), not
   uploaded. No untrusted-upload vector exists; nothing to fix.
 
+### UI/UX pass (Phase 9 audit, 2026-07-21)
+Foundation is strong: 71 CSS-var design tokens, 11 shared `@eyf/ui` primitives, a written
+DESIGN.md thesis, good a11y hygiene (proper buttons not div-onClick, alt text, `focus-visible`
+across 43 files), consistent loading/empty states. Method: code-grounded (not pixel) — a
+screenshot `/design-review` pass is the complement. Findings:
+
+- **U1 — Inconsistent read-error handling · Medium · OPEN.** ~50 of 81 data-fetching pages don't
+  handle the `useApi` error case. Render errors are caught (`error.tsx` boundaries) and mutation
+  errors toast (`useApiAction`), but a failed **read** (500/network on a GET) has no global
+  surface — `useApi` has no `onError` — so those pages show an **infinite skeleton** on API
+  trouble. **Fix:** one systemic pattern (a `useApi` onError → shared inline error/retry, or adopt
+  the `ErrorState` primitive on data pages). Needs a small design decision before a ~50-page rollout.
+- **U2 — Wrapped poster violated the no-decorative-gradient rule · Low-Med · FIXED.** `wrapped`
+  ShareCard used two white radial "aurora" glows (DESIGN.md forbids them); replaced with the
+  sanctioned neutral vignette.
+- **Cleared on inspection (not findings):** the 41 hardcoded hex colors are legitimate
+  (share-card export, canvas/WebGL, games, 3D viz, OG/theme meta — CSS vars don't apply there);
+  the 2 raw tables handle mobile via progressive column-hiding, not overflow (a valid pattern).
+
 ## How to use this file
 
 Add an entry the moment a known issue is discovered rather than losing it in a PR thread.
