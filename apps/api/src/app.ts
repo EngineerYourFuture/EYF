@@ -1,3 +1,4 @@
+import { timingSafeEqual } from "node:crypto";
 import Fastify, { type FastifyError } from "fastify";
 import cors from "@fastify/cors";
 import helmet from "@fastify/helmet";
@@ -15,12 +16,35 @@ import { registerRoutes } from "./routes/index.js";
 import { initSentry, captureException, registry, httpDuration, httpRequests } from "./lib/observability.js";
 import { checkReadiness } from "./lib/health.js";
 
+/** Constant-time `Authorization: Bearer <token>` check — no early-exit timing leak. */
+function bearerMatches(header: string | undefined, token: string): boolean {
+  const expected = Buffer.from(`Bearer ${token}`);
+  const got = Buffer.from(header ?? "");
+  return got.length === expected.length && timingSafeEqual(got, expected);
+}
+
 export async function buildApp() {
   initSentry();
 
   const app = Fastify({
     logger: {
       level: env.API_LOG_LEVEL,
+      // Defense-in-depth (S3): strip credentials/PII from any log line. The default
+      // Fastify request serializer doesn't emit headers, but this covers a raised log
+      // level or any future custom header/body logging so secrets can never leak.
+      redact: {
+        paths: [
+          "req.headers.authorization",
+          "req.headers.cookie",
+          'req.headers["x-admin-gate"]',
+          'req.headers["x-razorpay-signature"]',
+          "headers.authorization",
+          "*.password",
+          "*.token",
+          "password",
+        ],
+        censor: "[redacted]",
+      },
       transport:
         env.NODE_ENV === "development"
           ? { target: "pino-pretty", options: { translateTime: "HH:MM:ss", ignore: "pid,hostname" } }
@@ -145,7 +169,13 @@ export async function buildApp() {
   app.get("/v1/health", { config: { rateLimit: false } }, async () => ({ ok: true, ts: Date.now() }));
 
   app.get("/metrics", { config: { rateLimit: false } }, async (req, reply) => {
-    if (env.METRICS_TOKEN && req.headers.authorization !== `Bearer ${env.METRICS_TOKEN}`) {
+    // Fail CLOSED in production (S2): metrics leak internal route names, latencies, and
+    // traffic volumes, so an unset token must NOT mean "open". Hidden as 404 (don't reveal
+    // the endpoint exists) — this forces operators to set METRICS_TOKEN before scraping.
+    // Dev/test stay open for convenience.
+    if (!env.METRICS_TOKEN) {
+      if (env.NODE_ENV === "production") return reply.code(404).send("not found");
+    } else if (!bearerMatches(req.headers.authorization, env.METRICS_TOKEN)) {
       return reply.code(401).send("unauthorized");
     }
     reply.header("content-type", registry.contentType);
