@@ -7,9 +7,10 @@ The canonical feature spec (Practice / Learn / Interview / Career / More + monet
 > **Sibling roadmaps:** [ROADMAP.md](ROADMAP.md) (technical debt/security/perf) ·
 > [INNOVATION-ROADMAP.md](INNOVATION-ROADMAP.md) (growth strategy) · active initiatives in
 > plan docs like [PLAN-proof-loop.md](PLAN-proof-loop.md).
-> **Freshness caveat:** some statuses below predate recently shipped work (e.g. the Offer
-> Predictor engine and the Proof Loop). Treat ⬜/🟡 marks as needing re-verification against
-> code before planning; a full status reconciliation is tracked in [KNOWN-ISSUES.md](KNOWN-ISSUES.md).
+> **Freshness caveat:** the highest-confidence stale entries have been reconciled (Offer Predictor
+> ✅, Proof Loop added). Other ⬜/🟡 marks may still lag the code — treat them as needing
+> re-verification before planning. A full per-feature status pass remains pending (KI-3 in
+> [KNOWN-ISSUES.md](KNOWN-ISSUES.md)).
 
 **Legend:** ✅ shipped · 🟡 exists, spec-depth pending · ⬜ not built yet
 **Note on stack:** the spec names a Supabase/Vite stack; EYF already implements the
@@ -58,7 +59,8 @@ LLM-dependent items (AI mock brain, roast, synthesis) are gated on the Anthropic
 | Internships | ⬜ | fit score, application tracker, stipend benchmarking, cover-letter generator |
 | Jobs | 🟡 | daily scraping, readiness gate per job, referral network, JD analyzer |
 | Pipeline | 🟡 | kanban, follow-up intelligence, funnel analytics, offer comparison calculator |
-| **Offer Predictor** | ⬜ | **per-company offer probability + sensitivity analysis (pure-logic, reuses goal-adaptive engine)** |
+| **Offer Predictor** | ✅ | **shipped** — `/offer` page + `offerProbability` (per-company offer probability, pure-logic over the goal-adaptive engine) |
+| **Proof Loop** | ✅🟡 | **spine shipped** — verified `PlacementOutcome` capture, TPO batch roster + honest calibration (`docs/PLAN-proof-loop.md`); self-serve TPO product deferred (needs a design-partner college) |
 | Mentors | 🟡 | pre-session context pack, session types, recordings, group mentorship, emergency session |
 
 ## 5 · More

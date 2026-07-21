@@ -15,10 +15,13 @@ a reviewed PR (or split into themed PRs); rename to reflect real content.
 `pnpm audit` triage by production-vs-dev surface:
 - **Fixed this pass (safe in-major overrides, verified green):** `form-data`→4.0.6 (CRLF),
   `@xmldom/xmldom`→0.8.13, `axios`→1.18.1. Highs dropped 34→27.
-- **Not a production exposure (deferred, low real risk):** the 4 "critical" advisories are
-  **Vitest** (devDependency — RCE is a developer-machine surface, never shipped) and
-  **node-tar** (pulled by `cacache`/build tooling, not exercised on untrusted archives at
-  runtime). Both need *major* bumps (vitest 2→3, tar 6→7); do them as maintenance, not urgent.
+- **Accepted (not a production exposure; force-bump would be reckless):** the 4 "critical"
+  advisories are **Vitest** (devDependency — the RCE is its dev UI server, which EYF never runs)
+  and **node-tar** (pulled by `cacache`/build tooling, not exercised on untrusted archives at
+  runtime). The fixes are risky majors — vitest is `^2.1.8` and latest is **4.x** (a double-major
+  test-framework migration), and forcing tar 6→7 could break cacache. Trading real breakage risk
+  for zero security gain is the wrong call, so these are consciously **accepted**, not forced.
+  Revisit vitest 2→4 as its own planned migration if/when the framework is upgraded for other reasons.
 - **Real production item → tracked separately as [KI-7](#ki-7--nextjs-14--15-security-upgrade--high).**
 
 ### KI-7 — Next.js 14 → 15 security upgrade · High
@@ -56,16 +59,17 @@ handlers. Chase *risk*, not the percentage. Prioritized roadmap (integration tes
 Target: Tier 1 to ~90%, Tier 2 to ~75%; leave Tier 3 unless a bug surfaces. That lifts overall
 coverage while spending effort only where a regression would actually hurt.
 
-### KI-5 — `apps/mobile` is outside the CI health stack · Medium
-The Expo app is real but not referenced by any workflow in `.github/workflows/`, so its
-typecheck/lint/build are never enforced in CI. It is labelled experimental in its README.
-**Action:** decide active vs paused; if active, add it to CI.
+### KI-5 — `apps/mobile` in CI · RESOLVED (was a false finding)
+The original finding grepped `.github/workflows/` for "mobile" and found nothing — but CI runs
+`pnpm typecheck` / `pnpm lint`, which are `turbo run` aggregates, and `@eyf/mobile#typecheck` +
+`#lint` ARE in the turbo graph (confirmed via `turbo run typecheck --dry`). CI's install provides
+react-native, so mobile is genuinely typechecked + linted in CI. Only gap: it has no tests (none
+exist) and isn't built in CI (experimental Expo app) — acceptable. No action.
 
-### KI-6 — Flaky integration test under heavy parallel DB load · Low
-A full `apps/api` suite run intermittently failed once with a transient "unique constraint on
-id" collision under high concurrency; a clean re-run passed (46 files, 365+ tests green).
-**Action:** investigate whether integration tests need DB isolation (per-worker schema) or
-serialization to remove the flake.
+### KI-6 — Flaky integration test under parallel DB load · MITIGATED
+Already handled: `apps/api/vitest.config.ts` sets `fileParallelism: false`, which serializes the
+DB-backed integration files (the documented cause). The one flake observed was a leftover-data
+artifact from an interrupted run, not the parallel race, and isn't reproducible. No further change.
 
 ### Security pass (Phase 10 audit, 2026-07-21)
 Overall posture is strong (dual Clerk+JWT auth with separate access/refresh secrets, two-layer
@@ -101,12 +105,11 @@ DESIGN.md thesis, good a11y hygiene (proper buttons not div-onClick, alt text, `
 across 43 files), consistent loading/empty states. Method: code-grounded (not pixel) — a
 screenshot `/design-review` pass is the complement. Findings:
 
-- **U1 — Inconsistent read-error handling · Medium · OPEN.** ~50 of 81 data-fetching pages don't
-  handle the `useApi` error case. Render errors are caught (`error.tsx` boundaries) and mutation
-  errors toast (`useApiAction`), but a failed **read** (500/network on a GET) has no global
-  surface — `useApi` has no `onError` — so those pages show an **infinite skeleton** on API
-  trouble. **Fix:** one systemic pattern (a `useApi` onError → shared inline error/retry, or adopt
-  the `ErrorState` primitive on data pages). Needs a small design decision before a ~50-page rollout.
+- **U1 — Inconsistent read-error handling · Medium · FIXED.** Fixed systemically in one place: the
+  global `SwrProvider` now has an `onError` that toasts transient read failures (5xx/network),
+  deduped per key, while leaving terminal 4xx states (404/402/403/400) to the pages that handle
+  them inline. No more silent infinite skeleton on a degraded API — all 81 data pages covered
+  without touching any of them.
 - **U2 — Wrapped poster violated the no-decorative-gradient rule · Low-Med · FIXED.** `wrapped`
   ShareCard used two white radial "aurora" glows (DESIGN.md forbids them); replaced with the
   sanctioned neutral vignette.
