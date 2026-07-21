@@ -9,7 +9,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider  = "postgresql"
   // Runtime uses the POOLED endpoint (PgBouncer / Neon pooled / Prisma Accelerate)
   // so N app + worker instances don't exhaust Postgres connections. Migrations
   // and introspection use directUrl, which must bypass the pooler (transaction
@@ -34,8 +34,8 @@ enum Role {
 }
 
 enum Persona {
-  STUDENT   // 0–2 yrs: placements, DSA, core subjects
-  SWITCHER  // 1–5 yrs: system design, behavioral, resume, comp
+  STUDENT // 0–2 yrs: placements, DSA, core subjects
+  SWITCHER // 1–5 yrs: system design, behavioral, resume, comp
   DEVELOPER // architecture, projects, AI engineering, leadership
 }
 
@@ -217,7 +217,7 @@ model User {
   college         String?
   graduationYear  Int?
   targetRole      String?
-  persona         Persona?  // STUDENT | SWITCHER | DEVELOPER — tailors the journey
+  persona         Persona? // STUDENT | SWITCHER | DEVELOPER — tailors the journey
   role            Role      @default(STUDENT_FREE)
   emailVerifiedAt DateTime?
   phoneVerifiedAt DateTime?
@@ -225,46 +225,49 @@ model User {
   updatedAt       DateTime  @updatedAt
   deletedAt       DateTime?
 
-  profile         UserProfile?
-  subscription    Subscription?
-  solutions       ProblemSolution[]
-  roadmaps        UserRoadmap[]
-  streaks         DailyStreak[]
-  sessions        UserSession[]
-  assessments     AssessmentSession[]
-  cognitive       CognitiveSession[]
-  mocksAsCandidate MockSession[]    @relation("mock_candidate")
-  mocksAsPeer     MockSession[]     @relation("mock_peer")
-  mentor          Mentor?
-  certificates    Certificate[]
-  flashcardReviews FlashcardReview[]
-  resumes         Resume[]
-  badges          UserBadge[]
-  userProjects    UserProject[]
-  jobApplications JobApplication[]
-  tracks          UserTrack[]
-  forumThreads    ForumThread[]
-  forumPosts      ForumPost[]
-  forumReactions  ForumReaction[]
-  internships     UserInternship[]
-  oaReports       OaReport[]
-  pressureSessions PressureSession[]
-  peerQueue       PeerQueue?
-  pushTokens      PushToken[]
-  missionDays     MissionDay[]
+  profile              UserProfile?
+  subscription         Subscription?
+  solutions            ProblemSolution[]
+  roadmaps             UserRoadmap[]
+  streaks              DailyStreak[]
+  sessions             UserSession[]
+  assessments          AssessmentSession[]
+  cognitive            CognitiveSession[]
+  mocksAsCandidate     MockSession[]         @relation("mock_candidate")
+  mocksAsPeer          MockSession[]         @relation("mock_peer")
+  mentor               Mentor?
+  certificates         Certificate[]
+  flashcardReviews     FlashcardReview[]
+  resumes              Resume[]
+  badges               UserBadge[]
+  userProjects         UserProject[]
+  jobApplications      JobApplication[]
+  tracks               UserTrack[]
+  forumThreads         ForumThread[]
+  forumPosts           ForumPost[]
+  forumReactions       ForumReaction[]
+  internships          UserInternship[]
+  oaReports            OaReport[]
+  pressureSessions     PressureSession[]
+  peerQueue            PeerQueue?
+  pushTokens           PushToken[]
+  missionDays          MissionDay[]
   interviewExperiences InterviewExperience[]
-  mcqAttempts     McqAttempt[]
-  communicationDrills CommunicationDrill[]
-  projectPreps    ProjectPrep[]
-  scoreShares     ScoreShare[]
-  orgMemberships  OrgMember[]
-  talentConsent   TalentConsent?
+  mcqAttempts          McqAttempt[]
+  communicationDrills  CommunicationDrill[]
+  projectPreps         ProjectPrep[]
+  scoreShares          ScoreShare[]
+  orgMemberships       OrgMember[]
+  talentConsent        TalentConsent?
 
   // Referral engine: the user's own shareable code, the referrals they made,
   // and the (at most one) referral they received.
-  referralCode    String?    @unique
-  referralsMade   Referral[] @relation("referrer")
-  referralReceived Referral? @relation("referee")
+  referralCode     String?    @unique
+  referralsMade    Referral[] @relation("referrer")
+  referralReceived Referral?  @relation("referee")
+
+  // Proof Loop: verified placement outcomes for this user (the skill→outcome graph).
+  placementOutcomes PlacementOutcome[]
 
   @@index([role])
   @@index([college])
@@ -273,12 +276,12 @@ model User {
 
 // ─── Daily Mission claim (idempotent bonus XP, one per day) ───────────
 model MissionDay {
-  id        String    @id @default(cuid())
+  id        String   @id @default(cuid())
   userId    String
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  date      DateTime  @db.Date
-  bonusXp   Int       @default(0)
-  claimedAt DateTime  @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date      DateTime @db.Date
+  bonusXp   Int      @default(0)
+  claimedAt DateTime @default(now())
 
   @@unique([userId, date])
   @@index([userId, date])
@@ -288,22 +291,22 @@ model MissionDay {
 // ─── 2. UserProfile ───────────────────────────────────────────────
 
 model UserProfile {
-  userId       String   @id
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  avatar       String?
-  bio          String?
-  githubUrl    String?
-  linkedinUrl  String?
-  leetcodeUrl  String?
-  resumeUrl    String?
-  currentXp    Int      @default(0)
-  level        Int      @default(1)
-  streakDays   Int      @default(0)
-  longestStreak Int     @default(0)
-  totalSolved  Int      @default(0)
+  userId            String   @id
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  avatar            String?
+  bio               String?
+  githubUrl         String?
+  linkedinUrl       String?
+  leetcodeUrl       String?
+  resumeUrl         String?
+  currentXp         Int      @default(0)
+  level             Int      @default(1)
+  streakDays        Int      @default(0)
+  longestStreak     Int      @default(0)
+  totalSolved       Int      @default(0)
   preferredLanguage Language @default(CPP)
-  timezone     String   @default("Asia/Kolkata")
-  updatedAt    DateTime @updatedAt
+  timezone          String   @default("Asia/Kolkata")
+  updatedAt         DateTime @updatedAt
 
   @@map("user_profiles")
 }
@@ -311,40 +314,40 @@ model UserProfile {
 // ─── 3. Subscription ──────────────────────────────────────────────
 
 model Subscription {
-  id              String             @id @default(cuid())
-  userId          String             @unique
-  user            User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  plan            PlanTier           @default(FREE)
-  status          SubscriptionStatus @default(ACTIVE)
-  razorpaySubId   String?            @unique
-  razorpayPlanId  String?
-  startedAt       DateTime           @default(now())
-  endsAt          DateTime?
-  canceledAt      DateTime?
-  trialEndsAt     DateTime?
-  amountInr       Int                @default(0) // paisa
-  intervalMonths  Int                @default(1)
+  id             String             @id @default(cuid())
+  userId         String             @unique
+  user           User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan           PlanTier           @default(FREE)
+  status         SubscriptionStatus @default(ACTIVE)
+  razorpaySubId  String?            @unique
+  razorpayPlanId String?
+  startedAt      DateTime           @default(now())
+  endsAt         DateTime?
+  canceledAt     DateTime?
+  trialEndsAt    DateTime?
+  amountInr      Int                @default(0) // paisa
+  intervalMonths Int                @default(1)
   // created_at of the last-applied webhook event — guards against out-of-order delivery.
-  lastEventAt     DateTime?
-  createdAt       DateTime           @default(now())
-  updatedAt       DateTime           @updatedAt
+  lastEventAt    DateTime?
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
 
-  invoices        Invoice[]
+  invoices Invoice[]
 
   @@index([plan, status])
   @@map("subscriptions")
 }
 
 model Invoice {
-  id              String       @id @default(cuid())
-  subscriptionId  String
-  subscription    Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
-  razorpayInvoiceId String?    @unique
-  amountInr       Int
-  gstInr          Int          @default(0)
-  status          String       // paid | failed | issued
-  paidAt          DateTime?
-  createdAt       DateTime     @default(now())
+  id                String       @id @default(cuid())
+  subscriptionId    String
+  subscription      Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  razorpayInvoiceId String?      @unique
+  amountInr         Int
+  gstInr            Int          @default(0)
+  status            String // paid | failed | issued
+  paidAt            DateTime?
+  createdAt         DateTime     @default(now())
 
   @@index([subscriptionId])
   @@map("invoices")
@@ -353,28 +356,28 @@ model Invoice {
 // ─── 4. Problem ───────────────────────────────────────────────────
 
 model Problem {
-  id              String      @id @default(cuid())
-  slug            String      @unique
-  title           String
-  description     String      // markdown
-  difficulty      Difficulty
-  topics          String[]
-  patterns        String[]
-  companies       String[]    // e.g. ["amazon", "flipkart"]
-  premium         Boolean     @default(false)
-  acceptanceRate  Float       @default(0)
+  id               String     @id @default(cuid())
+  slug             String     @unique
+  title            String
+  description      String // markdown
+  difficulty       Difficulty
+  topics           String[]
+  patterns         String[]
+  companies        String[] // e.g. ["amazon", "flipkart"]
+  premium          Boolean    @default(false)
+  acceptanceRate   Float      @default(0)
   totalSubmissions Int        @default(0)
-  totalAccepted   Int         @default(0)
-  timeLimitMs     Int         @default(2000)
-  memoryLimitKb   Int         @default(262144)
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
+  totalAccepted    Int        @default(0)
+  timeLimitMs      Int        @default(2000)
+  memoryLimitKb    Int        @default(262144)
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
 
-  testCases       TestCase[]
-  solutions       ProblemSolution[]
-  editorial       Editorial?
-  variants        ProblemVariant[]
-  starterCode     StarterCode[]
+  testCases        TestCase[]
+  solutions        ProblemSolution[]
+  editorial        Editorial?
+  variants         ProblemVariant[]
+  starterCode      StarterCode[]
   pressureSessions PressureSession[]
 
   @@index([difficulty])
@@ -384,11 +387,11 @@ model Problem {
 }
 
 model StarterCode {
-  id          String   @id @default(cuid())
-  problemId   String
-  problem     Problem  @relation(fields: [problemId], references: [id], onDelete: Cascade)
-  language    Language
-  code        String
+  id        String   @id @default(cuid())
+  problemId String
+  problem   Problem  @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  language  Language
+  code      String
 
   @@unique([problemId, language])
   @@map("starter_code")
@@ -397,14 +400,14 @@ model StarterCode {
 // ─── 5. TestCase ──────────────────────────────────────────────────
 
 model TestCase {
-  id          String   @id @default(cuid())
-  problemId   String
-  problem     Problem  @relation(fields: [problemId], references: [id], onDelete: Cascade)
-  input       String
-  expected    String
-  isPublic    Boolean  @default(false)
-  weight      Int      @default(1)
-  orderIndex  Int      @default(0)
+  id         String  @id @default(cuid())
+  problemId  String
+  problem    Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  input      String
+  expected   String
+  isPublic   Boolean @default(false)
+  weight     Int     @default(1)
+  orderIndex Int     @default(0)
 
   @@index([problemId])
   @@map("test_cases")
@@ -437,15 +440,15 @@ model ProblemSolution {
 // ─── 7. Editorial ─────────────────────────────────────────────────
 
 model Editorial {
-  problemId    String   @id
-  problem      Problem  @relation(fields: [problemId], references: [id], onDelete: Cascade)
-  textSolution String   // markdown
-  videoUrl     String?
+  problemId       String   @id
+  problem         Problem  @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  textSolution    String // markdown
+  videoUrl        String?
   timeComplexity  String
   spaceComplexity String
-  approach     String?
-  pitfalls     String?
-  updatedAt    DateTime @updatedAt
+  approach        String?
+  pitfalls        String?
+  updatedAt       DateTime @updatedAt
 
   @@map("editorials")
 }
@@ -469,15 +472,15 @@ model ProblemVariant {
 // ─── 9. UserRoadmap ───────────────────────────────────────────────
 
 model UserRoadmap {
-  id           String   @id @default(cuid())
-  userId       String
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  templateSlug String   // "personalized" for generated plans; else a template slug
-  currentDay   Int      @default(1)
-  completionPct Float   @default(0)
-  startedAt    DateTime @default(now())
-  targetDate   DateTime?
-  completedAt  DateTime?
+  id            String    @id @default(cuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  templateSlug  String // "personalized" for generated plans; else a template slug
+  currentDay    Int       @default(1)
+  completionPct Float     @default(0)
+  startedAt     DateTime  @default(now())
+  targetDate    DateTime?
+  completedAt   DateTime?
 
   // Personalized Roadmap Engine output
   title         String?
@@ -485,7 +488,7 @@ model UserRoadmap {
   targetCompany String?
   weeks         Int?
   hoursPerDay   Int?
-  plan          Json?    // GeneratedPlan.plan — week-by-week
+  plan          Json? // GeneratedPlan.plan — week-by-week
 
   @@index([userId])
   @@map("user_roadmaps")
@@ -494,14 +497,14 @@ model UserRoadmap {
 // ─── 10. DailyStreak ──────────────────────────────────────────────
 
 model DailyStreak {
-  id              String   @id @default(cuid())
-  userId          String
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  date            DateTime @db.Date
-  problemsSolved  Int      @default(0)
-  minutesSpent    Int      @default(0)
-  xpEarned        Int      @default(0)
-  moodScore       Int? // 1-5 optional
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date           DateTime @db.Date
+  problemsSolved Int      @default(0)
+  minutesSpent   Int      @default(0)
+  xpEarned       Int      @default(0)
+  moodScore      Int? // 1-5 optional
 
   @@unique([userId, date])
   @@index([userId, date])
@@ -511,15 +514,15 @@ model DailyStreak {
 // ─── 11. AssessmentSession ────────────────────────────────────────
 
 model AssessmentSession {
-  id               String   @id @default(cuid())
-  userId           String
-  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  totalQuestions   Int
-  correctAnswers   Int
-  gapAnalysis      Json // { dsa: 0-100, oop: ..., cn: ..., aptitude: ... }
+  id                   String   @id @default(cuid())
+  userId               String
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  totalQuestions       Int
+  correctAnswers       Int
+  gapAnalysis          Json // { dsa: 0-100, oop: ..., cn: ..., aptitude: ... }
   placementProbability Json // { realistic: {company, prob}, stretch: ..., dream: ... }
-  durationSeconds  Int
-  completedAt      DateTime @default(now())
+  durationSeconds      Int
+  completedAt          DateTime @default(now())
 
   @@index([userId])
   @@map("assessment_sessions")
@@ -575,41 +578,41 @@ model MockSession {
 // ─── 14. Mentor ───────────────────────────────────────────────────
 
 model Mentor {
-  id            String   @id @default(cuid())
-  userId        String   @unique
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  company       String
-  jobTitle      String
-  yearsExp      Int
-  expertise     String[] // ["system-design","backend","fang-interviews"]
-  hourlyRateInr Int      @default(0)
-  bio           String?
-  ratingAvg     Float    @default(0)
-  ratingCount   Int      @default(0)
-  verified      Boolean  @default(false)
-  verifiedAt    DateTime?
-  verificationDocs String[] // R2 keys
-  razorpayAccountId String? @unique // Razorpay Connect linked account
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id                String    @id @default(cuid())
+  userId            String    @unique
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  company           String
+  jobTitle          String
+  yearsExp          Int
+  expertise         String[] // ["system-design","backend","fang-interviews"]
+  hourlyRateInr     Int       @default(0)
+  bio               String?
+  ratingAvg         Float     @default(0)
+  ratingCount       Int       @default(0)
+  verified          Boolean   @default(false)
+  verifiedAt        DateTime?
+  verificationDocs  String[] // R2 keys
+  razorpayAccountId String?   @unique // Razorpay Connect linked account
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 
-  mocks         MockSession[]
-  slots         MentorSlot[]
-  payouts       MentorPayout[]
+  mocks   MockSession[]
+  slots   MentorSlot[]
+  payouts MentorPayout[]
 
   @@index([company, verified])
   @@map("mentors")
 }
 
 model MentorSlot {
-  id          String       @id @default(cuid())
-  mentorId    String
-  mentor      Mentor       @relation(fields: [mentorId], references: [id], onDelete: Cascade)
-  startAt     DateTime
-  endAt       DateTime
-  booked      Boolean      @default(false)
-  mockSessionId String?    @unique
-  createdAt   DateTime     @default(now())
+  id            String   @id @default(cuid())
+  mentorId      String
+  mentor        Mentor   @relation(fields: [mentorId], references: [id], onDelete: Cascade)
+  startAt       DateTime
+  endAt         DateTime
+  booked        Boolean  @default(false)
+  mockSessionId String?  @unique
+  createdAt     DateTime @default(now())
 
   @@index([mentorId, startAt])
   @@map("mentor_slots")
@@ -649,15 +652,15 @@ enum CertCriteria {
 }
 
 model CertificateTemplate {
-  id             String       @id @default(cuid())
-  orgId          String
-  org            Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
-  name           String
-  skills         Json // [{ slug, level }] asserted on issue
-  criteria       CertCriteria @default(MANUAL)
-  blueprintId    String? // when criteria = ASSESSMENT_PASS
-  active         Boolean      @default(true)
-  createdAt      DateTime     @default(now())
+  id          String       @id @default(cuid())
+  orgId       String
+  org         Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  name        String
+  skills      Json // [{ slug, level }] asserted on issue
+  criteria    CertCriteria @default(MANUAL)
+  blueprintId String? // when criteria = ASSESSMENT_PASS
+  active      Boolean      @default(true)
+  createdAt   DateTime     @default(now())
 
   @@index([orgId])
   @@map("org_certificate_templates")
@@ -675,7 +678,7 @@ model McqBankQuestion {
   choices      String[]
   correctIndex Int
   explanation  String
-  companies    String[]    // recruiter patterns this question drills (TCS, Infosys…)
+  companies    String[] // recruiter patterns this question drills (TCS, Infosys…)
   active       Boolean     @default(true)
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
@@ -689,7 +692,7 @@ model McqBankQuestion {
 model AssessmentBankQuestion {
   id           String   @id @default(cuid())
   sourceId     String?  @unique // id from the legacy TS bank (idempotent import)
-  area         String   // dsa | cs | aptitude
+  area         String // dsa | cs | aptitude
   topic        String
   difficulty   String   @default("medium") // easy | medium | hard
   prompt       String
@@ -730,7 +733,7 @@ model CompanySimBlueprint {
   label     String
   blurb     String
   usedBy    String
-  sections  Json     // [{ name, category: McqCategory, questions, minutes }]
+  sections  Json // [{ name, category: McqCategory, questions, minutes }]
   active    Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -745,15 +748,15 @@ model CompanySimBlueprint {
 // compounds with usage. No third-party content is ingested or republished.
 
 enum KnowledgeSource {
-  AI    // generated by EYF Intelligence, pending staff review
+  AI // generated by EYF Intelligence, pending staff review
   STAFF // written or edited by staff in the portal
 }
 
 model KnowledgeEntry {
   id        String          @id @default(cuid())
   question  String
-  answer    String          // markdown, EYF's own voice
-  topic     String          // e.g. "node", "react", "system-design"
+  answer    String // markdown, EYF's own voice
+  topic     String // e.g. "node", "react", "system-design"
   tags      String[]
   source    KnowledgeSource @default(AI)
   reviewed  Boolean         @default(false) // staff sign-off flag
@@ -807,15 +810,15 @@ model Referral {
 // ─── 16. TheoryNote (Core Subjects) ───────────────────────────────
 
 model TheoryNote {
-  id          String   @id @default(cuid())
-  slug        String   @unique
-  subject     Subject
-  title       String
-  content     String   // markdown
-  orderIndex  Int      @default(0)
-  premium     Boolean  @default(false) // false for OS (free tier per spec)
-  estMinutes  Int      @default(10)
-  updatedAt   DateTime @updatedAt
+  id         String   @id @default(cuid())
+  slug       String   @unique
+  subject    Subject
+  title      String
+  content    String // markdown
+  orderIndex Int      @default(0)
+  premium    Boolean  @default(false) // false for OS (free tier per spec)
+  estMinutes Int      @default(10)
+  updatedAt  DateTime @updatedAt
 
   @@index([subject, orderIndex])
   @@map("theory_notes")
@@ -824,30 +827,30 @@ model TheoryNote {
 // ─── 17. Flashcard + SRS (SM-2) ───────────────────────────────────
 
 model Flashcard {
-  id          String   @id @default(cuid())
-  subject     Subject
-  topic       String
-  front       String
-  back        String
-  difficulty  Difficulty @default(MEDIUM)
-  createdAt   DateTime @default(now())
+  id         String     @id @default(cuid())
+  subject    Subject
+  topic      String
+  front      String
+  back       String
+  difficulty Difficulty @default(MEDIUM)
+  createdAt  DateTime   @default(now())
 
-  reviews     FlashcardReview[]
+  reviews FlashcardReview[]
 
   @@index([subject, topic])
   @@map("flashcards")
 }
 
 model FlashcardReview {
-  id           String   @id @default(cuid())
-  userId       String
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  flashcardId  String
-  flashcard    Flashcard @relation(fields: [flashcardId], references: [id], onDelete: Cascade)
-  easiness     Float    @default(2.5)
-  interval     Int      @default(0) // days
-  repetitions  Int      @default(0)
-  dueAt        DateTime @default(now())
+  id             String    @id @default(cuid())
+  userId         String
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  flashcardId    String
+  flashcard      Flashcard @relation(fields: [flashcardId], references: [id], onDelete: Cascade)
+  easiness       Float     @default(2.5)
+  interval       Int       @default(0) // days
+  repetitions    Int       @default(0)
+  dueAt          DateTime  @default(now())
   lastReviewedAt DateTime?
 
   @@unique([userId, flashcardId])
@@ -858,18 +861,18 @@ model FlashcardReview {
 // ─── 18. Resume ───────────────────────────────────────────────────
 
 model Resume {
-  id          String   @id @default(cuid())
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  title       String   @default("My Resume")
-  json        Json     // ResumeDocument shape — see @eyf/types
-  template    String   @default("classic")
-  atsScore    Int?     // 0-100
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title        String   @default("My Resume")
+  json         Json // ResumeDocument shape — see @eyf/types
+  template     String   @default("classic")
+  atsScore     Int? // 0-100
   atsBreakdown Json?
-  pdfUrl      String?
-  isDefault   Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  pdfUrl       String?
+  isDefault    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   @@index([userId])
   @@map("resumes")
@@ -878,25 +881,25 @@ model Resume {
 // ─── 19. Badge + UserBadge ────────────────────────────────────────
 
 model Badge {
-  id          String    @id @default(cuid())
-  slug        String    @unique
+  id          String      @id @default(cuid())
+  slug        String      @unique
   name        String
   description String
-  tier        BadgeTier @default(BRONZE)
-  icon        String    @default("trophy")
-  xpReward    Int       @default(50)
+  tier        BadgeTier   @default(BRONZE)
+  icon        String      @default("trophy")
+  xpReward    Int         @default(50)
   awards      UserBadge[]
 
   @@map("badges")
 }
 
 model UserBadge {
-  id          String   @id @default(cuid())
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  badgeId     String
-  badge       Badge    @relation(fields: [badgeId], references: [id], onDelete: Cascade)
-  earnedAt    DateTime @default(now())
+  id       String   @id @default(cuid())
+  userId   String
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badgeId  String
+  badge    Badge    @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+  earnedAt DateTime @default(now())
 
   @@unique([userId, badgeId])
   @@index([userId])
@@ -914,7 +917,7 @@ model ProjectIdea {
   difficulty  Difficulty @default(MEDIUM)
   weeks       Int        @default(4)
   tags        String[]
-  outcomes    String[]   // "deploy to vercel", "auth flow", etc.
+  outcomes    String[] // "deploy to vercel", "auth flow", etc.
   premium     Boolean    @default(false)
   createdAt   DateTime   @default(now())
 
@@ -925,17 +928,17 @@ model ProjectIdea {
 }
 
 model UserProject {
-  id            String        @id @default(cuid())
-  userId        String
-  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  ideaId        String
-  idea          ProjectIdea   @relation(fields: [ideaId], references: [id], onDelete: Cascade)
-  status        ProjectStatus @default(PLANNED)
-  githubUrl     String?
-  liveUrl       String?
-  notes         String?
-  startedAt     DateTime      @default(now())
-  completedAt   DateTime?
+  id          String        @id @default(cuid())
+  userId      String
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ideaId      String
+  idea        ProjectIdea   @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+  status      ProjectStatus @default(PLANNED)
+  githubUrl   String?
+  liveUrl     String?
+  notes       String?
+  startedAt   DateTime      @default(now())
+  completedAt DateTime?
 
   @@unique([userId, ideaId])
   @@index([userId])
@@ -945,24 +948,24 @@ model UserProject {
 // ─── 21. Jobs ─────────────────────────────────────────────────────
 
 model Job {
-  id            String     @id @default(cuid())
-  slug          String     @unique
+  id            String    @id @default(cuid())
+  slug          String    @unique
   company       String
   title         String
   role          JobRole
   location      String
-  remote        Boolean    @default(false)
+  remote        Boolean   @default(false)
   salaryMinInr  Int?
   salaryMaxInr  Int?
-  experienceMin Int        @default(0)
+  experienceMin Int       @default(0)
   description   String
   applyUrl      String
-  source        String     @default("manual") // manual | scraped | partner
-  postedAt      DateTime   @default(now())
+  source        String    @default("manual") // manual | scraped | partner
+  postedAt      DateTime  @default(now())
   closesAt      DateTime?
-  isActive      Boolean    @default(true)
+  isActive      Boolean   @default(true)
 
-  applications  JobApplication[]
+  applications JobApplication[]
 
   @@index([role, isActive])
   @@index([company])
@@ -970,16 +973,16 @@ model Job {
 }
 
 model JobApplication {
-  id           String            @id @default(cuid())
-  userId       String
-  user         User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  jobId        String
-  job          Job               @relation(fields: [jobId], references: [id], onDelete: Cascade)
-  status       ApplicationStatus @default(SAVED)
-  notes        String?
-  appliedAt    DateTime?
-  updatedAt    DateTime          @updatedAt
-  createdAt    DateTime          @default(now())
+  id        String            @id @default(cuid())
+  userId    String
+  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobId     String
+  job       Job               @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  status    ApplicationStatus @default(SAVED)
+  notes     String?
+  appliedAt DateTime?
+  updatedAt DateTime          @updatedAt
+  createdAt DateTime          @default(now())
 
   @@unique([userId, jobId])
   @@index([userId, status])
@@ -989,37 +992,37 @@ model JobApplication {
 // ─── 22. Career Tracks ────────────────────────────────────────────
 
 model CareerTrack {
-  id              String      @id @default(cuid())
-  slug            String      @unique
-  name            String
-  tagline         String
-  description     String
-  icon            String      @default("rocket")
-  salaryMinInr    Int
-  salaryMaxInr    Int
-  demand          DemandLevel @default(HIGH)
-  weeks           Int         @default(12)
-  patterns        String[]
-  topics          String[]
-  companies       String[]
-  curriculum      Json
-  premium         Boolean     @default(false)
-  createdAt       DateTime    @default(now())
+  id           String      @id @default(cuid())
+  slug         String      @unique
+  name         String
+  tagline      String
+  description  String
+  icon         String      @default("rocket")
+  salaryMinInr Int
+  salaryMaxInr Int
+  demand       DemandLevel @default(HIGH)
+  weeks        Int         @default(12)
+  patterns     String[]
+  topics       String[]
+  companies    String[]
+  curriculum   Json
+  premium      Boolean     @default(false)
+  createdAt    DateTime    @default(now())
 
-  users           UserTrack[]
+  users UserTrack[]
 
   @@map("career_tracks")
 }
 
 model UserTrack {
-  id          String       @id @default(cuid())
+  id          String      @id @default(cuid())
   userId      String
-  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   trackId     String
-  track       CareerTrack  @relation(fields: [trackId], references: [id], onDelete: Cascade)
-  startedAt   DateTime     @default(now())
-  currentWeek Int          @default(1)
-  isPrimary   Boolean      @default(false)
+  track       CareerTrack @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  startedAt   DateTime    @default(now())
+  currentWeek Int         @default(1)
+  isPrimary   Boolean     @default(false)
 
   @@unique([userId, trackId])
   @@index([userId, isPrimary])
@@ -1029,57 +1032,57 @@ model UserTrack {
 // ─── 23. Forum ────────────────────────────────────────────────────
 
 model ForumThread {
-  id          String         @id @default(cuid())
-  slug        String         @unique
-  authorId    String
-  author      User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  category    ForumCategory
-  title       String
-  body        String
-  pinned      Boolean        @default(false)
-  locked      Boolean        @default(false)
-  viewCount   Int            @default(0)
-  postCount   Int            @default(0)
-  lastPostAt  DateTime       @default(now())
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
+  id         String        @id @default(cuid())
+  slug       String        @unique
+  authorId   String
+  author     User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  category   ForumCategory
+  title      String
+  body       String
+  pinned     Boolean       @default(false)
+  locked     Boolean       @default(false)
+  viewCount  Int           @default(0)
+  postCount  Int           @default(0)
+  lastPostAt DateTime      @default(now())
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
 
-  posts       ForumPost[]
-  reactions   ForumReaction[]
+  posts     ForumPost[]
+  reactions ForumReaction[]
 
   @@index([category, pinned, lastPostAt])
   @@map("forum_threads")
 }
 
 model ForumPost {
-  id          String       @id @default(cuid())
-  threadId    String
-  thread      ForumThread  @relation(fields: [threadId], references: [id], onDelete: Cascade)
-  authorId    String
-  author      User         @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  body        String
-  parentId    String?
-  parent      ForumPost?   @relation("PostReplies", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  replies     ForumPost[]  @relation("PostReplies")
-  createdAt   DateTime     @default(now())
-  editedAt    DateTime?
+  id        String      @id @default(cuid())
+  threadId  String
+  thread    ForumThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User        @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  body      String
+  parentId  String?
+  parent    ForumPost?  @relation("PostReplies", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  replies   ForumPost[] @relation("PostReplies")
+  createdAt DateTime    @default(now())
+  editedAt  DateTime?
 
-  reactions   ForumReaction[]
+  reactions ForumReaction[]
 
   @@index([threadId, createdAt])
   @@map("forum_posts")
 }
 
 model ForumReaction {
-  id          String       @id @default(cuid())
-  userId      String
-  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  threadId    String?
-  thread      ForumThread? @relation(fields: [threadId], references: [id], onDelete: Cascade)
-  postId      String?
-  post        ForumPost?   @relation(fields: [postId], references: [id], onDelete: Cascade)
-  kind        ReactionKind
-  createdAt   DateTime     @default(now())
+  id        String       @id @default(cuid())
+  userId    String
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  threadId  String?
+  thread    ForumThread? @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  postId    String?
+  post      ForumPost?   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  kind      ReactionKind
+  createdAt DateTime     @default(now())
 
   @@unique([userId, threadId, postId, kind])
   @@index([threadId])
@@ -1090,23 +1093,23 @@ model ForumReaction {
 // ─── 24. Internships ──────────────────────────────────────────────
 
 model Internship {
-  id             String              @id @default(cuid())
-  slug           String              @unique
-  company        String
-  role           String
-  duration       InternshipDuration  @default(MONTHS_3)
-  stipendInr     Int
-  location       String
-  remote         Boolean             @default(false)
-  description    String
-  applyUrl       String
-  eligibility    String?
-  ppoConversion  Float?
-  deadlineAt     DateTime?
-  isActive       Boolean             @default(true)
-  postedAt       DateTime            @default(now())
+  id            String             @id @default(cuid())
+  slug          String             @unique
+  company       String
+  role          String
+  duration      InternshipDuration @default(MONTHS_3)
+  stipendInr    Int
+  location      String
+  remote        Boolean            @default(false)
+  description   String
+  applyUrl      String
+  eligibility   String?
+  ppoConversion Float?
+  deadlineAt    DateTime?
+  isActive      Boolean            @default(true)
+  postedAt      DateTime           @default(now())
 
-  applications   UserInternship[]
+  applications UserInternship[]
 
   @@index([role, isActive])
   @@map("internships")
@@ -1142,19 +1145,19 @@ enum OaSection {
 }
 
 model OaReport {
-  id          String      @id @default(cuid())
-  authorId    String
-  author      User        @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  company     String
-  role        String
-  driveDate   DateTime
-  durationMin Int
-  sections    OaSection[]
-  difficulty  Difficulty  @default(MEDIUM)
-  notes       String      // markdown — pattern of questions, traps, etc.
-  patterns    String[]    // e.g. ["sliding-window","bit-manipulation"]
-  helpfulCount Int        @default(0)
-  createdAt   DateTime    @default(now())
+  id           String      @id @default(cuid())
+  authorId     String
+  author       User        @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  company      String
+  role         String
+  driveDate    DateTime
+  durationMin  Int
+  sections     OaSection[]
+  difficulty   Difficulty  @default(MEDIUM)
+  notes        String // markdown — pattern of questions, traps, etc.
+  patterns     String[] // e.g. ["sliding-window","bit-manipulation"]
+  helpfulCount Int         @default(0)
+  createdAt    DateTime    @default(now())
 
   @@index([company, driveDate])
   @@index([role])
@@ -1170,18 +1173,18 @@ enum InterviewOutcome {
 
 // Crowd-sourced full-loop interview writeups (distinct from OaReport, which is OA-only).
 model InterviewExperience {
-  id          String           @id @default(cuid())
-  authorId    String
-  author      User             @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  company     String
-  role        String
-  outcome     InterviewOutcome @default(PENDING)
-  difficulty  Int              @default(3) // 1–5
-  rounds      Int              @default(1)
-  body        String           // markdown — round-by-round writeup
-  tips        String?
-  upvotes     Int              @default(0)
-  createdAt   DateTime         @default(now())
+  id         String           @id @default(cuid())
+  authorId   String
+  author     User             @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  company    String
+  role       String
+  outcome    InterviewOutcome @default(PENDING)
+  difficulty Int              @default(3) // 1–5
+  rounds     Int              @default(1)
+  body       String // markdown — round-by-round writeup
+  tips       String?
+  upvotes    Int              @default(0)
+  createdAt  DateTime         @default(now())
 
   @@index([company, createdAt])
   @@map("interview_experiences")
@@ -1197,17 +1200,17 @@ enum PayoutStatus {
 }
 
 model MentorPayout {
-  id              String       @id @default(cuid())
-  mentorId        String
-  mentor          Mentor       @relation(fields: [mentorId], references: [id], onDelete: Cascade)
-  mockSessionId   String       @unique
-  amountInr       Int          // payout to mentor in paisa (80% of session price)
-  platformFeeInr  Int          // EYF cut in paisa (20%)
-  status          PayoutStatus @default(PENDING)
-  razorpayTransferId String?   @unique
-  errorMessage    String?
-  createdAt       DateTime     @default(now())
-  processedAt     DateTime?
+  id                 String       @id @default(cuid())
+  mentorId           String
+  mentor             Mentor       @relation(fields: [mentorId], references: [id], onDelete: Cascade)
+  mockSessionId      String       @unique
+  amountInr          Int // payout to mentor in paisa (80% of session price)
+  platformFeeInr     Int // EYF cut in paisa (20%)
+  status             PayoutStatus @default(PENDING)
+  razorpayTransferId String?      @unique
+  errorMessage       String?
+  createdAt          DateTime     @default(now())
+  processedAt        DateTime?
 
   @@index([mentorId, status])
   @@map("mentor_payouts")
@@ -1216,29 +1219,29 @@ model MentorPayout {
 // ─── 27. Pressure Training (Phase 4 Week 26–27) ───────────────────
 
 enum PressureLevel {
-  LOW     // 1.5x time
-  NORMAL  // 1x time
-  HIGH    // 0.7x time
+  LOW // 1.5x time
+  NORMAL // 1x time
+  HIGH // 0.7x time
   EXTREME // 0.5x time + countdown sounds
 }
 
 model PressureSession {
-  id              String        @id @default(cuid())
-  userId          String
-  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  problemId       String?
-  problem         Problem?      @relation(fields: [problemId], references: [id], onDelete: SetNull)
-  level           PressureLevel @default(NORMAL)
-  targetSeconds   Int
-  actualSeconds   Int?
-  completed       Boolean       @default(false)
+  id            String        @id @default(cuid())
+  userId        String
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  problemId     String?
+  problem       Problem?      @relation(fields: [problemId], references: [id], onDelete: SetNull)
+  level         PressureLevel @default(NORMAL)
+  targetSeconds Int
+  actualSeconds Int?
+  completed     Boolean       @default(false)
   // Self-reported anxiety 1-10 before and after.
-  anxietyBefore   Int?
-  anxietyAfter    Int?
+  anxietyBefore Int?
+  anxietyAfter  Int?
   // 1-10 confidence in the solution at submit time.
-  confidence      Int?
-  startedAt       DateTime      @default(now())
-  endedAt         DateTime?
+  confidence    Int?
+  startedAt     DateTime      @default(now())
+  endedAt       DateTime?
 
   @@index([userId, startedAt])
   @@map("pressure_sessions")
@@ -1253,12 +1256,12 @@ enum PeerQueueStatus {
 }
 
 model PeerQueue {
-  id          String          @id @default(cuid())
-  userId      String          @unique
-  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  status      PeerQueueStatus @default(WAITING)
-  problemFocus String?
-  joinedAt    DateTime        @default(now())
+  id            String          @id @default(cuid())
+  userId        String          @unique
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status        PeerQueueStatus @default(WAITING)
+  problemFocus  String?
+  joinedAt      DateTime        @default(now())
   // NOT unique: a matched pair is two queue rows referencing the same mock session.
   matchedMockId String?
 
@@ -1275,15 +1278,15 @@ enum PushPlatform {
 }
 
 model PushToken {
-  id          String       @id @default(cuid())
-  userId      String
-  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  platform    PushPlatform
-  token       String       @unique
+  id         String       @id @default(cuid())
+  userId     String
+  user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  platform   PushPlatform
+  token      String       @unique
   // ISO 639-1 language preference for notification copy.
-  lang        String       @default("en")
-  createdAt   DateTime     @default(now())
-  lastSeenAt  DateTime     @default(now())
+  lang       String       @default("en")
+  createdAt  DateTime     @default(now())
+  lastSeenAt DateTime     @default(now())
 
   @@index([userId])
   @@map("push_tokens")
@@ -1296,9 +1299,9 @@ model PushToken {
 // as AssessmentSession/CognitiveSession.
 
 enum McqCategory {
-  APTITUDE  // quant, data interpretation
-  LOGICAL   // reasoning, series, puzzles
-  VERBAL    // grammar, RC, para-jumbles, vocabulary
+  APTITUDE // quant, data interpretation
+  LOGICAL // reasoning, series, puzzles
+  VERBAL // grammar, RC, para-jumbles, vocabulary
   TECHNICAL // OS / DBMS / CN / OOP / DSA theory
 }
 
@@ -1307,10 +1310,10 @@ model McqAttempt {
   userId          String
   user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   category        McqCategory
-  company         String?     // optional company-pattern filter, e.g. "TCS", "Infosys"
+  company         String? // optional company-pattern filter, e.g. "TCS", "Infosys"
   totalQuestions  Int
   correctAnswers  Int
-  score           Int         // 0–100
+  score           Int // 0–100
   durationSeconds Int
   // Per-question review payload: [{ questionId, chosen, correctIndex }]
   detail          Json
@@ -1327,9 +1330,9 @@ model McqAttempt {
 // Prompt content is editorial (src/lib/communication-bank.ts); attempts persist.
 
 enum CommunicationKind {
-  INTRO       // "Tell me about yourself", walk-through-resume
-  HR          // motivation, strengths/weaknesses, 5-year plan
-  BEHAVIORAL  // STAR: "tell me about a time…"
+  INTRO // "Tell me about yourself", walk-through-resume
+  HR // motivation, strengths/weaknesses, 5-year plan
+  BEHAVIORAL // STAR: "tell me about a time…"
   SITUATIONAL // hypothetical judgement / conflict scenarios
 }
 
@@ -1337,11 +1340,11 @@ model CommunicationDrill {
   id              String            @id @default(cuid())
   userId          String
   user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  promptId        String            // references a prompt in the editorial bank
+  promptId        String // references a prompt in the editorial bank
   kind            CommunicationKind
-  transcript      String            // the learner's answer (typed or transcribed)
-  score           Int               // 0–100 overall
-  feedback        Json              // { overallScore, dimensions{}, strengths[], improvements[], fillerWords[], modelAnswer }
+  transcript      String // the learner's answer (typed or transcribed)
+  score           Int // 0–100 overall
+  feedback        Json // { overallScore, dimensions{}, strengths[], improvements[], fillerWords[], modelAnswer }
   durationSeconds Int               @default(0)
   createdAt       DateTime          @default(now())
 
@@ -1360,10 +1363,10 @@ model ProjectPrep {
   userId       String
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   projectTitle String
-  summary      String   // one-line description used to ground generation
+  summary      String // one-line description used to ground generation
   techStack    String[]
-  questions    Json     // [{ category, question, testing, approach }]
-  tips         Json     // { redFlags: string[], starHooks: string[] }
+  questions    Json // [{ category, question, testing, approach }]
+  tips         Json // { redFlags: string[], starHooks: string[] }
   createdAt    DateTime @default(now())
 
   @@index([userId, createdAt])
@@ -1377,8 +1380,8 @@ model AuditLog {
   id         String   @id @default(cuid())
   actorId    String
   actorEmail String
-  action     String   // create | update | delete | role | plan | status
-  entity     String   // problem | job | career-track | user
+  action     String // create | update | delete | role | plan | status
+  entity     String // problem | job | career-track | user
   entityId   String
   summary    String
   createdAt  DateTime @default(now())
@@ -1409,8 +1412,8 @@ model UserSession {
 // ─── LMS + B2B (the scaling wedge: white-label LMS ↔ internship supply) ───
 
 enum CourseAudience {
-  STAFF      // org trains its own employees
-  CANDIDATE  // org screens EYF students as a pre-internship filter
+  STAFF // org trains its own employees
+  CANDIDATE // org screens EYF students as a pre-internship filter
   BOTH
 }
 
@@ -1445,50 +1448,52 @@ enum OrgMemberStatus {
 }
 
 model Organization {
-  id            String           @id @default(cuid())
-  name          String
-  slug          String           @unique
-  accessCode    String           @unique // legacy employer-portal login (pre-membership)
-  logoUrl       String?
-  brandColor    String?
-  plan          OrgPlan          @default(TRIAL)
-  seatsLicensed Int              @default(10)
-  settings      Json?
-  createdAt     DateTime         @default(now())
-  courses       Course[]
-  internships   InternshipSlot[]
-  members       OrgMember[]
-  departments   Department[]
-  teams         Team[]
-  invites       OrgInvite[]
-  learningPaths LearningPath[]
-  cohorts       Cohort[]
-  roleBars      RoleBar[]
+  id                   String                @id @default(cuid())
+  name                 String
+  slug                 String                @unique
+  accessCode           String                @unique // legacy employer-portal login (pre-membership)
+  logoUrl              String?
+  brandColor           String?
+  plan                 OrgPlan               @default(TRIAL)
+  seatsLicensed        Int                   @default(10)
+  settings             Json?
+  createdAt            DateTime              @default(now())
+  courses              Course[]
+  internships          InternshipSlot[]
+  members              OrgMember[]
+  departments          Department[]
+  teams                Team[]
+  invites              OrgInvite[]
+  learningPaths        LearningPath[]
+  cohorts              Cohort[]
+  roleBars             RoleBar[]
   assessmentBlueprints AssessmentBlueprint[]
-  assessmentRuns AssessmentRun[]
+  assessmentRuns       AssessmentRun[]
   certificateTemplates CertificateTemplate[]
-  requisitions  JobRequisition[]
-  apiKeys       ApiKey[]
-  webhooks      WebhookEndpoint[]
-  placementFees PlacementFee[]
+  requisitions         JobRequisition[]
+  apiKeys              ApiKey[]
+  webhooks             WebhookEndpoint[]
+  placementFees        PlacementFee[]
+  placementOutcomes    PlacementOutcome[]
+
   @@map("organizations")
 }
 
 // Membership = the identity spine of the enterprise platform. A user can be
 // a member of many orgs with different role sets (PRD §9).
 model OrgMember {
-  id           String          @id @default(cuid())
-  orgId        String
-  org          Organization    @relation(fields: [orgId], references: [id], onDelete: Cascade)
-  userId       String
-  user         User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  roles        OrgRole[]
-  departmentId String?
-  department   Department?     @relation(fields: [departmentId], references: [id], onDelete: SetNull)
-  title        String?
-  status       OrgMemberStatus @default(ACTIVE)
-  joinedAt     DateTime        @default(now())
-  teams        TeamMember[]
+  id                String             @id @default(cuid())
+  orgId             String
+  org               Organization       @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  userId            String
+  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  roles             OrgRole[]
+  departmentId      String?
+  department        Department?        @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  title             String?
+  status            OrgMemberStatus    @default(ACTIVE)
+  joinedAt          DateTime           @default(now())
+  teams             TeamMember[]
   cohortEnrollments CohortEnrollment[]
 
   @@unique([orgId, userId])
@@ -1536,31 +1541,33 @@ model TeamMember {
 
 // ─── Enterprise: API keys + webhooks (PRD §24/§14) ─────────────────
 model ApiKey {
-  id         String    @id @default(cuid())
+  id         String       @id @default(cuid())
   orgId      String
   org        Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
   name       String
-  prefix     String    @unique // shown to the user (eyf_live_xxxx); the rest is hashed
+  prefix     String       @unique // shown to the user (eyf_live_xxxx); the rest is hashed
   hashedKey  String // sha-256 hash of the full key — the raw key is shown ONCE
   scopes     String[] // subset of org capabilities
   lastUsedAt DateTime?
   revokedAt  DateTime?
-  createdAt  DateTime  @default(now())
+  createdAt  DateTime     @default(now())
+
   @@index([orgId])
   @@map("org_api_keys")
 }
 
 model WebhookEndpoint {
-  id        String   @id @default(cuid())
-  orgId     String
-  org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
-  url       String
-  secret    String // HMAC signing secret
-  events    String[] // event names to deliver
-  active    Boolean  @default(true)
-  failCount Int      @default(0)
-  createdAt DateTime @default(now())
+  id         String            @id @default(cuid())
+  orgId      String
+  org        Organization      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  url        String
+  secret     String // HMAC signing secret
+  events     String[] // event names to deliver
+  active     Boolean           @default(true)
+  failCount  Int               @default(0)
+  createdAt  DateTime          @default(now())
   deliveries WebhookDelivery[]
+
   @@index([orgId])
   @@map("org_webhook_endpoints")
 }
@@ -1575,6 +1582,7 @@ model WebhookDelivery {
   attempts   Int             @default(0)
   lastAt     DateTime?
   createdAt  DateTime        @default(now())
+
   @@index([endpointId, createdAt])
   @@map("org_webhook_deliveries")
 }
@@ -1617,21 +1625,23 @@ model TalentConsent {
   scope     TalentScope @default(POOL_ANON)
   grantedAt DateTime    @default(now())
   revokedAt DateTime?
+
   @@map("talent_consents")
 }
 
 model JobRequisition {
-  id               String             @id @default(cuid())
-  orgId            String
-  org              Organization       @relation(fields: [orgId], references: [id], onDelete: Cascade)
-  title            String
-  roleBarId        String?
-  minReadiness     Int                @default(0)
-  status           RequisitionStatus  @default(OPEN)
-  hiringManagerId  String?
-  createdAt        DateTime           @default(now())
-  candidates       PipelineCandidate[]
-  offers           Offer[]
+  id              String              @id @default(cuid())
+  orgId           String
+  org             Organization        @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  title           String
+  roleBarId       String?
+  minReadiness    Int                 @default(0)
+  status          RequisitionStatus   @default(OPEN)
+  hiringManagerId String?
+  createdAt       DateTime            @default(now())
+  candidates      PipelineCandidate[]
+  offers          Offer[]
+
   @@index([orgId, status])
   @@map("org_requisitions")
 }
@@ -1648,21 +1658,23 @@ enum OfferStatus {
 // someone with hire:offer sends, the candidate responds. On accept, the hire's
 // B2C profile becomes an org membership (F10 — campus→career spine).
 model Offer {
-  id           String       @id @default(cuid())
-  reqId        String
-  req          JobRequisition @relation(fields: [reqId], references: [id], onDelete: Cascade)
-  userId       String // the candidate (a platform user)
-  title        String
-  ctcInr       Int          @default(0) // annual, rupees
-  startDate    DateTime?
-  status       OfferStatus  @default(DRAFT)
-  draftedById  String // OrgMember who drafted
-  sentById     String? // OrgMember who approved+sent (hire:offer)
-  sentAt       DateTime?
-  respondedAt  DateTime?
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @default(now()) @updatedAt
-  placementFee PlacementFee?
+  id               String            @id @default(cuid())
+  reqId            String
+  req              JobRequisition    @relation(fields: [reqId], references: [id], onDelete: Cascade)
+  userId           String // the candidate (a platform user)
+  title            String
+  ctcInr           Int               @default(0) // annual, rupees
+  startDate        DateTime?
+  status           OfferStatus       @default(DRAFT)
+  draftedById      String // OrgMember who drafted
+  sentById         String? // OrgMember who approved+sent (hire:offer)
+  sentAt           DateTime?
+  respondedAt      DateTime?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @default(now()) @updatedAt
+  placementFee     PlacementFee?
+  placementOutcome PlacementOutcome?
+
   @@unique([reqId, userId])
   @@index([userId, status])
   @@map("org_offers")
@@ -1691,8 +1703,63 @@ model PlacementFee {
   createdAt  DateTime           @default(now())
   invoicedAt DateTime?
   paidAt     DateTime?
+
   @@index([orgId, status])
   @@map("placement_fees")
+}
+
+// Proof Loop (docs/PLAN-proof-loop.md). One row per placement across ALL sources —
+// the canonical "a student got placed" record that PlacementFee (billing-only) does not
+// capture. Carries a FROZEN, VERSIONED readiness snapshot so calibration never compares
+// across scoring-algorithm changes. Money aggregates read ONLY verified rows (verifiedAt
+// set): pipeline placements are verified (employer set the CTC on the Offer); self-reports
+// stay unverified until an offer letter is confirmed, so they count toward placed-count and
+// company presence but never a package median.
+enum PlacementSource {
+  PIPELINE // hired through an EYF org-hire requisition (verified: CTC from the Offer)
+  REFERRAL // placed via a warm alumni referral
+  SELF_REPORT // student reported a placement that happened outside EYF's pipeline
+}
+
+enum PlacementOutcomeStatus {
+  OFFERED // has an offer, not yet joined
+  JOINED // actually joined — the only status counted in placed-count
+  RENEGED // reneged/backed out after reporting
+}
+
+model PlacementOutcome {
+  id               String                 @id @default(cuid())
+  userId           String
+  user             User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  source           PlacementSource
+  status           PlacementOutcomeStatus @default(JOINED)
+  // Pipeline placements link the Offer (CTC/company/role read from it, not copied). Null for
+  // referral/self-report, where the employer may not be an EYF Organization at all.
+  offerId          String?                @unique
+  offer            Offer?                 @relation(fields: [offerId], references: [id], onDelete: SetNull)
+  orgId            String?
+  org              Organization?          @relation(fields: [orgId], references: [id], onDelete: SetNull)
+  companyName      String // free-text employer (external companies aren't Organization rows)
+  role             String
+  ctcInr           Int? // annual CTC, rupees. Null for unpaid roles / undisclosed self-reports.
+  // Provenance trust boundary: only verified rows feed package/money aggregates.
+  verifiedAt       DateTime?
+  // Frozen, versioned readiness snapshot at placement time. Denormalized columns so the
+  // calibration job can filter/group in SQL; `snapshot` keeps the full sub-signal JSON.
+  readinessOverall Int
+  readinessBand    String
+  snapshotVersion  String
+  snapshot         Json?
+  // Canonical cohort key — the normalized college slug, NEVER the raw free-text string.
+  collegeSlug      String
+  placedAt         DateTime               @default(now())
+  createdAt        DateTime               @default(now())
+  updatedAt        DateTime               @default(now()) @updatedAt
+
+  @@index([collegeSlug, verifiedAt])
+  @@index([userId])
+  @@index([source, status])
+  @@map("placement_outcomes")
 }
 
 model PipelineCandidate {
@@ -1710,6 +1777,7 @@ model PipelineCandidate {
   evidenceSnapshot Json? // frozen evidence summary when sourced
   createdAt        DateTime        @default(now())
   updatedAt        DateTime        @default(now()) @updatedAt
+
   @@unique([reqId, userId])
   @@index([reqId, stage])
   @@map("org_pipeline_candidates")
@@ -1743,6 +1811,7 @@ model AssessmentBlueprint {
   active        Boolean         @default(true)
   createdAt     DateTime        @default(now())
   runs          AssessmentRun[]
+
   @@index([orgId])
   @@map("org_assessment_blueprints")
 }
@@ -1758,6 +1827,7 @@ model AssessmentRun {
   windowEnd   DateTime?
   createdAt   DateTime            @default(now())
   attempts    AssessmentAttempt[]
+
   @@index([orgId])
   @@map("org_assessment_runs")
 }
@@ -1775,6 +1845,7 @@ model AssessmentAttempt {
   status         AttemptStatus @default(IN_PROGRESS)
   startedAt      DateTime      @default(now())
   submittedAt    DateTime?
+
   @@unique([runId, userId])
   @@index([runId])
   @@map("org_assessment_attempts")
@@ -1803,22 +1874,24 @@ model Skill {
   parent   Skill?   @relation("SkillTree", fields: [parentId], references: [id], onDelete: SetNull)
   children Skill[]  @relation("SkillTree")
   lessons  Lesson[]
+
   @@map("skills")
 }
 
 // One immutable observation that a user demonstrated a skill at some level.
 // Never updated — the ledger is the sum of history, decayed by recency.
 model SkillEvidence {
-  id              String         @id @default(cuid())
-  userId          String
-  orgId           String? // null = platform-wide (B2C activity); set = earned inside an org
-  skillId         String
-  level           Int // 0..100 demonstrated on this occasion
-  weight          Float          @default(1) // source trust (lesson < assessment < judged code)
-  sourceType      EvidenceSource
-  sourceId        String?
-  decayHalfLifeDays Int          @default(180)
-  createdAt       DateTime       @default(now())
+  id                String         @id @default(cuid())
+  userId            String
+  orgId             String? // null = platform-wide (B2C activity); set = earned inside an org
+  skillId           String
+  level             Int // 0..100 demonstrated on this occasion
+  weight            Float          @default(1) // source trust (lesson < assessment < judged code)
+  sourceType        EvidenceSource
+  sourceId          String?
+  decayHalfLifeDays Int            @default(180)
+  createdAt         DateTime       @default(now())
+
   @@index([userId, skillId])
   @@index([orgId, skillId])
   @@map("skill_evidence")
@@ -1834,19 +1907,21 @@ model SkillSnapshot {
   level         Int
   evidenceCount Int      @default(0)
   computedAt    DateTime @default(now())
+
   @@unique([userId, orgId, skillId])
   @@index([orgId, skillId])
   @@map("skill_snapshots")
 }
 
 model RoleBar {
-  id          String        @id @default(cuid())
+  id          String         @id @default(cuid())
   orgId       String
-  org         Organization  @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  org         Organization   @relation(fields: [orgId], references: [id], onDelete: Cascade)
   name        String
   basedOnTier String?
   skills      RoleBarSkill[]
-  createdAt   DateTime      @default(now())
+  createdAt   DateTime       @default(now())
+
   @@index([orgId])
   @@map("org_role_bars")
 }
@@ -1858,6 +1933,7 @@ model RoleBarSkill {
   skillId       String
   requiredLevel Int // 0..100 bar to clear
   weight        Float   @default(1)
+
   @@unique([roleBarId, skillId])
   @@map("org_role_bar_skills")
 }
@@ -2004,6 +2080,7 @@ model Course {
   enrollments    Enrollment[]
   versions       CourseVersion[]
   pathItems      PathItem[]
+
   @@index([orgId, status])
   @@map("lms_courses")
 }
@@ -2018,24 +2095,26 @@ model CourseVersion {
   snapshot      Json // { title, description, lessons: [{title,type,blocks,estMinutes,orderIndex}] }
   publishedById String
   publishedAt   DateTime @default(now())
+
   @@unique([courseId, version])
   @@map("lms_course_versions")
 }
 
 model Lesson {
-  id         String     @id @default(cuid())
+  id         String           @id @default(cuid())
   courseId   String
-  course     Course     @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  course     Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
   title      String
-  content    String     @default("") // legacy plain text (pre-blocks)
-  type       LessonType @default(RICH_TEXT)
+  content    String           @default("") // legacy plain text (pre-blocks)
+  type       LessonType       @default(RICH_TEXT)
   blocks     Json? // ordered block array (PRD §16 block model)
-  estMinutes Int        @default(5)
-  orderIndex Int        @default(0)
+  estMinutes Int              @default(5)
+  orderIndex Int              @default(0)
   skillId    String?
-  skill      Skill?     @relation(fields: [skillId], references: [id], onDelete: SetNull)
-  skillLevel Int        @default(60) // evidence level emitted when a tagged lesson is completed
+  skill      Skill?           @relation(fields: [skillId], references: [id], onDelete: SetNull)
+  skillLevel Int              @default(60) // evidence level emitted when a tagged lesson is completed
   progress   LessonProgress[]
+
   @@index([courseId])
   @@map("lms_lessons")
 }
@@ -2051,6 +2130,7 @@ model InternshipSlot {
   eliteOnly Boolean      @default(true) // the flywheel — Elite students get access
   openUntil DateTime?
   createdAt DateTime     @default(now())
+
   @@index([orgId])
   @@map("internship_slots")
 }
@@ -2062,6 +2142,7 @@ model WebhookEvent {
   provider  String
   type      String
   createdAt DateTime @default(now())
+
   @@map("webhook_events")
 }
 
@@ -2073,6 +2154,7 @@ model Enrollment {
   course     Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
   userId     String
   enrolledAt DateTime @default(now())
+
   @@unique([courseId, userId])
   @@index([userId])
   @@map("lms_enrollments")
@@ -2085,6 +2167,7 @@ model LessonProgress {
   lesson      Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
   userId      String
   completedAt DateTime @default(now())
+
   @@unique([lessonId, userId])
   @@index([userId])
   @@map("lms_lesson_progress")

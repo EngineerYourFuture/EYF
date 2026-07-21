@@ -140,7 +140,7 @@ export function levelForXp(xp: number): number {
 // linker under `tsx watch`. Extensionless (not `.js`): tsx resolves it, and
 // Next's webpack resolves `./readiness`->`.ts` — a `.js` specifier would break
 // the web build (no readiness.js exists). Named + extensionless satisfies both.
-export { computeReadiness, rankActions } from "./readiness";
+export { computeReadiness, rankActions, READINESS_ALGO_VERSION } from "./readiness";
 export type {
   ReadinessInput,
   ReadinessGoal,
@@ -148,6 +148,10 @@ export type {
   Pillar,
   GuidanceAction,
 } from "./readiness";
+
+// Proof Loop — cohort key + descriptive-verified proof (docs/PLAN-proof-loop.md).
+export { collegeSlug, ctcBand, descriptiveCohortProof, COHORT_K } from "./placement";
+export type { ProofRow, CohortProof } from "./placement";
 
 // RBAC capability layer (admin/staff portal — scalable, shared web+api).
 export { CAPABILITIES, capabilitiesFor, hasCapability, isStaffRole } from "./permissions";

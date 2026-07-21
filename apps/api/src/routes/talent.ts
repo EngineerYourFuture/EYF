@@ -6,7 +6,8 @@
  */
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
-import { prisma, TalentScope } from "@eyf/db";
+import { prisma, TalentScope, PlacementSource } from "@eyf/db";
+import { collegeSlug, READINESS_ALGO_VERSION } from "@eyf/types";
 import { computePlacementFee, DEFAULT_FEE_BPS } from "../services/placement-fee.js";
 
 export async function talentRoutes(app: FastifyInstance) {
@@ -53,7 +54,7 @@ export async function talentRoutes(app: FastifyInstance) {
     const { accept } = z.object({ accept: z.boolean() }).parse(req.body ?? {});
     const offer = await prisma.offer.findFirst({
       where: { id: offerId, userId: req.session!.id },
-      include: { req: { select: { id: true, orgId: true } } },
+      include: { req: { select: { id: true, orgId: true, org: { select: { name: true } } } } },
     });
     if (!offer) return reply.code(404).send({ success: false, error: { code: "NOT_FOUND", message: "Offer not found." } });
     if (offer.status !== "SENT") return reply.code(409).send({ success: false, error: { code: "BAD_STATE", message: "This offer can no longer be responded to." } });
@@ -62,6 +63,21 @@ export async function talentRoutes(app: FastifyInstance) {
       const declined = await prisma.offer.update({ where: { id: offerId }, data: { status: "DECLINED", respondedAt: new Date() } });
       return { success: true, data: { status: declined.status } };
     }
+
+    // Proof Loop capture (docs/PLAN-proof-loop.md). Read the cheap snapshot data BEFORE the
+    // transaction — never recompute the 9-query readiness inside the accept tx (H1). The
+    // candidate's sourcing snapshot (fitScore + evidenceSnapshot, from org-hire.ts) IS the
+    // frozen readiness we want; the user's college gives the canonical cohort key.
+    const [user, candidate] = await Promise.all([
+      prisma.user.findUnique({ where: { id: req.session!.id }, select: { college: true } }),
+      prisma.pipelineCandidate.findFirst({
+        where: { reqId: offer.req.id, userId: req.session!.id },
+        select: { fitScore: true, evidenceSnapshot: true },
+      }),
+    ]);
+    const snap = (candidate?.evidenceSnapshot ?? null) as { readiness?: number; band?: string } | null;
+    const readinessOverall = candidate?.fitScore ?? snap?.readiness ?? 0;
+    const readinessBand = snap?.band ?? "";
 
     await prisma.$transaction(async (tx) => {
       await tx.offer.update({ where: { id: offerId }, data: { status: "ACCEPTED", respondedAt: new Date() } });
@@ -84,6 +100,30 @@ export async function talentRoutes(app: FastifyInstance) {
           update: {},
         });
       }
+      // The Proof Loop outcome row — atomic with the hire so a crash can't leave a
+      // placement uncaptured. PIPELINE source is VERIFIED (the employer set the CTC on
+      // the Offer). Idempotent via the unique offerId. CTC is read from the offer here,
+      // not duplicated as a source of truth — the outcome just snapshots it for cohorts.
+      await tx.placementOutcome.upsert({
+        where: { offerId },
+        create: {
+          userId: req.session!.id,
+          source: PlacementSource.PIPELINE,
+          status: "JOINED",
+          offerId,
+          orgId: offer.req.orgId,
+          companyName: offer.req.org.name,
+          role: offer.title,
+          ctcInr: offer.ctcInr > 0 ? offer.ctcInr : null,
+          verifiedAt: new Date(),
+          readinessOverall,
+          readinessBand,
+          snapshotVersion: READINESS_ALGO_VERSION,
+          snapshot: snap ?? undefined,
+          collegeSlug: collegeSlug(user?.college ?? null),
+        },
+        update: {},
+      });
     });
     return { success: true, data: { status: "ACCEPTED", joinedOrgId: offer.req.orgId } };
   });

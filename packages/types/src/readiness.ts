@@ -73,6 +73,14 @@ export type ReadinessGoal = { targetRole?: string | null; targetCompany?: string
 
 type WeightSet = { dsa: number; interview: number; aptitude: number; resume: number; consistency: number; projects: number };
 
+/**
+ * Version stamp for the readiness algorithm. The Proof Loop freezes this onto every
+ * PlacementOutcome snapshot so calibration NEVER correlates scores computed under
+ * different WEIGHTS/formulas. BUMP THIS whenever WEIGHTS, the band thresholds, or the
+ * `computeReadiness` formula change (e.g. "r2"). See docs/PLAN-proof-loop.md (H2).
+ */
+export const READINESS_ALGO_VERSION = "r1";
+
 // Pillar weight profiles by goal archetype (each sums to 1.00).
 const WEIGHTS: Record<string, WeightSet> = {
   //        dsa   interview aptitude resume consistency projects
