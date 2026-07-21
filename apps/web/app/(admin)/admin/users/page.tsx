@@ -22,7 +22,7 @@ export default function Page() {
     const t = setTimeout(() => setDebouncedQ(q.trim()), 300);
     return () => clearTimeout(t);
   }, [q]);
-  const { data, mutate } = useApi<Row[]>(`/admin/users${debouncedQ ? `?q=${encodeURIComponent(debouncedQ)}` : ""}`);
+  const { data, mutate } = useApi<Row[]>(`/admin/users${debouncedQ ? "?q=" + encodeURIComponent(debouncedQ) : ""}`);
   const { data: me } = useApi<{ user: { id: string } }>("/me");
   const action = useApiAction();
   const confirm = useConfirm();

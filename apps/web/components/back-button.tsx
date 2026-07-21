@@ -21,7 +21,7 @@ const PARENT: Record<string, string> = {
  * Contextual back button. Renders only on detail pages (≥2 path segments).
  * Prefers in-app history; falls back to the section index when deep-linked.
  */
-export function BackButton({ className = "" }: { className?: string }) {
+export function BackButton({ className = "" }: Readonly<{ className?: string }>) {
   const pathname = usePathname();
   const router = useRouter();
   const segments = pathname.split("/").filter(Boolean);

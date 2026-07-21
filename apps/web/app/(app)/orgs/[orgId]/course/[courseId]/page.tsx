@@ -24,7 +24,7 @@ export default function PlayerPage() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    if (!course || activeId) return;
+    if (!course || activeId) { return; }
     // Land on the first incomplete lesson, else the first.
     setActiveId((course.lessons.find((l) => !l.completed) ?? course.lessons[0])?.id ?? null);
   }, [course, activeId]);
@@ -34,7 +34,7 @@ export default function PlayerPage() {
   const doneCount = course?.lessons.filter((l) => l.completed).length ?? 0;
 
   async function complete() {
-    if (!active) return;
+    if (!active) { return; }
     setBusy(true);
     try {
       await action(`/orgs/${orgId}/work/lessons/${active.id}/complete`, { method: "POST" });
@@ -44,7 +44,7 @@ export default function PlayerPage() {
     } catch { /* toasted */ } finally { setBusy(false); }
   }
 
-  if (!course) return <div className="px-6 py-12"><Skeleton className="h-8 w-64" /></div>;
+  if (!course) { return <div className="px-6 py-12"><Skeleton className="h-8 w-64" /></div>; }
 
   return (
     <PageMotion>
@@ -91,7 +91,7 @@ export default function PlayerPage() {
               </div>
               <div className="mt-6 flex items-center gap-3 border-t border-border pt-4">
                 <Button onClick={complete} disabled={busy || active.completed}>
-                  {active.completed ? "Completed" : busy ? "Saving…" : idx + 1 < course.lessons.length ? "Complete & next →" : "Complete lesson"}
+                  {(() => { if (active.completed) { return "Completed"; } if (busy) { return "Saving…"; } if (idx + 1 < course.lessons.length) { return "Complete & next →"; } return "Complete lesson"; })()}
                 </Button>
               </div>
             </Card>
@@ -104,8 +104,8 @@ export default function PlayerPage() {
   );
 }
 
-function BlockView({ block }: { block: Block }) {
-  const text = (k: string) => String(block.data[k] ?? "");
+function BlockView({ block }: Readonly<{ block: Block }>) {
+  const text = (k: string) => { const v = block.data[k]; return typeof v === "string" ? v : ""; };
   switch (block.type) {
     case "heading": return <h3 className="font-display text-lg font-bold mt-2">{text("text")}</h3>;
     case "rich_text": return <p className="text-text-2 leading-relaxed whitespace-pre-wrap">{text("text")}</p>;

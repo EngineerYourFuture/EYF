@@ -6,6 +6,7 @@ import { useConfirm } from "@/components/confirm";
 import { Icons } from "@/components/icons";
 import { ContentTabs } from "../_tabs";
 import { Field } from "../_field";
+import { saveLabel } from "@/lib/ui-helpers";
 
 const SUBJECTS = ["ALL", "OS", "DBMS", "CN", "OOP"] as const;
 const DIFFICULTIES = ["EASY", "MEDIUM", "HARD", "EXPERT"] as const;
@@ -20,7 +21,7 @@ const inputCls = "w-full h-11 px-3 rounded-lg bg-surface border border-border te
 
 export default function Page() {
   const [filter, setFilter] = useState<(typeof SUBJECTS)[number]>("ALL");
-  const { data, mutate } = useApi<Row[]>(`/admin/content/flashcards${filter === "ALL" ? "" : `?subject=${filter}`}`);
+  const { data, mutate } = useApi<Row[]>(`/admin/content/flashcards${filter === "ALL" ? "" : "?subject=" + filter}`);
   const action = useApiAction();
   const confirm = useConfirm();
   const [editing, setEditing] = useState<null | { id: string | null }>(null);
@@ -61,7 +62,7 @@ export default function Page() {
           <Field label="Front" hint="the question"><textarea className={`${inputCls} min-h-24 py-3 h-auto`} value={form.front} onChange={(e) => set("front", e.target.value)} placeholder="What are the four Coffman conditions for deadlock?" /></Field>
           <Field label="Back" hint="the answer"><textarea className={`${inputCls} min-h-32 py-3 h-auto`} value={form.back} onChange={(e) => set("back", e.target.value)} /></Field>
           <div className="flex gap-3 pt-2">
-            <Button onClick={save} disabled={saving || !form.topic || !form.front || !form.back}>{saving ? "Saving…" : editing.id ? "Save changes" : "Create card"}</Button>
+            <Button onClick={save} disabled={saving || !form.topic || !form.front || !form.back}>{saveLabel(saving, editing.id, "Create card")}</Button>
             <Button variant="ghost" onClick={() => setEditing(null)}>Cancel</Button>
           </div>
         </Card>

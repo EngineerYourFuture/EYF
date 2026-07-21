@@ -79,7 +79,7 @@ const Icon = {
   ),
 };
 
-export default function Page({ params }: { params: { slug: string } }) {
+export default function Page({ params }: Readonly<{ params: { slug: string } }>) {
   const { data: problem } = useApi<Problem>(`/problems/${params.slug}`);
   const { theme } = useTheme();
   const [lang, setLang] = useState<Lang>("CPP");
@@ -373,11 +373,15 @@ export default function Page({ params }: { params: { slug: string } }) {
           <div className="border-t border-border px-4 sm:px-6 py-4 bg-surface-2/60" aria-live="polite">
             <div className="flex items-center gap-3 flex-wrap">
               <span className="text-xs text-text-3 uppercase tracking-wider">Verdict</span>
-              <Badge tone={
-                submission.verdict === "ACCEPTED" ? "easy" :
-                submission.verdict === "PENDING" ? (stalled ? "medium" : "default") : "hard"
-              }>
-                {submission.verdict === "PENDING" ? (stalled ? "Timed out" : "Judging…") : submission.verdict.replace(/_/g, " ")}
+              <Badge tone={(() => {
+                if (submission.verdict === "ACCEPTED") return "easy" as const;
+                if (submission.verdict === "PENDING") return stalled ? "medium" as const : "default" as const;
+                return "hard" as const;
+              })()}>
+                {(() => {
+                  if (submission.verdict === "PENDING") return stalled ? "Timed out" : "Judging…";
+                  return submission.verdict.replaceAll("_", " ");
+                })()}
               </Badge>
               {stalled && (
                 <span className="text-text-3 text-sm">The judge didn&apos;t respond — it may be offline. Submit again to retry.</span>

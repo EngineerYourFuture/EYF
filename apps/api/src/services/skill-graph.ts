@@ -58,6 +58,28 @@ export async function computeSkillGraph(userId: string): Promise<SkillGraph> {
       prisma.communicationDrill.findMany({ where: { userId }, select: { score: true } }),
       prisma.projectPrep.count({ where: { userId } }),
     ]);
+  return skillGraphFrom({ accepted, allSubs, latestAssessment, flashcards, reviews, mocks, resumes, projects, cognitive, mcqAttempts, commDrills, projectPrepCount });
+}
+
+export type SkillGraphInput = {
+  accepted: { problem: { difficulty: string } }[];
+  allSubs: number;
+  latestAssessment: { gapAnalysis: unknown } | null;
+  flashcards: { subject: Subject; _count: number }[];
+  reviews: { repetitions: number; flashcard: { subject: Subject } }[];
+  mocks: { feedback: unknown }[];
+  resumes: { atsScore: number | null }[];
+  projects: { status: string }[];
+  cognitive: { accuracyPct: number }[];
+  mcqAttempts: { category: string; score: number }[];
+  commDrills: { score: number }[];
+  projectPrepCount: number;
+};
+
+/** Pure skill-graph synthesis — separated from the 12 queries so the scoring is
+ *  unit-testable with fixtures. */
+export function skillGraphFrom(data: SkillGraphInput): SkillGraph {
+  const { accepted, allSubs, latestAssessment, flashcards, reviews, mocks, resumes, projects, cognitive, mcqAttempts, commDrills, projectPrepCount } = data;
 
   // Best MCQ score achieved in a given section (0 if never attempted).
   const mcqBest = (cat: "APTITUDE" | "LOGICAL" | "VERBAL" | "TECHNICAL") =>
@@ -121,27 +143,36 @@ export async function computeSkillGraph(userId: string): Promise<SkillGraph> {
   const commVolume = clamp(((mocks.length + commDrills.length) / 6) * 100);
   const communication = commQuality > 0 ? clamp(0.7 * commQuality + 0.3 * commVolume) : 0;
 
+  let aptDetail: string;
+  if (aptMcq > 0) aptDetail = `MCQ tests + assessment + ${cognitive.length} brain games`;
+  else if (latestAssessment) aptDetail = `Last assessment + ${cognitive.length} brain games`;
+  else if (cognitive.length) aptDetail = `${cognitive.length} cognitive games`;
+  else aptDetail = "Take a test or assessment";
+
+  let commDetail: string;
+  if (communication > 0) commDetail = `${mocks.length} mocks · ${commDrills.length} drills${verbalMcq > 0 ? " · verbal MCQ" : ""}`;
+  else commDetail = "No mocks or drills yet";
+
+  let projDetail: string;
+  if (projects.length) projDetail = `${projects.length} started · ${completed} shipped${projectPrepCount ? " · " + projectPrepCount + " prepped" : ""}`;
+  else projDetail = "No projects started";
+
   const dimensions: SkillDimension[] = [
     { key: "dsa", label: "Data Structures & Algorithms", group: "Problem Solving", score: dsa,
       detail: solvedCount ? `${solvedCount} solved · ${Math.round(acceptanceRate * 100)}% acceptance` : "No problems solved yet", href: "/problems" },
     { key: "aptitude", label: "Aptitude", group: "Problem Solving", score: aptitude,
-      detail: aptMcq > 0 ? `MCQ tests + assessment + ${cognitive.length} brain games`
-        : latestAssessment ? `Last assessment + ${cognitive.length} brain games`
-        : cognitive.length ? `${cognitive.length} cognitive games`
-        : "Take a test or assessment",
+      detail: aptDetail,
       href: aptMcq > 0 || latestAssessment ? "/mcq" : "/assessment" },
     ...(Object.keys(SUBJECT_LABEL) as Subject[]).map((s) => ({
       key: s.toLowerCase(), label: SUBJECT_LABEL[s], group: "Core CS" as SkillGroup, score: subjectScore(s),
       detail: (repsBySubject.get(s)?.length ?? 0) > 0 ? `${repsBySubject.get(s)!.length} cards reviewed` : "Start the flashcards", href: `/subjects/${s.toLowerCase()}`,
     })),
     { key: "projects", label: "Projects", group: "Career", score: projectScore,
-      detail: projects.length ? `${projects.length} started · ${completed} shipped${projectPrepCount ? ` · ${projectPrepCount} prepped` : ""}` : "No projects started", href: "/projects" },
+      detail: projDetail, href: "/projects" },
     { key: "resume", label: "Resume", group: "Career", score: clamp(bestAts),
       detail: bestAts ? `${bestAts}/100 ATS score` : "No resume scored yet", href: "/resume" },
     { key: "communication", label: "Communication", group: "Career", score: communication,
-      detail: communication > 0
-        ? `${mocks.length} mocks · ${commDrills.length} drills${verbalMcq > 0 ? " · verbal MCQ" : ""}`
-        : "No mocks or drills yet",
+      detail: commDetail,
       href: commDrills.length && !mocks.length ? "/communication" : "/mocks" },
   ];
 

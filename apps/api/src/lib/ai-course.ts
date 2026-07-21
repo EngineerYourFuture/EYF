@@ -10,11 +10,18 @@ export type OutlineBlock = { type: string; data: Record<string, string> };
 export type OutlineLesson = { title: string; skillSlug: string; blocks: OutlineBlock[] };
 export type Outline = { title: string; description: string; lessons: OutlineLesson[]; source: "ai" | "template" };
 
-const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40) || "topic";
+const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40) || "topic";
+
+function ordinalSuffix(n: number): string {
+  if (n === 1) return "st";
+  if (n === 2) return "nd";
+  if (n === 3) return "rd";
+  return "th";
+}
 
 /** Deterministic skeleton — a real, teachable structure, not a placeholder.
  *  Intro → N concept lessons → a hands-on lesson → recap, all skill-tagged. */
-function templateOutline(topic: string, audience: string, lessonCount: number): Outline {
+export function templateOutline(topic: string, audience: string, lessonCount: number): Outline {
   const base = slug(topic);
   const n = Math.max(3, Math.min(8, lessonCount));
   const concepts = Math.max(1, n - 3);
@@ -35,28 +42,30 @@ function templateOutline(topic: string, audience: string, lessonCount: number): 
       skillSlug: base,
       blocks: [
         { type: "heading", data: { text: `Core concept ${i}` } },
-        { type: "rich_text", data: { text: `Explain the ${i}${i === 1 ? "st" : i === 2 ? "nd" : i === 3 ? "rd" : "th"} building block of ${topic} here. Replace this with the real teaching content — the structure is ready.` } },
+        { type: "rich_text", data: { text: `Explain the ${i}${ordinalSuffix(i)} building block of ${topic} here. Replace this with the real teaching content — the structure is ready.` } },
         { type: "code", data: { code: `// ${topic}: worked example ${i}\n// replace with a real snippet` } },
       ],
     });
   }
-  lessons.push({
-    title: `${topic} — hands-on`,
-    skillSlug: base,
-    blocks: [
-      { type: "heading", data: { text: "Apply it" } },
-      { type: "rich_text", data: { text: `Now practice. Solve the exercise below, then explain your approach out loud.` } },
-      { type: "judged_code", data: { problemSlug: `${base}-practice` } },
-    ],
-  });
-  lessons.push({
-    title: `${topic} — recap & next steps`,
-    skillSlug: base,
-    blocks: [
-      { type: "heading", data: { text: "What you learned" } },
-      { type: "rich_text", data: { text: `Recap the key ideas of ${topic} and point to where to go deeper.` } },
-    ],
-  });
+  lessons.push(
+    {
+      title: `${topic} — hands-on`,
+      skillSlug: base,
+      blocks: [
+        { type: "heading", data: { text: "Apply it" } },
+        { type: "rich_text", data: { text: `Now practice. Solve the exercise below, then explain your approach out loud.` } },
+        { type: "judged_code", data: { problemSlug: `${base}-practice` } },
+      ],
+    },
+    {
+      title: `${topic} — recap & next steps`,
+      skillSlug: base,
+      blocks: [
+        { type: "heading", data: { text: "What you learned" } },
+        { type: "rich_text", data: { text: `Recap the key ideas of ${topic} and point to where to go deeper.` } },
+      ],
+    },
+  );
 
   return {
     title: `${topic} — ${audience} track`,
@@ -69,6 +78,7 @@ function templateOutline(topic: string, audience: string, lessonCount: number): 
 export async function buildCourseOutline(input: { topic: string; audience: string; lessonCount: number }): Promise<Outline> {
   try {
     const ai = await generateCourseOutline(input);
+    /* c8 ignore start -- live LLM success path; tests exercise the deterministic fallback below. */
     if (ai.lessons?.length) {
       return {
         title: ai.title,
@@ -77,6 +87,7 @@ export async function buildCourseOutline(input: { topic: string; audience: strin
         source: "ai",
       };
     }
+    /* c8 ignore stop */
   } catch {
     /* no key / bad JSON → deterministic skeleton below */
   }

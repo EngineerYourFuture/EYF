@@ -42,15 +42,19 @@ export function InternshipExchange() {
                   {s.org}{!s.locked && s.location ? ` · ${s.location}` : ""} · {s.seats} seat{s.seats === 1 ? "" : "s"} · Unpaid
                 </div>
               </div>
-              {s.locked ? <span className="text-text-4 text-xs shrink-0">🔒 Elite</span>
-                : s.inContention ? <span className="text-easy text-xs font-medium shrink-0">In contention</span>
-                : <span className="text-medium text-xs shrink-0">#{(s.spotsFromCutoff ?? 0) + s.seats}</span>}
+              {(() => {
+                if (s.locked) return <span className="text-text-4 text-xs shrink-0">🔒 Elite</span>;
+                if (s.inContention) return <span className="text-easy text-xs font-medium shrink-0">In contention</span>;
+                return <span className="text-medium text-xs shrink-0">#{(s.spotsFromCutoff ?? 0) + s.seats}</span>;
+              })()}
             </div>
             {!s.locked && (
               <div className={`text-[11px] mt-1 ${s.inContention ? "text-easy/80" : "text-text-4"}`}>
-                {s.inContention
-                  ? `You're in the top ${s.seats} — this one's within reach.`
-                  : `Top ${s.seats} earn it — you're ${s.spotsFromCutoff} spot${s.spotsFromCutoff === 1 ? "" : "s"} away. Climb the score.`}
+                {(() => {
+                  if (s.inContention) return `You're in the top ${s.seats} — this one's within reach.`;
+                  const suffix = s.spotsFromCutoff === 1 ? "" : "s";
+                  return `Top ${s.seats} earn it — you're ${s.spotsFromCutoff} spot${suffix} away. Climb the score.`;
+                })()}
               </div>
             )}
           </div>

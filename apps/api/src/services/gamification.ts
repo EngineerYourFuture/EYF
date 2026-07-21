@@ -8,12 +8,27 @@ import { XP_PER_VERDICT, STREAK_BONUS, levelForXp } from "@eyf/types";
  * Idempotent on a given submissionId: if XP was already credited it's a no-op.
  * Phase 1 ignores re-solves (only first AC per problem credits XP).
  */
+/** Pure badge-threshold decision — which badge slugs a user has earned. */
+export function badgesToUnlock(input: { acceptedCount: number; hardCount: number; streakDays: number }): string[] {
+  const { acceptedCount, hardCount, streakDays } = input;
+  const unlocks: string[] = [];
+  if (acceptedCount >= 1) unlocks.push("first-blood");
+  if (acceptedCount >= 10) unlocks.push("ten-solved");
+  if (acceptedCount >= 50) unlocks.push("fifty-solved");
+  if (acceptedCount >= 100) unlocks.push("century");
+  if (hardCount >= 1) unlocks.push("first-hard");
+  if (hardCount >= 10) unlocks.push("hard-hitter");
+  if (streakDays >= 7) unlocks.push("week-warrior");
+  if (streakDays >= 30) unlocks.push("month-monk");
+  return unlocks;
+}
+
 export async function onAcceptedSubmission(submissionId: string): Promise<void> {
   const sub = await prisma.problemSolution.findUnique({
     where: { id: submissionId },
     select: { id: true, userId: true, problemId: true, verdict: true, problem: { select: { difficulty: true } } },
   });
-  if (!sub || sub.verdict !== Verdict.ACCEPTED) return;
+  if (sub?.verdict !== Verdict.ACCEPTED) return;
 
   // First-AC check: do they already have a prior ACCEPTED submission for this problem?
   const earlier = await prisma.problemSolution.findFirst({
@@ -100,15 +115,7 @@ async function evaluateBadges(userId: string) {
     {} as Record<Difficulty, number>,
   );
 
-  const unlocks: string[] = [];
-  if (acceptedCount >= 1)               unlocks.push("first-blood");
-  if (acceptedCount >= 10)              unlocks.push("ten-solved");
-  if (acceptedCount >= 50)              unlocks.push("fifty-solved");
-  if (acceptedCount >= 100)             unlocks.push("century");
-  if ((byDiff.HARD ?? 0) >= 1)          unlocks.push("first-hard");
-  if ((byDiff.HARD ?? 0) >= 10)         unlocks.push("hard-hitter");
-  if (profile.streakDays >= 7)          unlocks.push("week-warrior");
-  if (profile.streakDays >= 30)         unlocks.push("month-monk");
+  const unlocks = badgesToUnlock({ acceptedCount, hardCount: byDiff.HARD ?? 0, streakDays: profile.streakDays });
 
   if (unlocks.length === 0) return;
   const badges = await prisma.badge.findMany({ where: { slug: { in: unlocks } } });

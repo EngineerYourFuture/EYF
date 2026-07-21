@@ -16,7 +16,7 @@ type Resume = {
 
 const draftKey = (id: string) => `eyf:resume:${id}`;
 
-export default function Page({ params }: { params: { id: string } }) {
+export default function Page({ params }: Readonly<{ params: { id: string } }>) {
   const { data, mutate } = useApi<Resume>(`/resume/${params.id}`);
   const action = useApiAction();
   const [doc, setDoc] = useState<ResumeDocument | null>(null);
@@ -27,7 +27,7 @@ export default function Page({ params }: { params: { id: string } }) {
   // Load once: restore an unsaved local draft if it differs from the server copy,
   // so a refresh never loses edits (the draft is decoupled from Save + rescoring).
   useEffect(() => {
-    if (!data || hydrated) return;
+    if (!data || hydrated) { return; }
     let initial = data.json;
     try {
       const raw = localStorage.getItem(draftKey(params.id));
@@ -45,7 +45,7 @@ export default function Page({ params }: { params: { id: string } }) {
 
   // Autosave the draft (debounced) on every edit.
   useEffect(() => {
-    if (!hydrated || !doc) return;
+    if (!hydrated || !doc) { return; }
     const t = setTimeout(() => {
       try { localStorage.setItem(draftKey(params.id), JSON.stringify({ json: doc, ts: Date.now() })); } catch { /* quota */ }
     }, 500);
@@ -53,13 +53,13 @@ export default function Page({ params }: { params: { id: string } }) {
   }, [doc, hydrated, params.id]);
 
   function discardDraft() {
-    if (!data) return;
+    if (!data) { return; }
     setDoc(data.json);
     setRestored(false);
     try { localStorage.removeItem(draftKey(params.id)); } catch { /* ignore */ }
   }
 
-  if (!data || !doc) return <div className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 text-text-3">Loading…</div>;
+  if (!data || !doc) { return <div className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 text-text-3">Loading…</div>; }
 
   async function save() {
     setSaving(true);
@@ -84,13 +84,13 @@ export default function Page({ params }: { params: { id: string } }) {
         <h1 className="font-display text-3xl font-bold">{data.title}</h1>
 
         {restored && (
-          <div className="flex items-center justify-between gap-3 rounded-lg border border-accent/40 bg-accent-tint/40 px-4 py-2.5 text-sm" role="status">
+          <output className="flex w-full items-center justify-between gap-3 rounded-lg border border-accent/40 bg-accent-tint/40 px-4 py-2.5 text-sm">
             <span className="text-text-2">Restored unsaved changes from your last session.</span>
             <button
               onClick={discardDraft}
               className="shrink-0 text-accent hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded px-1"
             >Discard</button>
-          </div>
+          </output>
         )}
 
         <Card>
@@ -203,7 +203,7 @@ export default function Page({ params }: { params: { id: string } }) {
               {data.atsBreakdown.factors.map((f) => (
                 <li key={f.name} className="flex items-center justify-between gap-2">
                   <span className="text-text-2">{f.name}</span>
-                  <Badge tone={f.score === f.max ? "easy" : f.score === 0 ? "hard" : "medium"}>
+                  <Badge tone={(() => { if (f.score === f.max) { return "easy" as const; } if (f.score === 0) { return "hard" as const; } return "medium" as const; })()}>
                     {f.score}/{f.max}
                   </Badge>
                 </li>
@@ -228,13 +228,13 @@ export default function Page({ params }: { params: { id: string } }) {
 
 function ListSection<T extends object>({
   title, items, onChange, render, empty,
-}: {
+}: Readonly<{
   title: string;
   items: T[];
   onChange: (items: T[]) => void;
   render: (item: T, set: (next: T) => void) => React.ReactNode;
   empty: T;
-}) {
+}>) {
   return (
     <Card>
       <div className="flex items-center justify-between mb-3">

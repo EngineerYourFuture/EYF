@@ -29,7 +29,10 @@ const csp = [
   "frame-ancestors 'none'",
   "form-action 'self'",
   "script-src 'self' 'unsafe-inline' 'unsafe-eval' https: blob:",
-  "style-src 'self' 'unsafe-inline'",
+  // Monaco (the code editor) loads its stylesheet from jsdelivr — script-src
+  // already allows the CDN via `https:`; style-src must allow the host too or the
+  // editor renders unstyled. Scoped to the one CDN, not all https.
+  "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net",
   "img-src 'self' data: blob: https:",
   "font-src 'self' data:",
   `connect-src ${connectSrc}`,

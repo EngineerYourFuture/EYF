@@ -55,7 +55,7 @@ export default function Flashcards() {
   );
 }
 
-function Btn({ label, onPress, tone = "primary" }: { label: string; onPress: () => void; tone?: "primary" | "ghost" }) {
+function Btn({ label, onPress, tone = "primary" }: Readonly<{ label: string; onPress: () => void; tone?: "primary" | "ghost" }>) {
   return (
     <Pressable
       onPress={onPress}

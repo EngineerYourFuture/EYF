@@ -6,6 +6,7 @@ import { useConfirm } from "@/components/confirm";
 import { Icons } from "@/components/icons";
 import { ContentTabs } from "../_tabs";
 import { Field } from "../_field";
+import { saveLabel } from "@/lib/ui-helpers";
 
 const SUBJECTS = ["OS", "DBMS", "CN", "OOP"] as const;
 type Subject = (typeof SUBJECTS)[number];
@@ -62,7 +63,7 @@ export default function Page() {
           <Field label="Content" hint="markdown"><textarea className={`${inputCls} min-h-80 py-3 h-auto font-mono text-sm`} value={form.content} onChange={(e) => set("content", e.target.value)} /></Field>
           <label className="flex items-center gap-2 text-sm text-text-2"><input type="checkbox" checked={form.premium} onChange={(e) => set("premium", e.target.checked)} /> Premium (paid plans only)</label>
           <div className="flex gap-3 pt-2">
-            <Button onClick={save} disabled={saving || !form.title || !form.slug || !form.content}>{saving ? "Saving…" : editing.id ? "Save changes" : "Publish note"}</Button>
+            <Button onClick={save} disabled={saving || !form.title || !form.slug || !form.content}>{saveLabel(saving, editing.id, "Publish note")}</Button>
             <Button variant="ghost" onClick={() => setEditing(null)}>Cancel</Button>
           </div>
         </Card>

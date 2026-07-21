@@ -23,15 +23,18 @@ const entryInput = z.object({
   active: z.boolean().default(true),
 });
 
+function knowledgeWhere(status?: string) {
+  if (status === "unreviewed") return { reviewed: false };
+  if (status === "reviewed") return { reviewed: true };
+  if (status === "retired") return { active: false };
+  return {};
+}
 export async function adminContentKnowledgeRoutes(app: FastifyInstance) {
   const guard = { preHandler: [app.requireAuth, requirePermission("manage:content")] };
 
   app.get("/knowledge", guard, async (req) => {
     const { status } = req.query as { status?: string };
-    const where =
-      status === "unreviewed" ? { reviewed: false } :
-      status === "reviewed" ? { reviewed: true } :
-      status === "retired" ? { active: false } : {};
+    const where = knowledgeWhere(status);
     const rows = await prisma.knowledgeEntry.findMany({
       where,
       orderBy: [{ reviewed: "asc" }, { askCount: "desc" }],

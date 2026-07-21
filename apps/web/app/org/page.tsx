@@ -25,7 +25,7 @@ export default function OrgPortal() {
   const api = useCallback(async (path: string, opts: RequestInit = {}) => {
     const res = await fetch(`${API}/org${path}`, {
       ...opts,
-      headers: { "content-type": "application/json", authorization: token ? `Bearer ${token}` : "", ...(opts.headers ?? {}) },
+      headers: { "content-type": "application/json", authorization: token ? `Bearer ${token}` : "", ...opts.headers },
     });
     const j = await res.json();
     if (!j.success) throw new Error(j.error?.message ?? "Request failed");
@@ -155,6 +155,6 @@ export default function OrgPortal() {
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({ label, children }: Readonly<{ label: string; children: React.ReactNode }>) {
   return <label className="block"><span className="text-[11px] font-mono uppercase tracking-wider text-text-4">{label}</span><div className="mt-1">{children}</div></label>;
 }

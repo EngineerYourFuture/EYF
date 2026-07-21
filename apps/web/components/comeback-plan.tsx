@@ -22,12 +22,12 @@ import {
 
 const STAGES: RejectionStage[] = ["APPLIED", "OA", "INTERVIEW"];
 
-export function ComebackPlanModal({ appId, companyName, jobTitle, onClose }: {
+export function ComebackPlanModal({ appId, companyName, jobTitle, onClose }: Readonly<{
   appId: string;
   companyName: string;
   jobTitle: string;
   onClose: () => void;
-}) {
+}>) {
   const { readiness } = useReadiness();
   const [stage, setStage] = useState<RejectionStage | null>(() => recalledRejectionStage(appId));
 
@@ -51,7 +51,8 @@ export function ComebackPlanModal({ appId, companyName, jobTitle, onClose }: {
           </button>
         </div>
 
-        {!stage ? (
+        {(() => {
+  if (!stage) return (
           <div className="mt-6">
             <p className="text-text-2">Where did it end?</p>
             <p className="text-text-4 text-xs mt-1">That tells us which bar you hit — the plan is different for each.</p>
@@ -64,9 +65,11 @@ export function ComebackPlanModal({ appId, companyName, jobTitle, onClose }: {
               ))}
             </div>
           </div>
-        ) : !plan ? (
+        );
+  if (!plan) return (
           <div className="mt-6 text-text-3 text-sm">Reading your pillar data…</div>
-        ) : (
+        );
+  return (
           <div className="mt-5 space-y-6">
             <p className="text-text-1 font-medium leading-relaxed">{plan.reframe}</p>
 
@@ -127,7 +130,8 @@ export function ComebackPlanModal({ appId, companyName, jobTitle, onClose }: {
               <button onClick={() => setStage(null)} className="text-text-4 text-xs hover:text-text-2">Change stage</button>
             </div>
           </div>
-        )}
+        );
+})()}
     </Modal>
   );
 }

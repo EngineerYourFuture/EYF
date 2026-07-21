@@ -42,7 +42,7 @@ export function requireOrgCapability(capability: OrgCapability) {
       select: { id: true, roles: true, departmentId: true, status: true },
     });
     // Non-members get 404, not 403 — don't confirm an org exists (PRD §25).
-    if (!member || member.status !== "ACTIVE") {
+    if (member?.status !== "ACTIVE") {
       return reply.code(404).send({ success: false, error: { code: "NOT_FOUND", message: "Not found." } });
     }
     // Resolve through the deterministic engine. Role-only input here is
@@ -78,7 +78,7 @@ export async function requireOrgMember(req: FastifyRequest, reply: FastifyReply)
     where: { orgId_userId: { orgId, userId: req.session.id } },
     select: { id: true, roles: true, departmentId: true, status: true },
   });
-  if (!member || member.status !== "ACTIVE") {
+  if (member?.status !== "ACTIVE") {
     return reply.code(404).send({ success: false, error: { code: "NOT_FOUND", message: "Not found." } });
   }
   req.orgCtx = { orgId, memberId: member.id, roles: member.roles, departmentId: member.departmentId, scope: "own" };

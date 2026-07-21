@@ -23,7 +23,7 @@ const csv = (s: string) => s.split(",").map((x) => x.trim()).filter(Boolean);
 
 export default function Page() {
   const [filter, setFilter] = useState<(typeof FILTERS)[number]["id"]>("all");
-  const { data, mutate } = useApi<Row[]>(`/admin/content/knowledge${filter === "all" ? "" : `?status=${filter}`}`);
+  const { data, mutate } = useApi<Row[]>(`/admin/content/knowledge${filter === "all" ? "" : "?status=" + filter}`);
   const action = useApiAction();
   const confirm = useConfirm();
   const [editing, setEditing] = useState<null | { id: string | null }>(null);
@@ -50,7 +50,7 @@ export default function Page() {
     try { await action(`/admin/content/knowledge/${id}`, { method: "PATCH", body: JSON.stringify({ reviewed: true }) }); await mutate(); } catch { /* toasted */ }
   }
   async function remove(id: string) {
-    if (!(await confirm({ title: "Delete this answer permanently? (Retire it instead by unchecking Active.)", confirmLabel: "Delete", danger: true }))) return;
+    if (!(await confirm({ title: "Delete this answer permanently? (Retire it instead by unchecking Active.)", confirmLabel: "Delete", danger: true }))) { return; }
     try { await action(`/admin/content/knowledge/${id}`, { method: "DELETE" }); await mutate(); } catch { /* toasted */ }
   }
 
@@ -69,7 +69,7 @@ export default function Page() {
           <Field label="Answer" hint="plain text · short paragraphs · '- ' bullets"><textarea className={`${inputCls} min-h-72 py-3 h-auto`} value={form.answer} onChange={(e) => set("answer", e.target.value)} /></Field>
           <label className="flex items-center gap-2 text-sm text-text-2"><input type="checkbox" checked={form.active} onChange={(e) => set("active", e.target.checked)} /> Active (served to students)</label>
           <div className="flex gap-3 pt-2">
-            <Button onClick={save} disabled={saving || form.question.trim().length < 8 || !form.answer.trim() || !form.topic.trim()}>{saving ? "Saving…" : editing.id ? "Save & mark reviewed" : "Publish answer"}</Button>
+            <Button onClick={save} disabled={saving || form.question.trim().length < 8 || !form.answer.trim() || !form.topic.trim()}>{(() => { if (saving) { return "Saving…"; } if (editing.id) { return "Save & mark reviewed"; } return "Publish answer"; })()}</Button>
             <Button variant="ghost" onClick={() => setEditing(null)}>Cancel</Button>
           </div>
         </Card>

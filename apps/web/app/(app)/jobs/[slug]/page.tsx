@@ -16,7 +16,7 @@ type App = { id: string; status: string; job: { slug: string } };
 
 const lpa = (n: number) => Math.round(n / 100_000);
 
-export default function Page({ params }: { params: { slug: string } }) {
+export default function Page({ params }: Readonly<{ params: { slug: string } }>) {
   const { data } = useApi<Job>(`/jobs/${params.slug}`);
   const { data: apps, mutate } = useApi<App[]>("/jobs/me/applications");
   const action = useApiAction();

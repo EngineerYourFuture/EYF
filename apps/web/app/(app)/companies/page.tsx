@@ -32,17 +32,21 @@ export default function CompaniesPage() {
         />
       </div>
 
-      {error ? (
+      {(() => {
+  if (error) return (
         <div className="mt-8"><ErrorState message="Couldn't load companies." retry={() => mutate()} /></div>
-      ) : isLoading ? (
+      );
+  if (isLoading) return (
         <SkeletonRows rows={6} className="mt-8" />
-      ) : filtered.length === 0 ? (
+      );
+  if (filtered.length === 0) return (
         <EmptyState
           className="mt-8"
           title={q ? "No companies match" : "No company-tagged problems yet"}
           description={q ? "Try a different name." : "Once problems are tagged with companies, they'll show up here."}
         />
-      ) : (
+      );
+  return (
         <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {filtered.map((c) => (
             <Link key={c.slug} href={`/companies/${c.slug}`}>
@@ -59,14 +63,18 @@ export default function CompaniesPage() {
             </Link>
           ))}
         </div>
-      )}
+      );
+})()}
     </PageMotion>
   );
 }
 
-function CoverageRing({ pct }: { pct: number }) {
+function CoverageRing({ pct }: Readonly<{ pct: number }>) {
   const r = 22, c = 2 * Math.PI * r;
-  const tone = pct >= 70 ? "stroke-easy" : pct >= 35 ? "stroke-medium" : "stroke-accent";
+  let tone;
+  if (pct >= 70) tone = "stroke-easy";
+  else if (pct >= 35) tone = "stroke-medium";
+  else tone = "stroke-accent";
   return (
     <div className="relative h-14 w-14 shrink-0">
       <svg viewBox="0 0 56 56" className="h-14 w-14 -rotate-90">

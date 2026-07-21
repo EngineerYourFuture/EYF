@@ -51,7 +51,7 @@ export default function Page() {
   );
 }
 
-function RoastView({ roast }: { roast: Roast }) {
+function RoastView({ roast }: Readonly<{ roast: Roast }>) {
   const gradeColor: Record<Roast["finalGrade"], string> = {
     F: "text-hard", D: "text-hard", C: "text-medium", B: "text-easy", A: "text-easy",
   };
@@ -64,7 +64,7 @@ function RoastView({ roast }: { roast: Roast }) {
       <div>
         <h4 className="text-xs text-text-3 uppercase tracking-wider mb-2">Brutal</h4>
         <ul className="space-y-1.5 text-sm">
-          {roast.brutal.map((b, i) => <li key={i} className="flex gap-2"><span className="text-hard">→</span>{b}</li>)}
+          {roast.brutal.map((b) => <li key={b} className="flex gap-2"><span className="text-hard">→</span>{b}</li>)}
         </ul>
       </div>
       <div>
@@ -122,7 +122,7 @@ function OfferLetter() {
   );
 }
 
-function Input({ label, value, onChange, type = "text" }: { label: string; value: string; onChange: (v: string) => void; type?: string }) {
+function Input({ label, value, onChange, type = "text" }: Readonly<{ label: string; value: string; onChange: (v: string) => void; type?: string }>) {
   return (
     <div>
       <label className="text-xs text-text-3 uppercase tracking-wider">{label}</label>

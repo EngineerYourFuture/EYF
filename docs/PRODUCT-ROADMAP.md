@@ -3,6 +3,14 @@
 The canonical feature spec (Practice / Learn / Interview / Career / More + monetization
 + architecture). Status is against what's actually in the repo today.
 
+> [!IMPORTANT]
+> **Sibling roadmaps:** [ROADMAP.md](ROADMAP.md) (technical debt/security/perf) ·
+> [INNOVATION-ROADMAP.md](INNOVATION-ROADMAP.md) (growth strategy) · active initiatives in
+> plan docs like [PLAN-proof-loop.md](PLAN-proof-loop.md).
+> **Freshness caveat:** some statuses below predate recently shipped work (e.g. the Offer
+> Predictor engine and the Proof Loop). Treat ⬜/🟡 marks as needing re-verification against
+> code before planning; a full status reconciliation is tracked in [KNOWN-ISSUES.md](KNOWN-ISSUES.md).
+
 **Legend:** ✅ shipped · 🟡 exists, spec-depth pending · ⬜ not built yet
 **Note on stack:** the spec names a Supabase/Vite stack; EYF already implements the
 equivalents on **Next.js + Fastify + Prisma/Postgres + Turborepo** — no migration needed.

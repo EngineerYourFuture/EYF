@@ -1,5 +1,6 @@
 "use client";
 import { useApi } from "@/lib/use-api";
+import { masteryBarClass } from "@/lib/ui-helpers";
 
 type Gap = {
   roleLabel: string;
@@ -14,7 +15,7 @@ type Gap = {
  * score. EYF scores the resume against the student's TARGET role: which
  * expected keywords are missing and the exact rewrites to clear that bar.
  */
-export function ResumeGap({ resumeId }: { resumeId: string }) {
+export function ResumeGap({ resumeId }: Readonly<{ resumeId: string }>) {
   const { data } = useApi<Gap>(`/resume/${resumeId}/gap`);
   if (!data) return null;
 
@@ -26,7 +27,7 @@ export function ResumeGap({ resumeId }: { resumeId: string }) {
       </div>
       <div className="mt-3 h-2 rounded-full bg-surface-3 overflow-hidden">
         <div
-          className={`h-full rounded-full transition-all duration-500 ${data.matchPct >= 70 ? "bg-easy" : data.matchPct >= 40 ? "bg-medium" : "bg-brand"}`}
+          className={`h-full rounded-full transition-all duration-500 ${masteryBarClass(data.matchPct)}`}
           style={{ width: `${Math.max(3, data.matchPct)}%` }}
         />
       </div>

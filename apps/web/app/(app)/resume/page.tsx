@@ -59,7 +59,7 @@ export default function Page() {
             </Card>
           </Link>
         ))}
-        {data && data.length === 0 && (
+        {data?.length === 0 && (
           <EmptyState
             icon={<Icons.doc width={28} height={28} />}
             title="No resumes yet"
@@ -72,8 +72,11 @@ export default function Page() {
   );
 }
 
-function AtsPill({ score }: { score: number | null }) {
+function AtsPill({ score }: Readonly<{ score: number | null }>) {
   if (score == null) return <span className="text-text-3 text-xs">unscored</span>;
-  const tone = score >= 80 ? "easy" : score >= 60 ? "medium" : "hard";
+  let tone;
+  if (score >= 80) tone = "easy";
+  else if (score >= 60) tone = "medium";
+  else tone = "hard";
   return <Badge tone={tone as "easy" | "medium" | "hard"}>{score}/100 ATS</Badge>;
 }

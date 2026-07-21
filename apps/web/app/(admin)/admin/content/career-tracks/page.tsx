@@ -6,6 +6,7 @@ import { useConfirm } from "@/components/confirm";
 import { Icons } from "@/components/icons";
 import { ContentTabs } from "../_tabs";
 import { Field } from "../_field";
+import { saveLabel } from "@/lib/ui-helpers";
 
 const DEMAND = ["LOW", "MEDIUM", "HIGH", "VERY_HIGH"] as const;
 type Demand = (typeof DEMAND)[number];
@@ -80,7 +81,7 @@ export default function Page() {
           <Field label="Curriculum" hint="JSON (advanced)"><textarea className={`${inputCls} min-h-32 font-mono text-xs`} value={form.curriculum} onChange={(e) => set("curriculum", e.target.value)} /></Field>
           <label className="flex items-center gap-2 text-sm text-text-2"><input type="checkbox" checked={form.premium} onChange={(e) => set("premium", e.target.checked)} /> Premium track</label>
           <div className="flex gap-3 pt-2">
-            <Button onClick={save} disabled={saving || !form.name || !form.slug || !form.tagline}>{saving ? "Saving…" : editing.id ? "Save changes" : "Create track"}</Button>
+            <Button onClick={save} disabled={saving || !form.name || !form.slug || !form.tagline}>{saveLabel(saving, editing.id, "Create track")}</Button>
             <Button variant="ghost" onClick={() => setEditing(null)}>Cancel</Button>
           </div>
         </Card>

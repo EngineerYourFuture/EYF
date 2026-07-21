@@ -33,20 +33,24 @@ export default function Page() {
           subtitle="A week-by-week plan generated for your role, your target company, and — most importantly — your weakest areas. One path. Finish it."
         />
 
-        {isLoading ? (
+        {(() => {
+  if (isLoading) return (
           <div className="mt-8 space-y-3">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-24 rounded-2xl" />)}</div>
-        ) : active && !editing ? (
+        );
+  if (active && !editing) return (
           <PlanView roadmap={active} onRegenerate={() => setEditing(true)} />
-        ) : (
+        );
+  return (
           <Generator onDone={async () => { setEditing(false); await mutate(); }} onCancel={active ? () => setEditing(false) : undefined} />
-        )}
+        );
+})()}
       </div>
     </PageMotion>
   );
 }
 
 /* ─────────── Generator form ─────────── */
-function Generator({ onDone, onCancel }: { onDone: () => void; onCancel?: () => void }) {
+function Generator({ onDone, onCancel }: Readonly<{ onDone: () => void; onCancel?: () => void }>) {
   const { data: tracks } = useApi<Track[]>("/tracks");
   const { data: companies } = useApi<Company[]>("/companies");
   const action = useApiAction();
@@ -120,7 +124,7 @@ function Generator({ onDone, onCancel }: { onDone: () => void; onCancel?: () => 
   );
 }
 
-function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
+function Field({ label, hint, children }: Readonly<{ label: string; hint?: string; children: React.ReactNode }>) {
   return (
     <div>
       <div className="flex items-baseline justify-between mb-2">
@@ -131,7 +135,7 @@ function Field({ label, hint, children }: { label: string; hint?: string; childr
     </div>
   );
 }
-function Chip({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+function Chip({ active, onClick, children }: Readonly<{ active: boolean; onClick: () => void; children: React.ReactNode }>) {
   return (
     <button onClick={onClick}
       className={`rounded-lg border px-4 py-2 text-sm transition-colors ${
@@ -143,7 +147,7 @@ function Chip({ active, onClick, children }: { active: boolean; onClick: () => v
 /* ─────────── Plan view ─────────── */
 const PHASE_TONE = { Foundation: "accent", Depth: "medium", Interview: "easy" } as const;
 
-function PlanView({ roadmap, onRegenerate }: { roadmap: Roadmap; onRegenerate: () => void }) {
+function PlanView({ roadmap, onRegenerate }: Readonly<{ roadmap: Roadmap; onRegenerate: () => void }>) {
   const plan = roadmap.plan ?? [];
   const weeks = roadmap.weeks ?? plan.length;
   const daysSince = Math.floor((Date.now() - new Date(roadmap.startedAt).getTime()) / 86_400_000);
@@ -188,7 +192,7 @@ function PlanView({ roadmap, onRegenerate }: { roadmap: Roadmap; onRegenerate: (
   );
 }
 
-function WeekCard({ wk, current }: { wk: Week; current: boolean }) {
+function WeekCard({ wk, current }: Readonly<{ wk: Week; current: boolean }>) {
   const [open, setOpen] = useState(current);
   const tone = PHASE_TONE[wk.phase];
   return (

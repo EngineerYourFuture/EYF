@@ -13,7 +13,7 @@ const FOCUSABLE =
 
 export function Modal({
   open, onClose, children, labelledBy, panelClassName,
-}: {
+}: Readonly<{
   open: boolean;
   onClose: () => void;
   children: ReactNode;
@@ -21,7 +21,7 @@ export function Modal({
   labelledBy?: string;
   /** Overrides the default panel styling. */
   panelClassName?: string;
-}) {
+}>) {
   const panelRef = useRef<HTMLDivElement>(null);
   const openerRef = useRef<HTMLElement | null>(null);
 
@@ -36,7 +36,7 @@ export function Modal({
       if (e.key !== "Tab") return;
       const f = focusables();
       if (f.length === 0) { e.preventDefault(); panelRef.current?.focus(); return; }
-      const first = f[0]!, last = f[f.length - 1]!;
+      const first = f[0]!, last = f.at(-1)!;
       if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
       else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
     }

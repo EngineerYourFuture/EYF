@@ -39,7 +39,7 @@ export async function gradeCommunicationAnswer(input: {
       role: "user",
       content:
         `INTERVIEW QUESTION (${prompt.kind}): ${prompt.question}\n\n` +
-        `A STRONG ANSWER SHOULD COVER:\n${prompt.covers.map((c) => `- ${c}`).join("\n")}\n\n` +
+        `A STRONG ANSWER SHOULD COVER:\n${prompt.covers.map((c) => "- " + c).join("\n")}\n\n` +
         `CANDIDATE'S ANSWER:\n"""${transcript}"""\n\n` +
         `Grade it and return ONLY the JSON.`,
     }],

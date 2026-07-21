@@ -16,7 +16,9 @@ export function nextReview(
     interval = 1;
   } else {
     repetitions += 1;
-    interval = repetitions === 1 ? 1 : repetitions === 2 ? 6 : Math.round(interval * easiness);
+    if (repetitions === 1) interval = 1;
+    else if (repetitions === 2) interval = 6;
+    else interval = Math.round(interval * easiness);
   }
   easiness = Math.max(
     1.3,

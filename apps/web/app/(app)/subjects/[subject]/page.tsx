@@ -10,7 +10,7 @@ type Flash = { id: string; topic: string; front: string; back: string; srs: null
 const SUBJECTS: Record<string, string> = { os: "OS", dbms: "DBMS", cn: "CN", oop: "OOP" };
 const TITLES: Record<string, string> = { OS: "Operating Systems", DBMS: "Database Management", CN: "Computer Networks", OOP: "Object-Oriented Programming" };
 
-export default function Page({ params }: { params: { subject: string } }) {
+export default function Page({ params }: Readonly<{ params: { subject: string } }>) {
   const subj = SUBJECTS[params.subject];
   const { data: notes } = useApi<Note[]>(subj ? `/subjects/${subj}/notes` : null);
   const { data: cards, mutate } = useApi<Flash[]>(subj ? `/subjects/${subj}/flashcards/due` : null);
@@ -35,7 +35,7 @@ export default function Page({ params }: { params: { subject: string } }) {
                 </Card>
               </Link>
             ))}
-            {notes && notes.length === 0 && <p className="text-text-3 text-sm">No notes yet — they&apos;re being authored.</p>}
+            {notes?.length === 0 && <p className="text-text-3 text-sm">No notes yet — they&apos;re being authored.</p>}
           </div>
         </section>
 
@@ -50,7 +50,7 @@ export default function Page({ params }: { params: { subject: string } }) {
   );
 }
 
-function FlashcardDeck({ cards, onReviewed }: { cards: Flash[]; onReviewed: () => void }) {
+function FlashcardDeck({ cards, onReviewed }: Readonly<{ cards: Flash[]; onReviewed: () => void }>) {
   const [idx, setIdx] = useState(0);
   const [revealed, setRevealed] = useState(false);
   const action = useApiAction();

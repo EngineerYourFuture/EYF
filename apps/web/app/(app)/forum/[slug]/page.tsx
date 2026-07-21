@@ -12,7 +12,7 @@ type Thread = {
   _count: { reactions: number };
 };
 
-export default function Page({ params }: { params: { slug: string } }) {
+export default function Page({ params }: Readonly<{ params: { slug: string } }>) {
   const { data, mutate } = useApi<Thread>(`/forum/threads/${params.slug}`);
   const [reply, setReply] = useState("");
   const [sending, setSending] = useState(false);

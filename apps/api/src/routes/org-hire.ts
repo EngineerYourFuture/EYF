@@ -7,9 +7,19 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { prisma, RequisitionStatus, PipelineStage } from "@eyf/db";
-import { requireOrgCapability } from "../middleware/org.js";
+import { requireOrgCapability, requireOrgMember } from "../middleware/org.js";
 import { recordAudit } from "../lib/audit.js";
 import { computeUserReadiness } from "../services/guidance.js";
+import { validateWarmReferral, type ReferralCheck } from "../services/warm-referral.js";
+
+function referralError(reason: Exclude<ReferralCheck, { ok: true }>["reason"]): string {
+  switch (reason) {
+    case "req-closed": return "That role isn't open for referrals right now.";
+    case "self": return "You can't refer yourself.";
+    case "no-consent": return "That student hasn't opted into the talent pool yet.";
+    case "already-in-pipeline": return "That student is already in this role's pipeline.";
+  }
+}
 
 /** Full evidence profile for one candidate — the screen that replaces the CV.
  *  POOL_ANON hides identity until shortlisted. */
@@ -160,7 +170,7 @@ export async function orgHireRoutes(app: FastifyInstance) {
     const body = z.object({
       userId: z.string(),
       title: z.string().trim().min(2).max(100),
-      ctcInr: z.number().int().min(0).max(1_00_00_00_000),
+      ctcInr: z.number().int().min(0).max(1_000_000_000),
       startDate: z.string().datetime().nullable().optional(),
     }).parse(req.body);
     const requisition = await prisma.jobRequisition.findFirst({ where: { id: reqId, orgId: req.orgCtx!.orgId }, select: { id: true } });
@@ -211,5 +221,41 @@ export async function orgHireRoutes(app: FastifyInstance) {
     if (!requisition) return reply.code(404).send({ success: false, error: { code: "NOT_FOUND", message: "Requisition not found." } });
     const updated = await prisma.jobRequisition.update({ where: { id: reqId }, data: body });
     return { success: true, data: updated };
+  });
+
+  // ── Warm alumni referral (Roadmap A2) ──────────────────────────────
+  // Any ACTIVE member (a placed alum) can refer a consented student into an OPEN
+  // requisition at their org. The candidate enters the pipeline as REFERRAL with
+  // the alum recorded and readiness attached — a warm vouch backed by evidence.
+  app.post("/:orgId/referrals", { preHandler: [app.requireAuth, requireOrgMember] }, async (req, reply) => {
+    const { reqId, userId } = z.object({ reqId: z.string().min(1), userId: z.string().min(1) }).parse(req.body);
+    const orgId = req.orgCtx!.orgId;
+    const requisition = await prisma.jobRequisition.findFirst({ where: { id: reqId, orgId }, select: { status: true } });
+    if (!requisition) return reply.code(404).send({ success: false, error: { code: "NOT_FOUND", message: "Requisition not found." } });
+
+    const [consent, existing] = await Promise.all([
+      prisma.talentConsent.findFirst({ where: { userId, revokedAt: null }, select: { id: true } }),
+      prisma.pipelineCandidate.findFirst({ where: { reqId, userId }, select: { id: true } }),
+    ]);
+    const check = validateWarmReferral({
+      reqStatus: requisition.status,
+      referrerUserId: req.session!.id,
+      refereeUserId: userId,
+      hasConsent: !!consent,
+      alreadyCandidate: !!existing,
+    });
+    if (!check.ok) {
+      return reply.code(409).send({ success: false, error: { code: "REFERRAL_INVALID", message: referralError(check.reason) } });
+    }
+
+    const { readiness } = await computeUserReadiness(userId);
+    const cand = await prisma.pipelineCandidate.create({
+      data: {
+        reqId, userId, source: "REFERRAL", referredById: req.orgCtx!.memberId,
+        fitScore: readiness.overall, note: "Referred by a team member",
+        evidenceSnapshot: { readiness: readiness.overall, band: readiness.band, at: new Date().toISOString() },
+      },
+    });
+    return reply.code(201).send({ success: true, data: { id: cand.id, source: cand.source, fitScore: cand.fitScore } });
   });
 }

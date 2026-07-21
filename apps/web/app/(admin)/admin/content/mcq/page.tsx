@@ -7,6 +7,7 @@ import { useConfirm } from "@/components/confirm";
 import { Icons } from "@/components/icons";
 import { ContentTabs } from "../_tabs";
 import { Field } from "../_field";
+import { saveLabel } from "@/lib/ui-helpers";
 
 const CATEGORIES = ["ALL", "APTITUDE", "LOGICAL", "VERBAL", "TECHNICAL"] as const;
 type Category = "APTITUDE" | "LOGICAL" | "VERBAL" | "TECHNICAL";
@@ -22,7 +23,7 @@ const csv = (s: string) => s.split(",").map((x) => x.trim()).filter(Boolean);
 
 export default function Page() {
   const [filter, setFilter] = useState<(typeof CATEGORIES)[number]>("ALL");
-  const { data, mutate } = useApi<Row[]>(`/admin/content/mcq${filter === "ALL" ? "" : `?category=${filter}`}`);
+  const { data, mutate } = useApi<Row[]>(`/admin/content/mcq${filter === "ALL" ? "" : "?category=" + filter}`);
   const action = useApiAction();
   const confirm = useConfirm();
   const [editing, setEditing] = useState<null | { id: string | null }>(null);
@@ -85,7 +86,7 @@ export default function Page() {
           <Field label="Company tags" hint="comma-separated, optional"><input className={inputCls} value={form.companies} onChange={(e) => set("companies", e.target.value)} placeholder="TCS, Infosys" /></Field>
           <label className="flex items-center gap-2 text-sm text-text-2"><input type="checkbox" checked={form.active} onChange={(e) => set("active", e.target.checked)} /> Active (served to students)</label>
           <div className="flex gap-3 pt-2">
-            <Button onClick={save} disabled={saving || !form.prompt || !form.topic || !form.explanation || filled.length < 2 || !form.choices[form.correctIndex]?.trim()}>{saving ? "Saving…" : editing.id ? "Save changes" : "Add question"}</Button>
+            <Button onClick={save} disabled={saving || !form.prompt || !form.topic || !form.explanation || filled.length < 2 || !form.choices[form.correctIndex]?.trim()}>{saveLabel(saving, editing.id, "Add question")}</Button>
             <Button variant="ghost" onClick={() => setEditing(null)}>Cancel</Button>
           </div>
         </Card>

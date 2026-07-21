@@ -17,7 +17,7 @@ export type FieldProps = {
  * label as a *sibling* of the input (no association, a WCAG failure). Prefer
  * this (or TextField) so that bug can't recur.
  */
-export function Field({ label, hint, children, className }: FieldProps) {
+export function Field({ label, hint, children, className }: Readonly<FieldProps>) {
   return (
     <label className={cn("block", className)}>
       <span className="text-text-3 text-xs uppercase tracking-wider">
@@ -43,7 +43,7 @@ export type TextFieldProps = {
 /** A labelled text `<input>` built on Field — the common single-line case. */
 export function TextField({
   label, value, onChange, type = "text", hint, placeholder, className, inputClassName,
-}: TextFieldProps) {
+}: Readonly<TextFieldProps>) {
   return (
     <Field label={label} hint={hint} className={className}>
       <input

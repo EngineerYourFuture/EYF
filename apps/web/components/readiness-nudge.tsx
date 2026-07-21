@@ -6,7 +6,7 @@ import { Icons } from "@/components/icons";
  * the user it just moved their central Readiness + Skill Graph. This is the moat
  * — every action feeds one honest "am I placement-ready?" signal.
  */
-export function ReadinessNudge({ label }: { label: string }) {
+export function ReadinessNudge({ label }: Readonly<{ label: string }>) {
   return (
     <div className="mt-8 rounded-xl border border-accent/30 bg-accent-tint/40 p-4">
       <div className="flex items-center gap-2">

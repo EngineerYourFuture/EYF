@@ -49,7 +49,7 @@ export default function Page() {
   useEffect(() => { try { setBest(Number(localStorage.getItem(KEY) || 0)); } catch { /* */ } }, []);
 
   useEffect(() => {
-    if (phase !== "play") return;
+    if (phase !== "play") { return; }
     if (remaining <= 0) { finish(); return; }
     const t = setTimeout(() => setRemaining((r) => r - 1), 1000);
     return () => clearTimeout(t);
@@ -57,7 +57,7 @@ export default function Page() {
 
   const q = deck.current[idx];
   const choices = useMemo(() => {
-    if (!q) return [];
+    if (!q) { return []; }
     const distract = shuffle(OPTS.filter((o) => o !== q.answer)).slice(0, 3);
     return shuffle([q.answer, ...distract]);
   }, [idx, phase]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -68,7 +68,7 @@ export default function Page() {
     setCorrect(0); setAttempts(0); setIdx(0); setFlash(null);
   }
   function answer(c: Comp) {
-    if (!q || flash) return;
+    if (!q || flash) { return; }
     const ok = c === q.answer;
     setAttempts((a) => a + 1);
     if (ok) {
@@ -102,7 +102,7 @@ export default function Page() {
             <span className={`font-mono ${remaining <= 10 ? "text-hard" : "text-text-3"}`}>⏱ {remaining}s</span>
             <span className="text-text-3">Score <span className="font-bold text-text-1 tabular-nums">{score}</span>{streak > 1 && <span className="text-brand ml-2">×{streak} streak</span>}</span>
           </div>
-          <div className={`mt-3 rounded-2xl border p-5 shadow-card transition-colors ${flash === "ok" ? "border-easy/60 bg-easy/[0.06]" : flash === "no" ? "border-hard/60 bg-hard/[0.06]" : "border-border bg-surface"}`}>
+          <div className={`mt-3 rounded-2xl border p-5 shadow-card transition-colors ${(() => { if (flash === "ok") { return "border-easy/60 bg-easy/[0.06]"; } if (flash === "no") { return "border-hard/60 bg-hard/[0.06]"; } return "border-border bg-surface"; })()}`}>
             <pre className="font-mono text-sm text-text-1 whitespace-pre-wrap leading-relaxed min-h-[72px]">{q.code}</pre>
           </div>
           <div className="mt-4 grid grid-cols-2 gap-3">

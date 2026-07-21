@@ -9,8 +9,9 @@ import { registerCronJobs, type CronJobName } from "./scheduler.js";
 import { pickDailyChallenge } from "../services/daily.js";
 import { sendPushToUser } from "../services/push.js";
 import {
-  sendEmail, streakBreakEmail, dailyDigestEmail, weeklyLeaderboardEmail,
+  sendEmail, streakBreakEmail, dailyDigestEmail, weeklyLeaderboardEmail, parentDigestEmail,
 } from "../services/email.js";
+import { parentDigestFor } from "../services/parent-digest.js";
 
 async function streakBreakAlert(): Promise<{ checked: number; emailed: number; pushed: number }> {
   const start = new Date(); start.setUTCHours(0, 0, 0, 0);
@@ -91,6 +92,28 @@ async function weeklyLeaderboard(): Promise<{ top: string[] }> {
   return { top: lines };
 }
 
+async function parentDigest(): Promise<{ sent: number; failed: number }> {
+  const students = await prisma.user.findMany({
+    where: { parentEmail: { not: null }, deletedAt: null },
+    select: { id: true, parentEmail: true },
+  });
+  let sent = 0, failed = 0;
+  for (const s of students) {
+    try {
+      const digest = await parentDigestFor(s.id);
+      if (!digest) { failed += 1; continue; }
+      const res = await sendEmail({
+        to: s.parentEmail!,
+        subject: digest.headline,
+        html: parentDigestEmail(digest),
+      });
+      if (res.sent) sent += 1; else failed += 1;
+    } catch { failed += 1; }
+  }
+  console.log(`[parent-digest] sent=${sent} failed=${failed} of ${students.length}`);
+  return { sent, failed };
+}
+
 export const cronWorker = new Worker<unknown, void, CronJobName>(
   "cron",
   async (job) => {
@@ -98,6 +121,7 @@ export const cronWorker = new Worker<unknown, void, CronJobName>(
       case "streak-break-alert": await streakBreakAlert(); return;
       case "daily-digest":       await dailyDigest(); return;
       case "weekly-leaderboard": await weeklyLeaderboard(); return;
+      case "parent-digest":      await parentDigest(); return;
     }
   },
   { connection: redis, concurrency: 1 },

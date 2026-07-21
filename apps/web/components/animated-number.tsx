@@ -7,7 +7,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useReducedMotion, useInView, animate } from "framer-motion";
 
-export function AnimatedNumber({ value, duration = 1 }: { value: number; duration?: number }) {
+export function AnimatedNumber({ value, duration = 1 }: Readonly<{ value: number; duration?: number }>) {
   const reduce = useReducedMotion();
   const ref = useRef<HTMLSpanElement>(null);
   const inView = useInView(ref, { once: true, amount: 0.6 });

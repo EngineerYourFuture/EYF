@@ -6,6 +6,7 @@ import { useConfirm } from "@/components/confirm";
 import { Icons } from "@/components/icons";
 import { ContentTabs } from "../_tabs";
 import { Field } from "../_field";
+import { saveLabel } from "@/lib/ui-helpers";
 
 const ROLES = ["SDE", "FULLSTACK", "BACKEND", "FRONTEND", "DATA", "ML", "DEVOPS", "ANDROID", "IOS", "QA", "PM", "DESIGN"] as const;
 type Role = (typeof ROLES)[number];
@@ -79,7 +80,7 @@ export default function Page() {
             <label className="flex items-center gap-2 text-sm text-text-2"><input type="checkbox" checked={form.isActive} onChange={(e) => set("isActive", e.target.checked)} /> Active (visible to students)</label>
           </div>
           <div className="flex gap-3 pt-2">
-            <Button onClick={save} disabled={saving || !form.title || !form.slug || !form.company || !form.applyUrl}>{saving ? "Saving…" : editing.id ? "Save changes" : "Create job"}</Button>
+            <Button onClick={save} disabled={saving || !form.title || !form.slug || !form.company || !form.applyUrl}>{saveLabel(saving, editing.id, "Create job")}</Button>
             <Button variant="ghost" onClick={() => setEditing(null)}>Cancel</Button>
           </div>
         </Card>

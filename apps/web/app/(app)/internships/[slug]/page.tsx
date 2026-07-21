@@ -20,7 +20,7 @@ const fmtDuration = (d: string) => {
   return n ? `${n} ${unit!.toLowerCase()}` : d.toLowerCase();
 };
 
-export default function Page({ params }: { params: { slug: string } }) {
+export default function Page({ params }: Readonly<{ params: { slug: string } }>) {
   const { data } = useApi<Internship>(`/internships/${params.slug}`);
   const { data: apps, mutate } = useApi<App[]>("/internships/me/applications");
   const action = useApiAction();

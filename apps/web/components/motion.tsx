@@ -12,7 +12,7 @@ const EASE = [0.16, 1, 0.3, 1] as const;
 /** Fade + rise into view once. For sections and cards as they enter the viewport. */
 export function Reveal({
   children, delay = 0, y = 16, className,
-}: { children: ReactNode; delay?: number; y?: number; className?: string }) {
+}: Readonly<{ children: ReactNode; delay?: number; y?: number; className?: string }>) {
   const reduce = useReducedMotion();
   return (
     <motion.div

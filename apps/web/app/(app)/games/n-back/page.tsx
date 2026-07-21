@@ -29,8 +29,8 @@ export default function Page() {
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      if (!running || e.code !== "Space") return;
-      if (respondedRef.current) return;
+      if (!running || e.code !== "Space") { return; }
+      if (respondedRef.current) { return; }
       respondedRef.current = true;
       const idx = sequenceRef.current.length - 1;
       const isMatch = idx >= N && sequenceRef.current[idx] === sequenceRef.current[idx - N];
@@ -99,7 +99,7 @@ export default function Page() {
       <Card className="mt-10 h-72 flex items-center justify-center">
         <div className="text-center">
           <div className="font-display text-[8rem] leading-none">
-            {running ? (letter ?? "•") : done ? "✓" : "—"}
+            {(() => { if (running) { return letter ?? "•"; } if (done) { return "✓"; } return "—"; })()}
           </div>
           {running && <div className="mt-2 text-text-3">Trial {trial}/{TRIALS}</div>}
         </div>
@@ -125,7 +125,7 @@ export default function Page() {
   );
 }
 
-function Row({ label, value }: { label: string; value: number | string }) {
+function Row({ label, value }: Readonly<{ label: string; value: number | string }>) {
   return (
     <div className="flex justify-between py-1.5 border-b border-border last:border-0 text-sm">
       <span className="text-text-3">{label}</span>

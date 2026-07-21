@@ -103,3 +103,23 @@ export function weeklyLeaderboardEmail(name: string, top: string[]): EmailSend["
     ${ctaBtn("See the full leaderboard", `${APP_URL}/dashboard`)}
   `);
 }
+
+/** Weekly progress digest to a student's parent (Innovation Roadmap B3). */
+export function parentDigestEmail(digest: import("./parent-digest.js").ParentDigest): EmailSend["html"] {
+  const rows = digest.metrics
+    .map(
+      (m) => `<tr>
+        <td style="padding:8px 0;color:#8a8a87;font-size:13px;">${m.label}</td>
+        <td style="padding:8px 0;color:#fafaf9;font-size:15px;font-weight:600;text-align:right;">${m.value}</td>
+      </tr>`,
+    )
+    .join("");
+  return shell(digest.headline, `
+    <p style="color:#c9c9c7;line-height:1.6;">A quick weekly update on how ${digest.firstName} is progressing on EYF.</p>
+    <div style="background:#0a0a0a;border:1px solid #1c1c1c;border-radius:8px;padding:8px 16px;margin-top:16px;">
+      <table style="width:100%;border-collapse:collapse;">${rows}</table>
+    </div>
+    <p style="color:#c9c9c7;line-height:1.6;margin-top:16px;">${digest.note}</p>
+    <p style="color:#5a5a57;font-size:12px;margin-top:20px;">You're receiving this because ${digest.firstName} added your email for weekly updates. They can turn it off anytime in their EYF settings.</p>
+  `);
+}

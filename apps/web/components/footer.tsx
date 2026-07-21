@@ -37,7 +37,7 @@ export function Footer() {
   );
 }
 
-function FooterCol({ title, links }: { title: string; links: [string, string][] }) {
+function FooterCol({ title, links }: Readonly<{ title: string; links: [string, string][] }>) {
   return (
     <div>
       <div className="font-mono text-xs uppercase tracking-wider text-neutral-500">{title}</div>

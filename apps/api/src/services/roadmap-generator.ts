@@ -56,6 +56,17 @@ export async function generateRoadmap(userId: string, input: GenerateInput): Pro
     prisma.careerTrack.findUnique({ where: { slug: input.trackSlug } }),
     prisma.user.findUnique({ where: { id: userId }, select: { persona: true } }),
   ]);
+  return buildRoadmap(graph, track, user, input);
+}
+
+/** Pure plan synthesis — separated from the queries so the week-by-week logic is
+ *  unit-testable with a fixture skill graph. */
+export function buildRoadmap(
+  graph: { dimensions: SkillDimension[] },
+  track: { name: string; patterns: string[]; curriculum: unknown } | null,
+  user: { persona: string | null } | null,
+  input: GenerateInput,
+): GeneratedPlan {
   const persona = (user?.persona ?? "STUDENT") as Persona;
   const roleName = track?.name ?? cap(input.trackSlug);
   const tier = tierOf(input.targetCompany);
@@ -91,7 +102,7 @@ export async function generateRoadmap(userId: string, input: GenerateInput): Pro
     const r = remediation[i % remediation.length]!;
     const pattern = dsaPatterns[i % dsaPatterns.length]!;
     const tasks: RoadmapTask[] = [
-      { area: "DSA", label: `Master the ${pattern.replace(/-/g, " ")} pattern`, detail: `Solve 6–8 problems on ${pattern.replace(/-/g, " ")}`, href: `/problems?pattern=${pattern}` },
+      { area: "DSA", label: `Master the ${pattern.replaceAll("-", " ")} pattern`, detail: `Solve 6–8 problems on ${pattern.replaceAll("-", " ")}`, href: `/problems?pattern=${pattern}` },
       r.task,
     ];
     if (tier === "service" || tier === "mass") {
@@ -110,7 +121,7 @@ export async function generateRoadmap(userId: string, input: GenerateInput): Pro
       ? ((track.curriculum as { focus?: string }[])[i]?.focus ?? null) : null;
     const pat = harder[i % harder.length]!;
     const tasks: RoadmapTask[] = [
-      { area: "DSA", label: `Advanced: ${pat.replace(/-/g, " ")}`, detail: `Medium→Hard set on ${pat.replace(/-/g, " ")}`, href: `/problems?pattern=${pat}` },
+      { area: "DSA", label: `Advanced: ${pat.replaceAll("-", " ")}`, detail: `Medium→Hard set on ${pat.replaceAll("-", " ")}`, href: `/problems?pattern=${pat}` },
     ];
     if (focus) {
       tasks.push({ area: roleName, label: focus, detail: `Role-specific: ${focus}`, href: `/tracks/${input.trackSlug}` });
@@ -123,8 +134,10 @@ export async function generateRoadmap(userId: string, input: GenerateInput): Pro
     let milestone = `Clear 10 medium/hard problems`;
     if (persona === "DEVELOPER") {
       // Build-first: a project milestone most weeks, architecture concepts woven in.
-      tasks.push({ area: "Projects", label: `Project milestone ${i + 1}`, detail: "Ship a vertical slice; write the design doc", href: "/projects" });
-      tasks.push({ area: "Architecture", label: "Architecture deep-dive", detail: "One system concept applied to your build", href: "/tracks/" + input.trackSlug });
+      tasks.push(
+        { area: "Projects", label: `Project milestone ${i + 1}`, detail: "Ship a vertical slice; write the design doc", href: "/projects" },
+        { area: "Architecture", label: "Architecture deep-dive", detail: "One system concept applied to your build", href: "/tracks/" + input.trackSlug },
+      );
       theme = focus ? `Build: ${focus}` : "Architecture & projects";
       milestone = "Project slice shipped";
     } else if (persona === "SWITCHER") {
@@ -150,11 +163,15 @@ export async function generateRoadmap(userId: string, input: GenerateInput): Pro
     const tasks: RoadmapTask[] = [];
     const first = i === 0, last = i === interviewWeeks - 1;
     if (first) {
-      tasks.push({ area: "Resume", label: "ATS-score your resume", detail: "Hit 80+ and fix missing keywords", href: "/resume" });
-      tasks.push({ area: "Mocks", label: "First AI mock interview", detail: "Baseline your interview readiness", href: "/mocks" });
+      tasks.push(
+        { area: "Resume", label: "ATS-score your resume", detail: "Hit 80+ and fix missing keywords", href: "/resume" },
+        { area: "Mocks", label: "First AI mock interview", detail: "Baseline your interview readiness", href: "/mocks" },
+      );
     } else if (last) {
-      tasks.push({ area: "Mocks", label: "Final mock + retro", detail: "Full loop simulation; review the recording", href: "/mocks" });
-      tasks.push({ area: "Apply", label: "Open your application pipeline", detail: "Start applying with confidence", href: "/pipeline" });
+      tasks.push(
+        { area: "Mocks", label: "Final mock + retro", detail: "Full loop simulation; review the recording", href: "/mocks" },
+        { area: "Apply", label: "Open your application pipeline", detail: "Start applying with confidence", href: "/pipeline" },
+      );
     } else {
       tasks.push({ area: "Mocks", label: "Weekly mock interview", detail: "Rotate DSA + behavioral rounds", href: "/mocks" });
     }
@@ -199,7 +216,8 @@ export async function generateRoadmap(userId: string, input: GenerateInput): Pro
 }
 
 /** Turn the weakest skill dims into foundation-week remediation themes. */
-function buildRemediationQueue(weak: SkillDimension[], count: number): { theme: string; task: RoadmapTask; milestone: string }[] {
+// `count` is accepted for signature symmetry; the caller cycles through the returned queue.
+function buildRemediationQueue(weak: SkillDimension[], _count: number): { theme: string; task: RoadmapTask; milestone: string }[] {
   const q: { theme: string; task: RoadmapTask; milestone: string }[] = [];
   for (const d of weak) {
     if (d.key in SUBJECT_HREF) {
@@ -221,11 +239,12 @@ function buildRemediationQueue(weak: SkillDimension[], count: number): { theme: 
   }
   // Always ensure at least a DSA + core-CS foundation even if nothing flagged weak.
   if (q.length === 0) {
-    q.push({ theme: "DSA foundations", milestone: "50 easy/medium solved",
-      task: { area: "DSA", label: "Pattern fundamentals", detail: "Build the core problem-solving base", href: "/problems" } });
-    q.push({ theme: "Core CS sweep", milestone: "All 4 subjects started",
-      task: { area: "Core CS", label: "Core subjects sweep", detail: "OS · DBMS · CN · OOP flashcards", href: "/subjects" } });
+    q.push(
+      { theme: "DSA foundations", milestone: "50 easy/medium solved",
+        task: { area: "DSA", label: "Pattern fundamentals", detail: "Build the core problem-solving base", href: "/problems" } },
+      { theme: "Core CS sweep", milestone: "All 4 subjects started",
+        task: { area: "Core CS", label: "Core subjects sweep", detail: "OS · DBMS · CN · OOP flashcards", href: "/subjects" } },
+    );
   }
-  void count; // caller cycles through the queue to fill the foundation weeks
   return q;
 }

@@ -16,7 +16,7 @@ type Cert = {
  * Public certificate verification — no login. An employer who scans the QR /
  * opens the link lands here and sees whether the certificate is genuine.
  */
-export default function VerifyPage({ params }: { params: { code: string } }) {
+export default function VerifyPage({ params }: Readonly<{ params: { code: string } }>) {
   const [state, setState] = useState<"loading" | "ok" | "bad">("loading");
   const [cert, setCert] = useState<Cert | null>(null);
 
@@ -73,7 +73,7 @@ export default function VerifyPage({ params }: { params: { code: string } }) {
               <Row label="Recipient" value={cert.recipient + (cert.college ? ` · ${cert.college}` : "")} />
               <Row label="Certificate" value={cert.title} />
               {cert.issuer && <Row label="Issued by" value={cert.issuer} />}
-              <Row label="Type" value={cert.type.replace(/_/g, " ").toLowerCase()} />
+              <Row label="Type" value={cert.type.replaceAll("_", " ").toLowerCase()} />
               {cert.score != null && <Row label="Score" value={`${cert.score}/100`} />}
               <Row label="Issued" value={new Date(cert.issuedAt).toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" })} />
             </div>
@@ -99,7 +99,7 @@ export default function VerifyPage({ params }: { params: { code: string } }) {
   );
 }
 
-function Row({ label, value }: { label: string; value: string }) {
+function Row({ label, value }: Readonly<{ label: string; value: string }>) {
   return (
     <div className="flex items-start justify-between gap-4 border-t border-border pt-3">
       <span className="text-text-3 text-sm shrink-0">{label}</span>

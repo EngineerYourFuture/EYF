@@ -23,7 +23,7 @@ const lpa = (n: number) => Math.round(n / 100_000);
 
 export default function Page() {
   const [role, setRole] = useState<string>("");
-  const { data: jobs, isLoading } = useApi<Job[]>(`/jobs${role ? `?role=${role}` : ""}`);
+  const { data: jobs, isLoading } = useApi<Job[]>(`/jobs${role ? "?role=" + role : ""}`);
   const { data: apps, mutate } = useApi<App[]>("/jobs/me/applications");
   const action = useApiAction();
   const [saving, setSaving] = useState<string | null>(null);
@@ -59,17 +59,21 @@ export default function Page() {
 
       <div className="mt-8 grid lg:grid-cols-[1fr_300px] gap-8">
         <div>
-          {isLoading ? (
+          {(() => {
+  if (isLoading) return (
             <SkeletonRows rows={6} />
-          ) : jobs && jobs.length === 0 ? (
+          );
+  if (jobs?.length === 0) return (
             <EmptyState icon={<Icons.briefcase width={28} height={28} />} title="No jobs for this filter" description="Try a different role, or check back — new roles are added regularly." />
-          ) : (
+          );
+  return (
             <div className="grid sm:grid-cols-2 gap-4">
               {jobs?.map((j) => (
                 <JobCard key={j.id} j={j} saved={savedSlugs.has(j.slug)} saving={saving === j.slug} onSave={() => save(j.slug)} />
               ))}
             </div>
-          )}
+          );
+})()}
         </div>
 
         <aside>
@@ -87,7 +91,7 @@ export default function Page() {
                 </Card>
               </Link>
             ))}
-            {apps && apps.length === 0 && (
+            {apps?.length === 0 && (
               <div className="rounded-xl border border-dashed border-border p-5 text-center">
                 <p className="text-text-3 text-sm">Nothing saved yet.</p>
                 <p className="text-text-4 text-xs mt-1">Save roles to track them to an offer.</p>
@@ -100,7 +104,7 @@ export default function Page() {
   );
 }
 
-function JobCard({ j, saved, saving, onSave }: { j: Job; saved: boolean; saving: boolean; onSave: () => void }) {
+function JobCard({ j, saved, saving, onSave }: Readonly<{ j: Job; saved: boolean; saving: boolean; onSave: () => void }>) {
   return (
     <Link href={`/jobs/${j.slug}`} className="min-w-0">
       <Card interactive className="flex h-full flex-col min-w-0">

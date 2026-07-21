@@ -52,7 +52,10 @@ export default function PipelinePage() {
   // Rejection is the moment students quit — capture the stage it died at and
   // open the comeback plan immediately instead of letting the card just vanish.
   async function reject(a: App) {
-    const stage: RejectionStage = a.status === "OA" ? "OA" : a.status === "INTERVIEW" ? "INTERVIEW" : "APPLIED";
+    let stage: RejectionStage;
+  if (a.status === "OA") stage = "OA";
+  else if (a.status === "INTERVIEW") stage = "INTERVIEW";
+  else stage = "APPLIED";
     rememberRejectionStage(a.id, stage);
     await setStatus(a.id, "REJECTED");
     setComebackFor({ ...a, status: "REJECTED" });
@@ -63,6 +66,16 @@ export default function PipelinePage() {
   const byStage = (s: Status) => active.filter((a) => a.status === s);
   const offers = byStage("OFFER").length;
   const interviewing = byStage("INTERVIEW").length + byStage("OA").length;
+
+  const renderCard = (a: App) => (
+    <AppCard
+      key={a.id}
+      app={a}
+      busy={busy === a.id}
+      onAdvance={NEXT[a.status] ? () => setStatus(a.id, NEXT[a.status]!) : undefined}
+      onReject={() => void reject(a)}
+    />
+  );
 
   return (
     <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-7xl mx-auto">
@@ -84,9 +97,11 @@ export default function PipelinePage() {
         <div className="mt-6"><PipelineFunnel apps={apps} /></div>
       )}
 
-      {isLoading ? (
+      {(() => {
+  if (isLoading) return (
         <SkeletonRows rows={6} className="mt-8" />
-      ) : active.length === 0 ? (
+      );
+  if (active.length === 0) return (
         <EmptyState
           className="mt-10"
           icon={<Icons.briefcase width={28} height={28} />}
@@ -94,7 +109,8 @@ export default function PipelinePage() {
           description="Save roles from the jobs board and they'll appear here, ready to track through to an offer."
           action={<Link href="/jobs"><Button>Browse jobs</Button></Link>}
         />
-      ) : (
+      );
+  return (
         <div className="mt-8 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4 items-start">
           {STAGES.map((stage) => {
             const items = byStage(stage.key);
@@ -108,21 +124,14 @@ export default function PipelinePage() {
                   {items.length === 0 && (
                     <div className="text-text-4 text-xs px-1 py-4 text-center">—</div>
                   )}
-                  {items.map((a) => (
-                    <AppCard
-                      key={a.id}
-                      app={a}
-                      busy={busy === a.id}
-                      onAdvance={NEXT[a.status] ? () => setStatus(a.id, NEXT[a.status]!) : undefined}
-                      onReject={() => void reject(a)}
-                    />
-                  ))}
+                  {items.map(renderCard)}
                 </div>
               </div>
             );
           })}
         </div>
-      )}
+      );
+})()}
 
       {closed.length > 0 && (
         <Reveal>
@@ -163,9 +172,9 @@ export default function PipelinePage() {
   );
 }
 
-function AppCard({ app: a, busy, onAdvance, onReject }: {
+function AppCard({ app: a, busy, onAdvance, onReject }: Readonly<{
   app: App; busy: boolean; onAdvance?: () => void; onReject: () => void;
-}) {
+}>) {
   const dl = deadline(a.job.closesAt);
   return (
     <div className={`rounded-xl border border-border bg-surface p-3 shadow-card transition-opacity ${busy ? "opacity-50" : ""}`}>
@@ -206,11 +215,14 @@ function deadline(closesAt: string | null): { label: string; tone: "hard" | "med
   return { label: `${days}d left`, tone: "default" };
 }
 
-function Stat({ label, value, icon, tone = "default" }: {
+function Stat({ label, value, icon, tone = "default" }: Readonly<{
   label: string; value: number; icon: IconName; tone?: "default" | "medium" | "easy";
-}) {
+}>) {
   const Icon = Icons[icon];
-  const cls = tone === "easy" ? "text-easy" : tone === "medium" ? "text-medium" : "text-text-2";
+  let cls;
+  if (tone === "easy") cls = "text-easy";
+  else if (tone === "medium") cls = "text-medium";
+  else cls = "text-text-2";
   return (
     <div className="rounded-xl border border-border bg-surface p-4 shadow-card">
       <div className="flex items-center justify-between">

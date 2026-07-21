@@ -74,7 +74,7 @@ export async function authRoutes(app: FastifyInstance) {
       return reply.code(401).send({ success: false, error: { code: "INVALID_REFRESH", message: "Invalid refresh token." } });
     }
     const sess = await prisma.userSession.findUnique({ where: { id: claims.sid }, select: { id: true, userId: true } });
-    if (!sess || sess.userId !== claims.uid) {
+    if (sess?.userId !== claims.uid) {
       return reply.code(401).send({ success: false, error: { code: "SESSION_REVOKED", message: "This session is no longer active." } });
     }
     const user = await prisma.user.findUnique({ where: { id: claims.uid }, include: { subscription: true } });

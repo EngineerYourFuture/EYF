@@ -51,7 +51,7 @@ export default function Page() {
                   <div className="font-display text-base">{m.idea.title}</div>
                   <div className="text-text-3 text-xs mt-1">{m.idea.weeks} weeks · {m.idea.difficulty}</div>
                 </div>
-                <Badge tone={m.status === "COMPLETED" ? "easy" : "accent"}>{m.status.replace(/_/g, " ")}</Badge>
+                <Badge tone={m.status === "COMPLETED" ? "easy" : "accent"}>{m.status.replaceAll("_", " ")}</Badge>
               </Card>
             ))}
           </div>

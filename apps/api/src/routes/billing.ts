@@ -1,4 +1,4 @@
-import type { FastifyInstance } from "fastify";
+import type { FastifyInstance, FastifyBaseLogger } from "fastify";
 import { z } from "zod";
 import { prisma, SubscriptionStatus } from "@eyf/db";
 import {
@@ -9,6 +9,55 @@ import {
   PLAN_TIER_MAP,
 } from "../services/razorpay.js";
 import { decideWebhook } from "../lib/subscription.js";
+
+type RazorpayEvent = {
+  event: string;
+  created_at?: number;
+  payload: {
+    payment?: { entity: { notes?: { userId?: string; plan?: string; interval?: string }; amount: number; id: string } };
+    subscription?: { entity: { id: string } };
+  };
+};
+
+async function applyPaymentCaptured(event: RazorpayEvent, eventCreatedAt: Date): Promise<{ stale: boolean }> {
+  const notes = event.payload.payment?.entity.notes ?? {};
+  const userId = notes.userId;
+  const plan = notes.plan as "basic" | "pro" | "elite" | undefined;
+  const interval = (notes.interval ?? "monthly") as "monthly" | "annual";
+  if (!(userId && plan && plan in PLAN_PRICING_INR)) return { stale: false };
+  const existing = await prisma.subscription.findUnique({ where: { userId }, select: { lastEventAt: true } });
+  if (decideWebhook({ alreadyProcessed: false, eventCreatedAt, lastEventAt: existing?.lastEventAt ?? null }) === "stale") {
+    return { stale: true };
+  }
+  const endsAt = new Date(eventCreatedAt);
+  endsAt.setMonth(endsAt.getMonth() + (interval === "annual" ? 12 : 1));
+  const data = {
+    plan: PLAN_TIER_MAP[plan],
+    status: SubscriptionStatus.ACTIVE,
+    amountInr: event.payload.payment!.entity.amount,
+    intervalMonths: interval === "annual" ? 12 : 1,
+    endsAt,
+    canceledAt: null,
+    lastEventAt: eventCreatedAt,
+  };
+  await prisma.subscription.upsert({ where: { userId }, update: data, create: { userId, ...data } });
+  return { stale: false };
+}
+
+async function applySubscriptionCancelled(event: RazorpayEvent, eventCreatedAt: Date, log: FastifyBaseLogger): Promise<void> {
+  // Cancel-at-period-end: keep endsAt, mark CANCELED — gating keeps access
+  // until endsAt, then the plan resolves to FREE.
+  const subId = event.payload.subscription?.entity.id;
+  const sub = subId ? await prisma.subscription.findUnique({ where: { razorpaySubId: subId }, select: { lastEventAt: true } }) : null;
+  if (sub && decideWebhook({ alreadyProcessed: false, eventCreatedAt, lastEventAt: sub.lastEventAt }) === "apply") {
+    await prisma.subscription.update({
+      where: { razorpaySubId: subId! },
+      data: { status: SubscriptionStatus.CANCELED, canceledAt: eventCreatedAt, lastEventAt: eventCreatedAt },
+    });
+  } else {
+    log.info({ event: event.event, subId }, "subscription.cancelled — no matching sub or stale");
+  }
+}
 
 export async function billingRoutes(app: FastifyInstance) {
   app.get("/plans", async () => ({
@@ -104,14 +153,7 @@ export async function billingRoutes(app: FastifyInstance) {
           error: { code: "INVALID_SIGNATURE", message: "Webhook signature failed." },
         });
       }
-      const event = JSON.parse(rawBody) as {
-        event: string;
-        created_at?: number;
-        payload: {
-          payment?: { entity: { notes?: { userId?: string; plan?: string; interval?: string }; amount: number; id: string } };
-          subscription?: { entity: { id: string } };
-        };
-      };
+      const event = JSON.parse(rawBody) as RazorpayEvent;
 
       // Idempotency: dedup by the provider's event id. The unique insert is the
       // gate — a duplicate delivery hits the constraint and no-ops. `endsAt` is
@@ -126,41 +168,10 @@ export async function billingRoutes(app: FastifyInstance) {
       }
 
       if (event.event === "payment.captured") {
-        const notes = event.payload.payment?.entity.notes ?? {};
-        const userId = notes.userId;
-        const plan = notes.plan as "basic" | "pro" | "elite" | undefined;
-        const interval = (notes.interval ?? "monthly") as "monthly" | "annual";
-        if (userId && plan && plan in PLAN_PRICING_INR) {
-          const existing = await prisma.subscription.findUnique({ where: { userId }, select: { lastEventAt: true } });
-          if (decideWebhook({ alreadyProcessed: false, eventCreatedAt, lastEventAt: existing?.lastEventAt ?? null }) === "stale") {
-            return reply.send({ success: true, data: { handled: event.event, stale: true } });
-          }
-          const endsAt = new Date(eventCreatedAt);
-          endsAt.setMonth(endsAt.getMonth() + (interval === "annual" ? 12 : 1));
-          const data = {
-            plan: PLAN_TIER_MAP[plan],
-            status: SubscriptionStatus.ACTIVE,
-            amountInr: event.payload.payment!.entity.amount,
-            intervalMonths: interval === "annual" ? 12 : 1,
-            endsAt,
-            canceledAt: null,
-            lastEventAt: eventCreatedAt,
-          };
-          await prisma.subscription.upsert({ where: { userId }, update: data, create: { userId, ...data } });
-        }
+        const { stale } = await applyPaymentCaptured(event, eventCreatedAt);
+        if (stale) return reply.send({ success: true, data: { handled: event.event, stale: true } });
       } else if (event.event === "subscription.cancelled") {
-        // Cancel-at-period-end: keep endsAt, mark CANCELED — gating keeps access
-        // until endsAt, then the plan resolves to FREE.
-        const subId = event.payload.subscription?.entity.id;
-        const sub = subId ? await prisma.subscription.findUnique({ where: { razorpaySubId: subId }, select: { lastEventAt: true } }) : null;
-        if (sub && decideWebhook({ alreadyProcessed: false, eventCreatedAt, lastEventAt: sub.lastEventAt }) === "apply") {
-          await prisma.subscription.update({
-            where: { razorpaySubId: subId! },
-            data: { status: SubscriptionStatus.CANCELED, canceledAt: eventCreatedAt, lastEventAt: eventCreatedAt },
-          });
-        } else {
-          req.log.info({ event: event.event, subId }, "subscription.cancelled — no matching sub or stale");
-        }
+        await applySubscriptionCancelled(event, eventCreatedAt, req.log);
       }
       return reply.send({ success: true, data: { handled: event.event } });
     },

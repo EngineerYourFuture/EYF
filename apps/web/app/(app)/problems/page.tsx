@@ -43,7 +43,7 @@ export default function ProblemsPage() {
   const patterns = useMemo(() => {
     const set = new Set<string>();
     (catalog ?? []).forEach((p) => p.patterns.forEach((x) => set.add(x)));
-    return [...set].sort();
+    return [...set].sort((a, b) => a.localeCompare(b));
   }, [catalog]);
   const shown = data ?? [];
 
@@ -150,7 +150,7 @@ export default function ProblemsPage() {
   );
 }
 
-function FilterChip({ label, active, onClick, tone }: { label: string; active: boolean; onClick: () => void; tone?: string }) {
+function FilterChip({ label, active, onClick, tone }: Readonly<{ label: string; active: boolean; onClick: () => void; tone?: string }>) {
   return (
     <button
       onClick={onClick}
@@ -164,7 +164,7 @@ function FilterChip({ label, active, onClick, tone }: { label: string; active: b
   );
 }
 
-function FilterRow({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
+function FilterRow({ label, active, onClick }: Readonly<{ label: string; active: boolean; onClick: () => void }>) {
   return (
     <button
       onClick={onClick}

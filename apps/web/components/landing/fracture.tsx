@@ -26,20 +26,20 @@ const FRAGS: Frag[] = [
   { node: <Card><b>LinkedIn</b><div className="o">500+ applied · 0 callbacks</div></Card>, x: -30, y: -120, rot: 7, d: 9.8 },
 ];
 
-function Card({ children }: { children: ReactNode }) {
+function Card({ children }: Readonly<{ children: ReactNode }>) {
   return <div className="w-max max-w-[230px] rounded-lg border border-black/10 bg-white/70 px-3.5 py-2.5 text-[13px] leading-snug text-[rgb(var(--lp-ink))] shadow-sm backdrop-blur-sm [&_.o]:mt-0.5 [&_.o]:text-[11px] [&_.o]:text-[rgb(var(--lp-ink))]/45 [&_b]:font-semibold">{children}</div>;
 }
-function Bubble({ children }: { children: ReactNode }) {
+function Bubble({ children }: Readonly<{ children: ReactNode }>) {
   return <div className="w-[210px] rounded-2xl rounded-bl-sm bg-[#25D366]/12 border border-[#25D366]/40 px-3.5 py-2 text-[13px] leading-snug text-[rgb(var(--lp-ink))]/80 shadow-sm">{children}</div>;
 }
-function Sticky({ children }: { children: ReactNode }) {
+function Sticky({ children }: Readonly<{ children: ReactNode }>) {
   return <div className="w-[150px] rounded-sm bg-[rgb(var(--lp-brand))]/10 border border-[rgb(var(--lp-brand))]/30 px-3 py-2.5 font-mono text-[11px] leading-snug text-[rgb(var(--lp-ink))]/80 shadow-sm">{children}</div>;
 }
-function Search({ children }: { children: ReactNode }) {
+function Search({ children }: Readonly<{ children: ReactNode }>) {
   return <div className="flex items-center gap-2 whitespace-nowrap rounded-full border border-black/10 bg-white/70 px-4 py-2 text-[13px] text-[rgb(var(--lp-ink))]/75 shadow-sm"><span className="opacity-40">⌕</span>{children}</div>;
 }
 
-function Fragment({ f, progress, reduce }: { f: Frag; progress: MotionValue<number>; reduce: boolean }) {
+function Fragment({ f, progress, reduce }: Readonly<{ f: Frag; progress: MotionValue<number>; reduce: boolean }>) {
   const cx = useTransform(progress, [0.42, 0.92], [f.x, 0]);
   const cy = useTransform(progress, [0.42, 0.92], [f.y, 0]);
   const op = useTransform(progress, [0.42, 0.86], [1, 0]);

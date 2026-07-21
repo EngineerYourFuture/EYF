@@ -7,11 +7,11 @@ export function LegalLayout({
   title,
   updated,
   children,
-}: {
+}: Readonly<{
   title: string;
   updated?: string;
   children: ReactNode;
-}) {
+}>) {
   return (
     <main className="min-h-screen">
       <Nav />

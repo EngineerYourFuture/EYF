@@ -17,7 +17,7 @@ type Variant = {
 const TABS = ["editorial", "variants"] as const;
 type Tab = (typeof TABS)[number];
 
-export function EditorialPanel({ slug }: { slug: string }) {
+export function EditorialPanel({ slug }: Readonly<{ slug: string }>) {
   const [tab, setTab] = useState<Tab>("editorial");
   return (
     <Card className="mt-4">
@@ -30,7 +30,7 @@ export function EditorialPanel({ slug }: { slug: string }) {
   );
 }
 
-function EditorialTab({ slug }: { slug: string }) {
+function EditorialTab({ slug }: Readonly<{ slug: string }>) {
   const { data, error } = useApi<Editorial>(`/admin/problems/${slug}/editorial`);
   if (error?.message?.includes("PLAN_UPGRADE_REQUIRED") || (error as { code?: string })?.code === "PLAN_UPGRADE_REQUIRED") {
     return (
@@ -66,7 +66,7 @@ function EditorialTab({ slug }: { slug: string }) {
   );
 }
 
-function VariantsTab({ slug }: { slug: string }) {
+function VariantsTab({ slug }: Readonly<{ slug: string }>) {
   const { data } = useApi<Variant[]>(`/admin/problems/${slug}/variants`);
   if (!data) return <p className="text-text-3 text-sm">Loading…</p>;
   if (data.length === 0) return <p className="text-text-3 text-sm">No variants generated yet.</p>;

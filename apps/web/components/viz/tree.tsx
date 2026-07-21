@@ -39,10 +39,10 @@ const W = 600, H = 280, PAD = 24;
 
 export function TreeViz() {
   const [src, setSrc] = useState("50,30,70,20,40,60,80,10");
-  const [highlightIdx, setHighlight] = useState(-1);
+  const [highlightIdx, setHighlightIdx] = useState(-1);
 
   const { root, traversal, positions } = useMemo(() => {
-    const arr = src.split(",").map((s) => parseInt(s.trim(), 10)).filter(Number.isFinite);
+    const arr = src.split(",").map((s) => Number.parseInt(s.trim(), 10)).filter(Number.isFinite);
     let r: Node | null = null;
     for (const v of arr) r = insert(r, v);
     return { root: r, traversal: inorder(r), positions: layout(r) };
@@ -70,14 +70,14 @@ export function TreeViz() {
       <div className="flex flex-wrap items-center gap-2 mb-3 text-sm">
         <input
           value={src}
-          onChange={(e) => { setSrc(e.target.value); setHighlight(-1); }}
+          onChange={(e) => { setSrc(e.target.value); setHighlightIdx(-1); }}
           className="flex-1 bg-bg border border-border rounded-md px-2 py-1 font-mono"
         />
         <Button
           size="sm"
           onClick={async () => {
             for (let i = 0; i < traversal.length; i++) {
-              setHighlight(i);
+              setHighlightIdx(i);
               await new Promise((r) => setTimeout(r, 400));
             }
           }}

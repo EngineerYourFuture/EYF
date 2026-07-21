@@ -1,11 +1,12 @@
 "use client";
 import Link from "next/link";
-import { Card, Badge, Meter, PageHeader, Skeleton, ErrorState } from "@eyf/ui";
+import { Card, Meter, PageHeader, Skeleton, ErrorState } from "@eyf/ui";
 import { useApi } from "@/lib/use-api";
 import { PageMotion } from "@/components/page-motion";
 import { Reveal } from "@/components/motion";
 import { PatternTree } from "@/components/pattern-tree";
 import { Icons } from "@/components/icons";
+import { scoreTone } from "@/lib/ui-helpers";
 
 type Dim = { key: string; label: string; group: string; score: number; detail: string; href: string };
 type Graph = { dimensions: Dim[]; overall: number; strongest: string | null; weakest: string | null };
@@ -29,14 +30,17 @@ export default function SkillsPage() {
           subtitle="An honest map of where you stand across everything placements test — so you always know what to fix next, not just what to grind."
         />
 
-        {error ? (
+        {(() => {
+  if (error) return (
           <div className="mt-8"><ErrorState message="Couldn't load your skill graph." retry={() => mutate()} /></div>
-        ) : isLoading || !data ? (
+        );
+  if (isLoading || !data) return (
           <div className="mt-8 grid lg:grid-cols-[1fr_360px] gap-6">
             <Skeleton className="h-96 rounded-2xl" />
             <div className="space-y-3">{Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-12 rounded-xl" />)}</div>
           </div>
-        ) : (
+        );
+  return (
           <>
             <div className="mt-8 grid lg:grid-cols-[1fr_340px] gap-6 items-stretch">
               {/* Radar */}
@@ -83,7 +87,7 @@ export default function SkillsPage() {
                       {dims.map((d) => (
                         <Link key={d.key} href={d.href} className="block group">
                           <Meter
-                            tone={d.score >= 70 ? "easy" : d.score >= 40 ? "medium" : "hard"}
+                            tone={scoreTone(d.score)}
                             pct={d.score / 100}
                             label={<span className="group-hover:text-text-1">{d.label}</span>}
                             value={`${d.score}`}
@@ -102,13 +106,14 @@ export default function SkillsPage() {
               and ship projects. It feeds your Placement Readiness — fix the red bars and watch both climb.
             </p>
           </>
-        )}
+        );
+})()}
       </div>
     </PageMotion>
   );
 }
 
-function Radar({ dims }: { dims: Dim[] }) {
+function Radar({ dims }: Readonly<{ dims: Dim[] }>) {
   const size = 360, cx = size / 2, cy = size / 2, maxR = 130;
   const n = dims.length;
   const angle = (i: number) => (i / n) * 2 * Math.PI - Math.PI / 2;
@@ -143,7 +148,10 @@ function Radar({ dims }: { dims: Dim[] }) {
       {dims.map((d, i) => {
         const p = pt(i, maxR + 18);
         const a = angle(i);
-        const anchor = Math.abs(Math.cos(a)) < 0.35 ? "middle" : Math.cos(a) > 0 ? "start" : "end";
+        let anchor: "middle" | "start" | "end";
+  if (Math.abs(Math.cos(a)) < 0.35) anchor = "middle";
+  else if (Math.cos(a) > 0) anchor = "start";
+  else anchor = "end";
         return (
           <text key={i} x={p.x} y={p.y} textAnchor={anchor} dominantBaseline="middle"
             className="fill-text-3 text-[10px] font-mono">{SHORT[d.key] ?? d.label}</text>

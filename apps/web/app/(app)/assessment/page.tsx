@@ -9,6 +9,7 @@ import { PageMotion } from "@/components/page-motion";
 import { AdaptiveDiagnostic } from "@/components/adaptive-diagnostic";
 import { Reveal } from "@/components/motion";
 import { Icons } from "@/components/icons";
+import { scoreTone } from "@/lib/ui-helpers";
 
 type Q = { id: string; topic: string; area: string; difficulty: string; prompt: string; choices: string[] };
 type Scored = {
@@ -26,9 +27,9 @@ type Scored = {
 
 const LETTERS = ["A", "B", "C", "D", "E", "F"];
 
-function NextStep({ href, icon, title, desc, primary }: {
+function NextStep({ href, icon, title, desc, primary }: Readonly<{
   href: string; icon: "activity" | "target" | "map"; title: string; desc: string; primary?: boolean;
-}) {
+}>) {
   const Icon = Icons[icon];
   return (
     <Link href={href}
@@ -50,7 +51,8 @@ export default function Page() {
   const confirm = useConfirm();
   const [questions, setQuestions] = useState<Q[] | null>(null);
   const [answers, setAnswers]   = useState<Record<string, number>>({});
-  const [startedAt, setStarted] = useState<number>(0);
+  const pick = (qId: string, idx: number) => setAnswers((p) => ({ ...p, [qId]: idx }));
+  const [startedAt, setStartedAt] = useState<number>(0);
   const [result, setResult]     = useState<Scored["scored"] | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [mode, setMode] = useState<"choose" | "full" | "adaptive">("choose");
@@ -62,17 +64,17 @@ export default function Page() {
   function startFull() {
     setLoadError(false);
     action<{ questions: Q[] }>("/assessment/start")
-      .then((d) => { setQuestions(d.questions); setStarted(Date.now()); })
+      .then((d) => { setQuestions(d.questions); setStartedAt(Date.now()); })
       .catch(() => setLoadError(true));
   }
 
   useEffect(() => {
-    if (mode !== "full" || questions) return;
+    if (mode !== "full" || questions) { return; }
     startFull();
   }, [mode]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function onSubmit() {
-    if (!questions) return;
+    if (!questions) { return; }
     const blanks = questions.length - Object.keys(answers).length;
     if (blanks > 0) {
       const ok = await confirm({
@@ -80,7 +82,7 @@ export default function Page() {
         message: `${blanks} question${blanks === 1 ? "" : "s"} left blank — blanks count as wrong.`,
         confirmLabel: "Submit anyway",
       });
-      if (!ok) return;
+      if (!ok) { return; }
     }
     setSubmitting(true);
     const payload = {
@@ -138,8 +140,7 @@ export default function Page() {
 
   /* ---------- result ---------- */
   if (result) {
-    const pctCorrect = Math.round((result.correctAnswers / Math.max(1, result.totalQuestions)) * 100);
-    const probTone = (p: number) => (p >= 0.6 ? "easy" : p >= 0.3 ? "medium" : "hard");
+    const probTone = (p: number) => { if (p >= 0.6) { return "easy"; } if (p >= 0.3) { return "medium"; } return "hard"; };
     return (
       <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-5xl mx-auto">
         <PageHeader
@@ -150,11 +151,11 @@ export default function Page() {
 
         <div className="mt-8 grid grid-cols-3 gap-4">
           <MetricTile label="DSA" value={result.gapAnalysis.dsa} unit="%"
-            tone={result.gapAnalysis.dsa >= 70 ? "easy" : result.gapAnalysis.dsa >= 40 ? "medium" : "hard"} />
+            tone={scoreTone(result.gapAnalysis.dsa)} />
           <MetricTile label="Core CS" value={result.gapAnalysis.cs} unit="%"
-            tone={result.gapAnalysis.cs >= 70 ? "easy" : result.gapAnalysis.cs >= 40 ? "medium" : "hard"} />
+            tone={scoreTone(result.gapAnalysis.cs)} />
           <MetricTile label="Aptitude" value={result.gapAnalysis.aptitude} unit="%"
-            tone={result.gapAnalysis.aptitude >= 70 ? "easy" : result.gapAnalysis.aptitude >= 40 ? "medium" : "hard"} />
+            tone={scoreTone(result.gapAnalysis.aptitude)} />
         </div>
 
         <Card variant="glow" className="mt-5">
@@ -258,7 +259,7 @@ export default function Page() {
                           on ? "bg-accent text-accent-ink" : "bg-surface-3 text-text-3"
                         }`}>{LETTERS[idx]}</span>
                         <input type="radio" name={q.id} checked={on}
-                          onChange={() => setAnswers((p) => ({ ...p, [q.id]: idx }))} className="sr-only" />
+                          onChange={() => pick(q.id, idx)} className="sr-only" />
                         <span className="text-sm">{c}</span>
                       </label>
                     );

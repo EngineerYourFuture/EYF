@@ -268,7 +268,7 @@ export const MCQ_CATEGORIES: { id: McqCategory; name: string; blurb: string; fre
 
 /** Distinct company tags across the whole bank, sorted. */
 export function mcqCompanies(): string[] {
-  return [...new Set(MCQ_BANK.flatMap((q) => q.companies))].sort();
+  return [...new Set(MCQ_BANK.flatMap((q) => q.companies))].sort((a, b) => a.localeCompare(b));
 }
 
 /** Count available questions for a category (optionally company-filtered). */

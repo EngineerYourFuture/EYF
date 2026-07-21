@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button, Card, Badge, MetricTile, PageHeader, Skeleton, EmptyState } from "@eyf/ui";
 import { useApi, useApiAction } from "@/lib/use-api";
 import { track, Events } from "@/lib/analytics";
@@ -7,6 +7,7 @@ import { PageMotion } from "@/components/page-motion";
 import { Icons } from "@/components/icons";
 import { ReadinessNudge } from "@/components/readiness-nudge";
 import { CompanySims } from "@/components/company-sims";
+import { toneTextClass } from "@/lib/ui-helpers";
 
 type Category = "APTITUDE" | "LOGICAL" | "VERBAL" | "TECHNICAL";
 type CatalogCat = { id: Category; name: string; blurb: string; free: boolean; count: number };
@@ -32,7 +33,7 @@ type History = { attempts: Attempt[]; bestByCategory: Partial<Record<Category, n
 
 const LETTERS = ["A", "B", "C", "D", "E", "F"];
 const fmtTime = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
-const scoreTone = (p: number) => (p >= 70 ? "easy" : p >= 40 ? "medium" : "hard");
+const scoreTone = (p: number) => { if (p >= 70) { return "easy"; } if (p >= 40) { return "medium"; } return "hard"; };
 
 export default function Page() {
   const action = useApiAction();
@@ -50,10 +51,11 @@ export default function Page() {
   // test
   const [questions, setQuestions] = useState<Q[]>([]);
   const [answers, setAnswers] = useState<Record<string, number>>({});
+  const pick = (qId: string, idx: number) => setAnswers((p) => ({ ...p, [qId]: idx }));
   const [remaining, setRemaining] = useState(0);
   const [startedAt, setStartedAt] = useState(0);
   const [submitting, setSubmitting] = useState(false);
-  const submitRef = useRef<() => void>(() => {});
+  const submitRef = useRef<() => void | Promise<void>>(() => {});
 
   // review
   const [result, setResult] = useState<Result | null>(null);
@@ -80,7 +82,7 @@ export default function Page() {
   function onStart() { return runStart(category, company, count); }
 
   async function onSubmit() {
-    if (submitting) return;
+    if (submitting) { return; }
     setSubmitting(true);
     const payload = {
       category,
@@ -104,7 +106,7 @@ export default function Page() {
 
   // countdown — auto-submits at zero
   useEffect(() => {
-    if (phase !== "test") return;
+    if (phase !== "test") { return; }
     const t = setInterval(() => {
       setRemaining((r) => {
         if (r <= 1) { clearInterval(t); submitRef.current(); return 0; }
@@ -120,7 +122,7 @@ export default function Page() {
     return (
       <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-5xl mx-auto">
         <PageHeader
-          eyebrow={`${selectedCat?.name ?? category}${company ? ` · ${company}` : ""}`}
+          eyebrow={`${selectedCat?.name ?? category}${company ? " · " + company : ""}`}
           title="Test complete"
           subtitle={`${result.correctAnswers}/${result.totalQuestions} correct — review every question below.`}
         />
@@ -150,7 +152,7 @@ export default function Page() {
                 <span className="text-text-3 text-xs font-mono">Q{i + 1}</span>
                 <Badge>{r.topic}</Badge>
                 <span className={`ml-auto text-xs font-medium ${r.isCorrect ? "text-easy" : "text-hard"}`}>
-                  {r.isCorrect ? "Correct" : r.chosen === -1 ? "Skipped" : "Wrong"}
+                  {(() => { if (r.isCorrect) { return "Correct"; } if (r.chosen === -1) { return "Skipped"; } return "Wrong"; })()}
                 </span>
               </div>
               <p className="mt-3 text-text-1 font-medium">{r.prompt}</p>
@@ -159,11 +161,11 @@ export default function Page() {
                   const isRight = idx === r.correctIndex;
                   const isChosen = idx === r.chosen;
                   return (
-                    <div key={idx} className={`flex items-center gap-3 px-3 py-2 rounded-lg border text-sm ${
-                      isRight ? "border-easy/60 bg-easy/10"
-                      : isChosen ? "border-hard/60 bg-hard/10"
-                      : "border-border"
-                    }`}>
+                    <div key={idx} className={`flex items-center gap-3 px-3 py-2 rounded-lg border text-sm ${(() => {
+                      if (isRight) { return "border-easy/60 bg-easy/10"; }
+                      if (isChosen) { return "border-hard/60 bg-hard/10"; }
+                      return "border-border";
+                    })()}`}>
                       <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-xs font-mono font-bold bg-surface-3 text-text-3">
                         {LETTERS[idx]}
                       </span>
@@ -200,7 +202,7 @@ export default function Page() {
         <div className="sticky top-0 z-30 bg-bg/90 backdrop-blur-md border-b border-border">
           <div className="px-4 sm:px-6 lg:px-10 py-3 max-w-5xl mx-auto">
             <div className="flex items-center justify-between text-sm">
-              <span className="font-medium">{selectedCat?.name ?? category}{company ? ` · ${company}` : ""}</span>
+              <span className="font-medium">{selectedCat?.name ?? category}{company ? " · " + company : ""}</span>
               <span className={`font-mono flex items-center gap-1.5 ${low ? "text-hard" : "text-text-3"}`}>
                 <Icons.gauge width={15} height={15} /> {fmtTime(remaining)}
                 <span className="ml-3 text-text-4">{answered}/{total}</span>
@@ -236,7 +238,7 @@ export default function Page() {
                             on ? "bg-accent text-accent-ink" : "bg-surface-3 text-text-3"
                           }`}>{LETTERS[idx]}</span>
                           <input type="radio" name={q.id} checked={on}
-                            onChange={() => setAnswers((p) => ({ ...p, [q.id]: idx }))} className="sr-only" />
+                            onChange={() => pick(q.id, idx)} className="sr-only" />
                           <span className="text-sm">{c}</span>
                         </label>
                       );
@@ -303,7 +305,7 @@ export default function Page() {
                   {catalog.companies.map((co) => <option key={co} value={co}>{co}</option>)}
                 </select>
               </label>
-              <div role="group" aria-labelledby="mcq-count-label">
+              <fieldset className="min-w-0 border-0 p-0 m-0" aria-labelledby="mcq-count-label">
                 <span id="mcq-count-label" className="text-text-3 text-xs uppercase tracking-wider">Questions</span>
                 <div className="mt-2 flex gap-2">
                   {[5, 10, 15, 20].map((n) => (
@@ -313,7 +315,7 @@ export default function Page() {
                       }`}>{n}</button>
                   ))}
                 </div>
-              </div>
+              </fieldset>
             </div>
             <div className="mt-5 flex items-center gap-3">
               <Button onClick={onStart} disabled={starting}>{starting ? "Loading…" : "Start test"}</Button>
@@ -330,7 +332,7 @@ export default function Page() {
                     <Badge>{a.category}</Badge>
                     {a.company && <span className="text-text-4 text-xs">{a.company}</span>}
                     <span className="ml-auto text-text-3 font-mono">{a.correctAnswers}/{a.totalQuestions}</span>
-                    <span className={`font-mono font-bold ${scoreTone(a.score) === "easy" ? "text-easy" : scoreTone(a.score) === "medium" ? "text-medium" : "text-hard"}`}>
+                    <span className={`font-mono font-bold ${toneTextClass(scoreTone(a.score))}`}>
                       {a.score}%
                     </span>
                   </div>
@@ -339,7 +341,7 @@ export default function Page() {
             </div>
           )}
 
-          {history && history.attempts.length === 0 && (
+          {history?.attempts.length === 0 && (
             <div className="mt-10">
               <EmptyState title="No attempts yet" description="Your scores and topic breakdown will show up here once you finish your first test." />
             </div>

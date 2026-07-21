@@ -7,6 +7,7 @@ import { useConfirm } from "@/components/confirm";
 import { Icons } from "@/components/icons";
 import { ContentTabs } from "../_tabs";
 import { Field } from "../_field";
+import { saveLabel } from "@/lib/ui-helpers";
 
 const CATEGORIES = ["APTITUDE", "LOGICAL", "VERBAL", "TECHNICAL"] as const;
 type Category = (typeof CATEGORIES)[number];
@@ -90,7 +91,7 @@ export default function Page() {
           </Field>
           <label className="flex items-center gap-2 text-sm text-text-2"><input type="checkbox" checked={form.active} onChange={(e) => set("active", e.target.checked)} /> Active (visible to students)</label>
           <div className="flex gap-3 pt-2">
-            <Button onClick={save} disabled={saving || !form.label || !form.slug || !form.company || !form.blurb || !form.usedBy || !sectionsValid}>{saving ? "Saving…" : editing.id ? "Save changes" : "Create sim"}</Button>
+            <Button onClick={save} disabled={saving || !form.label || !form.slug || !form.company || !form.blurb || !form.usedBy || !sectionsValid}>{saveLabel(saving, editing.id, "Create sim")}</Button>
             <Button variant="ghost" onClick={() => setEditing(null)}>Cancel</Button>
           </div>
         </Card>

@@ -47,7 +47,7 @@ function AccountFooter() {
   );
 }
 
-function SidebarInner({ onNavigate, onCollapse }: { onNavigate?: () => void; onCollapse?: () => void }) {
+function SidebarInner({ onNavigate, onCollapse }: Readonly<{ onNavigate?: () => void; onCollapse?: () => void }>) {
   return (
     <>
       <div className="px-6 h-16 flex items-center justify-between border-b border-border shrink-0">
@@ -66,7 +66,7 @@ function SidebarInner({ onNavigate, onCollapse }: { onNavigate?: () => void; onC
   );
 }
 
-export function AppShell({ children }: { children: React.ReactNode }) {
+export function AppShell({ children }: Readonly<{ children: React.ReactNode }>) {
   const [open, setOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const pathname = usePathname();
@@ -100,7 +100,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       if (e.key !== "Tab") return;
       const f = focusables();
       if (f.length === 0) return;
-      const first = f[0]!, last = f[f.length - 1]!;
+      const first = f[0]!, last = f.at(-1)!;
       if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
       else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
     }
@@ -229,7 +229,7 @@ function DesktopBackBar() {
  * glass, safe-area aware; the Menu tab opens the full drawer. Hidden on lg+
  * where the sidebar owns navigation.
  */
-function MobileTabBar({ onMenu }: { onMenu: () => void }) {
+function MobileTabBar({ onMenu }: Readonly<{ onMenu: () => void }>) {
   const pathname = usePathname();
   const tabs = [
     { href: "/today", label: "Today", icon: Icons.bolt },
@@ -262,7 +262,7 @@ function MobileTabBar({ onMenu }: { onMenu: () => void }) {
           aria-label="Open full menu">
           <span className="flex h-7 w-12 items-center justify-center rounded-full">
             <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
-          </span>
+          </span>{" "}
           Menu
         </button>
       </div>

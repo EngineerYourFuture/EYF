@@ -10,7 +10,7 @@ export type PageHeaderProps = {
 };
 
 /** Consistent page heading block across the app. */
-export function PageHeader({ title, subtitle, actions, eyebrow, className }: PageHeaderProps) {
+export function PageHeader({ title, subtitle, actions, eyebrow, className }: Readonly<PageHeaderProps>) {
   return (
     <div className={cn("flex items-start justify-between gap-4 flex-wrap", className)}>
       <div className="min-w-0">
@@ -46,14 +46,14 @@ const toneBar: Record<StatTone, string> = {
 };
 
 /** A labelled stat tile with optional icon + trend. */
-export function Stat({ label, value, sub, tone = "default", icon, trend }: {
+export function Stat({ label, value, sub, tone = "default", icon, trend }: Readonly<{
   label: string;
   value: ReactNode;
   sub?: ReactNode;
   tone?: StatTone;
   icon?: ReactNode;
   trend?: { dir: "up" | "down" | "flat"; label: string };
-}) {
+}>) {
   const accenty = tone !== "default";
   return (
     <div className={cn(
@@ -72,9 +72,9 @@ export function Stat({ label, value, sub, tone = "default", icon, trend }: {
         {trend && (
           <span className={cn(
             "inline-flex items-center gap-0.5 text-xs font-medium",
-            trend.dir === "up" ? "text-easy" : trend.dir === "down" ? "text-hard" : "text-text-3",
+            (() => { if (trend.dir === "up") { return "text-easy"; } if (trend.dir === "down") { return "text-hard"; } return "text-text-3"; })(),
           )}>
-            {trend.dir === "up" ? "↑" : trend.dir === "down" ? "↓" : "→"} {trend.label}
+            {(() => { if (trend.dir === "up") { return "↑"; } if (trend.dir === "down") { return "↓"; } return "→"; })()} {trend.label}
           </span>
         )}
         {sub && <div className="text-text-3 text-xs">{sub}</div>}

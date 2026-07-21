@@ -107,7 +107,9 @@ export function resolveOrgAccess(capability: OrgCapability, input: ResolveInput)
   // 2. Explicit deny is absolute — highest-precedence deny wins attribution.
   const denies = applicable.filter((e) => e.effect === "deny");
   if (denies.length > 0) {
-    const top = denies.reduce((a, b) => (SOURCE_RANK[b.source] > SOURCE_RANK[a.source] ? b : a));
+    // Seeded with denies[0] (guarded non-empty above); a max-finder is idempotent
+    // on its seed, so behaviour is unchanged — the seed just satisfies the linter.
+    const top = denies.reduce((a, b) => (SOURCE_RANK[b.source] > SOURCE_RANK[a.source] ? b : a), denies[0]!);
     return {
       granted: false,
       effect: "deny",
@@ -124,7 +126,7 @@ export function resolveOrgAccess(capability: OrgCapability, input: ResolveInput)
       const sb = SCOPE_RANK[b.scope ?? "own"];
       if (sb !== sa) return sb > sa ? b : a;
       return SOURCE_RANK[b.source] > SOURCE_RANK[a.source] ? b : a;
-    });
+    }, allows[0]!); // seeded (guarded non-empty); idempotent on the seed
     return {
       granted: true,
       effect: "allow",

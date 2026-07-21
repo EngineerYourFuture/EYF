@@ -1,6 +1,5 @@
 "use client";
 import { useRef } from "react";
-import Link from "next/link";
 import {
   motion,
   useScroll,
@@ -23,7 +22,7 @@ const MILES = [
   { at: 0.9, label: "Offer", sub: "Placed" },
 ];
 
-function Milestone({ m, progress }: { m: (typeof MILES)[number]; progress: MotionValue<number> }) {
+function Milestone({ m, progress }: Readonly<{ m: (typeof MILES)[number]; progress: MotionValue<number> }>) {
   // milestones are keyed to the climb, which completes at 0.8 → scale their `at`
   const hit = m.at * 0.8;
   const lit = useTransform(progress, [hit - 0.03, hit + 0.01], [0.28, 1]);

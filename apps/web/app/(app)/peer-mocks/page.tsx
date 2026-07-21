@@ -58,7 +58,7 @@ export default function Page() {
 
       <Card className="mt-10">
         <h2 className="font-display text-xl font-bold mb-3">Find a partner</h2>
-        <div role="group" aria-labelledby="peer-focus-label">
+        <fieldset className="min-w-0 border-0 p-0 m-0" aria-labelledby="peer-focus-label">
         <span id="peer-focus-label" className="text-xs text-text-3 uppercase tracking-wider">Problem focus</span>
         <div className="mt-2 flex flex-wrap gap-2">
           {FOCUSES.map((f) => (
@@ -68,7 +68,7 @@ export default function Page() {
             </button>
           ))}
         </div>
-        </div>
+        </fieldset>
 
         {!inQueue
           ? <Button onClick={join} className="mt-6">Find a partner</Button>

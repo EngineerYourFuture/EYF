@@ -8,9 +8,11 @@ import { Icons } from "@/components/icons";
 import { useGuidance } from "@/lib/use-guidance";
 import { ScoreShare } from "@/components/score-share";
 import { ScoreRing } from "@/components/score-ring";
+import { CollegeProofCard } from "@/components/college-proof-card";
 import { companyReadiness, readinessBand, tierOf, biggestGap, offerProbability, TIER_PROFILES, SPOTLIGHT_COMPANIES } from "@/lib/company-readiness";
 import { companyLabel } from "@/lib/company";
 import type { Readiness } from "@/lib/readiness";
+import { overallTone, readinessBarClass, scoreTone } from "@/lib/ui-helpers";
 
 export default function Page() {
   const { guidance } = useGuidance();
@@ -36,6 +38,9 @@ export default function Page() {
           </div>
         )}
 
+        {/* Proof from verified alumni at this student's college (retention lever). */}
+        <div className="mt-6"><CollegeProofCard /></div>
+
         {!r ? (
           <div className="mt-8 grid lg:grid-cols-[320px_1fr] gap-6">
             <Skeleton className="h-72 rounded-2xl" />
@@ -47,7 +52,7 @@ export default function Page() {
               {/* Score hero */}
               <Card variant="glow" className="flex flex-col items-center justify-center text-center py-10">
                 <ReadinessRing score={r.overall} />
-                <Badge tone={r.overall >= 80 ? "easy" : r.overall >= 50 ? "accent" : "medium"} className="mt-5">{r.band}</Badge>
+                <Badge tone={overallTone(r.overall)} className="mt-5">{r.band}</Badge>
                 <p className="text-text-3 text-sm mt-4 max-w-xs leading-relaxed">{r.summary}</p>
                 <ScoreShare />
               </Card>
@@ -61,7 +66,7 @@ export default function Page() {
                     return (
                       <Link key={p.key} href={p.href} className="block group">
                         <Meter
-                          tone={p.score >= 70 ? "easy" : p.score >= 40 ? "medium" : "hard"}
+                          tone={scoreTone(p.score)}
                           pct={p.score / 100}
                           label={
                             <span className="inline-flex items-center gap-2">
@@ -129,7 +134,7 @@ export default function Page() {
   );
 }
 
-function CompanyBoard({ r }: { r: Readiness }) {
+function CompanyBoard({ r }: Readonly<{ r: Readiness }>) {
   const rows = SPOTLIGHT_COMPANIES
     .map((slug) => {
       const tier = tierOf(slug);
@@ -161,15 +166,15 @@ function CompanyBoard({ r }: { r: Readiness }) {
             </div>
             <div className="mt-2 h-1.5 bg-surface-3 rounded-full overflow-hidden">
               <div className={`h-full rounded-full transition-all duration-700 ${
-                c.pct >= 85 ? "bg-easy" : c.pct >= 65 ? "bg-accent" : c.pct >= 40 ? "bg-medium" : "bg-hard"
+                readinessBarClass(c.pct)
               }`} style={{ width: `${c.pct}%` }} />
             </div>
             <div className="mt-2 text-xs">
-              {c.pct >= 85
-                ? <span className="text-easy font-medium">Ready to apply →</span>
-                : c.gap
-                  ? <span className="text-text-3">Biggest gap: <span className="text-brand font-medium">{c.gap.label}</span></span>
-                  : <span className="text-text-4">Keep building</span>}
+              {(() => {
+                if (c.pct >= 85) return <span className="text-easy font-medium">Ready to apply →</span>;
+                if (c.gap) return <span className="text-text-3">Biggest gap: <span className="text-brand font-medium">{c.gap.label}</span></span>;
+                return <span className="text-text-4">Keep building</span>;
+              })()}
             </div>
           </Link>
         ))}
@@ -178,7 +183,7 @@ function CompanyBoard({ r }: { r: Readiness }) {
   );
 }
 
-function ReadinessRing({ score }: { score: number }) {
+function ReadinessRing({ score }: Readonly<{ score: number }>) {
   return (
     <ScoreRing score={score} size={192} stroke={12} label="/ 100 ready" />
   );

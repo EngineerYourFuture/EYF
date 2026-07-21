@@ -15,14 +15,14 @@ const READ: Record<string, string> = {
   medium: "You're medium-comfortable. Hard problems are the gap to top offers — drill them next.",
   hard: "You're operating at hard difficulty. Now sharpen speed and edge-case rigour.",
 };
-const tone = (d: string): "easy" | "medium" | "hard" => (d === "easy" ? "easy" : d === "medium" ? "medium" : "hard");
+const tone = (d: string): "easy" | "medium" | "hard" => { if (d === "easy") { return "easy"; } if (d === "medium") { return "medium"; } return "hard"; };
 
 /**
  * Adaptive diagnostic — the Assessment differentiator. Questions harden on a
  * correct answer and soften on a wrong one, converging on the student's exact
  * mastery boundary in ~12 questions instead of a flat quiz.
  */
-export function AdaptiveDiagnostic({ onExit }: { onExit: () => void }) {
+export function AdaptiveDiagnostic({ onExit }: Readonly<{ onExit: () => void }>) {
   const action = useApiAction();
   const [q, setQ] = useState<Q | null>(null);
   const [seen, setSeen] = useState<string[]>([]);
@@ -43,7 +43,7 @@ export function AdaptiveDiagnostic({ onExit }: { onExit: () => void }) {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function answer(choice: number) {
-    if (!q || busy) return;
+    if (!q || busy) { return; }
     setBusy(true);
     const nextSeen = [...seen, q.id];
     try {
@@ -65,7 +65,7 @@ export function AdaptiveDiagnostic({ onExit }: { onExit: () => void }) {
       </div>
     );
   }
-  if (!q) return <div className="rounded-2xl border border-border bg-surface p-8 shadow-card text-text-3 text-sm">Loading diagnostic…</div>;
+  if (!q) { return <div className="rounded-2xl border border-border bg-surface p-8 shadow-card text-text-3 text-sm">Loading diagnostic…</div>; }
 
   return (
     <div className="rounded-2xl border border-border bg-surface p-6 shadow-card">

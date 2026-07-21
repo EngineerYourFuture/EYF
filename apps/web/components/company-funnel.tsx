@@ -31,7 +31,7 @@ const FUNNELS: Record<CompanyTier, Round[]> = {
   ],
 };
 
-export function CompanyFunnel({ tier }: { tier: CompanyTier }) {
+export function CompanyFunnel({ tier }: Readonly<{ tier: CompanyTier }>) {
   const rounds = FUNNELS[tier];
   let survival = 100;
 

@@ -12,7 +12,7 @@ type Mock = {
   problemFocus: string | null; startedAt: string | null;
 };
 
-export default function Page({ params }: { params: { id: string } }) {
+export default function Page({ params }: Readonly<{ params: { id: string } }>) {
   const { data: mock } = useApi<Mock>(`/mocks/${params.id}`);
   const { getToken, userId } = useAuth();
   const localRef  = useRef<HTMLVideoElement>(null);
@@ -25,7 +25,7 @@ export default function Page({ params }: { params: { id: string } }) {
   }, []);
 
   async function startCall() {
-    if (!mock || !userId) return;
+    if (!mock || !userId) { return; }
     try {
       const local = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
       if (localRef.current) { localRef.current.srcObject = local; localRef.current.play().catch(() => {/*noop*/}); }
@@ -57,14 +57,14 @@ export default function Page({ params }: { params: { id: string } }) {
     setConnState("ended");
   }
 
-  if (!mock) return <div className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 text-text-3">Loading…</div>;
+  if (!mock) { return <div className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 text-text-3">Loading…</div>; }
 
   return (
     <div className="px-4 sm:px-6 lg:px-10 py-8 max-w-5xl mx-auto">
       <div className="flex items-center gap-3">
         <Badge>PEER</Badge>
         <span className="font-display text-lg">{mock.problemFocus ?? "general"}</span>
-        <Badge tone={connState === "connected" ? "easy" : (connState === "ended" || connState === "failed") ? "hard" : "accent"} className="ml-auto">
+        <Badge tone={(() => { if (connState === "connected") { return "easy" as const; } if (connState === "ended" || connState === "failed") { return "hard" as const; } return "accent" as const; })()} className="ml-auto">
           {connState}
         </Badge>
       </div>

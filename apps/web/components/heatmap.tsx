@@ -9,7 +9,7 @@ const CELL = 12;
 const GAP = 3;
 const WEEKS = 53;
 
-export function Heatmap({ days }: { days: Day[] }) {
+export function Heatmap({ days }: Readonly<{ days: Day[] }>) {
   const byDate = new Map(days.map((d) => [d.date.slice(0, 10), d.problemsSolved]));
   const start = new Date();
   start.setUTCHours(0, 0, 0, 0);
@@ -28,12 +28,13 @@ export function Heatmap({ days }: { days: Day[] }) {
   }
 
   // Theme-aware ramp via Tailwind fill utilities (adapts dark↔light).
-  const tone = (n: number) =>
-    n === 0 ? "fill-surface-3" :
-    n < 2  ? "fill-accent/25" :
-    n < 5  ? "fill-accent/50" :
-    n < 9  ? "fill-accent/75" :
-             "fill-accent";
+  const tone = (n: number) => {
+    if (n === 0) return "fill-surface-3";
+    if (n < 2) return "fill-accent/25";
+    if (n < 5) return "fill-accent/50";
+    if (n < 9) return "fill-accent/75";
+    return "fill-accent";
+  };
 
   return (
     <div className="overflow-x-auto">

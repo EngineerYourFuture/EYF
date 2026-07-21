@@ -22,6 +22,15 @@ export type CodeDna = {
   habitFlags: string[];
 };
 
+export type DnaSubmission = {
+  problemId: string;
+  verdict: Verdict;
+  language: Language;
+  runtimeMs: number | null;
+  submittedAt: Date;
+  problem: { difficulty: Difficulty; patterns: string[] };
+};
+
 export async function computeCodeDna(userId: string): Promise<CodeDna> {
   const submissions = await prisma.problemSolution.findMany({
     where: { userId },
@@ -31,7 +40,12 @@ export async function computeCodeDna(userId: string): Promise<CodeDna> {
     },
     orderBy: { submittedAt: "asc" },
   });
+  return codeDnaFromSubmissions(submissions);
+}
 
+/** Pure fingerprint computation — separated from the query so it's unit-testable
+ *  with fixtures (submissions are expected pre-sorted by submittedAt asc). */
+export function codeDnaFromSubmissions(submissions: DnaSubmission[]): CodeDna {
   const total = submissions.length;
   const accepted = submissions.filter((s) => s.verdict === Verdict.ACCEPTED);
 
@@ -88,12 +102,12 @@ export async function computeCodeDna(userId: string): Promise<CodeDna> {
   }
   const firstTryRate = solvedProblems ? firstTryACs / solvedProblems : 0;
   const avgAttemptsToSolve = solvedProblems ? Math.round((attemptsSum / solvedProblems) * 10) / 10 : 0;
-  const speedAccuracy =
-    solvedProblems < 3 ? "Solve a few more to read your style."
-    : avgAttemptsToSolve <= 1.4 ? "One-shot solver — you commit correct code first try."
-    : firstTryRate < 0.35 && avgAttemptsToSolve >= 2.4 ? "Fast but buggy — you rush the first submit. Dry-run on paper before running."
-    : avgAttemptsToSolve <= 2.2 ? "Iterates to correct — a couple of tries, then lands it."
-    : "Brute-forces via retries — slow down and trace edge cases before submitting.";
+  let speedAccuracy: string;
+  if (solvedProblems < 3) speedAccuracy = "Solve a few more to read your style.";
+  else if (avgAttemptsToSolve <= 1.4) speedAccuracy = "One-shot solver — you commit correct code first try.";
+  else if (firstTryRate < 0.35 && avgAttemptsToSolve >= 2.4) speedAccuracy = "Fast but buggy — you rush the first submit. Dry-run on paper before running.";
+  else if (avgAttemptsToSolve <= 2.2) speedAccuracy = "Iterates to correct — a couple of tries, then lands it.";
+  else speedAccuracy = "Brute-forces via retries — slow down and trace edge cases before submitting.";
 
   const habitFlags: string[] = [];
   if (total >= 50 && accepted.length / total < 0.4) habitFlags.push("low-acceptance-grinder");

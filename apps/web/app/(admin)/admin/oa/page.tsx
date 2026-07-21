@@ -5,6 +5,7 @@ import { useApi, useApiAction } from "@/lib/use-api";
 import { useConfirm } from "@/components/confirm";
 import { toast } from "sonner";
 import { Icons } from "@/components/icons";
+import { difficultyTone } from "@/lib/ui-helpers";
 
 type Report = {
   id: string; company: string; role: string; driveDate: string;
@@ -40,7 +41,7 @@ export default function Page() {
               <div className="flex items-center gap-2">
                 <span className="font-display text-base font-semibold">{r.company}</span>
                 <Badge>{r.role}</Badge>
-                <Badge tone={r.difficulty === "HARD" ? "hard" : r.difficulty === "EASY" ? "easy" : "medium"}>{r.difficulty}</Badge>
+                <Badge tone={difficultyTone(r.difficulty)}>{r.difficulty}</Badge>
                 <span className="text-text-3 text-xs">{new Date(r.driveDate).toLocaleDateString()} · {r.durationMin}m · 👍 {r.helpfulCount}</span>
               </div>
               <div className="text-text-3 text-xs mt-1">by {r.author.name}</div>

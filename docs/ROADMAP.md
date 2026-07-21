@@ -3,6 +3,14 @@
 **Audience:** engineering leads, product, security, DevOps.
 **Related:** [PRODUCT-ROADMAP](PRODUCT-ROADMAP.md) · [STATUS](STATUS.md) · [CODE_CLEANUP_REPORT](../CODE_CLEANUP_REPORT.md)
 
+> [!TIP]
+> **Which roadmap is which** (three intentional lenses, not duplicates):
+> - **[ROADMAP.md](ROADMAP.md)** (this file) — *technical*: debt, security, performance, scaling.
+> - **[PRODUCT-ROADMAP.md](PRODUCT-ROADMAP.md)** — *product*: feature spec ↔ shipped status.
+> - **[INNOVATION-ROADMAP.md](INNOVATION-ROADMAP.md)** — *growth strategy*: the grounded acquisition/revenue bets.
+> - Active initiative detail lives in dedicated plan docs, e.g. [PLAN-proof-loop.md](PLAN-proof-loop.md).
+> - Decisions behind these live in [adr/](adr/); open risks in [KNOWN-ISSUES.md](KNOWN-ISSUES.md).
+
 > [!NOTE]
 > This document covers **technical** roadmap: debt, security, performance, and scaling — derived from the code as it stands.
 >

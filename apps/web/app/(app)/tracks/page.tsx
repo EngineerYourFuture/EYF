@@ -75,7 +75,7 @@ export default function Page() {
   );
 }
 
-function Row({ label, value }: { label: string; value: React.ReactNode }) {
+function Row({ label, value }: Readonly<{ label: string; value: React.ReactNode }>) {
   return (
     <div className="flex items-center justify-between">
       <span className="text-text-3 text-xs uppercase tracking-wider">{label}</span>

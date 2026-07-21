@@ -59,15 +59,18 @@ export default function Page() {
           </label>
         </div>
 
-        {loading ? (
+        {(() => {
+  if (loading) return (
           <Skeleton className="mt-8 h-64 rounded-2xl" />
-        ) : !track || !prediction ? (
+        );
+  if (!track || !prediction) return (
           <Card className="mt-8 text-center py-12">
             <div className="text-text-4 flex justify-center mb-3"><Icons.briefcase width={28} height={28} /></div>
             <p className="font-display text-lg font-bold">Pick a role to see your projection</p>
             <p className="text-text-3 text-sm mt-1">We&apos;ll model your package from your readiness and the market band.</p>
           </Card>
-        ) : (
+        );
+  return (
           <>
             {/* Predicted package */}
             <Card variant="glow" className="mt-8 text-center py-10 relative overflow-hidden">
@@ -122,7 +125,8 @@ export default function Page() {
               the role&apos;s band, and the company&apos;s tier. Raise your readiness and watch this climb.
             </p>
           </>
-        )}
+        );
+})()}
       </div>
     </PageMotion>
   );

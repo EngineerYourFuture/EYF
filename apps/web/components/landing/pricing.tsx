@@ -74,7 +74,7 @@ export function Pricing() {
             href="/dashboard"
             className="group inline-flex items-center gap-2 rounded-full bg-[rgb(var(--lp-brand))] px-8 py-4 text-base font-semibold text-white transition-[filter] hover:brightness-95"
           >
-            Start your path
+            Start your path{" "}
             <span className="transition-transform group-hover:translate-x-0.5">→</span>
           </MagneticLink>
         </div>

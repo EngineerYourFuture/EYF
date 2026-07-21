@@ -64,11 +64,11 @@ export default function DashboardPage() {
               {isLoading ? <Skeleton className="h-12 w-72" /> : <>Hey, {name}.</>}
             </h1>
             <p className="text-text-3 mt-2">
-              {today?.problemsSolvedToday
-                ? `${today.problemsSolvedToday} solved today · keep the streak alive.`
-                : me?.user?.persona
-                  ? PERSONAS[me.user.persona].tagline
-                  : "Your next step is one click away."}
+              {(() => {
+                if (today?.problemsSolvedToday) { return `${today.problemsSolvedToday} solved today · keep the streak alive.`; }
+                if (me?.user?.persona) { return PERSONAS[me.user.persona].tagline; }
+                return "Your next step is one click away.";
+              })()}
             </p>
           </div>
           {me?.user?.subscription && (
@@ -113,7 +113,7 @@ export default function DashboardPage() {
             value={<AnimatedNumber value={today?.xpToday ?? 0} />} unit="XP" sub="Today" />
           <Metric icon="code" label="Total solved" loading={!gam} value={<AnimatedNumber value={gam?.totalSolved ?? 0} />} sub="All time" />
           <Metric icon="trophy" tone="info" label="Badges" loading={!gam}
-            value={<AnimatedNumber value={gam?.badges.length ?? 0} />} sub={gam ? (gam.badges.length ? "Earned" : "None yet") : undefined} />
+            value={<AnimatedNumber value={gam?.badges.length ?? 0} />} sub={(() => { if (!gam) { return undefined; } return gam.badges.length ? "Earned" : "None yet"; })()} />
         </div>
 
         {/* Quick actions */}
@@ -175,7 +175,7 @@ export default function DashboardPage() {
 
 /* ---------- pieces ---------- */
 
-function ReadinessStrip({ guidance: g }: { guidance: Guidance | null }) {
+function ReadinessStrip({ guidance: g }: Readonly<{ guidance: Guidance | null }>) {
   // The score moment: remember what the student last saw, animate from there,
   // and celebrate the delta. Hook order is safe — early return happens after.
   const reduce = useReducedMotion();
@@ -185,10 +185,13 @@ function ReadinessStrip({ guidance: g }: { guidance: Guidance | null }) {
     if (overall != null && moment == null) setMoment(takeScoreDelta(overall));
   }, [overall, moment]);
 
-  if (!g) return <Skeleton className="mt-6 h-24 rounded-2xl" />;
+  if (!g) { return <Skeleton className="mt-6 h-24 rounded-2xl" />; }
   const r = g.readiness;
   const top = g.actions[0];
-  const tone = r.overall >= 80 ? "easy" : r.overall >= 50 ? "accent" : "medium";
+  let tone: "easy" | "accent" | "medium";
+  if (r.overall >= 80) tone = "easy";
+  else if (r.overall >= 50) tone = "accent";
+  else tone = "medium";
   // Sibling links, never nested: an <a> inside an <a> is invalid HTML and caused a
   // React hydration error that blanked this strip on the dashboard.
   return (
@@ -236,7 +239,7 @@ function ReadinessStrip({ guidance: g }: { guidance: Guidance | null }) {
 }
 
 
-function YourJourney({ persona }: { persona: PersonaId }) {
+function YourJourney({ persona }: Readonly<{ persona: PersonaId }>) {
   const p = PERSONAS[persona];
   return (
     <div className="mt-8">
@@ -269,10 +272,12 @@ function YourJourney({ persona }: { persona: PersonaId }) {
 
 function greeting() {
   const h = new Date().getHours();
-  return h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening";
+  if (h < 12) { return "Good morning"; }
+  if (h < 18) { return "Good afternoon"; }
+  return "Good evening";
 }
 
-function TodaysFocus({ today }: { today?: Today }) {
+function TodaysFocus({ today }: Readonly<{ today?: Today }>) {
   const c = today?.challenge;
   return (
     <Card variant="glow" className="lg:col-span-2 relative overflow-hidden">
@@ -316,7 +321,7 @@ function TodaysFocus({ today }: { today?: Today }) {
   );
 }
 
-function LevelCard({ gam, xpPct }: { gam?: GamMe; xpPct: number }) {
+function LevelCard({ gam, xpPct }: Readonly<{ gam?: GamMe; xpPct: number }>) {
   return (
     <Card variant="elevated" className="flex flex-col items-center justify-center text-center">
       <ProgressRing pct={xpPct} label={`L${gam?.level ?? 1}`} />
@@ -329,7 +334,7 @@ function LevelCard({ gam, xpPct }: { gam?: GamMe; xpPct: number }) {
   );
 }
 
-function ProgressRing({ pct, label }: { pct: number; label: string }) {
+function ProgressRing({ pct, label }: Readonly<{ pct: number; label: string }>) {
   const r = 52, c = 2 * Math.PI * r;
   return (
     <div className="relative h-32 w-32">
@@ -347,12 +352,16 @@ function ProgressRing({ pct, label }: { pct: number; label: string }) {
   );
 }
 
-function Metric({ icon, label, value, unit, sub, tone = "default", loading = false }: {
+function Metric({ icon, label, value, unit, sub, tone = "default", loading = false }: Readonly<{
   icon: IconName; label: string; value: React.ReactNode; unit?: string; sub?: string;
   tone?: "default" | "accent" | "medium" | "info"; loading?: boolean;
-}) {
+}>) {
   const Icon = Icons[icon];
-  const toneCls = tone === "accent" ? "text-accent" : tone === "medium" ? "text-medium" : tone === "info" ? "text-info" : "text-text-2";
+  let toneCls;
+  if (tone === "accent") toneCls = "text-accent";
+  else if (tone === "medium") toneCls = "text-medium";
+  else if (tone === "info") toneCls = "text-info";
+  else toneCls = "text-text-2";
   return (
     <div className="rounded-xl border border-border bg-surface p-4 shadow-card">
       <div className="flex items-center justify-between">
@@ -383,7 +392,7 @@ const QUICK_ACTIONS: QA[] = [
   { href: "/jobs",       label: "Jobs",         desc: "Find roles",         icon: "briefcase" },
 ];
 
-function QuickAction({ href, label, desc, icon }: QA) {
+function QuickAction({ href, label, desc, icon }: Readonly<QA>) {
   const Icon = Icons[icon];
   return (
     <Link href={href}

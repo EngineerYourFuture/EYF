@@ -20,7 +20,7 @@ export default function Page() {
 
       {isLoading && <SkeletonCards count={4} className="mt-10 md:grid-cols-2" />}
 
-      {data && data.length === 0 && (
+      {data?.length === 0 && (
         <EmptyState className="mt-10" icon={<Icons.users width={22} height={22} />} title="No mentors listed yet"
           description="Verified engineers are being onboarded. Are you one? Apply and get listed within 5 business days."
           action={<Link href="/mentors/apply"><Button>Apply to mentor</Button></Link>} />

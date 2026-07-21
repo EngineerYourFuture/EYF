@@ -18,7 +18,7 @@ type Result =
  * each outcome the API defines: expired/invalid, email mismatch, or not signed
  * in (which sends the invitee through sign-in and back here).
  */
-export default function InviteAcceptPage({ params }: { params: { token: string } }) {
+export default function InviteAcceptPage({ params }: Readonly<{ params: { token: string } }>) {
   const { token } = params;
   const action = useApiAction();
   const [result, setResult] = useState<Result>({ kind: "loading" });
@@ -67,7 +67,7 @@ export default function InviteAcceptPage({ params }: { params: { token: string }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const signInHref = `/sign-in?redirect_url=${encodeURIComponent(`/invite/${token}`)}`;
+  const signInHref = `/sign-in?redirect_url=${encodeURIComponent("/invite/" + token)}`;
 
   return (
     <div className="min-h-screen bg-bg text-text-1 flex flex-col">
@@ -84,7 +84,7 @@ export default function InviteAcceptPage({ params }: { params: { token: string }
         >
           {result.kind === "loading" && (
             <>
-              <div className="mx-auto h-10 w-10 rounded-full border-2 border-border border-t-accent animate-spin" role="status" aria-label="Accepting invite" />
+              <output className="mx-auto block h-10 w-10 rounded-full border-2 border-border border-t-accent animate-spin" aria-label="Accepting invite" />
               <h1 className="font-display text-xl font-bold mt-6">Accepting your invite…</h1>
               <p className="text-text-3 text-sm mt-2">One moment while we add you to the organization.</p>
             </>
