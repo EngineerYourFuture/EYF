@@ -25,7 +25,10 @@ export default HAS_REAL_CLERK
 
 export const config = {
   matcher: [
-    String.raw`/((?!_next|[^?]*\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)`,
+    // Must be a plain string literal — Next's config parser statically analyzes this
+    // and rejects a String.raw`` tagged template (breaks the build on Next 15). This
+    // knowingly re-triggers SonarQube S7780 (escaped backslash); build compat wins.
+    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
     "/(api|trpc)(.*)",
     "/__clerk/:path*",
   ],

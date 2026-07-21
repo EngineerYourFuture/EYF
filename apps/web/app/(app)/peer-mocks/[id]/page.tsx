@@ -1,4 +1,5 @@
 "use client";
+import { useParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Card, Button, Badge } from "@eyf/ui";
 import { useApi } from "@/lib/use-api";
@@ -12,7 +13,8 @@ type Mock = {
   problemFocus: string | null; startedAt: string | null;
 };
 
-export default function Page({ params }: Readonly<{ params: { id: string } }>) {
+export default function Page() {
+  const params = useParams<{ id: string }>();
   const { data: mock } = useApi<Mock>(`/mocks/${params.id}`);
   const { getToken, userId } = useAuth();
   const localRef  = useRef<HTMLVideoElement>(null);

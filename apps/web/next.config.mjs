@@ -60,11 +60,9 @@ const nextConfig = {
   // Lean, self-contained server bundle for the production Docker image.
   output: "standalone",
   // Trace workspace deps from the monorepo root so the standalone bundle is
-  // complete. In Next 14.2 this lives under `experimental` (a top-level key is
-  // ignored with an "Unrecognized key" warning, silently under-tracing deps).
-  experimental: {
-    outputFileTracingRoot: new URL("../../", import.meta.url).pathname,
-  },
+  // complete. Stabilized as a top-level key in Next 15 (was under `experimental`
+  // in 14.2); leaving it under experimental now silently under-traces deps.
+  outputFileTracingRoot: new URL("../../", import.meta.url).pathname,
   images: {
     formats: ["image/avif", "image/webp"],
     // Allow the R2/CDN host for resume/certificate assets (set at deploy).

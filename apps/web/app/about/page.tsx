@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { LegalLayout } from "@/components/legal-layout";
 
 export const metadata: Metadata = {
@@ -35,7 +36,7 @@ export default function AboutPage() {
       <p>
         Questions, partnerships, or feedback? Email{" "}
         <a href="mailto:eyf.support@gmail.com">eyf.support@gmail.com</a> or visit our{" "}
-        <a href="/contact">Contact</a> page.
+        <Link href="/contact">Contact</Link> page.
       </p>
     </LegalLayout>
   );

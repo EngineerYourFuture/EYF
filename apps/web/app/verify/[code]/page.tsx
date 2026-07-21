@@ -1,4 +1,5 @@
 "use client";
+import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000/v1";
@@ -16,7 +17,8 @@ type Cert = {
  * Public certificate verification — no login. An employer who scans the QR /
  * opens the link lands here and sees whether the certificate is genuine.
  */
-export default function VerifyPage({ params }: Readonly<{ params: { code: string } }>) {
+export default function VerifyPage() {
+  const params = useParams<{ code: string }>();
   const [state, setState] = useState<"loading" | "ok" | "bad">("loading");
   const [cert, setCert] = useState<Cert | null>(null);
 

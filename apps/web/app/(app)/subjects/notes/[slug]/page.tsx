@@ -1,10 +1,12 @@
 "use client";
+import { useParams } from "next/navigation";
 import { Card, Badge } from "@eyf/ui";
 import { useApi } from "@/lib/use-api";
 
 type Note = { title: string; subject: string; content: string; estMinutes: number; premium: boolean };
 
-export default function Page({ params }: Readonly<{ params: { slug: string } }>) {
+export default function Page() {
+  const params = useParams<{ slug: string }>();
   const { data, error } = useApi<Note>(`/subjects/notes/${params.slug}`);
   if (error) {
     return (

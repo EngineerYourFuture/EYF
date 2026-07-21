@@ -1,4 +1,5 @@
 "use client";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Card, Badge, Button, Skeleton } from "@eyf/ui";
 import { useApi, useApiAction } from "@/lib/use-api";
@@ -20,7 +21,8 @@ const fmtDuration = (d: string) => {
   return n ? `${n} ${unit!.toLowerCase()}` : d.toLowerCase();
 };
 
-export default function Page({ params }: Readonly<{ params: { slug: string } }>) {
+export default function Page() {
+  const params = useParams<{ slug: string }>();
   const { data } = useApi<Internship>(`/internships/${params.slug}`);
   const { data: apps, mutate } = useApi<App[]>("/internships/me/applications");
   const action = useApiAction();

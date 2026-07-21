@@ -1,4 +1,5 @@
 "use client";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Card, Badge, Button } from "@eyf/ui";
 import { useApi, useApiAction } from "@/lib/use-api";
@@ -10,7 +11,8 @@ type Flash = { id: string; topic: string; front: string; back: string; srs: null
 const SUBJECTS: Record<string, string> = { os: "OS", dbms: "DBMS", cn: "CN", oop: "OOP" };
 const TITLES: Record<string, string> = { OS: "Operating Systems", DBMS: "Database Management", CN: "Computer Networks", OOP: "Object-Oriented Programming" };
 
-export default function Page({ params }: Readonly<{ params: { subject: string } }>) {
+export default function Page() {
+  const params = useParams<{ subject: string }>();
   const subj = SUBJECTS[params.subject];
   const { data: notes } = useApi<Note[]>(subj ? `/subjects/${subj}/notes` : null);
   const { data: cards, mutate } = useApi<Flash[]>(subj ? `/subjects/${subj}/flashcards/due` : null);

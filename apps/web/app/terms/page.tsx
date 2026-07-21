@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { LegalLayout } from "@/components/legal-layout";
 
 export const metadata: Metadata = {
@@ -29,7 +30,7 @@ export default function TermsPage() {
         Paid plans are billed in advance via our payment partner (Razorpay). All payments
         are final and non-refundable, and subscriptions cannot be cancelled once activated.
         Full details are set out in our{" "}
-        <a href="/refund">Cancellation &amp; Refund Policy</a>, which forms part of these Terms.
+        <Link href="/refund">Cancellation &amp; Refund Policy</Link>, which forms part of these Terms.
       </p>
 
       <h2>3. Limitation of Liability</h2>
@@ -99,7 +100,7 @@ export default function TermsPage() {
       <p>
         Questions about these Terms? Email{" "}
         <a href="mailto:eyf.support@gmail.com">eyf.support@gmail.com</a> or see our{" "}
-        <a href="/contact">Contact</a> page.
+        <Link href="/contact">Contact</Link> page.
       </p>
     </LegalLayout>
   );
