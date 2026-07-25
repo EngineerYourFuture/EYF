@@ -2,8 +2,18 @@
 import dynamic from "next/dynamic";
 import { useState } from "react";
 import { Card, Badge } from "@eyf/ui";
+import { SilentBoundary } from "@/components/silent-boundary";
 import { SortViz } from "@/components/viz/sort";
 import { TreeViz } from "@/components/viz/tree";
+
+function Viz3DFallback() {
+  return (
+    <div className="py-16 text-center">
+      <p className="text-text-2 font-medium">3D view needs WebGL</p>
+      <p className="text-text-4 text-sm mt-1">Your browser or device couldn&apos;t start it. Try a desktop browser with hardware acceleration on.</p>
+    </div>
+  );
+}
 
 const Recursion3D = dynamic(
   () => import("@/components/viz/recursion3d").then((m) => m.Recursion3D),
@@ -47,8 +57,10 @@ export default function Page() {
       <Card className="mt-6">
         {tab === "sort"        && <SortViz />}
         {tab === "tree"        && <TreeViz />}
-        {tab === "recursion3d" && <Recursion3D />}
-        {tab === "graph3d"     && <Graph3D />}
+        {/* Isolate the WebGL views: a Canvas/reconciler failure shows a fallback here instead of
+            crashing the whole page (same class of bug as the landing background). */}
+        {tab === "recursion3d" && <SilentBoundary fallback={<Viz3DFallback />}><Recursion3D /></SilentBoundary>}
+        {tab === "graph3d"     && <SilentBoundary fallback={<Viz3DFallback />}><Graph3D /></SilentBoundary>}
       </Card>
     </div>
   );
