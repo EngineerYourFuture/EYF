@@ -57,10 +57,11 @@ const scriptSrcTight = [
   "https://*.clerk.accounts.dev", "https://*.clerk.com", "https://*.clerk.services", // Clerk auth
   "https://challenges.cloudflare.com", // Clerk bot protection (Turnstile)
 ].join(" ");
-const cspReportOnly = csp.replace(
-  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https: blob:",
-  `script-src ${scriptSrcTight}`,
-);
+const cspReportOnly = csp
+  .replace("script-src 'self' 'unsafe-inline' 'unsafe-eval' https: blob:", `script-src ${scriptSrcTight}`)
+  // `upgrade-insecure-requests` is IGNORED in a report-only policy and the browser logs a
+  // console error about it — strip it here so report-only mode stays console-clean.
+  .replace(/;\s*upgrade-insecure-requests/, "");
 
 const securityHeaders = [
   { key: "Content-Security-Policy", value: csp },
