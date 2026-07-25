@@ -196,11 +196,11 @@ export async function meRoutes(app: FastifyInstance) {
 
     const check = validateSelfReport(body);
     if (!check.ok) {
-      const msg = check.reason === "no-consent"
-        ? "We need your consent to store your placement details."
-        : check.reason === "bad-ctc"
-          ? "That package figure doesn't look right."
-          : "Add the company and role.";
+      const messages: Record<string, string> = {
+        "no-consent": "We need your consent to store your placement details.",
+        "bad-ctc": "That package figure doesn't look right.",
+      };
+      const msg = messages[check.reason] ?? "Add the company and role.";
       return reply.code(400).send({ success: false, error: { code: "SELF_REPORT_INVALID", message: msg, details: { reason: check.reason } } });
     }
 
