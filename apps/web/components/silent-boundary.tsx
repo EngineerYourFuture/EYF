@@ -12,17 +12,17 @@ export class SilentBoundary extends Component<
   { children: ReactNode; fallback?: ReactNode },
   { failed: boolean }
 > {
-  state = { failed: false };
+  override state = { failed: false };
 
   static getDerivedStateFromError(): { failed: boolean } {
     return { failed: true };
   }
 
-  componentDidCatch(): void {
+  override componentDidCatch(): void {
     /* swallow: decorative subtree, nothing user-actionable */
   }
 
-  render(): ReactNode {
+  override render(): ReactNode {
     return this.state.failed ? (this.props.fallback ?? null) : this.props.children;
   }
 }
