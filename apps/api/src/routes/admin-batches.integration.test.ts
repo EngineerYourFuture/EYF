@@ -13,7 +13,7 @@ describe.skipIf(!hasDb)("TPO batch roster + calibration (integration)", () => {
   let prisma: (typeof import("@eyf/db"))["prisma"];
   let adminId: string;
   let batchId: string;
-  let seededUserIds: string[] = [];
+  const seededUserIds: string[] = [];
   const s = Date.now();
 
   const auth = () => {
