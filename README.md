@@ -11,7 +11,7 @@ Two products in one platform:
 
 | Layer | Tech |
 |---|---|
-| Web | Next.js 14 (App Router), React 18, Tailwind, Framer Motion |
+| Web | Next.js 15 (App Router), React 18, Tailwind, Framer Motion |
 | API | Fastify 5 on Node 20, TypeScript, Zod |
 | Mobile | Expo SDK 52, expo-router |
 | Database | PostgreSQL 16 + Prisma (versioned migrations via `prisma migrate`) |
@@ -101,3 +101,8 @@ Tenant isolation has a Postgres **Row-Level Security** backstop that is *not* pa
 - [docs/GO-LIVE.md](docs/GO-LIVE.md) — keys, deploy, security checklist
 - [docs/DESIGN.md](docs/DESIGN.md) — design system rules + tokens
 - [specs/](specs/) — the founding product specs
+
+## Contributing & license
+
+See [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) for the branch strategy, commit convention, and
+review checklist. Licensed under the terms in [LICENSE](LICENSE).
