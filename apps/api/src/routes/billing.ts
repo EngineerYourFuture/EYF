@@ -1,7 +1,8 @@
 import type { FastifyInstance, FastifyBaseLogger } from "fastify";
 import { z } from "zod";
-import { prisma, SubscriptionStatus } from "@eyf/db";
+import { prisma, Prisma, SubscriptionStatus } from "@eyf/db";
 import {
+  razorpay,
   createOrder,
   verifyCheckoutSignature,
   verifyWebhookSignature,
@@ -100,13 +101,15 @@ export async function billingRoutes(app: FastifyInstance) {
     "/confirm",
     { preHandler: app.requireAuth },
     async (req, reply) => {
-      const { orderId, paymentId, signature, plan, interval } = z
+      // The client-supplied plan/interval are intentionally NOT read here — the
+      // checkout signature only binds orderId|paymentId, so trusting a body-supplied
+      // plan would let a caller who paid for `basic` claim `elite`. Any such fields
+      // are ignored (Zod strips unknown keys); the plan is re-derived from the order.
+      const { orderId, paymentId, signature } = z
         .object({
           orderId: z.string(),
           paymentId: z.string(),
           signature: z.string(),
-          plan: z.enum(["basic", "pro", "elite"]),
-          interval: z.enum(["monthly", "annual"]),
         })
         .parse(req.body);
       if (!verifyCheckoutSignature({ orderId, paymentId, signature })) {
@@ -115,29 +118,61 @@ export async function billingRoutes(app: FastifyInstance) {
           error: { code: "INVALID_SIGNATURE", message: "Checkout signature failed." },
         });
       }
-      const amountInr = PLAN_PRICING_INR[plan][interval];
+      // Re-derive the plan from the ORDER's server-set notes (written in createOrder),
+      // and bind the order to THIS account — the request body is not trusted for
+      // anything that determines the granted tier.
+      if (!razorpay) {
+        return reply.code(503).send({
+          success: false,
+          error: { code: "RAZORPAY_UNAVAILABLE", message: "Payments are not configured yet." },
+        });
+      }
+      // The Razorpay SDK mis-types orders.fetch as returning void; cast to the
+      // fields we actually read.
+      let order: { notes?: Record<string, string | number>; amount?: number | string };
+      try {
+        order = (await razorpay.orders.fetch(orderId)) as unknown as typeof order;
+      } catch (err) {
+        req.log.error({ err, orderId }, "razorpay order fetch failed");
+        return reply.code(502).send({
+          success: false,
+          error: { code: "ORDER_LOOKUP_FAILED", message: "Could not verify the order." },
+        });
+      }
+      const notes = (order.notes ?? {}) as { plan?: string; interval?: string; userId?: string };
+      const orderPlan = notes.plan as "basic" | "pro" | "elite" | undefined;
+      const orderInterval: "monthly" | "annual" = notes.interval === "annual" ? "annual" : "monthly";
+      if (!orderPlan || !(orderPlan in PLAN_PRICING_INR) || notes.userId !== req.session!.id) {
+        return reply.code(400).send({
+          success: false,
+          error: { code: "ORDER_MISMATCH", message: "Order does not match this account." },
+        });
+      }
       const endsAt = new Date();
-      endsAt.setMonth(endsAt.getMonth() + (interval === "annual" ? 12 : 1));
+      endsAt.setMonth(endsAt.getMonth() + (orderInterval === "annual" ? 12 : 1));
+      // `order.amount` is authoritative and already in paise; fall back to the plan
+      // table only if the SDK returns an unexpected value.
+      const amountPaise = Number(order.amount) || PLAN_PRICING_INR[orderPlan][orderInterval] * 100;
       await prisma.subscription.upsert({
         where: { userId: req.session!.id },
         update: {
-          plan: PLAN_TIER_MAP[plan],
+          plan: PLAN_TIER_MAP[orderPlan],
           status: SubscriptionStatus.ACTIVE,
-          amountInr: amountInr * 100,
-          intervalMonths: interval === "annual" ? 12 : 1,
+          amountInr: amountPaise,
+          intervalMonths: orderInterval === "annual" ? 12 : 1,
           endsAt,
           canceledAt: null,
         },
         create: {
           userId: req.session!.id,
-          plan: PLAN_TIER_MAP[plan],
+          plan: PLAN_TIER_MAP[orderPlan],
           status: SubscriptionStatus.ACTIVE,
-          amountInr: amountInr * 100,
-          intervalMonths: interval === "annual" ? 12 : 1,
+          amountInr: amountPaise,
+          intervalMonths: orderInterval === "annual" ? 12 : 1,
           endsAt,
         },
       });
-      return { success: true, data: { plan, interval, endsAt } };
+      return { success: true, data: { plan: orderPlan, interval: orderInterval, endsAt } };
     },
   );
 
@@ -163,8 +198,15 @@ export async function billingRoutes(app: FastifyInstance) {
         ?? `${event.event}:${event.payload.payment?.entity.id ?? event.payload.subscription?.entity.id ?? "?"}:${event.created_at ?? ""}`;
       try {
         await prisma.webhookEvent.create({ data: { id: eventId, provider: "razorpay", type: event.event } });
-      } catch {
-        return reply.send({ success: true, data: { handled: event.event, deduped: true } });
+      } catch (err) {
+        // A duplicate delivery collides with the unique PK (P2002) → idempotent
+        // no-op. Any OTHER failure (DB down, etc.) must NOT be acked as handled:
+        // Razorpay treats 2xx as delivered and never retries, so a swallowed error
+        // would drop the payment event permanently. Rethrow → 500 → Razorpay retries.
+        if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
+          return reply.send({ success: true, data: { handled: event.event, deduped: true } });
+        }
+        throw err;
       }
 
       if (event.event === "payment.captured") {

@@ -48,6 +48,10 @@ const worker = new Worker<WebhookJobData, void, "deliver">(
         "x-eyf-signature": signPayload(secret, body, ts),
       },
       body,
+      // Never follow redirects: assertPublicUrl only validated ep.url, so a 3xx to
+      // a private host (e.g. http://169.254.169.254/) would otherwise bypass the
+      // SSRF guard. A webhook receiver should accept the POST directly, not redirect.
+      redirect: "error",
       signal: AbortSignal.timeout(5000),
     });
     if (!res.ok) throw new Error(`endpoint returned ${res.status}`);
