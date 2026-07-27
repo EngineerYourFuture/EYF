@@ -30,9 +30,13 @@ describe.skipIf(!hasDb)("admin moderation — capability separation + actions (i
   const asMod = () => hdr(modId, "MODERATOR");
   const asStudent = () => hdr(studentId, "STUDENT_FREE");
 
+  // A monotonic counter, not Math.random(): the slug only needs to be unique
+  // within this run, and a random source here trips Semgrep's insecure-RNG rule
+  // for no benefit.
+  let threadSeq = 0;
   const freshThread = async () => {
     const t = await prisma.forumThread.create({
-      data: { slug: `mod-thread-${s}-${Math.random().toString(36).slice(2, 8)}`, authorId: studentId, category: "GENERAL", title: "Test thread", body: "Body" },
+      data: { slug: `mod-thread-${s}-${++threadSeq}`, authorId: studentId, category: "GENERAL", title: "Test thread", body: "Body" },
     });
     return t.id;
   };
