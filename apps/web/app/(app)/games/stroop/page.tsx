@@ -7,11 +7,19 @@ import { useEffect, useRef, useState } from "react";
 import { Card, Badge, Button } from "@eyf/ui";
 import { useApiAction } from "@/lib/use-api";
 
+/**
+ * The ink colours the game asks the player to name. Each resolves to a per-theme
+ * token (see `--play-*` in globals.css) so the word stays legible in BOTH themes.
+ *
+ * The previous fixed hexes were tuned for the dark surface only: on light they
+ * measured ~1.4:1, and "YELLOW" was #F5F5F5 — white, not yellow — so that trial
+ * rendered invisible against the light background.
+ */
 const COLORS = [
-  { name: "RED",    hex: "#FF4500" },
-  { name: "GREEN",  hex: "#00FF87" },
-  { name: "BLUE",   hex: "#4D9DFF" },
-  { name: "YELLOW", hex: "#F5F5F5" },
+  { name: "RED",    css: "rgb(var(--play-red))" },
+  { name: "GREEN",  css: "rgb(var(--play-green))" },
+  { name: "BLUE",   css: "rgb(var(--play-blue))" },
+  { name: "YELLOW", css: "rgb(var(--play-yellow))" },
 ] as const;
 
 const TRIALS = 20;
@@ -95,12 +103,12 @@ export default function Page() {
         {running && (
           <>
             <div className="text-center py-12">
-              <div className="font-display font-bold tracking-wide" style={{ fontSize: 64, color: ink.hex }}>{word.name}</div>
+              <div className="font-display font-bold tracking-wide" style={{ fontSize: 64, color: ink.css }}>{word.name}</div>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
               {COLORS.map((c) => (
                 <Button key={c.name} onClick={() => answer(c)} variant="secondary">
-                  <span style={{ color: c.hex }}>{c.name}</span>
+                  <span style={{ color: c.css }}>{c.name}</span>
                 </Button>
               ))}
             </div>

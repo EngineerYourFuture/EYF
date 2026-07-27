@@ -48,6 +48,15 @@
     --expert:      176 112 160;
     --info:        120 150 190;
 
+    /* Named play colours. The Stroop game renders a colour NAME in a conflicting
+       ink colour, so these have to read as unmistakably red/green/blue/yellow
+       AND clear WCAG AA on the surface they sit on — which means a different
+       tuning per theme, not one fixed hex. */
+    --play-red:    255 90 60;
+    --play-green:  60 220 140;
+    --play-blue:   90 160 255;
+    --play-yellow: 240 200 70;
+
     --shadow:      0 0 0;        /* boxShadow base (neutral) */
     --hairline:    255 255 255;  /* inset top highlight */
   }
@@ -85,6 +94,13 @@
     --hard:        190 60 45;
     --expert:      150 80 140;
     --info:        60 110 170;
+
+    /* Darkened so each still clears AA on the light surface (the dark-theme
+       values measure ~1.4:1 here — effectively invisible). */
+    --play-red:    200 30 20;
+    --play-green:  15 120 70;
+    --play-blue:   30 90 200;
+    --play-yellow: 140 100 5;
 
     --shadow:      24 24 27;
     --hairline:    255 255 255;
@@ -146,17 +162,49 @@
 }
 
 /* ── Marketing landing tokens — "night-shift to offer-morning" ────────
-   The ground luminance is JS-driven (NightToMorning cross-fades ink→paper on
-   scroll). These are the named endpoints + the single chroma (brand red) and
-   the earned payoff (placed green, used once at the offer). Space-separated
-   RGB channels so /alpha modifiers keep working. Scoped to .landing-root so
-   none of this leaks into the authenticated app. */
+   The named ground endpoints + the single chroma (brand red) and the earned
+   payoff (placed green, used once at the offer). Space-separated RGB channels
+   so /alpha modifiers keep working. Scoped to .landing-root so none of this
+   leaks into the authenticated app. */
 .landing-root {
   --lp-ink:      11 13 19;
   --lp-paper:    241 242 245;
   --lp-graphite: 58 63 75;
   --lp-brand:    235 38 55;
   --lp-placed:   46 158 91;
+}
+
+/* ── Shared site footer ───────────────────────────────────────────────
+   The footer is mounted on the landing AND on themed pages (/pricing, the
+   legal/policy pages). It used to hardcode a paper background with
+   neutral-900/600/500 text, so on those themed pages it stayed a bright light
+   slab that ignored the theme toggle entirely — glaring in dark mode.
+
+   Default: follow the app tokens, so it flips with the toggle.
+   Inside .landing-root: pin to the paper palette, because the marketing landing
+   is a deliberate light-only design and must look identical regardless of
+   whichever theme the visitor has saved for the app. */
+.site-footer {
+  background: rgb(var(--bg-2));
+}
+
+/* ── Theme-toggle icons ───────────────────────────────────────────────
+   Visibility is driven by the <html> class, not React state, so the right icon
+   is correct in the server HTML and never swaps after hydration. Defaults to
+   the sun (the dark-theme default) when no class is present yet. */
+.theme-icon-sun  { display: block; }
+.theme-icon-moon { display: none; }
+:root.light .theme-icon-sun  { display: none; }
+:root.light .theme-icon-moon { display: block; }
+
+.landing-root .site-footer {
+  background: rgb(var(--lp-paper));
+  /* Re-point the text/border tokens for this subtree only — descendants using
+     text-text-1 / text-text-2 / border-border resolve against these. */
+  --text-1: var(--lp-ink);
+  --text-2: var(--lp-graphite);
+  --text-3: 115 117 124;
+  --border: 214 216 222;
 }
 
 

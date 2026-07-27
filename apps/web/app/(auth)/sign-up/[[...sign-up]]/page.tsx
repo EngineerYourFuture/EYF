@@ -28,7 +28,10 @@ export default function Page() {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-6 py-16">
-      <SignUp appearance={{ baseTheme: theme === "dark" ? dark : undefined, elements: { card: "bg-surface border border-border" } }} />
+      {/* `key` forces a remount when the theme flips — see the note in the sign-in
+          page: Clerk applies baseTheme at MOUNT, and SSR always renders dark first,
+          so without this the light-mode widget keeps its dark internals. */}
+      <SignUp key={theme} appearance={{ baseTheme: theme === "dark" ? dark : undefined, elements: { card: "bg-surface border border-border" } }} />
     </div>
   );
 }

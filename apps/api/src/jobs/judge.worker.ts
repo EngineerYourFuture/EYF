@@ -62,8 +62,14 @@ export const judgeWorker = new Worker<{ submissionId: string }>(
       }
     }
 
-    await prisma.problemSolution.update({
-      where: { id: submission.id },
+    // Atomically finalize the verdict. Only the run that transitions the row OUT
+    // of PENDING performs the one-time side effects (problem counters + XP/badges).
+    // The judge queue retries (attempts: 3), so without this gate a job that threw
+    // AFTER these writes — e.g. a transient error in badge evaluation — would re-run
+    // on retry and double-count submissions / double-award XP. A retry now sees the
+    // row already finalized (count === 0) and skips the side effects.
+    const finalized = await prisma.problemSolution.updateMany({
+      where: { id: submission.id, verdict: Verdict.PENDING },
       data: {
         verdict: firstFailure?.verdict ?? Verdict.ACCEPTED,
         runtimeMs: maxRuntime || null,
@@ -73,6 +79,7 @@ export const judgeWorker = new Worker<{ submissionId: string }>(
         errorMsg: firstFailure?.stderr ?? null,
       },
     });
+    if (finalized.count === 0) return; // already judged by an earlier run — don't re-apply side effects
 
     if (!firstFailure) {
       await prisma.problem.update({
@@ -98,9 +105,12 @@ judgeWorker.on("failed", async (job, err) => {
   // Don't leave the submission PENDING forever — once retries are exhausted,
   // mark it INTERNAL_ERROR so the UI can show "judging failed, retry".
   if (job?.data.submissionId && isFinalFailure(job.attemptsMade, job.opts.attempts)) {
+    // Only mark errored if judging never finalized (still PENDING). Guarding on
+    // PENDING keeps a job that failed AFTER a real verdict was written (e.g. in
+    // post-verdict badge eval) from clobbering that verdict with INTERNAL_ERROR.
     await prisma.problemSolution
-      .update({
-        where: { id: job.data.submissionId },
+      .updateMany({
+        where: { id: job.data.submissionId, verdict: Verdict.PENDING },
         data: { verdict: Verdict.INTERNAL_ERROR, errorMsg: "Judging failed — please retry." },
       })
       .catch((e) => console.error("[judge] failed to mark submission errored:", e));

@@ -68,9 +68,59 @@ async function resolveSession(
   }
 }
 
+/**
+ * Per-request memo of the resolved session.
+ *
+ * Two phases need the caller's identity: the rate limiter (`onRequest`, so it can
+ * pick the per-plan budget and key by user instead of IP) and the route guards
+ * (`preHandler`). Resolving twice would double the Clerk verify + DB round-trips on
+ * every authenticated request, so the first resolution wins and is reused.
+ *
+ * Deliberately NOT stored on `req.session`: that field stays the signal that a guard
+ * has actually run and passed. Populating it globally would mean a route that forgot
+ * `requireAuth` would silently read an authenticated session — a fail-open footgun.
+ */
+const kResolved = Symbol("eyf.resolvedSession");
+
+type MemoRequest = FastifyRequest & { [kResolved]?: SessionUser | null };
+
+async function resolveSessionOnce(
+  app: FastifyInstance,
+  req: FastifyRequest,
+): Promise<SessionUser | null> {
+  const memo = req as MemoRequest;
+  if (kResolved in memo) return memo[kResolved] ?? null;
+  let session: SessionUser | null = null;
+  try {
+    session = await resolveSession(app, req);
+  } catch {
+    // Never let identity resolution fault a request that may not even need auth;
+    // an unresolved session is treated as anonymous and the guards fail closed.
+    session = null;
+  }
+  memo[kResolved] = session;
+  return session;
+}
+
+/**
+ * Synchronously read the session resolved by the global `onRequest` hook below.
+ * Safe for the rate limiter's `max`/`keyGenerator`, which are sync and always run
+ * after that hook (authPlugin is registered before the rate-limit plugin).
+ */
+export function peekSession(req: FastifyRequest): SessionUser | null {
+  return (req as MemoRequest)[kResolved] ?? null;
+}
+
 async function authPluginInner(app: FastifyInstance) {
+  // Resolve identity once, up front, so the rate limiter can see the plan and user
+  // id. This hook only fills the memo — it never rejects, so unauthenticated and
+  // public routes are unaffected (no Bearer header short-circuits immediately).
+  app.addHook("onRequest", async (req) => {
+    await resolveSessionOnce(app, req);
+  });
+
   app.decorate("requireAuth", async (req, reply) => {
-    const session = await resolveSession(app, req);
+    const session = await resolveSessionOnce(app, req);
     if (!session) {
       return reply.code(401).send({
         success: false,
@@ -82,7 +132,7 @@ async function authPluginInner(app: FastifyInstance) {
 
   app.decorate("requirePlan", (plans: Plan[]) => async (req, reply) => {
     if (!req.session) {
-      const session = await resolveSession(app, req);
+      const session = await resolveSessionOnce(app, req);
       if (!session) {
         return reply.code(401).send({
           success: false,
@@ -109,7 +159,7 @@ async function authPluginInner(app: FastifyInstance) {
 
   app.decorate("requireRole", (roles: SessionUser["role"][]) => async (req, reply) => {
     if (!req.session) {
-      const session = await resolveSession(app, req);
+      const session = await resolveSessionOnce(app, req);
       if (!session) {
         return reply.code(401).send({
           success: false,

@@ -2,9 +2,9 @@ name: Sonar
 
 on:
   push:
-    branches: [master, main]
+    branches: [master, main, develop]
   pull_request:
-    branches: [master, main]
+    branches: [master, main, develop]
 
 concurrency:
   group: sonar-${{ github.ref }}

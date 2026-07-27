@@ -1,6 +1,6 @@
 # EYF — Engineer Your Future
 
-India's placement operating system: a turborepo/pnpm monorepo. `apps/web` (Next.js 14), `apps/api` (Fastify 5 + Prisma), `apps/mobile` (Expo/React Native — experimental, not in the CI health stack), `packages/{db,types,ui,config}`.
+India's placement operating system: a turborepo/pnpm monorepo. `apps/web` (Next.js 15, App Router), `apps/api` (Fastify 5 + Prisma), `apps/mobile` (Expo/React Native — experimental, not in the CI health stack), `packages/{db,types,ui,config}`.
 
 ## Health Stack
 
