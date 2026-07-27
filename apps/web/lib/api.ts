@@ -40,7 +40,20 @@ export async function fetchApi<T = unknown>(
     },
     cache: "no-store",
   });
-  const json = (await res.json()) as ApiResponse<T>;
+  // The API always answers with a JSON ApiResponse envelope — but a gateway/proxy
+  // error (502/504), a timeout, or an empty body is NOT that shape, and res.json()
+  // would throw a cryptic SyntaxError ("Unexpected token <") instead of a usable
+  // error. Normalize any non-envelope response into a clean ApiClientError.
+  let json: ApiResponse<T>;
+  try {
+    json = (await res.json()) as ApiResponse<T>;
+  } catch {
+    throw new ApiClientError(
+      "UNEXPECTED_RESPONSE",
+      res.ok ? "The server returned an unreadable response." : `Request failed (${res.status}). Please try again.`,
+      res.status,
+    );
+  }
   if (!json.success) {
     throw new ApiClientError(json.error.code, json.error.message, res.status);
   }
