@@ -2,7 +2,7 @@ name: E2E
 
 on:
   pull_request:
-    branches: [master, main]
+    branches: [master, main, develop]
   workflow_dispatch:
 
 jobs:
