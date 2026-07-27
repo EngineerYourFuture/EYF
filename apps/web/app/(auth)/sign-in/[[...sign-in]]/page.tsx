@@ -28,7 +28,12 @@ export default function Page() {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-6 py-16">
-      <SignIn appearance={{ baseTheme: theme === "dark" ? dark : undefined, elements: { card: "bg-surface border border-border" } }} />
+      {/* `key` forces a remount when the theme flips. SSR can't know the visitor's
+          theme, so the first render is always dark and Clerk MOUNTS with its dark
+          baseTheme — and it does not fully re-theme an already-mounted widget. In
+          light mode that left the `card` override repainting the card white while the
+          internals stayed dark: invisible heading, invisible label, black input. */}
+      <SignIn key={theme} appearance={{ baseTheme: theme === "dark" ? dark : undefined, elements: { card: "bg-surface border border-border" } }} />
     </div>
   );
 }
