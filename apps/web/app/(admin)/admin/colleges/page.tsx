@@ -75,7 +75,7 @@ function CollegeList({
   return (
     <div className="space-y-1">
       {colleges!.map((c) => (
-        <button
+        <button type="button"
           key={c.college}
           onClick={() => onSelect(c.college)}
           className={`w-full flex items-center justify-between rounded-lg px-3 py-2 text-sm text-left transition-colors ${

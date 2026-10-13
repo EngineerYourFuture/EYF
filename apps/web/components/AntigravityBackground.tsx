@@ -481,7 +481,7 @@ export default function AntigravityBackground({
       ro.disconnect();
       stop();
       three.current = null;
-      if (canvas.parentNode) canvas.parentNode.removeChild(canvas);
+      canvas.remove();
       geometry.dispose();
       material.dispose();
       renderer.dispose();

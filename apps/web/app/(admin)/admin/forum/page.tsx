@@ -53,7 +53,7 @@ export default function Page() {
           </Card>
         ))}
         {data?.length === 0 && (
-          <EmptyState icon={<Icons.chat width={28} height={28} />} title="No threads yet"
+          <EmptyState icon={<Icons.Chat width={28} height={28} />} title="No threads yet"
             description="When students start discussions, they'll show up here for moderation." />
         )}
       </div>

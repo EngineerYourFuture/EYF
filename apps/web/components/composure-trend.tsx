@@ -2,7 +2,7 @@
 import { useApi } from "@/lib/use-api";
 
 type Composure = {
-  series: { date: string; composure: number; overall: number; company: string | null }[];
+  series: { id: string; date: string; composure: number; overall: number; company: string | null }[];
   sessions: number;
   avg: number;
   best: number;
@@ -49,8 +49,8 @@ export function ComposureTrend() {
       </div>
 
       <div className="mt-5 flex items-end gap-1.5 h-24">
-        {data.series.map((s, i) => (
-          <div key={i} className="flex-1 h-full flex flex-col items-center justify-end group" title={`${s.date}: composure ${s.composure}`}>
+        {data.series.map((s) => (
+          <div key={s.id} className="flex-1 h-full flex flex-col items-center justify-end group" title={`${s.date}: composure ${s.composure}`}>
             <div
               className="w-full rounded-t bg-brand/60 group-hover:bg-brand transition-all duration-500"
               style={{ height: `${Math.max(4, (s.composure / max) * 100)}%` }}

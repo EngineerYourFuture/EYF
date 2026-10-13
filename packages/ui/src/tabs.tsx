@@ -37,12 +37,13 @@ export function Tabs<T extends string>({ tabs, value, onChange, idBase, classNam
     <div
       role="tablist"
       aria-label={rest["aria-label"]}
-      className={cn("flex items-center gap-1 border-b border-border", className)}
+      className={cn("flex min-w-0 max-w-full items-center gap-1 overflow-x-auto overscroll-x-contain border-b border-border", className)}
     >
       {tabs.map((t) => {
         const selected = t === value;
         return (
           <button
+            type="button"
             key={t}
             id={`${idBase}-tab-${t}`}
             role="tab"
@@ -52,8 +53,8 @@ export function Tabs<T extends string>({ tabs, value, onChange, idBase, classNam
             onKeyDown={onKeyDown}
             onClick={() => onChange(t)}
             className={cn(
-              "px-3 py-2 text-sm border-b-2 -mb-px capitalize transition-colors rounded-t focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
-              selected ? "border-accent text-text-1" : "border-transparent text-text-3 hover:text-text-1",
+              "pressable shrink-0 min-h-11 px-3 py-2 text-sm border-b-2 capitalize transition-colors rounded-t focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent",
+              selected ? "border-brand text-text-1 font-medium" : "border-transparent text-text-3 hover:text-text-1",
             )}
           >
             {t}

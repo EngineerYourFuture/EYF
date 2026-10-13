@@ -86,13 +86,13 @@ export default function DashboardPage() {
           <Link href="/welcome"
             className="mt-6 flex items-center gap-3 rounded-xl border border-accent/40 bg-accent-tint px-4 py-3 shadow-glow-sm card-interactive">
             <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent text-accent-ink">
-              <Icons.sparkle width={18} height={18} />
+              <Icons.Sparkle width={18} height={18} />
             </span>
             <div className="min-w-0 flex-1">
               <div className="font-medium text-text-1">Tailor EYF to you</div>
               <div className="text-text-3 text-sm truncate">Tell us if you&apos;re a student, switcher, or developer — we&apos;ll shape your journey.</div>
             </div>
-            <span className="text-accent shrink-0"><Icons.arrow width={18} height={18} /></span>
+            <span className="text-accent shrink-0"><Icons.Arrow width={18} height={18} /></span>
           </Link>
         )}
 
@@ -107,12 +107,12 @@ export default function DashboardPage() {
 
         {/* Metric tiles */}
         <div className="mt-5 grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <Metric icon="flame" tone="accent" label="Current streak" loading={!gam}
+          <Metric icon="Flame" tone="accent" label="Current streak" loading={!gam}
             value={<AnimatedNumber value={gam?.streak ?? 0} />} unit="d" sub={gam ? `Best ${gam.longestStreak}d` : undefined} />
-          <Metric icon="bolt" tone="medium" label="Earned today" loading={!today}
+          <Metric icon="Bolt" tone="medium" label="Earned today" loading={!today}
             value={<AnimatedNumber value={today?.xpToday ?? 0} />} unit="XP" sub="Today" />
-          <Metric icon="code" label="Total solved" loading={!gam} value={<AnimatedNumber value={gam?.totalSolved ?? 0} />} sub="All time" />
-          <Metric icon="trophy" tone="info" label="Badges" loading={!gam}
+          <Metric icon="Code" label="Total solved" loading={!gam} value={<AnimatedNumber value={gam?.totalSolved ?? 0} />} sub="All time" />
+          <Metric icon="Trophy" tone="info" label="Badges" loading={!gam}
             value={<AnimatedNumber value={gam?.badges.length ?? 0} />} sub={(() => { if (!gam) { return undefined; } return gam.badges.length ? "Earned" : "None yet"; })()} />
         </div>
 
@@ -231,7 +231,7 @@ function ReadinessStrip({ guidance: g }: Readonly<{ guidance: Guidance | null }>
           </Link>
         )}
         <Link href="/today" aria-label="Open today" className="text-accent">
-          <Icons.arrow width={18} height={18} />
+          <Icons.Arrow width={18} height={18} />
         </Link>
       </div>
     </div>
@@ -382,14 +382,14 @@ function Metric({ icon, label, value, unit, sub, tone = "default", loading = fal
 
 type QA = { href: string; label: string; desc: string; icon: IconName };
 const QUICK_ACTIONS: QA[] = [
-  { href: "/readiness",  label: "Readiness",    desc: "Am I ready?",        icon: "target" },
-  { href: "/problems",   label: "Problems",     desc: "1000+ patterns",     icon: "code" },
-  { href: "/companies",  label: "Company Prep", desc: "Targeted coverage",  icon: "building" },
-  { href: "/mocks",      label: "AI Mock",      desc: "Interview practice", icon: "mic" },
-  { href: "/subjects",   label: "Core CS",      desc: "OS · DBMS · CN",     icon: "book" },
-  { href: "/resume",     label: "Resume",       desc: "ATS-scored",         icon: "doc" },
-  { href: "/pipeline",   label: "Pipeline",     desc: "Track to offer",     icon: "activity" },
-  { href: "/jobs",       label: "Jobs",         desc: "Find roles",         icon: "briefcase" },
+  { href: "/readiness",  label: "Readiness",    desc: "Am I ready?",        icon: "Target" },
+  { href: "/problems",   label: "Problems",     desc: "1000+ patterns",     icon: "Code" },
+  { href: "/companies",  label: "Company Prep", desc: "Targeted coverage",  icon: "Building" },
+  { href: "/mocks",      label: "AI Mock",      desc: "Interview practice", icon: "Mic" },
+  { href: "/subjects",   label: "Core CS",      desc: "OS · DBMS · CN",     icon: "Book" },
+  { href: "/resume",     label: "Resume",       desc: "ATS-scored",         icon: "Doc" },
+  { href: "/pipeline",   label: "Pipeline",     desc: "Track to offer",     icon: "Activity" },
+  { href: "/jobs",       label: "Jobs",         desc: "Find roles",         icon: "Briefcase" },
 ];
 
 function QuickAction({ href, label, desc, icon }: Readonly<QA>) {

@@ -67,6 +67,7 @@ describe.skipIf(!hasDb)("peer mocks — plan gate + signalling participants (int
   });
 
   it("allows queue entry on a paid plan, and leaving is idempotent", async () => {
+    await prisma.subscription.create({ data: { userId: strangerId, plan: "BASIC", status: "ACTIVE" } });
     const join = await app.inject({
       method: "POST", url: "/v1/peer/queue/join", headers: auth(strangerId, "basic"),
       payload: JSON.stringify({}),

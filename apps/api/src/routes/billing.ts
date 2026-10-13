@@ -10,6 +10,7 @@ import {
   PLAN_TIER_MAP,
 } from "../services/razorpay.js";
 import { decideWebhook } from "../lib/subscription.js";
+import { env } from "../env.js";
 
 type RazorpayEvent = {
   event: string;
@@ -61,19 +62,31 @@ async function applySubscriptionCancelled(event: RazorpayEvent, eventCreatedAt: 
 }
 
 export async function billingRoutes(app: FastifyInstance) {
+  // One source of truth for the UI and every route that can change billing state.
+  app.get("/status", async () => ({ success: true, data: { enabled: env.BILLING_ENABLED } }));
+
+  const requireBilling = async (_req: import("fastify").FastifyRequest, reply: import("fastify").FastifyReply) => {
+    if (!env.BILLING_ENABLED) {
+      return reply.code(503).send({
+        success: false,
+        error: { code: "BILLING_DISABLED", message: "Payments are paused during preview. Continue using EYF without checkout." },
+      });
+    }
+  };
+
   app.get("/plans", async () => ({
     success: true,
     data: [
       { id: "free",  name: "Free",  priceInr: 0,    annualInr: 0,    interval: "monthly", features: ["5 submissions/day", "10 problems", "OS theory only"] },
       { id: "basic", name: "Basic", priceInr: 249,  annualInr: 1_999, interval: "monthly", features: ["20 submissions/day", "All core subjects", "SQL editor", "Peer mock interviews"] },
       { id: "pro",   name: "Pro",   priceInr: 499,  annualInr: 3_999, interval: "monthly", features: ["Unlimited submissions", "AI mock interviews", "Resume ATS", "All problems"] },
-      { id: "elite", name: "Elite", priceInr: 899,  annualInr: 7_199, interval: "monthly", features: ["Everything in Pro", "2 expert mocks/mo", "Mentor priority"] },
+      { id: "elite", name: "Elite", priceInr: 899,  annualInr: 7_199, interval: "monthly", features: ["Everything in Pro", "Expert sessions priced separately", "Final benefits to be confirmed"] },
     ],
   }));
 
   app.post(
     "/create-order",
-    { preHandler: app.requireAuth },
+    { preHandler: [app.requireAuth, requireBilling] },
     async (req, reply) => {
       const { plan, interval } = z
         .object({
@@ -99,7 +112,7 @@ export async function billingRoutes(app: FastifyInstance) {
   // from the webhook (which arrives async).
   app.post(
     "/confirm",
-    { preHandler: app.requireAuth },
+    { preHandler: [app.requireAuth, requireBilling] },
     async (req, reply) => {
       // The client-supplied plan/interval are intentionally NOT read here — the
       // checkout signature only binds orderId|paymentId, so trusting a body-supplied
@@ -178,7 +191,7 @@ export async function billingRoutes(app: FastifyInstance) {
 
   app.post(
     "/webhook",
-    { config: { rawBody: true } },
+    { config: { rawBody: true }, preHandler: requireBilling },
     async (req, reply) => {
       const signature = req.headers["x-razorpay-signature"] as string | undefined;
       const rawBody = (typeof req.rawBody === "string" ? req.rawBody : req.rawBody?.toString("utf8")) ?? JSON.stringify(req.body);

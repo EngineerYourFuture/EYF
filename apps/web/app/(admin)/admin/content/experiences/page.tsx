@@ -53,7 +53,7 @@ export default function Page() {
   if (editing) {
     return (
       <div className="px-6 lg:px-10 py-10 lg:py-12 max-w-3xl mx-auto">
-        <button onClick={() => setEditing(null)} className="text-text-3 hover:text-text-1 text-sm mb-4">← Back to experiences</button>
+        <button type="button" onClick={() => setEditing(null)} className="text-text-3 hover:text-text-1 text-sm mb-4">← Back to experiences</button>
         <h1 className="font-display text-2xl font-bold tracking-tight">{editing.id ? "Edit experience" : "New interview experience"}</h1>
         <p className="text-text-3 text-sm mt-2">Publishes to the student /experiences feed immediately. Write it round-by-round, in the candidate&apos;s voice.</p>
         <Card className="mt-6 space-y-4">
@@ -102,11 +102,11 @@ export default function Page() {
             </div>
             <div className="flex items-center gap-2 shrink-0">
               <Button size="sm" variant="secondary" onClick={() => startEdit(x.id)}>Edit</Button>
-              <button onClick={() => remove(x.id, x.company)} className="text-text-4 hover:text-hard text-sm px-2 py-1">Delete</button>
+              <button type="button" onClick={() => remove(x.id, x.company)} className="text-text-4 hover:text-hard text-sm px-2 py-1">Delete</button>
             </div>
           </Card>
         ))}
-        {data?.length === 0 && <EmptyState icon={<Icons.mic width={28} height={28} />} title="No experiences yet" description="Add the first round-by-round writeup — it shows on the student feed immediately." />}
+        {data?.length === 0 && <EmptyState icon={<Icons.Mic width={28} height={28} />} title="No experiences yet" description="Add the first round-by-round writeup — it shows on the student feed immediately." />}
       </div>
     </div>
   );

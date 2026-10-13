@@ -6,6 +6,7 @@ import { mcqCompaniesSource, mcqCountSource, pickTestSource, mcqLookupSource } f
 import { scoreMcq } from "../services/mcq.js";
 import { simSummary } from "../lib/company-sims.js";
 import { companySimsSource } from "../lib/company-sims-source.js";
+import { env } from "../env.js";
 
 /** Verbal + Technical sections and company-pattern filters are premium. */
 const FREE_CATEGORIES = new Set(
@@ -51,7 +52,7 @@ export async function mcqRoutes(app: FastifyInstance) {
       count: z.number().int().min(5).max(25).default(10),
     }).parse(req.body);
 
-    const isFreePlan = req.session!.plan === "free";
+    const isFreePlan = env.BILLING_ENABLED && req.session!.plan === "free";
     if (isFreePlan && !FREE_CATEGORIES.has(body.category)) {
       return upgradeRequired(reply, "Verbal and Technical sections are on Basic. Upgrade to unlock.");
     }

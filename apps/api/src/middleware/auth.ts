@@ -30,7 +30,7 @@ async function resolveSession(
       // First authenticated request before the user.created webhook synced them
       // (or local dev without a webhook tunnel): upsert from Clerk on the fly.
       user ??= await ensureUserFromClerk(claims.sub);
-      if (user) {
+      if (user && !user.deletedAt) {
         return {
           id: user.id,
           email: user.email,
@@ -45,24 +45,28 @@ async function resolveSession(
   }
 
   try {
-    const session = app.jwt.verify<SessionUser & { sid?: string }>(token) as SessionUser & { sid?: string };
+    const session = app.jwt.verify<SessionUser & { sid?: string; adminGate?: boolean }>(token);
     // An org portal token is signed with the same secret but is NOT a user
     // session — reject it here so it can't be used on user-authenticated routes.
-    if (isOrgToken(session)) return null;
+    if (isOrgToken(session) || session.adminGate || typeof session.id !== "string" || typeof session.email !== "string") return null;
+    // Roles, subscription and suspension are live account state, never trusted
+    // from an old JWT. A demotion or suspension takes effect on the next request.
+    const user = await prisma.user.findUnique({ where: { id: session.id }, include: { subscription: true } });
+    if (!user || user.deletedAt) return null;
     // Account-sharing control: a token carrying a `sid` is only valid while that
     // session row exists. Evicting the row (via the concurrent-session cap on a
     // new login) invalidates the token → that device is forced to re-auth.
     if (session.sid) {
       const active = await prisma.userSession.findUnique({
-        where: { id: session.sid }, select: { id: true, lastSeenAt: true },
+        where: { id: session.sid }, select: { id: true, userId: true, lastSeenAt: true },
       });
-      if (!active) return null;
+      if (active?.userId !== user.id) return null;
       // Throttle the lastSeenAt write to at most once every 5 minutes.
       if (Date.now() - active.lastSeenAt.getTime() > 5 * 60 * 1000) {
         void prisma.userSession.update({ where: { id: session.sid }, data: { lastSeenAt: new Date() } }).catch(() => {});
       }
     }
-    return session;
+    return { id: user.id, email: user.email, name: user.name, role: user.role, plan: planFromTier(resolveActivePlan(user.subscription)) };
   } catch {
     return null;
   }

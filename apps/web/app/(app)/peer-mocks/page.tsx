@@ -62,7 +62,7 @@ export default function Page() {
         <span id="peer-focus-label" className="text-xs text-text-3 uppercase tracking-wider">Problem focus</span>
         <div className="mt-2 flex flex-wrap gap-2">
           {FOCUSES.map((f) => (
-            <button key={f} onClick={() => setFocus(f)} aria-pressed={focus === f}
+            <button type="button" key={f} onClick={() => setFocus(f)} aria-pressed={focus === f}
               className={`px-3 py-1 text-sm border rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${focus === f ? "border-accent text-text-1 bg-accent-tint" : "border-border text-text-3"}`}>
               {f}
             </button>

@@ -11,10 +11,13 @@ import { z } from "zod";
 import { randomBytes } from "node:crypto";
 import { prisma, OrgRole, Prisma } from "@eyf/db";
 import { canGrantRoles } from "@eyf/types";
-import { requireOrgCapability } from "../middleware/org.js";
+import { requireOrgCapability, requireOrgMember } from "../middleware/org.js";
+import { requirePermission } from "../middleware/permissions.js";
+import { lockOrganization, accountError, assertSeatAvailable, assertMemberManager } from "../lib/org-accounts.js";
 import { recordAudit } from "../lib/audit.js";
 import { withOrgContext } from "../lib/org-scoped.js";
 import { bumpUsage, getUsage } from "../lib/usage.js";
+import { deliverInvitation } from "../services/org-invitations.js";
 
 const rolesInput = z.array(z.nativeEnum(OrgRole)).min(1).max(5);
 
@@ -23,9 +26,11 @@ const slugify = (s: string) =>
 
 export async function orgsRoutes(app: FastifyInstance) {
   // ── Org lifecycle ────────────────────────────────────────────────
-  // Create an org — the creator becomes OWNER. Trial plan by default.
-  app.post("/", { preHandler: app.requireAuth }, async (req, reply) => {
-    const body = z.object({ name: z.string().trim().min(2).max(80) }).parse(req.body);
+  // Provisioning is a platform privilege. A normal EYF signup grants no LMS workspace.
+  app.post("/", { preHandler: [app.requireAuth, requirePermission("manage:users")] }, async (req, reply) => {
+    const body = z.object({ name: z.string().trim().min(2).max(80), ownerEmail: z.string().trim().email(), seatsLicensed: z.number().int().min(1).max(100000).default(10) }).strict().parse(req.body);
+    const owner = await prisma.user.findFirst({ where: { email: { equals: body.ownerEmail, mode: "insensitive" }, deletedAt: null }, select: { id: true } });
+    if (!owner) return reply.code(400).send({ success: false, error: { code: "OWNER_REQUIRED", message: "The owner must first create an EYF account with this email." } });
     const base = slugify(body.name);
     // Suffix on collision — slugs are public and permanent.
     let slug = base;
@@ -38,10 +43,12 @@ export async function orgsRoutes(app: FastifyInstance) {
         name: body.name,
         slug,
         accessCode: randomBytes(12).toString("hex"), // legacy portal field; unused by membership flow
-        members: { create: { userId: req.session!.id, roles: [OrgRole.OWNER] } },
+        seatsLicensed: body.seatsLicensed,
+        members: { create: { userId: owner.id, roles: [OrgRole.OWNER] } },
       },
       select: { id: true, name: true, slug: true, plan: true, seatsLicensed: true },
     });
+    await recordAudit(req, { action: "create", entity: "organization", entityId: org.id, summary: `Provisioned ${org.name} with ${org.seatsLicensed} seats` });
     return reply.code(201).send({ success: true, data: org });
   });
 
@@ -68,6 +75,12 @@ export async function orgsRoutes(app: FastifyInstance) {
       },
     });
     return { success: true, data: org };
+  });
+
+  app.get("/:orgId/access", { preHandler: [app.requireAuth, requireOrgMember] }, async (req) => {
+    const org = await prisma.organization.findUniqueOrThrow({ where: { id: req.orgCtx!.orgId }, select: { seatsLicensed: true, plan: true } });
+    const used = await prisma.orgMember.count({ where: { orgId: req.orgCtx!.orgId, status: "ACTIVE" } });
+    return { success: true, data: { roles: req.orgCtx!.roles, departmentId: req.orgCtx!.departmentId, seats: { used, licensed: org.seatsLicensed }, plan: org.plan } };
   });
 
   // Usage + seats — plan/limits surface for billing (EPIC-04).
@@ -104,12 +117,14 @@ export async function orgsRoutes(app: FastifyInstance) {
         ...(q.cursor ? { cursor: { id: q.cursor }, skip: 1 } : {}),
       }),
     );
-    const nextCursor = members.length > q.limit ? members.pop()!.id : null;
+    const hasMore = members.length > q.limit;
+    if (hasMore) members.pop();
+    const nextCursor = hasMore ? members.at(-1)!.id : null;
     return { success: true, data: { items: members, nextCursor } };
   });
 
   // Change a member's roles/department — role-grant hierarchy enforced (§9).
-  app.patch("/:orgId/members/:memberId", { preHandler: [app.requireAuth, requireOrgCapability("org:members")] }, async (req, reply) => {
+  app.patch("/:orgId/members/:memberId", { preHandler: [app.requireAuth, requireOrgCapability("org:members")] }, async (req) => {
     const { memberId } = req.params as { memberId: string };
     const body = z.object({
       roles: rolesInput.optional(),
@@ -118,33 +133,27 @@ export async function orgsRoutes(app: FastifyInstance) {
       status: z.enum(["ACTIVE", "SUSPENDED", "OFFBOARDED"]).optional(),
     }).parse(req.body);
 
-    const target = await prisma.orgMember.findFirst({
-      where: { id: memberId, orgId: req.orgCtx!.orgId },
-      select: { id: true, roles: true, userId: true },
+    const updated = await prisma.$transaction(async (tx) => {
+      const orgId = req.orgCtx!.orgId;
+      await lockOrganization(tx, orgId);
+      const actor = await assertMemberManager(tx, orgId, req.session!.id);
+      const target = await tx.orgMember.findFirst({ where: { id: memberId, orgId } });
+      if (!target) throw accountError(404, "NOT_FOUND", "Member not found.");
+      if (!canGrantRoles(actor.roles, [...target.roles, ...(body.roles ?? [])])) {
+        throw accountError(403, "FORBIDDEN", "Your role cannot change this member or grant these roles.");
+      }
+      if (target.status === "ACTIVE" && target.roles.includes(OrgRole.OWNER)
+        && ((body.status && body.status !== "ACTIVE") || (body.roles && !body.roles.includes(OrgRole.OWNER)))) {
+        const owners = await tx.orgMember.count({ where: { orgId, status: "ACTIVE", roles: { has: OrgRole.OWNER } } });
+        if (owners <= 1) throw accountError(400, "LAST_OWNER", "Keep at least one active owner.");
+      }
+      if (body.status === "ACTIVE" && target.status !== "ACTIVE") await assertSeatAvailable(tx, orgId);
+      if (body.departmentId && !await tx.department.findFirst({ where: { id: body.departmentId, orgId }, select: { id: true } })) {
+        throw accountError(400, "VALIDATION", "Department not in this organization.");
+      }
+      return tx.orgMember.update({ where: { id: memberId }, data: body });
     });
-    if (!target) return reply.code(404).send({ success: false, error: { code: "NOT_FOUND", message: "Member not found." } });
-
-    if (body.roles) {
-      // Hierarchy covers both the roles being granted AND the roles being
-      // touched (an HR must not edit an ADMIN's role set).
-      if (!canGrantRoles(req.orgCtx!.roles, [...body.roles, ...target.roles])) {
-        return reply.code(403).send({ success: false, error: { code: "FORBIDDEN", message: "Only the owner can change ADMIN/OWNER roles." } });
-      }
-      // Never let the last OWNER demote themselves out of the org.
-      if (target.roles.includes(OrgRole.OWNER) && !body.roles.includes(OrgRole.OWNER)) {
-        const owners = await prisma.orgMember.count({ where: { orgId: req.orgCtx!.orgId, roles: { has: OrgRole.OWNER }, status: "ACTIVE" } });
-        if (owners <= 1) {
-          return reply.code(400).send({ success: false, error: { code: "LAST_OWNER", message: "An org must keep at least one owner." } });
-        }
-      }
-    }
-    if (body.departmentId) {
-      const dept = await prisma.department.findFirst({ where: { id: body.departmentId, orgId: req.orgCtx!.orgId }, select: { id: true } });
-      if (!dept) return reply.code(400).send({ success: false, error: { code: "VALIDATION", message: "Department not in this org." } });
-    }
-
-    const updated = await prisma.orgMember.update({ where: { id: target.id }, data: body });
-    await recordAudit(req, { action: "update", entity: "org-member", entityId: target.id, summary: `Org ${req.orgCtx!.orgId}: member roles/status changed` });
+    await recordAudit(req, { action: "update", entity: "org-member", entityId: updated.id, summary: `Org ${req.orgCtx!.orgId}: roles ${updated.roles.join(",")}; status ${updated.status}` });
     return { success: true, data: updated };
   });
 
@@ -175,7 +184,31 @@ export async function orgsRoutes(app: FastifyInstance) {
     });
     await bumpUsage(req.orgCtx!.orgId, "invites_sent");
     await recordAudit(req, { action: "create", entity: "org-invite", entityId: invite.id, summary: `Invited ${body.email} → ${body.roles.join(",")}` });
-    return reply.code(201).send({ success: true, data: invite });
+    const delivery = await deliverInvitation(invite.id);
+    return reply.code(201).send({ success: true, data: { ...invite, delivery } });
+  });
+
+  app.get("/:orgId/invites", { preHandler: [app.requireAuth, requireOrgCapability("org:members")] }, async (req) => ({
+    success: true, data: await prisma.orgInvite.findMany({ where: { orgId: req.orgCtx!.orgId, acceptedAt: null, expiresAt: { gt: new Date() } }, select: { id: true, email: true, roles: true, expiresAt: true, emailStatus: true, emailSentAt: true }, orderBy: { createdAt: "desc" } }),
+  }));
+  app.delete("/:orgId/invites/:inviteId", { preHandler: [app.requireAuth, requireOrgCapability("org:members")] }, async (req, reply) => {
+    const { inviteId } = req.params as { inviteId: string };
+    const invite = await prisma.orgInvite.findFirst({ where: { id: inviteId, orgId: req.orgCtx!.orgId } });
+    if (!invite) return reply.code(404).send({ success: false, error: { code: "NOT_FOUND", message: "Invite not found." } });
+    if (!canGrantRoles(req.orgCtx!.roles, invite.roles)) return reply.code(403).send({ success: false, error: { code: "FORBIDDEN", message: "Only an owner can revoke this invite." } });
+    await prisma.orgInvite.delete({ where: { id: inviteId } });
+    await recordAudit(req, { action: "revoke", entity: "org-invite", entityId: inviteId, summary: `Revoked invitation in ${req.orgCtx!.orgId}` });
+    return { success: true, data: { revoked: true } };
+  });
+
+  app.post("/:orgId/invites/:inviteId/resend", { preHandler: [app.requireAuth, requireOrgCapability("org:members")], config: { rateLimit: { max: 5, timeWindow: "1 minute" } } }, async (req, reply) => {
+    const { inviteId } = req.params as { inviteId: string };
+    const invite = await prisma.orgInvite.findFirst({ where: { id: inviteId, orgId: req.orgCtx!.orgId, acceptedAt: null, expiresAt: { gt: new Date() } } });
+    if (!invite) return reply.code(404).send({ success: false, error: { code: "NOT_FOUND", message: "Invitation not found." } });
+    if (!canGrantRoles(req.orgCtx!.roles, invite.roles)) return reply.code(403).send({ success: false, error: { code: "FORBIDDEN", message: "Only an owner can resend this invitation." } });
+    const delivery = await deliverInvitation(invite.id);
+    await recordAudit(req, { action: "update", entity: "org-invite", entityId: invite.id, summary: `Invitation email: ${delivery.status}` });
+    return { success: true, data: { token: invite.token, delivery } };
   });
 
   // Accept an invite — token is the credential; email must match the caller.
@@ -189,14 +222,21 @@ export async function orgsRoutes(app: FastifyInstance) {
       return reply.code(403).send({ success: false, error: { code: "INVITE_EMAIL_MISMATCH", message: "This invite was sent to a different email." } });
     }
     const member = await prisma.$transaction(async (tx) => {
-      const m = await tx.orgMember.upsert({
-        where: { orgId_userId: { orgId: invite.orgId, userId: req.session!.id } },
-        update: { roles: invite.roles, status: "ACTIVE" },
-        create: { orgId: invite.orgId, userId: req.session!.id, roles: invite.roles },
-      });
+      await lockOrganization(tx, invite.orgId);
+      const current = await tx.orgInvite.findUnique({ where: { id: invite.id } });
+      if (!current || current.acceptedAt || current.expiresAt <= new Date()) throw accountError(409, "INVITE_INVALID", "This invitation is no longer available.");
+      const inviter = await tx.orgMember.findFirst({ where: { id: current.invitedById, orgId: invite.orgId, status: "ACTIVE" } });
+      if (!inviter || !canGrantRoles(inviter.roles, current.roles)) throw accountError(403, "INVITE_INVALID", "Ask an administrator for a new invitation.");
+      const existing = await tx.orgMember.findUnique({ where: { orgId_userId: { orgId: invite.orgId, userId: req.session!.id } } });
+      if (existing?.status === "ACTIVE") throw accountError(409, "ALREADY_MEMBER", "You already belong to this organization. Ask an administrator to change your role.");
+      // Invitations cannot bypass a deliberate suspension or offboarding.
+      if (existing) throw accountError(403, "ACCESS_REVOKED", "Ask your organization administrator to restore your access.");
+      await assertSeatAvailable(tx, invite.orgId);
+      const m = await tx.orgMember.create({ data: { orgId: invite.orgId, userId: req.session!.id, roles: current.roles } });
       await tx.orgInvite.update({ where: { id: invite.id }, data: { acceptedAt: new Date() } });
       return m;
     });
+    await recordAudit(req, { action: "accept", entity: "org-invite", entityId: invite.id, summary: `Joined organization ${invite.orgId}` });
     return { success: true, data: { orgId: invite.orgId, memberId: member.id, roles: member.roles } };
   });
 

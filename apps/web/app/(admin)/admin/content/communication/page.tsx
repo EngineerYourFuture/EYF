@@ -59,7 +59,7 @@ export default function Page() {
   if (editing) {
     return (
       <div className="px-6 lg:px-10 py-10 lg:py-12 max-w-3xl mx-auto">
-        <button onClick={() => setEditing(null)} className="text-text-3 hover:text-text-1 text-sm mb-4">← Back to drill prompts</button>
+        <button type="button" onClick={() => setEditing(null)} className="text-text-3 hover:text-text-1 text-sm mb-4">← Back to drill prompts</button>
         <h1 className="font-display text-2xl font-bold tracking-tight">{editing.id ? "Edit prompt" : "New drill prompt"}</h1>
         <p className="text-text-3 text-sm mt-2">The covers checklist anchors the AI grader — list what a strong answer must hit.</p>
         <Card className="mt-6 space-y-4">
@@ -92,7 +92,7 @@ export default function Page() {
       <ContentTabs />
       <div className="mt-6 flex items-center gap-1">
         {KINDS.map((k) => (
-          <button key={k} onClick={() => setFilter(k)}
+          <button type="button" key={k} onClick={() => setFilter(k)}
             className={`px-3 py-1.5 rounded-md text-sm transition-colors ${filter === k ? "bg-surface-3 text-text-1" : "text-text-3 hover:text-text-1"}`}>
             {k === "ALL" ? "All" : k}
           </button>
@@ -110,11 +110,11 @@ export default function Page() {
             </div>
             <div className="flex items-center gap-2 shrink-0">
               <Button size="sm" variant="secondary" onClick={() => startEdit(x.id)}>Edit</Button>
-              <button onClick={() => remove(x.id)} className="text-text-4 hover:text-hard text-sm px-2 py-1">Delete</button>
+              <button type="button" onClick={() => remove(x.id)} className="text-text-4 hover:text-hard text-sm px-2 py-1">Delete</button>
             </div>
           </Card>
         ))}
-        {data?.length === 0 && <EmptyState icon={<Icons.mic width={28} height={28} />} title="No prompts in the DB yet" description="Students currently get the built-in starter bank. Import it to take over editing, or add prompts from scratch." />}
+        {data?.length === 0 && <EmptyState icon={<Icons.Mic width={28} height={28} />} title="No prompts in the DB yet" description="Students currently get the built-in starter bank. Import it to take over editing, or add prompts from scratch." />}
       </div>
     </div>
   );

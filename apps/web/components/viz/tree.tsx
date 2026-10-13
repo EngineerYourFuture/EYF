@@ -85,8 +85,8 @@ export function TreeViz() {
       </div>
 
       <svg viewBox={`0 0 ${W} ${H}`} className="w-full bg-bg border border-border rounded-md">
-        {lines(root).map((l, i) => (
-          <line key={i} x1={l.x1} y1={l.y1} x2={l.x2} y2={l.y2} stroke="#1C1C1C" strokeWidth={1.5} />
+        {lines(root).map((l) => (
+          <line key={`${l.x1}:${l.y1}:${l.x2}:${l.y2}`} x1={l.x1} y1={l.y1} x2={l.x2} y2={l.y2} stroke="#1C1C1C" strokeWidth={1.5} />
         ))}
         {[...positions.entries()].map(([v]) => {
           const p = xy(v);

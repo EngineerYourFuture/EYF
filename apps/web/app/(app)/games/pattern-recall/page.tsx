@@ -97,7 +97,7 @@ export default function Page() {
             const isRight   = phase === "result" && pattern.has(i);
             const isWrongPick = phase === "result" && isPicked && !pattern.has(i);
             return (
-              <button
+              <button type="button"
                 key={i}
                 onClick={() => pick(i)}
                 disabled={phase !== "input"}

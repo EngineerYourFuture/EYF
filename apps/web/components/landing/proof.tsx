@@ -32,12 +32,11 @@ function Pill({ row }: Readonly<{ row: string[] }>) {
 }
 
 function Track({ rows, reverse }: Readonly<{ rows: string[][]; reverse?: boolean }>) {
-  const doubled = [...rows, ...rows];
   return (
     <div className="group flex w-max flex-nowrap py-1" aria-hidden>
       {/* pause on hover so a passing card can actually be read */}
       <div className={`flex flex-nowrap group-hover:[animation-play-state:paused] ${reverse ? "lp-marquee-rev" : "lp-marquee"}`}>
-        {doubled.map((r, i) => <Pill key={i} row={r} />)}
+        {["first", "repeat"].map((copy) => <div key={copy} className="flex shrink-0">{rows.map((row) => <Pill key={row.join(":")} row={row} />)}</div>)}
       </div>
     </div>
   );

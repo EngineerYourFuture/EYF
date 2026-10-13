@@ -35,8 +35,8 @@ function Tetromino({ cells, color = "#F5F5F5" }: Readonly<{ cells: { x: number; 
   const h = (maxY + 1) * CELL;
   return (
     <svg width={w + 4} height={h + 4} className="block">
-      {cells.map((c, i) => (
-        <rect key={i}
+      {cells.map((c) => (
+        <rect key={`${c.x}:${c.y}`}
           x={c.x * CELL + 2} y={c.y * CELL + 2}
           width={CELL - 2} height={CELL - 2}
           fill={color} rx={3}

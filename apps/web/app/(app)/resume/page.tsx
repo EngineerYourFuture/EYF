@@ -45,7 +45,7 @@ export default function Page() {
             <Card interactive className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-3 min-w-0">
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent-tint text-accent border border-accent/20">
-                  <Icons.doc width={20} height={20} />
+                  <Icons.Doc width={20} height={20} />
                 </span>
                 <div className="min-w-0">
                   <div className="font-display text-lg truncate">{r.title}</div>
@@ -61,7 +61,7 @@ export default function Page() {
         ))}
         {data?.length === 0 && (
           <EmptyState
-            icon={<Icons.doc width={28} height={28} />}
+            icon={<Icons.Doc width={28} height={28} />}
             title="No resumes yet"
             description="Start from a clean ATS-friendly template, then score it against any job description."
             action={<Button onClick={create}>Create your first resume</Button>}

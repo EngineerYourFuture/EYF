@@ -58,7 +58,7 @@ export default function Page() {
             <SkeletonRows rows={5} />
           );
   if (data?.length === 0) return (
-            <EmptyState icon={<Icons.building width={28} height={28} />} title="No internships listed" description="New roles are added each drive season. Check back soon." />
+            <EmptyState icon={<Icons.Building width={28} height={28} />} title="No internships listed" description="New roles are added each drive season. Check back soon." />
           );
   return (
             <div className="grid sm:grid-cols-2 gap-4">

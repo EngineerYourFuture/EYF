@@ -19,7 +19,10 @@ export async function verifyClerkSession(token: string): Promise<ClerkClaims> {
   if (!hasRealClerk()) {
     throw new Error("Clerk not configured with a real secret key");
   }
-  const payload = await verifyToken(token, { secretKey: env.CLERK_SECRET_KEY });
+  const payload = await verifyToken(token, {
+    secretKey: env.CLERK_SECRET_KEY,
+    authorizedParties: env.API_CORS_ORIGINS.split(",").map((origin) => origin.trim()).filter(Boolean),
+  });
   return { sub: payload.sub, email: payload.email as string | undefined, sid: payload.sid as string | undefined };
 }
 

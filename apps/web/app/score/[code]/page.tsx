@@ -66,7 +66,7 @@ export default async function ScorePage({ params }: Readonly<{ params: Promise<{
   const s = share.snapshot;
   // companyReadiness only reads key + score off each pillar; the rest of the
   // Pillar shape (icon/detail/href/action) is filler to satisfy the type.
-  const pillars: Pillar[] = s.pillars.map((p) => ({ ...p, icon: "code" as Pillar["icon"], detail: "", href: "", action: "" }));
+  const pillars: Pillar[] = s.pillars.map((p) => ({ ...p, icon: "Code" as Pillar["icon"], detail: "", href: "", action: "" }));
   const companies = SPOTLIGHT_COMPANIES.map((slug) => {
     const pct = companyReadiness(pillars, tierOf(slug));
     return { slug, pct, band: readinessBand(pct) };

@@ -26,7 +26,7 @@ export function collegeSlug(raw: string | null | undefined): string {
     .normalize("NFKD")
     .replace(/[̀-ͯ]/g, "") // strip diacritics
     .toLowerCase()
-    .replace(/&/g, " and ")
+    .replaceAll("&", " and ")
     .replace(/[^a-z0-9]+/g, " ") // punctuation → space
     .trim()
     .replace(/\s+/g, "-");

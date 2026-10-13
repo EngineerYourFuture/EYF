@@ -6,11 +6,14 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { prisma } from "@eyf/db";
-import { requireOrgCapability } from "../middleware/org.js";
+import { requireOrgCapability, requireOrgMember } from "../middleware/org.js";
 import { recordAudit } from "../lib/audit.js";
 import { issueCertificate } from "../lib/org-certificates.js";
 
 export async function orgCertificatesRoutes(app: FastifyInstance) {
+  app.get("/:orgId/work/certificates", { preHandler: [app.requireAuth, requireOrgMember] }, async (req) => ({
+    success: true, data: await prisma.certificate.findMany({ where: { orgId: req.orgCtx!.orgId, userId: req.session!.id }, select: { id: true, title: true, score: true, verificationCode: true, issuedAt: true, revokedAt: true }, orderBy: { issuedAt: "desc" } }),
+  }));
   // Templates/issuance are a content power (manage:content); revoke too.
   const manage = { preHandler: [app.requireAuth, requireOrgCapability("learn:author")] };
 

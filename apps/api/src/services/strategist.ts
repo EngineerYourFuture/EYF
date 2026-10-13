@@ -1,3 +1,4 @@
+import { trackedMessage } from "../lib/provider-usage.js";
 /**
  * AI Career Strategist — generates a monthly playbook for the student based
  * on their Code DNA, target track, and recent activity. Spec §27.
@@ -31,7 +32,7 @@ export async function generateStrategy(userId: string): Promise<StrategyPlan> {
   const dna = await computeCodeDna(userId);
   const primary = user.tracks[0]?.track;
 
-  const msg = await anthropic.messages.create({
+  const msg = await trackedMessage(anthropic, {
     model: MODEL,
     max_tokens: 1500,
     system:

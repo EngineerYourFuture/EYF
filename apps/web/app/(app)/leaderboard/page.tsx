@@ -14,9 +14,9 @@ type Board = {
 };
 
 const SCOPES = [
-  { key: "global", label: "Global", icon: "compass" as const },
-  { key: "college", label: "My college", icon: "building" as const },
-  { key: "year", label: "My year", icon: "award" as const },
+  { key: "global", label: "Global", icon: "Compass" as const },
+  { key: "college", label: "My college", icon: "Building" as const },
+  { key: "year", label: "My year", icon: "Award" as const },
 ];
 const METRICS = [
   { key: "xp", label: "XP", unit: "XP" },
@@ -46,7 +46,7 @@ export default function Page() {
             const Icon = Icons[s.icon];
             const on = scope === s.key;
             return (
-              <button key={s.key} onClick={() => setScope(s.key)}
+              <button type="button" key={s.key} onClick={() => setScope(s.key)}
                 className={`inline-flex items-center gap-2 rounded-lg border px-3.5 py-2 text-sm transition-colors ${
                   on ? "border-accent bg-accent-tint text-accent" : "border-border text-text-2 hover:border-edge"}`}>
                 <Icon width={15} height={15} /> {s.label}
@@ -55,7 +55,7 @@ export default function Page() {
           })}
           <div className="ml-auto flex gap-1.5">
             {METRICS.map((m) => (
-              <button key={m.key} onClick={() => setMetric(m.key)}
+              <button type="button" key={m.key} onClick={() => setMetric(m.key)}
                 className={`rounded-lg border px-3 py-2 text-sm transition-colors ${
                   metric === m.key ? "border-accent bg-accent-tint text-accent" : "border-border text-text-3 hover:border-edge"}`}>
                 {m.label}
@@ -70,7 +70,7 @@ export default function Page() {
         );
   if (!data.scopeReady) return (
           <Card className="mt-8 text-center py-10">
-            <div className="text-text-4 flex justify-center mb-3"><Icons.building width={28} height={28} /></div>
+            <div className="text-text-4 flex justify-center mb-3"><Icons.Building width={28} height={28} /></div>
             <p className="font-display text-lg font-bold">
               {scope === "college" ? "Add your college to see your cohort" : "Add your graduation year"}
             </p>

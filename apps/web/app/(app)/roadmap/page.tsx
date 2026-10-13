@@ -137,7 +137,7 @@ function Field({ label, hint, children }: Readonly<{ label: string; hint?: strin
 }
 function Chip({ active, onClick, children }: Readonly<{ active: boolean; onClick: () => void; children: React.ReactNode }>) {
   return (
-    <button onClick={onClick}
+    <button type="button" onClick={onClick}
       className={`rounded-lg border px-4 py-2 text-sm transition-colors ${
         active ? "border-accent bg-accent-tint text-accent" : "border-border text-text-2 hover:border-edge"
       }`}>{children}</button>
@@ -197,7 +197,7 @@ function WeekCard({ wk, current }: Readonly<{ wk: Week; current: boolean }>) {
   const tone = PHASE_TONE[wk.phase];
   return (
     <div className={`rounded-2xl border bg-surface shadow-card transition-colors ${current ? "border-accent/50" : "border-border"}`}>
-      <button onClick={() => setOpen((o) => !o)} className="w-full flex items-center gap-4 px-5 py-4 text-left">
+      <button type="button" onClick={() => setOpen((o) => !o)} className="w-full flex items-center gap-4 px-5 py-4 text-left">
         <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl font-display font-bold ${
           current ? "bg-accent text-accent-ink" : "bg-surface-2 text-text-2 border border-border"
         }`}>{wk.week}</div>
@@ -208,25 +208,25 @@ function WeekCard({ wk, current }: Readonly<{ wk: Week; current: boolean }>) {
           </div>
           <div className="font-medium mt-1.5 truncate">{wk.theme}</div>
         </div>
-        <span className={`shrink-0 text-text-4 transition-transform ${open ? "rotate-90" : ""}`}><Icons.arrow width={16} height={16} /></span>
+        <span className={`shrink-0 text-text-4 transition-transform ${open ? "rotate-90" : ""}`}><Icons.Arrow width={16} height={16} /></span>
       </button>
       {open && (
         <div className="px-5 pb-5 pt-1">
           <div className="space-y-2">
-            {wk.tasks.map((t, i) => (
-              <Link key={i} href={t.href}
+            {wk.tasks.map((t) => (
+              <Link key={`${t.area}:${t.label}`} href={t.href}
                 className="flex items-center gap-3 rounded-xl border border-border bg-bg px-3 py-2.5 hover:border-edge transition-colors">
                 <Badge>{t.area}</Badge>
                 <div className="min-w-0 flex-1">
                   <div className="text-sm font-medium truncate">{t.label}</div>
                   <div className="text-text-4 text-xs truncate">{t.detail}</div>
                 </div>
-                <span className="text-text-4 shrink-0"><Icons.arrow width={14} height={14} /></span>
+                <span className="text-text-4 shrink-0"><Icons.Arrow width={14} height={14} /></span>
               </Link>
             ))}
           </div>
           <div className="mt-3 flex items-center gap-2 text-sm text-text-3">
-            <span className="text-accent"><Icons.target width={15} height={15} /></span>
+            <span className="text-accent"><Icons.Target width={15} height={15} /></span>
             <span className="font-medium text-text-2">Milestone:</span> {wk.milestone}
           </div>
         </div>

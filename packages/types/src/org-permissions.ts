@@ -164,7 +164,7 @@ export function hasOrgCapability(roles: readonly string[], capability: OrgCapabi
   return canInOrg(roles, capability).granted;
 }
 
-/** Roles that may enter the /org console at all (vs /work-only members). */
+/** Roles with staff capabilities; all active members may enter the LMS. */
 export function isOrgStaff(roles: readonly string[]): boolean {
   return roles.some((r) => r !== "MEMBER" && r !== "INTERN" && r in ORG_ROLE_CAPABILITIES);
 }
@@ -172,7 +172,11 @@ export function isOrgStaff(roles: readonly string[]): boolean {
 /** Workflow rule (PRD §9 approval hierarchy): only OWNER grants/revokes
  *  ADMIN or OWNER; ADMIN may manage all lesser roles. */
 export function canGrantRoles(actorRoles: readonly string[], targetRoles: readonly string[]): boolean {
+  if (!targetRoles.length || targetRoles.some((r) => !Object.hasOwn(ORG_ROLE_CAPABILITIES, r))) return false;
   const elevated = targetRoles.some((r) => r === "OWNER" || r === "ADMIN");
   if (elevated) return actorRoles.includes("OWNER");
-  return actorRoles.includes("OWNER") || actorRoles.includes("ADMIN") || actorRoles.includes("HR");
+  if (actorRoles.includes("OWNER") || actorRoles.includes("ADMIN")) return true;
+  // HR manages learner accounts, but cannot give itself authoring, publishing,
+  // review or administration powers by assigning another staff role.
+  return actorRoles.includes("HR") && targetRoles.every((r) => r === "MEMBER" || r === "INTERN");
 }

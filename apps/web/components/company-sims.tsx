@@ -35,7 +35,7 @@ export function CompanySims({ onStart }: Readonly<{ onStart: (category: Category
             <p className="text-text-4 text-xs mt-0.5">{sim.blurb}</p>
             <div className="mt-3 border-t border-border">
               {sim.sections.map((s) => (
-                <button
+                <button type="button"
                   key={s.name}
                   onClick={() => onStart(s.category, Math.min(25, s.questions), s.minutes * 60)}
                   className="w-full flex items-center justify-between gap-3 py-2.5 text-left border-b border-border last:border-b-0 group"

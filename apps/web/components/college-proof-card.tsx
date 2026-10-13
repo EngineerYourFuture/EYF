@@ -25,7 +25,7 @@ export function CollegeProofCard() {
   return (
     <Card className="mt-5">
       <div className="flex items-center gap-2">
-        <Icons.trophy width={18} height={18} />
+        <Icons.Trophy width={18} height={18} />
         <h2 className="font-display font-bold">From {college}</h2>
       </div>
 

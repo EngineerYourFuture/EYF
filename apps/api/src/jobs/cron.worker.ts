@@ -12,6 +12,7 @@ import {
   sendEmail, streakBreakEmail, dailyDigestEmail, weeklyLeaderboardEmail, parentDigestEmail,
 } from "../services/email.js";
 import { parentDigestFor } from "../services/parent-digest.js";
+import { remindPendingInvitations } from "../services/org-invitations.js";
 
 async function streakBreakAlert(): Promise<{ checked: number; emailed: number; pushed: number }> {
   const start = new Date(); start.setUTCHours(0, 0, 0, 0);
@@ -129,6 +130,7 @@ export const cronWorker = new Worker<unknown, void, CronJobName>(
   "cron",
   async (job) => {
     switch (job.name) {
+      case "lms-invitation-reminders": await remindPendingInvitations(); return;
       case "streak-break-alert": await streakBreakAlert(); return;
       case "daily-digest":       await dailyDigest(); return;
       case "weekly-leaderboard": await weeklyLeaderboard(); return;

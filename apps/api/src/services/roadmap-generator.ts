@@ -92,107 +92,11 @@ export function buildRoadmap(
   const rolePatterns = (track?.patterns ?? []).filter(Boolean);
   const dsaPatterns = ["arrays-hashing", "two-pointers", "sliding-window", "binary-search", "stack", "linked-list", "trees", "graphs", "dynamic-programming", "greedy"];
 
-  const plan: RoadmapWeek[] = [];
-  let w = 1;
-
-  // ── FOUNDATION ─────────────────────────────────────────────────────
-  // Cycle through the weakest areas, giving each a focused remediation week.
-  const remediation = buildRemediationQueue(weak, foundationWeeks);
-  for (let i = 0; i < foundationWeeks; i++) {
-    const r = remediation[i % remediation.length]!;
-    const pattern = dsaPatterns[i % dsaPatterns.length]!;
-    const tasks: RoadmapTask[] = [
-      { area: "DSA", label: `Master the ${pattern.replaceAll("-", " ")} pattern`, detail: `Solve 6–8 problems on ${pattern.replaceAll("-", " ")}`, href: `/problems?pattern=${pattern}` },
-      r.task,
-    ];
-    if (tier === "service" || tier === "mass") {
-      tasks.push({ area: "Aptitude", label: "Timed aptitude drill", detail: "20 min quant + logical, daily", href: "/games" });
-    }
-    plan.push({
-      week: w++, phase: "Foundation", theme: r.theme,
-      tasks, milestone: r.milestone,
-    });
-  }
-
-  // ── DEPTH ──────────────────────────────────────────────────────────
-  const harder = ["dynamic-programming", "graphs", "backtracking", "intervals", "tries", "heap"];
-  for (let i = 0; i < depthWeeks; i++) {
-    const focus = track?.curriculum && Array.isArray(track.curriculum)
-      ? ((track.curriculum as { focus?: string }[])[i]?.focus ?? null) : null;
-    const pat = harder[i % harder.length]!;
-    const tasks: RoadmapTask[] = [
-      { area: "DSA", label: `Advanced: ${pat.replaceAll("-", " ")}`, detail: `Medium→Hard set on ${pat.replaceAll("-", " ")}`, href: `/problems?pattern=${pat}` },
-    ];
-    if (focus) {
-      tasks.push({ area: roleName, label: focus, detail: `Role-specific: ${focus}`, href: `/tracks/${input.trackSlug}` });
-    } else if (rolePatterns[i % Math.max(1, rolePatterns.length)]) {
-      const rp = rolePatterns[i % rolePatterns.length]!;
-      tasks.push({ area: roleName, label: cap(rp), detail: `${roleName} core: ${rp}`, href: `/tracks/${input.trackSlug}` });
-    }
-    // Persona shapes the depth phase.
-    let theme = focus ? `${roleName}: ${focus}` : `${roleName} depth + hard DSA`;
-    let milestone = `Clear 10 medium/hard problems`;
-    if (persona === "DEVELOPER") {
-      // Build-first: a project milestone most weeks, architecture concepts woven in.
-      tasks.push(
-        { area: "Projects", label: `Project milestone ${i + 1}`, detail: "Ship a vertical slice; write the design doc", href: "/projects" },
-        { area: "Architecture", label: "Architecture deep-dive", detail: "One system concept applied to your build", href: "/tracks/" + input.trackSlug },
-      );
-      theme = focus ? `Build: ${focus}` : "Architecture & projects";
-      milestone = "Project slice shipped";
-    } else if (persona === "SWITCHER") {
-      // System design every week — the round that decides senior offers.
-      tasks.push({ area: "System Design", label: "System design study", detail: "One design + a recorded mock prompt", href: "/mocks" });
-      if (i === Math.floor(depthWeeks / 2)) tasks.push({ area: "Projects", label: "Refresh a portfolio project", detail: "One senior-grade build to show", href: "/projects" });
-      theme = focus ? `${roleName}: ${focus}` : "System design + role depth";
-      milestone = "Can design a mid-size system end-to-end";
-    } else {
-      if (i === Math.floor(depthWeeks / 2)) {
-        tasks.push({ area: "Projects", label: "Ship a portfolio project", detail: "Start a resume-worthy build", href: "/projects" });
-        milestone = "First portfolio project underway";
-      }
-      if (tier === "product" || tier === "elite") {
-        tasks.push({ area: "System Design", label: "System design primer", detail: "One design concept + a mock prompt", href: "/mocks" });
-      }
-    }
-    plan.push({ week: w++, phase: "Depth", theme, tasks, milestone });
-  }
-
-  // ── INTERVIEW ──────────────────────────────────────────────────────
-  for (let i = 0; i < interviewWeeks; i++) {
-    const tasks: RoadmapTask[] = [];
-    const first = i === 0, last = i === interviewWeeks - 1;
-    if (first) {
-      tasks.push(
-        { area: "Resume", label: "ATS-score your resume", detail: "Hit 80+ and fix missing keywords", href: "/resume" },
-        { area: "Mocks", label: "First AI mock interview", detail: "Baseline your interview readiness", href: "/mocks" },
-      );
-    } else if (last) {
-      tasks.push(
-        { area: "Mocks", label: "Final mock + retro", detail: "Full loop simulation; review the recording", href: "/mocks" },
-        { area: "Apply", label: "Open your application pipeline", detail: "Start applying with confidence", href: "/pipeline" },
-      );
-    } else {
-      tasks.push({ area: "Mocks", label: "Weekly mock interview", detail: "Rotate DSA + behavioral rounds", href: "/mocks" });
-    }
-    if (input.targetCompany) {
-      tasks.push({ area: "Company Prep", label: `${cap(input.targetCompany)} problem set`, detail: "Close coverage on their most-asked problems", href: `/companies/${input.targetCompany}` });
-    }
-    // Persona shapes the interview phase.
-    if (persona === "SWITCHER") {
-      tasks.push({ area: "Behavioral", label: "STAR + leadership stories", detail: "5 senior-level stories with impact metrics", href: "/mocks" });
-      if (last) tasks.push({ area: "Compensation", label: "Negotiation prep", detail: "Benchmark bands and rehearse the ask", href: "/jobs" });
-    } else if (persona === "DEVELOPER") {
-      tasks.push({ area: "Portfolio", label: "Showcase your work", detail: "Polish the README + a short demo", href: "/projects" });
-      if (last) tasks.push({ area: "Proof", label: "Claim a certificate", detail: "Verifiable proof of depth for your profile", href: "/certificates" });
-    } else if (tier === "elite" || tier === "product") {
-      tasks.push({ area: "Behavioral", label: "STAR stories", detail: "Prepare 5 strong behavioral answers", href: "/mocks" });
-    }
-    plan.push({
-      week: w++, phase: "Interview", theme: last ? "Final prep & apply" : "Interview conditioning",
-      tasks, milestone: last ? "Interview-ready — start applying" : "Anxiety down, reps up",
-    });
-  }
+  const plan = [
+    ...foundationPlan(weak, foundationWeeks, tier, dsaPatterns),
+    ...depthPlan(depthWeeks, track, roleName, input.trackSlug, rolePatterns, persona, tier),
+    ...interviewPlan(interviewWeeks, input.targetCompany, persona, tier),
+  ].map((week, index) => ({ ...week, week: index + 1 }));
 
   const companyBit = input.targetCompany ? ` targeting ${cap(input.targetCompany)} (${TIER_LABEL[tier]})` : "";
   const personaBit: Record<Persona, string> = {
@@ -247,4 +151,129 @@ function buildRemediationQueue(weak: SkillDimension[], _count: number): { theme:
     );
   }
   return q;
+}
+
+function foundationPlan(weak: SkillDimension[], foundationWeeks: number, tier: Tier, dsaPatterns: string[]): RoadmapWeek[] {
+  const plan: RoadmapWeek[] = [];
+  // ── FOUNDATION ─────────────────────────────────────────────────────
+  // Cycle through the weakest areas, giving each a focused remediation week.
+  const remediation = buildRemediationQueue(weak, foundationWeeks);
+  for (let i = 0; i < foundationWeeks; i++) {
+    const r = remediation[i % remediation.length]!;
+    const pattern = dsaPatterns[i % dsaPatterns.length]!;
+    const tasks: RoadmapTask[] = [
+      { area: "DSA", label: `Master the ${pattern.replaceAll("-", " ")} pattern`, detail: `Solve 6–8 problems on ${pattern.replaceAll("-", " ")}`, href: `/problems?pattern=${pattern}` },
+      r.task,
+    ];
+    if (tier === "service" || tier === "mass") {
+      tasks.push({ area: "Aptitude", label: "Timed aptitude drill", detail: "20 min quant + logical, daily", href: "/games" });
+    }
+    plan.push({
+      week: i + 1, phase: "Foundation", theme: r.theme,
+      tasks, milestone: r.milestone,
+    });
+  }
+
+  return plan;
+}
+
+function depthPlan(depthWeeks: number, track: { curriculum: unknown } | null, roleName: string, trackSlug: string, rolePatterns: string[], persona: Persona, tier: Tier): RoadmapWeek[] {
+  const plan: RoadmapWeek[] = [];
+  // ── DEPTH ──────────────────────────────────────────────────────────
+  const harder = ["dynamic-programming", "graphs", "backtracking", "intervals", "tries", "heap"];
+  for (let i = 0; i < depthWeeks; i++) {
+    const focus = track?.curriculum && Array.isArray(track.curriculum)
+      ? ((track.curriculum as { focus?: string }[])[i]?.focus ?? null) : null;
+    const pat = harder[i % harder.length]!;
+    const tasks: RoadmapTask[] = [
+      { area: "DSA", label: `Advanced: ${pat.replaceAll("-", " ")}`, detail: `Medium→Hard set on ${pat.replaceAll("-", " ")}`, href: `/problems?pattern=${pat}` },
+    ];
+    if (focus) {
+      tasks.push({ area: roleName, label: focus, detail: `Role-specific: ${focus}`, href: `/tracks/${trackSlug}` });
+    } else if (rolePatterns[i % Math.max(1, rolePatterns.length)]) {
+      const rp = rolePatterns[i % rolePatterns.length]!;
+      tasks.push({ area: roleName, label: cap(rp), detail: `${roleName} core: ${rp}`, href: `/tracks/${trackSlug}` });
+    }
+    const { theme, milestone } = depthMilestone(tasks, persona, tier, i, depthWeeks, { focus, name: roleName, slug: trackSlug });
+    plan.push({ week: i + 1, phase: "Depth", theme, tasks, milestone });
+  }
+
+  return plan;
+}
+
+function depthMilestone(tasks: RoadmapTask[], persona: Persona, tier: Tier, i: number, depthWeeks: number, role: { focus: string | null; name: string; slug: string }) {
+    const { focus, name: roleName, slug: trackSlug } = role;
+    let theme = focus ? `${roleName}: ${focus}` : `${roleName} depth + hard DSA`;
+    let milestone = `Clear 10 medium/hard problems`;
+    if (persona === "DEVELOPER") {
+      // Build-first: a project milestone most weeks, architecture concepts woven in.
+      tasks.push(
+        { area: "Projects", label: `Project milestone ${i + 1}`, detail: "Ship a vertical slice; write the design doc", href: "/projects" },
+        { area: "Architecture", label: "Architecture deep-dive", detail: "One system concept applied to your build", href: "/tracks/" + trackSlug },
+      );
+      theme = focus ? `Build: ${focus}` : "Architecture & projects";
+      milestone = "Project slice shipped";
+      return { theme, milestone };
+    }
+    if (persona === "SWITCHER") {
+      // System design every week — the round that decides senior offers.
+      tasks.push({ area: "System Design", label: "System design study", detail: "One design + a recorded mock prompt", href: "/mocks" });
+      if (i === Math.floor(depthWeeks / 2)) tasks.push({ area: "Projects", label: "Refresh a portfolio project", detail: "One senior-grade build to show", href: "/projects" });
+      theme = focus ? `${roleName}: ${focus}` : "System design + role depth";
+      milestone = "Can design a mid-size system end-to-end";
+      return { theme, milestone };
+    }
+    if (i === Math.floor(depthWeeks / 2)) {
+        tasks.push({ area: "Projects", label: "Ship a portfolio project", detail: "Start a resume-worthy build", href: "/projects" });
+        milestone = "First portfolio project underway";
+      }
+      if (tier === "product" || tier === "elite") {
+        tasks.push({ area: "System Design", label: "System design primer", detail: "One design concept + a mock prompt", href: "/mocks" });
+      }
+  return { theme, milestone };
+}
+
+function interviewPlan(interviewWeeks: number, targetCompany: string | null | undefined, persona: Persona, tier: Tier): RoadmapWeek[] {
+  const plan: RoadmapWeek[] = [];
+  // ── INTERVIEW ──────────────────────────────────────────────────────
+  for (let i = 0; i < interviewWeeks; i++) {
+    const tasks: RoadmapTask[] = [];
+    const first = i === 0, last = i === interviewWeeks - 1;
+    if (first) {
+      tasks.push(
+        { area: "Resume", label: "ATS-score your resume", detail: "Hit 80+ and fix missing keywords", href: "/resume" },
+        { area: "Mocks", label: "First AI mock interview", detail: "Baseline your interview readiness", href: "/mocks" },
+      );
+    } else if (last) {
+      tasks.push(
+        { area: "Mocks", label: "Final mock + retro", detail: "Full loop simulation; review the recording", href: "/mocks" },
+        { area: "Apply", label: "Open your application pipeline", detail: "Start applying with confidence", href: "/pipeline" },
+      );
+    } else {
+      tasks.push({ area: "Mocks", label: "Weekly mock interview", detail: "Rotate DSA + behavioral rounds", href: "/mocks" });
+    }
+    if (targetCompany) {
+      tasks.push({ area: "Company Prep", label: `${cap(targetCompany)} problem set`, detail: "Close coverage on their most-asked problems", href: `/companies/${targetCompany}` });
+    }
+    addInterviewPersonaTasks(tasks, persona, tier, last);
+    plan.push({
+      week: i + 1, phase: "Interview", theme: last ? "Final prep & apply" : "Interview conditioning",
+      tasks, milestone: last ? "Interview-ready — start applying" : "Anxiety down, reps up",
+    });
+  }
+
+  return plan;
+}
+
+function addInterviewPersonaTasks(tasks: RoadmapTask[], persona: Persona, tier: Tier, last: boolean) {
+    // Persona shapes the interview phase.
+    if (persona === "SWITCHER") {
+      tasks.push({ area: "Behavioral", label: "STAR + leadership stories", detail: "5 senior-level stories with impact metrics", href: "/mocks" });
+      if (last) tasks.push({ area: "Compensation", label: "Negotiation prep", detail: "Benchmark bands and rehearse the ask", href: "/jobs" });
+    } else if (persona === "DEVELOPER") {
+      tasks.push({ area: "Portfolio", label: "Showcase your work", detail: "Polish the README + a short demo", href: "/projects" });
+      if (last) tasks.push({ area: "Proof", label: "Claim a certificate", detail: "Verifiable proof of depth for your profile", href: "/certificates" });
+    } else if (tier === "elite" || tier === "product") {
+      tasks.push({ area: "Behavioral", label: "STAR stories", detail: "Prepare 5 strong behavioral answers", href: "/mocks" });
+    }
 }

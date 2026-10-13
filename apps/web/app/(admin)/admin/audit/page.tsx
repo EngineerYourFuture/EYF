@@ -27,7 +27,7 @@ export default function Page() {
 
       <div className="mt-6 flex gap-1 flex-wrap">
         {ENTITIES.map((e) => (
-          <button key={e || "all"} onClick={() => setEntity(e)}
+          <button type="button" key={e || "all"} onClick={() => setEntity(e)}
             className={`px-3 py-1.5 rounded-md text-sm transition-colors ${entity === e ? "bg-surface text-text-1 border border-border" : "text-text-3 hover:text-text-1"}`}>
             {e || "All"}
           </button>

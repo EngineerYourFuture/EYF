@@ -49,19 +49,19 @@ export default function ProblemsPage() {
 
   return (
     <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-7xl mx-auto">
-      <PageHeader eyebrow="2,000+ problems · 15 patterns" title="Problems" subtitle="Patterns first. Grind second." />
+      <PageHeader title="Problems" subtitle="Patterns first. Grind second." />
 
       <div className="mt-8"><PatternMastery /></div>
 
       <div className="mt-4 flex justify-end">
-        <button
+        <button type="button"
           onClick={() => {
             const pool = (catalog ?? shown);
             if (pool.length) router.push(`/problems/${pool[Math.floor(Math.random() * pool.length)]!.slug}?blind=1`);
           }}
           className="inline-flex items-center gap-1.5 text-sm font-medium text-brand hover:underline"
         >
-          <Icons.target width={15} height={15} />
+          <Icons.Target width={15} height={15} />
           Blind practice — random problem, no tags, timer on
           <span aria-hidden>→</span>
         </button>
@@ -108,8 +108,8 @@ export default function ProblemsPage() {
             {isLoading && <SkeletonRows rows={10} />}
             {error && <ErrorState message={error.message} retry={() => mutate()} />}
             {data && shown.length === 0 && (
-              <EmptyState icon={<Icons.search width={22} height={22} />} title="No problems match" description="Try a different search, difficulty, or pattern."
-                action={<button onClick={() => { setQ(""); setDiff(""); setPattern(""); }} className="text-accent text-sm hover:underline">Clear filters</button>} />
+              <EmptyState icon={<Icons.Search width={22} height={22} />} title="No problems match" description="Try a different search, difficulty, or pattern."
+                action={<button type="button" onClick={() => { setQ(""); setDiff(""); setPattern(""); }} className="text-accent text-sm hover:underline">Clear filters</button>} />
             )}
             {data && shown.length > 0 && (
               <div className="border border-border rounded-xl overflow-hidden">
@@ -152,7 +152,7 @@ export default function ProblemsPage() {
 
 function FilterChip({ label, active, onClick, tone }: Readonly<{ label: string; active: boolean; onClick: () => void; tone?: string }>) {
   return (
-    <button
+    <button type="button"
       onClick={onClick}
       aria-pressed={active}
       className={`px-3 py-1.5 text-xs rounded-md border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
@@ -166,7 +166,7 @@ function FilterChip({ label, active, onClick, tone }: Readonly<{ label: string; 
 
 function FilterRow({ label, active, onClick }: Readonly<{ label: string; active: boolean; onClick: () => void }>) {
   return (
-    <button
+    <button type="button"
       onClick={onClick}
       aria-pressed={active}
       className={`text-left px-2.5 py-1.5 text-sm rounded-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${

@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, type ReactNode } from "react";
 import Lenis from "lenis";
+import { useMotionPreference } from "../interaction-motion";
 
 /**
  * Smooth-scroll provider for the marketing surface. Lenis normalises wheel/touch
@@ -10,8 +11,8 @@ import Lenis from "lenis";
  * prefers reduced motion (no eased scroll, no rAF loop).
  */
 export function LenisProvider({ children }: Readonly<{ children: ReactNode }>) {
+  const reduce = useMotionPreference();
   useEffect(() => {
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (reduce) return;
 
     const lenis = new Lenis({
@@ -32,7 +33,7 @@ export function LenisProvider({ children }: Readonly<{ children: ReactNode }>) {
       cancelAnimationFrame(raf);
       lenis.destroy();
     };
-  }, []);
+  }, [reduce]);
 
   return <>{children}</>;
 }

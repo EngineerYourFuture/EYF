@@ -3,7 +3,7 @@
  * materialized snapshot from history via the pure math in @eyf/types. v1
  * recomputes synchronously on write; a rollup worker takes over at scale.
  */
-import { prisma, EvidenceSource } from "@eyf/db";
+import { prisma, EvidenceSource, type Prisma } from "@eyf/db";
 import { computeSkillLevel } from "@eyf/types";
 
 export async function findOrCreateSkill(slug: string, name?: string): Promise<string> {
@@ -32,8 +32,8 @@ export async function recordEvidence(input: {
   sourceType: EvidenceSource;
   sourceId?: string | null;
   decayHalfLifeDays?: number;
-}): Promise<void> {
-  await prisma.skillEvidence.create({
+}, db: Prisma.TransactionClient = prisma): Promise<void> {
+  await db.skillEvidence.create({
     data: {
       userId: input.userId,
       orgId: input.orgId,
@@ -45,12 +45,12 @@ export async function recordEvidence(input: {
       decayHalfLifeDays: input.decayHalfLifeDays ?? 180,
     },
   });
-  await recomputeSnapshot(input.userId, input.orgId, input.skillId);
+  await recomputeSnapshot(input.userId, input.orgId, input.skillId, db);
 }
 
 /** Rebuild one snapshot from all evidence for (user, org-context, skill). */
-export async function recomputeSnapshot(userId: string, orgId: string | null, skillId: string): Promise<void> {
-  const evidence = await prisma.skillEvidence.findMany({
+export async function recomputeSnapshot(userId: string, orgId: string | null, skillId: string, db: Prisma.TransactionClient = prisma): Promise<void> {
+  const evidence = await db.skillEvidence.findMany({
     where: { userId, orgId, skillId },
     select: { level: true, weight: true, createdAt: true, decayHalfLifeDays: true },
   });
@@ -58,11 +58,11 @@ export async function recomputeSnapshot(userId: string, orgId: string | null, sk
   if (!computed) return;
   // find-then-write (not upsert): Postgres treats NULL orgId as distinct in a
   // unique index, so upsert-by-unique is unreliable for platform-wide rows.
-  const existing = await prisma.skillSnapshot.findFirst({ where: { userId, orgId, skillId }, select: { id: true } });
+  const existing = await db.skillSnapshot.findFirst({ where: { userId, orgId, skillId }, select: { id: true } });
   if (existing) {
-    await prisma.skillSnapshot.update({ where: { id: existing.id }, data: { level: computed.level, evidenceCount: computed.evidenceCount, computedAt: new Date() } });
+    await db.skillSnapshot.update({ where: { id: existing.id }, data: { level: computed.level, evidenceCount: computed.evidenceCount, computedAt: new Date() } });
   } else {
-    await prisma.skillSnapshot.create({ data: { userId, orgId, skillId, level: computed.level, evidenceCount: computed.evidenceCount } });
+    await db.skillSnapshot.create({ data: { userId, orgId, skillId, level: computed.level, evidenceCount: computed.evidenceCount } });
   }
 }
 

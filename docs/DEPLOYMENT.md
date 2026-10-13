@@ -155,10 +155,11 @@ docker compose -f docker-compose.prod.yml up -d --build
 | Service | Image | Command | Health |
 | --- | --- | --- | --- |
 | `api` | api | default | `fetch(/readyz)` every 30s |
-| `worker` | api | `node dist/jobs/judge.worker.js` | — |
-| `cron` | api | `node dist/jobs/cron.worker.js` | — |
-| `webhook` | api | `node dist/jobs/webhook.worker.js` | — |
+| `worker` | api | `node --import tsx dist/jobs/judge.worker.js` | — |
+| `cron` | api | `node --import tsx dist/jobs/cron.worker.js` | — |
+| `webhook` | api | `node --import tsx dist/jobs/webhook.worker.js` | — |
 | `web` | web | default | — |
+| `lms` | lms | default (separate LMS build) | — |
 | `postgres` | `postgres:16-alpine` | — | `pg_isready` |
 | `redis` | `redis:7-alpine` | `--appendonly yes` | `redis-cli ping` |
 
@@ -166,6 +167,35 @@ docker compose -f docker-compose.prod.yml up -d --build
 > The file's own header: *"Datastores here are for a single-host / staging deploy; in real production use managed Postgres (pooled) + managed Redis and drop the postgres/redis services."*
 
 `POSTGRES_PASSWORD` uses `${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}` — compose **refuses to start** without it. Good fail-closed design.
+
+The API and workers preload `tsx` because `@eyf/db` and `@eyf/types` share
+TypeScript source with the frontend. Keep this runtime dependency in production;
+plain `node dist/server.js` cannot resolve those packages. The API build uses a
+separate non-incremental configuration so a previous typecheck cannot suppress
+JavaScript output. Prisma is generated inside the target Linux image, with
+OpenSSL installed in both build and runtime stages. Worker services disable the
+API HTTP healthcheck because they do not listen on port 4000.
+
+To verify the actual API image and all three workers locally:
+
+```bash
+docker build -f apps/api/Dockerfile -t eyf-api:local-readiness .
+pnpm test:production
+```
+
+This check creates disposable Postgres/Redis containers on an internal Docker
+network, uses synthetic configuration, and removes its containers afterward. It
+asserts database/Redis readiness, blocked anonymous LMS access, disabled developer
+login, private-file permissions, worker connections, five recurring schedules and
+graceful shutdown. It reads no local environment files and publishes no host ports.
+CI runs the same check. It verifies worker startup, not real Judge0 execution or
+email delivery. Set `DOCKER_BIN` if Docker is not on your shell's PATH.
+
+Use a dedicated production environment file: container connections must use
+`postgres` and `redis` (or managed-service hosts), never the development
+`localhost` addresses. Set `NODE_ENV=production`, both HTTPS portal origins and
+explicit `API_CORS_ORIGINS`; keep development login disabled. Database migrations
+and RLS setup must finish before starting the services.
 
 > [!WARNING]
 > Redis persistence is `--appendonly yes` with a named volume. If Redis is wiped, in-flight judge jobs and rate-limit counters are lost. Rate limits self-heal; queued submissions do not.
@@ -208,26 +238,25 @@ Other workflows: `security.yml` (CodeQL, Semgrep, gitleaks, audit), `sonar.yml`,
 
 ```mermaid
 flowchart LR
-    M["1 · migrate<br/>prisma migrate deploy<br/>(expand phase)"] --> I["2 · images<br/>build + push api & web<br/>→ ghcr.io :$GITHUB_SHA"]
-    I --> D["3 · deploy<br/>⚠️ STUB — echo only"]
+    M["1 · migrate<br/>apply and verify RLS"] --> I["2 · images<br/>api, web and LMS<br/>→ ghcr.io :$GITHUB_SHA"]
+    I --> D["3 · configured provider<br/>API readiness gate"]
 ```
 
 | Job | Does |
 | --- | --- |
-| `migrate` | `prisma migrate deploy` with `DATABASE_URL` + `DIRECT_DATABASE_URL` secrets |
-| `images` | Matrix build of `api` + `web`, pushed to `ghcr.io/<repo>/<name>:<sha>`, GHA cache |
-| `deploy` | **Echoes instructions only** |
+| `migrate` | Apply migrations, apply tenant RLS through the owner connection, strictly verify the runtime role |
+| `images` | Build `api`, public `web` and private `lms`; push both commit and `latest` tags to GHCR |
+| `deploy` | Invoke the configured provider, then require `PRODUCTION_API_URL/readyz` to pass; fail if no target is configured |
 
-The stub's own text:
-
-```
-Trigger your platform's rolling deploy of the :$GITHUB_SHA images here.
-Deploy order: api + workers first (backward-compatible), then web.
-Gate promotion on GET /readyz == 200 before shifting traffic; roll back on failure.
-```
-
-> [!WARNING]
-> **Deployment is not automated.** `cd.yml` builds and publishes images and runs migrations — but nothing promotes them. Wire the deploy job to your platform before relying on it.
+The web and LMS images have different `NEXT_PUBLIC_EYF_PORTAL` build arguments.
+Set `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_LMS_URL`, the API URL and Clerk public key
+as repository variables before building. Railway expects all six services,
+including `lms`; Fly expects `eyf-api`, `eyf-web` and `eyf-lms`, with worker process
+configuration supplied by the host. Each service must select the intended image.
+The Render hook and Vercel web branch alone do not establish a full six-service
+deployment; configure and verify the remaining services separately. The API
+readiness gate verifies DB/Redis access, not release identity, provider delivery,
+portal authentication or automatic rollback. Verify both portal hosts after release.
 
 > [!WARNING]
 > The `migrate` job runs **before** images deploy. This is correct for expand/contract, but it means a destructive migration will break the still-running old version. Keep migrations additive.
@@ -236,7 +265,8 @@ Gate promotion on GET /readyz == 200 before shifting traffic; roll back on failu
 > `cd.yml` uses floating action tags (`actions/checkout@v4`) while `ci.yml` SHA-pins. CD holds deploy secrets — it deserves stricter pinning, not looser.
 
 > [!WARNING]
-> **`db:rls` is not part of CD.** CI runs it; the CD `migrate` job does not. RLS policies must be applied after every production migration or new org tables ship without isolation. This is a gap — see [ROADMAP](ROADMAP.md).
+> CD's strict RLS verification intentionally fails when the runtime database role
+> is a superuser or has `BYPASSRLS`. Keep the migration owner separate from that role.
 
 ---
 
@@ -249,11 +279,11 @@ sequenceDiagram
     participant API as api + workers
     participant WEB as web
     CD->>DB: 1 · migrate deploy (additive)
-    CD->>DB: 2 · db:rls  ⚠️ currently manual
+    CD->>DB: 2 · apply and verify RLS
     CD->>API: 3 · rolling deploy
+    CD->>WEB: 4 · public web and private LMS deploy
     API-->>CD: GET /readyz == 200
-    CD->>WEB: 4 · rolling deploy
-    Note over CD: any gate fails → roll back
+    Note over CD: failed health gate requires operator review and rollback
 ```
 
 API and workers first (backward-compatible), then web.

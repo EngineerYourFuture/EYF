@@ -64,7 +64,7 @@ export default function Page() {
             <SkeletonRows rows={6} />
           );
   if (jobs?.length === 0) return (
-            <EmptyState icon={<Icons.briefcase width={28} height={28} />} title="No jobs for this filter" description="Try a different role, or check back — new roles are added regularly." />
+            <EmptyState icon={<Icons.Briefcase width={28} height={28} />} title="No jobs for this filter" description="Try a different role, or check back — new roles are added regularly." />
           );
   return (
             <div className="grid sm:grid-cols-2 gap-4">

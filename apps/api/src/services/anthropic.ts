@@ -1,7 +1,10 @@
+import { trackedMessage } from "../lib/provider-usage.js";
 import Anthropic from "@anthropic-ai/sdk";
 import { env } from "../env.js";
 
-export const anthropic = env.ANTHROPIC_API_KEY
+import { credentialStatus } from "../lib/configuration-status.js";
+
+export const anthropic = credentialStatus(env.ANTHROPIC_API_KEY) === "configured"
   ? new Anthropic({ apiKey: env.ANTHROPIC_API_KEY })
   : null;
 
@@ -13,7 +16,7 @@ export async function generateProblemVariant(input: {
   description: string;
 }): Promise<{ title: string; description: string; twistExplanation: string }> {
   if (!anthropic) throw new Error("ANTHROPIC_API_KEY not set");
-  const msg = await anthropic.messages.create({
+  const msg = await trackedMessage(anthropic, {
     model: MODEL_SONNET,
     max_tokens: 1024,
     system:
@@ -42,7 +45,7 @@ export async function generateCoachNote(input: {
   weakPillars: string; // e.g. "Problem Solving 40, Aptitude 20"
 }): Promise<string> {
   if (!anthropic) throw new Error("ANTHROPIC_API_KEY not set");
-  const msg = await anthropic.messages.create({
+  const msg = await trackedMessage(anthropic, {
     model: MODEL_HAIKU,
     max_tokens: 120,
     system:
@@ -64,7 +67,7 @@ export async function generateHint(input: {
   language: string;
 }): Promise<string> {
   if (!anthropic) throw new Error("ANTHROPIC_API_KEY not set");
-  const msg = await anthropic.messages.create({
+  const msg = await trackedMessage(anthropic, {
     model: MODEL_HAIKU,
     max_tokens: 400,
     system:
@@ -93,7 +96,7 @@ export async function answerTechQuestion(input: { question: string }): Promise<{
   tags: string[];
 }> {
   if (!anthropic) throw new Error("ANTHROPIC_API_KEY not set");
-  const msg = await anthropic.messages.create({
+  const msg = await trackedMessage(anthropic, {
     model: MODEL_SONNET,
     max_tokens: 1400,
     system:
@@ -130,7 +133,7 @@ export async function generateCourseOutline(input: {
   lessonCount: number;
 }): Promise<{ title: string; description: string; lessons: { title: string; skillSlug: string; blocks: { type: string; data: Record<string, string> }[] }[] }> {
   if (!anthropic) throw new Error("ANTHROPIC_API_KEY not set");
-  const msg = await anthropic.messages.create({
+  const msg = await trackedMessage(anthropic, {
     model: MODEL_SONNET,
     max_tokens: 2400,
     system:

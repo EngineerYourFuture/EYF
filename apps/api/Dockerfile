@@ -3,6 +3,7 @@
 # is a pruned, production-only deploy of @eyf/api. Reused for the api server and
 # every worker — the process is chosen by the CMD (see docker-compose.prod.yml).
 FROM node:20-alpine AS base
+RUN apk add --no-cache openssl
 ENV PNPM_HOME=/pnpm PATH=/pnpm:$PATH
 RUN corepack enable
 WORKDIR /repo
@@ -28,13 +29,15 @@ RUN pnpm --filter @eyf/api deploy --prod /out
 
 # ---- runtime ----
 FROM node:20-alpine AS runner
+RUN apk add --no-cache openssl
 ENV NODE_ENV=production
 RUN addgroup -S eyf && adduser -S eyf -G eyf
 WORKDIR /app
 COPY --from=prune --chown=eyf:eyf /out .
+RUN mkdir -p /app/private-media && chown eyf:eyf /app/private-media && chmod 700 /app/private-media
 USER eyf
 EXPOSE 4000
 # Liveness is /livez; orchestrator readiness should probe /readyz.
 HEALTHCHECK --interval=30s --timeout=4s --start-period=20s --retries=3 \
   CMD node -e "fetch('http://127.0.0.1:'+(process.env.API_PORT||4000)+'/livez').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
-CMD ["node", "dist/server.js"]
+CMD ["node", "--import", "tsx", "dist/server.js"]

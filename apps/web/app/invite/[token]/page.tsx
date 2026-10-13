@@ -1,6 +1,6 @@
 "use client";
 import { useParams } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@eyf/ui";
 import { useApiAction } from "@/lib/use-api";
@@ -8,14 +8,15 @@ import { ApiClientError } from "@/lib/api";
 import { ThemeToggle } from "@/components/theme";
 
 type Result =
+  | { kind: "ready" }
   | { kind: "loading" }
   | { kind: "success"; orgId: string }
   | { kind: "signin" }
   | { kind: "error"; title: string; message: string };
 
 /**
- * Accept an org invite from an emailed link (NEXT_PUBLIC_APP_URL/invite/<token>).
- * Auto-accepts on load for a signed-in user, and renders a specific state for
+ * Accept an org invite on NEXT_PUBLIC_LMS_URL/invite/<token>.
+ * Requires an explicit action by the signed-in user, and renders a state for
  * each outcome the API defines: expired/invalid, email mismatch, or not signed
  * in (which sends the invitee through sign-in and back here).
  */
@@ -23,8 +24,7 @@ export default function InviteAcceptPage() {
   const params = useParams<{ token: string }>();
   const { token } = params;
   const action = useApiAction();
-  const [result, setResult] = useState<Result>({ kind: "loading" });
-  const ran = useRef(false); // guard React strict-mode double-invoke
+  const [result, setResult] = useState<Result>({ kind: "ready" });
 
   async function accept() {
     setResult({ kind: "loading" });
@@ -62,19 +62,12 @@ export default function InviteAcceptPage() {
     }
   }
 
-  useEffect(() => {
-    if (ran.current) return;
-    ran.current = true;
-    void accept();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   const signInHref = `/sign-in?redirect_url=${encodeURIComponent("/invite/" + token)}`;
 
   return (
     <div className="min-h-screen bg-bg text-text-1 flex flex-col">
       <header className="flex items-center justify-between px-5 sm:px-8 h-16">
-        <Link href="/" className="font-display font-bold text-xl tracking-tight">EYF<span className="text-brand">.</span></Link>
+        <Link href="/orgs" className="font-display font-bold text-xl tracking-tight">EYF LMS</Link>
         <ThemeToggle />
       </header>
 
@@ -84,6 +77,7 @@ export default function InviteAcceptPage() {
           aria-live="polite"
           aria-busy={result.kind === "loading"}
         >
+          {result.kind === "ready" && <><h1 className="text-xl font-semibold">Join your organization</h1><p className="text-text-2 mt-3 mb-6">Accept this invitation using the account with the invited email address. Your organization assigns your role and access.</p><Button onClick={() => void accept()}>Accept invitation</Button></>}
           {result.kind === "loading" && (
             <>
               <output className="mx-auto block h-10 w-10 rounded-full border-2 border-border border-t-accent animate-spin" aria-label="Accepting invite" />
@@ -120,7 +114,7 @@ export default function InviteAcceptPage() {
               <p className="text-text-3 text-sm mt-2 leading-relaxed">{result.message}</p>
               <div className="mt-6 flex items-center justify-center gap-3">
                 <Button variant="secondary" size="sm" onClick={() => void accept()}>Try again</Button>
-                <Link href="/dashboard" className="text-sm text-text-3 hover:text-text-1">Go to dashboard</Link>
+                <Link href="/orgs" className="text-sm text-text-3 hover:text-text-1">Go to workspace</Link>
               </div>
             </>
           )}

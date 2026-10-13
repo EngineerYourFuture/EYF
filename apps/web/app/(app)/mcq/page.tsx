@@ -204,7 +204,7 @@ export default function Page() {
             <div className="flex items-center justify-between text-sm">
               <span className="font-medium">{selectedCat?.name ?? category}{company ? " · " + company : ""}</span>
               <span className={`font-mono flex items-center gap-1.5 ${low ? "text-hard" : "text-text-3"}`}>
-                <Icons.gauge width={15} height={15} /> {fmtTime(remaining)}
+                <Icons.Gauge width={15} height={15} /> {fmtTime(remaining)}
                 <span className="ml-3 text-text-4">{answered}/{total}</span>
               </span>
             </div>
@@ -224,7 +224,7 @@ export default function Page() {
                     <span className="text-text-3 text-xs font-mono">Q{i + 1}</span>
                     <Badge>{q.topic}</Badge>
                     <Badge tone="accent">{q.difficulty}</Badge>
-                    {done && <span className="ml-auto text-easy"><Icons.target width={16} height={16} /></span>}
+                    {done && <span className="ml-auto text-easy"><Icons.Target width={16} height={16} /></span>}
                   </div>
                   <p className="mt-4 text-text-1 font-medium" id={`mcq-${q.id}`}>{q.prompt}</p>
                   <div className="mt-4 grid gap-2" role="radiogroup" aria-labelledby={`mcq-${q.id}`}>
@@ -279,7 +279,7 @@ export default function Page() {
               const on = category === c.id;
               const best = history?.bestByCategory?.[c.id];
               return (
-                <button key={c.id} onClick={() => setCategory(c.id)}
+                <button type="button" key={c.id} onClick={() => setCategory(c.id)}
                   className={`text-left rounded-xl border p-4 transition-colors ${
                     on ? "border-accent bg-accent-tint" : "border-border bg-surface hover:border-edge"
                   }`}>
@@ -309,7 +309,7 @@ export default function Page() {
                 <span id="mcq-count-label" className="text-text-3 text-xs uppercase tracking-wider">Questions</span>
                 <div className="mt-2 flex gap-2">
                   {[5, 10, 15, 20].map((n) => (
-                    <button key={n} onClick={() => setCount(n)} aria-pressed={count === n}
+                    <button type="button" key={n} onClick={() => setCount(n)} aria-pressed={count === n}
                       className={`flex-1 h-11 rounded-lg border text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
                         count === n ? "border-accent bg-accent-tint text-text-1" : "border-border text-text-3 hover:border-edge"
                       }`}>{n}</button>

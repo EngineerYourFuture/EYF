@@ -30,7 +30,7 @@ export default function Page() {
         {/* Active coaching voice from the guidance engine. */}
         {guidance?.coachNote && guidance.actions.length > 0 && (
           <div className="mt-6 flex items-start gap-3 rounded-2xl border border-accent/20 bg-accent-tint/40 px-5 py-4">
-            <span className="text-accent mt-0.5 shrink-0"><Icons.sparkle width={18} height={18} /></span>
+            <span className="text-accent mt-0.5 shrink-0"><Icons.Sparkle width={18} height={18} /></span>
             <div className="min-w-0">
               <div className="font-mono text-[11px] uppercase tracking-widest text-accent mb-1">Your coach</div>
               <p className="text-text-1 font-medium leading-snug">{guidance.coachNote}</p>
@@ -90,7 +90,7 @@ export default function Page() {
               <h2 className="font-display text-xl font-bold mb-4">Do this next</h2>
               {r.nextActions.length === 0 ? (
                 <Card className="flex items-center gap-3">
-                  <span className="text-easy"><Icons.trophy width={22} height={22} /></span>
+                  <span className="text-easy"><Icons.Trophy width={22} height={22} /></span>
                   <p className="text-text-2">Every pillar is strong — you&apos;re placement-ready. Keep your streak and start applying.</p>
                 </Card>
               ) : (
@@ -108,7 +108,7 @@ export default function Page() {
                         <div className="font-medium mt-3">{a.label}</div>
                         <div className="text-text-4 text-xs mt-1 flex-1">{a.detail}</div>
                         <Link href={a.href} className="mt-4">
-                          <Button size="sm" variant="secondary" className="w-full">Go <Icons.arrow width={14} height={14} /></Button>
+                          <Button size="sm" variant="secondary" className="w-full">Go <Icons.Arrow width={14} height={14} /></Button>
                         </Link>
                       </Card>
                     );

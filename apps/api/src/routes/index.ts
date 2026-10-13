@@ -37,6 +37,9 @@ import { mcqRoutes } from "./mcq.js";
 import { communicationRoutes } from "./communication.js";
 import { projectPrepRoutes } from "./project-prep.js";
 import { scoreRoutes } from "./score.js";
+import { placementSprintRoutes } from "./placement-sprint.js";
+import { sprintContinuationRoutes } from "./sprint-continuation.js";
+import { practicalLabsRoutes } from "./practical-labs.js";
 import { adminContentLearnRoutes } from "./admin-content-learn.js";
 import { adminContentCareerRoutes } from "./admin-content-career.js";
 import { adminContentMcqRoutes } from "./admin-content-mcq.js";
@@ -45,7 +48,9 @@ import { askRoutes } from "./ask.js";
 import { adminContentKnowledgeRoutes } from "./admin-content-knowledge.js";
 import { orgsRoutes } from "./orgs.js";
 import { orgLearnRoutes } from "./org-learn.js";
+import { orgMediaRoutes } from "./org-media.js";
 import { orgPathsRoutes } from "./org-paths.js";
+import { orgCohortOperationsRoutes } from "./org-cohort-operations.js";
 import { orgSkillsRoutes } from "./org-skills.js";
 import { orgAssessRoutes } from "./org-assess.js";
 import { orgCertificatesRoutes } from "./org-certificates.js";
@@ -57,10 +62,12 @@ import { guidanceRoutes } from "./guidance.js";
 import { adminGateRoutes } from "./admin-gate.js";
 import { adminContentRoutes } from "./admin-content.js";
 import { adminUsersRoutes } from "./admin-users.js";
+import { adminOrganizationsRoutes } from "./admin-organizations.js";
 import { adminCollegeRoutes } from "./admin-colleges.js";
 import { adminBatchRoutes } from "./admin-batches.js";
 import { adminPaymentsRoutes } from "./admin-payments.js";
 import { adminAuditRoutes } from "./admin-audit.js";
+import { adminOperationsRoutes } from "./admin-operations.js";
 
 export async function registerRoutes(app: FastifyInstance) {
   await app.register(authRoutes,         { prefix: "/auth" });
@@ -105,7 +112,9 @@ export async function registerRoutes(app: FastifyInstance) {
   await app.register(askRoutes,          { prefix: "/ask" });
   await app.register(orgsRoutes,         { prefix: "/orgs" });
   await app.register(orgLearnRoutes,     { prefix: "/orgs" });
+  await app.register(orgMediaRoutes,     { prefix: "/orgs" });
   await app.register(orgPathsRoutes,     { prefix: "/orgs" });
+  await app.register(orgCohortOperationsRoutes, { prefix: "/orgs" });
   await app.register(orgSkillsRoutes,    { prefix: "/orgs" });
   await app.register(orgAssessRoutes,    { prefix: "/orgs" });
   await app.register(orgCertificatesRoutes, { prefix: "/orgs" });
@@ -114,10 +123,12 @@ export async function registerRoutes(app: FastifyInstance) {
   await app.register(orgSettingsRoutes,  { prefix: "/orgs" });
   await app.register(orgAiRoutes,        { prefix: "/orgs" });
   await app.register(adminUsersRoutes,   { prefix: "/admin/users" });
+  await app.register(adminOrganizationsRoutes, { prefix: "/admin/organizations" });
   await app.register(adminCollegeRoutes, { prefix: "/admin/colleges" });
   await app.register(adminBatchRoutes,   { prefix: "/admin/batches" });
   await app.register(adminPaymentsRoutes, { prefix: "/admin/payments" });
   await app.register(adminAuditRoutes,   { prefix: "/admin/audit" });
+  await app.register(adminOperationsRoutes, { prefix: "/admin/operations" });
   await app.register(missionRoutes,      { prefix: "/missions" });
   await app.register(leaderboardRoutes,  { prefix: "/leaderboard" });
   await app.register(experienceRoutes,   { prefix: "/experiences" });
@@ -125,4 +136,7 @@ export async function registerRoutes(app: FastifyInstance) {
   await app.register(communicationRoutes, { prefix: "/communication" });
   await app.register(projectPrepRoutes,  { prefix: "/project-prep" });
   await app.register(scoreRoutes,        { prefix: "/score" });
+  await app.register(placementSprintRoutes, { prefix: "/placement-sprint" });
+  await app.register(sprintContinuationRoutes);
+  await app.register(practicalLabsRoutes, { prefix: "/labs" });
 }

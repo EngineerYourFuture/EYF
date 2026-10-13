@@ -22,7 +22,7 @@ export async function mockRoutes(app: FastifyInstance) {
     const sessions = await prisma.mockSession.findMany({
       where: { candidateId: req.session!.id, feedback: { not: undefined } },
       orderBy: { createdAt: "asc" },
-      select: { company: true, createdAt: true, endedAt: true, feedback: true },
+      select: { id: true, company: true, createdAt: true, endedAt: true, feedback: true },
     });
 
     const series = sessions
@@ -34,7 +34,7 @@ export async function mockRoutes(app: FastifyInstance) {
         const comm = r.communication ?? f.overallScore ?? 0;
         const composure = Math.round((clarity + comm) / 2);
         if (composure <= 0) return null;
-        return { date: (s.endedAt ?? s.createdAt).toISOString().slice(0, 10), composure, overall: f.overallScore ?? 0, company: s.company };
+        return { id: s.id, date: (s.endedAt ?? s.createdAt).toISOString().slice(0, 10), composure, overall: f.overallScore ?? 0, company: s.company };
       })
       .filter((p): p is NonNullable<typeof p> => p !== null);
 

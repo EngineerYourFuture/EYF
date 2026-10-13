@@ -33,7 +33,7 @@ describe.skipIf(!hasDb)("code submissions: cap + premium + ownership (integratio
   beforeAll(async () => {
     const db = await import("@eyf/db");
     prisma = db.prisma; Language = db.Language;
-    lang = Object.values(Language)[0] as string;
+    lang = Language.PYTHON;
     app = await (await import("../app.js")).buildApp();
     const s = Date.now();
     const [a, b] = await Promise.all([
@@ -41,8 +41,9 @@ describe.skipIf(!hasDb)("code submissions: cap + premium + ownership (integratio
       prisma.user.create({ data: { clerkId: `su_b_${s}`, email: `su-b-${s}@test.eyf`, name: "B" } }),
     ]);
     userA = a.id; userB = b.id;
-    const fp = await prisma.problem.create({ data: { slug: `free-${s}`, title: "Free", description: "test problem", difficulty: "EASY", premium: false } });
-    const pp = await prisma.problem.create({ data: { slug: `prem-${s}`, title: "Prem", description: "test problem", difficulty: "EASY", premium: true } });
+    const tests = { create: [{ input: "", expected: "1", isPublic: true }] };
+    const fp = await prisma.problem.create({ data: { slug: `free-${s}`, title: "Free", description: "test problem", difficulty: "EASY", premium: false, testCases: tests } });
+    const pp = await prisma.problem.create({ data: { slug: `prem-${s}`, title: "Prem", description: "test problem", difficulty: "EASY", premium: true, testCases: tests } });
     freeProblem = fp.slug; premiumProblem = pp.slug;
   });
 
@@ -94,5 +95,17 @@ describe.skipIf(!hasDb)("code submissions: cap + premium + ownership (integratio
     expect(own.statusCode).toBe(200);
     const other = await app.inject({ method: "GET", url: `/v1/submissions/${submissionA}`, headers: { authorization: `Bearer ${tok(userB)}` } });
     expect(other.statusCode).toBe(404);
+  });
+
+  it("refuses a problem without tests before storing or enqueuing a submission", async () => {
+    const problem = await prisma.problem.findUniqueOrThrow({ where: { slug: premiumProblem } });
+    await prisma.testCase.deleteMany({ where: { problemId: problem.id } });
+    addMock.mockClear();
+    const before = await prisma.problemSolution.count({ where: { problemId: problem.id } });
+    const res = await submit(userA, premiumProblem, "pro");
+    expect(res.statusCode).toBe(409);
+    expect(res.json().error.code).toBe("PROBLEM_NOT_READY");
+    expect(addMock).not.toHaveBeenCalled();
+    expect(await prisma.problemSolution.count({ where: { problemId: problem.id } })).toBe(before);
   });
 });

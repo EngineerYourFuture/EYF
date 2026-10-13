@@ -36,7 +36,7 @@ export default function Page() {
     <PageMotion className="relative">
       <div className="relative px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-5xl mx-auto">
         <Link href="/companies" className="text-text-3 hover:text-text-1 text-sm inline-flex items-center gap-1.5">
-          <span className="rotate-180"><Icons.arrow width={14} height={14} /></span> All companies
+          <span className="rotate-180"><Icons.Arrow width={14} height={14} /></span> All companies
         </Link>
 
         {(() => {
@@ -73,7 +73,7 @@ function CompanyView({ label, data }: Readonly<{ label: string; data: Detail }>)
         {data.counts.total} problems reported in {label} interviews — sorted by how often they show up.
       </p>
       <Link href={`/experiences?company=${data.company}`} className="mt-2 inline-flex items-center gap-1.5 text-accent text-sm hover:underline">
-        <Icons.chat width={14} height={14} /> Read {label} interview experiences
+        <Icons.Chat width={14} height={14} /> Read {label} interview experiences
       </Link>
 
       {/* Per-company readiness banner */}

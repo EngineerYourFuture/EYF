@@ -1,5 +1,11 @@
 import { test, expect, type Page } from "@playwright/test";
 
+// Public pricing reads this configuration endpoint; these theme checks run
+// without an API server, so keep the service boundary deterministic.
+test.beforeEach(async ({ page }) => {
+  await page.route("**/v1/billing/status", (route) => route.fulfill({ json: { success: true, data: { enabled: false } } }));
+});
+
 /**
  * Browser regression cover for the theme system.
  *
@@ -37,9 +43,9 @@ function contrast(fg: string, bg: string): number {
     const v = c / 255;
     return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
   };
-  const lum = ([r, g, b]: number[]) => 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
-  const [a, b] = [lum(parse(fg)), lum(parse(bg))].sort((x, y) => y - x);
-  return (a + 0.05) / (b + 0.05);
+  const lum = ([r = NaN, g = NaN, b = NaN]: number[]) => 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+  const a = lum(parse(fg)), b = lum(parse(bg));
+  return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
 }
 
 /** Walk up for the first non-transparent background — text often sits on a bare element. */
@@ -49,7 +55,7 @@ async function effectiveBg(page: Page, selector: string): Promise<string> {
     while (n) {
       const bg = getComputedStyle(n).backgroundColor;
       const parts = (bg.match(/[\d.]+/g) ?? []).map(Number);
-      if (parts.length < 4 || parts[3] > 0) {
+      if (parts.length < 4 || (parts[3] ?? 0) > 0) {
         if (bg !== "rgba(0, 0, 0, 0)") return bg;
       }
       n = n.parentElement;
@@ -75,7 +81,7 @@ for (const theme of ["light", "dark"] as const) {
       const bodyLum = contrast(bodyBg, "rgb(0,0,0)");
       const footLum = contrast(bg, "rgb(0,0,0)");
       // Both light or both dark — never one of each.
-      expect(Math.sign(bodyLum - 3) === Math.sign(footLum - 3)).toBe(true);
+      expect(Math.sign(bodyLum - 3)).toBe(Math.sign(footLum - 3));
       expect(contrast(fg, bg)).toBeGreaterThanOrEqual(4.5);
     });
 
@@ -86,7 +92,7 @@ for (const theme of ["light", "dark"] as const) {
         const offenders = await page.evaluate(() => {
           const lin = (c: number) => { const v = c / 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
           const parse = (s: string) => (s.match(/[\d.]+/g) ?? []).slice(0, 3).map(Number);
-          const lum = (p: number[]) => 0.2126 * lin(p[0]) + 0.7152 * lin(p[1]) + 0.0722 * lin(p[2]);
+          const lum = ([r = NaN, g = NaN, b = NaN]: number[]) => 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
           const bgOf = (el: Element) => {
             let n: Element | null = el;
             while (n) {

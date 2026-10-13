@@ -1,13 +1,14 @@
 import { Nav } from "@/components/nav";
 import { Footer } from "@/components/footer";
 import Link from "next/link";
-import { Card, Button, Badge } from "@eyf/ui";
+import { Card, Badge } from "@eyf/ui";
+import { PaymentPreviewNotice } from "@/components/payment-preview-notice";
 
 const PLANS = [
   { id: "free",  name: "Free",  priceInr: 0,    features: ["5 submissions/day", "10 problems", "OS theory only"] },
   { id: "basic", name: "Basic", priceInr: 249,  features: ["20 submissions/day", "All core subjects", "SQL editor", "3 mocks/mo"] },
   { id: "pro",   name: "Pro",   priceInr: 499,  features: ["Unlimited", "AI mock interviews", "Resume ATS"], popular: true },
-  { id: "elite", name: "Elite", priceInr: 899,  features: ["Everything in Pro", "2 expert mocks/mo", "Mentor priority"] },
+  { id: "elite", name: "Elite", priceInr: 899,  features: ["Everything in Pro", "Expert sessions priced separately", "Final benefits to be confirmed"] },
 ] as const;
 
 export default function PricingPage() {
@@ -19,8 +20,9 @@ export default function PricingPage() {
           Pay what a textbook costs.<br /><span className="text-accent">Get the whole path.</span>
         </h1>
         <p className="mt-4 text-text-2 max-w-2xl text-lg">
-          ₹499/month vs ₹50,000–1,50,000 offline coaching. UPI / cards / wallets. Cancel any time.
+          Compare the plans and find the features that fit your preparation.
         </p>
+        <PaymentPreviewNotice />
 
         <div className="mt-12 grid md:grid-cols-4 gap-4">
           {PLANS.map((p) => (
@@ -38,8 +40,8 @@ export default function PricingPage() {
                 ))}
               </ul>
               <div className="mt-6">
-                <Link href={p.id === "free" ? "/sign-up" : "/billing"}>
-                  <Button className="w-full">{p.id === "free" ? "Start free" : `Upgrade to ${p.name}`}</Button>
+                <Link href={p.id === "free" ? "/sign-up" : "/billing"} className="inline-flex min-h-11 w-full items-center justify-center rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-ink hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg">
+                  {p.id === "free" ? "Start free" : `View ${p.name}`}
                 </Link>
               </div>
             </Card>

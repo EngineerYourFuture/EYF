@@ -59,13 +59,13 @@ export default function SkillsPage() {
                 </Card>
                 {data.strongest && (
                   <Card className="flex items-center gap-3">
-                    <span className="text-easy"><Icons.trophy width={20} height={20} /></span>
+                    <span className="text-easy"><Icons.Trophy width={20} height={20} /></span>
                     <div className="text-sm"><span className="text-text-3">Strongest</span><div className="font-medium">{data.strongest}</div></div>
                   </Card>
                 )}
                 {data.weakest && (
                   <Card className="flex items-center gap-3">
-                    <span className="text-hard"><Icons.gauge width={20} height={20} /></span>
+                    <span className="text-hard"><Icons.Gauge width={20} height={20} /></span>
                     <div className="text-sm"><span className="text-text-3">Needs work</span><div className="font-medium">{data.weakest}</div></div>
                   </Card>
                 )}
@@ -120,7 +120,7 @@ function Radar({ dims }: Readonly<{ dims: Dim[] }>) {
   const pt = (i: number, r: number) => ({ x: cx + r * Math.cos(angle(i)), y: cy + r * Math.sin(angle(i)) });
 
   const rings = [0.25, 0.5, 0.75, 1];
-  const dataPoints = dims.map((d, i) => pt(i, (d.score / 100) * maxR));
+  const dataPoints = dims.map((d, i) => ({ ...pt(i, (d.score / 100) * maxR), key: d.key }));
   const dataPath = dataPoints.map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ") + " Z";
 
   return (
@@ -132,8 +132,8 @@ function Radar({ dims }: Readonly<{ dims: Dim[] }>) {
           className="fill-none stroke-edge" strokeWidth="1" opacity={0.4} />
       ))}
       {/* axes */}
-      {dims.map((_, i) => { const p = pt(i, maxR); return (
-        <line key={i} x1={cx} y1={cy} x2={p.x} y2={p.y} className="stroke-edge" strokeWidth="1" opacity={0.3} />
+      {dims.map((d, i) => { const p = pt(i, maxR); return (
+        <line key={d.key} x1={cx} y1={cy} x2={p.x} y2={p.y} className="stroke-edge" strokeWidth="1" opacity={0.3} />
       ); })}
       {/* data polygon */}
       <polygon points={dataPoints.map((p) => `${p.x},${p.y}`).join(" ")}
@@ -141,8 +141,8 @@ function Radar({ dims }: Readonly<{ dims: Dim[] }>) {
         style={{ transition: "all 0.8s cubic-bezier(0.16,1,0.3,1)" }} />
       <path d={dataPath} className="fill-none stroke-accent" strokeWidth="2" opacity={0} />
       {/* vertices */}
-      {dataPoints.map((p, i) => (
-        <circle key={i} cx={p.x} cy={p.y} r="3" className="fill-accent" />
+      {dataPoints.map((p) => (
+        <circle key={p.key} cx={p.x} cy={p.y} r="3" className="fill-accent" />
       ))}
       {/* labels */}
       {dims.map((d, i) => {
@@ -153,7 +153,7 @@ function Radar({ dims }: Readonly<{ dims: Dim[] }>) {
   else if (Math.cos(a) > 0) anchor = "start";
   else anchor = "end";
         return (
-          <text key={i} x={p.x} y={p.y} textAnchor={anchor} dominantBaseline="middle"
+          <text key={d.key} x={p.x} y={p.y} textAnchor={anchor} dominantBaseline="middle"
             className="fill-text-3 text-[10px] font-mono">{SHORT[d.key] ?? d.label}</text>
         );
       })}

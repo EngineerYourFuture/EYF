@@ -15,6 +15,7 @@ import { errorHandler } from "./middleware/error.js";
 import { registerRoutes } from "./routes/index.js";
 import { initSentry, captureException, registry, httpDuration, httpRequests } from "./lib/observability.js";
 import { checkReadiness } from "./lib/health.js";
+import { providerContext } from "./lib/provider-usage.js";
 
 /** Constant-time `Authorization: Bearer <token>` check — no early-exit timing leak. */
 function bearerMatches(header: string | undefined, token: string): boolean {
@@ -29,6 +30,7 @@ export async function buildApp() {
   const app = Fastify({
     logger: {
       level: env.API_LOG_LEVEL,
+      serializers: { req: (req) => ({ method: req.method, url: req.url?.split("?")[0], remoteAddress: req.ip }) },
       // Defense-in-depth (S3): strip credentials/PII from any log line. The default
       // Fastify request serializer doesn't emit headers, but this covers a raised log
       // level or any future custom header/body logging so secrets can never leak.
@@ -61,6 +63,9 @@ export async function buildApp() {
   });
 
   // Raw audio bodies for the voice transcription endpoint.
+  app.addHook("onRequest", (req, _reply, done) => {
+    providerContext.run(() => ({ userId: req.session?.id, feature: req.routeOptions.url ?? "unknown" }), done);
+  });
   app.addContentTypeParser(
     ["audio/webm", "audio/mp4", "audio/mpeg", "audio/wav", "audio/ogg", "application/octet-stream"],
     { parseAs: "buffer" },
@@ -161,9 +166,17 @@ export async function buildApp() {
   app.setErrorHandler((err: FastifyError, req, reply) => {
     const status = err.statusCode ?? 500;
     if (status >= 500) {
-      captureException(err, { reqId: req.id, url: req.url, method: req.method });
+      captureException(err, { reqId: req.id, url: req.url.split("?")[0], method: req.method });
     }
     return errorHandler(err, req, reply);
+  });
+
+  app.addHook("onSend", async (req, reply, payload) => {
+    if (req.headers.authorization || /^\/v1\/(orgs?|admin)(\/|$)/.test(req.url)) {
+      reply.header("Cache-Control", "private, no-store");
+      reply.header("X-Robots-Tag", "noindex, nofollow, noarchive");
+    }
+    return payload;
   });
 
   // ── Health & metrics (unauthenticated, excluded from rate limiting) ──

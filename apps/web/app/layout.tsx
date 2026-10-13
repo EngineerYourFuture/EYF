@@ -5,12 +5,19 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { AnalyticsProvider } from "@/components/analytics-provider";
 import { SwrProvider } from "@/components/swr-provider";
 import { ConfirmProvider } from "@/components/confirm";
+import { MotionPreferences } from "@/components/interaction-motion";
 import { themeScript } from "@/components/theme";
 import { ConsentBanner } from "@/components/consent-banner";
 import { Toaster } from "sonner";
 import "./globals.css";
+import { IS_LMS, LMS_URL, PORTAL_HOME } from "@/lib/portal";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = IS_LMS ? {
+  title: { default: "EYF LMS — Private workspace", template: "%s · EYF LMS" },
+  description: "Private learning workspace. Organization membership required.",
+  metadataBase: new URL(LMS_URL),
+  robots: { index: false, follow: false, nocache: true },
+} : {
   title: { default: "EYF — Engineer Your Future", template: "%s · EYF" },
   description:
     "India's end-to-end placement operating system. DSA, core CS, mock interviews, mentors, projects, jobs — one platform from Day 1 of college to your first offer letter.",
@@ -79,8 +86,8 @@ function Shell({ children }: Readonly<{ children: React.ReactNode }>) {
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
       <body>
-        <SwrProvider><AnalyticsProvider><ConfirmProvider>{children}</ConfirmProvider></AnalyticsProvider></SwrProvider>
-        <ConsentBanner />
+        <MotionPreferences><SwrProvider><AnalyticsProvider><ConfirmProvider>{children}</ConfirmProvider></AnalyticsProvider></SwrProvider></MotionPreferences>
+        {!IS_LMS && <ConsentBanner />}
         <Toaster position="bottom-right" richColors closeButton
           toastOptions={{
             style: {
@@ -100,7 +107,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   // works for development. Auth-gated pages will surface their own prompt.
   if (!HAS_REAL_CLERK) return <Shell>{children}</Shell>;
   return (
-    <ClerkProvider appearance={clerkAppearance}>
+    <ClerkProvider appearance={clerkAppearance} signInUrl="/sign-in" signUpUrl="/sign-up" signInFallbackRedirectUrl={PORTAL_HOME} signUpFallbackRedirectUrl={PORTAL_HOME}>
       <Shell>{children}</Shell>
     </ClerkProvider>
   );

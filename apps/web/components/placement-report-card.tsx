@@ -69,7 +69,7 @@ export function PlacementReportCard() {
   return (
     <Card className="mt-5">
       <div className="flex items-center gap-2">
-        <Icons.trophy width={18} height={18} />
+        <Icons.Trophy width={18} height={18} />
         <h2 className="font-display font-bold">Got placed? Tell us</h2>
       </div>
       <p className="text-text-3 text-sm mt-1">

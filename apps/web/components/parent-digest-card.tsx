@@ -40,7 +40,7 @@ export function ParentDigestCard() {
   return (
     <Card className="mt-5">
       <div className="flex items-center gap-2">
-        <span className="text-accent"><Icons.users width={18} height={18} /></span>
+        <span className="text-accent"><Icons.Users width={18} height={18} /></span>
         <h2 className="font-display text-lg font-bold">Keep a parent in the loop</h2>
       </div>
       <p className="mt-1.5 text-sm text-text-3">
@@ -50,7 +50,7 @@ export function ParentDigestCard() {
       {data.parentEmail ? (
         <div className="mt-4 flex flex-col sm:flex-row items-start sm:items-center gap-2">
           <div className="flex-1 flex items-center gap-2 rounded-lg border border-border bg-surface-2 px-3.5 py-2.5 text-sm">
-            <Icons.card width={15} height={15} className="text-text-4" />
+            <Icons.Card width={15} height={15} className="text-text-4" />
             <span className="text-text-1 truncate">{data.parentEmail}</span>
             <span className="ml-auto text-easy text-xs">✓ on</span>
           </div>

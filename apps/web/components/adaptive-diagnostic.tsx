@@ -61,7 +61,7 @@ export function AdaptiveDiagnostic({ onExit }: Readonly<{ onExit: () => void }>)
         <div className="text-xs font-mono uppercase tracking-widest text-text-3">Diagnostic complete</div>
         <div className="mt-3 font-display text-2xl font-bold">Your mastery boundary: <span className="text-brand capitalize">{boundary}</span></div>
         <p className="text-text-3 text-sm mt-2 max-w-md mx-auto leading-relaxed">{READ[boundary]}</p>
-        <button onClick={onExit} className="mt-6 px-5 py-2.5 rounded-lg bg-brand text-white text-sm font-medium">Done</button>
+        <button type="button" onClick={onExit} className="mt-6 px-5 py-2.5 rounded-lg bg-brand text-white text-sm font-medium">Done</button>
       </div>
     );
   }
@@ -83,7 +83,7 @@ export function AdaptiveDiagnostic({ onExit }: Readonly<{ onExit: () => void }>)
       <p className="mt-5 text-text-1 font-medium">{q.prompt}</p>
       <div className="mt-4 grid gap-2">
         {q.choices.map((c, i) => (
-          <button key={i} disabled={busy} onClick={() => answer(i)}
+          <button type="button" key={i} disabled={busy} onClick={() => answer(i)}
             className="flex items-center gap-3 px-3 py-2.5 rounded-lg border border-border hover:border-accent hover:bg-surface-2 text-left text-sm transition-colors disabled:opacity-50">
             <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-surface-3 text-text-3 font-mono text-xs font-bold">{LETTERS[i]}</span>
             {c}

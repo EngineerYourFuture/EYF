@@ -47,7 +47,7 @@ export function ScoreShare() {
   return (
     <>
       <Button variant="secondary" size="sm" onClick={create} disabled={busy} className="mt-5">
-        <Icons.sparkle width={14} height={14} />
+        <Icons.Sparkle width={14} height={14} />
         {busy ? "Generating…" : "Share my EYF Score"}
       </Button>
 

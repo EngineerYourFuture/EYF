@@ -4,6 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 3000",
+    "dev:lms": "NEXT_PUBLIC_EYF_PORTAL=lms NEXT_DIST_DIR=.next-lms next dev -p 3001",
+    "build:lms": "NEXT_PUBLIC_EYF_PORTAL=lms NEXT_DIST_DIR=.next-lms next build",
+    "start:lms": "NEXT_PUBLIC_EYF_PORTAL=lms NEXT_DIST_DIR=.next-lms next start -p 3001",
     "build": "next build",
     "start": "next start -p 3000",
     "lint": "next lint --max-warnings 0",

@@ -71,7 +71,7 @@ export function Fracture() {
       <div className="sticky top-0 flex h-screen items-center justify-center overflow-hidden px-6">
         {/* the pile */}
         <div className="relative">
-          {FRAGS.map((f, i) => <Fragment key={i} f={f} progress={scrollYProgress} reduce={!!reduce} />)}
+          {FRAGS.map((f) => <Fragment key={`${f.x}:${f.y}`} f={f} progress={scrollYProgress} reduce={!!reduce} />)}
         </div>
 
         {/* the withheld number */}

@@ -132,10 +132,11 @@ async function main() {
   console.log(`\n✓ RLS verified on all ${ALL_ISOLATED_TABLES.length} isolated tables.`);
 }
 
-main()
-  .then(() => prisma.$disconnect())
-  .catch(async (e) => {
-    if (!(e instanceof Error && e.message === "RLS verification failed")) console.error(e);
-    await prisma.$disconnect();
-    process.exit(1);
-  });
+try {
+  await main();
+} catch (e) {
+  if (!(e instanceof Error && e.message === "RLS verification failed")) console.error(e);
+  process.exitCode = 1;
+} finally {
+  await prisma.$disconnect();
+}

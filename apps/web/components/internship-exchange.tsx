@@ -7,7 +7,7 @@ type Slot = {
   seats: number; unpaid?: boolean; locked: boolean;
   inContention?: boolean; spotsFromCutoff?: number;
 };
-type Exchange = { isElite: boolean; eliteRank: number | null; totalElite: number; slots: Slot[] };
+type Exchange = { previewAccess?: boolean; isElite: boolean; eliteRank: number | null; totalElite: number; slots: Slot[] };
 
 /**
  * Partner-internship exchange (the LMS↔internship flywheel payoff). Internships
@@ -22,14 +22,13 @@ export function InternshipExchange() {
     <div className="rounded-2xl border border-brand/25 bg-brand/[0.04] p-5 sm:p-6">
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <div className="text-xs font-mono uppercase tracking-widest text-brand">Partner internships · Elite</div>
           <h2 className="font-display text-xl font-bold mt-1">Internships from EYF partner companies</h2>
           <p className="text-text-3 text-sm mt-1 max-w-xl">
-            Unpaid and seats-limited — the top Elite members by EYF score earn them.
+            {data.previewAccess ? "Browse partner opportunities during preview. Viewing a listing does not reserve a seat." : "Unpaid and seats-limited — the top Elite members by EYF score earn them."}
             {data.isElite && data.eliteRank && <> You&apos;re <span className="text-text-1 font-medium">#{data.eliteRank} of {data.totalElite}</span> Elite members.</>}
           </p>
         </div>
-        {!data.isElite && <Link href="/billing" className="px-4 py-2 rounded-lg bg-brand text-white text-sm font-medium shrink-0">Upgrade to Elite</Link>}
+        {!data.previewAccess && !data.isElite && <Link href="/billing" className="px-4 py-2 rounded-lg bg-brand text-white text-sm font-medium shrink-0">Upgrade to Elite</Link>}
       </div>
 
       <div className="mt-5 grid sm:grid-cols-2 gap-3">
@@ -43,12 +42,13 @@ export function InternshipExchange() {
                 </div>
               </div>
               {(() => {
+                if (data.previewAccess) return <span className="text-text-2 text-xs shrink-0">Preview</span>;
                 if (s.locked) return <span className="text-text-4 text-xs shrink-0">🔒 Elite</span>;
                 if (s.inContention) return <span className="text-easy text-xs font-medium shrink-0">In contention</span>;
                 return <span className="text-medium text-xs shrink-0">#{(s.spotsFromCutoff ?? 0) + s.seats}</span>;
               })()}
             </div>
-            {!s.locked && (
+            {!data.previewAccess && !s.locked && (
               <div className={`text-[11px] mt-1 ${s.inContention ? "text-easy/80" : "text-text-4"}`}>
                 {(() => {
                   if (s.inContention) return `You're in the top ${s.seats} — this one's within reach.`;

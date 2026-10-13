@@ -5,7 +5,7 @@ import { useApi, useApiAction } from "@/lib/use-api";
 import { ResumeGap } from "@/components/resume-gap";
 import { track, Events } from "@/lib/analytics";
 import { toast } from "sonner";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import type { ResumeDocument } from "@eyf/types";
 
 type Resume = {
@@ -88,7 +88,7 @@ export default function Page() {
         {restored && (
           <output className="flex w-full items-center justify-between gap-3 rounded-lg border border-accent/40 bg-accent-tint/40 px-4 py-2.5 text-sm">
             <span className="text-text-2">Restored unsaved changes from your last session.</span>
-            <button
+            <button type="button"
               onClick={discardDraft}
               className="shrink-0 text-accent hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded px-1"
             >Discard</button>
@@ -237,17 +237,27 @@ function ListSection<T extends object>({
   render: (item: T, set: (next: T) => void) => React.ReactNode;
   empty: T;
 }>) {
+  const keys = useRef(new WeakMap<T, string>());
+  const rowKey = (item: T) => {
+    let key = keys.current.get(item);
+    if (!key) { key = crypto.randomUUID(); keys.current.set(item, key); }
+    return key;
+  };
+  const replace = (item: T, next: T) => {
+    keys.current.set(next, rowKey(item));
+    onChange(items.map((row) => row === item ? next : row));
+  };
   return (
     <Card>
       <div className="flex items-center justify-between mb-3">
         <h3 className="font-display text-lg font-bold">{title}</h3>
-        <Button size="sm" variant="secondary" onClick={() => onChange([...items, empty])} aria-label={`Add ${title.replace(/s$/, "").toLowerCase()}`}>+ Add</Button>
+        <Button size="sm" variant="secondary" onClick={() => onChange([...items, { ...empty }])} aria-label={`Add ${title.replace(/s$/, "").toLowerCase()}`}>+ Add</Button>
       </div>
       <div className="space-y-4">
         {items.map((it, i) => (
-          <div key={i} className="border border-border rounded-md p-3">
-            {render(it, (next) => onChange(items.map((x, j) => (j === i ? next : x))))}
-            <button
+          <div key={rowKey(it)} className="border border-border rounded-md p-3">
+            {render(it, (next) => replace(it, next))}
+            <button type="button"
               className="mt-2 text-xs text-hard hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded px-1"
               onClick={() => onChange(items.filter((_, j) => j !== i))}
               aria-label={`Remove ${title.replace(/s$/, "").toLowerCase()} ${i + 1}`}

@@ -10,14 +10,14 @@ import { Icons } from "@/components/icons";
 import { PERSONA_LIST, type PersonaId } from "@/lib/persona";
 
 const ROLES = [
-  { v: "SDE",       label: "Software Engineer", icon: "code" as const },
-  { v: "Frontend",  label: "Frontend",          icon: "cube" as const },
-  { v: "Backend",   label: "Backend",           icon: "briefcase" as const },
-  { v: "Full-Stack",label: "Full-Stack",        icon: "compass" as const },
-  { v: "Data",      label: "Data Engineer",     icon: "map" as const },
-  { v: "ML",        label: "ML / AI",           icon: "brain" as const },
-  { v: "DevOps",    label: "DevOps / SRE",      icon: "bolt" as const },
-  { v: "Mobile",    label: "Mobile",            icon: "target" as const },
+  { v: "SDE",       label: "Software Engineer", icon: "Code" as const },
+  { v: "Frontend",  label: "Frontend",          icon: "Cube" as const },
+  { v: "Backend",   label: "Backend",           icon: "Briefcase" as const },
+  { v: "Full-Stack",label: "Full-Stack",        icon: "Compass" as const },
+  { v: "Data",      label: "Data Engineer",     icon: "Map" as const },
+  { v: "ML",        label: "ML / AI",           icon: "Brain" as const },
+  { v: "DevOps",    label: "DevOps / SRE",      icon: "Bolt" as const },
+  { v: "Mobile",    label: "Mobile",            icon: "Target" as const },
 ];
 
 const YEARS = [2026, 2027, 2028, 2029];
@@ -63,26 +63,15 @@ export default function WelcomePage() {
         <Link href="/" className="font-display font-bold text-xl tracking-tight">EYF</Link>
         <div className="flex items-center gap-3">
           <ThemeToggle />
-          <button onClick={() => finish("/dashboard")} className="text-sm text-text-3 hover:text-text-1">Skip</button>
+          <button type="button" onClick={() => finish("/dashboard")} className="text-sm text-text-3 hover:text-text-1">Skip</button>
         </div>
       </header>
 
       <main className="relative flex-1 flex items-center justify-center px-5 py-8">
         <div className="w-full max-w-lg">
           {/* progress */}
-          <div
-            className="flex items-center gap-2 mb-8"
-            role="progressbar"
-            aria-valuemin={1}
-            aria-valuemax={STEPS}
-            aria-valuenow={step + 1}
-            aria-valuetext={`Step ${step + 1} of ${STEPS}`}
-            aria-label="Onboarding progress"
-          >
-            {Array.from({ length: STEPS }).map((_, i) => (
-              <div key={i} className={`h-1 flex-1 rounded-full transition-colors duration-300 ${i <= step ? "bg-accent" : "bg-surface-3"}`} />
-            ))}
-          </div>
+          <progress className="eyf-progress mb-8 h-1 w-full" value={step + 1} max={STEPS}
+            aria-valuetext={`Step ${step + 1} of ${STEPS}`} aria-label="Onboarding progress" />
 
           <AnimatePresence mode="wait">
             <motion.div key={step}
@@ -101,7 +90,7 @@ export default function WelcomePage() {
                       const Icon = Icons[p.icon];
                       const on = persona === p.id;
                       return (
-                        <button key={p.id} onClick={() => setPersona(p.id)} aria-pressed={on}
+                        <button type="button" key={p.id} onClick={() => setPersona(p.id)} aria-pressed={on}
                           className={`flex w-full items-center gap-4 rounded-xl border p-4 text-left transition-all ${
                             on ? "border-accent bg-accent-tint shadow-glow-sm" : "border-border bg-surface hover:border-edge"}`}>
                           <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${on ? "bg-accent text-accent-ink" : "bg-surface-2 text-text-3"}`}>
@@ -131,7 +120,7 @@ export default function WelcomePage() {
                       const Icon = Icons[r.icon];
                       const on = role === r.v;
                       return (
-                        <button key={r.v} onClick={() => setRole(r.v)} aria-pressed={on}
+                        <button type="button" key={r.v} onClick={() => setRole(r.v)} aria-pressed={on}
                           className={`flex items-center gap-3 rounded-xl border p-4 text-left transition-all ${
                             on ? "border-accent bg-accent-tint shadow-glow-sm" : "border-border bg-surface hover:border-edge"}`}>
                           <span className={on ? "text-accent" : "text-text-3"}><Icon width={20} height={20} /></span>
@@ -154,7 +143,7 @@ export default function WelcomePage() {
                   <p className="text-text-3 mt-2">This sets how aggressive your prep timeline should be.</p>
                   <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3">
                     {YEARS.map((y) => (
-                      <button key={y} onClick={() => setYear(y)} aria-pressed={year === y}
+                      <button type="button" key={y} onClick={() => setYear(y)} aria-pressed={year === y}
                         className={`rounded-xl border p-4 font-display text-xl font-bold transition-all ${
                           year === y ? "border-accent bg-accent-tint text-accent shadow-glow-sm" : "border-border bg-surface hover:border-edge"}`}>
                         {y}

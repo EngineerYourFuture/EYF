@@ -2,8 +2,10 @@
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import { Modal } from "./modal";
+import { UI_FADE, UI_SPRING, useMotionPreference } from "./interaction-motion";
 import { AppSidebar } from "./app-sidebar";
 import { BackButton } from "./back-button";
 import { ThemeToggle } from "./theme";
@@ -14,11 +16,11 @@ import { Icons } from "./icons";
 
 function SearchTrigger() {
   return (
-    <button
+    <button type="button"
       onClick={openCommandPalette}
-      className="mx-3 mt-3 mb-1 flex items-center gap-2 rounded-lg border border-border bg-surface-2 px-3 h-9 text-sm text-text-3 hover:border-edge hover:text-text-2 transition-colors"
+      className="pressable mx-3 mt-3 mb-1 flex items-center gap-2 rounded-lg border border-border bg-surface-2 px-3 min-h-11 text-sm text-text-3 hover:border-edge hover:text-text-2 transition-colors"
     >
-      <Icons.search width={15} height={15} />
+      <Icons.Search width={15} height={15} />
       <span>Search…</span>
       <kbd className="ml-auto text-[10px] font-mono border border-border rounded px-1.5 py-0.5">⌘K</kbd>
     </button>
@@ -53,7 +55,7 @@ function SidebarInner({ onNavigate, onCollapse }: Readonly<{ onNavigate?: () => 
       <div className="px-6 h-16 flex items-center justify-between border-b border-border shrink-0">
         <Link href="/" onClick={onNavigate} className="font-display font-bold text-xl">EYF</Link>
         {onCollapse && (
-          <button onClick={onCollapse} aria-label="Collapse sidebar" title="Collapse sidebar"
+          <button type="button" onClick={onCollapse} aria-label="Collapse sidebar" title="Collapse sidebar"
             className="hidden lg:inline-flex items-center justify-center h-8 w-8 -mr-2 rounded-lg text-text-3 hover:text-text-1 hover:bg-surface-3 transition-colors">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>
           </button>
@@ -70,9 +72,7 @@ export function AppShell({ children }: Readonly<{ children: React.ReactNode }>) 
   const [open, setOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const pathname = usePathname();
-  const reduce = useReducedMotion();
-  const menuBtnRef = useRef<HTMLButtonElement>(null);
-  const drawerRef = useRef<HTMLElement>(null);
+  const reduce = useMotionPreference();
 
   // Restore the collapsed preference (desktop sidebar).
   useEffect(() => { try { setCollapsed(localStorage.getItem("eyf-sidebar-collapsed") === "1"); } catch {} }, []);
@@ -81,38 +81,16 @@ export function AppShell({ children }: Readonly<{ children: React.ReactNode }>) 
   // Close the drawer whenever the route changes.
   useEffect(() => { setOpen(false); }, [pathname]);
 
-  // Lock body scroll while the drawer is open.
+  // A drawer opened on a phone must release focus and scroll on desktop resize.
   useEffect(() => {
-    document.body.style.overflow = open ? "hidden" : "";
-    return () => { document.body.style.overflow = ""; };
-  }, [open]);
-
-  // Drawer focus management: trap Tab within the dialog, Escape closes, and
-  // focus returns to the trigger on close (WCAG 2.4.3 / 2.1.2).
-  useEffect(() => {
-    if (!open) return;
-    const opener = menuBtnRef.current;
-    const sel = 'a[href], button:not([disabled]), input, [tabindex]:not([tabindex="-1"])';
-    const focusables = () => Array.from(drawerRef.current?.querySelectorAll<HTMLElement>(sel) ?? []);
-    focusables()[0]?.focus();
-    function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") { setOpen(false); return; }
-      if (e.key !== "Tab") return;
-      const f = focusables();
-      if (f.length === 0) return;
-      const first = f[0]!, last = f.at(-1)!;
-      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
-      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
-    }
-    document.addEventListener("keydown", onKey);
-    return () => {
-      document.removeEventListener("keydown", onKey);
-      opener?.focus();
-    };
-  }, [open]);
+    const desktop = window.matchMedia("(min-width: 1024px)");
+    const closeOnDesktop = () => { if (desktop.matches) setOpen(false); };
+    desktop.addEventListener("change", closeOnDesktop);
+    return () => desktop.removeEventListener("change", closeOnDesktop);
+  }, []);
 
   return (
-    <div className={`min-h-screen lg:grid ${collapsed ? "lg:grid-cols-[0_1fr]" : "lg:grid-cols-[248px_1fr]"}`}>
+    <div className={`eyf-app-shell min-h-screen lg:grid ${collapsed ? "lg:grid-cols-[0_1fr]" : "lg:grid-cols-[248px_1fr]"}`}>
       {/* Skip link — first focusable element, visible only on keyboard focus (WCAG 2.4.1). */}
       <a
         href="#main-content"
@@ -121,13 +99,13 @@ export function AppShell({ children }: Readonly<{ children: React.ReactNode }>) 
         Skip to content
       </a>
       {/* Desktop sidebar — collapsible, hidden on mobile (mobile uses the drawer) */}
-      <aside className={`${collapsed ? "hidden" : "hidden lg:flex"} border-r border-border glass flex-col h-screen sticky top-0`}>
+      <aside className={`${collapsed ? "hidden" : "hidden lg:flex"} border-r border-border glass-strong flex-col h-dvh sticky top-0`}>
         <SidebarInner onCollapse={() => setCol(true)} />
       </aside>
 
       {/* Desktop: floating button to reopen the collapsed sidebar */}
       {collapsed && (
-        <button onClick={() => setCol(false)} aria-label="Open sidebar" title="Open sidebar"
+        <button type="button" onClick={() => setCol(false)} aria-label="Open sidebar" title="Open sidebar"
           className="hidden lg:inline-flex fixed top-4 left-4 z-40 items-center justify-center h-9 w-9 rounded-lg border border-border glass text-text-2 hover:text-text-1 shadow-card transition-colors">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6" /></svg>
         </button>
@@ -135,15 +113,15 @@ export function AppShell({ children }: Readonly<{ children: React.ReactNode }>) 
 
       {/* Mobile top bar */}
       <header className="lg:hidden sticky top-0 z-40 h-14 px-4 flex items-center gap-3 border-b border-border glass">
-        <button ref={menuBtnRef} onClick={() => setOpen(true)} aria-label="Open menu" aria-haspopup="dialog" aria-expanded={open} className="p-1 -ml-1 text-text-2 hover:text-text-1">
+        <button type="button" onClick={() => setOpen(true)} aria-label="Open menu" aria-haspopup="dialog" aria-expanded={open} className="icon-button -ml-2 text-text-2 hover:text-text-1">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
             <path d="M3 12h18M3 6h18M3 18h18" />
           </svg>
         </button>
         <Link href="/" className="font-display font-bold text-lg tracking-tight">EYF</Link>
         <div className="ml-auto flex items-center gap-1">
-          <button onClick={openCommandPalette} aria-label="Search" className="inline-flex items-center justify-center h-9 w-9 rounded-lg text-text-3 hover:text-text-1 hover:bg-surface-3">
-            <Icons.search width={18} height={18} />
+          <button type="button" onClick={openCommandPalette} aria-label="Search" className="icon-button text-text-3 hover:text-text-1 hover:bg-surface-3">
+            <Icons.Search width={18} height={18} />
           </button>
           <ThemeToggle />
           <BackButton />
@@ -151,37 +129,20 @@ export function AppShell({ children }: Readonly<{ children: React.ReactNode }>) 
       </header>
 
       {/* Mobile drawer */}
-      <AnimatePresence>
-        {open && (
-          <>
-            <motion.div
-              className="lg:hidden fixed inset-0 z-50 bg-black/60"
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              onClick={() => setOpen(false)}
-            />
-            <motion.aside
-              ref={drawerRef}
-              role="dialog"
-              aria-modal="true"
-              aria-label="Navigation menu"
-              className="lg:hidden fixed inset-y-0 left-0 z-50 w-[78%] max-w-xs bg-bg border-r border-border flex flex-col"
-              initial={{ x: "-100%" }} animate={{ x: 0 }} exit={{ x: "-100%" }}
-              transition={{ type: "spring", stiffness: 320, damping: 34 }}
-            >
-              <div className="flex items-center justify-between border-b border-border h-14 px-4 shrink-0">
-                <span className="font-display font-bold text-lg">Menu</span>
-                <button onClick={() => setOpen(false)} aria-label="Close menu" className="p-1 text-text-3 hover:text-text-1">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                    <path d="M18 6 6 18M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-              <AppSidebar onNavigate={() => setOpen(false)} />
-              <AccountFooter />
-            </motion.aside>
-          </>
-        )}
-      </AnimatePresence>
+      <Modal open={open} onClose={() => setOpen(false)} label="Navigation menu" placement="left"
+        panelClassName="relative w-[min(82vw,20rem)] h-full border-r border-border glass-strong flex flex-col safe-area-drawer">
+        <div className="flex items-center justify-between border-b border-border min-h-14 px-4 shrink-0">
+          <span className="font-display font-semibold text-lg tracking-tight">Menu</span>
+          <button type="button" onClick={() => setOpen(false)} aria-label="Close menu" className="icon-button text-text-3 hover:text-text-1">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <path d="M18 6 6 18M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <SearchTrigger />
+        <AppSidebar onNavigate={() => setOpen(false)} />
+        <AccountFooter />
+      </Modal>
 
       <main id="main-content" tabIndex={-1} className="min-h-screen min-w-0 overflow-x-hidden lg:col-start-2 pb-20 lg:pb-0 focus:outline-none">
         <DesktopBackBar />
@@ -191,7 +152,7 @@ export function AppShell({ children }: Readonly<{ children: React.ReactNode }>) 
           key={pathname}
           initial={reduce ? false : { opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={reduce ? { duration: 0 } : { duration: 0.34, ease: [0.16, 1, 0.3, 1] }}
+          transition={reduce ? UI_FADE : UI_SPRING}
         >
           {children}
         </motion.div>
@@ -199,12 +160,11 @@ export function AppShell({ children }: Readonly<{ children: React.ReactNode }>) 
 
       {/* Mobile bottom tab bar — the core daily loop one thumb-tap away.
           The 5th tab opens the full drawer for everything else. */}
-      <MobileTabBar onMenu={() => setOpen(true)} />
+      <MobileTabBar open={open} onMenu={() => setOpen(true)} />
 
       <CommandPalette />
       {/* Content protection: forensic watermark + client deterrents. */}
-      <Watermark />
-      <ProtectionGuard />
+      {pathname !== "/sprint" && <><Watermark /><ProtectionGuard /></>}
     </div>
   );
 }
@@ -229,13 +189,13 @@ function DesktopBackBar() {
  * glass, safe-area aware; the Menu tab opens the full drawer. Hidden on lg+
  * where the sidebar owns navigation.
  */
-function MobileTabBar({ onMenu }: Readonly<{ onMenu: () => void }>) {
+function MobileTabBar({ onMenu, open }: Readonly<{ onMenu: () => void; open: boolean }>) {
   const pathname = usePathname();
   const tabs = [
-    { href: "/today", label: "Today", icon: Icons.bolt },
-    { href: "/problems", label: "Solve", icon: Icons.code },
-    { href: "/readiness", label: "Score", icon: Icons.target },
-    { href: "/ask", label: "Ask", icon: Icons.sparkle },
+    { href: "/today", label: "Today", icon: Icons.Bolt },
+    { href: "/problems", label: "Solve", icon: Icons.Code },
+    { href: "/readiness", label: "Score", icon: Icons.Target },
+    { href: "/ask", label: "Ask", icon: Icons.Sparkle },
   ];
   return (
     <nav
@@ -248,8 +208,8 @@ function MobileTabBar({ onMenu }: Readonly<{ onMenu: () => void }>) {
           const active = pathname.startsWith(t.href);
           const Icon = t.icon;
           return (
-            <Link key={t.href} href={t.href}
-              className={`flex flex-col items-center justify-center gap-1 text-[10px] font-mono uppercase tracking-wide transition-colors ${active ? "text-text-1" : "text-text-4 hover:text-text-2"}`}>
+            <Link key={t.href} href={t.href} aria-current={active ? "page" : undefined}
+              className={`pressable flex flex-col items-center justify-center gap-1 text-[10px] font-mono uppercase tracking-wide transition-colors ${active ? "text-text-1" : "text-text-4 hover:text-text-2"}`}>
               <span className={`flex h-7 w-12 items-center justify-center rounded-full transition-colors ${active ? "bg-surface-3" : ""}`}>
                 <Icon width={19} height={19} />
               </span>
@@ -257,9 +217,9 @@ function MobileTabBar({ onMenu }: Readonly<{ onMenu: () => void }>) {
             </Link>
           );
         })}
-        <button onClick={onMenu}
-          className="flex flex-col items-center justify-center gap-1 text-[10px] font-mono uppercase tracking-wide text-text-4 hover:text-text-2 transition-colors"
-          aria-label="Open full menu">
+        <button type="button" onClick={onMenu}
+          className="pressable flex flex-col items-center justify-center gap-1 text-[10px] font-mono uppercase tracking-wide text-text-4 hover:text-text-2 transition-colors"
+          aria-label="Open full menu" aria-haspopup="dialog" aria-expanded={open}>
           <span className="flex h-7 w-12 items-center justify-center rounded-full">
             <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
           </span>{" "}

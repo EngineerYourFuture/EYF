@@ -3,6 +3,8 @@ import { z } from "zod";
 import { prisma, Language, Verdict } from "@eyf/db";
 import { SUBMISSION_LIMITS, type Plan } from "@eyf/types";
 import { judgeQueue } from "../jobs/queue.js";
+import { env } from "../env.js";
+import { judgeAvailable } from "../services/judge-availability.js";
 
 const submitBody = z.object({
   problemSlug: z.string(),
@@ -11,6 +13,7 @@ const submitBody = z.object({
 });
 
 export async function submissionRoutes(app: FastifyInstance) {
+  app.get("/status", { preHandler: app.requireAuth }, async () => ({ success: true, data: { ready: await judgeAvailable() } }));
   app.post(
     "/",
     { preHandler: app.requireAuth },
@@ -24,7 +27,7 @@ export async function submissionRoutes(app: FastifyInstance) {
         where: { userId: user.id, submittedAt: { gte: startOfDay } },
       });
       const cap = SUBMISSION_LIMITS[user.plan as Plan];
-      if (todayCount >= cap) {
+      if (env.BILLING_ENABLED && todayCount >= cap) {
         // Free → suggest Basic (20/day); Basic → suggest Pro (unlimited).
         const nextPlan = user.plan === "free" ? "basic" : "pro";
         const nextBenefit = user.plan === "free" ? "20 submissions/day" : "unlimited submissions";
@@ -41,7 +44,7 @@ export async function submissionRoutes(app: FastifyInstance) {
 
       const problem = await prisma.problem.findUnique({
         where: { slug: problemSlug },
-        select: { id: true, premium: true },
+        select: { id: true, premium: true, executionMode: true, _count: { select: { testCases: true } } },
       });
       if (!problem) {
         return reply.code(404).send({
@@ -49,7 +52,16 @@ export async function submissionRoutes(app: FastifyInstance) {
           error: { code: "PROBLEM_NOT_FOUND", message: "No such problem." },
         });
       }
-      if (problem.premium && user.plan === "free") {
+      if (problem._count.testCases === 0) {
+        return reply.code(409).send({
+          success: false,
+          error: { code: "PROBLEM_NOT_READY", message: "This problem's tests are still being prepared. Choose another problem for now." },
+        });
+      }
+      if ((problem.executionMode === "SQL") !== (language === "SQL")) {
+        return reply.code(400).send({ success: false, error: { code: "LANGUAGE_MISMATCH", message: problem.executionMode === "SQL" ? "Use SQL for this database lab." : "Choose a programming language for this task. SQL is available in database labs." } });
+      }
+      if (env.BILLING_ENABLED && problem.premium && user.plan === "free") {
         return reply.code(402).send({
           success: false,
           error: {

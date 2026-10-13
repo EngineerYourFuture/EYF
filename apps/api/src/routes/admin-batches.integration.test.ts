@@ -79,7 +79,7 @@ describe.skipIf(!hasDb)("TPO batch roster + calibration (integration)", () => {
   });
 
   it("rejects a non-admin without the manage:users capability", async () => {
-    const token = app.jwt.sign({ id: "someone", email: "s@x", name: "S", role: "STUDENT", plan: "free" }, { expiresIn: "5m" });
+    const token = app.jwt.sign({ id: seededUserIds[0], email: "s@x", name: "S", role: "STUDENT_FREE", plan: "free" }, { expiresIn: "5m" });
     const res = await app.inject({ method: "POST", url: "/v1/admin/batches", headers: { authorization: `Bearer ${token}`, "content-type": "application/json" }, payload: JSON.stringify({ collegeName: "X College", gradYear: 2026 }) });
     expect(res.statusCode).toBe(403);
   });

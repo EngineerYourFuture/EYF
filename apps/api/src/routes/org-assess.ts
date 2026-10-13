@@ -1,3 +1,4 @@
+import { shuffle } from "../lib/shuffle.js";
 /**
  * Assessment engine — Phase 2 EPIC-10 (PRD §17/18). Reuses the staff-managed
  * McqBankQuestion pool + proven scoring. The strategic payoff: on submit an
@@ -96,6 +97,7 @@ export async function orgAssessRoutes(app: FastifyInstance) {
     const nameOf = new Map(users.map((u) => [u.id, u.name]));
     const rows = run.attempts
       .map((a) => ({
+        id: a.id,
         name: nameOf.get(a.userId) ?? "—",
         score: a.score,
         passed: a.score != null && a.score >= run.blueprint.passingScore,
@@ -153,7 +155,7 @@ export async function orgAssessRoutes(app: FastifyInstance) {
     });
     if (!run) return reply.code(404).send({ success: false, error: { code: "NOT_FOUND", message: "Run not found." } });
     const now = new Date();
-    if (run.windowEnd && run.windowEnd < now) {
+    if (!run.blueprint.active || run.windowStart > now || (run.windowEnd && run.windowEnd < now)) {
       return reply.code(409).send({ success: false, error: { code: "WINDOW_CLOSED", message: "This assessment window has closed." } });
     }
 
@@ -164,17 +166,17 @@ export async function orgAssessRoutes(app: FastifyInstance) {
       }
       // Resume — return the frozen set (sans answers).
       const qs = await questionsForClient(existing.questionIds);
-      return { success: true, data: { attemptId: existing.id, durationMin: run.blueprint.durationMin, proctorLevel: run.blueprint.proctorLevel, questions: qs } };
+      return { success: true, data: { attemptId: existing.id, durationMin: run.blueprint.durationMin, expiresAt: new Date(Math.min(existing.startedAt.getTime() + run.blueprint.durationMin * 60_000, run.windowEnd?.getTime() ?? Infinity)), proctorLevel: run.blueprint.proctorLevel, questions: qs } };
     }
 
     const pool = await prisma.mcqBankQuestion.findMany({ where: { active: true, category: run.blueprint.category }, select: { id: true } });
-    const drawn = [...pool].sort(() => Math.random() - 0.5).slice(0, run.blueprint.questionCount).map((q) => q.id);
-    if (drawn.length === 0) {
+    const drawn = shuffle(pool).slice(0, run.blueprint.questionCount).map((q) => q.id);
+    if (drawn.length < run.blueprint.questionCount) {
       return reply.code(409).send({ success: false, error: { code: "NO_QUESTIONS", message: "No questions available for this assessment." } });
     }
     const attempt = await prisma.assessmentAttempt.create({ data: { runId, userId: req.session!.id, questionIds: drawn } });
     const qs = await questionsForClient(drawn);
-    return { success: true, data: { attemptId: attempt.id, durationMin: run.blueprint.durationMin, proctorLevel: run.blueprint.proctorLevel, questions: qs } };
+    return { success: true, data: { attemptId: attempt.id, durationMin: run.blueprint.durationMin, expiresAt: new Date(Math.min(attempt.startedAt.getTime() + run.blueprint.durationMin * 60_000, run.windowEnd?.getTime() ?? Infinity)), proctorLevel: run.blueprint.proctorLevel, questions: qs } };
   });
 
   // Submit — scores against the frozen set, applies L1 integrity, and emits
@@ -182,7 +184,7 @@ export async function orgAssessRoutes(app: FastifyInstance) {
   app.post("/:orgId/attempts/:attemptId/submit", member, async (req, reply) => {
     const { attemptId } = req.params as { attemptId: string };
     const body = z.object({
-      answers: z.array(z.object({ questionId: z.string(), choice: z.number().int().min(-1).max(9) })).max(50),
+      answers: z.array(z.object({ questionId: z.string(), choice: z.number().int().min(-1).max(9) })).max(50).refine((answers) => new Set(answers.map((a) => a.questionId)).size === answers.length, "Answer each question only once."),
       proctorEvents: z.number().int().min(0).max(1000).default(0),
     }).parse(req.body);
 
@@ -193,6 +195,12 @@ export async function orgAssessRoutes(app: FastifyInstance) {
     if (!attempt) return reply.code(404).send({ success: false, error: { code: "NOT_FOUND", message: "Attempt not found." } });
     if (attempt.status !== "IN_PROGRESS") {
       return reply.code(409).send({ success: false, error: { code: "ALREADY_SUBMITTED", message: "Already submitted." } });
+    }
+
+    const deadline = Math.min(attempt.startedAt.getTime() + attempt.run.blueprint.durationMin * 60_000, attempt.run.windowEnd?.getTime() ?? Infinity);
+    if (Date.now() > deadline) {
+      await prisma.assessmentAttempt.updateMany({ where: { id: attemptId, status: "IN_PROGRESS" }, data: { status: "EXPIRED" } });
+      return reply.code(409).send({ success: false, error: { code: "ATTEMPT_EXPIRED", message: "The assessment time has expired." } });
     }
 
     // Score only questions in the frozen draw (client can't inject extras).
@@ -207,10 +215,12 @@ export async function orgAssessRoutes(app: FastifyInstance) {
     // floored at 50 — the score RANKS review, never auto-fails (PRD §17).
     const integrityScore = attempt.run.blueprint.proctorLevel >= 1 ? Math.max(50, 100 - body.proctorEvents * 10) : 100;
 
-    await prisma.assessmentAttempt.update({
-      where: { id: attemptId },
+    const finalized = await prisma.assessmentAttempt.updateMany({
+      where: { id: attemptId, status: "IN_PROGRESS" },
       data: { answers: answered, score, integrityScore, proctorEvents: body.proctorEvents, status: "SUBMITTED", submittedAt: new Date() },
     });
+
+    if (finalized.count === 0) return reply.code(409).send({ success: false, error: { code: "ALREADY_SUBMITTED", message: "Already submitted." } });
 
     // The payoff: proven performance → higher-trust ledger evidence.
     if (attempt.run.blueprint.skillId) {

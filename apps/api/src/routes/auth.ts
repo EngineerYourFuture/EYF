@@ -23,7 +23,7 @@ export async function authRoutes(app: FastifyInstance) {
       where: { email },
       include: { subscription: true },
     });
-    if (!user) {
+    if (!user || user.deletedAt) {
       return reply.code(404).send({
         success: false,
         error: { code: "USER_NOT_FOUND", message: "No user with that email." },

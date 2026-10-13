@@ -57,7 +57,7 @@ export default function Page() {
           </Card>
         ))}
         {data?.length === 0 && (
-          <EmptyState icon={<Icons.users width={28} height={28} />} title="Queue is clear"
+          <EmptyState icon={<Icons.Users width={28} height={28} />} title="Queue is clear"
             description="No mentor applications waiting for review. New applications will appear here." />
         )}
       </div>

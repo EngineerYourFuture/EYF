@@ -99,14 +99,14 @@ export default function Page() {
                 </div>
               </div>
               <div className="hidden sm:flex items-center gap-4 shrink-0 text-text-4 text-xs">
-                <span className="inline-flex items-center gap-1"><Icons.chat width={13} height={13} /> {t.postCount}</span>
-                <span className="inline-flex items-center gap-1"><Icons.activity width={13} height={13} /> {t.viewCount}</span>
+                <span className="inline-flex items-center gap-1"><Icons.Chat width={13} height={13} /> {t.postCount}</span>
+                <span className="inline-flex items-center gap-1"><Icons.Activity width={13} height={13} /> {t.viewCount}</span>
               </div>
             </Card>
           </Link>
         ))}
         {data?.length === 0 && (
-          <EmptyState icon={<Icons.chat width={22} height={22} />} title="No threads here yet"
+          <EmptyState icon={<Icons.Chat width={22} height={22} />} title="No threads here yet"
             description={cat ? "Nothing in this category. Be the first to post." : "Start the conversation — ask a doubt, share a win, debrief an interview."}
             action={<Button onClick={() => setOpen(true)}>Start a thread</Button>} />
         )}
@@ -117,7 +117,7 @@ export default function Page() {
 
 function Chip({ active, onClick, children }: Readonly<{ active: boolean; onClick: () => void; children: React.ReactNode }>) {
   return (
-    <button onClick={onClick}
+    <button type="button" onClick={onClick}
       className={`px-3 py-1.5 rounded-lg border transition-colors ${
         active ? "border-accent bg-accent-tint text-accent" : "border-border text-text-3 hover:border-edge"
       }`}>{children}</button>

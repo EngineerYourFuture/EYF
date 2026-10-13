@@ -114,10 +114,10 @@ const MoonIcon = (p: { className?: string }) => (
 export function ThemeToggle({ className = "" }: Readonly<{ className?: string }>) {
   const { toggle } = useTheme();
   return (
-    <button
+    <button type="button"
       onClick={toggle}
       aria-label="Toggle colour theme"
-      className={`inline-flex items-center justify-center h-9 w-9 rounded-lg text-text-3 hover:text-text-1 hover:bg-surface-3 border border-transparent hover:border-border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg ${className}`}
+      className={`icon-button text-text-3 hover:text-text-1 hover:bg-surface-3 border border-transparent hover:border-border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg ${className}`}
     >
       <SunIcon className="theme-icon-sun" />
       <MoonIcon className="theme-icon-moon" />

@@ -2,6 +2,8 @@
   "name": "@eyf/types",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
+  "files": ["src", "!src/**/*.test.ts"],
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "scripts": {

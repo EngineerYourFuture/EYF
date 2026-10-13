@@ -1,3 +1,4 @@
+import { shuffle } from "./shuffle.js";
 /**
  * MCQ question source — DB-first with a hardcoded-bank fallback.
  *
@@ -83,7 +84,7 @@ export async function pickTestSource(opts: { category: McqCategory; company?: st
       where: { active: true, category: opts.category as DbMcqCategory },
     });
   }
-  const shuffled = [...pool].sort(() => Math.random() - 0.5);
+  const shuffled = shuffle(pool);
   return shuffled.slice(0, Math.min(count, shuffled.length)).map(toQuestion);
 }
 

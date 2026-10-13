@@ -32,25 +32,51 @@ services:
       retries: 10
 
   # Judge0 — code execution sandbox. Self-hosted per spec (Phase 1).
-  # Enable with: docker compose --profile judge up -d
+  # Use a dedicated Linux amd64 host with cgroup v1 (Judge0 1.13.1 requirement).
+  # Start only these services: docker compose --profile judge up -d judge0 judge0-worker
+  # For remote hosts set JUDGE0_TOKEN and strong DB/Redis passwords; keep port private.
   judge0:
     image: judge0/judge0:1.13.1
+    platform: linux/amd64
     container_name: eyf-judge0
     profiles: ["judge"]
     restart: unless-stopped
     ports:
-      - "2358:2358"
+      - "127.0.0.1:2358:2358"
     privileged: true
     depends_on:
       - judge0-db
       - judge0-redis
-    environment:
+    environment: &judge-environment
       POSTGRES_HOST: judge0-db
       POSTGRES_DB: judge0
       POSTGRES_USER: judge0
       POSTGRES_PASSWORD: ${JUDGE0_DB_PASSWORD:-judge0}
       REDIS_HOST: judge0-redis
       REDIS_PORT: 6379
+      REDIS_PASSWORD: ${JUDGE0_REDIS_PASSWORD:-local-judge-redis}
+      AUTHN_TOKEN: ${JUDGE0_TOKEN:-}
+      ENABLE_NETWORK: "false"
+      ALLOW_ENABLE_NETWORK: "false"
+      ENABLE_CALLBACKS: "false"
+      ENABLE_ADDITIONAL_FILES: "false"
+      ENABLE_COMPILER_OPTIONS: "false"
+      ENABLE_COMMAND_LINE_ARGUMENTS: "false"
+      JUDGE0_TELEMETRY_ENABLE: "false"
+      COUNT: 2
+
+  # Judge0's execution workers are separate from EYF's BullMQ worker.
+  judge0-worker:
+    image: judge0/judge0:1.13.1
+    platform: linux/amd64
+    profiles: ["judge"]
+    command: ["./scripts/workers"]
+    restart: unless-stopped
+    privileged: true
+    depends_on:
+      - judge0-db
+      - judge0-redis
+    environment: *judge-environment
 
   judge0-db:
     image: postgres:16-alpine
@@ -65,6 +91,9 @@ services:
   judge0-redis:
     image: redis:7-alpine
     profiles: ["judge"]
+    environment:
+      REDIS_PASSWORD: ${JUDGE0_REDIS_PASSWORD:-local-judge-redis}
+    command: ["sh", "-c", "exec redis-server --appendonly no --requirepass \"$$REDIS_PASSWORD\""]
 
 volumes:
   eyf_pgdata:

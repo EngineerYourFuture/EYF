@@ -24,9 +24,14 @@ import { peekSession } from "./auth.js";
  */
 describe("rate-limit identity is resolved during onRequest", () => {
   let app: FastifyInstance;
+  let prisma: (typeof import("@eyf/db"))["prisma"];
+  let userId: string;
   let seen: ReturnType<typeof peekSession> | undefined;
 
   beforeAll(async () => {
+    ({ prisma } = await import("@eyf/db"));
+    const stamp = Date.now();
+    userId = (await prisma.user.create({ data: { clerkId: `rate-identity-${stamp}`, email: `rate-identity-${stamp}@test.eyf`, name: "Elite", role: "STUDENT_ELITE", subscription: { create: { plan: "ELITE", status: "ACTIVE" } } } })).id;
     app = await (await import("../app.js")).buildApp();
     app.get(
       "/__identity_probe",
@@ -43,12 +48,13 @@ describe("rate-limit identity is resolved during onRequest", () => {
   });
 
   afterAll(async () => {
+    await prisma.user.delete({ where: { id: userId } });
     await app.close();
   });
 
   it("exposes the caller's id and plan to onRequest consumers", async () => {
     const token = app.jwt.sign(
-      { id: "user_elite_1", email: "elite@test.eyf", name: "Elite", role: "STUDENT_ELITE", plan: "elite" },
+      { id: userId, email: "elite@test.eyf", name: "Elite", role: "STUDENT_ELITE", plan: "elite" },
       { expiresIn: "5m" },
     );
     const res = await app.inject({
@@ -59,7 +65,7 @@ describe("rate-limit identity is resolved during onRequest", () => {
 
     expect(res.statusCode).toBe(200);
     // Keying by id (not IP) is what keeps one campus NAT from sharing a bucket.
-    expect(seen?.id).toBe("user_elite_1");
+    expect(seen?.id).toBe(userId);
     // The plan is what selects the per-tier budget.
     expect(seen?.plan).toBe("elite");
   });

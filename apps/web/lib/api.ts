@@ -6,7 +6,7 @@
  */
 import type { ApiResponse } from "@eyf/types";
 
-const BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000/v1";
+export const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000/v1";
 
 export class ApiClientError extends Error {
   code: string;
@@ -26,11 +26,11 @@ export async function fetchApi<T = unknown>(
   // Only declare a JSON content-type when we're actually sending a JSON body.
   // Fastify rejects an empty body when content-type is application/json — which
   // would 400 every body-less POST (mock end, booking, roast, etc.).
-  const hasBody = rest.body != null;
+  const hasBody = rest.body != null && !(rest.body instanceof FormData);
   // Admin access-gate token (set after passing the /admin gate). Harmless on
   // non-admin routes; the API only checks it on capability-gated admin routes.
   const gate = typeof window !== "undefined" ? window.sessionStorage.getItem("eyf-admin-gate") : null;
-  const res = await fetch(`${BASE}${path}`, {
+  const res = await fetch(`${API_BASE}${path}`, {
     ...rest,
     headers: {
       ...(hasBody ? { "content-type": "application/json" } : {}),

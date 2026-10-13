@@ -62,6 +62,38 @@ export function codeDnaFromSubmissions(submissions: DnaSubmission[]): CodeDna {
   const difficultyMix = Array.from(diffCounts.entries())
     .map(([difficulty, count]) => ({ difficulty, count, pct: accepted.length ? count / accepted.length : 0 }));
 
+  const { patternStrengths, patternWeaknesses } = patternProfile(submissions);
+
+  const runtimes = accepted.map((s) => s.runtimeMs).filter((r): r is number => r != null);
+  const avgRuntimeMs = runtimes.length ? Math.round(runtimes.reduce((a, b) => a + b, 0) / runtimes.length) : null;
+
+  // Time-to-first-AC per problem (approximated from same-problem grouping).
+  // For now: fastest single accepted runtime is the closest signal.
+  const fastestSolveMin = runtimes.length ? Math.round(Math.min(...runtimes) / 60_000 * 10) / 10 : null;
+
+  const { firstTryRate, avgAttemptsToSolve, speedAccuracy } = solveStyle(submissions);
+
+  const habitFlags = submissionHabits(total, accepted.length, languageMix[0]?.pct ?? 0, diffCounts);
+
+  return {
+    totalSubmissions: total,
+    acceptedCount: accepted.length,
+    acceptanceRate: total ? accepted.length / total : 0,
+    primaryLanguage: languageMix[0]?.language ?? null,
+    languageMix,
+    difficultyMix,
+    patternStrengths,
+    patternWeaknesses,
+    avgRuntimeMs,
+    fastestSolveMin,
+    firstTryRate,
+    avgAttemptsToSolve,
+    speedAccuracy,
+    habitFlags,
+  };
+}
+
+function patternProfile(submissions: DnaSubmission[]) {
   // Pattern strengths/weaknesses — per-pattern acceptance rate.
   const patternStats = new Map<string, { attempts: number; accepted: number }>();
   for (const s of submissions) {
@@ -78,13 +110,10 @@ export function codeDnaFromSubmissions(submissions: DnaSubmission[]): CodeDna {
   const patternStrengths = [...patternRows].sort((a, b) => b.acceptanceRate - a.acceptanceRate).slice(0, 5);
   const patternWeaknesses = [...patternRows].sort((a, b) => a.acceptanceRate - b.acceptanceRate).slice(0, 5);
 
-  const runtimes = accepted.map((s) => s.runtimeMs).filter((r): r is number => r != null);
-  const avgRuntimeMs = runtimes.length ? Math.round(runtimes.reduce((a, b) => a + b, 0) / runtimes.length) : null;
+  return { patternStrengths, patternWeaknesses };
+}
 
-  // Time-to-first-AC per problem (approximated from same-problem grouping).
-  // For now: fastest single accepted runtime is the closest signal.
-  const fastestSolveMin = runtimes.length ? Math.round(Math.min(...runtimes) / 60_000 * 10) / 10 : null;
-
+function solveStyle(submissions: DnaSubmission[]) {
   // Speed vs accuracy — per-problem, how many submissions until the first AC.
   const byProblem = new Map<string, Verdict[]>();
   for (const s of submissions) {
@@ -109,26 +138,15 @@ export function codeDnaFromSubmissions(submissions: DnaSubmission[]): CodeDna {
   else if (avgAttemptsToSolve <= 2.2) speedAccuracy = "Iterates to correct — a couple of tries, then lands it.";
   else speedAccuracy = "Brute-forces via retries — slow down and trace edge cases before submitting.";
 
-  const habitFlags: string[] = [];
-  if (total >= 50 && accepted.length / total < 0.4) habitFlags.push("low-acceptance-grinder");
-  if (total >= 20 && languageMix[0] && languageMix[0].pct > 0.85) habitFlags.push("monolingual");
-  if (diffCounts.get("HARD") && diffCounts.get("HARD")! >= 5) habitFlags.push("hard-leaner");
-  if (accepted.length >= 30 && (diffCounts.get("EASY") ?? 0) / accepted.length > 0.7) habitFlags.push("easy-mode");
+  return { firstTryRate, avgAttemptsToSolve, speedAccuracy };
+}
 
-  return {
-    totalSubmissions: total,
-    acceptedCount: accepted.length,
-    acceptanceRate: total ? accepted.length / total : 0,
-    primaryLanguage: languageMix[0]?.language ?? null,
-    languageMix,
-    difficultyMix,
-    patternStrengths,
-    patternWeaknesses,
-    avgRuntimeMs,
-    fastestSolveMin,
-    firstTryRate,
-    avgAttemptsToSolve,
-    speedAccuracy,
-    habitFlags,
-  };
+function submissionHabits(total: number, acceptedCount: number, primaryLanguagePct: number, diffCounts: Map<Difficulty, number>) {
+  const habitFlags: string[] = [];
+  if (total >= 50 && acceptedCount / total < 0.4) habitFlags.push("low-acceptance-grinder");
+  if (total >= 20 && primaryLanguagePct > 0.85) habitFlags.push("monolingual");
+  if ((diffCounts.get("HARD") ?? 0) >= 5) habitFlags.push("hard-leaner");
+  if (acceptedCount >= 30 && (diffCounts.get("EASY") ?? 0) / acceptedCount > 0.7) habitFlags.push("easy-mode");
+
+  return habitFlags;
 }

@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { StaffLink } from "./staff-link";
 import { Icons } from "./icons";
 import { NAV_GROUPS } from "@/lib/nav";
@@ -24,6 +24,7 @@ function groupOfPath(pathname: string): string | null {
  */
 export function AppSidebar({ onNavigate }: Readonly<{ onNavigate?: () => void }>) {
   const pathname = usePathname();
+  const instanceId = useId();
   const activeGroup = groupOfPath(pathname);
   const [open, setOpen] = useState<Record<string, boolean>>({});
 
@@ -51,10 +52,10 @@ export function AppSidebar({ onNavigate }: Readonly<{ onNavigate?: () => void }>
     });
 
   return (
-    <nav className="flex-1 px-3 py-4 space-y-1 text-sm overflow-y-auto">
+    <nav aria-label="Sections" className="flex-1 px-3 py-4 space-y-1 text-sm overflow-y-auto overscroll-contain">
       {NAV_GROUPS.map((g) => {
         const expanded = !!open[g.label];
-        const panelId = `nav-${g.label.replace(/\s+/g, "-").toLowerCase()}`;
+        const panelId = `nav-${instanceId}-${g.label.replace(/\s+/g, "-").toLowerCase()}`;
         return (
           <div key={g.label}>
             <button
@@ -62,7 +63,7 @@ export function AppSidebar({ onNavigate }: Readonly<{ onNavigate?: () => void }>
               onClick={() => toggle(g.label)}
               aria-expanded={expanded}
               aria-controls={panelId}
-              className="w-full flex items-center gap-2 px-3 min-h-11 lg:min-h-9 rounded-md text-[10px] font-mono uppercase tracking-widest text-text-3 hover:text-text-1 hover:bg-surface transition-colors"
+              className="pressable w-full flex items-center gap-2 px-3 min-h-11 lg:min-h-9 rounded-md text-[10px] font-mono uppercase tracking-widest text-text-2 hover:text-text-1 hover:bg-surface transition-colors"
             >
               <span className="flex-1 text-left">{g.label}</span>
               <svg
@@ -74,8 +75,7 @@ export function AppSidebar({ onNavigate }: Readonly<{ onNavigate?: () => void }>
                 <path d="M6 9l6 6 6-6" />
               </svg>
             </button>
-            {expanded && (
-              <div id={panelId} className="mt-0.5 mb-2 space-y-0.5">
+            <div hidden={!expanded} id={panelId} className="mt-0.5 mb-2 space-y-0.5">
                 {g.items.map((i) => {
                   const active = pathname === i.href || pathname.startsWith(i.href + "/");
                   const Icon = Icons[i.icon];
@@ -85,20 +85,19 @@ export function AppSidebar({ onNavigate }: Readonly<{ onNavigate?: () => void }>
                       href={i.href}
                       onClick={onNavigate}
                       aria-current={active ? "page" : undefined}
-                      className={`group relative flex items-center gap-2.5 px-3 min-h-11 lg:min-h-0 lg:py-1.5 rounded-md transition-colors ${
+                      className={`pressable group relative flex items-center gap-2.5 px-3 min-h-11 lg:min-h-0 lg:py-1.5 rounded-md transition-colors ${
                         active
                           ? "bg-accent-tint text-text-1 font-medium"
                           : "text-text-2 hover:bg-surface hover:text-text-1"
                       }`}
                     >
-                      {active && <span className="absolute left-0 top-1/2 -translate-y-1/2 h-4 w-0.5 bg-accent rounded-r" />}
+                      {active && <span className="absolute left-0 top-1/2 -translate-y-1/2 h-4 w-0.5 bg-brand rounded-r" />}
                       <Icon width={16} height={16} className={active ? "text-accent" : "text-text-3 group-hover:text-text-2"} />
                       {i.label}
                     </Link>
                   );
                 })}
               </div>
-            )}
           </div>
         );
       })}
