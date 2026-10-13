@@ -1,3 +1,4 @@
+import { randomInt } from "node:crypto";
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { prisma } from "@eyf/db";
@@ -46,7 +47,7 @@ export async function assessmentRoutes(app: FastifyInstance) {
       for (const l of [level, level + 1, level - 1, level + 2, level - 2].filter((x) => x >= 0 && x <= 2)) {
         const candidates = pool.filter((q) => q.difficulty === LEVELS[l] && !body.seen.includes(q.id));
         if (candidates.length) {
-          const p = candidates[Math.floor(Math.random() * candidates.length)]!;
+          const p = candidates[randomInt(candidates.length)]!;
           next = { id: p.id, topic: p.topic, area: p.area, difficulty: p.difficulty, prompt: p.prompt, choices: p.choices };
           break;
         }

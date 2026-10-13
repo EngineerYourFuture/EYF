@@ -69,10 +69,12 @@ describe("org RBAC matrix (PRD §9 truth table)", () => {
     expect(isOrgStaff([])).toBe(false);
   });
 
-  it("role-grant hierarchy: only OWNER grants ADMIN/OWNER; HR can grant line roles", () => {
+  it("role-grant hierarchy: only OWNER grants ADMIN/OWNER; HR can grant only learner roles", () => {
     expect(canGrantRoles(["ADMIN"], ["ADMIN"])).toBe(false);
     expect(canGrantRoles(["OWNER"], ["ADMIN"])).toBe(true);
-    expect(canGrantRoles(["HR"], ["INSTRUCTOR", "MENTOR"])).toBe(true);
+    expect(canGrantRoles(["HR"], ["INSTRUCTOR", "MENTOR"])).toBe(false);
+    expect(canGrantRoles(["HR"], ["MEMBER", "INTERN"])).toBe(true);
+    expect(canGrantRoles(["OWNER"], ["UNKNOWN"])).toBe(false);
     expect(canGrantRoles(["HR"], ["OWNER"])).toBe(false);
     expect(canGrantRoles(["LND"], ["MEMBER"])).toBe(false);
   });

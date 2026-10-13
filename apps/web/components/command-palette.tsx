@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { AnimatePresence, motion } from "framer-motion";
+import { Modal } from "./modal";
 import { useApi } from "@/lib/use-api";
 import { NAV_ITEMS } from "@/lib/nav";
 import { Icons } from "./icons";
@@ -35,8 +35,6 @@ export function CommandPalette() {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
         setOpen((o) => !o);
-      } else if (e.key === "Escape") {
-        setOpen(false);
       }
     };
     const onOpen = () => setOpen(true);
@@ -47,8 +45,6 @@ export function CommandPalette() {
 
   useEffect(() => {
     if (open) { setQuery(""); setDebounced(""); setActive(0); }
-    document.body.style.overflow = open ? "hidden" : "";
-    return () => { document.body.style.overflow = ""; };
   }, [open]);
 
   useEffect(() => {
@@ -62,17 +58,17 @@ export function CommandPalette() {
   );
 
   const rows = useMemo<Row[]>(() => {
-    const q = debounced.toLowerCase();
+    const q = query.trim().toLowerCase();
     const navMatches: Row[] = NAV_ITEMS
       .filter((n) => !q || n.label.toLowerCase().includes(q) || (n.keywords ?? "").includes(q))
       .map((n) => ({ kind: "nav", href: n.href, label: n.label, icon: n.icon, hint: "Page" }));
-    const probMatches: Row[] = (problems ?? []).slice(0, 6).map((p) => ({
+    const probMatches: Row[] = (query.trim() === debounced ? problems ?? [] : []).slice(0, 6).map((p) => ({
       kind: "problem", href: `/problems/${p.slug}`, label: p.title, difficulty: p.difficulty,
     }));
     return [...navMatches.slice(0, q ? 6 : NAV_ITEMS.length), ...probMatches];
-  }, [debounced, problems]);
+  }, [query, debounced, problems]);
 
-  useEffect(() => { setActive(0); }, [debounced, problems]);
+  useEffect(() => { setActive(0); }, [query, debounced, problems]);
 
   const go = useCallback((row?: Row) => {
     if (!row) return;
@@ -81,7 +77,7 @@ export function CommandPalette() {
   }, [router]);
 
   const onInputKey = (e: React.KeyboardEvent) => {
-    if (e.key === "ArrowDown") { e.preventDefault(); setActive((a) => Math.min(a + 1, rows.length - 1)); }
+    if (e.key === "ArrowDown") { e.preventDefault(); setActive((a) => Math.min(a + 1, Math.max(0, rows.length - 1))); }
     else if (e.key === "ArrowUp") { e.preventDefault(); setActive((a) => Math.max(a - 1, 0)); }
     else if (e.key === "Enter") { e.preventDefault(); go(rows[active]); }
   };
@@ -93,46 +89,48 @@ export function CommandPalette() {
   }, [active]);
 
   return (
-    <AnimatePresence>
-      {open && (
-        <motion.div
-          className="fixed inset-0 z-[100] flex items-start justify-center px-4 pt-[12vh] bg-black/60 backdrop-blur-sm"
-          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-          onClick={() => setOpen(false)}
-        >
-          <motion.div
-            className="w-full max-w-xl rounded-2xl border border-edge glass-strong shadow-card-lg overflow-hidden"
-            initial={{ opacity: 0, y: -8, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -8, scale: 0.98 }}
-            transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
-            onClick={(e) => e.stopPropagation()}
-          >
+    <Modal open={open} onClose={() => setOpen(false)} label="Search EYF" placement="top"
+      panelClassName="relative w-full max-w-xl rounded-2xl border border-edge glass-strong shadow-card-lg overflow-hidden">
             <div className="flex items-center gap-3 px-4 border-b border-border">
-              <span className="text-text-3"><Icons.search width={18} height={18} /></span>
+              <span className="text-text-3"><Icons.Search width={18} height={18} /></span>
               <input
-                autoFocus
+                data-autofocus
+                role="combobox"
+                aria-label="Search pages and problems"
+                aria-expanded="true"
+                aria-controls="command-results"
+                aria-autocomplete="list"
+                aria-activedescendant={rows[active] ? `command-result-${active}` : undefined}
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={onInputKey}
                 placeholder="Search pages and problems…"
-                className="flex-1 h-14 bg-transparent text-text-1 placeholder:text-text-4 focus:outline-none text-[15px]"
+                className="min-w-0 flex-1 h-14 bg-transparent text-text-1 placeholder:text-text-4 focus:outline-none text-base"
               />
-              <kbd className="hidden sm:inline text-[10px] font-mono text-text-4 border border-border rounded px-1.5 py-0.5">ESC</kbd>
+              <button type="button" onClick={() => setOpen(false)} aria-label="Close search" className="icon-button shrink-0 text-text-3 hover:text-text-1">
+                <span aria-hidden="true">×</span>
+              </button>
             </div>
 
-            <div ref={listRef} className="max-h-[55vh] overflow-y-auto py-2">
+            <div ref={listRef} id="command-results" role="listbox" aria-label="Search results" className="max-h-[min(55dvh,28rem)] overflow-y-auto overscroll-contain py-2">
               {rows.length === 0 && (
-                <div className="px-4 py-10 text-center text-text-3 text-sm">No matches for “{debounced}”.</div>
+                <div className="px-4 py-10 text-center text-text-3 text-sm">No matches for “{query.trim()}”.</div>
               )}
               {rows.map((row, i) => {
-                const Icon = row.kind === "nav" ? Icons[row.icon] : Icons.code;
+                const Icon = row.kind === "nav" ? Icons[row.icon] : Icons.Code;
                 const selected = i === active;
                 return (
                   <button
+                    type="button"
+                    role="option"
+                    id={`command-result-${i}`}
+                    aria-selected={selected}
+                    tabIndex={-1}
                     key={row.href}
                     data-idx={i}
                     onMouseEnter={() => setActive(i)}
                     onClick={() => go(row)}
-                    className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors ${
+                    className={`pressable w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors ${
                       selected ? "bg-accent-tint" : "hover:bg-surface-2"
                     }`}
                   >
@@ -151,9 +149,6 @@ export function CommandPalette() {
               <span><kbd className="font-mono">↵</kbd> open</span>
               <span className="ml-auto"><kbd className="font-mono">⌘K</kbd> toggle</span>
             </div>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+    </Modal>
   );
 }

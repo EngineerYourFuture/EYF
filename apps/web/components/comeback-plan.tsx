@@ -46,7 +46,7 @@ export function ComebackPlanModal({ appId, companyName, jobTitle, onClose }: Rea
             <div className="font-mono text-[11px] uppercase tracking-widest text-accent">Comeback plan</div>
             <h2 id="comeback-title" className="font-display text-xl font-bold mt-1">{jobTitle} · {companyName}</h2>
           </div>
-          <button onClick={onClose} aria-label="Close" className="text-text-4 hover:text-text-1 p-1 -m-1">
+          <button type="button" onClick={onClose} aria-label="Close" className="text-text-4 hover:text-text-1 p-1 -m-1">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
           </button>
         </div>
@@ -58,7 +58,7 @@ export function ComebackPlanModal({ appId, companyName, jobTitle, onClose }: Rea
             <p className="text-text-4 text-xs mt-1">That tells us which bar you hit — the plan is different for each.</p>
             <div className="mt-4 grid gap-2">
               {STAGES.map((s) => (
-                <button key={s} onClick={() => pick(s)}
+                <button type="button" key={s} onClick={() => pick(s)}
                   className="rounded-xl border border-border bg-surface-2 px-4 py-3 text-left hover:border-edge transition-colors">
                   <span className="font-medium">{STAGE_META[s].label}</span>
                 </button>
@@ -100,7 +100,7 @@ export function ComebackPlanModal({ appId, companyName, jobTitle, onClose }: Rea
                     {(tasks as { label: string; href: string }[]).map((t) => (
                       <Link key={t.label} href={t.href} onClick={onClose}
                         className="flex items-center gap-2.5 rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text-2 hover:text-text-1 hover:border-edge transition-colors">
-                        <span className="text-accent shrink-0"><Icons.arrow width={13} height={13} /></span>
+                        <span className="text-accent shrink-0"><Icons.Arrow width={13} height={13} /></span>
                         {t.label}
                       </Link>
                     ))}
@@ -127,7 +127,7 @@ export function ComebackPlanModal({ appId, companyName, jobTitle, onClose }: Rea
               <Link href="/today" onClick={onClose} className="flex-1">
                 <Button className="w-full">Start day 1 now</Button>
               </Link>
-              <button onClick={() => setStage(null)} className="text-text-4 text-xs hover:text-text-2">Change stage</button>
+              <button type="button" onClick={() => setStage(null)} className="text-text-4 text-xs hover:text-text-2">Change stage</button>
             </div>
           </div>
         );

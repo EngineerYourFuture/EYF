@@ -1,3 +1,4 @@
+import { trackedMessage } from "../lib/provider-usage.js";
 /**
  * AI mock interview — Anthropic Claude as the interviewer.
  *
@@ -23,7 +24,7 @@ export async function startMockSession(input: {
   problemFocus?: string;
 }): Promise<MockKickoff> {
   if (!anthropic) throw new Error("ANTHROPIC_API_KEY not set");
-  const msg = await anthropic.messages.create({
+  const msg = await trackedMessage(anthropic, {
     model: MODEL,
     max_tokens: 300,
     system: interviewerSystemPrompt(input),
@@ -40,7 +41,7 @@ export async function nextTurn(input: {
   history: Turn[];
 }): Promise<string> {
   if (!anthropic) throw new Error("ANTHROPIC_API_KEY not set");
-  const msg = await anthropic.messages.create({
+  const msg = await trackedMessage(anthropic, {
     model: MODEL,
     max_tokens: 600,
     system: interviewerSystemPrompt(input),
@@ -53,7 +54,7 @@ export async function nextTurn(input: {
 export async function gradeMockSession(history: Turn[]): Promise<MockFeedback> {
   if (!anthropic) throw new Error("ANTHROPIC_API_KEY not set");
   const transcript = history.map((t) => `${t.role === "user" ? "Candidate" : "Interviewer"}: ${t.content}`).join("\n\n");
-  const msg = await anthropic.messages.create({
+  const msg = await trackedMessage(anthropic, {
     model: MODEL,
     max_tokens: 1200,
     system: gradingSystemPrompt(),

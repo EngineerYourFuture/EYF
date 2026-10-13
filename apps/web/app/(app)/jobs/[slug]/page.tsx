@@ -42,7 +42,7 @@ export default function Page() {
     <PageMotion className="relative">
       <div className="relative px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-5xl mx-auto">
         <Link href="/jobs" className="text-text-3 hover:text-text-1 text-sm inline-flex items-center gap-1.5">
-          <span className="rotate-180"><Icons.arrow width={14} height={14} /></span> All jobs
+          <span className="rotate-180"><Icons.Arrow width={14} height={14} /></span> All jobs
         </Link>
 
         {!data ? (
@@ -74,7 +74,7 @@ export default function Page() {
             <Card className="mt-4 whitespace-pre-wrap text-text-2 leading-relaxed">{data.description}</Card>
 
             <div className="mt-6 flex gap-3">
-              <a href={data.applyUrl} target="_blank" rel="noreferrer"><Button glow>Apply <Icons.arrow width={14} height={14} /></Button></a>
+              <a href={data.applyUrl} target="_blank" rel="noreferrer"><Button glow>Apply <Icons.Arrow width={14} height={14} /></Button></a>
               {saved
                 ? <Button variant="secondary" disabled><span className="text-easy">✓</span> Saved</Button>
                 : <Button variant="secondary" onClick={save} disabled={saving}>{saving ? "Saving…" : "Save to tracker"}</Button>}

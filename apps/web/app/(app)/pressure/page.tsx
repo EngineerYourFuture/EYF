@@ -127,7 +127,7 @@ export default function Page() {
             <span id="pressure-level-label" className="text-xs text-text-3 uppercase tracking-wider">Pressure level</span>
             <div className="mt-2 grid grid-cols-2 md:grid-cols-4 gap-2">
               {LEVELS.map((l) => (
-                <button key={l.id} onClick={() => setLevel(l.id)} aria-pressed={level === l.id}
+                <button type="button" key={l.id} onClick={() => setLevel(l.id)} aria-pressed={level === l.id}
                   className={`text-left p-3 border rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${level === l.id ? "border-accent bg-accent-tint" : "border-border hover:border-text-3"}`}>
                   <div className="font-semibold text-sm">{l.label}</div>
                   <div className="text-text-3 text-xs mt-1">{l.blurb}</div>

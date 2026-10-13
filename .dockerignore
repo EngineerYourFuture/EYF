@@ -1,6 +1,8 @@
 **/node_modules
 **/.next
+**/.next-*
 **/dist
+**/*.tsbuildinfo
 **/.turbo
 **/coverage
 **/.git
@@ -12,3 +14,11 @@
 .gstack
 **/test-results
 **/playwright-report
+**/.eyf-private-media
+**/*.dump
+**/*.media.tar.gz
+**/.DS_Store
+packages/db/src/generated
+.scannerwork
+.context
+.impeccable

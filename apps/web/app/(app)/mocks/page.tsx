@@ -19,9 +19,9 @@ type Mock = {
 const COMPANIES = ["Amazon","Google","Flipkart","Razorpay","Swiggy","Microsoft","Meta","Generic"];
 
 const MODES: { icon: IconName; title: string; cadence: string; desc: string; href: string; cta: string }[] = [
-  { icon: "mic", title: "AI mock", cadence: "24/7", desc: "Claude plays a real interviewer — pushback, edge cases, follow-ups.", href: "#ai", cta: "Start below" },
-  { icon: "users", title: "Peer mock", cadence: "Daily", desc: "Pair with another candidate and interview each other live.", href: "/peer-mocks", cta: "Find a peer" },
-  { icon: "award", title: "Expert mock", cadence: "Weekly", desc: "Book a senior engineer from a top company for a graded loop.", href: "/mentors", cta: "Book a mentor" },
+  { icon: "Mic", title: "AI mock", cadence: "24/7", desc: "Claude plays a real interviewer — pushback, edge cases, follow-ups.", href: "#ai", cta: "Start below" },
+  { icon: "Users", title: "Peer mock", cadence: "Daily", desc: "Pair with another candidate and interview each other live.", href: "/peer-mocks", cta: "Find a peer" },
+  { icon: "Award", title: "Expert mock", cadence: "Weekly", desc: "Book a senior engineer from a top company for a graded loop.", href: "/mentors", cta: "Book a mentor" },
 ];
 
 export default function Page() {
@@ -68,7 +68,7 @@ export default function Page() {
               </div>
               <div className="mt-3 font-display text-lg font-bold">{m.title}</div>
               <p className="text-text-3 text-sm mt-1 flex-1 leading-snug">{m.desc}</p>
-              <span className="mt-3 text-accent text-sm inline-flex items-center gap-1">{m.cta} <Icons.arrow width={14} height={14} /></span>
+              <span className="mt-3 text-accent text-sm inline-flex items-center gap-1">{m.cta} <Icons.Arrow width={14} height={14} /></span>
             </Link>
           );
         })}
@@ -116,7 +116,7 @@ export default function Page() {
         ))}
         {data?.length === 0 && (
           <div className="rounded-xl border border-dashed border-border p-8 text-center">
-            <div className="text-text-4 flex justify-center mb-3"><Icons.mic width={26} height={26} /></div>
+            <div className="text-text-4 flex justify-center mb-3"><Icons.Mic width={26} height={26} /></div>
             <p className="text-text-2 font-medium">No mocks yet</p>
             <p className="text-text-4 text-sm mt-1">Your first AI mock is one click away — start one above to baseline your readiness.</p>
           </div>

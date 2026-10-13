@@ -2,8 +2,8 @@
 /**
  * Global data-layer tuning — the "instant app" feel.
  *
- * - keepPreviousData: navigating between filters/keys shows the last data
- *   instantly instead of flashing skeletons.
+ * - Account changes remount the cache. Never keep a previous account or
+ *   organization response visible while a different key loads.
  * - dedupingInterval 15s: five components asking for /me within a screen
  *   share one request; tab-hopping doesn't re-storm the API.
  * - revalidateOnFocus off: alt-tabbing back doesn't jank the whole UI with
@@ -17,12 +17,26 @@
 import { SWRConfig } from "swr";
 import { toast } from "sonner";
 import { ApiClientError } from "@/lib/api";
+import { HAS_REAL_CLERK, useEyfAuth } from "@/lib/auth";
+import { useMemo } from "react";
 
 export function SwrProvider({ children }: Readonly<{ children: React.ReactNode }>) {
+  // Public pages in local preview must not start a dev login just to mount a cache.
+  return HAS_REAL_CLERK ? <AuthenticatedCache>{children}</AuthenticatedCache> : <AccountCache>{children}</AccountCache>;
+}
+
+function AuthenticatedCache({ children }: Readonly<{ children: React.ReactNode }>) {
+  const { userId } = useEyfAuth();
+  return <AccountCache key={userId ?? "anonymous"}>{children}</AccountCache>;
+}
+
+function AccountCache({ children }: Readonly<{ children: React.ReactNode }>) {
+  const cache = useMemo(() => new Map(), []);
   return (
     <SWRConfig
       value={{
-        keepPreviousData: true,
+        provider: () => cache,
+        keepPreviousData: false,
         dedupingInterval: 15_000,
         revalidateOnFocus: false,
         errorRetryCount: 3,

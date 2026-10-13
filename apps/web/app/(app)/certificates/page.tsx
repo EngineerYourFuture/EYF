@@ -21,7 +21,7 @@ export default function Page() {
           <Card key={c.id} interactive className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3 min-w-0">
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent-tint text-accent border border-accent/20">
-                <Icons.award width={20} height={20} />
+                <Icons.Award width={20} height={20} />
               </span>
               <div className="min-w-0">
                 <div className="font-display text-lg truncate">{c.title}</div>
@@ -39,7 +39,7 @@ export default function Page() {
         ))}
         {data?.length === 0 && (
           <EmptyState
-            icon={<Icons.award width={28} height={28} />}
+            icon={<Icons.Award width={28} height={28} />}
             title="No certificates yet"
             description="Finish a pattern track or ace an assessment to earn a verifiable certificate you can share on LinkedIn."
             action={<Link href="/assessment"><Button>Take the assessment</Button></Link>}

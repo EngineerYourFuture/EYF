@@ -87,10 +87,10 @@ export default function PipelinePage() {
 
       {/* Funnel stats */}
       <div className="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <Stat label="Tracking" value={active.length} icon="briefcase" />
-        <Stat label="In process" value={interviewing} icon="activity" tone="medium" />
-        <Stat label="Offers" value={offers} icon="trophy" tone="easy" />
-        <Stat label="Closed" value={closed.length} icon="doc" />
+        <Stat label="Tracking" value={active.length} icon="Briefcase" />
+        <Stat label="In process" value={interviewing} icon="Activity" tone="medium" />
+        <Stat label="Offers" value={offers} icon="Trophy" tone="easy" />
+        <Stat label="Closed" value={closed.length} icon="Doc" />
       </div>
 
       {apps && apps.length >= 2 && (
@@ -104,7 +104,7 @@ export default function PipelinePage() {
   if (active.length === 0) return (
         <EmptyState
           className="mt-10"
-          icon={<Icons.briefcase width={28} height={28} />}
+          icon={<Icons.Briefcase width={28} height={28} />}
           title="Your pipeline is empty"
           description="Save roles from the jobs board and they'll appear here, ready to track through to an offer."
           action={<Link href="/jobs"><Button>Browse jobs</Button></Link>}
@@ -147,11 +147,11 @@ export default function PipelinePage() {
                 <div className="mt-2 flex items-center gap-2 flex-wrap">
                   <Badge tone={a.status === "OFFER" ? "easy" : "default"}>{a.status}</Badge>
                   {a.status === "REJECTED" && (
-                    <button onClick={() => setComebackFor(a)} className="text-easy text-xs font-medium hover:underline">
+                    <button type="button" onClick={() => setComebackFor(a)} className="text-easy text-xs font-medium hover:underline">
                       Comeback plan →
                     </button>
                   )}
-                  <button onClick={() => setStatus(a.id, "SAVED")} className="text-text-4 text-xs hover:underline">Reopen</button>
+                  <button type="button" onClick={() => setStatus(a.id, "SAVED")} className="text-text-4 text-xs hover:underline">Reopen</button>
                 </div>
               </Card>
             ))}
@@ -189,10 +189,10 @@ function AppCard({ app: a, busy, onAdvance, onReject }: Readonly<{
       <div className="mt-3 flex items-center gap-1.5">
         {onAdvance && (
           <Button size="sm" onClick={onAdvance} disabled={busy} className="flex-1">
-            Advance <Icons.arrow width={13} height={13} />
+            Advance <Icons.Arrow width={13} height={13} />
           </Button>
         )}
-        <button
+        <button type="button"
           onClick={onReject}
           disabled={busy}
           title="Mark closed"

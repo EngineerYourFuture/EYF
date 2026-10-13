@@ -46,8 +46,8 @@ export function ResumeGap({ resumeId }: Readonly<{ resumeId: string }>) {
       {data.fixes.length > 0 && (
         <div className="mt-5 space-y-3">
           <div className="text-xs font-mono uppercase tracking-wider text-text-3">Clear the bar</div>
-          {data.fixes.map((f, i) => (
-            <div key={i} className="flex gap-2.5">
+          {data.fixes.map((f) => (
+            <div key={f.label} className="flex gap-2.5">
               <span className={`mt-1.5 h-1.5 w-1.5 rounded-full shrink-0 ${f.severity === "high" ? "bg-brand" : "bg-medium"}`} />
               <div className="min-w-0">
                 <div className="text-sm font-medium text-text-1">{f.label}</div>

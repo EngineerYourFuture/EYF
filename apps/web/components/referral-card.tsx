@@ -39,7 +39,7 @@ export function ReferralCard() {
   return (
     <Card className="mt-5">
       <div className="flex items-center gap-2">
-        <span className="text-accent"><Icons.gift width={18} height={18} /></span>
+        <span className="text-accent"><Icons.Gift width={18} height={18} /></span>
         <h2 className="font-display text-lg font-bold">Bring a friend, both get Pro</h2>
       </div>
       <p className="mt-1.5 text-sm text-text-3">

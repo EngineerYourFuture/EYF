@@ -55,7 +55,7 @@ export function ErrorState({
       <h3 className="font-display text-base font-bold text-text-1">{title}</h3>
       <p className="text-text-2 text-sm mt-1 max-w-sm mx-auto leading-relaxed">{message}</p>
       {retry && (
-        <button
+        <button type="button"
           onClick={retry}
           className="mt-4 inline-flex items-center gap-1.5 h-9 px-4 rounded-md bg-surface-2 border border-border text-text-1 text-sm hover:border-edge hover:bg-surface-3 transition-colors"
         >

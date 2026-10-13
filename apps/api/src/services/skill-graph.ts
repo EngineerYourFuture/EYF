@@ -93,33 +93,10 @@ export function skillGraphFrom(data: SkillGraphInput): SkillGraph {
 
   // ── Aptitude (assessment gap + brain games + timed MCQ tests) ───────
   const gap = (latestAssessment?.gapAnalysis ?? {}) as { dsa?: number; cs?: number; aptitude?: number };
-  const cogAcc = mean(cognitive.map((c) => c.accuracyPct));
   const aptMcq = mean([mcqBest("APTITUDE"), mcqBest("LOGICAL")].filter((s) => s > 0));
-  // Average of whichever signals the user has actually produced.
-  const aptSignals = [
-    ...(latestAssessment ? [gap.aptitude ?? 0] : []),
-    ...(cognitive.length ? [cogAcc] : []),
-    ...(aptMcq > 0 ? [aptMcq] : []),
-  ];
-  const aptitude = clamp(mean(aptSignals));
+  const aptitude = aptitudeScore(latestAssessment ? gap.aptitude ?? 0 : undefined, cognitive, aptMcq);
 
-  // ── Core CS subjects (per-subject SRS mastery, floored by assessment CS) ──
-  const totalBySubject = new Map<Subject, number>();
-  for (const row of flashcards) totalBySubject.set(row.subject, row._count);
-  const repsBySubject = new Map<Subject, number[]>();
-  for (const r of reviews) {
-    const s = r.flashcard.subject;
-    const arr = repsBySubject.get(s) ?? [];
-    arr.push(Math.min(1, r.repetitions / 3)); // 3 clean reps ≈ locked in
-    repsBySubject.set(s, arr);
-  }
-  const techMcq = mcqBest("TECHNICAL"); // core-CS MCQ signal, shared across subjects
-  const subjectScore = (s: Subject) => {
-    const total = totalBySubject.get(s) ?? 0;
-    const progress = repsBySubject.get(s) ?? [];
-    const srs = total > 0 ? (progress.reduce((a, b) => a + b, 0) / total) * 100 : 0;
-    return clamp(0.7 * srs + 0.15 * (gap.cs ?? 0) + 0.15 * techMcq);
-  };
+  const { subjectScore, repsBySubject } = subjectMastery(flashcards, reviews, gap.cs ?? 0, mcqBest("TECHNICAL"));
 
   // ── Projects (build + interview-defence prep) ──────────────────────
   const completed = projects.filter((p) => p.status === "COMPLETED").length;
@@ -128,34 +105,16 @@ export function skillGraphFrom(data: SkillGraphInput): SkillGraph {
   // ── Resume ─────────────────────────────────────────────────────────
   const bestAts = resumes.reduce((m, r) => Math.max(m, r.atsScore ?? 0), 0);
 
-  // ── Communication (mocks + HR/spoken drills + verbal MCQ) ──────────
-  const mockScores = mocks
-    .map((m) => (m.feedback as { score?: number; overallScore?: number } | null))
-    .map((f) => f?.overallScore ?? f?.score ?? 0)
-    .filter((s) => s > 0);
-  const drillScores = commDrills.map((d) => d.score).filter((s) => s > 0);
   const verbalMcq = mcqBest("VERBAL");
-  const commQuality = mean([
-    ...(mockScores.length ? [mean(mockScores)] : []),
-    ...(drillScores.length ? [mean(drillScores)] : []),
-    ...(verbalMcq > 0 ? [verbalMcq] : []),
-  ]);
-  const commVolume = clamp(((mocks.length + commDrills.length) / 6) * 100);
-  const communication = commQuality > 0 ? clamp(0.7 * commQuality + 0.3 * commVolume) : 0;
+  const communication = communicationScore(mocks, commDrills, verbalMcq);
 
-  let aptDetail: string;
-  if (aptMcq > 0) aptDetail = `MCQ tests + assessment + ${cognitive.length} brain games`;
-  else if (latestAssessment) aptDetail = `Last assessment + ${cognitive.length} brain games`;
-  else if (cognitive.length) aptDetail = `${cognitive.length} cognitive games`;
-  else aptDetail = "Take a test or assessment";
+  const aptDetail = aptitudeDetail(aptMcq, !!latestAssessment, cognitive.length);
 
   let commDetail: string;
   if (communication > 0) commDetail = `${mocks.length} mocks · ${commDrills.length} drills${verbalMcq > 0 ? " · verbal MCQ" : ""}`;
   else commDetail = "No mocks or drills yet";
 
-  let projDetail: string;
-  if (projects.length) projDetail = `${projects.length} started · ${completed} shipped${projectPrepCount ? " · " + projectPrepCount + " prepped" : ""}`;
-  else projDetail = "No projects started";
+  const projDetail = projectDetail(projects.length, completed, projectPrepCount);
 
   const dimensions: SkillDimension[] = [
     { key: "dsa", label: "Data Structures & Algorithms", group: "Problem Solving", score: dsa,
@@ -178,8 +137,73 @@ export function skillGraphFrom(data: SkillGraphInput): SkillGraph {
 
   const overall = clamp(mean(dimensions.map((d) => d.score)));
   const ranked = [...dimensions].filter((d) => d.score > 0).sort((a, b) => b.score - a.score);
-  const strongest = ranked.length ? ranked[0]!.label : null;
+  const strongest = ranked[0]?.label ?? null;
   const weakest = dimensions.reduce((lo, d) => (d.score < lo.score ? d : lo), dimensions[0]!);
 
   return { dimensions, overall, strongest, weakest: weakest?.label ?? null };
+}
+
+function subjectMastery(flashcards: SkillGraphInput["flashcards"], reviews: SkillGraphInput["reviews"], assessmentScore: number, technicalScore: number) {
+  // ── Core CS subjects (per-subject SRS mastery, floored by assessment CS) ──
+  const totalBySubject = new Map<Subject, number>();
+  for (const row of flashcards) totalBySubject.set(row.subject, row._count);
+  const repsBySubject = new Map<Subject, number[]>();
+  for (const r of reviews) {
+    const s = r.flashcard.subject;
+    const arr = repsBySubject.get(s) ?? [];
+    arr.push(Math.min(1, r.repetitions / 3)); // 3 clean reps ≈ locked in
+    repsBySubject.set(s, arr);
+  }
+  const techMcq = technicalScore; // core-CS MCQ signal, shared across subjects
+  const subjectScore = (s: Subject) => {
+    const total = totalBySubject.get(s) ?? 0;
+    const progress = repsBySubject.get(s) ?? [];
+    const srs = total > 0 ? (progress.reduce((a, b) => a + b, 0) / total) * 100 : 0;
+    return clamp(0.7 * srs + 0.15 * assessmentScore + 0.15 * techMcq);
+  };
+
+  return { subjectScore, repsBySubject };
+}
+
+function communicationScore(mocks: SkillGraphInput["mocks"], commDrills: SkillGraphInput["commDrills"], verbalMcq: number) {
+  // ── Communication (mocks + HR/spoken drills + verbal MCQ) ──────────
+  const mockScores = mocks
+    .map((m) => (m.feedback as { score?: number; overallScore?: number } | null))
+    .map((f) => f?.overallScore ?? f?.score ?? 0)
+    .filter((s) => s > 0);
+  const drillScores = commDrills.map((d) => d.score).filter((s) => s > 0);
+  const commQuality = mean([
+    ...(mockScores.length ? [mean(mockScores)] : []),
+    ...(drillScores.length ? [mean(drillScores)] : []),
+    ...(verbalMcq > 0 ? [verbalMcq] : []),
+  ]);
+  const commVolume = clamp(((mocks.length + commDrills.length) / 6) * 100);
+  const communication = commQuality > 0 ? clamp(0.7 * commQuality + 0.3 * commVolume) : 0;
+
+  return communication;
+}
+
+function aptitudeDetail(aptMcq: number, hasAssessment: boolean, gameCount: number) {
+  let aptDetail: string;
+  if (aptMcq > 0) aptDetail = `MCQ tests + assessment + ${gameCount} brain games`;
+  else if (hasAssessment) aptDetail = `Last assessment + ${gameCount} brain games`;
+  else if (gameCount) aptDetail = `${gameCount} cognitive games`;
+  else aptDetail = "Take a test or assessment";
+
+  return aptDetail;
+}
+
+function aptitudeScore(assessment: number | undefined, games: SkillGraphInput["cognitive"], mcq: number) {
+  // Average only signals the learner has actually produced; an assessment score of zero still counts.
+  const signals: number[] = [];
+  if (assessment !== undefined) signals.push(assessment);
+  if (games.length) signals.push(mean(games.map((game) => game.accuracyPct)));
+  if (mcq > 0) signals.push(mcq);
+  return clamp(mean(signals));
+}
+
+function projectDetail(started: number, completed: number, prepared: number) {
+  if (!started) return "No projects started";
+  const preparation = prepared ? ` · ${prepared} prepped` : "";
+  return `${started} started · ${completed} shipped${preparation}`;
 }

@@ -60,7 +60,7 @@ export default function Page() {
           </Card>
         ))}
         {data?.length === 0 && (
-          <EmptyState icon={<Icons.target width={28} height={28} />} title="No reports yet"
+          <EmptyState icon={<Icons.Target width={28} height={28} />} title="No reports yet"
             description="Community-submitted OA reports will appear here for curation." />
         )}
       </div>

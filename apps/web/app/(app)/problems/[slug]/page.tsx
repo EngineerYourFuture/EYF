@@ -1,5 +1,6 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import { Badge, Button } from "@eyf/ui";
@@ -11,16 +12,16 @@ import { track, Events } from "@/lib/analytics";
 
 const MonacoEditor = dynamic(() => import("@monaco-editor/react"), { ssr: false });
 
-type Lang = "CPP" | "JAVA" | "PYTHON" | "JAVASCRIPT" | "TYPESCRIPT";
+type Lang = "CPP" | "JAVA" | "PYTHON" | "JAVASCRIPT" | "TYPESCRIPT" | "SQL";
 const MONACO_LANG: Record<Lang, string> = {
-  CPP: "cpp", JAVA: "java", PYTHON: "python", JAVASCRIPT: "javascript", TYPESCRIPT: "typescript",
+  CPP: "cpp", JAVA: "java", PYTHON: "python", JAVASCRIPT: "javascript", TYPESCRIPT: "typescript", SQL: "sql",
 };
 const LANGS = Object.keys(MONACO_LANG) as Lang[];
 
 type Problem = {
   id: string; slug: string; title: string; description: string;
   difficulty: "EASY" | "MEDIUM" | "HARD" | "EXPERT";
-  patterns: string[]; companies: string[];
+  patterns: string[]; companies: string[]; executionMode?: "STDIO" | "SQL";
   starterCode: { language: Lang; code: string }[];
   testCases: { input: string; expected: string }[];
 };
@@ -57,22 +58,22 @@ function writeJson(key: string, value: unknown) {
 
 // Minimal inline icons (no dependency on the shared set, which lacks these).
 const Icon = {
-  collapse: (p: { className?: string }) => (
+  Collapse: (p: { className?: string }) => (
     <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.6" className={p.className} aria-hidden="true">
       <path d="M12 5 7 10l5 5" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   ),
-  expand: (p: { className?: string }) => (
+  Expand: (p: { className?: string }) => (
     <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.6" className={p.className} aria-hidden="true">
       <path d="M8 5l5 5-5 5" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   ),
-  fullscreen: (p: { className?: string }) => (
+  Fullscreen: (p: { className?: string }) => (
     <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.6" className={p.className} aria-hidden="true">
       <path d="M4 8V4h4M16 8V4h-4M4 12v4h4M16 12v4h-4" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   ),
-  reset: (p: { className?: string }) => (
+  Reset: (p: { className?: string }) => (
     <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.6" className={p.className} aria-hidden="true">
       <path d="M4 10a6 6 0 1 1 1.8 4.3M4 10V6m0 4h4" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
@@ -95,7 +96,10 @@ export default function Page() {
   const rootRef = useRef<HTMLDivElement>(null);
   const [isFull, setIsFull] = useState(false);
 
-  const blind = useSearchParams().get("blind") === "1";
+  const searchParams = useSearchParams();
+  const blind = searchParams.get("blind") === "1";
+  const fromSprint = searchParams.get("sprint") === "1";
+  const requestedLang = searchParams.get("lang") as Lang | null;
   const [elapsed, setElapsed] = useState(0);
   useEffect(() => {
     if (!blind) return;
@@ -110,8 +114,9 @@ export default function Page() {
     const saved = readJson<{ lang?: Lang; byLang?: Partial<Record<Lang, string>> }>(draftKey(params.slug), {});
     if (saved.byLang) setByLang(saved.byLang);
     if (saved.lang && LANGS.includes(saved.lang)) setLang(saved.lang);
+    else if (requestedLang && LANGS.includes(requestedLang)) setLang(requestedLang);
     setHydrated(true);
-  }, [params.slug]);
+  }, [params.slug, requestedLang]);
 
   // Desktop breakpoint (drag-to-resize only applies ≥ lg).
   useEffect(() => {
@@ -128,6 +133,12 @@ export default function Page() {
     document.addEventListener("fullscreenchange", on);
     return () => document.removeEventListener("fullscreenchange", on);
   }, []);
+
+  useEffect(() => {
+    if (!problem || !hydrated) return;
+    if (problem.executionMode === "SQL") setLang("SQL");
+    else if (lang === "SQL") setLang("CPP");
+  }, [problem, hydrated, lang]);
 
   // Seed the current language's buffer from starter code when it's still empty.
   useEffect(() => {
@@ -235,7 +246,7 @@ export default function Page() {
           className="overflow-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-10 border-b border-border lg:border-b-0 lg:border-r"
         >
           <div className="flex items-center justify-between gap-3">
-            <BackButton className="mb-4" />
+            {fromSprint ? <Link href="/sprint" className="mb-4 inline-flex min-h-11 items-center text-sm text-text-2 hover:text-text-1">← Return to placement sprint</Link> : <BackButton className="mb-4" />}
             <button
               type="button"
               onClick={() => persistPrefs({ ...prefs, collapsed: true })}
@@ -243,7 +254,7 @@ export default function Page() {
               title="Focus editor"
               className="mb-4 inline-flex h-8 w-8 items-center justify-center rounded-md text-text-3 hover:text-text-1 hover:bg-surface-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             >
-              <Icon.collapse />
+              <Icon.Collapse />
             </button>
           </div>
           <div className="flex items-center gap-3 flex-wrap">
@@ -308,7 +319,7 @@ export default function Page() {
               title="Show problem"
               className="inline-flex h-8 w-8 items-center justify-center rounded-md text-text-3 hover:text-text-1 hover:bg-surface-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             >
-              <Icon.expand />
+              <Icon.Expand />
             </button>
           )}
           <label htmlFor="solve-lang" className="text-xs text-text-3 uppercase tracking-wider hidden sm:inline">Language</label>
@@ -319,7 +330,7 @@ export default function Page() {
             onChange={(e) => setLang(e.target.value as Lang)}
             className="bg-surface border border-border rounded-md px-2 h-8 text-sm focus:outline-none focus:border-accent"
           >
-            {LANGS.map((l) => <option key={l} value={l}>{l}</option>)}
+            {LANGS.filter((l) => problem?.executionMode === "SQL" ? l === "SQL" : l !== "SQL").map((l) => <option key={l} value={l}>{l}</option>)}
           </select>
 
           <button
@@ -329,7 +340,7 @@ export default function Page() {
             title="Reset to starter"
             className="inline-flex h-8 w-8 items-center justify-center rounded-md text-text-3 hover:text-text-1 hover:bg-surface-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           >
-            <Icon.reset />
+            <Icon.Reset />
           </button>
           <button
             type="button"
@@ -339,7 +350,7 @@ export default function Page() {
             title={isFull ? "Exit fullscreen" : "Fullscreen"}
             className="hidden sm:inline-flex h-8 w-8 items-center justify-center rounded-md text-text-3 hover:text-text-1 hover:bg-surface-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           >
-            <Icon.fullscreen />
+            <Icon.Fullscreen />
           </button>
 
           <div className="ml-auto flex items-center gap-2">

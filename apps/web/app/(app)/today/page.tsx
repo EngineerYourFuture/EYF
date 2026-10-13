@@ -6,6 +6,7 @@ import { useApi, useApiAction } from "@/lib/use-api";
 import { toast } from "sonner";
 import { PageMotion } from "@/components/page-motion";
 import { TodayFocus } from "@/components/today-focus";
+import { SprintEntry } from "@/components/placement-sprint";
 import { Reveal } from "@/components/motion";
 import { Icons, type IconName } from "@/components/icons";
 import { useGuidance, type Guidance } from "@/lib/use-guidance";
@@ -69,7 +70,7 @@ export default function Page() {
     const items: PlanItem[] = [];
     if (today.challenge) {
       items.push({
-        id: "daily", icon: "bolt", href: `/problems/${today.challenge.problem.slug}`,
+        id: "daily", icon: "Bolt", href: `/problems/${today.challenge.problem.slug}`,
         label: `Solve today's challenge: ${today.challenge.problem.title}`,
         detail: today.challenge.problem.difficulty,
         done: today.challenge.alreadySolvedToday, auto: true,
@@ -77,7 +78,7 @@ export default function Page() {
     }
     if (dueCount > 0) {
       items.push({
-        id: "flashcards", icon: "book", href: "/subjects",
+        id: "flashcards", icon: "Book", href: "/subjects",
         label: `Review ${dueCount} due flashcard${dueCount > 1 ? "s" : ""}`,
         detail: "Spaced repetition keeps core CS sticky", done: checked.has("flashcards"), auto: false,
       });
@@ -98,13 +99,14 @@ export default function Page() {
           {new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" })}
         </div>
         <h1 className="font-display text-3xl sm:text-4xl font-bold tracking-tight">Today</h1>
-        <p className="text-text-3 mt-2">Your one plan for the day. Finish it and you&apos;ve moved the needle.</p>
+        <p className="text-text-3 mt-2">Continue your placement sprint, then make room for daily practice.</p>
+        <SprintEntry />
 
         {/* Today stats */}
         <div className="mt-6 grid grid-cols-3 gap-4">
-          <MiniStat icon="flame" tone="accent" label="Streak" value={today ? `${today.streak}` : "—"} unit="d" />
-          <MiniStat icon="bolt" tone="medium" label="XP today" value={today ? `${today.xpToday}` : "—"} />
-          <MiniStat icon="code" label="Solved today" value={today ? `${today.problemsSolvedToday}` : "—"} />
+          <MiniStat icon="Flame" tone="accent" label="Streak" value={today ? `${today.streak}` : "—"} unit="d" />
+          <MiniStat icon="Bolt" tone="medium" label="XP today" value={today ? `${today.xpToday}` : "—"} />
+          <MiniStat icon="Code" label="Solved today" value={today ? `${today.problemsSolvedToday}` : "—"} />
         </div>
 
         <div className="mt-6"><TodayFocus /></div>
@@ -135,7 +137,7 @@ export default function Page() {
               ); }
   if (allDone) { return (
                 <div className="text-center py-8">
-                  <div className="text-easy mb-3 flex justify-center"><Icons.trophy width={32} height={32} /></div>
+                  <div className="text-easy mb-3 flex justify-center"><Icons.Trophy width={32} height={32} /></div>
                   <p className="font-display text-lg font-bold">Plan complete. 🎯</p>
                   <p className="text-text-3 text-sm mt-1">You showed up today — that&apos;s how offers get built. See you tomorrow.</p>
                 </div>
@@ -159,7 +161,7 @@ export default function Page() {
               <Reveal className="mt-6"><Card>
                 <div className="flex items-center justify-between mb-3">
                   <h2 className="font-display text-lg font-bold flex items-center gap-2">
-                    <span className="text-hard"><Icons.gauge width={18} height={18} /></span> Deadlines this week
+                    <span className="text-hard"><Icons.Gauge width={18} height={18} /></span> Deadlines this week
                   </h2>
                   <Link href="/pipeline" className="text-accent text-sm hover:underline">Pipeline →</Link>
                 </div>
@@ -202,7 +204,7 @@ function CoachCard({ guidance }: Readonly<{ guidance: Guidance | null }>) {
     <Card variant="glow" className="mt-6">
       <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
         <div className="flex items-center gap-2">
-          <span className="text-accent"><Icons.sparkle width={18} height={18} /></span>
+          <span className="text-accent"><Icons.Sparkle width={18} height={18} /></span>
           <span className="font-mono text-[11px] uppercase tracking-widest text-accent">Your coach</span>
         </div>
         <Link href="/readiness" className="min-w-0">
@@ -234,7 +236,7 @@ function CoachCard({ guidance }: Readonly<{ guidance: Guidance | null }>) {
                       <div className="text-text-4 text-xs mt-0.5 leading-snug">{a.reason}</div>
                     )}
                   </div>
-                  <span className="shrink-0 self-center text-text-4 group-hover:text-accent transition-colors"><Icons.arrow width={16} height={16} /></span>
+                  <span className="shrink-0 self-center text-text-4 group-hover:text-accent transition-colors"><Icons.Arrow width={16} height={16} /></span>
                 </Link>
               );
             })}
@@ -283,7 +285,7 @@ function DailyMission() {
     <Card variant="glow" className="mt-6 relative overflow-hidden">
       <div className="flex items-center justify-between mb-1">
         <div className="flex items-center gap-2">
-          <span className="text-accent"><Icons.bolt width={18} height={18} /></span>
+          <span className="text-accent"><Icons.Bolt width={18} height={18} /></span>
           <h2 className="font-display text-xl font-bold">Daily mission</h2>
         </div>
         <Badge tone={data.allDone ? "easy" : "accent"}>
@@ -324,7 +326,7 @@ function DailyMission() {
         <div className="mt-4">
           {data.claimed ? (
             <div className="flex items-center justify-center gap-2 text-easy text-sm font-medium py-2">
-              <Icons.trophy width={18} height={18} /> Bonus claimed — see you tomorrow.
+              <Icons.Trophy width={18} height={18} /> Bonus claimed — see you tomorrow.
             </div>
           ) : (
             <Button glow className="w-full" onClick={claim} disabled={claiming}>
@@ -344,7 +346,7 @@ function PlanRow({ item, onToggle }: Readonly<{ item: PlanItem; onToggle: () => 
     <div className={`flex items-center gap-3 rounded-xl border p-3 transition-colors ${
       item.done ? "border-border bg-surface-2/50" : "border-border bg-surface hover:border-edge"
     }`}>
-      <button
+      <button type="button"
         onClick={onToggle}
         disabled={item.auto}
         aria-label={item.done ? "Done" : "Mark done"}

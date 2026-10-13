@@ -1,8 +1,10 @@
+import { trackedMessage } from "../lib/provider-usage.js";
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { prisma } from "@eyf/db";
 import { anthropic, generateProblemVariant } from "../services/anthropic.js";
 import { requirePermission } from "../middleware/permissions.js";
+import { env } from "../env.js";
 
 const MODEL_SONNET = "claude-sonnet-4-6";
 
@@ -21,7 +23,7 @@ export async function editorialRoutes(app: FastifyInstance) {
       if (!problem) return reply.code(404).send({ success: false, error: { code: "NOT_FOUND", message: "Problem not found" } });
 
       try {
-        const msg = await anthropic.messages.create({
+        const msg = await trackedMessage(anthropic, {
           model: MODEL_SONNET,
           max_tokens: 2000,
           system:
@@ -74,7 +76,7 @@ export async function editorialRoutes(app: FastifyInstance) {
     const { slug } = z.object({ slug: z.string() }).parse(req.params);
     const ed = await prisma.editorial.findFirst({ where: { problem: { slug } } });
     if (!ed) return reply.code(404).send({ success: false, error: { code: "NOT_FOUND", message: "No editorial yet." } });
-    if (req.session!.plan === "free") {
+    if (env.BILLING_ENABLED && req.session!.plan === "free") {
       return reply.code(402).send({ success: false, error: { code: "PLAN_UPGRADE_REQUIRED", message: "Editorials are Basic+.", upgradeRequired: true, plan: "basic" } });
     }
     return { success: true, data: ed };

@@ -50,9 +50,9 @@ export default function Page() {
       <Card className="mt-6 whitespace-pre-wrap text-text-2 leading-relaxed">{data.body}</Card>
 
       <div className="mt-3 flex gap-2 text-xs">
-        <button onClick={() => react("LIKE")}    className="px-2 py-1 border border-border rounded hover:border-accent">👍 Like</button>
-        <button onClick={() => react("HELPFUL")} className="px-2 py-1 border border-border rounded hover:border-accent">✓ Helpful</button>
-        <button onClick={() => react("FIRE")}    className="px-2 py-1 border border-border rounded hover:border-accent">🔥 Fire</button>
+        <button type="button" onClick={() => react("LIKE")}    className="px-2 py-1 border border-border rounded hover:border-accent">👍 Like</button>
+        <button type="button" onClick={() => react("HELPFUL")} className="px-2 py-1 border border-border rounded hover:border-accent">✓ Helpful</button>
+        <button type="button" onClick={() => react("FIRE")}    className="px-2 py-1 border border-border rounded hover:border-accent">🔥 Fire</button>
         <span className="text-text-3 self-center ml-2">{data._count.reactions} reactions</span>
       </div>
 
@@ -63,9 +63,9 @@ export default function Page() {
             <div className="text-text-3 text-xs mb-2">{p.author.name} · {new Date(p.createdAt).toLocaleString()}</div>
             <div className="whitespace-pre-wrap text-text-1">{p.body}</div>
             <div className="mt-3 flex gap-2 text-xs">
-              <button onClick={() => react("LIKE", p.id)}    className="px-2 py-1 border border-border rounded hover:border-accent">👍</button>
-              <button onClick={() => react("HELPFUL", p.id)} className="px-2 py-1 border border-border rounded hover:border-accent">✓</button>
-              <button onClick={() => react("FIRE", p.id)}    className="px-2 py-1 border border-border rounded hover:border-accent">🔥</button>
+              <button type="button" onClick={() => react("LIKE", p.id)}    className="px-2 py-1 border border-border rounded hover:border-accent">👍</button>
+              <button type="button" onClick={() => react("HELPFUL", p.id)} className="px-2 py-1 border border-border rounded hover:border-accent">✓</button>
+              <button type="button" onClick={() => react("FIRE", p.id)}    className="px-2 py-1 border border-border rounded hover:border-accent">🔥</button>
               <span className="text-text-3 self-center ml-2">{p._count.reactions}</span>
             </div>
           </Card>

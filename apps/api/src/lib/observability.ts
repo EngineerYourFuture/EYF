@@ -7,11 +7,12 @@
 import * as Sentry from "@sentry/node";
 import { collectDefaultMetrics, Registry, Histogram, Counter } from "prom-client";
 import { env } from "../env.js";
+import { credentialStatus } from "./configuration-status.js";
 
 let sentryOn = false;
 
 export function initSentry(): void {
-  if (!env.SENTRY_DSN || sentryOn) return;
+  if (credentialStatus(env.SENTRY_DSN) !== "configured" || sentryOn) return;
   Sentry.init({
     dsn: env.SENTRY_DSN,
     environment: env.NODE_ENV,

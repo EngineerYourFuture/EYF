@@ -1,4 +1,6 @@
 // Shared transport types — used by both web and api.
+export { lessonUrl, lessonEmbed } from "./lms";
+export type { LessonBlock } from "./lms";
 // Keep aligned with the API contract in specs/EYF_Master_Docs_Final.md Doc 12.
 
 export type ApiSuccess<T> = {
@@ -207,3 +209,4 @@ export type { Effect, GrantSource, PermissionEntry, ResolveInput, AccessDecision
 // Skill Ledger (enterprise evidence layer — PRD §15.13). Named re-exports.
 export { computeSkillLevel, barFit, EVIDENCE_WEIGHT } from "./skill-ledger";
 export type { Evidence, SkillLevel, RoleBarReq, BarGap } from "./skill-ledger";
+export * from "./sprint";

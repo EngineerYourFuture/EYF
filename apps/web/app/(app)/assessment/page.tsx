@@ -28,7 +28,7 @@ type Scored = {
 const LETTERS = ["A", "B", "C", "D", "E", "F"];
 
 function NextStep({ href, icon, title, desc, primary }: Readonly<{
-  href: string; icon: "activity" | "target" | "map"; title: string; desc: string; primary?: boolean;
+  href: string; icon: "Activity" | "Target" | "Map"; title: string; desc: string; primary?: boolean;
 }>) {
   const Icon = Icons[icon];
   return (
@@ -41,7 +41,7 @@ function NextStep({ href, icon, title, desc, primary }: Readonly<{
       }`}><Icon width={20} height={20} /></span>
       <div className="mt-3 font-medium text-text-1">{title}</div>
       <div className="text-text-4 text-xs mt-1 flex-1">{desc}</div>
-      <span className="mt-3 text-accent text-sm inline-flex items-center gap-1">Open <Icons.arrow width={14} height={14} /></span>
+      <span className="mt-3 text-accent text-sm inline-flex items-center gap-1">Open <Icons.Arrow width={14} height={14} /></span>
     </Link>
   );
 }
@@ -112,12 +112,12 @@ export default function Page() {
       <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-3xl mx-auto">
         <PageHeader eyebrow="Skill assessment" title="Find your level" subtitle="Two ways in — a fast adaptive diagnostic that pinpoints your exact boundary, or the full topic-by-topic assessment." />
         <div className="mt-8 grid sm:grid-cols-2 gap-4">
-          <button onClick={() => setMode("adaptive")} className="text-left rounded-2xl border border-brand/30 bg-brand/[0.04] p-5 hover:bg-brand/[0.08] transition-colors">
+          <button type="button" onClick={() => setMode("adaptive")} className="text-left rounded-2xl border border-brand/30 bg-brand/[0.04] p-5 hover:bg-brand/[0.08] transition-colors">
             <div className="text-xs font-mono uppercase tracking-wider text-brand">Recommended</div>
             <h3 className="font-display text-lg font-bold mt-1">Adaptive diagnostic</h3>
             <p className="text-text-3 text-sm mt-1">12 questions that harden or soften with each answer to find your exact mastery boundary. ~4 min.</p>
           </button>
-          <button onClick={() => setMode("full")} className="text-left rounded-2xl border border-border bg-surface p-5 hover:border-edge transition-colors">
+          <button type="button" onClick={() => setMode("full")} className="text-left rounded-2xl border border-border bg-surface p-5 hover:border-edge transition-colors">
             <div className="text-xs font-mono uppercase tracking-wider text-text-4">Full</div>
             <h3 className="font-display text-lg font-bold mt-1">Full assessment</h3>
             <p className="text-text-3 text-sm mt-1">20 fixed questions across DSA, core CS and aptitude with a topic-by-topic report. ~12 min.</p>
@@ -131,7 +131,7 @@ export default function Page() {
   if (mode === "adaptive") {
     return (
       <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-2xl mx-auto">
-        <button onClick={() => setMode("choose")} className="text-text-4 text-sm hover:text-text-2 mb-4">← Back</button>
+        <button type="button" onClick={() => setMode("choose")} className="text-text-4 text-sm hover:text-text-2 mb-4">← Back</button>
         <PageHeader eyebrow="Adaptive diagnostic" title="Find your exact level" subtitle="Each answer changes what comes next — get it right and it hardens." />
         <div className="mt-8"><AdaptiveDiagnostic onExit={() => setMode("choose")} /></div>
       </PageMotion>
@@ -175,15 +175,15 @@ export default function Page() {
         {/* The loop made visible: this readout just moved your measured state. */}
         <Reveal className="mt-8">
           <div className="flex items-center gap-2 mb-3">
-            <span className="text-accent"><Icons.activity width={18} height={18} /></span>
+            <span className="text-accent"><Icons.Activity width={18} height={18} /></span>
             <h2 className="font-display text-lg font-bold">This just updated your map</h2>
           </div>
           <div className="grid sm:grid-cols-3 gap-4">
-            <NextStep href="/skills" icon="activity" title="Skill Graph"
+            <NextStep href="/skills" icon="Activity" title="Skill Graph"
               desc="Your aptitude & core-CS mastery moved with these answers." />
-            <NextStep href="/readiness" icon="target" title="Placement Readiness"
+            <NextStep href="/readiness" icon="Target" title="Placement Readiness"
               desc="Your overall score reflects this calibration now." />
-            <NextStep href="/roadmap" icon="map" title="Generate roadmap"
+            <NextStep href="/roadmap" icon="Map" title="Generate roadmap"
               desc="Turn this readout into a week-by-week plan." primary />
           </div>
         </Reveal>
@@ -245,7 +245,7 @@ export default function Page() {
                   <span className="text-text-3 text-xs font-mono">Q{i + 1}</span>
                   <Badge>{q.area}</Badge>
                   <Badge tone="accent">{q.difficulty}</Badge>
-                  {done && <span className="ml-auto text-easy"><Icons.target width={16} height={16} /></span>}
+                  {done && <span className="ml-auto text-easy"><Icons.Target width={16} height={16} /></span>}
                 </div>
                 <p className="mt-4 text-text-1 font-medium" id={`q-${q.id}`}>{q.prompt}</p>
                 <div className="mt-4 grid gap-2" role="radiogroup" aria-labelledby={`q-${q.id}`}>

@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { IS_LMS, PORTAL_HOME } from "@/lib/portal";
 import { SignIn } from "@clerk/nextjs";
 import { dark } from "@clerk/themes";
 import { HAS_REAL_CLERK } from "@/lib/auth";
@@ -18,8 +19,8 @@ export default function Page() {
           <p className="text-text-3 text-sm mt-2 leading-relaxed">
             This environment runs without Clerk keys, so you&apos;re signed in automatically as a dev user.
           </p>
-          <Link href="/dashboard" className="mt-6 inline-flex h-11 items-center rounded-md bg-accent px-6 text-sm font-medium text-accent-ink hover:bg-accent-hover transition-colors">
-            Continue to dashboard →
+          <Link href={PORTAL_HOME} className="mt-6 inline-flex h-11 items-center rounded-md bg-accent px-6 text-sm font-medium text-accent-ink hover:bg-accent-hover transition-colors">
+            {IS_LMS ? "Continue to workspace" : "Continue to dashboard"}
           </Link>
         </div>
       </div>
@@ -28,7 +29,12 @@ export default function Page() {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-6 py-16">
-      <SignIn appearance={{ baseTheme: theme === "dark" ? dark : undefined, elements: { card: "bg-surface border border-border" } }} />
+      {/* `key` forces a remount when the theme flips. SSR can't know the visitor's
+          theme, so the first render is always dark and Clerk MOUNTS with its dark
+          baseTheme — and it does not fully re-theme an already-mounted widget. In
+          light mode that left the `card` override repainting the card white while the
+          internals stayed dark: invisible heading, invisible label, black input. */}
+      <SignIn fallbackRedirectUrl={PORTAL_HOME} key={theme} appearance={{ baseTheme: theme === "dark" ? dark : undefined, elements: { card: "bg-surface border border-border" } }} />
     </div>
   );
 }

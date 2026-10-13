@@ -4,7 +4,7 @@ import { MagneticLink } from "./magnetic-link";
 const PLANS = [
   { id: "basic", name: "Basic", price: "249", items: ["20 submissions/day", "All core subjects", "Peer mock interviews"], featured: false },
   { id: "pro", name: "Pro", price: "499", items: ["Unlimited submissions", "AI mock interviews", "Resume ATS + all problems"], featured: true },
-  { id: "elite", name: "Elite", price: "899", items: ["Everything in Pro", "2 expert mocks / month", "Mentor priority"], featured: false },
+  { id: "elite", name: "Elite", price: "899", items: ["Everything in Pro", "Expert sessions priced separately", "Final benefits to be confirmed"], featured: false },
 ];
 
 export function Pricing() {
@@ -15,7 +15,7 @@ export function Pricing() {
           <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-[rgb(var(--lp-ink))]/50">Pricing</p>
           <h2 className="mt-3 font-brand text-4xl font-extrabold tracking-tight sm:text-5xl">Pay what a textbook costs.</h2>
           <p className="mt-4 text-lg leading-relaxed text-[rgb(var(--lp-ink))]/65">
-            Free forever to start. Upgrade when you&rsquo;re serious — UPI, cards, wallets.
+            Practise now with payment preview access. These are planned prices; paid enrollment will open later. Expert sessions will be priced separately.
           </p>
         </div>
 
@@ -31,7 +31,7 @@ export function Pricing() {
             >
               <div className="flex items-center justify-between">
                 <span className="font-brand text-lg font-bold">{p.name}</span>
-                {p.featured && <span className="font-mono text-[10px] uppercase tracking-widest text-[rgb(var(--lp-brand))]">Most chosen</span>}
+                {p.featured && <span className="font-mono text-[10px] uppercase tracking-widest text-[rgb(var(--lp-brand))]">Pro preview</span>}
               </div>
               <div className="mt-4 font-mono">
                 <span className="text-3xl font-semibold tabular-nums">₹{p.price}</span>
@@ -59,22 +59,21 @@ export function Pricing() {
         </div>
 
         <p className="mt-8 text-center font-mono text-xs tracking-wide text-[rgb(var(--lp-ink))]/50">
-          Offline coaching ₹1,20,000 · LeetCode ₹35,000/yr ·{" "}
-          <span className="text-[rgb(var(--lp-placed))]">EYF Pro ₹3,999/yr</span>
+          Planned EYF Pro annual price: ₹3,999. No payment is collected during preview.
         </p>
       </div>
 
       {/* closing */}
       <div className="mx-auto mt-32 max-w-3xl text-center">
         <h2 className="font-brand text-4xl font-extrabold tracking-tight sm:text-6xl text-balance">
-          Your first offer starts with your first problem.
+          Build the skills. Show the work.
         </h2>
         <div className="mt-9 flex justify-center">
           <MagneticLink
-            href="/dashboard"
+            href="/sprint"
             className="group inline-flex items-center gap-2 rounded-full bg-[rgb(var(--lp-brand))] px-8 py-4 text-base font-semibold text-white transition-[filter] hover:brightness-95"
           >
-            Start your path{" "}
+            Start placement sprint{" "}
             <span className="transition-transform group-hover:translate-x-0.5">→</span>
           </MagneticLink>
         </div>

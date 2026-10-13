@@ -17,7 +17,7 @@ describe.skipIf(!hasDb)("AI course builder (real DB)", () => {
   let member: { id: string; token: string };
   let orgId: string;
 
-  const inject = (token: string, method: "GET" | "POST", url: string, body?: object) =>
+  const inject = (token: string, method: "GET" | "POST" | "PATCH", url: string, body?: object) =>
     app.inject({ method, url, headers: { authorization: `Bearer ${token}`, ...(body ? { "content-type": "application/json" } : {}) }, ...(body ? { payload: JSON.stringify(body) } : {}) });
 
   beforeAll(async () => {
@@ -68,6 +68,16 @@ describe.skipIf(!hasDb)("AI course builder (real DB)", () => {
     const courseId = draft.json().data.courseId;
     // submit → publish (LND holds both here).
     expect((await inject(lnd.token, "POST", `/v1/orgs/${orgId}/courses/${courseId}/submit`)).statusCode).toBe(200);
+    // Generated slugs are suggestions, not real exercises. Publishing must
+    // refuse them until an instructor replaces the example with usable content.
+    const unreviewed = await inject(lnd.token, "POST", `/v1/orgs/${orgId}/courses/${courseId}/publish`);
+    expect(unreviewed.statusCode).toBe(400);
+    expect(unreviewed.json().error.code).toBe("EXERCISE_NOT_READY");
+    const lessons = await prisma.lesson.findMany({ where: { courseId } });
+    for (const lesson of lessons) {
+      const blocks = (lesson.blocks as { type: string; data: object }[]).map((b) => b.type === "judged_code" ? { type: "code", data: { code: "SELECT 1;" } } : b);
+      expect((await inject(lnd.token, "PATCH", `/v1/orgs/${orgId}/lessons/${lesson.id}`, { blocks })).statusCode).toBe(200);
+    }
     const pub = await inject(lnd.token, "POST", `/v1/orgs/${orgId}/courses/${courseId}/publish`);
     expect(pub.statusCode).toBe(200);
     expect(pub.json().data.status).toBe("PUBLISHED");

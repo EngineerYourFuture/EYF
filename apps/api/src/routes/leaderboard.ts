@@ -58,12 +58,19 @@ async function weeklyLeaderboard(opts: { where: { user: object }; userId: string
   const percentile = total > 0 && meIdx >= 0 ? Math.max(1, Math.round((1 - meIdx / total) * 100)) : null;
 
   const top = ranked.slice(0, limit);
-  const users = await prisma.user.findMany({
-    where: { id: { in: top.map((r) => r.userId) } },
-    select: { id: true, name: true, college: true, graduationYear: true },
-  });
+  const topIds = top.map((r) => r.userId);
+  // Weekly ranks off dailyStreak (no level), so fetch levels separately — otherwise
+  // every row renders as level 0 while the standard leaderboards show the real level.
+  const [users, profiles, meLevel] = await Promise.all([
+    prisma.user.findMany({
+      where: { id: { in: topIds } },
+      select: { id: true, name: true, college: true, graduationYear: true },
+    }),
+    prisma.userProfile.findMany({ where: { userId: { in: topIds } }, select: { userId: true, level: true } }),
+    prisma.userProfile.findUnique({ where: { userId }, select: { level: true } }),
+  ]);
   const byId = new Map(users.map((u) => [u.id, u]));
-  const meLevel = await prisma.userProfile.findUnique({ where: { userId }, select: { level: true } });
+  const levelById = new Map(profiles.map((p) => [p.userId, p.level]));
 
   return {
     success: true,
@@ -74,7 +81,7 @@ async function weeklyLeaderboard(opts: { where: { user: object }; userId: string
         name: byId.get(r.userId)?.name ?? "—",
         college: byId.get(r.userId)?.college ?? null,
         gradYear: byId.get(r.userId)?.graduationYear ?? null,
-        level: 0,
+        level: levelById.get(r.userId) ?? 1,
         value: r.value,
         isMe: r.userId === userId,
       })),

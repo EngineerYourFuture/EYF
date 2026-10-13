@@ -12,6 +12,7 @@ import {
   sendEmail, streakBreakEmail, dailyDigestEmail, weeklyLeaderboardEmail, parentDigestEmail,
 } from "../services/email.js";
 import { parentDigestFor } from "../services/parent-digest.js";
+import { remindPendingInvitations } from "../services/org-invitations.js";
 
 async function streakBreakAlert(): Promise<{ checked: number; emailed: number; pushed: number }> {
   const start = new Date(); start.setUTCHours(0, 0, 0, 0);
@@ -21,22 +22,28 @@ async function streakBreakAlert(): Promise<{ checked: number; emailed: number; p
   });
   let emailed = 0, pushed = 0;
   for (const c of candidates) {
-    const today = await prisma.dailyStreak.findUnique({
-      where: { userId_date: { userId: c.userId, date: start } },
-    });
-    if (today && today.problemsSolved > 0) continue;
-    const email = await sendEmail({
-      to: c.user.email,
-      subject: `Your ${c.streakDays}-day streak is at risk`,
-      html: streakBreakEmail(c.user.name, c.streakDays),
-    });
-    if (email.sent) emailed += 1;
-    const push = await sendPushToUser(c.userId, {
-      title: "🔥 Streak at risk",
-      body: `${c.streakDays} days. One problem keeps it alive.`,
-      data: { route: "/dashboard" },
-    });
-    if (push.sent > 0) pushed += push.sent;
+    // Isolate per-user failures (a DB blip / bad address) so one bad row doesn't
+    // fail the whole job and skip the rest of the cohort — same as daily/parent digest.
+    try {
+      const today = await prisma.dailyStreak.findUnique({
+        where: { userId_date: { userId: c.userId, date: start } },
+      });
+      if (today && today.problemsSolved > 0) continue;
+      const email = await sendEmail({
+        to: c.user.email,
+        subject: `Your ${c.streakDays}-day streak is at risk`,
+        html: streakBreakEmail(c.user.name, c.streakDays),
+      });
+      if (email.sent) emailed += 1;
+      const push = await sendPushToUser(c.userId, {
+        title: "🔥 Streak at risk",
+        body: `${c.streakDays} days. One problem keeps it alive.`,
+        data: { route: "/dashboard" },
+      });
+      if (push.sent > 0) pushed += push.sent;
+    } catch (err) {
+      console.error(`[streak-alert] failed for user ${c.userId}:`, err);
+    }
   }
   console.log(`[streak-alert] checked=${candidates.length} emailed=${emailed} pushed=${pushed}`);
   return { checked: candidates.length, emailed, pushed };
@@ -80,13 +87,18 @@ async function weeklyLeaderboard(): Promise<{ top: string[] }> {
     include: { user: { select: { id: true, name: true, email: true, college: true } } },
   });
   const lines = top.map((p, i) => `${i + 1}. ${p.user.name} (${p.user.college ?? "—"}) · ${p.currentXp} XP`);
-  // Send digest to everyone on the leaderboard (small N, cheap).
+  // Send digest to everyone on the leaderboard (small N, cheap). Isolate per-user
+  // failures so one bad send doesn't abort the rest.
   for (const p of top) {
-    await sendEmail({
-      to: p.user.email,
-      subject: "EYF · top 10 this week",
-      html: weeklyLeaderboardEmail(p.user.name, lines),
-    });
+    try {
+      await sendEmail({
+        to: p.user.email,
+        subject: "EYF · top 10 this week",
+        html: weeklyLeaderboardEmail(p.user.name, lines),
+      });
+    } catch (err) {
+      console.error(`[weekly-leaderboard] failed for ${p.user.email}:`, err);
+    }
   }
   console.log(`[weekly-leaderboard] notified ${top.length}\n${lines.join("\n")}`);
   return { top: lines };
@@ -118,6 +130,7 @@ export const cronWorker = new Worker<unknown, void, CronJobName>(
   "cron",
   async (job) => {
     switch (job.name) {
+      case "lms-invitation-reminders": await remindPendingInvitations(); return;
       case "streak-break-alert": await streakBreakAlert(); return;
       case "daily-digest":       await dailyDigest(); return;
       case "weekly-leaderboard": await weeklyLeaderboard(); return;

@@ -1,3 +1,4 @@
+import { shuffle } from "./shuffle.js";
 /**
  * Assessment question source — DB-first with a hardcoded-bank fallback.
  * Same pattern as mcq-source.ts: staff-authored rows (AssessmentBankQuestion)
@@ -51,12 +52,7 @@ export async function assessmentPoolSource(): Promise<AssessmentQuestion[]> {
 export async function pickQuestionsSource(opts?: { countDsa?: number; countCs?: number; countAptitude?: number }): Promise<AssessmentQuestion[]> {
   const pool = await assessmentPoolSource();
   const draw = (area: AssessmentQuestion["area"], n: number) => {
-    const copy = pool.filter((q) => q.area === area);
-    const out: AssessmentQuestion[] = [];
-    for (let i = 0; i < n && copy.length > 0; i++) {
-      out.push(copy.splice(Math.floor(Math.random() * copy.length), 1)[0]!);
-    }
-    return out;
+    return shuffle(pool.filter((q) => q.area === area)).slice(0, n);
   };
   return [
     ...draw("dsa", opts?.countDsa ?? 12),

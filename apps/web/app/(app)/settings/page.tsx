@@ -125,7 +125,7 @@ export default function Page() {
             const Icon = Icons[p.icon];
             const active = u?.persona === p.id;
             return (
-              <button key={p.id} onClick={() => setPersona(p.id)} disabled={savingPersona}
+              <button type="button" key={p.id} onClick={() => setPersona(p.id)} disabled={savingPersona}
                 className={`text-left rounded-xl border p-4 transition-colors ${active ? "border-accent bg-accent-tint" : "border-border bg-surface hover:border-edge"}`}>
                 <span className={active ? "text-accent" : "text-text-3"}><Icon width={20} height={20} /></span>
                 <div className="font-medium mt-2 text-text-1">{p.label}</div>

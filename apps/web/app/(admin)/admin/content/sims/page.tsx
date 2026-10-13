@@ -1,4 +1,5 @@
 "use client";
+import { editorId, editorRow, type EditorRow } from "@/lib/editor-rows";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Card, Badge, Button, EmptyState, SkeletonRows } from "@eyf/ui";
@@ -15,9 +16,9 @@ type Category = (typeof CATEGORIES)[number];
 type Section = { name: string; category: Category; questions: number; minutes: number };
 type Row = { id: string; slug: string; company: string; label: string; usedBy: string; sections: Section[]; active: boolean };
 type Full = Row & { blurb: string };
-type Form = { slug: string; company: string; label: string; blurb: string; usedBy: string; sections: Section[]; active: boolean };
+type Form = { slug: string; company: string; label: string; blurb: string; usedBy: string; sections: EditorRow<Section>[]; active: boolean };
 const EMPTY_SECTION: Section = { name: "", category: "APTITUDE", questions: 15, minutes: 20 };
-const EMPTY: Form = { slug: "", company: "", label: "", blurb: "", usedBy: "", sections: [{ ...EMPTY_SECTION }], active: true };
+const EMPTY: Omit<Form, "sections"> & { sections: Section[] } = { slug: "", company: "", label: "", blurb: "", usedBy: "", sections: [{ ...EMPTY_SECTION }], active: true };
 const inputCls = "w-full h-11 px-3 rounded-lg bg-surface border border-border text-text-1 focus:outline-none focus:border-accent";
 
 export default function Page() {
@@ -25,16 +26,16 @@ export default function Page() {
   const action = useApiAction();
   const confirm = useConfirm();
   const [editing, setEditing] = useState<null | { id: string | null }>(null);
-  const [form, setForm] = useState<Form>(EMPTY);
+  const [form, setForm] = useState<Form>(() => ({ ...EMPTY, sections: EMPTY.sections.map(editorRow) }));
   const [saving, setSaving] = useState(false);
   const set = <K extends keyof Form>(k: K, v: Form[K]) => setForm((f) => ({ ...f, [k]: v }));
   const setSection = (i: number, patch: Partial<Section>) =>
     setForm((f) => ({ ...f, sections: f.sections.map((s, j) => (j === i ? { ...s, ...patch } : s)) }));
 
-  function startNew() { setForm({ ...EMPTY, sections: [{ ...EMPTY_SECTION }] }); setEditing({ id: null }); }
+  function startNew() { setForm({ ...EMPTY, sections: [editorRow(EMPTY_SECTION)] }); setEditing({ id: null }); }
   async function startEdit(id: string) {
     const x = await action<Full>(`/admin/content/sims/${id}`);
-    setForm({ slug: x.slug, company: x.company, label: x.label, blurb: x.blurb, usedBy: x.usedBy, sections: x.sections, active: x.active });
+    setForm({ slug: x.slug, company: x.company, label: x.label, blurb: x.blurb, usedBy: x.usedBy, sections: x.sections.map(editorRow), active: x.active });
     setEditing({ id });
   }
   async function save() {
@@ -61,7 +62,7 @@ export default function Page() {
     const sectionsValid = form.sections.length > 0 && form.sections.every((s) => s.name.trim() && s.questions > 0 && s.minutes > 0);
     return (
       <div className="px-6 lg:px-10 py-10 lg:py-12 max-w-3xl mx-auto">
-        <button onClick={() => setEditing(null)} className="text-text-3 hover:text-text-1 text-sm mb-4">← Back to sims</button>
+        <button type="button" onClick={() => setEditing(null)} className="text-text-3 hover:text-text-1 text-sm mb-4">← Back to sims</button>
         <h1 className="font-display text-2xl font-bold tracking-tight">{editing.id ? "Edit sim blueprint" : "New sim blueprint"}</h1>
         <p className="text-text-3 text-sm mt-2">Mirror the real test exactly — sections, question counts, per-section minutes.</p>
         <Card className="mt-6 space-y-4">
@@ -77,15 +78,15 @@ export default function Page() {
           <Field label="Sections">
             <div className="space-y-2">
               {form.sections.map((s, i) => (
-                <div key={i} className="grid grid-cols-[1fr_150px_90px_90px_36px] gap-2 items-center">
+                <div key={s[editorId]} className="grid grid-cols-[1fr_150px_90px_90px_36px] gap-2 items-center">
                   <input className={inputCls} value={s.name} onChange={(e) => setSection(i, { name: e.target.value })} placeholder="Numerical Ability" />
                   <select className={inputCls} value={s.category} onChange={(e) => setSection(i, { category: e.target.value as Category })}>{CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}</select>
                   <input type="number" min={1} max={60} className={inputCls} value={s.questions} onChange={(e) => setSection(i, { questions: Number(e.target.value) })} title="Questions" />
                   <input type="number" min={1} max={120} className={inputCls} value={s.minutes} onChange={(e) => setSection(i, { minutes: Number(e.target.value) })} title="Minutes" />
-                  <button onClick={() => set("sections", form.sections.filter((_, j) => j !== i))} className="text-text-4 hover:text-hard text-lg" title="Remove section">×</button>
+                  <button type="button" onClick={() => set("sections", form.sections.filter((_, j) => j !== i))} className="text-text-4 hover:text-hard text-lg" title="Remove section">×</button>
                 </div>
               ))}
-              <Button size="sm" variant="ghost" onClick={() => set("sections", [...form.sections, { ...EMPTY_SECTION }])}>+ Add section</Button>
+              <Button size="sm" variant="ghost" onClick={() => set("sections", [...form.sections, editorRow(EMPTY_SECTION)])}>+ Add section</Button>
               <p className="text-text-4 text-xs">Columns: section name · question pool · count · minutes.</p>
             </div>
           </Field>
@@ -130,12 +131,12 @@ export default function Page() {
               </div>
               <div className="flex items-center gap-2 shrink-0">
                 <Button size="sm" variant="secondary" onClick={() => startEdit(x.id)}>Edit</Button>
-                <button onClick={() => remove(x.id, x.label)} className="text-text-4 hover:text-hard text-sm px-2 py-1">Delete</button>
+                <button type="button" onClick={() => remove(x.id, x.label)} className="text-text-4 hover:text-hard text-sm px-2 py-1">Delete</button>
               </div>
             </Card>
           );
         })}
-        {data?.length === 0 && <EmptyState icon={<Icons.clipboard width={28} height={28} />} title="No sim blueprints in the DB yet" description="Students currently get the built-in defaults (TCS NQT, AMCAT, InfyTQ, CoCubes). Import them to take over editing." />}
+        {data?.length === 0 && <EmptyState icon={<Icons.Clipboard width={28} height={28} />} title="No sim blueprints in the DB yet" description="Students currently get the built-in defaults (TCS NQT, AMCAT, InfyTQ, CoCubes). Import them to take over editing." />}
       </div>
     </div>
   );

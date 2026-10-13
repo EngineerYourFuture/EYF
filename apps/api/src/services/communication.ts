@@ -1,3 +1,4 @@
+import { trackedMessage } from "../lib/provider-usage.js";
 /**
  * Communication coach — Claude grades a spoken/typed answer against the
  * prompt's rubric (see communication-bank.ts). Returns structured, actionable
@@ -31,7 +32,7 @@ export async function gradeCommunicationAnswer(input: {
   if (!anthropic) throw new Error("ANTHROPIC_API_KEY not set");
   const { prompt, transcript } = input;
 
-  const msg = await anthropic.messages.create({
+  const msg = await trackedMessage(anthropic, {
     model: MODEL,
     max_tokens: 1400,
     system: coachSystemPrompt(),

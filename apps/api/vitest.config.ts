@@ -12,7 +12,8 @@ export default defineConfig({
     // Explicitly disable the SSRF guard and rate limiter for the suite. These are
     // dedicated flags (not NODE_ENV) so production can never turn a security
     // control off by env-name; the test env opts in on purpose.
-    env: { DISABLE_SSRF_GUARD: "true", DISABLE_RATE_LIMIT: "true" },
+    // Exercise real paywalls by default; preview-mode tests explicitly switch billing off.
+    env: { DISABLE_SSRF_GUARD: "true", DISABLE_RATE_LIMIT: "true", BILLING_ENABLED: "true" },
     coverage: {
       provider: "v8",
       reporter: ["text", "lcov"],

@@ -45,12 +45,12 @@ export function StarBuilder() {
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
           <h2 className="font-display text-lg font-bold flex items-center gap-2">
-            <Icons.doc width={18} height={18} className="text-brand" /> STAR story bank
+            <Icons.Doc width={18} height={18} className="text-brand" /> STAR story bank
           </h2>
           <p className="text-text-4 text-sm mt-1">Build structured behavioural answers once, rehearse them before every interview.</p>
         </div>
         {!open && (
-          <button onClick={() => { setDraft(blank); setOpen(true); }}
+          <button type="button" onClick={() => { setDraft(blank); setOpen(true); }}
             className="text-sm font-medium text-brand hover:underline shrink-0">+ New story</button>
         )}
       </div>
@@ -69,9 +69,9 @@ export function StarBuilder() {
             </div>
           ))}
           <div className="flex items-center gap-3 pt-1">
-            <button onClick={save} disabled={!draft.title.trim()}
+            <button type="button" onClick={save} disabled={!draft.title.trim()}
               className="px-4 py-2 rounded-lg bg-brand text-white text-sm font-medium disabled:opacity-40">Save story</button>
-            <button onClick={() => { setDraft(blank); setOpen(false); }} className="text-text-3 text-sm hover:text-text-1">Cancel</button>
+            <button type="button" onClick={() => { setDraft(blank); setOpen(false); }} className="text-text-3 text-sm hover:text-text-1">Cancel</button>
             <span className="ml-auto text-text-4 text-xs font-mono">{filled}/4 sections</span>
           </div>
         </div>
@@ -83,9 +83,9 @@ export function StarBuilder() {
             <details key={st.id} className="rounded-xl border border-border bg-bg group">
               <summary className="flex items-center gap-3 px-4 py-3 cursor-pointer list-none">
                 <span className="font-medium text-sm text-text-1 flex-1">{st.title}</span>
-                <button onClick={(e) => { e.preventDefault(); setDraft(st); setOpen(true); }} className="text-text-4 text-xs hover:text-text-2">Edit</button>
-                <button onClick={(e) => { e.preventDefault(); persist(stories.filter((x) => x.id !== st.id)); }} className="text-hard text-xs hover:underline">Delete</button>
-                <Icons.arrow width={13} height={13} className="text-text-4 rotate-90 group-open:rotate-[270deg] transition-transform" />
+                <button type="button" onClick={(e) => { e.preventDefault(); setDraft(st); setOpen(true); }} className="text-text-4 text-xs hover:text-text-2">Edit</button>
+                <button type="button" onClick={(e) => { e.preventDefault(); persist(stories.filter((x) => x.id !== st.id)); }} className="text-hard text-xs hover:underline">Delete</button>
+                <Icons.Arrow width={13} height={13} className="text-text-4 rotate-90 group-open:rotate-[270deg] transition-transform" />
               </summary>
               <div className="px-4 pb-4 space-y-2">
                 {FIELDS.map((f) => st[f.k].trim() && (

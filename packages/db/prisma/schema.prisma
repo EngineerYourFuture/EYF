@@ -74,6 +74,7 @@ enum Verdict {
 }
 
 enum Language {
+  SQL
   CPP
   JAVA
   PYTHON
@@ -257,6 +258,8 @@ model User {
   communicationDrills  CommunicationDrill[]
   projectPreps         ProjectPrep[]
   scoreShares          ScoreShare[]
+  placementSprint      PlacementSprint?
+  providerUsage        ProviderUsage[]
   orgMemberships       OrgMember[]
   talentConsent        TalentConsent?
 
@@ -372,6 +375,7 @@ model Problem {
   totalAccepted    Int        @default(0)
   timeLimitMs      Int        @default(2000)
   memoryLimitKb    Int        @default(262144)
+  executionMode    String     @default("STDIO")
   createdAt        DateTime   @default(now())
   updatedAt        DateTime   @updatedAt
 
@@ -432,11 +436,97 @@ model ProblemSolution {
   totalTests  Int      @default(0)
   errorMsg    String?
   judge0Token String?
+  testSuiteHash String?
   submittedAt DateTime @default(now())
 
   @@index([userId, submittedAt])
   @@index([problemId, verdict])
   @@map("problem_solutions")
+}
+
+// One versioned, resumable backend practice journey per learner. Public reports
+// are explicit, revocable snapshots; private answers and source never leave it.
+model PlacementSprint {
+  id                   String   @id @default(cuid())
+  userId               String   @unique
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  version              Int      @default(1)
+  startedAt            DateTime @default(now())
+  baseline             Json?
+  baselineCompletedAt  DateTime?
+  drillsCompletedAt    DateTime?
+  challengeNotes       Json?
+  challengeEvidence    Json?
+  challengeCompletedAt DateTime?
+  retest               Json?
+  retestCompletedAt    DateTime?
+  shareToken           String?  @unique
+  shareSnapshot        Json?
+  sharedAt             DateTime?
+  shareExpiresAt       DateTime?
+  reviews              SprintReview[]
+  practiceRounds       SprintPracticeRound[]
+
+  @@map("placement_sprints")
+}
+
+model SprintReview {
+  id String @id @default(cuid())
+  sprintId String
+  sprint PlacementSprint @relation(fields: [sprintId], references: [id], onDelete: Cascade)
+  orgId String
+  org Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  requestedAt DateTime @default(now())
+  revokedAt DateTime?
+  reviewedAt DateTime?
+  reviewerId String?
+  reviewerName String?
+  rubric Json?
+  feedback String?
+
+  @@unique([sprintId, orgId])
+  @@index([orgId, reviewedAt, revokedAt])
+  @@map("sprint_reviews")
+}
+
+model SprintPracticeRound {
+  id String @id @default(cuid())
+  sprintId String
+  sprint PlacementSprint @relation(fields: [sprintId], references: [id], onDelete: Cascade)
+  sequence Int
+  bankVersion Int
+  startedAt DateTime @default(now())
+  completedAt DateTime?
+  result Json?
+
+  @@unique([sprintId, sequence])
+  @@index([sprintId, completedAt])
+  @@map("sprint_practice_rounds")
+}
+
+// Usage metadata only: no prompts, answers, source code or audio.
+model ProviderUsage {
+  id String @id @default(cuid())
+  userId String?
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+  provider String
+  model String
+  feature String
+  requestId String?
+  outcome String
+  inputTokens Int @default(0)
+  outputTokens Int @default(0)
+  cacheReadTokens Int @default(0)
+  cacheWriteTokens Int @default(0)
+  durationSeconds Float?
+  latencyMs Int
+  estimatedUsd Float?
+  createdAt DateTime @default(now())
+
+  @@unique([provider, requestId])
+  @@index([createdAt, provider, model])
+  @@index([userId, createdAt])
+  @@map("provider_usage")
 }
 
 // ─── 7. Editorial ─────────────────────────────────────────────────
@@ -1461,6 +1551,7 @@ model Organization {
   settings             Json?
   createdAt            DateTime              @default(now())
   courses              Course[]
+  mediaAssets          MediaAsset[]
   internships          InternshipSlot[]
   members              OrgMember[]
   departments          Department[]
@@ -1468,6 +1559,7 @@ model Organization {
   invites              OrgInvite[]
   learningPaths        LearningPath[]
   cohorts              Cohort[]
+  sprintReviews        SprintReview[]
   roleBars             RoleBar[]
   assessmentBlueprints AssessmentBlueprint[]
   assessmentRuns       AssessmentRun[]
@@ -2057,6 +2149,9 @@ model Cohort {
   name        String
   startsAt    DateTime
   endsAt      DateTime?
+  driveTitle  String?
+  driveDeadline DateTime?
+  minimumProgress Int @default(100)
   createdAt   DateTime           @default(now())
   enrollments CohortEnrollment[]
 
@@ -2075,6 +2170,10 @@ model CohortEnrollment {
   lastActivityAt DateTime?
   stuckFlag      Boolean            @default(false)
   enrolledAt     DateTime           @default(now())
+  followUpStatus String             @default("NONE")
+  followUpNote   String             @default("")
+  followUpDueAt  DateTime?
+  followUpUpdatedAt DateTime?
 
   @@unique([cohortId, memberId])
   @@index([cohortId, stuckFlag])
@@ -2103,6 +2202,10 @@ model OrgInvite {
   roles       OrgRole[]
   token       String       @unique
   invitedById String
+  emailStatus String   @default("NOT_SENT")
+  emailAttemptedAt DateTime?
+  emailSentAt DateTime?
+  remindedAt DateTime?
   expiresAt   DateTime
   acceptedAt  DateTime?
   createdAt   DateTime     @default(now())
@@ -2127,6 +2230,19 @@ enum LessonType {
   QUIZ_INLINE
   EMBED
   FILE
+}
+
+model MediaAsset {
+  id          String       @id @default(uuid())
+  orgId       String
+  org         Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  filename    String
+  contentType String
+  size        Int
+  createdAt   DateTime     @default(now())
+
+  @@index([orgId])
+  @@map("lms_media_assets")
 }
 
 model Course {

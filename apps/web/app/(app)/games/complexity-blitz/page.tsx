@@ -92,7 +92,7 @@ export default function Page() {
       {phase === "ready" && (
         <div className="mt-8 rounded-2xl border border-border bg-surface p-8 text-center shadow-card">
           <p className="text-text-2">60 seconds. As many fragments as you can. {best > 0 && <>Best: <span className="font-bold text-text-1">{best}</span></>}</p>
-          <button onClick={start} className="mt-5 px-6 py-2.5 rounded-lg bg-brand text-white text-sm font-medium">Start</button>
+          <button type="button" onClick={start} className="mt-5 px-6 py-2.5 rounded-lg bg-brand text-white text-sm font-medium">Start</button>
         </div>
       )}
 
@@ -107,7 +107,7 @@ export default function Page() {
           </div>
           <div className="mt-4 grid grid-cols-2 gap-3">
             {choices.map((c) => (
-              <button key={c} onClick={() => answer(c)} disabled={!!flash}
+              <button type="button" key={c} onClick={() => answer(c)} disabled={!!flash}
                 className="h-12 rounded-xl border border-border bg-surface font-mono text-sm hover:border-accent hover:bg-surface-2 transition-colors disabled:opacity-60">
                 {c}
               </button>
@@ -122,7 +122,7 @@ export default function Page() {
           <div className="mt-2 font-display text-5xl font-bold tabular-nums">{score}</div>
           <p className="text-text-3 text-sm mt-2">{correct}/{attempts} correct · best {best}{score >= best && score > 0 ? " (new best!)" : ""}</p>
           <div className="mt-6 flex gap-3 justify-center">
-            <button onClick={start} className="px-5 py-2.5 rounded-lg bg-brand text-white text-sm font-medium">Play again</button>
+            <button type="button" onClick={start} className="px-5 py-2.5 rounded-lg bg-brand text-white text-sm font-medium">Play again</button>
             <Link href="/games" className="px-5 py-2.5 rounded-lg border border-border text-sm">Back to games</Link>
           </div>
         </div>

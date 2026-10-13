@@ -14,11 +14,17 @@ export function errorHandler(
   }
 
   if (err instanceof ZodError) {
+    // Handlers validate the body, path params, AND the query string with the same
+    // `z.parse(...)` call shape, so this handler cannot tell which one failed. It
+    // used to answer "Invalid request body." unconditionally, which sent anyone
+    // with a bad path param or query value off debugging a body they never sent.
+    // `details.fieldErrors` already names the offending field, so stay accurate
+    // about what we actually know.
     return reply.code(400).send({
       success: false,
       error: {
         code: "VALIDATION_ERROR",
-        message: "Invalid request body.",
+        message: "Request validation failed.",
         details: err.flatten(),
       },
     });

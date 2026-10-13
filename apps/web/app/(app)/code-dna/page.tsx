@@ -54,93 +54,7 @@ export default function Page() {
           {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-24 rounded-xl" />)}
         </div>
       ) : (
-        <>
-          <div className="mt-8 grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <MetricTile icon={<Icons.target width={16} height={16} />} tone="easy"
-              label="Accepted" value={dna.acceptedCount} sub={`${Math.round(dna.acceptanceRate * 100)}% acceptance`} />
-            <MetricTile icon={<Icons.code width={16} height={16} />}
-              label="Primary lang" value={dna.primaryLanguage ?? "—"} sub="Most used" />
-            <MetricTile icon={<Icons.bolt width={16} height={16} />} tone="medium"
-              label="Avg runtime" value={dna.avgRuntimeMs ? dna.avgRuntimeMs : "—"} unit={dna.avgRuntimeMs ? "ms" : undefined} sub="Per accepted" />
-            <MetricTile icon={<Icons.flame width={16} height={16} />} tone="accent"
-              label="Fastest solve" value={dna.fastestSolveMin ?? "—"} unit={dna.fastestSolveMin ? "min" : undefined} sub="Personal best" />
-          </div>
-
-          {/* Speed vs accuracy tradeoff */}
-          <Card className="mt-5">
-            <div className="flex items-start justify-between gap-4 flex-wrap">
-              <div>
-                <div className="text-xs font-mono uppercase tracking-widest text-text-3">Speed vs accuracy</div>
-                <p className="text-text-1 font-medium mt-1 max-w-xl">{dna.speedAccuracy}</p>
-              </div>
-              <div className="flex gap-6 shrink-0">
-                <div>
-                  <div className="font-display text-2xl font-bold tabular-nums">{Math.round(dna.firstTryRate * 100)}%</div>
-                  <div className="text-text-4 text-xs">first-try solves</div>
-                </div>
-                <div>
-                  <div className="font-display text-2xl font-bold tabular-nums">{dna.avgAttemptsToSolve || "—"}</div>
-                  <div className="text-text-4 text-xs">avg tries to solve</div>
-                </div>
-              </div>
-            </div>
-          </Card>
-
-          <div className="grid md:grid-cols-2 gap-5 mt-5">
-            <Card>
-              <div className="flex items-center gap-2 mb-4">
-                <span className="text-easy"><Icons.award width={18} height={18} /></span>
-                <h3 className="font-display text-lg font-bold">Strengths</h3>
-              </div>
-              {dna.patternStrengths.length === 0
-                ? <EmptyState title="No patterns yet" description="Solve a handful of problems and your strongest patterns surface here." className="py-8" />
-                : <ul className="space-y-3">{dna.patternStrengths.map((p) => (
-                    <Meter key={p.pattern} tone="easy" label={p.pattern} value={`${Math.round(p.acceptanceRate * 100)}% · ${p.attempts} tries`} pct={p.acceptanceRate} />
-                  ))}</ul>}
-            </Card>
-            <Card>
-              <div className="flex items-center gap-2 mb-4">
-                <span className="text-hard"><Icons.target width={18} height={18} /></span>
-                <h3 className="font-display text-lg font-bold">Soft spots</h3>
-              </div>
-              {dna.patternWeaknesses.length === 0
-                ? <EmptyState title="Nothing flagged" description="Once you have enough attempts, weak patterns show up here to target." className="py-8" />
-                : <ul className="space-y-3">{dna.patternWeaknesses.map((p) => (
-                    <Meter key={p.pattern} tone="hard" label={p.pattern} value={`${Math.round(p.acceptanceRate * 100)}% · ${p.attempts} tries`} pct={p.acceptanceRate} />
-                  ))}</ul>}
-            </Card>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-5 mt-5">
-            <Card>
-              <h3 className="font-display text-lg font-bold mb-4">Language mix</h3>
-              {dna.languageMix.length === 0
-                ? <EmptyState title="No data yet" description="Submit solutions to map your language footprint." className="py-8" />
-                : <div className="space-y-3">{dna.languageMix.map((l) => (
-                    <Meter key={l.language} label={l.language} value={l.count} pct={l.pct} />
-                  ))}</div>}
-            </Card>
-            <Card>
-              <h3 className="font-display text-lg font-bold mb-4">Difficulty mix</h3>
-              {dna.difficultyMix.length === 0
-                ? <EmptyState title="No data yet" description="Your difficulty spread appears as you solve." className="py-8" />
-                : <div className="space-y-3">{dna.difficultyMix.map((d) => (
-                    <Meter key={d.difficulty}
-                      tone={difficultyTone(d.difficulty)}
-                      label={d.difficulty} value={d.count} pct={d.pct} />
-                  ))}</div>}
-            </Card>
-          </div>
-
-          {dna.habitFlags.length > 0 && (
-            <Card className="mt-5">
-              <h3 className="font-display text-lg font-bold mb-3">Habits flagged</h3>
-              <div className="flex flex-wrap gap-2">
-                {dna.habitFlags.map((f) => <Badge key={f} tone="medium">{f}</Badge>)}
-              </div>
-            </Card>
-          )}
-        </>
+        <DnaSummary dna={dna} />
       )}
 
       {/* AI strategist */}
@@ -148,7 +62,7 @@ export default function Page() {
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-accent"><Icons.sparkle width={20} height={20} /></span>
+              <span className="text-accent"><Icons.Sparkle width={20} height={20} /></span>
               <h2 className="font-display text-2xl font-bold">AI Career Strategist</h2>
               <Badge tone="accent">Pro+</Badge>
             </div>
@@ -204,4 +118,94 @@ export default function Page() {
       </Card>
     </PageMotion>
   );
+}
+
+function DnaSummary({ dna }: Readonly<{ dna: Dna }>) {
+  return (<>
+          <div className="mt-8 grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <MetricTile icon={<Icons.Target width={16} height={16} />} tone="easy"
+              label="Accepted" value={dna.acceptedCount} sub={`${Math.round(dna.acceptanceRate * 100)}% acceptance`} />
+            <MetricTile icon={<Icons.Code width={16} height={16} />}
+              label="Primary lang" value={dna.primaryLanguage ?? "—"} sub="Most used" />
+            <MetricTile icon={<Icons.Bolt width={16} height={16} />} tone="medium"
+              label="Avg runtime" value={dna.avgRuntimeMs ? dna.avgRuntimeMs : "—"} unit={dna.avgRuntimeMs ? "ms" : undefined} sub="Per accepted" />
+            <MetricTile icon={<Icons.Flame width={16} height={16} />} tone="accent"
+              label="Fastest solve" value={dna.fastestSolveMin ?? "—"} unit={dna.fastestSolveMin ? "min" : undefined} sub="Personal best" />
+          </div>
+
+          {/* Speed vs accuracy tradeoff */}
+          <Card className="mt-5">
+            <div className="flex items-start justify-between gap-4 flex-wrap">
+              <div>
+                <div className="text-xs font-mono uppercase tracking-widest text-text-3">Speed vs accuracy</div>
+                <p className="text-text-1 font-medium mt-1 max-w-xl">{dna.speedAccuracy}</p>
+              </div>
+              <div className="flex gap-6 shrink-0">
+                <div>
+                  <div className="font-display text-2xl font-bold tabular-nums">{Math.round(dna.firstTryRate * 100)}%</div>
+                  <div className="text-text-4 text-xs">first-try solves</div>
+                </div>
+                <div>
+                  <div className="font-display text-2xl font-bold tabular-nums">{dna.avgAttemptsToSolve || "—"}</div>
+                  <div className="text-text-4 text-xs">avg tries to solve</div>
+                </div>
+              </div>
+            </div>
+          </Card>
+
+          <div className="grid md:grid-cols-2 gap-5 mt-5">
+            <Card>
+              <div className="flex items-center gap-2 mb-4">
+                <span className="text-easy"><Icons.Award width={18} height={18} /></span>
+                <h3 className="font-display text-lg font-bold">Strengths</h3>
+              </div>
+              {dna.patternStrengths.length === 0
+                ? <EmptyState title="No patterns yet" description="Solve a handful of problems and your strongest patterns surface here." className="py-8" />
+                : <ul className="space-y-3">{dna.patternStrengths.map((p) => (
+                    <Meter key={p.pattern} tone="easy" label={p.pattern} value={`${Math.round(p.acceptanceRate * 100)}% · ${p.attempts} tries`} pct={p.acceptanceRate} />
+                  ))}</ul>}
+            </Card>
+            <Card>
+              <div className="flex items-center gap-2 mb-4">
+                <span className="text-hard"><Icons.Target width={18} height={18} /></span>
+                <h3 className="font-display text-lg font-bold">Soft spots</h3>
+              </div>
+              {dna.patternWeaknesses.length === 0
+                ? <EmptyState title="Nothing flagged" description="Once you have enough attempts, weak patterns show up here to target." className="py-8" />
+                : <ul className="space-y-3">{dna.patternWeaknesses.map((p) => (
+                    <Meter key={p.pattern} tone="hard" label={p.pattern} value={`${Math.round(p.acceptanceRate * 100)}% · ${p.attempts} tries`} pct={p.acceptanceRate} />
+                  ))}</ul>}
+            </Card>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-5 mt-5">
+            <Card>
+              <h3 className="font-display text-lg font-bold mb-4">Language mix</h3>
+              {dna.languageMix.length === 0
+                ? <EmptyState title="No data yet" description="Submit solutions to map your language footprint." className="py-8" />
+                : <div className="space-y-3">{dna.languageMix.map((l) => (
+                    <Meter key={l.language} label={l.language} value={l.count} pct={l.pct} />
+                  ))}</div>}
+            </Card>
+            <Card>
+              <h3 className="font-display text-lg font-bold mb-4">Difficulty mix</h3>
+              {dna.difficultyMix.length === 0
+                ? <EmptyState title="No data yet" description="Your difficulty spread appears as you solve." className="py-8" />
+                : <div className="space-y-3">{dna.difficultyMix.map((d) => (
+                    <Meter key={d.difficulty}
+                      tone={difficultyTone(d.difficulty)}
+                      label={d.difficulty} value={d.count} pct={d.pct} />
+                  ))}</div>}
+            </Card>
+          </div>
+
+          {dna.habitFlags.length > 0 && (
+            <Card className="mt-5">
+              <h3 className="font-display text-lg font-bold mb-3">Habits flagged</h3>
+              <div className="flex flex-wrap gap-2">
+                {dna.habitFlags.map((f) => <Badge key={f} tone="medium">{f}</Badge>)}
+              </div>
+            </Card>
+          )}
+        </>);
 }

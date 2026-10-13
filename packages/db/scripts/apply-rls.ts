@@ -49,10 +49,11 @@ async function main() {
   console.log(`RLS: ${POLICY_NAME} applied on ${TENANT_TABLE}`);
 }
 
-main()
-  .then(() => prisma.$disconnect())
-  .catch(async (e) => {
-    console.error(e);
-    await prisma.$disconnect();
-    process.exit(1);
-  });
+try {
+  await main();
+} catch (e) {
+  console.error(e);
+  process.exitCode = 1;
+} finally {
+  await prisma.$disconnect();
+}

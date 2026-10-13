@@ -11,9 +11,10 @@ import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { prisma, CourseStatus } from "@eyf/db";
 import { requireOrgCapability, requireOrgMember } from "../middleware/org.js";
+import { canInOrg } from "@eyf/types";
 import { recordAudit } from "../lib/audit.js";
 
-const STUCK_AFTER_DAYS = 7;
+import { cohortReport, scopedMembers } from "../services/cohort-report.js";
 
 type PathItem = { required: boolean; course: { id: string; title: string; estMinutes: number; lessons: { id: string }[] } };
 const lessonIdsOf = (item: PathItem) => item.course.lessons.map((l) => l.id);
@@ -34,7 +35,8 @@ export async function orgPathsRoutes(app: FastifyInstance) {
   const member = { preHandler: [app.requireAuth, requireOrgMember] };
 
   // ── Path composition (learn:author) ───────────────────────────────
-  app.get("/:orgId/paths", author, async (req) => {
+  app.get("/:orgId/paths", member, async (req, reply) => {
+    if (!["learn:author", "learn:publish", "learn:enroll"].some((cap) => canInOrg(req.orgCtx!.roles, cap as "learn:author").granted)) return reply.code(403).send({ success: false, error: { code: "FORBIDDEN", message: "Program management is not available for your role." } });
     const paths = await prisma.learningPath.findMany({
       where: { orgId: req.orgCtx!.orgId },
       select: {
@@ -71,10 +73,11 @@ export async function orgPathsRoutes(app: FastifyInstance) {
     const { pathId } = req.params as { pathId: string };
     const body = z.object({ courseId: z.string(), orderIndex: z.number().int().min(0).default(0), required: z.boolean().default(true) }).parse(req.body);
     const [path, course] = await Promise.all([
-      prisma.learningPath.findFirst({ where: { id: pathId, orgId: req.orgCtx!.orgId }, select: { id: true } }),
+      prisma.learningPath.findFirst({ where: { id: pathId, orgId: req.orgCtx!.orgId }, select: { id: true, published: true } }),
       prisma.course.findFirst({ where: { id: body.courseId, orgId: req.orgCtx!.orgId }, select: { id: true, status: true } }),
     ]);
     if (!path || !course) return reply.code(404).send({ success: false, error: { code: "NOT_FOUND", message: "Path or course not found." } });
+    if (path.published) return reply.code(409).send({ success: false, error: { code: "PUBLISHED_PATH", message: "Published programs are fixed. Create a new program to change its courses." } });
     if (course.status !== CourseStatus.PUBLISHED) {
       return reply.code(409).send({ success: false, error: { code: "COURSE_NOT_PUBLISHED", message: "Publish the course before adding it to a path." } });
     }
@@ -84,6 +87,23 @@ export async function orgPathsRoutes(app: FastifyInstance) {
       create: { pathId, courseId: body.courseId, orderIndex: body.orderIndex, required: body.required },
     });
     return reply.code(201).send({ success: true, data: item });
+  });
+
+  app.delete("/:orgId/paths/:pathId/items/:courseId", author, async (req, reply) => {
+    const { pathId, courseId } = req.params as { pathId: string; courseId: string };
+    const path = await prisma.learningPath.findFirst({ where: { id: pathId, orgId: req.orgCtx!.orgId } });
+    if (!path) return reply.code(404).send({ success: false, error: { code: "NOT_FOUND", message: "Program not found." } });
+    if (path.published) return reply.code(409).send({ success: false, error: { code: "PUBLISHED_PATH", message: "Published programs cannot be changed." } });
+    await prisma.pathItem.deleteMany({ where: { pathId, courseId } });
+    return { success: true, data: { removed: true } };
+  });
+
+  app.get("/:orgId/learning-members", enroller, async (req) => {
+    const members = await prisma.orgMember.findMany({
+      where: { orgId: req.orgCtx!.orgId, status: "ACTIVE", ...(req.orgCtx!.scope === "department" ? { departmentId: req.orgCtx!.departmentId ?? "__none__" } : {}) },
+      select: { id: true, user: { select: { name: true, email: true } } }, orderBy: { id: "asc" },
+    });
+    return { success: true, data: members };
   });
 
   app.post("/:orgId/paths/:pathId/publish", { preHandler: [app.requireAuth, requireOrgCapability("learn:publish")] }, async (req, reply) => {
@@ -107,7 +127,7 @@ export async function orgPathsRoutes(app: FastifyInstance) {
       select: {
         id: true, name: true, startsAt: true, endsAt: true,
         path: { select: { id: true, title: true } },
-        _count: { select: { enrollments: true } },
+        _count: { select: { enrollments: { where: { member: scopedMembers(req.orgCtx!) } } } },
       },
       orderBy: { startsAt: "desc" },
     });
@@ -120,7 +140,7 @@ export async function orgPathsRoutes(app: FastifyInstance) {
       name: z.string().trim().min(2).max(80),
       startsAt: z.string().datetime().optional(),
       endsAt: z.string().datetime().nullable().optional(),
-    }).parse(req.body);
+    }).refine((v) => !v.endsAt || new Date(v.endsAt) > new Date(v.startsAt ?? Date.now()), "End date must follow the start date.").parse(req.body);
     const path = await prisma.learningPath.findFirst({
       where: { id: body.pathId, orgId: req.orgCtx!.orgId },
       select: { id: true, published: true },
@@ -148,81 +168,25 @@ export async function orgPathsRoutes(app: FastifyInstance) {
     // Only members of THIS org can be enrolled — foreign ids silently dropped
     // would hide bugs; report them instead.
     const valid = await prisma.orgMember.findMany({
-      where: { id: { in: memberIds }, orgId: req.orgCtx!.orgId, status: "ACTIVE" },
+      where: { id: { in: memberIds }, orgId: req.orgCtx!.orgId, status: "ACTIVE", ...(req.orgCtx!.scope === "department" ? { departmentId: req.orgCtx!.departmentId ?? "__none__" } : {}) },
       select: { id: true },
     });
     const validIds = new Set(valid.map((m) => m.id));
     const rejected = memberIds.filter((id) => !validIds.has(id));
-    await prisma.cohortEnrollment.createMany({
+    const inserted = await prisma.cohortEnrollment.createMany({
       data: [...validIds].map((memberId) => ({ cohortId, memberId })),
       skipDuplicates: true,
     });
-    return { success: true, data: { enrolled: validIds.size, rejected } };
+    return { success: true, data: { enrolled: inserted.count, alreadyEnrolled: validIds.size - inserted.count, rejected } };
   });
 
   // Funnel — compute-on-read progress + stuck detection, written back.
   app.get("/:orgId/cohorts/:cohortId/funnel", enroller, async (req, reply) => {
     const { cohortId } = req.params as { cohortId: string };
-    const cohort = await prisma.cohort.findFirst({
-      where: { id: cohortId, orgId: req.orgCtx!.orgId },
-      include: {
-        path: { include: { items: { include: { course: { include: { lessons: { select: { id: true } } } } } } } },
-        enrollments: { include: { member: { include: { user: { select: { name: true, email: true } } } } } },
-      },
-    });
-    if (!cohort) return reply.code(404).send({ success: false, error: { code: "NOT_FOUND", message: "Cohort not found." } });
-
-    const lessonIds = cohort.path.items.flatMap((i) => i.course.lessons.map((l) => l.id));
-    const userIds = cohort.enrollments.map((e) => e.member.userId);
-    const progress = lessonIds.length
-      ? await prisma.lessonProgress.findMany({
-          where: { lessonId: { in: lessonIds }, userId: { in: userIds } },
-          select: { userId: true, lessonId: true, completedAt: true },
-        })
-      : [];
-
-    const now = Date.now();
-    const rows = cohort.enrollments.map((e) => {
-      const mine = progress.filter((p) => p.userId === e.member.userId);
-      const pct = lessonIds.length ? Math.round((mine.length / lessonIds.length) * 100) : 0;
-      const lastActivityAt = mine.length
-        ? new Date(Math.max(...mine.map((p) => p.completedAt.getTime())))
-        : null;
-      const idleSince = lastActivityAt ?? e.enrolledAt;
-      const stuck = pct < 100 && now - idleSince.getTime() > STUCK_AFTER_DAYS * 86_400_000;
-      return {
-        enrollmentId: e.id,
-        member: { id: e.member.id, name: e.member.user.name, email: e.member.user.email },
-        progressPct: pct,
-        lastActivityAt,
-        stuckFlag: stuck,
-        status: pct === 100 ? "COMPLETED" : e.status,
-      };
-    });
-
-    // Write-back so list views and future workers read cached state.
-    await prisma.$transaction(
-      rows.map((r) =>
-        prisma.cohortEnrollment.update({
-          where: { id: r.enrollmentId },
-          data: {
-            progressPct: r.progressPct,
-            lastActivityAt: r.lastActivityAt,
-            stuckFlag: r.stuckFlag,
-            ...(r.progressPct === 100 ? { status: "COMPLETED" } : {}),
-          },
-        }),
-      ),
-    );
-
-    const funnel = {
-      enrolled: rows.length,
-      started: rows.filter((r) => r.progressPct > 0).length,
-      halfway: rows.filter((r) => r.progressPct >= 50).length,
-      completed: rows.filter((r) => r.progressPct === 100).length,
-      stuck: rows.filter((r) => r.stuckFlag).length,
-    };
-    return { success: true, data: { cohort: { id: cohort.id, name: cohort.name, path: cohort.path.title }, funnel, rows } };
+    const report = await cohortReport(cohortId, req.orgCtx!);
+    if (!report) return reply.code(404).send({ success: false, error: { code: "NOT_FOUND", message: "Cohort not found." } });
+    await prisma.$transaction(report.rows.map((r) => prisma.cohortEnrollment.update({ where: { id: r.enrollmentId }, data: { progressPct: r.progressPct, lastActivityAt: r.lastActivityAt, stuckFlag: r.stuckFlag, status: r.status as "ENROLLED" | "COMPLETED" | "DROPPED" } })));
+    return { success: true, data: report };
   });
 
   // ── Member view (/work) ────────────────────────────────────────────
@@ -252,8 +216,8 @@ export async function orgPathsRoutes(app: FastifyInstance) {
 
     const data = enrollments.map((e) => {
       const courses = e.cohort.path.items.map((i) => buildCourse(i, done));
-      const total = courses.reduce((a, c) => a + c.lessonCount, 0);
-      const completed = courses.reduce((a, c) => a + c.completedCount, 0);
+      const total = courses.filter((c) => c.required).reduce((a, c) => a + c.lessonCount, 0);
+      const completed = courses.filter((c) => c.required).reduce((a, c) => a + c.completedCount, 0);
       return {
         cohortId: e.cohortId,
         cohortName: e.cohort.name,

@@ -71,7 +71,7 @@ export default function Page() {
               {SECTIONS.map((s) => {
                 const on = form.sections.includes(s);
                 return (
-                  <button key={s} aria-pressed={on} onClick={() => setForm({ ...form,
+                  <button type="button" key={s} aria-pressed={on} onClick={() => setForm({ ...form,
                     sections: on ? form.sections.filter((x) => x !== s) : [...form.sections, s],
                   })} className={`px-2 py-1 text-xs border rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${on ? "border-accent text-text-1" : "border-border text-text-3"}`}>
                     {s}
@@ -121,7 +121,7 @@ export default function Page() {
         ))}
         {data?.length === 0 && (
           <EmptyState
-            icon={<Icons.target width={28} height={28} />}
+            icon={<Icons.Target width={28} height={28} />}
             title={company ? `No reports for “${company}” yet` : "No reports yet"}
             description="OA patterns are crowd-sourced. Just finished a drive? Post what you saw and help the next batch."
             action={<Button onClick={() => setOpen(true)}>Submit a report</Button>}

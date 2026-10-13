@@ -51,7 +51,7 @@ export default function Page() {
   if (editing) {
     return (
       <div className="px-6 lg:px-10 py-10 lg:py-12 max-w-3xl mx-auto">
-        <button onClick={() => setEditing(null)} className="text-text-3 hover:text-text-1 text-sm mb-4">← Back to flashcards</button>
+        <button type="button" onClick={() => setEditing(null)} className="text-text-3 hover:text-text-1 text-sm mb-4">← Back to flashcards</button>
         <h1 className="font-display text-2xl font-bold tracking-tight">{editing.id ? "Edit flashcard" : "New flashcard"}</h1>
         <Card className="mt-6 space-y-4">
           <div className="grid grid-cols-3 gap-4">
@@ -82,7 +82,7 @@ export default function Page() {
       <ContentTabs />
       <div className="mt-6 flex items-center gap-1">
         {SUBJECTS.map((s) => (
-          <button key={s} onClick={() => setFilter(s)}
+          <button type="button" key={s} onClick={() => setFilter(s)}
             className={`px-3 py-1.5 rounded-md text-sm transition-colors ${filter === s ? "bg-surface-3 text-text-1" : "text-text-3 hover:text-text-1"}`}>
             {s === "ALL" ? "All" : s}
           </button>
@@ -102,11 +102,11 @@ export default function Page() {
             </div>
             <div className="flex items-center gap-2 shrink-0">
               <Button size="sm" variant="secondary" onClick={() => startEdit(x.id)}>Edit</Button>
-              <button onClick={() => remove(x.id)} className="text-text-4 hover:text-hard text-sm px-2 py-1">Delete</button>
+              <button type="button" onClick={() => remove(x.id)} className="text-text-4 hover:text-hard text-sm px-2 py-1">Delete</button>
             </div>
           </Card>
         ))}
-        {data?.length === 0 && <EmptyState icon={<Icons.clipboard width={28} height={28} />} title="No flashcards yet" description="Add the first card — it enters students' SRS rotation immediately." />}
+        {data?.length === 0 && <EmptyState icon={<Icons.Clipboard width={28} height={28} />} title="No flashcards yet" description="Add the first card — it enters students' SRS rotation immediately." />}
       </div>
     </div>
   );

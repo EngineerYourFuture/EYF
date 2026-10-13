@@ -29,6 +29,13 @@ export function initAnalytics() {
     capture_pageleave: true,
     person_profiles: "identified_only",
     autocapture: false,
+    // Keep bearer links and candidate-authored work out of analytics.
+    before_send: (event) => {
+      if (!event) return event;
+      const paths = [window.location.pathname, event.properties?.$current_url, event.properties?.$referrer];
+      if (paths.some((path) => typeof path === "string" && /\/(proof\/|sprint(?:[/?#]|$))/.test(path))) return null;
+      return event;
+    },
   });
   initialized = true;
 }

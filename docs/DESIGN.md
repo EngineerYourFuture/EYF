@@ -57,6 +57,22 @@ Keep the immersive 3D scroll (Three.js particle field + Framer scroll-film in `c
 - Motion should feel like heavy, precise machinery (Tesla), not floaty (AI slop).
 - Respect `prefers-reduced-motion`.
 
+### Shared interaction rules
+
+- Buttons respond on press; navigation uses a colour change and action buttons use a small scale. Touch targets are at least 2.75rem, and button height can grow with text.
+- Shared dialogs, search and mobile navigation use the same critically damped spring (`interaction-motion.tsx`). Opening and closing follow the same path; a new input can reverse an in-flight transition.
+- Use `Modal` for blocking tasks. It combines the native dialog top layer with keyboard containment, Escape, focus restoration and a shared scroll lock for nested dialogs. Initial focus uses `data-autofocus` when supplied; confirmations start on Cancel.
+- Local page search updates immediately. Only remote problem queries are debounced.
+- `useMotionPreference` responds to preference changes while the page is open. Reduced motion uses fades or static feedback; smooth scrolling stops. Glass becomes solid for reduced transparency or increased contrast, with stronger borders for increased contrast.
+- Keep Geist for the established EYF identity, with optical sizing enabled. Use weight and tracking to distinguish headings, and allow enlarged text to wrap.
+- The LMS outline is a disclosure on phones and a persistent rail on desktop. Lesson selection moves focus to the lesson heading; progress uses a transform rather than animating layout width.
+- Private workspace navigation groups personal learning, training operations, people, and workspace settings. Desktop uses a vertical keyboard-accessible list; phones use a grouped section selector. Organization and section live in the URL so returning from a course restores context.
+- Join, invitation, course, program, and cohort creation forms open on request. Explain the course → program → cohort prerequisites where they matter. Search current lists without adding a separate search screen.
+- Role choices use names and descriptions beside a permission preview computed from the shared capability map. Keep scope and account status visible; never suggest organization roles grant platform administration.
+- Lesson authors can preview current edits with the learner renderer before publishing. Quiz questions come before individual answers and a direct correct-answer choice. Block actions meet the 44px touch target; removal has an undo action.
+- Unsaved lesson exits prompt consistently, including the shared LMS home link. In-memory drafts are scoped to the signed-in account, organization, course, and lesson and survive internal navigation. Save before refreshing, closing the tab, or signing out; private lesson drafts are not stored in localStorage or sessionStorage.
+- Completing a course shows saved progress and a real next assigned course or return to program progress. Assessment and certificate requirements remain explicit and separate.
+
 ## Components
 
 - **Primary button:** monochrome fill (`bg-accent` = white on dark / black on light), `text-accent-ink`. No glow, no gradient.

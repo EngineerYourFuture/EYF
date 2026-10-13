@@ -53,7 +53,7 @@ export default function Page() {
         {isLoading && <SkeletonRows rows={4} />}
         {data?.map((e) => <ExpCard key={e.id} e={e} onUpvote={mutate} />)}
         {data?.length === 0 && (
-          <EmptyState icon={<Icons.mic width={28} height={28} />} title="No experiences yet"
+          <EmptyState icon={<Icons.Mic width={28} height={28} />} title="No experiences yet"
             description={company ? "None for this company. Be the first to share." : "Be the first to debrief your interview and help the next batch."}
             action={<Button onClick={() => setOpen(true)}>Share your experience</Button>} />
         )}
@@ -79,7 +79,7 @@ function ExpCard({ e, onUpvote }: Readonly<{ e: Exp; onUpvote: () => void }>) {
   return (
     <Card className="flex gap-4">
       {/* upvote rail */}
-      <button onClick={upvote} disabled={voted}
+      <button type="button" onClick={upvote} disabled={voted}
         className={`flex flex-col items-center gap-0.5 shrink-0 rounded-lg border px-2.5 py-1.5 h-fit transition-colors ${
           voted ? "border-accent bg-accent-tint text-accent" : "border-border text-text-3 hover:border-edge"}`}>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m18 15-6-6-6 6" /></svg>
@@ -95,13 +95,13 @@ function ExpCard({ e, onUpvote }: Readonly<{ e: Exp; onUpvote: () => void }>) {
         </div>
 
         <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
-          <span className="inline-flex items-center gap-1 text-text-4"><Icons.gauge width={13} height={13} /> Difficulty {e.difficulty}/5</span>
-          <span className="inline-flex items-center gap-1 text-text-4"><Icons.activity width={13} height={13} /> {e.rounds} rounds</span>
+          <span className="inline-flex items-center gap-1 text-text-4"><Icons.Gauge width={13} height={13} /> Difficulty {e.difficulty}/5</span>
+          <span className="inline-flex items-center gap-1 text-text-4"><Icons.Activity width={13} height={13} /> {e.rounds} rounds</span>
         </div>
 
         <p className={`mt-3 text-text-2 text-sm leading-relaxed whitespace-pre-wrap ${!expanded && long ? "line-clamp-3" : ""}`}>{e.body}</p>
         {long && (
-          <button onClick={() => setExpanded((x) => !x)} className="text-accent text-xs mt-1 hover:underline">
+          <button type="button" onClick={() => setExpanded((x) => !x)} className="text-accent text-xs mt-1 hover:underline">
             {expanded ? "Show less" : "Read more"}
           </button>
         )}

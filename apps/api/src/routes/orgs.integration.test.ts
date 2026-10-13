@@ -48,12 +48,9 @@ describe.skipIf(!hasDb)("org tenant isolation (real DB)", () => {
     userA = await mkUser("a");
     userB = await mkUser("b");
 
-    const resA = await inject(userA.token, "POST", "/v1/orgs", { name: `TenantTest A ${stamp}` });
-    const resB = await inject(userB.token, "POST", "/v1/orgs", { name: `TenantTest B ${stamp}` });
-    expect(resA.statusCode).toBe(201);
-    expect(resB.statusCode).toBe(201);
-    orgA = resA.json().data.id;
-    orgB = resB.json().data.id;
+    // Existing tenant fixtures are provisioned independently of membership auth.
+    orgA = (await prisma.organization.create({ data: { name: `TenantTest A ${stamp}`, slug: `tenant-a-${stamp}`, accessCode: `tenant-a-${stamp}`, members: { create: { userId: userA.id, roles: ["OWNER"] } } } })).id;
+    orgB = (await prisma.organization.create({ data: { name: `TenantTest B ${stamp}`, slug: `tenant-b-${stamp}`, accessCode: `tenant-b-${stamp}`, members: { create: { userId: userB.id, roles: ["OWNER"] } } } })).id;
 
     const m = await prisma.orgMember.findUniqueOrThrow({
       where: { orgId_userId: { orgId: orgA, userId: userA.id } },

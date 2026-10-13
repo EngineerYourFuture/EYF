@@ -6,6 +6,9 @@
 // third-party stack (Clerk, PostHog, Monaco, R2) so nothing silently breaks.
 // Tightening script-src to per-request nonces is the documented next step.
 const isDev = process.env.NODE_ENV !== "production";
+if (process.env.NEXT_PUBLIC_EYF_PORTAL && !["public", "lms"].includes(process.env.NEXT_PUBLIC_EYF_PORTAL)) {
+  throw new Error("NEXT_PUBLIC_EYF_PORTAL must be public or lms.");
+}
 
 // The browser talks directly to the API (NEXT_PUBLIC_API_URL) — its origin must
 // be in connect-src or every client fetch is blocked. In prod the API is HTTPS
@@ -78,6 +81,8 @@ const securityHeaders = [
 ];
 
 const nextConfig = {
+  // Keep local browser-test builds separate from a running development server.
+  distDir: process.env.NEXT_DIST_DIR || ".next",
   reactStrictMode: true,
   transpilePackages: ["@eyf/ui", "@eyf/types"],
   poweredByHeader: false,

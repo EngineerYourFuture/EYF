@@ -48,7 +48,7 @@ export default function Page() {
   if (editing) {
     return (
       <div className="px-6 lg:px-10 py-10 lg:py-12 max-w-3xl mx-auto">
-        <button onClick={() => setEditing(null)} className="text-text-3 hover:text-text-1 text-sm mb-4">← Back to theory notes</button>
+        <button type="button" onClick={() => setEditing(null)} className="text-text-3 hover:text-text-1 text-sm mb-4">← Back to theory notes</button>
         <h1 className="font-display text-2xl font-bold tracking-tight">{editing.id ? "Edit note" : "New theory note"}</h1>
         <Card className="mt-6 space-y-4">
           <div className="grid grid-cols-2 gap-4">
@@ -96,11 +96,11 @@ export default function Page() {
             </div>
             <div className="flex items-center gap-2 shrink-0">
               <Button size="sm" variant="secondary" onClick={() => startEdit(x.id)}>Edit</Button>
-              <button onClick={() => remove(x.id, x.title)} className="text-text-4 hover:text-hard text-sm px-2 py-1">Delete</button>
+              <button type="button" onClick={() => remove(x.id, x.title)} className="text-text-4 hover:text-hard text-sm px-2 py-1">Delete</button>
             </div>
           </Card>
         ))}
-        {data?.length === 0 && <EmptyState icon={<Icons.doc width={28} height={28} />} title="No notes yet" description="Write the first theory note — it lands on the student subject page immediately." />}
+        {data?.length === 0 && <EmptyState icon={<Icons.Doc width={28} height={28} />} title="No notes yet" description="Write the first theory note — it lands on the student subject page immediately." />}
       </div>
     </div>
   );

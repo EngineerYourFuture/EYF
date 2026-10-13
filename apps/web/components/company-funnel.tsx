@@ -45,7 +45,7 @@ export function CompanyFunnel({ tier }: Readonly<{ tier: CompanyTier }>) {
           const entering = survival;
           survival = Math.max(1, Math.round(survival * (1 - r.dropPct / 100)));
           return (
-            <div key={i}>
+            <div key={r.round}>
               <div className="flex items-center justify-between gap-2 text-sm">
                 <span className="font-medium text-text-1">{i + 1}. {r.round}</span>
                 <span className="text-text-4 text-xs font-mono shrink-0">{r.mins}min · ~{r.dropPct}% cut</span>

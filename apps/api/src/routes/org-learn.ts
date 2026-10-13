@@ -12,20 +12,18 @@ import { z } from "zod";
 import { prisma, CourseStatus, LessonType, Prisma } from "@eyf/db";
 import { requireOrgCapability, requireOrgMember } from "../middleware/org.js";
 import { recordAudit } from "../lib/audit.js";
-import { findOrCreateSkill, recordEvidence } from "../lib/skill-ledger.js";
-import { EVIDENCE_WEIGHT } from "@eyf/types";
+import { findOrCreateSkill } from "../lib/skill-ledger.js";
+import { SQL_PILOT_TITLE, SQL_PILOT_DESCRIPTION, SQL_PILOT_LESSONS } from "../lib/sql-pilot-course.js";
+import { ensureSqlLabs } from "../services/practical-labs.js";
+import { withOrgContext } from "../lib/org-scoped.js";
+import { lockOrganization, accountError } from "../lib/org-accounts.js";
 
-// Block model (PRD §16) — validated loosely on type, strictly on shape caps.
-const blockInput = z.object({
-  type: z.enum(["heading", "rich_text", "callout", "image", "video", "code", "judged_code", "quiz", "file", "embed", "divider", "toggle"]),
-  data: z.record(z.unknown()).default({}),
-});
-const blocksInput = z.array(blockInput).max(200);
+import { lessonBlocksInput, learnerBlocks, completionInput, completionError, completeLesson, readBlocks, assertLessonMedia } from "../lib/lms.js";
 
 const lessonInput = z.object({
   title: z.string().trim().min(1).max(120),
   type: z.nativeEnum(LessonType).default(LessonType.RICH_TEXT),
-  blocks: blocksInput.default([]),
+  blocks: lessonBlocksInput.default([]),
   estMinutes: z.number().int().min(1).max(240).default(5),
   orderIndex: z.number().int().min(0).default(0),
   // Skill tagging (PRD §15.13) — a tagged lesson emits Skill Ledger evidence
@@ -45,6 +43,17 @@ export async function orgLearnRoutes(app: FastifyInstance) {
     prisma.course.findFirst({ where: { id: courseId, orgId } });
 
   // ── Builder ────────────────────────────────────────────────────────
+  app.post("/:orgId/courses/templates/sql-backend", author, async (req, reply) => {
+    await ensureSqlLabs();
+    const course = await prisma.course.create({ data: {
+      orgId: req.orgCtx!.orgId, authorMemberId: req.orgCtx!.memberId, audience: "STAFF",
+      title: SQL_PILOT_TITLE, description: SQL_PILOT_DESCRIPTION,
+      estMinutes: SQL_PILOT_LESSONS.reduce((total, lesson) => total + lesson.estMinutes, 0),
+      lessons: { create: SQL_PILOT_LESSONS.map((lesson, orderIndex) => ({ ...lesson, blocks: lesson.blocks as Prisma.InputJsonValue, orderIndex })) },
+    }, select: { id: true, title: true, status: true } });
+    await recordAudit(req, { action: "create", entity: "org-course", entityId: course.id, summary: "Created the SQL backend pilot draft" });
+    return reply.code(201).send({ success: true, data: course });
+  });
   app.get("/:orgId/courses", author, async (req) => {
     const courses = await prisma.course.findMany({
       where: { orgId: req.orgCtx!.orgId },
@@ -60,7 +69,7 @@ export async function orgLearnRoutes(app: FastifyInstance) {
   app.post("/:orgId/courses", author, async (req, reply) => {
     const body = z.object({ title: z.string().trim().min(2).max(120), description: z.string().max(2000).default("") }).parse(req.body);
     const course = await prisma.course.create({
-      data: { orgId: req.orgCtx!.orgId, title: body.title, description: body.description, authorMemberId: req.orgCtx!.memberId },
+      data: { orgId: req.orgCtx!.orgId, title: body.title, description: body.description, authorMemberId: req.orgCtx!.memberId, audience: "STAFF" },
     });
     await recordAudit(req, { action: "create", entity: "org-course", entityId: course.id, summary: `Drafted course "${course.title}"` });
     return reply.code(201).send({ success: true, data: course });
@@ -70,7 +79,7 @@ export async function orgLearnRoutes(app: FastifyInstance) {
     const { courseId } = req.params as { courseId: string };
     const course = await prisma.course.findFirst({
       where: { id: courseId, orgId: req.orgCtx!.orgId },
-      include: { lessons: { orderBy: { orderIndex: "asc" } }, versions: { select: { version: true, publishedAt: true, publishedById: true }, orderBy: { version: "desc" } } },
+      include: { lessons: { orderBy: { orderIndex: "asc" }, include: { skill: { select: { slug: true } } } }, versions: { select: { version: true, publishedAt: true, publishedById: true }, orderBy: { version: "desc" } } },
     });
     if (!course) return reply.code(404).send({ success: false, error: { code: "NOT_FOUND", message: "Course not found." } });
     return { success: true, data: course };
@@ -98,13 +107,14 @@ export async function orgLearnRoutes(app: FastifyInstance) {
     }
     const { skillSlug, ...lessonData } = body;
     const skillId = skillSlug ? await findOrCreateSkill(skillSlug) : null;
-    const lesson = await prisma.lesson.create({
-      data: { ...lessonData, blocks: body.blocks as Prisma.InputJsonValue, courseId, skillId },
-    });
-    // Keep the course's estimated time honest as content grows.
-    await prisma.course.update({
-      where: { id: courseId },
-      data: { estMinutes: { increment: body.estMinutes } },
+    const lesson = await withOrgContext(req.orgCtx!.orgId, async (tx) => {
+      await lockOrganization(tx, req.orgCtx!.orgId);
+      const current = await tx.course.findUniqueOrThrow({ where: { id: courseId } });
+      if (!EDITABLE.has(current.status)) throw accountError(409, "NOT_EDITABLE", "Draft a revision before editing this published course.");
+      await assertLessonMedia(req.orgCtx!.orgId, body.blocks, tx);
+      const created = await tx.lesson.create({ data: { ...lessonData, blocks: body.blocks as Prisma.InputJsonValue, courseId, skillId } });
+      await tx.course.update({ where: { id: courseId }, data: { estMinutes: { increment: body.estMinutes } } });
+      return created;
     });
     return reply.code(201).send({ success: true, data: lesson });
   });
@@ -120,10 +130,18 @@ export async function orgLearnRoutes(app: FastifyInstance) {
     if (!EDITABLE.has(lesson.course.status)) {
       return reply.code(409).send({ success: false, error: { code: "NOT_EDITABLE", message: "This course is published — draft a revision to edit lessons." } });
     }
-    const { blocks, ...rest } = body;
-    const updated = await prisma.lesson.update({
-      where: { id: lessonId },
-      data: { ...rest, ...(blocks !== undefined ? { blocks: blocks as Prisma.InputJsonValue } : {}) },
+    const { blocks, skillSlug, ...rest } = body;
+    let skillId: string | null | undefined;
+    if (skillSlug !== undefined) skillId = skillSlug ? await findOrCreateSkill(skillSlug) : null;
+    const updated = await withOrgContext(req.orgCtx!.orgId, async (tx) => {
+      await lockOrganization(tx, req.orgCtx!.orgId);
+      const current = await tx.course.findUniqueOrThrow({ where: { id: lesson.courseId } });
+      if (!EDITABLE.has(current.status)) throw accountError(409, "NOT_EDITABLE", "Draft a revision before editing this published course.");
+      if (blocks) await assertLessonMedia(req.orgCtx!.orgId, blocks, tx);
+      const saved = await tx.lesson.update({ where: { id: lessonId }, data: { ...rest, ...(skillId !== undefined ? { skillId } : {}), ...(blocks !== undefined ? { blocks: blocks as Prisma.InputJsonValue } : {}) } });
+      const total = await tx.lesson.aggregate({ where: { courseId: lesson.courseId }, _sum: { estMinutes: true } });
+      await tx.course.update({ where: { id: lesson.courseId }, data: { estMinutes: total._sum.estMinutes ?? 0 } });
+      return saved;
     });
     return { success: true, data: updated };
   });
@@ -160,6 +178,18 @@ export async function orgLearnRoutes(app: FastifyInstance) {
     }
 
     const lessons = await prisma.lesson.findMany({ where: { courseId }, orderBy: { orderIndex: "asc" } });
+    if (!lessons.length) return reply.code(400).send({ success: false, error: { code: "EMPTY_COURSE", message: "Add at least one lesson before publishing." } });
+    for (const lesson of lessons) {
+      const parsed = lessonBlocksInput.safeParse(lesson.blocks ?? []);
+      if (!parsed.success) return reply.code(400).send({ success: false, error: { code: "INVALID_LESSON", message: `Fix “${lesson.title}”: ${parsed.error.issues[0]?.message}` } });
+      await assertLessonMedia(req.orgCtx!.orgId, parsed.data);
+    }
+    const slugs = [...new Set(lessons.flatMap((l) => readBlocks(l.blocks).filter((b) => b.type === "judged_code").map((b) => String(b.data.problemSlug))))];
+    if (slugs.length) {
+      const usable = await prisma.problem.findMany({ where: { slug: { in: slugs }, testCases: { some: {} } }, select: { slug: true } });
+      const missing = slugs.filter((slug) => !usable.some((p) => p.slug === slug));
+      if (missing.length) return reply.code(400).send({ success: false, error: { code: "EXERCISE_NOT_READY", message: `Choose tested coding problems before publishing: ${missing.join(", ")}.` } });
+    }
     const published = await prisma.$transaction(async (tx) => {
       await tx.courseVersion.create({
         data: {
@@ -191,6 +221,19 @@ export async function orgLearnRoutes(app: FastifyInstance) {
       data: { status: CourseStatus.ARCHIVED, published: false },
     });
     return { success: true, data: updated };
+  });
+
+  app.post("/:orgId/courses/:courseId/revise", author, async (req, reply) => {
+    const { courseId } = req.params as { courseId: string };
+    const source = await prisma.course.findFirst({ where: { id: courseId, orgId: req.orgCtx!.orgId }, include: { lessons: { orderBy: { orderIndex: "asc" } } } });
+    if (!source) return reply.code(404).send({ success: false, error: { code: "NOT_FOUND", message: "Course not found." } });
+    if (!['PUBLISHED', 'ARCHIVED'].includes(source.status)) return reply.code(409).send({ success: false, error: { code: "BAD_STATE", message: "Edit this draft directly." } });
+    const draft = await prisma.course.create({ data: {
+      orgId: req.orgCtx!.orgId, authorMemberId: req.orgCtx!.memberId,
+      title: `${source.title.slice(0, 110)} (revision)`, description: source.description, audience: source.audience, estMinutes: source.estMinutes,
+      lessons: { create: source.lessons.map((l) => ({ title: l.title, content: l.content, type: l.type, blocks: l.blocks ?? [], estMinutes: l.estMinutes, orderIndex: l.orderIndex, skillId: l.skillId, skillLevel: l.skillLevel })) },
+    } });
+    return reply.code(201).send({ success: true, data: draft });
   });
 
   // ── Member (/work) ────────────────────────────────────────────────
@@ -235,7 +278,7 @@ export async function orgLearnRoutes(app: FastifyInstance) {
       success: true,
       data: {
         id: course.id, title: course.title, description: course.description,
-        lessons: course.lessons.map((l) => ({ ...l, completed: l.progress.length > 0, progress: undefined })),
+        lessons: course.lessons.map((l) => ({ ...l, blocks: learnerBlocks(l.blocks), completed: l.progress.length > 0, progress: undefined })),
       },
     };
   });
@@ -244,31 +287,13 @@ export async function orgLearnRoutes(app: FastifyInstance) {
     const { lessonId } = req.params as { lessonId: string };
     const lesson = await prisma.lesson.findFirst({
       where: { id: lessonId, course: { orgId: req.orgCtx!.orgId, status: CourseStatus.PUBLISHED } },
-      select: { id: true, skillId: true, skillLevel: true },
+      select: { id: true, blocks: true, skillId: true, skillLevel: true },
     });
     if (!lesson) return reply.code(404).send({ success: false, error: { code: "NOT_FOUND", message: "Lesson not found." } });
-    // Only the FIRST completion emits evidence — re-completing shouldn't stack
-    // the ledger (createMany-of-progress is idempotent; guard evidence too).
-    const existing = await prisma.lessonProgress.findUnique({
-      where: { lessonId_userId: { lessonId, userId: req.session!.id } },
-      select: { id: true },
-    });
-    await prisma.lessonProgress.upsert({
-      where: { lessonId_userId: { lessonId, userId: req.session!.id } },
-      update: {},
-      create: { lessonId, userId: req.session!.id },
-    });
-    if (!existing && lesson.skillId) {
-      await recordEvidence({
-        userId: req.session!.id,
-        orgId: req.orgCtx!.orgId,
-        skillId: lesson.skillId,
-        level: lesson.skillLevel,
-        weight: EVIDENCE_WEIGHT.LESSON ?? 0.5,
-        sourceType: "LESSON",
-        sourceId: lessonId,
-      });
-    }
+    const { answers } = completionInput.parse(req.body ?? {});
+    const error = await completionError(req.session!.id, lesson.blocks, answers);
+    if (error) return reply.code(422).send({ success: false, error: { code: "LESSON_INCOMPLETE", message: error } });
+    await completeLesson(req.session!.id, lesson, req.orgCtx!.orgId);
     return { success: true, data: { lessonId, completed: true } };
   });
 }

@@ -1,5 +1,9 @@
 import { test, expect } from "@playwright/test";
 
+test.beforeEach(async ({ page }) => {
+  await page.route("**/v1/billing/status", (route) => route.fulfill({ json: { success: true, data: { enabled: false } } }));
+});
+
 test.describe("landing page", () => {
   test("renders nav, brand, and primary CTA", async ({ page }) => {
     await page.goto("/");

@@ -82,7 +82,7 @@ describe.skipIf(!hasDb)("org learn lifecycle (real DB)", () => {
       blocks: [
         { type: "heading", data: { text: "How our services talk" } },
         { type: "rich_text", data: { text: "Every service owns its data…" } },
-        { type: "judged_code", data: { problemSlug: "single-number" } },
+        { type: "code", data: { code: "print('service ready')" } },
       ],
     });
     expect(l.statusCode).toBe(201);

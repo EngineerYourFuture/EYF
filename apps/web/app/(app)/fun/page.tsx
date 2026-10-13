@@ -71,8 +71,8 @@ function RoastView({ roast }: Readonly<{ roast: Roast }>) {
       <div>
         <h4 className="text-xs text-text-3 uppercase tracking-wider mb-2">Fixable</h4>
         <ul className="space-y-3 text-sm">
-          {roast.fixable.map((f, i) => (
-            <li key={i} className="border-l-2 border-accent pl-3">
+          {roast.fixable.map((f) => (
+            <li key={f.issue} className="border-l-2 border-accent pl-3">
               <div className="font-medium">{f.issue}</div>
               <div className="text-text-3 mt-1">→ {f.fix}</div>
             </li>

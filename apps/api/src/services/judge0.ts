@@ -4,6 +4,7 @@ import { Language, Verdict } from "@eyf/db";
 
 // Judge0 language IDs (CE v1.13.x). https://github.com/judge0/judge0/blob/master/CHANGELOG.md
 export const JUDGE0_LANG_ID: Record<Language, number> = {
+  SQL:        82,  // SQLite 3.27.2
   CPP:        54,  // C++ (GCC 9.2.0)
   JAVA:       62,  // Java (OpenJDK 13)
   PYTHON:     71,  // Python 3.8.1
@@ -47,13 +48,16 @@ export async function submitToJudge0(input: Judge0SubmitInput): Promise<string> 
     language_id: JUDGE0_LANG_ID[input.language],
     source_code: Buffer.from(input.sourceCode, "utf8").toString("base64"),
     stdin: input.stdin ? Buffer.from(input.stdin, "utf8").toString("base64") : undefined,
-    expected_output: input.expectedOutput
+    expected_output: input.expectedOutput !== undefined
       ? Buffer.from(input.expectedOutput, "utf8").toString("base64")
       : undefined,
     cpu_time_limit: input.timeLimitSeconds ?? 2,
     memory_limit: input.memoryLimitKb ?? 262_144,
+    enable_network: false,
+    wall_time_limit: Math.max(5, (input.timeLimitSeconds ?? 2) * 2),
   };
   const res = await request(url, {
+    signal: AbortSignal.timeout(10_000),
     method: "POST",
     headers: { "content-type": "application/json", ...authHeaders() },
     body: JSON.stringify(body),
@@ -79,7 +83,7 @@ export type Judge0Result = {
 
 export async function getJudge0Result(token: string): Promise<Judge0Result> {
   const url = `${env.JUDGE0_URL}/submissions/${token}?base64_encoded=true&fields=stdout,stderr,compile_output,status,time,memory`;
-  const res = await request(url, { headers: authHeaders() });
+  const res = await request(url, { headers: authHeaders(), signal: AbortSignal.timeout(10_000) });
   if (res.statusCode >= 400) {
     const text = await res.body.text();
     throw new Error(`Judge0 get ${res.statusCode}: ${text}`);

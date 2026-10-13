@@ -1,3 +1,4 @@
+import { shuffle } from "./shuffle.js";
 /**
  * MCQ test bank — timed, sectioned multiple-choice practice.
  *
@@ -290,6 +291,6 @@ export function pickTest(opts: { category: McqCategory; company?: string; count?
   if (pool.length < count) {
     pool = MCQ_BANK.filter((q) => q.category === opts.category);
   }
-  const shuffled = [...pool].sort(() => Math.random() - 0.5);
+  const shuffled = shuffle(pool);
   return shuffled.slice(0, Math.min(count, shuffled.length));
 }

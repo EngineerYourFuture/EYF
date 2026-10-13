@@ -5,7 +5,11 @@ node_modules
 # build
 dist
 build
+# This Next.js route is source code, not a build artifact.
+!apps/web/app/(app)/orgs/**/build/
+!apps/web/app/(app)/orgs/**/build/**
 .next
+.next-*
 out
 .turbo
 *.tsbuildinfo
@@ -42,3 +46,4 @@ packages/db/src/generated
 shot.mjs
 .gstack/
 .scannerwork/
+.eyf-private-media/

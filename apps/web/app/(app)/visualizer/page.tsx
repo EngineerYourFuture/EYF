@@ -44,7 +44,7 @@ export default function Page() {
 
       <div className="mt-8 flex gap-1 border-b border-border overflow-x-auto">
         {TABS.map((t) => (
-          <button
+          <button type="button"
             key={t.id}
             className={`px-4 py-2 text-sm border-b-2 transition-colors whitespace-nowrap ${
               tab === t.id ? "border-accent text-text-1" : "border-transparent text-text-3 hover:text-text-2"

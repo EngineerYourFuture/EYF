@@ -58,7 +58,7 @@ export default function CompaniesPage() {
                     {c.solved}/{c.total} solved
                   </div>
                 </div>
-                <span className="text-text-4 shrink-0"><Icons.arrow width={18} height={18} /></span>
+                <span className="text-text-4 shrink-0"><Icons.Arrow width={18} height={18} /></span>
               </Card>
             </Link>
           ))}

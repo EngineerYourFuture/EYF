@@ -54,12 +54,12 @@ export default function Page() {
           <ShareRow data={data} />
 
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-6">
-            <MetricTile icon={<Icons.code width={16} height={16} />} tone="accent" label="Solved" value={data.totalSolved} />
-            <MetricTile icon={<Icons.bolt width={16} height={16} />} label="Submissions" value={data.totalSubmissions} />
-            <MetricTile icon={<Icons.flame width={16} height={16} />} tone="medium" label="Best streak" value={data.bestStreakDays} unit="d" />
-            <MetricTile icon={<Icons.mic width={16} height={16} />} tone="info" label="Mocks" value={data.mockSessions} />
-            <MetricTile icon={<Icons.trophy width={16} height={16} />} label="Badges" value={data.badgesEarned} />
-            <MetricTile icon={<Icons.compass width={16} height={16} />} label="Top pattern" value={<span className="font-mono text-xl">{data.topPattern ?? "—"}</span>} />
+            <MetricTile icon={<Icons.Code width={16} height={16} />} tone="accent" label="Solved" value={data.totalSolved} />
+            <MetricTile icon={<Icons.Bolt width={16} height={16} />} label="Submissions" value={data.totalSubmissions} />
+            <MetricTile icon={<Icons.Flame width={16} height={16} />} tone="medium" label="Best streak" value={data.bestStreakDays} unit="d" />
+            <MetricTile icon={<Icons.Mic width={16} height={16} />} tone="info" label="Mocks" value={data.mockSessions} />
+            <MetricTile icon={<Icons.Trophy width={16} height={16} />} label="Badges" value={data.badgesEarned} />
+            <MetricTile icon={<Icons.Compass width={16} height={16} />} label="Top pattern" value={<span className="font-mono text-xl">{data.topPattern ?? "—"}</span>} />
           </div>
 
           <Card className="mt-5">
@@ -78,7 +78,7 @@ export default function Page() {
           {data.longestSession && (
             <Card className="mt-5 flex items-center gap-4">
               <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-accent-tint text-accent border border-accent/20">
-                <Icons.flame width={22} height={22} />
+                <Icons.Flame width={22} height={22} />
               </span>
               <div>
                 <h3 className="font-display text-lg font-bold">Biggest day</h3>

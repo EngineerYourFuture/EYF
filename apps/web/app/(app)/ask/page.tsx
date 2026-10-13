@@ -90,7 +90,7 @@ export default function Page() {
                 <div className="font-mono text-[11px] uppercase tracking-widest text-text-3 mb-2">Related answers</div>
                 <div className="space-y-1">
                   {result.related.map((r) => (
-                    <button key={r.id} onClick={() => void open(r.id)} className="block text-left text-sm text-text-2 hover:text-text-1">→ {r.question}</button>
+                    <button type="button" key={r.id} onClick={() => void open(r.id)} className="block text-left text-sm text-text-2 hover:text-text-1">→ {r.question}</button>
                   ))}
                 </div>
               </div>
@@ -101,14 +101,14 @@ export default function Page() {
         {offline && (
           <Card className="mt-6">
             <div className="flex items-start gap-3">
-              <span className="text-text-3 mt-0.5"><Icons.sparkle width={18} height={18} /></span>
+              <span className="text-text-3 mt-0.5"><Icons.Sparkle width={18} height={18} /></span>
               <div>
                 <p className="text-text-1 font-medium">EYF Intelligence is warming up.</p>
                 <p className="text-text-3 text-sm mt-1">Live answering isn&apos;t configured on this environment yet{offline.length ? " — here are the closest answers from the knowledge base:" : "."}</p>
                 {offline.length > 0 && (
                   <div className="space-y-1 mt-3">
                     {offline.map((r) => (
-                      <button key={r.id} onClick={() => void open(r.id)} className="block text-left text-sm text-text-2 hover:text-text-1">→ {r.question}</button>
+                      <button type="button" key={r.id} onClick={() => void open(r.id)} className="block text-left text-sm text-text-2 hover:text-text-1">→ {r.question}</button>
                     ))}
                   </div>
                 )}

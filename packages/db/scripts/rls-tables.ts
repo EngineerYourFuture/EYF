@@ -21,6 +21,7 @@ export const ORG_TABLES = [
   "org_usage_counters",
   "org_learning_paths",
   "org_cohorts",
+  "sprint_reviews",
   "org_role_bars",
   "org_assessment_blueprints",
   "org_assessment_runs",
@@ -30,6 +31,7 @@ export const ORG_TABLES = [
   "org_webhook_endpoints",
   // org_offers: no orgId column — isolated via reqId→JobRequisition; RLS N/A.
   "lms_courses",
+  "lms_media_assets",
   "internship_slots",
 ] as const;
 

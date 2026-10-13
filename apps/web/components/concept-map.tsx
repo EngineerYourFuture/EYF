@@ -84,10 +84,10 @@ export function ConceptMap() {
       <div className="mt-5 overflow-x-auto pb-2">
         <div className="relative" style={{ width: W, height: H }}>
           <svg width={W} height={H} className="absolute inset-0 pointer-events-none">
-            {s.edges.map(([a, b], i) => {
+            {s.edges.map(([a, b]) => {
               const pa = pos(s.nodes[a]!), pb = pos(s.nodes[b]!);
               const x1 = pa.x + NW, y1 = pa.y + NH / 2, x2 = pb.x, y2 = pb.y + NH / 2, mid = (x1 + x2) / 2;
-              return <path key={i} d={`M ${x1} ${y1} C ${mid} ${y1}, ${mid} ${y2}, ${x2} ${y2}`} fill="none" stroke="rgb(var(--text-1) / 0.14)" strokeWidth="1.5" />;
+              return <path key={`${a}:${b}`} d={`M ${x1} ${y1} C ${mid} ${y1}, ${mid} ${y2}, ${x2} ${y2}`} fill="none" stroke="rgb(var(--text-1) / 0.14)" strokeWidth="1.5" />;
             })}
           </svg>
           {Object.entries(s.nodes).map(([k, n]) => {

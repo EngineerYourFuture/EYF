@@ -2,7 +2,7 @@ name: Lighthouse
 
 on:
   pull_request:
-    branches: [master, main]
+    branches: [master, main, develop]
 
 concurrency:
   group: lighthouse-${{ github.ref }}

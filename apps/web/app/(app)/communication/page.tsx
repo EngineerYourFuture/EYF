@@ -114,13 +114,13 @@ export default function Page() {
 
         <div className="mt-5 grid sm:grid-cols-2 gap-4">
           <Card className="border-easy/30">
-            <h3 className="font-medium text-easy flex items-center gap-2"><Icons.target width={16} height={16} /> Strengths</h3>
+            <h3 className="font-medium text-easy flex items-center gap-2"><Icons.Target width={16} height={16} /> Strengths</h3>
             <ul className="mt-3 space-y-2 text-sm text-text-2 list-disc pl-4">
               {feedback.strengths.map((s) => <li key={s}>{s}</li>)}
             </ul>
           </Card>
           <Card className="border-medium/30">
-            <h3 className="font-medium text-medium flex items-center gap-2"><Icons.activity width={16} height={16} /> Improve</h3>
+            <h3 className="font-medium text-medium flex items-center gap-2"><Icons.Activity width={16} height={16} /> Improve</h3>
             <ul className="mt-3 space-y-2 text-sm text-text-2 list-disc pl-4">
               {feedback.improvements.map((s) => <li key={s}>{s}</li>)}
             </ul>
@@ -137,7 +137,7 @@ export default function Page() {
         )}
 
         <Card variant="glow" className="mt-5">
-          <h3 className="font-medium text-accent flex items-center gap-2"><Icons.sparkle width={16} height={16} /> Model answer</h3>
+          <h3 className="font-medium text-accent flex items-center gap-2"><Icons.Sparkle width={16} height={16} /> Model answer</h3>
           <p className="mt-3 text-sm text-text-2 leading-relaxed whitespace-pre-line">{feedback.modelAnswer}</p>
         </Card>
 
@@ -156,12 +156,12 @@ export default function Page() {
     const recording = recState === "recording";
     return (
       <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-5xl mx-auto">
-        <button onClick={() => setActive(null)} className="text-text-4 text-sm hover:text-text-2 mb-4">← All prompts</button>
+        <button type="button" onClick={() => setActive(null)} className="text-text-4 text-sm hover:text-text-2 mb-4">← All prompts</button>
         <PageHeader eyebrow={active.kind} title={active.question} />
 
         <Card className="mt-6 border-accent/20 bg-accent-tint/40">
           <p className="text-sm text-text-2 flex items-start gap-2">
-            <span className="text-accent mt-0.5"><Icons.sparkle width={15} height={15} /></span>
+            <span className="text-accent mt-0.5"><Icons.Sparkle width={15} height={15} /></span>
             <span><span className="font-medium text-text-1">Tip:</span> {active.tip}</span>
           </p>
         </Card>
@@ -172,7 +172,7 @@ export default function Page() {
             <div className="flex items-center gap-2">
               {!recording ? (
                 <Button size="sm" variant="secondary" onClick={start} disabled={transcribing}>
-                  <Icons.mic width={14} height={14} /> Record
+                  <Icons.Mic width={14} height={14} /> Record
                 </Button>
               ) : (
                 <Button size="sm" variant="danger" onClick={stop}>■ Stop</Button>
@@ -215,13 +215,13 @@ export default function Page() {
       <Link href="/mcq" className="mt-8 block">
         <Card className="card-interactive flex items-center gap-4">
           <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-accent-tint text-accent border border-accent/20">
-            <Icons.book width={20} height={20} />
+            <Icons.Book width={20} height={20} />
           </span>
           <div className="flex-1">
             <div className="font-medium text-text-1">Verbal Ability</div>
             <div className="text-text-4 text-xs mt-0.5">Grammar, vocabulary, para-jumbles & RC — timed, in the MCQ Tests section.</div>
           </div>
-          <span className="text-accent"><Icons.arrow width={16} height={16} /></span>
+          <span className="text-accent"><Icons.Arrow width={16} height={16} /></span>
         </Card>
       </Link>
 
@@ -230,7 +230,7 @@ export default function Page() {
       {/* Spoken / HR drills */}
       <div className="mt-8">
         <h2 className="font-display text-lg font-bold flex items-center gap-2">
-          <Icons.mic width={18} height={18} className="text-accent" /> Spoken & HR drills
+          <Icons.Mic width={18} height={18} className="text-accent" /> Spoken & HR drills
         </h2>
         <p className="text-text-4 text-sm mt-1">Answer out loud, get scored on clarity, structure & confidence.</p>
 
@@ -242,7 +242,7 @@ export default function Page() {
               {catalog.kinds.map((k) => {
                 const best = history?.bestByKind?.[k.id];
                 return (
-                  <button key={k.id} onClick={() => setKind(k.id)}
+                  <button type="button" key={k.id} onClick={() => setKind(k.id)}
                     className={`px-3.5 h-9 rounded-lg border text-sm font-medium transition-colors flex items-center gap-2 ${
                       kind === k.id ? "border-accent bg-accent-tint text-text-1" : "border-border text-text-3 hover:border-edge"
                     }`}>
@@ -256,11 +256,11 @@ export default function Page() {
 
             <div className="mt-4 space-y-2">
               {prompts.map((p) => (
-                <button key={p.id} onClick={() => openPrompt(p)}
+                <button type="button" key={p.id} onClick={() => openPrompt(p)}
                   className="w-full text-left rounded-xl border border-border bg-surface hover:border-edge hover:bg-surface-2 transition-colors px-4 py-3.5 flex items-center gap-3">
-                  <Icons.chat width={16} height={16} className="text-text-4 shrink-0" />
+                  <Icons.Chat width={16} height={16} className="text-text-4 shrink-0" />
                   <span className="text-sm text-text-1 flex-1">{p.question}</span>
-                  <Icons.arrow width={15} height={15} className="text-text-4" />
+                  <Icons.Arrow width={15} height={15} className="text-text-4" />
                 </button>
               ))}
             </div>

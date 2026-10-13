@@ -74,7 +74,7 @@ export default function Page() {
   if (prep) {
     return (
       <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-5xl mx-auto">
-        <button onClick={() => setPrep(null)} className="text-text-4 text-sm hover:text-text-2 mb-4">← New prep</button>
+        <button type="button" onClick={() => setPrep(null)} className="text-text-4 text-sm hover:text-text-2 mb-4">← New prep</button>
         <PageHeader eyebrow="Defend your project" title={prep.projectTitle} subtitle={prep.summary} />
 
         {prep.techStack.length > 0 && (
@@ -85,7 +85,7 @@ export default function Page() {
 
         <div className="mt-8 space-y-4">
           <h2 className="font-display text-lg font-bold flex items-center gap-2">
-            <Icons.chat width={18} height={18} className="text-accent" /> Questions you&apos;ll face
+            <Icons.Chat width={18} height={18} className="text-accent" /> Questions you&apos;ll face
           </h2>
           {prep.questions.map((q, i) => (
             <Card key={i}>
@@ -104,13 +104,13 @@ export default function Page() {
 
         <div className="mt-6 grid sm:grid-cols-2 gap-4">
           <Card className="border-hard/30">
-            <h3 className="font-medium text-hard flex items-center gap-2"><Icons.gauge width={16} height={16} /> Red flags</h3>
+            <h3 className="font-medium text-hard flex items-center gap-2"><Icons.Gauge width={16} height={16} /> Red flags</h3>
             <ul className="mt-3 space-y-2 text-sm text-text-2 list-disc pl-4">
               {prep.tips.redFlags.map((f) => <li key={f}>{f}</li>)}
             </ul>
           </Card>
           <Card className="border-accent/30">
-            <h3 className="font-medium text-accent flex items-center gap-2"><Icons.sparkle width={16} height={16} /> STAR story hooks</h3>
+            <h3 className="font-medium text-accent flex items-center gap-2"><Icons.Sparkle width={16} height={16} /> STAR story hooks</h3>
             <ul className="mt-3 space-y-2 text-sm text-text-2 list-disc pl-4">
               {prep.tips.starHooks.map((h) => <li key={h}>{h}</li>)}
             </ul>
@@ -184,12 +184,12 @@ export default function Page() {
           <h2 className="font-display text-lg font-bold">Your prep guides</h2>
           <div className="mt-4 space-y-2">
             {history.map((h) => (
-              <button key={h.id} onClick={() => openPrep(h.id)}
+              <button type="button" key={h.id} onClick={() => openPrep(h.id)}
                 className="w-full text-left rounded-xl border border-border bg-surface hover:border-edge hover:bg-surface-2 transition-colors px-4 py-3.5 flex items-center gap-3">
-                <Icons.cube width={16} height={16} className="text-text-4 shrink-0" />
+                <Icons.Cube width={16} height={16} className="text-text-4 shrink-0" />
                 <span className="text-sm text-text-1 flex-1 truncate">{h.projectTitle}</span>
                 <span className="text-text-4 text-xs hidden sm:block">{h.techStack.slice(0, 3).join(" · ")}</span>
-                <Icons.arrow width={15} height={15} className="text-text-4" />
+                <Icons.Arrow width={15} height={15} className="text-text-4" />
               </button>
             ))}
           </div>

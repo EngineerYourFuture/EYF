@@ -10,6 +10,14 @@ import { prisma, Difficulty, JobRole, DemandLevel, InterviewOutcome } from "@eyf
 import { requirePermission } from "../middleware/permissions.js";
 import { recordAudit } from "../lib/audit.js";
 
+const testCasesInput = z.array(z.object({
+  input: z.string().max(50_000),
+  expected: z.string().max(50_000),
+  isPublic: z.boolean(),
+})).min(2, "Add a public example and a hidden test.").max(50)
+  .refine((tests) => tests.some((t) => t.isPublic) && tests.some((t) => !t.isPublic), "Include at least one public example and one hidden test.")
+  .refine((tests) => new Set(tests.map((t) => t.input)).size === tests.length, "Each test must have a different input.");
+
 const problemInput = z.object({
   slug: z.string().min(1).regex(/^[a-z0-9-]+$/, "lowercase letters, numbers and hyphens only"),
   title: z.string().min(1),
@@ -21,6 +29,7 @@ const problemInput = z.object({
   premium: z.boolean().default(false),
   timeLimitMs: z.number().int().positive().max(60_000).default(2000),
   memoryLimitKb: z.number().int().positive().default(262144),
+  testCases: testCasesInput,
 });
 
 const badRequest = (reply: import("fastify").FastifyReply, msg: string) =>
@@ -37,7 +46,7 @@ export async function adminContentRoutes(app: FastifyInstance) {
       select: {
         id: true, slug: true, title: true, difficulty: true, premium: true,
         topics: true, patterns: true, companies: true, acceptanceRate: true,
-        totalSubmissions: true, updatedAt: true,
+        totalSubmissions: true, updatedAt: true, _count: { select: { testCases: true } },
       },
     });
     return { success: true, data: problems };
@@ -46,7 +55,7 @@ export async function adminContentRoutes(app: FastifyInstance) {
   // Single — full record for the edit form.
   app.get("/problems/:id", guard, async (req, reply) => {
     const { id } = req.params as { id: string };
-    const problem = await prisma.problem.findUnique({ where: { id } });
+    const problem = await prisma.problem.findUnique({ where: { id }, include: { testCases: { orderBy: { orderIndex: "asc" } } } });
     if (!problem) return reply.code(404).send({ success: false, error: { code: "NOT_FOUND", message: "Problem not found." } });
     return { success: true, data: problem };
   });
@@ -57,7 +66,10 @@ export async function adminContentRoutes(app: FastifyInstance) {
     if (!parsed.success) return badRequest(reply, parsed.error.issues[0]?.message ?? "Invalid input");
     const dupe = await prisma.problem.findUnique({ where: { slug: parsed.data.slug }, select: { id: true } });
     if (dupe) return reply.code(409).send({ success: false, error: { code: "SLUG_TAKEN", message: "A problem with that slug already exists." } });
-    const created = await prisma.problem.create({ data: parsed.data });
+    const { testCases, ...data } = parsed.data;
+    const created = await prisma.problem.create({
+      data: { ...data, testCases: { create: testCases.map((t, orderIndex) => ({ ...t, orderIndex })) } },
+    });
     await recordAudit(req, { action: "create", entity: "problem", entityId: created.id, summary: `Created "${created.title}"` });
     return reply.code(201).send({ success: true, data: created });
   });
@@ -73,7 +85,12 @@ export async function adminContentRoutes(app: FastifyInstance) {
       const dupe = await prisma.problem.findFirst({ where: { slug: parsed.data.slug, NOT: { id } }, select: { id: true } });
       if (dupe) return reply.code(409).send({ success: false, error: { code: "SLUG_TAKEN", message: "That slug is taken by another problem." } });
     }
-    const updated = await prisma.problem.update({ where: { id }, data: parsed.data });
+    const { testCases, ...data } = parsed.data;
+    // Nested replacement is atomic: a student can never see half the new bank.
+    const updated = await prisma.problem.update({
+      where: { id },
+      data: { ...data, ...(testCases ? { testCases: { deleteMany: {}, create: testCases.map((t, orderIndex) => ({ ...t, orderIndex })) } } : {}) },
+    });
     await recordAudit(req, { action: "update", entity: "problem", entityId: id, summary: `Edited "${updated.title}"` });
     return { success: true, data: updated };
   });

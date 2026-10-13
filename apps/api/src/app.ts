@@ -10,11 +10,12 @@ import rawBody from "fastify-raw-body";
 import { RATE_LIMIT_PER_MIN, type Plan } from "@eyf/types";
 import { env } from "./env.js";
 import { redis } from "./lib/redis.js";
-import { authPlugin } from "./middleware/auth.js";
+import { authPlugin, peekSession } from "./middleware/auth.js";
 import { errorHandler } from "./middleware/error.js";
 import { registerRoutes } from "./routes/index.js";
 import { initSentry, captureException, registry, httpDuration, httpRequests } from "./lib/observability.js";
 import { checkReadiness } from "./lib/health.js";
+import { providerContext } from "./lib/provider-usage.js";
 
 /** Constant-time `Authorization: Bearer <token>` check — no early-exit timing leak. */
 function bearerMatches(header: string | undefined, token: string): boolean {
@@ -29,6 +30,7 @@ export async function buildApp() {
   const app = Fastify({
     logger: {
       level: env.API_LOG_LEVEL,
+      serializers: { req: (req) => ({ method: req.method, url: req.url?.split("?")[0], remoteAddress: req.ip }) },
       // Defense-in-depth (S3): strip credentials/PII from any log line. The default
       // Fastify request serializer doesn't emit headers, but this covers a raised log
       // level or any future custom header/body logging so secrets can never leak.
@@ -61,6 +63,9 @@ export async function buildApp() {
   });
 
   // Raw audio bodies for the voice transcription endpoint.
+  app.addHook("onRequest", (req, _reply, done) => {
+    providerContext.run(() => ({ userId: req.session?.id, feature: req.routeOptions.url ?? "unknown" }), done);
+  });
   app.addContentTypeParser(
     ["audio/webm", "audio/mp4", "audio/mpeg", "audio/wav", "audio/ogg", "application/octet-stream"],
     { parseAs: "buffer" },
@@ -87,37 +92,6 @@ export async function buildApp() {
     credentials: true,
   });
   await app.register(sensible);
-  // Per-plan rate limit backed by Redis so the limit is GLOBAL across every API
-  // instance (an in-memory store would let the effective limit scale with the
-  // pod count and reset on each deploy). authPlugin runs first, so req.session
-  // is populated for authenticated requests; anonymous requests key by IP.
-  await app.register(rateLimit, {
-    // Shared Redis store in real deployments → the limit is global across every
-    // instance. In tests we use the default in-memory store so each app build is
-    // isolated (a shared store would leak counts across test files).
-    ...(env.NODE_ENV === "test" ? {} : { redis, nameSpace: "eyf-rl:" }),
-    max: (req) => {
-      // Tests hammer many endpoints from one IP; the limiter runs before auth
-      // (so it can't see the plan) — disable it under test to avoid false 429s.
-      // Dedicated flag (not NODE_ENV) so prod can't disable the limiter by env-name.
-      if (env.DISABLE_RATE_LIMIT) return 1_000_000;
-      const plan = (req.session?.plan ?? "free") as Plan;
-      return RATE_LIMIT_PER_MIN[plan];
-    },
-    timeWindow: "1 minute",
-    keyGenerator: (req) => req.session?.id ?? req.ip,
-    // The plugin THROWS this to the error handler, so it must carry a statusCode
-    // (else it renders as 500). errorHandler passes pre-shaped API errors through.
-    errorResponseBuilder: (req, context) => ({
-      statusCode: 429,
-      success: false,
-      error: {
-        code: "RATE_LIMITED",
-        message: `Too many requests. Limit is ${context.max}/min on your plan. Try again in ${Math.ceil(context.ttl / 1000)}s.`,
-        upgradeRequired: (req.session?.plan ?? "free") !== "elite",
-      },
-    }),
-  });
   await app.register(jwt, {
     secret: { private: env.JWT_ACCESS_SECRET, public: env.JWT_ACCESS_SECRET },
     sign: { expiresIn: "15m" },
@@ -131,6 +105,47 @@ export async function buildApp() {
     namespace: "refresh",
     sign: { expiresIn: "30d" },
   });
+
+  // ORDER IS LOAD-BEARING: authPlugin installs the onRequest hook that resolves the
+  // caller's identity, and Fastify runs global onRequest hooks in registration
+  // order. Registering it before the rate limiter is what lets the limiter below
+  // see the plan and user id (both are read via peekSession). It must also come
+  // after the jwt plugins, whose decorators it uses to verify tokens.
+  await app.register(authPlugin);
+
+  // Per-plan rate limit backed by Redis so the limit is GLOBAL across every API
+  // instance (an in-memory store would let the effective limit scale with the
+  // pod count and reset on each deploy). Authenticated callers are keyed by user
+  // id and get their plan's budget; anonymous requests key by IP.
+  await app.register(rateLimit, {
+    // Shared Redis store in real deployments → the limit is global across every
+    // instance. In tests we use the default in-memory store so each app build is
+    // isolated (a shared store would leak counts across test files).
+    ...(env.NODE_ENV === "test" ? {} : { redis, nameSpace: "eyf-rl:" }),
+    max: (req) => {
+      // Tests hammer many endpoints from one IP, so they opt out via a dedicated
+      // flag (not NODE_ENV) — prod can't disable the limiter by env-name alone.
+      if (env.DISABLE_RATE_LIMIT) return 1_000_000;
+      const plan = (peekSession(req)?.plan ?? "free") as Plan;
+      return RATE_LIMIT_PER_MIN[plan];
+    },
+    timeWindow: "1 minute",
+    // Key by user id whenever the caller is known. Keying purely by IP would put a
+    // whole campus behind one NAT egress into a single bucket — exactly what happens
+    // during a placement drive — so authenticated students must not share a budget.
+    keyGenerator: (req) => peekSession(req)?.id ?? req.ip,
+    // The plugin THROWS this to the error handler, so it must carry a statusCode
+    // (else it renders as 500). errorHandler passes pre-shaped API errors through.
+    errorResponseBuilder: (req, context) => ({
+      statusCode: 429,
+      success: false,
+      error: {
+        code: "RATE_LIMITED",
+        message: `Too many requests. Limit is ${context.max}/min on your plan. Try again in ${Math.ceil(context.ttl / 1000)}s.`,
+        upgradeRequired: (peekSession(req)?.plan ?? "free") !== "elite",
+      },
+    }),
+  });
   // Keep raw body around for webhook signature verification (Razorpay, Clerk/svix).
   await app.register(rawBody, {
     field: "rawBody",
@@ -138,8 +153,6 @@ export async function buildApp() {
     encoding: "utf8",
     runFirst: true,
   });
-
-  await app.register(authPlugin);
 
   // Per-request metrics + echo the correlation id back to the caller.
   app.addHook("onResponse", async (req, reply) => {
@@ -153,9 +166,17 @@ export async function buildApp() {
   app.setErrorHandler((err: FastifyError, req, reply) => {
     const status = err.statusCode ?? 500;
     if (status >= 500) {
-      captureException(err, { reqId: req.id, url: req.url, method: req.method });
+      captureException(err, { reqId: req.id, url: req.url.split("?")[0], method: req.method });
     }
     return errorHandler(err, req, reply);
+  });
+
+  app.addHook("onSend", async (req, reply, payload) => {
+    if (req.headers.authorization || /^\/v1\/(orgs?|admin)(\/|$)/.test(req.url)) {
+      reply.header("Cache-Control", "private, no-store");
+      reply.header("X-Robots-Tag", "noindex, nofollow, noarchive");
+    }
+    return payload;
   });
 
   // ── Health & metrics (unauthenticated, excluded from rate limiting) ──
