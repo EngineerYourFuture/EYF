@@ -87,6 +87,20 @@ test("course errors offer recovery instead of a permanent skeleton", async ({ pa
   await portal(page);
   await page.route("**/v1/orgs/lms-org/work/courses/course-1", (route) => route.fulfill({ status: 404, json: { success: false, error: { code: "NOT_FOUND", message: "Not found" } } }));
   await page.goto("/orgs/lms-org/course/course-1");
-  await expect(page.getByText("We couldn't load this information. Try again.")).toBeVisible();
+  // A missing course can't be retried into existence: say so and offer only the way back.
+  await expect(page.getByRole("heading", { name: "This course isn’t available" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Try again" })).toHaveCount(0);
   await expect(page.getByRole("link", { name: "Back to my programs" })).toBeVisible();
+});
+
+// Value: protects=a workspace link to a tab the role can't open rewrites the URL to the tab actually shown;
+// fails_when=the effect that router.replace()s the fallback tab is removed or its condition breaks, so the address bar keeps tab=people under My programs;
+// why_new=existing LMS specs open tabs the role is allowed, never a forbidden ?tab=; seam=none; no_claim=server-side capability checks (API mocked)
+test("a tab the role cannot open falls back and the URL follows", async ({ page }) => {
+  const state = await portal(page); state.role = "MEMBER";
+  await page.goto("/orgs?org=lms-org&tab=people");
+  // router.replace commits the URL only after an RSC round trip; a cold dev compile can take longer than the default 5s.
+  await expect(page).toHaveURL(/\/orgs\?org=lms-org&tab=learning$/, { timeout: 15_000 });
+  await expect(page.getByRole("tab", { name: "My programs", exact: true })).toHaveAttribute("aria-selected", "true");
+  await expect(page.getByRole("tab", { name: "People and access", exact: true })).toHaveCount(0);
 });

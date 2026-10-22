@@ -74,3 +74,19 @@ test("private invitation links require an explicit acceptance and stay inside LM
   await expect(page.getByRole("heading", { name: "You're in!" })).toBeVisible(); expect(accepted).toBe(1);
   await page.getByRole("link", { name: "Go to organization" }).click(); await expect(page).toHaveURL(`${LMS}/orgs`);
 });
+
+// Value: protects=a route hidden from this portal is an unindexed 404 whose way back stays inside the same portal;
+// fails_when=the rewrite loses its 404 status or X-Robots-Tag, or not-found stops branching on IS_LMS (LMS sends people to /dashboard or offers Browse problems);
+// why_new=the request-level specs check status and no-store only, never the rendered not-found page; seam=none; no_claim=production Cache-Control (Next dev overrides it)
+test("a hidden route is an unindexed 404 with this portal's own way back", async ({ page }) => {
+  for (const p of [
+    { url: "/orgs", home: "Back to dashboard", href: "/dashboard", problems: 1 },
+    { url: `${LMS}/dashboard`, home: "Back to your workspace", href: "/orgs", problems: 0 },
+  ]) {
+    const response = await page.goto(p.url);
+    expect(response?.status(), p.url).toBe(404);
+    expect(response?.headers()["x-robots-tag"], p.url).toContain("noindex");
+    await expect(page.getByRole("link", { name: p.home })).toHaveAttribute("href", p.href);
+    await expect(page.getByRole("link", { name: "Browse problems" })).toHaveCount(p.problems);
+  }
+});
