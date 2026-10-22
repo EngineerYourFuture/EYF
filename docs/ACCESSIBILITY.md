@@ -1,7 +1,7 @@
 # Accessibility
 
 **Audience:** frontend engineers, QA, design.
-**Related:** [FRONTEND](FRONTEND.md) · [DESIGN](DESIGN.md) · [PERFORMANCE](PERFORMANCE.md)
+**Related:** [FRONTEND](FRONTEND.md) · [DESIGN](../DESIGN.md) · [PERFORMANCE](PERFORMANCE.md)
 
 ---
 
@@ -256,7 +256,7 @@ Ranked by user impact:
 
 1. Extend the skip-link to the marketing/legal layouts (the app already has it).
 2. Add authenticated routes + a mobile preset to `lighthouserc.json`.
-3. Audit dark-mode contrast per token and record ratios in [DESIGN](DESIGN.md).
+3. Audit dark-mode contrast per token and record ratios in [DESIGN](../DESIGN.md).
 4. Verify `lenis`/WebGL honour `prefers-reduced-motion`.
 5. Add `eslint-plugin-jsx-a11y` — static coverage on every PR, cheap to adopt.
 6. Manual keyboard + screen-reader pass on the core loop (dashboard → problem → submit).
@@ -282,4 +282,4 @@ For every new UI change:
 
 ---
 
-**Next:** [DESIGN.md](DESIGN.md) · [FRONTEND.md](FRONTEND.md) · [ROADMAP.md](ROADMAP.md)
+**Next:** [DESIGN.md](../DESIGN.md) · [FRONTEND.md](FRONTEND.md) · [ROADMAP.md](ROADMAP.md)

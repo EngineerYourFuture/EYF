@@ -260,7 +260,7 @@ ANALYZE=true pnpm --filter @eyf/web build
 
 Extends the shared preset in `@eyf/config`. Design tokens are CSS custom properties defined in `app/globals.css` and surfaced as Tailwind classes (`text-text-3`, `border-border`, `bg-[rgb(var(--lp-paper))]`).
 
-Rules and token names: [DESIGN](DESIGN.md).
+Rules and token names: [DESIGN](../DESIGN.md).
 
 ---
 

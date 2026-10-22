@@ -99,7 +99,7 @@ Tenant isolation has a Postgres **Row-Level Security** backstop that is *not* pa
 - [docs/STATUS.md](docs/STATUS.md) — what's built, current state
 - [docs/PRODUCT-ROADMAP.md](docs/PRODUCT-ROADMAP.md) — spec ↔ status per feature
 - [docs/GO-LIVE.md](docs/GO-LIVE.md) — keys, deploy, security checklist
-- [docs/DESIGN.md](docs/DESIGN.md) — design system rules + tokens
+- [DESIGN.md](DESIGN.md) — design system rules + tokens
 - [specs/](specs/) — the founding product specs
 
 ## Contributing & license

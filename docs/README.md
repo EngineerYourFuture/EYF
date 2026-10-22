@@ -25,7 +25,7 @@ This is the documentation hub for the EYF monorepo. The [root README](../README.
 | If you are a… | Read, in order |
 | --- | --- |
 | **New developer** | [PROJECT_OVERVIEW](PROJECT_OVERVIEW.md) → [SYSTEM_ARCHITECTURE](SYSTEM_ARCHITECTURE.md) → [FOLDER_STRUCTURE](FOLDER_STRUCTURE.md) → [CODEBASE_GUIDE](CODEBASE_GUIDE.md) |
-| **Frontend engineer** | [FRONTEND](FRONTEND.md) → [DESIGN](DESIGN.md) → [ACCESSIBILITY](ACCESSIBILITY.md) → [PERFORMANCE](PERFORMANCE.md) |
+| **Frontend engineer** | [FRONTEND](FRONTEND.md) → [DESIGN](../DESIGN.md) → [ACCESSIBILITY](ACCESSIBILITY.md) → [PERFORMANCE](PERFORMANCE.md) |
 | **Backend engineer** | [BACKEND](BACKEND.md) → [API_DOCUMENTATION](API_DOCUMENTATION.md) → [DATABASE](DATABASE.md) |
 | **DevOps engineer** | [DEPLOYMENT](DEPLOYMENT.md) → [DEVOPS](DEVOPS.md) → [OPERATIONS](OPERATIONS.md) → [GO-LIVE](GO-LIVE.md) |
 | **Security engineer** | [SECURITY](SECURITY.md) → [AUTHENTICATION](AUTHENTICATION.md) → [THIRD_PARTY_SERVICES](THIRD_PARTY_SERVICES.md) |
@@ -98,7 +98,7 @@ These predate this reference set and remain the source of truth for their subjec
 | [PRODUCT-ROADMAP.md](PRODUCT-ROADMAP.md) | Spec ↔ status per feature |
 | [GO-LIVE.md](GO-LIVE.md) | Keys, deploy, security checklist |
 | [OPERATIONS.md](OPERATIONS.md) | Runbooks |
-| [DESIGN.md](DESIGN.md) | Design system rules + tokens |
+| [DESIGN.md](../DESIGN.md) | Design system rules + tokens |
 | [INTERACTIVE-LABS-VISION.md](INTERACTIVE-LABS-VISION.md) | Forward-looking labs concept |
 | [../specs/](../specs/) | Founding product specs (source of truth for product intent) |
 | [../CODE_CLEANUP_REPORT.md](../CODE_CLEANUP_REPORT.md) | Most recent code-health audit + findings |

@@ -59,7 +59,7 @@ The established product name is **EYF — Engineer Your Future**. General EYF an
 
 The repository describes an India-focused engineering placement product. Existing product copy uses direct, task-focused language. Preserve established terminology and factual meaning during refinements; do not introduce guarantees of placement, salary, or business results.
 
-The incumbent visual system is recorded separately in [docs/DESIGN.md](docs/DESIGN.md). This initialization records product context and does not authorize a rebrand.
+The incumbent visual system is recorded separately in [DESIGN.md](DESIGN.md). This initialization records product context and does not authorize a rebrand.
 
 ## Evidence on Hand
 
