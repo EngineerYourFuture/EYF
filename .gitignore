@@ -47,3 +47,8 @@ shot.mjs
 .gstack/
 .scannerwork/
 .eyf-private-media/
+
+# Playwright output
+test-results/
+playwright-report/
+blob-report/
