@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Card, Badge, Button, EmptyState } from "@eyf/ui";
 import { useApi, useApiAction } from "@/lib/use-api";
 import { useState } from "react";
+import { toast } from "sonner";
 import { Icons } from "@/components/icons";
 import { difficultyTone } from "@/lib/ui-helpers";
 
@@ -25,26 +26,35 @@ export default function Page() {
     notes: "", patterns: "",
   });
   const action = useApiAction();
+  const [posting, setPosting] = useState(false);
 
   async function submit() {
-    await action("/oa", {
-      method: "POST",
-      body: JSON.stringify({
-        ...form,
-        driveDate: new Date(form.driveDate).toISOString(),
-        patterns: form.patterns.split(",").map((s) => s.trim()).filter(Boolean),
-      }),
-    });
-    setOpen(false);
-    setForm({ ...form, notes: "", patterns: "" });
-    await mutate();
+    if (posting) { return; }
+    const driveDate = new Date(form.driveDate);
+    if (Number.isNaN(driveDate.getTime())) { toast.error("Pick the drive date."); return; }
+    setPosting(true);
+    try {
+      await action("/oa", {
+        method: "POST",
+        body: JSON.stringify({
+          ...form,
+          driveDate: driveDate.toISOString(),
+          patterns: form.patterns.split(",").map((s) => s.trim()).filter(Boolean),
+        }),
+      });
+      setOpen(false);
+      setForm({ ...form, notes: "", patterns: "" });
+      await mutate();
+    } catch {
+      /* toasted */
+    } finally { setPosting(false); }
   }
 
   return (
     <div className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-5xl mx-auto">
       <div className="flex items-baseline justify-between">
         <div>
-          <h1 className="font-display text-4xl font-bold tracking-tight">OA Fingerprint</h1>
+          <h1 className="type-display">OA Fingerprint</h1>
           <p className="text-text-3 mt-2">Community-sourced patterns of recent online assessments. Add yours after every drive.</p>
         </div>
         <Button onClick={() => setOpen((o) => !o)}>{open ? "Close" : "Submit report"}</Button>
@@ -86,7 +96,7 @@ export default function Page() {
             <textarea rows={5} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })}
               className="w-full mt-1 bg-bg border border-border rounded-md px-3 py-2 font-mono text-sm" />
           </label>
-          <Button onClick={submit}>Post report</Button>
+          <Button onClick={submit} disabled={posting}>Post report</Button>
         </Card>
       )}
 
@@ -107,7 +117,7 @@ export default function Page() {
                     <Badge tone={difficultyTone(r.difficulty)}>{r.difficulty}</Badge>
                   </div>
                   <div className="text-text-3 text-xs mt-1">
-                    {new Date(r.driveDate).toLocaleDateString()} · {r.durationMin}m · by {r.author.name} · 👍 {r.helpfulCount}
+                    {new Date(r.driveDate).toLocaleDateString("en-IN")} · {r.durationMin}m · by {r.author.name} · 👍 {r.helpfulCount}
                   </div>
                   {r.patterns.length > 0 && (
                     <div className="mt-2 flex flex-wrap gap-1">

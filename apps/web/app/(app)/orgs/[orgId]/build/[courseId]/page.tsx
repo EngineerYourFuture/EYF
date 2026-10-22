@@ -20,6 +20,7 @@ import { LessonBlocks } from "@/components/lms/lesson-blocks";
 import { countLabel, workspaceHref } from "@/components/lms/roles";
 import { LoadError, fieldClass } from "@/components/lms/shared";
 import { useApi, useApiAction } from "@/lib/use-api";
+import { loadFailed } from "@/components/load-error";
 
 type Block = { type: string; data: Record<string, unknown> };
 const choiceIds = Symbol("choiceIds");
@@ -93,7 +94,7 @@ function CourseBuilder({ orgId, courseId }: Readonly<{ orgId: string; courseId: 
     catch { /* toasted (incl. two-person rule) */ } finally { setBusy(false); }
   }
 
-  if (error) { return <div className="px-6 py-12"><Link href={workspaceHref(orgId, "courses")} className="underline">Back to courses</Link><LoadError error={error} retry={mutate} /></div>; }
+  if (loadFailed(error, course)) { return <div className="px-6 py-12"><Link href={workspaceHref(orgId, "courses")} className="underline">Back to courses</Link><LoadError error={error} retry={mutate} what="course" page /></div>; }
   if (!course) { return <div className="px-6 py-12"><Skeleton className="min-h-11 w-64" /></div>; }
 
   return (
@@ -178,9 +179,9 @@ function LessonEditor({ orgId, courseId, lesson, editable, onSaved, onDirty }: R
     } catch (error_) { setError(error_ instanceof Error ? error_.message : "Could not save this lesson. Your edits are still here; try again."); } finally { setSaving(false); }
   }
   return <Card className="min-w-0">
-    <div className="flex flex-wrap items-center justify-between gap-3 mb-5"><h2 className="text-lg font-semibold">{preview ? "Learner preview" : "Edit lesson"}</h2><Button variant="secondary" onClick={() => { setPreview(!preview); setAnswers({}); }} aria-pressed={preview}>{preview ? "Back to editing" : "Preview lesson"}</Button></div>
+    <div className="flex flex-wrap items-center justify-between gap-3 mb-5"><h2 className="type-title">{preview ? "Learner preview" : "Edit lesson"}</h2><Button variant="secondary" onClick={() => { setPreview(!preview); setAnswers({}); }} aria-pressed={preview}>{preview ? "Back to editing" : "Preview lesson"}</Button></div>
     {restored && <output  className="block mb-4 text-sm text-text-2">Your unsaved draft was restored. Review it and save when ready.</output>}
-    {preview ? <section aria-label="Learner preview" className="space-y-5"><p className="text-sm text-text-2">This preview includes your current edits. Answers here do not change learner progress or publish the course.</p><h3 className="text-2xl font-semibold break-words">{title || "Untitled lesson"}</h3><LessonBlocks orgId={orgId} lessonId={`preview-${lesson.id}`} blocks={blocks} answers={answers} onAnswer={(key, choice) => setAnswers((value) => ({ ...value, [key]: choice }))} />{blocks.length === 0 && <p className="text-text-2">Add content to see it here.</p>}</section> : <>
+    {preview ? <section aria-label="Learner preview" className="space-y-5"><p className="text-sm text-text-2">This preview includes your current edits. Answers here do not change learner progress or publish the course.</p><h3 className="type-headline break-words">{title || "Untitled lesson"}</h3><LessonBlocks orgId={orgId} lessonId={`preview-${lesson.id}`} blocks={blocks} answers={answers} onAnswer={(key, choice) => setAnswers((value) => ({ ...value, [key]: choice }))} />{blocks.length === 0 && <p className="text-text-2">Add content to see it here.</p>}</section> : <>
       <label className="block font-medium">Lesson title<input className={`${fieldClass} mt-2`} value={title} onChange={(e) => { setTitle(e.target.value); setDirty(true); }} disabled={!editable || saving} /></label>
       {editable && <label className="block mt-4 text-sm">Skill tag (optional)<input className={`${fieldClass} mt-2`} placeholder="e.g. kafka" value={skill} onChange={(e) => { setSkill(e.target.value); setDirty(true); }} disabled={saving} /><span className="block mt-2 text-text-2">Connects lesson completion to the skill record.</span></label>}
       <fieldset disabled={!editable || saving} className="mt-6 space-y-5 min-w-0"><legend className="sr-only">Lesson content</legend>

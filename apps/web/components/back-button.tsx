@@ -17,6 +17,8 @@ const PARENT: Record<string, string> = {
   subjects: "/subjects",
   orgs: "/orgs",
   learn: "/learn",
+  companies: "/companies",
+  games: "/games",
 };
 
 /**

@@ -18,7 +18,6 @@ export default function CompaniesPage() {
   return (
     <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-6xl mx-auto">
       <PageHeader
-        eyebrow="Targeted prep"
         title="Company Prep"
         subtitle="Pick where you're interviewing. We surface exactly what that company asks, sorted by how often — and track your coverage as you solve."
       />

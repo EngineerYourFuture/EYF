@@ -29,14 +29,18 @@ export default function Page() {
 
   function startNew() { setForm(EMPTY); setEditing({ id: null }); }
   async function startEdit(id: string) {
-    const x = await action<Full>(`/admin/content/internships/${id}`);
-    setForm({
-      slug: x.slug, company: x.company, role: x.role, duration: x.duration, stipendInr: String(x.stipendInr),
-      location: x.location, remote: x.remote, description: x.description, applyUrl: x.applyUrl,
-      eligibility: x.eligibility ?? "", ppoConversion: x.ppoConversion?.toString() ?? "",
-      deadlineAt: x.deadlineAt ? x.deadlineAt.slice(0, 10) : "", isActive: x.isActive,
-    });
-    setEditing({ id });
+    try {
+      const x = await action<Full>(`/admin/content/internships/${id}`);
+      setForm({
+        slug: x.slug, company: x.company, role: x.role, duration: x.duration, stipendInr: String(x.stipendInr),
+        location: x.location, remote: x.remote, description: x.description, applyUrl: x.applyUrl,
+        eligibility: x.eligibility ?? "", ppoConversion: x.ppoConversion?.toString() ?? "",
+        deadlineAt: x.deadlineAt ? x.deadlineAt.slice(0, 10) : "", isActive: x.isActive,
+      });
+      setEditing({ id });
+    } catch {
+      /* toasted */
+    }
   }
   async function save() {
     setSaving(true);
@@ -62,7 +66,7 @@ export default function Page() {
     return (
       <div className="px-6 lg:px-10 py-10 lg:py-12 max-w-3xl mx-auto">
         <button type="button" onClick={() => setEditing(null)} className="text-text-3 hover:text-text-1 text-sm mb-4">← Back to internships</button>
-        <h1 className="font-display text-2xl font-bold tracking-tight">{editing.id ? "Edit internship" : "New internship"}</h1>
+        <h1 className="type-display">{editing.id ? "Edit internship" : "New internship"}</h1>
         <Card className="mt-6 space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <Field label="Role"><input className={inputCls} value={form.role} onChange={(e) => set("role", e.target.value)} placeholder="SDE Intern" /></Field>
@@ -98,7 +102,7 @@ export default function Page() {
     <div className="px-6 lg:px-10 py-10 lg:py-12 max-w-4xl mx-auto">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="font-display text-3xl font-bold tracking-tight">Internships</h1>
+          <h1 className="type-display">Internships</h1>
           <p className="text-text-3 mt-2">{data?.length ?? 0} listings · the supply side of the LMS ↔ internship flywheel.</p>
         </div>
         <Button onClick={startNew}>+ New internship</Button>

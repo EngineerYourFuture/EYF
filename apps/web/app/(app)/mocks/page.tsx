@@ -8,6 +8,8 @@ import { useState } from "react";
 import { PageMotion } from "@/components/page-motion";
 import { ComposureTrend } from "@/components/composure-trend";
 import { Icons, type IconName } from "@/components/icons";
+import { useCapabilities } from "@/lib/use-capabilities";
+import { AiUnavailable } from "@/components/ai-unavailable";
 
 type Mock = {
   id: string; type: "AI" | "PEER" | "EXPERT"; status: string;
@@ -27,6 +29,7 @@ const MODES: { icon: IconName; title: string; cadence: string; desc: string; hre
 export default function Page() {
   const { data, mutate } = useApi<Mock[]>("/mocks/me");
   const action = useApiAction();
+  const caps = useCapabilities();
   const [company, setCompany] = useState("Amazon");
   const [focus, setFocus]     = useState("two-pointers");
   const [starting, setStarting] = useState(false);
@@ -51,7 +54,6 @@ export default function Page() {
   return (
     <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-4xl mx-auto">
       <PageHeader
-        eyebrow="Practice until the pressure disappears"
         title="Mock Interviews"
         subtitle="Three ways to rehearse the real thing — on demand with AI, daily with peers, weekly with experts."
       />
@@ -78,8 +80,9 @@ export default function Page() {
 
       {/* AI mock starter */}
       <Card id="ai" variant="glow" className="mt-8 scroll-mt-24">
-        <h2 className="font-display text-xl font-bold flex items-center gap-2">Start an AI mock <Badge tone="accent">Pro+</Badge></h2>
+        <h2 className="type-title flex items-center gap-2">Start an AI mock <Badge tone="accent">Pro+</Badge></h2>
         <p className="text-text-3 text-sm mt-1">Claude-powered. 45 min default. Real interviewer behavior — pushback, edge cases, follow-ups.</p>
+        <AiUnavailable className="mt-4">The AI interviewer isn&rsquo;t set up on this server yet, so AI mocks can&rsquo;t start right now. Peer mocks still work.</AiUnavailable>
         <div className="mt-5 grid sm:grid-cols-2 gap-4">
           <Field label="Company">
             <select value={company} onChange={(e) => setCompany(e.target.value)} className="w-full bg-bg border border-border rounded-md px-3 py-2.5 text-sm focus:border-accent/50 outline-none">
@@ -91,11 +94,11 @@ export default function Page() {
           </Field>
         </div>
         <div className="mt-5">
-          <Button glow onClick={start} disabled={starting}>{starting ? "Starting…" : "Start AI mock"}</Button>
+          <Button onClick={start} disabled={starting || caps?.ai === false}>{starting ? "Starting…" : "Start AI mock"}</Button>
         </div>
       </Card>
 
-      <h2 className="font-display text-xl font-bold mt-10 mb-3">Past mocks</h2>
+      <h2 className="type-headline mt-10 mb-3">Past mocks</h2>
       <div className="space-y-2">
         {data?.map((m) => (
           <Link key={m.id} href={`/mocks/${m.id}`}>
@@ -105,7 +108,7 @@ export default function Page() {
                   <Badge>{m.type}</Badge>
                   <span className="font-display text-base">{m.company ?? "—"} · {m.problemFocus ?? "general"}</span>
                 </div>
-                <div className="text-text-4 text-xs mt-1">{new Date(m.scheduledFor).toLocaleString()}</div>
+                <div className="text-text-4 text-xs mt-1">{new Date(m.scheduledFor).toLocaleString("en-IN")}</div>
               </div>
               <div className="flex items-center gap-3">
                 {m.feedback && <Badge tone={(() => { const sc = m.feedback.overallScore; if (sc >= 70) { return "easy" as const; } if (sc >= 50) { return "medium" as const; } return "hard" as const; })()}>{m.feedback.overallScore}/100</Badge>}

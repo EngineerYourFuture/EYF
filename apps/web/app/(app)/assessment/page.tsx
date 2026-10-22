@@ -103,6 +103,8 @@ export default function Page() {
       setResult(data.scored);
       const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
       window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
+    } catch {
+      /* toasted */
     } finally { setSubmitting(false); }
   }
 
@@ -110,16 +112,16 @@ export default function Page() {
   if (mode === "choose") {
     return (
       <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-3xl mx-auto">
-        <PageHeader eyebrow="Skill assessment" title="Find your level" subtitle="Two ways in — a fast adaptive diagnostic that pinpoints your exact boundary, or the full topic-by-topic assessment." />
+        <PageHeader title="Find your level" subtitle="Two ways in — a fast adaptive diagnostic that pinpoints your exact boundary, or the full topic-by-topic assessment." />
         <div className="mt-8 grid sm:grid-cols-2 gap-4">
           <button type="button" onClick={() => setMode("adaptive")} className="text-left rounded-2xl border border-brand/30 bg-brand/[0.04] p-5 hover:bg-brand/[0.08] transition-colors">
             <div className="text-xs font-mono uppercase tracking-wider text-brand">Recommended</div>
-            <h3 className="font-display text-lg font-bold mt-1">Adaptive diagnostic</h3>
+            <h3 className="type-title mt-1">Adaptive diagnostic</h3>
             <p className="text-text-3 text-sm mt-1">12 questions that harden or soften with each answer to find your exact mastery boundary. ~4 min.</p>
           </button>
           <button type="button" onClick={() => setMode("full")} className="text-left rounded-2xl border border-border bg-surface p-5 hover:border-edge transition-colors">
             <div className="text-xs font-mono uppercase tracking-wider text-text-4">Full</div>
-            <h3 className="font-display text-lg font-bold mt-1">Full assessment</h3>
+            <h3 className="type-title mt-1">Full assessment</h3>
             <p className="text-text-3 text-sm mt-1">20 fixed questions across DSA, core CS and aptitude with a topic-by-topic report. ~12 min.</p>
           </button>
         </div>
@@ -132,7 +134,7 @@ export default function Page() {
     return (
       <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-2xl mx-auto">
         <button type="button" onClick={() => setMode("choose")} className="text-text-4 text-sm hover:text-text-2 mb-4">← Back</button>
-        <PageHeader eyebrow="Adaptive diagnostic" title="Find your exact level" subtitle="Each answer changes what comes next — get it right and it hardens." />
+        <PageHeader title="Find your exact level" subtitle="Each answer changes what comes next — get it right and it hardens." />
         <div className="mt-8"><AdaptiveDiagnostic onExit={() => setMode("choose")} /></div>
       </PageMotion>
     );
@@ -144,7 +146,6 @@ export default function Page() {
     return (
       <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-5xl mx-auto">
         <PageHeader
-          eyebrow="Calibration complete"
           title="Your readout"
           subtitle={`${result.correctAnswers}/${result.totalQuestions} correct — here's where you stand and what to fix.`}
         />
@@ -159,7 +160,7 @@ export default function Page() {
         </div>
 
         <Card variant="glow" className="mt-5">
-          <h2 className="font-display text-xl font-bold">Placement probability</h2>
+          <h2 className="type-title">Placement probability</h2>
           <p className="text-text-3 text-sm mt-1">Modelled from your score against typical bars.</p>
           <div className="mt-5 space-y-4">
             {([["Realistic", result.placementProbability.realistic],
@@ -176,7 +177,7 @@ export default function Page() {
         <Reveal className="mt-8">
           <div className="flex items-center gap-2 mb-3">
             <span className="text-accent"><Icons.Activity width={18} height={18} /></span>
-            <h2 className="font-display text-lg font-bold">This just updated your map</h2>
+            <h2 className="type-title">This just updated your map</h2>
           </div>
           <div className="grid sm:grid-cols-3 gap-4">
             <NextStep href="/skills" icon="Activity" title="Skill Graph"
@@ -196,7 +197,7 @@ export default function Page() {
     if (loadError) {
       return (
         <div className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-3xl mx-auto">
-          <PageHeader eyebrow="Skill assessment" title="Couldn't start the assessment" subtitle="Something went wrong loading your questions." />
+          <PageHeader title="Couldn't start the assessment" subtitle="Something went wrong loading your questions." />
           <div className="mt-8">
             <ErrorState message="We couldn't load your assessment. Check your connection and try again." retry={startFull} />
           </div>
@@ -205,7 +206,7 @@ export default function Page() {
     }
     return (
       <div className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-5xl mx-auto">
-        <PageHeader eyebrow="Skill assessment" title="Generating your assessment…" subtitle="20 questions, hand-picked across DSA, core CS, and aptitude." />
+        <PageHeader title="Generating your assessment…" subtitle="20 questions, hand-picked across DSA, core CS, and aptitude." />
         <div className="mt-8 space-y-4">
           {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-40 rounded-xl" />)}
         </div>

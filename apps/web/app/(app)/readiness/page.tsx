@@ -4,14 +4,14 @@ import { Card, Button, Badge, Meter, PageHeader, Skeleton } from "@eyf/ui";
 import { PageMotion } from "@/components/page-motion";
 import { Reveal } from "@/components/motion";
 import { FunnelSim } from "@/components/funnel-sim";
-import { Icons } from "@/components/icons";
+import { Icons, iconFor } from "@/components/icons";
 import { useGuidance } from "@/lib/use-guidance";
 import { ScoreShare } from "@/components/score-share";
 import { ScoreRing } from "@/components/score-ring";
 import { CollegeProofCard } from "@/components/college-proof-card";
 import { companyReadiness, readinessBand, tierOf, biggestGap, offerProbability, TIER_PROFILES, SPOTLIGHT_COMPANIES } from "@/lib/company-readiness";
 import { companyLabel } from "@/lib/company";
-import type { Readiness } from "@/lib/readiness";
+import type { Readiness } from "@eyf/types";
 import { overallTone, readinessBarClass, scoreTone } from "@/lib/ui-helpers";
 
 export default function Page() {
@@ -22,7 +22,6 @@ export default function Page() {
     <PageMotion className="relative">
       <div className="relative px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-5xl mx-auto">
         <PageHeader
-          eyebrow="Your north star"
           title="Placement Readiness"
           subtitle="One score across everything that gets you placed — DSA, interviews, resume, projects, and consistency. Updated live as you progress."
         />
@@ -59,10 +58,10 @@ export default function Page() {
 
               {/* Pillar breakdown */}
               <Card>
-                <h2 className="font-display text-lg font-bold mb-4">What makes up your score</h2>
+                <h2 className="type-title mb-4">What makes up your score</h2>
                 <div className="space-y-4">
                   {r.pillars.map((p) => {
-                    const Icon = Icons[p.icon];
+                    const Icon = iconFor(p.icon);
                     return (
                       <Link key={p.key} href={p.href} className="block group">
                         <Meter
@@ -87,7 +86,7 @@ export default function Page() {
 
             {/* Do this next */}
             <Reveal className="mt-8">
-              <h2 className="font-display text-xl font-bold mb-4">Do this next</h2>
+              <h2 className="type-headline mb-4">Do this next</h2>
               {r.nextActions.length === 0 ? (
                 <Card className="flex items-center gap-3">
                   <span className="text-easy"><Icons.Trophy width={22} height={22} /></span>
@@ -96,7 +95,7 @@ export default function Page() {
               ) : (
                 <div className="grid sm:grid-cols-3 gap-4">
                   {r.nextActions.map((a, idx) => {
-                    const Icon = Icons[a.icon];
+                    const Icon = iconFor(a.icon);
                     return (
                       <Card key={a.href} interactive className="flex flex-col">
                         <div className="flex items-center justify-between">
@@ -145,7 +144,7 @@ function CompanyBoard({ r }: Readonly<{ r: Readiness }>) {
 
   return (
     <div className="mt-10">
-      <h2 className="font-display text-xl font-bold mb-1">Will I get an offer?</h2>
+      <h2 className="type-headline mb-1">Will I get an offer?</h2>
       <p className="text-text-3 text-sm mb-4 max-w-2xl">
         Your live offer probability at each company — calibrated to how hard that company hires. Tap any to open targeted prep.
       </p>

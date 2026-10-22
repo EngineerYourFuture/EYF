@@ -45,3 +45,18 @@ export const Icons = {
 };
 
 export type IconName = keyof typeof Icons;
+
+const byLowerName = new Map<string, (p: P) => React.JSX.Element>(
+  Object.entries(Icons).map(([name, icon]) => [name.toLowerCase(), icon]),
+);
+
+/**
+ * Icon for a name that arrives as data (API payloads send lowercase "code";
+ * the map is PascalCase). Matches case-insensitively and falls back to a
+ * neutral mark, so one unknown name can't take down the page.
+ */
+export function iconFor(name: string | null | undefined) {
+  const icon = byLowerName.get((name ?? "").toLowerCase());
+  if (!icon && process.env.NODE_ENV !== "production") console.warn(`[icons] no icon named "${name}"`);
+  return icon ?? Icons.Target;
+}

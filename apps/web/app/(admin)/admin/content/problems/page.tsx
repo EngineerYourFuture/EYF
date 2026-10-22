@@ -48,14 +48,18 @@ export default function Page() {
 
   function startNew() { setForm({ ...EMPTY, testCases: EMPTY.testCases.map(editorRow) }); setEditing({ id: null }); }
   async function startEdit(id: string) {
-    const p = await action<ProblemFull>(`/admin/content/problems/${id}`);
-    setForm({
-      slug: p.slug, title: p.title, description: p.description, difficulty: p.difficulty,
-      topics: p.topics.join(", "), patterns: p.patterns.join(", "), companies: p.companies.join(", "),
-      premium: p.premium, timeLimitMs: p.timeLimitMs, memoryLimitKb: p.memoryLimitKb,
-      testCases: p.testCases.map(({ input, expected, isPublic }) => editorRow({ input, expected, isPublic })),
-    });
-    setEditing({ id });
+    try {
+      const p = await action<ProblemFull>(`/admin/content/problems/${id}`);
+      setForm({
+        slug: p.slug, title: p.title, description: p.description, difficulty: p.difficulty,
+        topics: p.topics.join(", "), patterns: p.patterns.join(", "), companies: p.companies.join(", "),
+        premium: p.premium, timeLimitMs: p.timeLimitMs, memoryLimitKb: p.memoryLimitKb,
+        testCases: p.testCases.map(({ input, expected, isPublic }) => editorRow({ input, expected, isPublic })),
+      });
+      setEditing({ id });
+    } catch {
+      /* toasted */
+    }
   }
   async function save() {
     setSaving(true);
@@ -82,7 +86,7 @@ export default function Page() {
     return (
       <div className="px-6 lg:px-10 py-10 lg:py-12 max-w-3xl mx-auto">
         <button type="button" onClick={() => setEditing(null)} className="text-text-3 hover:text-text-1 text-sm mb-4">← Back to problems</button>
-        <h1 className="font-display text-2xl font-bold tracking-tight">{editing.id ? "Edit problem" : "New problem"}</h1>
+        <h1 className="type-display">{editing.id ? "Edit problem" : "New problem"}</h1>
         <Card className="mt-6 space-y-4">
           <Field label="Title"><input className={inputCls} value={form.title} onChange={(e) => set("title", e.target.value)} placeholder="Two Sum" /></Field>
           <Field label="Slug" hint="lowercase, hyphens — used in the URL"><input className={inputCls} value={form.slug} onChange={(e) => set("slug", e.target.value)} placeholder="two-sum" /></Field>
@@ -110,7 +114,7 @@ export default function Page() {
             <Field label="Memory limit (KB)"><input type="number" className={inputCls} value={form.memoryLimitKb} onChange={(e) => set("memoryLimitKb", Number(e.target.value))} /></Field>
           </div>
           <section aria-labelledby="test-cases-title" className="border-t border-border pt-6">
-            <h2 id="test-cases-title" className="text-xl font-semibold">Test cases</h2>
+            <h2 id="test-cases-title" className="type-headline">Test cases</h2>
             <p className="mt-2 text-text-2 leading-relaxed">
               Add a public example and at least one hidden edge case. Each input must be different.
               Student programs read the input from standard input and print the expected output.
@@ -156,7 +160,7 @@ export default function Page() {
     <div className="px-6 lg:px-10 py-10 lg:py-12 max-w-4xl mx-auto">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="font-display text-3xl font-bold tracking-tight">Problems</h1>
+          <h1 className="type-display">Problems</h1>
           <p className="text-text-3 mt-2">{data?.length ?? 0} problems · edit content without touching code.</p>
         </div>
         <Button onClick={startNew}>+ New problem</Button>

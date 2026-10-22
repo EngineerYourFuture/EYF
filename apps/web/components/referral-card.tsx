@@ -40,7 +40,7 @@ export function ReferralCard() {
     <Card className="mt-5">
       <div className="flex items-center gap-2">
         <span className="text-accent"><Icons.Gift width={18} height={18} /></span>
-        <h2 className="font-display text-lg font-bold">Bring a friend, both get Pro</h2>
+        <h2 className="type-title">Bring a friend, both get Pro</h2>
       </div>
       <p className="mt-1.5 text-sm text-text-3">
         When a friend joins with your link and gets going, you <span className="text-text-1 font-medium">both</span> get{" "}

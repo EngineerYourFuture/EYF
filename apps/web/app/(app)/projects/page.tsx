@@ -32,6 +32,8 @@ export default function Page() {
       await action(`/projects/${slug}/start`, { method: "POST" });
       await mutate();
       toast.success(`Added “${title}” to your projects`);
+    } catch {
+      /* toasted */
     } finally {
       setStarting(null);
     }
@@ -39,11 +41,11 @@ export default function Page() {
 
   return (
     <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-5xl mx-auto">
-      <PageHeader eyebrow="Build the proof" title="BTech Projects" subtitle="Build the thing. Ship the link. Survive the interview." />
+      <PageHeader title="BTech Projects" subtitle="Build the thing. Ship the link. Survive the interview." />
 
       {mine && mine.length > 0 && (
         <div className="mt-8">
-          <h2 className="font-display text-xl font-bold mb-3">In progress</h2>
+          <h2 className="type-headline mb-3">In progress</h2>
           <div className="space-y-2">
             {mine.map((m) => (
               <Card key={m.id} className="flex items-center justify-between">
@@ -58,7 +60,7 @@ export default function Page() {
         </div>
       )}
 
-      <h2 className="font-display text-xl font-bold mt-10 mb-3">Idea catalog</h2>
+      <h2 className="type-headline mt-10 mb-3">Idea catalog</h2>
       {!ideas ? (
         <div className="grid md:grid-cols-2 gap-4">
           {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-44 rounded-xl" />)}
@@ -70,7 +72,7 @@ export default function Page() {
             return (
               <Card key={i.id} className="flex flex-col">
                 <div className="flex items-center justify-between gap-2">
-                  <h3 className="font-display text-lg font-bold">{i.title}</h3>
+                  <h3 className="type-title">{i.title}</h3>
                   <Badge tone={tone[i.difficulty]}>{i.difficulty}</Badge>
                 </div>
                 <p className="text-text-3 text-sm mt-2 flex-1">{i.description}</p>

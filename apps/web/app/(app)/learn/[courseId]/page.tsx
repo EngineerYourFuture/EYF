@@ -9,6 +9,7 @@ import { LessonBlocks } from "@/components/lms/lesson-blocks";
 import type { LessonBlock } from "@eyf/types";
 import { LoadError } from "@/components/lms/shared";
 import { BackButton } from "@/components/back-button";
+import { loadFailed } from "@/components/load-error";
 
 type Lesson = { id: string; title: string; content: string; blocks?: LessonBlock[]; completed: boolean };
 type CourseLearn = { id: string; title: string; org: string; orgId: string; lessons: Lesson[] };
@@ -32,7 +33,7 @@ export default function CoursePlayer() {
     }
   }
 
-  if (error) return <LoadError error={error} retry={mutate} />;
+  if (loadFailed(error, data)) return <LoadError error={error} retry={mutate} what="course" page />;
   if (isLoading) return <div className="px-4 sm:px-6 lg:px-10 py-8"><SkeletonRows /></div>;
   if (!data) return <div className="px-4 sm:px-6 lg:px-10 py-8 text-text-3">Course not found.</div>;
 
@@ -66,7 +67,7 @@ export default function CoursePlayer() {
             {lesson ? (
               <Card className="p-6">
                 <div className="flex items-center gap-2 mb-3">
-                  <h2 className="font-display text-xl">{lesson.title}</h2>
+                  <h2 className="type-headline">{lesson.title}</h2>
                   {lesson.completed && <Badge tone="easy" className="ml-auto">Done</Badge>}
                 </div>
                 <div className="text-text-2 whitespace-pre-wrap leading-relaxed">{lesson.content}</div>

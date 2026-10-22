@@ -23,7 +23,7 @@ export function LessonBlocks({ blocks, answers, onAnswer, lessonId, orgId, compl
     const key = `${lessonId}-${index}`;
     if (isPrivateMedia(block)) return <PrivateBlock key={`${key}-${text("assetId")}`} orgId={orgId} lessonId={lessonId} block={block} />;
     switch (block.type) {
-      case "heading": return <h3 key={key} className="text-xl font-semibold break-words">{text("text")}</h3>;
+      case "heading": return <h3 key={key} className="type-title break-words">{text("text")}</h3>;
       case "rich_text": return <p key={key} className="text-text-2 leading-relaxed whitespace-pre-wrap break-words">{text("text")}</p>;
       case "callout": return <aside key={key} className="rounded-lg border border-border bg-surface-2 p-4 whitespace-pre-wrap">{text("text")}</aside>;
       case "code": return <pre key={key} className="rounded-lg bg-surface-2 border border-border p-4 overflow-auto text-sm"><code>{text("code")}</code></pre>;

@@ -93,7 +93,7 @@ export default function Page() {
 
   return (
     <div className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-3xl">
-      <h1 className="font-display text-3xl font-bold tracking-tight">2-Back</h1>
+      <h1 className="type-display">2-Back</h1>
       <p className="text-text-3 mt-2">Press <kbd className="font-mono bg-surface border border-border px-1.5 py-0.5 rounded">SPACE</kbd> when the current letter matches the one shown 2 steps ago.</p>
 
       <Card className="mt-10 h-72 flex items-center justify-center">
@@ -113,7 +113,7 @@ export default function Page() {
 
       {done && (
         <Card className="mt-6">
-          <h3 className="font-display text-lg font-bold mb-2">Result</h3>
+          <h3 className="type-title mb-2">Result</h3>
           <Row label="Hits"            value={s.hits} />
           <Row label="Misses"          value={s.misses} />
           <Row label="False alarms"    value={s.falseAlarms} />

@@ -14,6 +14,7 @@ import { LoadError } from "@/components/lms/shared";
 import { useApi, useApiAction } from "@/lib/use-api";
 import { countLabel, workspaceHref } from "@/components/lms/roles";
 import { useMotionPreference } from "@/components/interaction-motion";
+import { loadFailed } from "@/components/load-error";
 
 type Block = { type: string; data: Record<string, unknown> };
 type Lesson = { id: string; title: string; type: string; blocks: Block[] | null; estMinutes: number; completed: boolean };
@@ -79,7 +80,7 @@ function CoursePlayer({ orgId, courseId }: Readonly<{ orgId: string; courseId: s
     } catch (error) { setCompletionError(error instanceof Error ? error.message : "Could not save this lesson. Try again."); } finally { setBusy(false); }
   }
 
-  if (error) return <div className="px-6 py-12"><Link href={workspaceHref(orgId, "learning")} className="underline">Back to my programs</Link><LoadError error={error} retry={mutate} /></div>;
+  if (loadFailed(error, course)) return <div className="px-6 py-12"><Link href={workspaceHref(orgId, "learning")} className="underline">Back to my programs</Link><LoadError error={error} retry={mutate} what="course" page /></div>;
   if (!course) { return <div className="px-6 py-12"><Skeleton className="h-8 w-64" /></div>; }
 
   return (
@@ -87,14 +88,14 @@ function CoursePlayer({ orgId, courseId }: Readonly<{ orgId: string; courseId: s
       <div className="px-4 sm:px-6 lg:px-10 py-8 max-w-5xl mx-auto">
         <Link href={workspaceHref(orgId, "learning")} className="inline-flex min-h-11 items-center text-text-3 hover:text-text-1 text-sm underline underline-offset-4">Back to my programs</Link>
         <div className="mt-3 flex items-center justify-between gap-4 flex-wrap">
-          <h1 className="font-display text-2xl sm:text-3xl font-semibold tracking-tight leading-tight">{course.title}</h1>
+          <h1 className="type-display">{course.title}</h1>
           <span className="font-mono text-sm text-text-3 tabular-nums">{doneCount}/{course.lessons.length} done</span>
         </div>
         {course.description && <p className="mt-2 max-w-2xl text-sm leading-relaxed text-text-2">{course.description}</p>}
         <progress className="eyf-progress mt-3 h-1.5 w-full" value={doneCount} max={Math.max(1, course.lessons.length)}
           aria-valuetext={`${doneCount} of ${course.lessons.length} lessons complete`} aria-label="Course progress" />
 
-        {courseComplete && <section className="mt-6 border-y border-border py-6 space-y-3" aria-labelledby="course-complete-title" aria-live="polite"><h2 id="course-complete-title" className="text-xl font-semibold">Course complete</h2><p className="text-text-2">{countLabel(doneCount, "lesson")} completed. Your lesson progress is saved. Assessments and certificates have separate requirements.</p><div className="flex flex-wrap gap-3">{nextCourse && <Link className="inline-flex min-h-11 items-center rounded-md bg-accent px-4 py-2 text-accent-ink font-medium" href={`/orgs/${orgId}/course/${nextCourse.id}`}>Continue: {nextCourse.title}</Link>}<Link className="inline-flex min-h-11 items-center rounded-md border border-border px-4 py-2 font-medium" href={workspaceHref(orgId, "learning")}>{assigned ? `View ${assigned.pathTitle}` : "Back to my programs"}</Link></div><LoadError error={programs.error} retry={programs.mutate} /></section>}
+        {courseComplete && <section className="mt-6 border-y border-border py-6 space-y-3" aria-labelledby="course-complete-title" aria-live="polite"><h2 id="course-complete-title" className="type-headline">Course complete</h2><p className="text-text-2">{countLabel(doneCount, "lesson")} completed. Your lesson progress is saved. Assessments and certificates have separate requirements.</p><div className="flex flex-wrap gap-3">{nextCourse && <Link className="inline-flex min-h-11 items-center rounded-md bg-accent px-4 py-2 text-accent-ink font-medium" href={`/orgs/${orgId}/course/${nextCourse.id}`}>Continue: {nextCourse.title}</Link>}<Link className="inline-flex min-h-11 items-center rounded-md border border-border px-4 py-2 font-medium" href={workspaceHref(orgId, "learning")}>{assigned ? `View ${assigned.pathTitle}` : "Back to my programs"}</Link></div><LoadError error={programs.error} retry={programs.mutate} /></section>}
 
         <div className="mt-6 grid lg:grid-cols-[220px_1fr] gap-6 items-start">
           <div className="min-w-0 lg:sticky lg:top-24">
@@ -121,7 +122,7 @@ function CoursePlayer({ orgId, courseId }: Readonly<{ orgId: string; courseId: s
             <Card className="min-w-0">
               <p className="mb-2 text-xs font-medium tracking-wide text-text-3">Lesson {idx + 1}{active.estMinutes > 0 ? ` · ${active.estMinutes} min` : ""}</p>
               <div className="flex flex-wrap items-center gap-2">
-                <h2 ref={headingRef} tabIndex={-1} className="scroll-mt-20 font-display text-xl font-semibold tracking-tight focus:outline-none">{active.title}</h2>
+                <h2 ref={headingRef} tabIndex={-1} className="type-headline scroll-mt-20 focus:outline-none">{active.title}</h2>
                 {active.completed && <Badge tone="easy">Completed</Badge>}
               </div>
               <div className="mt-5 space-y-4">

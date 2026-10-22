@@ -8,7 +8,7 @@
  * Amazon's screen bar") plus a 14-day plan, plus proof they're already above
  * the bar elsewhere. Pure and deterministic: no AI key required.
  */
-import type { Pillar } from "./readiness";
+import type { Pillar } from "@eyf/types";
 import {
   TIER_PROFILES,
   tierOf,

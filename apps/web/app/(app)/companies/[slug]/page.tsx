@@ -1,7 +1,7 @@
 "use client";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { Card, Badge, Button, Meter, Skeleton, ErrorState } from "@eyf/ui";
+import { Card, Badge, Button, Meter, Skeleton } from "@eyf/ui";
 import { useApi } from "@/lib/use-api";
 import { PageMotion } from "@/components/page-motion";
 import { Icons } from "@/components/icons";
@@ -10,6 +10,7 @@ import { useReadiness } from "@/lib/use-readiness";
 import { companyReadiness, readinessBand, tierOf, biggestGap } from "@/lib/company-readiness";
 import { CompanyFunnel } from "@/components/company-funnel";
 import { difficultyTone, readinessBarClass } from "@/lib/ui-helpers";
+import { LoadError, loadFailed } from "@/components/load-error";
 
 type Problem = {
   id: string; slug: string; title: string;
@@ -35,16 +36,13 @@ export default function Page() {
   return (
     <PageMotion className="relative">
       <div className="relative px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-5xl mx-auto">
-        <Link href="/companies" className="text-text-3 hover:text-text-1 text-sm inline-flex items-center gap-1.5">
-          <span className="rotate-180"><Icons.Arrow width={14} height={14} /></span> All companies
-        </Link>
 
         {(() => {
-  if (error) return (
-          <div className="mt-8"><ErrorState message="Couldn't load this company." retry={() => mutate()} /></div>
+  if (loadFailed(error, data)) return (
+          <div><LoadError page error={error} what="company" retry={() => mutate()} back={{ href: "/companies", label: "All companies" }} /></div>
         );
   if (isLoading || !data) return (
-          <div className="mt-6 grid lg:grid-cols-[320px_1fr] gap-6">
+          <div className="grid lg:grid-cols-[320px_1fr] gap-6">
             <Skeleton className="h-64 rounded-2xl" />
             <div className="space-y-3">{Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-14 rounded-xl" />)}</div>
           </div>
@@ -68,7 +66,7 @@ function CompanyView({ label, data }: Readonly<{ label: string; data: Detail }>)
 
   return (
     <>
-      <h1 className="font-display text-3xl sm:text-4xl font-bold tracking-tight mt-3">{label}</h1>
+      <h1 className="type-display">{label}</h1>
       <p className="text-text-3 mt-2">
         {data.counts.total} problems reported in {label} interviews — sorted by how often they show up.
       </p>
@@ -118,7 +116,7 @@ function CompanyView({ label, data }: Readonly<{ label: string; data: Detail }>)
 
         {/* Breakdown + patterns */}
         <Card>
-          <h2 className="font-display text-lg font-bold mb-4">Coverage by difficulty</h2>
+          <h2 className="type-title mb-4">Coverage by difficulty</h2>
           <div className="space-y-4">
             {data.breakdown.map((b) => (
               <Meter
@@ -147,7 +145,7 @@ function CompanyView({ label, data }: Readonly<{ label: string; data: Detail }>)
       <div className="mt-8"><CompanyFunnel tier={tier} /></div>
 
       {/* Problem list */}
-      <h2 className="font-display text-xl font-bold mt-10 mb-4">The problem set</h2>
+      <h2 className="type-headline mt-10 mb-4">The problem set</h2>
       <div className="space-y-2">
         {data.problems.map((p) => (
           <Link key={p.id} href={`/problems/${p.slug}`}

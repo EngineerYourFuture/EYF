@@ -62,7 +62,7 @@ export function PatternTree() {
 
   return (
     <div className="mt-8 rounded-2xl border border-border bg-surface p-5 sm:p-6 shadow-card">
-      <h2 className="font-display text-xl font-bold">Pattern prerequisite map</h2>
+      <h2 className="type-title">Pattern prerequisite map</h2>
       <p className="text-text-3 text-sm mt-1 max-w-2xl">
         Patterns build on each other. A weak foundation caps everything downstream — fix roots first.
         {rootFix && rootFix.m < 70 && <> Your weakest root: <span className="text-brand font-medium">{rootFix.label}</span> ({rootFix.m}%).</>}
@@ -92,7 +92,7 @@ export function PatternTree() {
                   <div className="flex-1 h-1 rounded-full bg-surface-3 overflow-hidden">
                     <div className={`h-full rounded-full ${masteryBarClass(m)}`} style={{ width: `${Math.max(3, m)}%` }} />
                   </div>
-                  <span className="text-[10px] font-mono text-text-4 shrink-0">{p ? `${p.solved}/${p.total}` : "—"}</span>
+                  <span className="text-[11px] font-mono text-text-4 shrink-0">{p ? `${p.solved}/${p.total}` : "—"}</span>
                 </div>
               </Link>
             );

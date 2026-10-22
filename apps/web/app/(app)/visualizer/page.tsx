@@ -37,7 +37,7 @@ export default function Page() {
   return (
     <div className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-4xl mx-auto">
       <div className="flex items-baseline justify-between">
-        <h1 className="font-display text-4xl font-bold tracking-tight">Visualizer</h1>
+        <h1 className="type-display">Visualizer</h1>
         {is3d && <Badge tone="accent">3D · desktop</Badge>}
       </div>
       <p className="text-text-3 mt-2">Step through algorithms. Build intuition that survives the interview.</p>

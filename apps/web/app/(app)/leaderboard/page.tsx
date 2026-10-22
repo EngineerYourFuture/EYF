@@ -35,7 +35,6 @@ export default function Page() {
     <PageMotion className="relative">
       <div className="relative px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-5xl mx-auto">
         <PageHeader
-          eyebrow="Where you rank"
           title="Leaderboard"
           subtitle="See how you stack up against your college, your graduating class, and everyone on EYF. Compete where it counts."
         />
@@ -98,7 +97,7 @@ export default function Page() {
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="font-display text-2xl font-bold tabular-nums">{data.me.value.toLocaleString()}</div>
+                  <div className="font-display text-2xl font-bold tabular-nums">{data.me.value.toLocaleString("en-IN")}</div>
                   <div className="text-text-4 text-xs">{unit}</div>
                 </div>
               </Card>
@@ -153,8 +152,8 @@ function RankRow({ r, unit }: Readonly<{ r: Row; unit: string }>) {
         <div className="text-text-4 text-xs truncate">{r.college ?? "—"}{r.gradYear ? ` · ${r.gradYear}` : ""}</div>
       </div>
       <div className="text-right shrink-0">
-        <div className="font-display font-bold tabular-nums">{r.value.toLocaleString()}</div>
-        <div className="text-text-4 text-[10px] uppercase tracking-wide">{unit}</div>
+        <div className="font-display font-bold tabular-nums">{r.value.toLocaleString("en-IN")}</div>
+        <div className="text-text-4 text-[11px] uppercase tracking-wide">{unit}</div>
       </div>
     </div>
   );

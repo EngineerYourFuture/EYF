@@ -11,6 +11,8 @@ import { StarBuilder } from "@/components/star-builder";
 import { Icons } from "@/components/icons";
 import { ReadinessNudge } from "@/components/readiness-nudge";
 import { toneTextClass } from "@/lib/ui-helpers";
+import { useCapabilities } from "@/lib/use-capabilities";
+import { AiUnavailable } from "@/components/ai-unavailable";
 
 type Kind = "INTRO" | "HR" | "BEHAVIORAL" | "SITUATIONAL";
 type KindMeta = { id: Kind; name: string; blurb: string };
@@ -37,8 +39,10 @@ const DIMENSIONS: [keyof Feedback["dimensions"], string][] = [
 
 export default function Page() {
   const { data: catalog } = useApi<Catalog>("/communication/prompts");
+  const kindName = (id: Kind) => catalog?.kinds.find((k) => k.id === id)?.name ?? id;
   const { data: history, mutate: refetchHistory } = useApi<History>("/communication/history");
   const action = useApiAction();
+  const caps = useCapabilities();
   const { getToken } = useAuth();
 
   const [kind, setKind] = useState<Kind>("INTRO");
@@ -87,6 +91,8 @@ export default function Page() {
       setFeedback(data.feedback);
       refetchHistory();
       window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch {
+      /* toasted */
     } finally { setGrading(false); }
   }
 
@@ -94,7 +100,7 @@ export default function Page() {
   if (active && feedback) {
     return (
       <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-5xl mx-auto">
-        <PageHeader eyebrow={active.kind} title="Coach feedback" subtitle={active.question} />
+        <PageHeader title="Coach feedback" subtitle={active.question} actions={<Badge>{kindName(active.kind)}</Badge>} />
 
         <div className="mt-8 grid grid-cols-3 gap-4">
           <MetricTile label="Overall" value={feedback.overallScore} unit="%" tone={scoreTone(feedback.overallScore)} />
@@ -103,7 +109,7 @@ export default function Page() {
         </div>
 
         <Card className="mt-5">
-          <h2 className="font-display text-lg font-bold">How you scored</h2>
+          <h2 className="type-title">How you scored</h2>
           <div className="mt-4 space-y-3">
             {DIMENSIONS.map(([k, label]) => (
               <Meter key={k} tone={scoreTone(feedback.dimensions[k]) as "easy" | "medium" | "hard"}
@@ -157,7 +163,7 @@ export default function Page() {
     return (
       <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-5xl mx-auto">
         <button type="button" onClick={() => setActive(null)} className="text-text-4 text-sm hover:text-text-2 mb-4">← All prompts</button>
-        <PageHeader eyebrow={active.kind} title={active.question} />
+        <PageHeader title={active.question} actions={<Badge>{kindName(active.kind)}</Badge>} />
 
         <Card className="mt-6 border-accent/20 bg-accent-tint/40">
           <p className="text-sm text-text-2 flex items-start gap-2">
@@ -166,10 +172,12 @@ export default function Page() {
           </p>
         </Card>
 
+        <AiUnavailable className="mt-6">AI coaching isn&rsquo;t set up on this server yet, so answers can&rsquo;t be scored right now. You can still read each prompt and practise aloud.</AiUnavailable>
+
         <div className="mt-6">
           <div className="flex items-center justify-between mb-2">
             <label htmlFor="comm-answer" className="text-text-3 text-xs uppercase tracking-wider">Your answer</label>
-            <div className="flex items-center gap-2">
+            {(caps?.transcription !== false || recording) && <div className="flex items-center gap-2">
               {!recording ? (
                 <Button size="sm" variant="secondary" onClick={start} disabled={transcribing}>
                   <Icons.Mic width={14} height={14} /> Record
@@ -182,17 +190,17 @@ export default function Page() {
                   {transcribing ? "Transcribing…" : "Add transcription"}
                 </Button>
               )}
-            </div>
+            </div>}
           </div>
           <textarea id="comm-answer" value={answer} onChange={(e) => setAnswer(e.target.value)} rows={8}
-            placeholder="Speak your answer with the mic, or type it here. Aim for 60–120 seconds of spoken content."
+            placeholder={caps?.transcription === false ? "Type your answer here. Aim for 60–120 seconds of spoken content." : "Speak your answer with the mic, or type it here. Aim for 60–120 seconds of spoken content."}
             className="w-full rounded-lg bg-surface border border-border text-text-1 p-3.5 text-sm leading-relaxed focus:outline-none focus:border-accent placeholder:text-text-4" />
           {recError && <p className="text-hard text-xs mt-1.5">Mic error: {recError}. You can type instead.</p>}
           {recording && <p className="text-accent text-xs mt-1.5 animate-pulse">● Recording… speak naturally, then Stop.</p>}
         </div>
 
         <div className="mt-6 flex items-center gap-3">
-          <Button onClick={submit} disabled={grading || !answer.trim()}>
+          <Button onClick={submit} disabled={grading || !answer.trim() || caps?.ai === false}>
             {grading ? "Coach is reviewing…" : "Get feedback"}
           </Button>
           <span className="text-text-4 text-sm">{answer.trim().split(/\s+/).filter(Boolean).length} words</span>
@@ -206,7 +214,6 @@ export default function Page() {
   return (
     <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-5xl mx-auto">
       <PageHeader
-        eyebrow="Communication"
         title="Speak like you'll get the offer"
         subtitle="Placement rounds are won on how you communicate, not just what you know. Drill the HR & behavioural answers with an AI coach, and sharpen verbal ability with timed MCQs."
       />
@@ -229,7 +236,7 @@ export default function Page() {
 
       {/* Spoken / HR drills */}
       <div className="mt-8">
-        <h2 className="font-display text-lg font-bold flex items-center gap-2">
+        <h2 className="type-headline flex items-center gap-2">
           <Icons.Mic width={18} height={18} className="text-accent" /> Spoken & HR drills
         </h2>
         <p className="text-text-4 text-sm mt-1">Answer out loud, get scored on clarity, structure & confidence.</p>
@@ -271,7 +278,7 @@ export default function Page() {
       {/* History */}
       {history && history.drills.length > 0 && (
         <div className="mt-10">
-          <h2 className="font-display text-lg font-bold">Recent drills</h2>
+          <h2 className="type-headline">Recent drills</h2>
           <div className="mt-4 space-y-2">
             {history.drills.slice(0, 8).map((d) => (
               <div key={d.id} className="flex items-center gap-3 rounded-lg border border-border bg-surface px-4 py-3 text-sm">

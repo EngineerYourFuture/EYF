@@ -75,12 +75,12 @@ export default function Page() {
   return (
     <div className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-5xl mx-auto">
       {billing?.enabled && <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />}
-      <h1 className="font-display text-3xl sm:text-4xl font-bold tracking-tight">Plans and access</h1>
+      <h1 className="type-display">Plans and access</h1>
       <p className="text-text-2 mt-3 max-w-2xl">Keep your preparation moving. Choose your next step below.</p>
 
       {billing?.enabled === false && (
         <section aria-labelledby="preview-title" className="mt-8 rounded-xl border border-border p-5 sm:p-7">
-          <h2 id="preview-title" className="font-display text-2xl font-semibold">Continue without payment</h2>
+          <h2 id="preview-title" className="type-title">Continue without payment</h2>
           <p className="mt-3 max-w-2xl text-text-2 leading-relaxed">
             Payment setup is coming later. During this preview, you can use student features without a paid plan.
             No card is required, and continuing won&apos;t create a subscription.
@@ -98,7 +98,7 @@ export default function Page() {
         </div>
       )}
 
-      {billing?.enabled === false && <h2 className="mt-10 text-xl font-semibold">Planned pricing</h2>}
+      {billing?.enabled === false && <h2 className="type-headline mt-10">Planned pricing</h2>}
       {billing?.enabled === false && <p className="mt-2 text-text-2">For reference only. Checkout is unavailable during preview.</p>}
 
       <div className="mt-6 inline-flex border border-border rounded-md overflow-hidden text-sm">
@@ -133,7 +133,7 @@ export default function Page() {
   return (
             <Card key={p.id} className="flex flex-col">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <h3 className="font-display text-xl font-bold">{p.name}</h3>
+                <h3 className="type-title">{p.name}</h3>
                 {p.id === "pro" && <Badge tone="accent">Most popular</Badge>}
               </div>
               <div className="mt-3 font-display text-3xl font-bold">

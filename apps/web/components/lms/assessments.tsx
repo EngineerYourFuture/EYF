@@ -22,7 +22,7 @@ export function LearnerAssessments({ orgId }: Readonly<{ orgId: string }>) {
     catch { /* action supplies the error */ } finally { setBusy(false); }
   }
   const seconds = attempt ? Math.max(0, Math.ceil((new Date(attempt.expiresAt).getTime() - time) / 1000)) : 0;
-  return <section className="mt-6 space-y-4" aria-labelledby="my-assessments"><h2 id="my-assessments" className="text-xl font-semibold">My assessments</h2>
+  return <section className="space-y-4" aria-labelledby="my-assessments"><h3 id="my-assessments" className="type-title">My assessments</h3>
     <LoadError error={runs.error} retry={runs.mutate} />{runs.isLoading && <SkeletonRows rows={2} />}
     {result && <output  className="block rounded-lg border border-border p-4"><span className="block font-semibold">{result.passed ? "Assessment passed" : "Assessment submitted"} — {result.score}%</span><span className="block mt-2 text-text-2">Any certificate earned is available in Certificates.</span></output>}
     {!attempt && runs.data?.length === 0 && <p className="text-text-2">No assessments are open right now.</p>}

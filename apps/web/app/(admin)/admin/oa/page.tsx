@@ -30,7 +30,7 @@ export default function Page() {
 
   return (
     <div className="px-6 lg:px-10 py-10 lg:py-12 max-w-5xl mx-auto">
-      <h1 className="font-display text-3xl font-bold tracking-tight">OA Reports · moderation</h1>
+      <h1 className="type-display">OA Reports · moderation</h1>
       <p className="text-text-3 mt-2">{data?.length ?? 0} reports loaded</p>
 
       <div className="mt-8 space-y-2">
@@ -42,7 +42,7 @@ export default function Page() {
                 <span className="font-display text-base font-semibold">{r.company}</span>
                 <Badge>{r.role}</Badge>
                 <Badge tone={difficultyTone(r.difficulty)}>{r.difficulty}</Badge>
-                <span className="text-text-3 text-xs">{new Date(r.driveDate).toLocaleDateString()} · {r.durationMin}m · 👍 {r.helpfulCount}</span>
+                <span className="text-text-3 text-xs">{new Date(r.driveDate).toLocaleDateString("en-IN")} · {r.durationMin}m · 👍 {r.helpfulCount}</span>
               </div>
               <div className="text-text-3 text-xs mt-1">by {r.author.name}</div>
               {r.patterns.length > 0 && (

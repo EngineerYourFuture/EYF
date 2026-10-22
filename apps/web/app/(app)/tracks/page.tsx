@@ -23,10 +23,14 @@ export default function Page() {
   const action = useApiAction();
 
   async function choose(slug: string) {
-    await action(`/tracks/${slug}/choose`, { method: "POST" });
-    ev(Events.TrackChosen, { slug });
-    toast.success("Track selected — your roadmap will calibrate to it.");
-    await mutate();
+    try {
+      await action(`/tracks/${slug}/choose`, { method: "POST" });
+      ev(Events.TrackChosen, { slug });
+      toast.success("Track selected — your roadmap will calibrate to it.");
+      await mutate();
+    } catch {
+      /* toasted */
+    }
   }
 
   return (
@@ -50,7 +54,7 @@ export default function Page() {
         {data?.map((t) => (
           <Card key={t.id} className="flex flex-col hover:border-accent transition-colors">
             <div className="flex items-center justify-between">
-              <h3 className="font-display text-xl font-bold">{t.name}</h3>
+              <h3 className="type-title">{t.name}</h3>
               {t.premium && <Badge tone="accent">Pro</Badge>}
             </div>
             <p className="text-text-2 text-sm mt-2 flex-1">{t.tagline}</p>

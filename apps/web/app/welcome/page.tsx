@@ -83,7 +83,7 @@ export default function WelcomePage() {
               {step === 0 && (
                 <div>
                   <div className="text-xs font-mono uppercase tracking-widest text-accent mb-3">Welcome to EYF</div>
-                  <h1 className="font-display text-3xl sm:text-4xl font-bold tracking-tight">How do you want to use EYF?</h1>
+                  <h1 className="type-display">How do you want to use EYF?</h1>
                   <p className="text-text-3 mt-2">This shapes your home screen and your journey. You can change it later.</p>
                   <div className="mt-6 space-y-3">
                     {PERSONA_LIST.map((p) => {
@@ -113,7 +113,7 @@ export default function WelcomePage() {
               {step === 1 && (
                 <div>
                   <div className="text-xs font-mono uppercase tracking-widest text-accent mb-3">Step 2 of 4</div>
-                  <h1 className="font-display text-3xl sm:text-4xl font-bold tracking-tight">What role are you aiming for?</h1>
+                  <h1 className="type-display">What role are you aiming for?</h1>
                   <p className="text-text-3 mt-2">We&apos;ll tune your roadmap, problems, and mock interviews around it.</p>
                   <div className="mt-6 grid grid-cols-2 gap-3">
                     {ROLES.map((r) => {
@@ -139,7 +139,7 @@ export default function WelcomePage() {
               {step === 2 && (
                 <div>
                   <div className="text-xs font-mono uppercase tracking-widest text-accent mb-3">Step 3 of 4</div>
-                  <h1 className="font-display text-3xl sm:text-4xl font-bold tracking-tight">When do you graduate?</h1>
+                  <h1 className="type-display">When do you graduate?</h1>
                   <p className="text-text-3 mt-2">This sets how aggressive your prep timeline should be.</p>
                   <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3">
                     {YEARS.map((y) => (
@@ -160,7 +160,7 @@ export default function WelcomePage() {
               {step === 3 && (
                 <div>
                   <div className="text-xs font-mono uppercase tracking-widest text-accent mb-3">Last step</div>
-                  <h1 className="font-display text-3xl sm:text-4xl font-bold tracking-tight">Where do you study?</h1>
+                  <h1 className="type-display">Where do you study?</h1>
                   <p className="text-text-3 mt-2">Optional — helps us benchmark you against your cohort.</p>
                   <input
                     autoFocus value={college} onChange={(e) => setCollege(e.target.value)}

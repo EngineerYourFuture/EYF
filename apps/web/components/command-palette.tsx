@@ -137,8 +137,8 @@ export function CommandPalette() {
                     <span className={selected ? "text-accent" : "text-text-3"}><Icon width={18} height={18} /></span>
                     <span className="flex-1 truncate text-text-1 text-sm">{row.label}</span>
                     {row.kind === "problem"
-                      ? <span className={`text-[10px] font-mono uppercase ${diffColor[row.difficulty] ?? "text-text-3"}`}>{row.difficulty}</span>
-                      : <span className="text-[10px] font-mono uppercase text-text-4">{row.hint}</span>}
+                      ? <span className={`text-[11px] font-mono uppercase ${diffColor[row.difficulty] ?? "text-text-3"}`}>{row.difficulty}</span>
+                      : <span className="text-[11px] font-mono uppercase text-text-4">{row.hint}</span>}
                   </button>
                 );
               })}

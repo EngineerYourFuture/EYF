@@ -9,6 +9,7 @@ import { EditorialPanel } from "@/components/editorial-panel";
 import { BackButton } from "@/components/back-button";
 import { useTheme } from "@/components/theme";
 import { track, Events } from "@/lib/analytics";
+import { LoadError, loadFailed } from "@/components/load-error";
 
 const MonacoEditor = dynamic(() => import("@monaco-editor/react"), { ssr: false });
 
@@ -82,7 +83,7 @@ const Icon = {
 
 export default function Page() {
   const params = useParams<{ slug: string }>();
-  const { data: problem } = useApi<Problem>(`/problems/${params.slug}`);
+  const { data: problem, error, mutate: reload } = useApi<Problem>(`/problems/${params.slug}`);
   const { theme } = useTheme();
   const [lang, setLang] = useState<Lang>("CPP");
   // Per-language buffers so switching language never discards work.
@@ -232,6 +233,7 @@ export default function Page() {
     window.addEventListener("pointerup", up);
   }
 
+  if (loadFailed(error, problem)) return <div className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-3xl mx-auto"><LoadError page error={error} what="problem" retry={() => reload()} back={{ href: "/problems", label: "All problems" }} /></div>;
   if (!problem) return <div className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 text-text-3">Loading…</div>;
 
   const collapsed = prefs.collapsed;
@@ -246,7 +248,7 @@ export default function Page() {
           className="overflow-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-10 border-b border-border lg:border-b-0 lg:border-r"
         >
           <div className="flex items-center justify-between gap-3">
-            {fromSprint ? <Link href="/sprint" className="mb-4 inline-flex min-h-11 items-center text-sm text-text-2 hover:text-text-1">← Return to placement sprint</Link> : <BackButton className="mb-4" />}
+            {fromSprint ? <Link href="/sprint" className="mb-4 inline-flex min-h-11 items-center text-sm text-text-2 hover:text-text-1">← Return to placement sprint</Link> : <BackButton className="mb-4 hidden lg:inline-flex" />}
             <button
               type="button"
               onClick={() => persistPrefs({ ...prefs, collapsed: true })}
@@ -282,7 +284,7 @@ export default function Page() {
 
           {problem.testCases.length > 0 && (
             <div className="mt-8">
-              <h3 className="font-display text-lg font-bold mb-3">Example</h3>
+              <h3 className="type-title mb-3">Example</h3>
               <pre className="bg-surface p-4 rounded-md font-mono text-sm overflow-auto">
                 <span className="text-text-3">Input:  </span>{problem.testCases[0]!.input}
                 {"\n"}
@@ -309,7 +311,7 @@ export default function Page() {
       )}
 
       {/* Editor + verdict panel */}
-      <div className="flex flex-col flex-1 min-h-0 h-[70vh] lg:h-auto bg-surface/30">
+      <div className="flex flex-col flex-none h-[70vh] min-h-0 lg:flex-1 lg:h-auto bg-surface/30">
         <div className="border-b border-border px-3 sm:px-6 h-12 flex items-center gap-2 sm:gap-3 bg-surface-2/60">
           {collapsed && (
             <button

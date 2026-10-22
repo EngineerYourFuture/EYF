@@ -21,7 +21,7 @@ export function ResumeGap({ resumeId }: Readonly<{ resumeId: string }>) {
 
   return (
     <div className="rounded-xl border border-border bg-surface p-6 shadow-card">
-      <h3 className="font-display text-lg font-bold">Gap to your target</h3>
+      <h3 className="type-title">Gap to your target</h3>
       <div className="text-xs font-mono uppercase tracking-wider text-text-3 mt-0.5">
         {data.roleLabel} · {data.matchPct}% keyword match
       </div>

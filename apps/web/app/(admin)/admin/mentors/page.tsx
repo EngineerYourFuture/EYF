@@ -17,19 +17,27 @@ export default function Page() {
   const confirm = useConfirm();
 
   async function verify(id: string) {
-    if (!(await confirm({ title: "Verify this mentor?", message: "They'll be able to offer paid sessions to students.", confirmLabel: "Verify" }))) return;
-    await action(`/admin/mod/mentors/${id}/verify`, { method: "POST" });
-    await mutate();
+    try {
+      if (!(await confirm({ title: "Verify this mentor?", message: "They'll be able to offer paid sessions to students.", confirmLabel: "Verify" }))) return;
+      await action(`/admin/mod/mentors/${id}/verify`, { method: "POST" });
+      await mutate();
+    } catch {
+      /* toasted */
+    }
   }
   async function reject(id: string) {
-    if (!(await confirm({ title: "Reject application?", message: "This deletes the application permanently.", confirmLabel: "Reject", danger: true }))) return;
-    await action(`/admin/mod/mentors/${id}/reject`, { method: "POST" });
-    await mutate();
+    try {
+      if (!(await confirm({ title: "Reject application?", message: "This deletes the application permanently.", confirmLabel: "Reject", danger: true }))) return;
+      await action(`/admin/mod/mentors/${id}/reject`, { method: "POST" });
+      await mutate();
+    } catch {
+      /* toasted */
+    }
   }
 
   return (
     <div className="px-6 lg:px-10 py-10 lg:py-12 max-w-4xl mx-auto">
-      <h1 className="font-display text-3xl font-bold tracking-tight">Mentor verification queue</h1>
+      <h1 className="type-display">Mentor verification queue</h1>
       <p className="text-text-3 mt-2">{data?.length ?? 0} pending</p>
 
       <div className="mt-8 space-y-3">

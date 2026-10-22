@@ -39,11 +39,17 @@ export default function PipelinePage() {
   const [busy, setBusy] = useState<string | null>(null);
   const [comebackFor, setComebackFor] = useState<App | null>(null);
 
+  /** Moves an application; false when the move failed (already toasted). */
   async function setStatus(id: string, status: Status) {
     setBusy(id);
     try {
-      await action(`/jobs/me/applications/${id}`, { method: "PATCH", body: JSON.stringify({ status }) }, { silent: true });
-      await mutate();
+      await action(`/jobs/me/applications/${id}`, { method: "PATCH", body: JSON.stringify({ status }) });
+      // The move landed: show it now and refresh in the background, so a slow or
+      // failed refresh can't leave a stale stage on screen or undo a real move.
+      void mutate((list) => list?.map((x) => (x.id === id ? { ...x, status } : x)));
+      return true;
+    } catch {
+      return false;
     } finally {
       setBusy(null);
     }
@@ -56,8 +62,8 @@ export default function PipelinePage() {
   if (a.status === "OA") stage = "OA";
   else if (a.status === "INTERVIEW") stage = "INTERVIEW";
   else stage = "APPLIED";
+    if (!(await setStatus(a.id, "REJECTED"))) return;
     rememberRejectionStage(a.id, stage);
-    await setStatus(a.id, "REJECTED");
     setComebackFor({ ...a, status: "REJECTED" });
   }
 
@@ -80,7 +86,6 @@ export default function PipelinePage() {
   return (
     <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-7xl mx-auto">
       <PageHeader
-        eyebrow="Your placement command center"
         title="Application Pipeline"
         subtitle="Every role you're chasing, from saved to offer. Move cards as you progress — deadlines surface automatically."
       />
@@ -208,7 +213,7 @@ function AppCard({ app: a, busy, onAdvance, onReject }: Readonly<{
 function deadline(closesAt: string | null): { label: string; tone: "hard" | "medium" | "default" } | null {
   if (!closesAt) return null;
   const days = Math.ceil((new Date(closesAt).getTime() - Date.now()) / 86_400_000);
-  if (days < 0) return { label: "Closed", tone: "default" };
+  if (days < 0) return { label: "Deadline passed", tone: "default" };
   if (days === 0) return { label: "Closes today", tone: "hard" };
   if (days <= 3) return { label: `${days}d left`, tone: "hard" };
   if (days <= 7) return { label: `${days}d left`, tone: "medium" };

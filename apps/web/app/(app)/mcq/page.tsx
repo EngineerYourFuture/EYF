@@ -77,6 +77,8 @@ export default function Page() {
       setResult(null);
       setPhase("test");
       window.scrollTo({ top: 0 });
+    } catch {
+      /* toasted */
     } finally { setStarting(false); }
   }
   function onStart() { return runStart(category, company, count); }
@@ -100,6 +102,8 @@ export default function Page() {
       setPhase("review");
       refetchHistory();
       window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch {
+      /* toasted */
     } finally { setSubmitting(false); }
   }
   submitRef.current = onSubmit;
@@ -122,9 +126,8 @@ export default function Page() {
     return (
       <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-5xl mx-auto">
         <PageHeader
-          eyebrow={`${selectedCat?.name ?? category}${company ? " · " + company : ""}`}
           title="Test complete"
-          subtitle={`${result.correctAnswers}/${result.totalQuestions} correct — review every question below.`}
+          subtitle={`${selectedCat?.name ?? category}${company ? " · " + company : ""}: ${result.correctAnswers}/${result.totalQuestions} correct — review every question below.`}
         />
         <div className="mt-8 grid grid-cols-3 gap-4">
           <MetricTile label="Score" value={result.score} unit="%" tone={scoreTone(result.score)} />
@@ -134,7 +137,7 @@ export default function Page() {
 
         {topics.length > 0 && (
           <Card className="mt-5">
-            <h2 className="font-display text-lg font-bold">By topic</h2>
+            <h2 className="type-title">By topic</h2>
             <div className="mt-4 flex flex-wrap gap-2">
               {topics.map(([topic, s]) => (
                 <Badge key={topic} tone={s.right === s.total ? "accent" : "default"}>
@@ -261,7 +264,6 @@ export default function Page() {
   return (
     <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-5xl mx-auto">
       <PageHeader
-        eyebrow="Timed practice"
         title="MCQ Tests"
         subtitle="Aptitude, reasoning, verbal and core-CS — the sections real placement rounds test. Pick a section, optionally target a company, and go against the clock."
       />
@@ -325,7 +327,7 @@ export default function Page() {
 
           {history && history.attempts.length > 0 && (
             <div className="mt-10">
-              <h2 className="font-display text-lg font-bold">Recent attempts</h2>
+              <h2 className="type-headline">Recent attempts</h2>
               <div className="mt-4 space-y-2">
                 {history.attempts.slice(0, 8).map((a) => (
                   <div key={a.id} className="flex items-center gap-3 rounded-lg border border-border bg-surface px-4 py-3 text-sm">

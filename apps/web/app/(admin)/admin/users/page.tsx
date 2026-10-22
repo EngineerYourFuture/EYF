@@ -47,7 +47,7 @@ export default function Page() {
 
   return (
     <div className="px-6 lg:px-10 py-10 lg:py-12 max-w-5xl mx-auto">
-      <h1 className="font-display text-3xl font-bold tracking-tight">Users</h1>
+      <h1 className="type-display">Users</h1>
       <p className="text-text-3 mt-2">{data?.length ?? 0} users · manage roles, plans, and access.</p>
 
       <input

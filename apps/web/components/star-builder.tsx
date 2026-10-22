@@ -44,14 +44,14 @@ export function StarBuilder() {
     <div className="mt-8 rounded-2xl border border-border bg-surface p-5 sm:p-6 shadow-card">
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <h2 className="font-display text-lg font-bold flex items-center gap-2">
-            <Icons.Doc width={18} height={18} className="text-brand" /> STAR story bank
+          <h2 className="type-title flex items-center gap-2">
+            <Icons.Doc width={18} height={18} className="text-text-3" /> STAR story bank
           </h2>
           <p className="text-text-4 text-sm mt-1">Build structured behavioural answers once, rehearse them before every interview.</p>
         </div>
         {!open && (
           <button type="button" onClick={() => { setDraft(blank); setOpen(true); }}
-            className="text-sm font-medium text-brand hover:underline shrink-0">+ New story</button>
+            className="text-sm font-medium text-accent hover:underline shrink-0">+ New story</button>
         )}
       </div>
 
@@ -90,7 +90,7 @@ export function StarBuilder() {
               <div className="px-4 pb-4 space-y-2">
                 {FIELDS.map((f) => st[f.k].trim() && (
                   <p key={f.k} className="text-sm leading-relaxed">
-                    <span className="font-mono text-[10px] uppercase tracking-wider text-brand mr-2">{f.label}</span>
+                    <span className="font-mono text-[11px] uppercase tracking-wider text-text-3 mr-2">{f.label}</span>
                     <span className="text-text-2">{st[f.k]}</span>
                   </p>
                 ))}

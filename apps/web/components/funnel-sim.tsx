@@ -27,7 +27,7 @@ export function FunnelSim({ pillars }: Readonly<{ pillars: PillarLite[] }>) {
 
   return (
     <div className="mt-10">
-      <h2 className="font-display text-xl font-bold mb-1">Where you&apos;d fall out of the funnel</h2>
+      <h2 className="type-headline mb-1">Where you&apos;d fall out of the funnel</h2>
       <p className="text-text-3 text-sm mb-4 max-w-2xl">
         {clears
           ? "You clear every stage at today's readiness — time to apply with confidence."

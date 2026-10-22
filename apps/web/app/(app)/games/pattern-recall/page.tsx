@@ -77,7 +77,7 @@ export default function Page() {
 
   return (
     <div className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-2xl">
-      <h1 className="font-display text-3xl font-bold tracking-tight">Pattern Recall</h1>
+      <h1 className="type-display">Pattern Recall</h1>
       <p className="text-text-3 mt-2">Memorize the highlighted cells. Recreate the pattern.</p>
 
       <div className="mt-6 flex items-center gap-3">

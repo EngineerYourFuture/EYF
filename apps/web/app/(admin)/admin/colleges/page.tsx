@@ -37,7 +37,7 @@ export default function Page() {
     <div className="px-4 sm:px-6 lg:px-10 py-8 max-w-6xl mx-auto">
       <div className="mb-6">
         <p className="font-mono text-xs uppercase tracking-widest text-text-4">TPO channel</p>
-        <h1 className="font-display text-2xl font-bold text-text-1">College batch health</h1>
+        <h1 className="type-display text-text-1">College batch health</h1>
         <p className="text-text-3 text-sm mt-1">
           Colleges ranked by enrolled students. Pick one to see how ready its batch is — the pitch data for a placement-cell partnership.
         </p>
@@ -101,7 +101,7 @@ function BatchDetail({ selected, batch }: Readonly<{ selected: string | null; ba
   if (!batch) return <Card><SkeletonRows rows={4} /></Card>;
   return (
     <Card>
-      <h2 className="font-display text-lg font-bold text-text-1">{batch.college}</h2>
+      <h2 className="type-title text-text-1">{batch.college}</h2>
       <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-3">
         <Metric label="Students" value={batch.students} />
         <Metric label="Active" value={batch.active} sub="solved ≥ 1" />
@@ -179,7 +179,7 @@ function Metric({ label, value, sub }: Readonly<{ label: string; value: number; 
     <div className="rounded-lg border border-border bg-surface px-3 py-2.5">
       <div className="font-display text-2xl font-bold text-text-1">{value}</div>
       <div className="text-text-3 text-xs mt-0.5">{label}</div>
-      {sub && <div className="text-text-4 text-[10px]">{sub}</div>}
+      {sub && <div className="text-text-4 text-[11px]">{sub}</div>}
     </div>
   );
 }

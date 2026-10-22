@@ -22,7 +22,7 @@ export function InternshipExchange() {
     <div className="rounded-2xl border border-brand/25 bg-brand/[0.04] p-5 sm:p-6">
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <h2 className="font-display text-xl font-bold mt-1">Internships from EYF partner companies</h2>
+          <h2 className="type-title mt-1">Internships from EYF partner companies</h2>
           <p className="text-text-3 text-sm mt-1 max-w-xl">
             {data.previewAccess ? "Browse partner opportunities during preview. Viewing a listing does not reserve a seat." : "Unpaid and seats-limited — the top Elite members by EYF score earn them."}
             {data.isElite && data.eliteRank && <> You&apos;re <span className="text-text-1 font-medium">#{data.eliteRank} of {data.totalElite}</span> Elite members.</>}

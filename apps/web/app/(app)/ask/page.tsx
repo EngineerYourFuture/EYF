@@ -45,7 +45,6 @@ export default function Page() {
     <PageMotion>
       <div className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-3xl mx-auto">
         <PageHeader
-          eyebrow="EYF Intelligence"
           title="Ask EYF"
           subtitle="Any tech-stack or CS question — answered in EYF's voice with the interview angle: what it is, why interviewers ask, and what they'll ask next."
         />
@@ -80,7 +79,7 @@ export default function Page() {
                 : <Badge>EYF Intelligence</Badge>}
               {result.answeredBy === "knowledge-base" && <span className="text-text-4 text-xs">from the EYF knowledge base</span>}
             </div>
-            <h2 className="font-display text-xl font-bold mt-3">{result.entry.question}</h2>
+            <h2 className="type-title mt-3">{result.entry.question}</h2>
             <div className="mt-4 whitespace-pre-wrap text-text-2 leading-relaxed">{result.entry.answer}</div>
             {result.entry.tags.length > 0 && (
               <div className="flex gap-2 mt-5">{result.entry.tags.map((t) => <Badge key={t}>{t}</Badge>)}</div>

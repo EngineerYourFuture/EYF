@@ -44,7 +44,7 @@ export function ComebackPlanModal({ appId, companyName, jobTitle, onClose }: Rea
         <div className="flex items-start justify-between gap-3">
           <div>
             <div className="font-mono text-[11px] uppercase tracking-widest text-accent">Comeback plan</div>
-            <h2 id="comeback-title" className="font-display text-xl font-bold mt-1">{jobTitle} · {companyName}</h2>
+            <h2 id="comeback-title" className="type-title mt-1">{jobTitle} · {companyName}</h2>
           </div>
           <button type="button" onClick={onClose} aria-label="Close" className="text-text-4 hover:text-text-1 p-1 -m-1">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6 6 18M6 6l12 12" /></svg>

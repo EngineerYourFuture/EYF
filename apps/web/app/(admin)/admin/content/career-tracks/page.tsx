@@ -33,9 +33,13 @@ export default function Page() {
 
   function startNew() { setForm(EMPTY); setEditing({ id: null }); }
   async function startEdit(id: string) {
-    const t = await action<TrackFull>(`/admin/content/career-tracks/${id}`);
-    setForm({ slug: t.slug, name: t.name, tagline: t.tagline, description: t.description, icon: t.icon, salaryMinInr: t.salaryMinInr, salaryMaxInr: t.salaryMaxInr, demand: t.demand, weeks: t.weeks, patterns: t.patterns.join(", "), topics: t.topics.join(", "), companies: t.companies.join(", "), curriculum: JSON.stringify(t.curriculum ?? [], null, 2), premium: t.premium });
-    setEditing({ id });
+    try {
+      const t = await action<TrackFull>(`/admin/content/career-tracks/${id}`);
+      setForm({ slug: t.slug, name: t.name, tagline: t.tagline, description: t.description, icon: t.icon, salaryMinInr: t.salaryMinInr, salaryMaxInr: t.salaryMaxInr, demand: t.demand, weeks: t.weeks, patterns: t.patterns.join(", "), topics: t.topics.join(", "), companies: t.companies.join(", "), curriculum: JSON.stringify(t.curriculum ?? [], null, 2), premium: t.premium });
+      setEditing({ id });
+    } catch {
+      /* toasted */
+    }
   }
   async function save() {
     let curriculum: unknown = [];
@@ -58,7 +62,7 @@ export default function Page() {
     return (
       <div className="px-6 lg:px-10 py-10 lg:py-12 max-w-3xl mx-auto">
         <button type="button" onClick={() => setEditing(null)} className="text-text-3 hover:text-text-1 text-sm mb-4">← Back to tracks</button>
-        <h1 className="font-display text-2xl font-bold tracking-tight">{editing.id ? "Edit track" : "New career track"}</h1>
+        <h1 className="type-display">{editing.id ? "Edit track" : "New career track"}</h1>
         <Card className="mt-6 space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <Field label="Name"><input className={inputCls} value={form.name} onChange={(e) => set("name", e.target.value)} placeholder="Backend Engineer" /></Field>
@@ -93,7 +97,7 @@ export default function Page() {
     <div className="px-6 lg:px-10 py-10 lg:py-12 max-w-4xl mx-auto">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="font-display text-3xl font-bold tracking-tight">Career tracks</h1>
+          <h1 className="type-display">Career tracks</h1>
           <p className="text-text-3 mt-2">{data?.length ?? 0} tracks · the &ldquo;Choose Your Path&rdquo; catalog.</p>
         </div>
         <Button onClick={startNew}>+ New track</Button>

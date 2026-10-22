@@ -33,9 +33,13 @@ export default function Page() {
 
   function startNew() { setForm(EMPTY); setEditing({ id: null }); }
   async function startEdit(id: string) {
-    const x = await action<Full>(`/admin/content/assessment/${id}`);
-    setForm({ area: x.area, topic: x.topic, difficulty: x.difficulty, prompt: x.prompt, choices: x.choices, correctIndex: x.correctIndex, explanation: x.explanation ?? "", active: x.active });
-    setEditing({ id });
+    try {
+      const x = await action<Full>(`/admin/content/assessment/${id}`);
+      setForm({ area: x.area, topic: x.topic, difficulty: x.difficulty, prompt: x.prompt, choices: x.choices, correctIndex: x.correctIndex, explanation: x.explanation ?? "", active: x.active });
+      setEditing({ id });
+    } catch {
+      /* toasted */
+    }
   }
   async function save() {
     setSaving(true);
@@ -63,7 +67,7 @@ export default function Page() {
     return (
       <div className="px-6 lg:px-10 py-10 lg:py-12 max-w-3xl mx-auto">
         <button type="button" onClick={() => setEditing(null)} className="text-text-3 hover:text-text-1 text-sm mb-4">← Back to assessment bank</button>
-        <h1 className="font-display text-2xl font-bold tracking-tight">{editing.id ? "Edit question" : "New question"}</h1>
+        <h1 className="type-display">{editing.id ? "Edit question" : "New question"}</h1>
         <Card className="mt-6 space-y-4">
           <div className="grid grid-cols-3 gap-4">
             <Field label="Area"><select className={inputCls} value={form.area} onChange={(e) => set("area", e.target.value as Area)}>{AREAS.filter((a) => a !== "ALL").map((a) => <option key={a} value={a}>{a.toUpperCase()}</option>)}</select></Field>
@@ -96,7 +100,7 @@ export default function Page() {
     <div className="px-6 lg:px-10 py-10 lg:py-12 max-w-4xl mx-auto">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="font-display text-3xl font-bold tracking-tight">Assessment bank</h1>
+          <h1 className="type-display">Assessment bank</h1>
           <p className="text-text-3 mt-2">{data?.length ?? 0} questions · powers the skill assessment + adaptive diagnostic.</p>
         </div>
         <div className="flex gap-2">

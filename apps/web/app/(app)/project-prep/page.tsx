@@ -7,6 +7,8 @@ import { track, Events } from "@/lib/analytics";
 import { PageMotion } from "@/components/page-motion";
 import { Icons } from "@/components/icons";
 import { ReadinessNudge } from "@/components/readiness-nudge";
+import { useCapabilities } from "@/lib/use-capabilities";
+import { AiUnavailable } from "@/components/ai-unavailable";
 
 type Question = { category: string; question: string; testing: string; approach: string };
 type Prep = {
@@ -21,6 +23,7 @@ type StartedProject = {
 
 export default function Page() {
   const action = useApiAction();
+  const caps = useCapabilities();
   const { data: started } = useApi<StartedProject[]>("/projects/me/started");
   const { data: history, mutate: refetchHistory } = useApi<PrepListItem[]>("/project-prep");
 
@@ -58,6 +61,8 @@ export default function Page() {
       setPrep(data);
       refetchHistory();
       window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch {
+      /* toasted */
     } finally { setLoading(false); }
   }
 
@@ -67,6 +72,8 @@ export default function Page() {
       const data = await action<Prep>(`/project-prep/${id}`);
       setPrep(data);
       window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch {
+      /* toasted */
     } finally { setLoading(false); }
   }
 
@@ -75,7 +82,7 @@ export default function Page() {
     return (
       <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-5xl mx-auto">
         <button type="button" onClick={() => setPrep(null)} className="text-text-4 text-sm hover:text-text-2 mb-4">← New prep</button>
-        <PageHeader eyebrow="Defend your project" title={prep.projectTitle} subtitle={prep.summary} />
+        <PageHeader title={prep.projectTitle} subtitle={prep.summary} />
 
         {prep.techStack.length > 0 && (
           <div className="mt-4 flex flex-wrap gap-2">
@@ -84,7 +91,7 @@ export default function Page() {
         )}
 
         <div className="mt-8 space-y-4">
-          <h2 className="font-display text-lg font-bold flex items-center gap-2">
+          <h2 className="type-headline flex items-center gap-2">
             <Icons.Chat width={18} height={18} className="text-accent" /> Questions you&apos;ll face
           </h2>
           {prep.questions.map((q, i) => (
@@ -131,10 +138,10 @@ export default function Page() {
   return (
     <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-5xl mx-auto">
       <PageHeader
-        eyebrow="Project interview prep"
         title="Get grilled on your project — before they do"
         subtitle="Interviewers spend a third of the round on your resume projects. Feed one in and get the exact questions they'll ask, what each is really testing, and how to answer."
       />
+      <AiUnavailable className="mt-6">The project interview generator isn&rsquo;t set up on this server yet, so prep can&rsquo;t be generated right now.</AiUnavailable>
 
       {started && started.length > 0 && (
         <Card className="mt-8">
@@ -167,7 +174,7 @@ export default function Page() {
             className="mt-2 w-full h-11 px-3.5 rounded-lg bg-surface border border-border text-text-1 focus:outline-none focus:border-accent placeholder:text-text-4" />
         </label>
         <div className="flex items-center gap-3 pt-1">
-          <Button onClick={generate} disabled={loading || !title.trim() || !summary.trim()}>
+          <Button onClick={generate} disabled={loading || !title.trim() || !summary.trim() || caps?.ai === false}>
             {loading ? "Generating grilling…" : "Generate interview prep"}
           </Button>
           <span className="text-text-4 text-sm">AI-tailored to your stack</span>
@@ -181,7 +188,7 @@ export default function Page() {
       );
   if (history.length > 0) return (
         <div className="mt-10">
-          <h2 className="font-display text-lg font-bold">Your prep guides</h2>
+          <h2 className="type-headline">Your prep guides</h2>
           <div className="mt-4 space-y-2">
             {history.map((h) => (
               <button type="button" key={h.id} onClick={() => openPrep(h.id)}

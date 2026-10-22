@@ -89,7 +89,7 @@ export default function Page() {
 
   return (
     <div className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-2xl">
-      <h1 className="font-display text-3xl font-bold tracking-tight">Stroop</h1>
+      <h1 className="type-display">Stroop</h1>
       <p className="text-text-3 mt-2">Tap the <b>ink</b> color — ignore what the word says.</p>
 
       <div className="mt-6 flex items-center gap-3">

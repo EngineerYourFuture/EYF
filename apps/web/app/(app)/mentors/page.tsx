@@ -56,7 +56,7 @@ export default function Page() {
       <Card className="mt-10">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="font-display text-lg font-bold">Become a mentor</h3>
+            <h3 className="type-title">Become a mentor</h3>
             <p className="text-text-3 text-sm mt-1">Pro+ engineers can apply. Verified within 5 business days.</p>
           </div>
           <Link href="/mentors/apply"><Button variant="secondary">Apply</Button></Link>

@@ -31,7 +31,6 @@ export default function Page() {
     <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-4xl mx-auto">
       <div className="flex items-start justify-between gap-4">
         <PageHeader
-          eyebrow="Learn from people who sat the loop"
           title="Interview Experiences"
           subtitle="Real, round-by-round writeups from candidates — what was asked, what got them in, what tripped them up."
         />

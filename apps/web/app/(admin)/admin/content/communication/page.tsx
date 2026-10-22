@@ -31,9 +31,13 @@ export default function Page() {
 
   function startNew() { setForm(EMPTY); setEditing({ id: null }); }
   async function startEdit(id: string) {
-    const x = await action<Full>(`/admin/content/communication/${id}`);
-    setForm({ kind: x.kind, question: x.question, tip: x.tip, covers: x.covers.join(", "), active: x.active });
-    setEditing({ id });
+    try {
+      const x = await action<Full>(`/admin/content/communication/${id}`);
+      setForm({ kind: x.kind, question: x.question, tip: x.tip, covers: x.covers.join(", "), active: x.active });
+      setEditing({ id });
+    } catch {
+      /* toasted */
+    }
   }
   async function save() {
     setSaving(true);
@@ -60,7 +64,7 @@ export default function Page() {
     return (
       <div className="px-6 lg:px-10 py-10 lg:py-12 max-w-3xl mx-auto">
         <button type="button" onClick={() => setEditing(null)} className="text-text-3 hover:text-text-1 text-sm mb-4">← Back to drill prompts</button>
-        <h1 className="font-display text-2xl font-bold tracking-tight">{editing.id ? "Edit prompt" : "New drill prompt"}</h1>
+        <h1 className="type-display">{editing.id ? "Edit prompt" : "New drill prompt"}</h1>
         <p className="text-text-3 text-sm mt-2">The covers checklist anchors the AI grader — list what a strong answer must hit.</p>
         <Card className="mt-6 space-y-4">
           <Field label="Kind"><select className={inputCls} value={form.kind} onChange={(e) => set("kind", e.target.value as Kind)}>{KINDS.filter((k) => k !== "ALL").map((k) => <option key={k} value={k}>{k}</option>)}</select></Field>
@@ -81,7 +85,7 @@ export default function Page() {
     <div className="px-6 lg:px-10 py-10 lg:py-12 max-w-4xl mx-auto">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="font-display text-3xl font-bold tracking-tight">Drill prompts</h1>
+          <h1 className="type-display">Drill prompts</h1>
           <p className="text-text-3 mt-2">{data?.length ?? 0} prompts · HR / behavioural / situational practice with AI-graded rubrics.</p>
         </div>
         <div className="flex gap-2">

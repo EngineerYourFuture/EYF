@@ -32,9 +32,13 @@ export default function Page() {
 
   function startNew() { setForm(EMPTY); setEditing({ id: null }); }
   async function startEdit(id: string) {
-    const x = await action<ExpFull>(`/admin/content/experiences/${id}`);
-    setForm({ company: x.company, role: x.role, outcome: x.outcome, difficulty: x.difficulty, rounds: x.rounds, body: x.body, tips: x.tips ?? "" });
-    setEditing({ id });
+    try {
+      const x = await action<ExpFull>(`/admin/content/experiences/${id}`);
+      setForm({ company: x.company, role: x.role, outcome: x.outcome, difficulty: x.difficulty, rounds: x.rounds, body: x.body, tips: x.tips ?? "" });
+      setEditing({ id });
+    } catch {
+      /* toasted */
+    }
   }
   async function save() {
     setSaving(true);
@@ -54,7 +58,7 @@ export default function Page() {
     return (
       <div className="px-6 lg:px-10 py-10 lg:py-12 max-w-3xl mx-auto">
         <button type="button" onClick={() => setEditing(null)} className="text-text-3 hover:text-text-1 text-sm mb-4">← Back to experiences</button>
-        <h1 className="font-display text-2xl font-bold tracking-tight">{editing.id ? "Edit experience" : "New interview experience"}</h1>
+        <h1 className="type-display">{editing.id ? "Edit experience" : "New interview experience"}</h1>
         <p className="text-text-3 text-sm mt-2">Publishes to the student /experiences feed immediately. Write it round-by-round, in the candidate&apos;s voice.</p>
         <Card className="mt-6 space-y-4">
           <div className="grid grid-cols-2 gap-4">
@@ -81,7 +85,7 @@ export default function Page() {
     <div className="px-6 lg:px-10 py-10 lg:py-12 max-w-4xl mx-auto">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="font-display text-3xl font-bold tracking-tight">Interview experiences</h1>
+          <h1 className="type-display">Interview experiences</h1>
           <p className="text-text-3 mt-2">{data?.length ?? 0} writeups · curate the round-by-round feed students prep from.</p>
         </div>
         <Button onClick={startNew}>+ New experience</Button>
@@ -98,7 +102,7 @@ export default function Page() {
                 <Badge>{x.rounds} rounds</Badge>
                 <Badge>diff {x.difficulty}/5</Badge>
               </div>
-              <div className="text-text-4 text-xs mt-0.5 truncate">by {x.author.name} · ▲ {x.upvotes} · {new Date(x.createdAt).toLocaleDateString()}</div>
+              <div className="text-text-4 text-xs mt-0.5 truncate">by {x.author.name} · ▲ {x.upvotes} · {new Date(x.createdAt).toLocaleDateString("en-IN")}</div>
             </div>
             <div className="flex items-center gap-2 shrink-0">
               <Button size="sm" variant="secondary" onClick={() => startEdit(x.id)}>Edit</Button>

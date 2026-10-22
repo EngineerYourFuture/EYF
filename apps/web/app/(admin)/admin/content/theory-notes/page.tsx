@@ -28,9 +28,13 @@ export default function Page() {
 
   function startNew() { setForm(EMPTY); setEditing({ id: null }); }
   async function startEdit(id: string) {
-    const x = await action<Full>(`/admin/content/theory-notes/${id}`);
-    setForm({ slug: x.slug, subject: x.subject, title: x.title, content: x.content, orderIndex: x.orderIndex, premium: x.premium, estMinutes: x.estMinutes });
-    setEditing({ id });
+    try {
+      const x = await action<Full>(`/admin/content/theory-notes/${id}`);
+      setForm({ slug: x.slug, subject: x.subject, title: x.title, content: x.content, orderIndex: x.orderIndex, premium: x.premium, estMinutes: x.estMinutes });
+      setEditing({ id });
+    } catch {
+      /* toasted */
+    }
   }
   async function save() {
     setSaving(true);
@@ -49,7 +53,7 @@ export default function Page() {
     return (
       <div className="px-6 lg:px-10 py-10 lg:py-12 max-w-3xl mx-auto">
         <button type="button" onClick={() => setEditing(null)} className="text-text-3 hover:text-text-1 text-sm mb-4">← Back to theory notes</button>
-        <h1 className="font-display text-2xl font-bold tracking-tight">{editing.id ? "Edit note" : "New theory note"}</h1>
+        <h1 className="type-display">{editing.id ? "Edit note" : "New theory note"}</h1>
         <Card className="mt-6 space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <Field label="Title"><input className={inputCls} value={form.title} onChange={(e) => set("title", e.target.value)} placeholder="Process scheduling" /></Field>
@@ -75,7 +79,7 @@ export default function Page() {
     <div className="px-6 lg:px-10 py-10 lg:py-12 max-w-4xl mx-auto">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="font-display text-3xl font-bold tracking-tight">Theory notes</h1>
+          <h1 className="type-display">Theory notes</h1>
           <p className="text-text-3 mt-2">{data?.length ?? 0} notes · the Core Subjects curriculum (OS / DBMS / CN / OOP).</p>
         </div>
         <Button onClick={startNew}>+ New note</Button>

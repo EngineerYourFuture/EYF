@@ -1,13 +1,13 @@
 /**
- * EYF design tokens.
- * Dark-first, with a full light theme. Single brand accent (lime #E8FF47).
+ * EYF design tokens — see DESIGN.md.
+ * Dark-first, with a full light theme. Monochrome primary plus one brand red.
  *
  * Colors resolve to CSS variables (space-separated RGB channels) so that:
  *   - Tailwind opacity modifiers keep working  →  bg-accent/10, border-border/60
  *   - Light/dark themes swap by re-defining the variables in globals.css
  *
- * The "vibrant" layer (glows, gradients, elevated surfaces) lives in the
- * boxShadow / backgroundImage / colors extensions below.
+ * Elevation and the neutral back-compat aliases (glow, accent-grad) live in
+ * the boxShadow / backgroundImage extensions below.
  */
 
 /** rgb(var) helper so every color supports `/<alpha>` opacity modifiers. */

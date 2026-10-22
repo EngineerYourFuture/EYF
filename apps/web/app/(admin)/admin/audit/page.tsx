@@ -22,7 +22,7 @@ export default function Page() {
 
   return (
     <div className="px-6 lg:px-10 py-10 lg:py-12 max-w-4xl mx-auto">
-      <h1 className="font-display text-3xl font-bold tracking-tight">Audit log</h1>
+      <h1 className="type-display">Audit log</h1>
       <p className="text-text-3 mt-2">Who changed what in the back-office. Newest first.</p>
 
       <div className="mt-6 flex gap-1 flex-wrap">

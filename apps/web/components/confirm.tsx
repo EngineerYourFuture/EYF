@@ -55,7 +55,7 @@ export function ConfirmProvider({ children }: Readonly<{ children: ReactNode }>)
         labelledBy="confirm-title" describedBy={state?.opts.message ? "confirm-desc" : undefined}
         panelClassName="relative w-full max-w-sm rounded-2xl border border-border glass-strong p-6 shadow-card-lg">
         {state && <>
-          <h2 id="confirm-title" className="font-display text-lg font-semibold tracking-tight">{state.opts.title}</h2>
+          <h2 id="confirm-title" className="type-title">{state.opts.title}</h2>
           {state.opts.message && <p id="confirm-desc" className="text-text-2 text-sm mt-2 leading-relaxed">{state.opts.message}</p>}
           <div className="mt-6 flex flex-wrap justify-end gap-3">
             <Button variant="secondary" size="sm" onClick={() => close(false)}>

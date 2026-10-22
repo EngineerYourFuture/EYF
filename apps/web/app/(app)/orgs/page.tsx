@@ -37,7 +37,7 @@ export default function Page() {
 }
 
 function WorkspacePage() {
-  const { data: memberships, error: membershipsError, mutate: refreshOrgs } = useApi<Membership[]>("/orgs/mine");
+  const { data: memberships, error: membershipsError, mutate: refreshOrgs, isValidating } = useApi<Membership[]>("/orgs/mine");
   const search = useSearchParams();
   const router = useRouter();
   const active = memberships?.find((m) => m.org.id === search.get("org")) ?? memberships?.[0] ?? null;
@@ -46,9 +46,14 @@ function WorkspacePage() {
   const fallback = ["programs", "cohorts"].find((id) => sections.some((s) => s.id === id)) ?? "learning";
   const tab = sections.some((s) => s.id === search.get("tab")) ? search.get("tab")! : fallback;
   const navigate = (org: string, nextTab = tab) => router.replace(workspaceHref(org, nextTab), { scroll: false });
+  // A tab this role can't open (an old or shared link) falls back above; keep the URL in step.
+  const requestedTab = search.get("tab");
+  useEffect(() => {
+    if (!isValidating && active && requestedTab && requestedTab !== tab) router.replace(workspaceHref(active.org.id, tab), { scroll: false });
+  }, [isValidating, active, requestedTab, tab, router]);
   return <PageMotion><div className="px-4 sm:px-6 lg:px-10 py-6 lg:py-8 max-w-7xl mx-auto">
     <h1 className="sr-only">Your learning workspace</h1>
-    <LoadError error={membershipsError} retry={refreshOrgs} />
+    <LoadError error={membershipsError} retry={refreshOrgs} what="page" />
     {!memberships && !membershipsError && <SkeletonRows rows={3} />}
     <div className="grid lg:grid-cols-[220px_minmax(0,1fr)] gap-6 lg:gap-10 items-start">
       <aside className="min-w-0 space-y-5 lg:sticky lg:top-24">
@@ -82,7 +87,7 @@ function OrgConsole({ orgId, roles, tab }: Readonly<{ orgId: string; roles: stri
   if (tab === "skills") { return (
         <SkillsTab orgId={orgId} />
       ); }
-  if (tab === "assessments") { return <>{canAssess && <AssessTab orgId={orgId} canAdminister={canInOrg(roles, "assess:administer").granted} />}<LearnerAssessments orgId={orgId} /></>; }
+  if (tab === "assessments") { return <div className="space-y-8"><div><h2 className="type-display">Assessments</h2><p className="mt-2 text-text-2">{canAssess ? "Build assessment blueprints, open them to learners and take the assessments open to you." : "Timed assessments open to you in this workspace."}</p></div>{canAssess && <AssessTab orgId={orgId} canAdminister={canInOrg(roles, "assess:administer").granted} />}<LearnerAssessments orgId={orgId} /></div>; }
   if (tab === "certificates") { return <CertificatesTab orgId={orgId} canManage={canAuthor} />; }
   if (tab === "hire") { return (
         <HireTab orgId={orgId} />
@@ -103,6 +108,8 @@ type Hook = { id: string; url: string; events: string[]; active: boolean; failCo
 
 function SettingsTab({ orgId }: Readonly<{ orgId: string }>) {
   const action = useApiAction();
+  const [creatingHook, setCreatingHook] = useState(false);
+  const [creatingKey, setCreatingKey] = useState(false);
   const confirm = useConfirm();
   const brand = useApi<{ logoUrl: string | null; brandColor: string | null }>(`/orgs/${orgId}/branding`);
   const keys = useApi<ApiKey[]>(`/orgs/${orgId}/api-keys`);
@@ -119,20 +126,26 @@ function SettingsTab({ orgId }: Readonly<{ orgId: string }>) {
     catch { /* toasted */ }
   }
   async function createKey() {
-    if (keyName.trim().length < 1) { return; }
+    if (creatingKey || !keyName.trim()) { return; }
+    setCreatingKey(true);
     try { const k = await action<{ key: string }>(`/orgs/${orgId}/api-keys`, { method: "POST", body: JSON.stringify({ name: keyName.trim(), scopes: ["talent:search"] }) }); setNewKey(k.key); setKeyName(""); await keys.mutate(); }
     catch { /* toasted */ }
+    finally { setCreatingKey(false); }
   }
   async function createHook() {
-    if (!hookUrl.trim()) { return; }
+    if (creatingHook || !hookUrl.trim()) { return; }
+    setCreatingHook(true);
     try { const h = await action<{ secret: string }>(`/orgs/${orgId}/webhooks`, { method: "POST", body: JSON.stringify({ url: hookUrl.trim(), events: ["certificate.issued", "offer.accepted"] }) }); setNewSecret(h.secret); setHookUrl(""); await hooks.mutate(); }
     catch { /* toasted */ }
+    finally { setCreatingHook(false); }
   }
 
   return (
+    <>
+    <div><h2 className="type-display">Settings</h2><p className="mt-2 text-text-2">Branding, API keys and webhooks for this workspace.</p></div>
     <div className="mt-6 space-y-8 max-w-2xl">
       <section>
-        <div className="font-mono text-[11px] uppercase tracking-widest text-text-3 mb-2">White-label branding</div>
+        <h3 className="type-title mb-2">White-label branding</h3>
         <div className="flex flex-wrap gap-2 items-center">
           <input aria-label="Brand color (hex)" className="h-10 px-3 rounded-lg bg-surface border border-border text-sm w-32" placeholder="#E8192C" value={color} onChange={(e) => setColor(e.target.value)} />
           <input aria-label="Logo URL" type="url" className="flex-1 min-w-[200px] h-10 px-3 rounded-lg bg-surface border border-border text-sm" placeholder="Logo URL" value={logo} onChange={(e) => setLogo(e.target.value)} />
@@ -142,7 +155,7 @@ function SettingsTab({ orgId }: Readonly<{ orgId: string }>) {
       </section>
 
       <section>
-        <div className="font-mono text-[11px] uppercase tracking-widest text-text-3 mb-2">API keys</div>
+        <h3 className="type-title mb-2">API keys</h3>
         {newKey && (
           <div className="rounded-lg border border-accent/40 bg-accent-tint/30 p-3 mb-3">
             <div className="text-xs text-text-3 mb-1">Copy this now — it won&apos;t be shown again.</div>
@@ -154,7 +167,7 @@ function SettingsTab({ orgId }: Readonly<{ orgId: string }>) {
         )}
         <div className="flex gap-2 mb-3">
           <input aria-label="API key name" className="flex-1 h-10 px-3 rounded-lg bg-surface border border-border text-sm" placeholder="Key name (e.g. ATS integration)" value={keyName} onChange={(e) => setKeyName(e.target.value)} />
-          <Button size="sm" onClick={createKey}>Create key</Button>
+          <Button size="sm" onClick={createKey} disabled={creatingKey}>Create key</Button>
         </div>
         <div className="space-y-1.5">
           {keys.data?.map((k) => (
@@ -182,7 +195,7 @@ function SettingsTab({ orgId }: Readonly<{ orgId: string }>) {
       </section>
 
       <section>
-        <div className="font-mono text-[11px] uppercase tracking-widest text-text-3 mb-2">Webhooks</div>
+        <h3 className="type-title mb-2">Webhooks</h3>
         {newSecret && (
           <div className="rounded-lg border border-accent/40 bg-accent-tint/30 p-3 mb-3">
             <div className="text-xs text-text-3 mb-1">Signing secret — verify the x-eyf-signature header with it.</div>
@@ -194,7 +207,7 @@ function SettingsTab({ orgId }: Readonly<{ orgId: string }>) {
         )}
         <div className="flex gap-2 mb-3">
           <input aria-label="Webhook endpoint URL" type="url" className="flex-1 h-10 px-3 rounded-lg bg-surface border border-border text-sm" placeholder="https://your-app.com/eyf-webhook" value={hookUrl} onChange={(e) => setHookUrl(e.target.value)} />
-          <Button size="sm" onClick={createHook}>Add endpoint</Button>
+          <Button size="sm" onClick={createHook} disabled={creatingHook}>Add endpoint</Button>
         </div>
         <div className="space-y-1.5">
           {hooks.data?.endpoints.map((h) => (
@@ -207,6 +220,7 @@ function SettingsTab({ orgId }: Readonly<{ orgId: string }>) {
         </div>
       </section>
     </div>
+    </>
   );
 }
 
@@ -265,10 +279,12 @@ function HireTab({ orgId }: Readonly<{ orgId: string }>) {
   const band = (n: number) => { if (n >= 80) { return "text-easy"; } if (n >= 50) { return "text-text-1"; } return "text-medium"; };
 
   return (
+    <>
+    <div><h2 className="type-display">Hiring</h2><p className="mt-2 text-text-2">Search candidates by readiness and track the roles you are hiring for.</p></div>
     <div className="mt-6 grid lg:grid-cols-[1fr_320px] gap-6 items-start">
       <div className="min-w-0">
         <div className="flex items-center justify-between mb-3">
-          <div className="font-mono text-[11px] uppercase tracking-widest text-text-3">Talent pool · evidence-ranked</div>
+          <h3 className="type-title">Talent pool · evidence-ranked</h3>
           <label className="text-xs text-text-3 flex items-center gap-2">min readiness{" "}
             <input type="number" min={0} max={100} value={minR} onChange={(e) => setMinR(Number(e.target.value))} className="w-16 h-8 px-2 rounded bg-surface border border-border text-text-1" />
           </label>
@@ -293,7 +309,7 @@ function HireTab({ orgId }: Readonly<{ orgId: string }>) {
         {openUser && profile.data && (
           <Card className="mt-4">
             <div className="flex items-center justify-between">
-              <h3 className="font-display text-lg font-bold">{profile.data.identity.name}{profile.data.identity.anon && <span className="text-text-4 text-xs ml-2">identity hidden until shortlisted</span>}</h3>
+              <h3 className="type-title">{profile.data.identity.name}{profile.data.identity.anon && <span className="text-text-4 text-xs ml-2">identity hidden until shortlisted</span>}</h3>
               <button type="button" onClick={() => setOpenUser(null)} className="text-text-4 hover:text-text-1 text-sm">close</button>
             </div>
             <div className="mt-3 flex items-baseline gap-2">
@@ -303,7 +319,7 @@ function HireTab({ orgId }: Readonly<{ orgId: string }>) {
             <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-2">
               {profile.data.readiness.pillars.map((p) => (
                 <div key={p.key} className="rounded-lg bg-surface-2 px-3 py-2">
-                  <div className="text-text-4 text-[10px] uppercase font-mono truncate">{p.label}</div>
+                  <div className="text-text-4 text-[11px] uppercase font-mono truncate">{p.label}</div>
                   <div className="font-mono text-sm">{p.score}</div>
                 </div>
               ))}
@@ -328,7 +344,7 @@ function HireTab({ orgId }: Readonly<{ orgId: string }>) {
       <aside className="min-w-0 space-y-6">
         <MyOffers />
         <div>
-        <div className="font-mono text-[11px] uppercase tracking-widest text-text-3 mb-2">Requisitions</div>
+        <h3 className="type-title mb-2">Requisitions</h3>
         <div className="flex gap-2 mb-3">
           <input className="flex-1 h-9 px-3 rounded-lg bg-surface border border-border text-sm focus:outline-none focus:border-accent" placeholder="New role" value={reqTitle} onChange={(e) => setReqTitle(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") void createReq(); }} />
           <Button size="sm" onClick={createReq} disabled={reqTitle.trim().length < 2}>+</Button>
@@ -345,6 +361,7 @@ function HireTab({ orgId }: Readonly<{ orgId: string }>) {
         </div>
       </aside>
     </div>
+    </>
   );
 }
 
@@ -361,7 +378,7 @@ function MyOffers() {
   if (!data || data.length === 0) { return null; }
   return (
     <div>
-      <div className="font-mono text-[11px] uppercase tracking-widest text-accent mb-2">Your offers</div>
+      <h3 className="type-title mb-2">Your offers</h3>
       <div className="space-y-2">
         {data.map((o) => (
           <Card key={o.id} variant="glow" className="py-3">
@@ -410,10 +427,10 @@ function AssessTab({ orgId, canAdminister }: Readonly<{ orgId: string; canAdmini
   }
 
   return (
-    <div className="mt-6 space-y-6">
+    <div className="space-y-6">
       <LoadError error={bps.error || runs.error} retry={() => { void bps.mutate(); return runs.mutate(); }} />
       <div>
-        <h2 className="text-xl font-semibold mb-3">Assessment blueprints</h2>
+        <h3 className="type-title mb-3">Assessment blueprints</h3>
         <div className="flex flex-wrap gap-2 mb-3">
           <input className="flex-1 min-w-[160px] h-10 px-3 rounded-lg bg-surface border border-border text-sm focus:outline-none focus:border-accent" placeholder="Name (e.g. Kafka Check)" value={name} onChange={(e) => setName(e.target.value)} />
           <select className="h-10 px-3 rounded-lg bg-surface border border-border text-sm" value={cat} onChange={(e) => setCat(e.target.value as typeof cat)}>{CATS.map((c) => <option key={c}>{c}</option>)}</select>
@@ -436,7 +453,7 @@ function AssessTab({ orgId, canAdminister }: Readonly<{ orgId: string; canAdmini
 
       {runs.data && runs.data.length > 0 && (
         <div>
-          <div className="font-mono text-[11px] uppercase tracking-widest text-text-3 mb-2">Runs</div>
+          <h3 className="type-title mb-2">Runs</h3>
           <div className="space-y-2">
             {runs.data.map((r) => (
               <Card key={r.id} className="py-3">
@@ -483,8 +500,10 @@ function SkillsTab({ orgId }: Readonly<{ orgId: string }>) {
   };
 
   return (
+    <>
+    <div><h2 className="type-display">Skill records</h2><p className="mt-2 text-text-2">Skill levels by department, built from completed work.</p></div>
     <div className="mt-6">
-      <div className="font-mono text-[11px] uppercase tracking-widest text-text-3 mb-1">Skill matrix</div>
+      <h3 className="type-title mb-1">Skill matrix</h3>
       <p className="text-text-4 text-xs mb-3">Average level per department × skill — every number traces to real completed work.</p>
       {!data && <SkeletonRows rows={3} />}
       {data?.skills.length === 0 && (
@@ -520,6 +539,7 @@ function SkillsTab({ orgId }: Readonly<{ orgId: string }>) {
         </div>
       )}
     </div>
+    </>
   );
 }
 
@@ -571,7 +591,7 @@ function CoursesTab({ orgId, canAuthor, canPublish }: Readonly<{ orgId: string; 
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap justify-between gap-3"><div><h2 className="text-2xl sm:text-3xl font-semibold tracking-tight">{canAuthor ? "Courses" : "My courses"}</h2><p className="mt-2 text-text-2">{canAuthor ? "Prepare lessons, preview the experience and publish when ready." : "Continue learning from your organization’s published courses."}</p></div>{canAuthor && <Button onClick={() => setCreating(!creating)} aria-expanded={creating} aria-controls="new-course">{creating ? "Cancel new course" : "New course"}</Button>}</div>
+      <div className="flex flex-wrap justify-between gap-3"><div><h2 className="type-display">{canAuthor ? "Courses" : "My courses"}</h2><p className="mt-2 text-text-2">{canAuthor ? "Prepare lessons, preview the experience and publish when ready." : "Continue learning from your organization’s published courses."}</p></div>{canAuthor && <Button onClick={() => setCreating(!creating)} aria-expanded={creating} aria-controls="new-course">{creating ? "Cancel new course" : "New course"}</Button>}</div>
       <label className="block text-sm">Search courses<input className={`${fieldClass} mt-2`} type="search" value={query} onChange={(e) => setQuery(e.target.value)} /></label>
       <LoadError error={builder.error || work.error} retry={() => { void builder.mutate(); return work.mutate(); }} />
       {canAuthor && (
@@ -587,13 +607,13 @@ function CoursesTab({ orgId, canAuthor, canPublish }: Readonly<{ orgId: string; 
                 </div>
                 <Badge tone={statusTone[c.status]}>{c.status.replace("_", " ")}</Badge>
                 <div className="flex gap-1.5 shrink-0">
-                  <Link href={`/orgs/${orgId}/build/${c.id}`} className="inline-flex min-h-11 items-center px-3 underline underline-offset-4">Edit</Link>
-                  {c.status === "DRAFT" && <Button size="sm" variant="secondary" disabled={busy === c.id} onClick={() => run(c.id, "submit")}>Submit</Button>}
+                  <Link href={`/orgs/${orgId}/build/${c.id}`} className="inline-flex min-h-11 items-center px-3 underline underline-offset-4">Edit<span className="sr-only"> {c.title}</span></Link>
+                  {c.status === "DRAFT" && <Button size="sm" variant="secondary" disabled={busy === c.id} onClick={() => run(c.id, "submit")}>Submit<span className="sr-only"> {c.title}</span></Button>}
                   {(c.status === "IN_REVIEW" || c.status === "DRAFT") && canPublish && (
-                    <Button size="sm" disabled={busy === c.id} onClick={() => run(c.id, "publish")}>Publish</Button>
+                    <Button size="sm" disabled={busy === c.id} onClick={() => run(c.id, "publish")}>Publish<span className="sr-only"> {c.title}</span></Button>
                   )}
                   {c.status === "PUBLISHED" && canPublish && (
-                    <Button size="sm" variant="ghost" disabled={busy === c.id} onClick={() => run(c.id, "archive")}>Archive</Button>
+                    <Button size="sm" variant="ghost" disabled={busy === c.id} onClick={() => run(c.id, "archive")}>Archive<span className="sr-only"> {c.title}</span></Button>
                   )}
                 </div>
               </Card>

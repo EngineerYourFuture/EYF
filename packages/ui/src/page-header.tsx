@@ -5,19 +5,15 @@ export type PageHeaderProps = {
   title: string;
   subtitle?: string;
   actions?: ReactNode;
-  eyebrow?: string;
   className?: string;
 };
 
 /** Consistent page heading block across the app. */
-export function PageHeader({ title, subtitle, actions, eyebrow, className }: Readonly<PageHeaderProps>) {
+export function PageHeader({ title, subtitle, actions, className }: Readonly<PageHeaderProps>) {
   return (
     <div className={cn("flex items-start justify-between gap-4 flex-wrap", className)}>
       <div className="min-w-0">
-        {eyebrow && (
-          <div className="text-xs font-mono uppercase tracking-widest text-accent mb-2">{eyebrow}</div>
-        )}
-        <h1 className="font-display text-3xl sm:text-4xl font-bold tracking-tight">{title}</h1>
+        <h1 className="type-display">{title}</h1>
         {subtitle && <p className="text-text-3 mt-2 max-w-xl leading-relaxed">{subtitle}</p>}
       </div>
       {actions && <div className="flex items-center gap-3 shrink-0">{actions}</div>}
@@ -67,7 +63,7 @@ export function Stat({ label, value, sub, tone = "default", icon, trend }: Reado
         <div className="font-mono text-[11px] text-text-3 uppercase tracking-wider">{label}</div>
         {icon && <div className={cn("opacity-80", toneText[tone])}>{icon}</div>}
       </div>
-      <div className={cn("mt-2.5 font-display text-3xl sm:text-4xl font-bold leading-none", toneText[tone])}>{value}</div>
+      <div className={cn("mt-2.5 font-display text-3xl sm:text-4xl font-bold leading-none tabular-nums", toneText[tone])}>{value}</div>
       <div className="mt-2 flex items-center gap-2">
         {trend && (
           <span className={cn(

@@ -4,7 +4,7 @@
  * score the user's existing readiness pillars against a per-tier bar instead of
  * one flat number. Pure + deterministic; reuses computeReadiness pillars.
  */
-import type { Pillar } from "./readiness";
+import type { Pillar } from "@eyf/types";
 
 export type CompanyTier = "service" | "mass" | "product" | "elite";
 type PillarKey = "dsa" | "interview" | "aptitude" | "resume" | "consistency" | "projects";

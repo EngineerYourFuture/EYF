@@ -119,7 +119,7 @@ export default function DashboardPage() {
         {/* Quick actions */}
         <Reveal className="mt-10">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-display text-xl font-bold">Jump back in</h2>
+            <h2 className="type-headline">Jump back in</h2>
             <Link href="/assessment" className="text-sm text-accent hover:underline">Take assessment →</Link>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -134,7 +134,7 @@ export default function DashboardPage() {
         <Reveal className="mt-8">
         <Card>
           <div className="flex items-center justify-between">
-            <h2 className="font-display text-xl font-bold">Activity</h2>
+            <h2 className="type-title">Activity</h2>
             <span className="text-text-3 text-xs font-mono">past 12 months</span>
           </div>
           <div className="mt-5">
@@ -153,7 +153,7 @@ export default function DashboardPage() {
         {gam && gam.badges.length > 0 && (
           <Reveal className="mt-5">
           <Card>
-            <h2 className="font-display text-xl font-bold mb-4">Your badges</h2>
+            <h2 className="type-title mb-4">Your badges</h2>
             <div className="flex flex-wrap gap-3">
               {gam.badges.map((b) => (
                 <div key={b.slug} className="flex items-center gap-2 rounded-lg border border-border bg-surface-2 px-3 py-2">
@@ -245,7 +245,7 @@ function YourJourney({ persona }: Readonly<{ persona: PersonaId }>) {
     <div className="mt-8">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <h2 className="font-display text-xl font-bold">Your journey</h2>
+          <h2 className="type-headline">Your journey</h2>
           <Badge tone="accent">{p.label}</Badge>
         </div>
         <Link href="/welcome" className="text-sm text-text-3 hover:text-text-1">Change</Link>
@@ -325,9 +325,9 @@ function LevelCard({ gam, xpPct }: Readonly<{ gam?: GamMe; xpPct: number }>) {
   return (
     <Card variant="elevated" className="flex flex-col items-center justify-center text-center">
       <ProgressRing pct={xpPct} label={`L${gam?.level ?? 1}`} />
-      <div className="mt-4 font-display text-2xl font-bold">{(gam?.xp ?? 0).toLocaleString()} XP</div>
+      <div className="mt-4 font-display text-2xl font-bold">{(gam?.xp ?? 0).toLocaleString("en-IN")} XP</div>
       {gam
-        ? <div className="text-text-3 text-sm mt-1">{gam.xpToNext.toLocaleString()} XP to Level {gam.level + 1}</div>
+        ? <div className="text-text-3 text-sm mt-1">{gam.xpToNext.toLocaleString("en-IN")} XP to Level {gam.level + 1}</div>
         : <Skeleton className="h-4 w-32 mt-2" />}
       <Link href="/wrapped" className="mt-4 text-sm text-accent hover:underline">View your wrapped →</Link>
     </Card>

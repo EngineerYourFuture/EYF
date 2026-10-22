@@ -35,18 +35,25 @@ export default function Page() {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ title: "", body: "", category: "GENERAL" });
   const action = useApiAction();
+  const [posting, setPosting] = useState(false);
 
   async function create() {
-    await action("/forum/threads", { method: "POST", body: JSON.stringify(form) });
-    track(Events.ForumPosted, { category: form.category });
-    setOpen(false); setForm({ title: "", body: "", category: "GENERAL" });
-    await mutate();
+    if (posting) { return; }
+    setPosting(true);
+    try {
+      await action("/forum/threads", { method: "POST", body: JSON.stringify(form) });
+      track(Events.ForumPosted, { category: form.category });
+      setOpen(false); setForm({ title: "", body: "", category: "GENERAL" });
+      await mutate();
+    } catch {
+      /* toasted */
+    } finally { setPosting(false); }
   }
 
   return (
     <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-5xl mx-auto">
       <div className="flex items-start justify-between gap-4">
-        <PageHeader eyebrow="Learn in public" title="Community" subtitle="Ask a doubt, share a win, debrief an interview. No fluff." />
+        <PageHeader title="Community" subtitle="Ask a doubt, share a win, debrief an interview. No fluff." />
         <Button onClick={() => setOpen((o) => !o)}>{open ? "Close" : "New thread"}</Button>
       </div>
 
@@ -71,7 +78,7 @@ export default function Page() {
             onChange={(e) => setForm({ ...form, body: e.target.value })}
             className="w-full bg-bg border border-border rounded-md px-3 py-2.5 font-mono text-sm focus:border-accent/50 outline-none"
           />
-          <Button glow onClick={create}>Post</Button>
+          <Button onClick={create} disabled={posting}>Post</Button>
         </Card>
       )}
 

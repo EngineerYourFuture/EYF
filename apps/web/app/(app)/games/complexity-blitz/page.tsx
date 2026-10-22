@@ -85,8 +85,7 @@ export default function Page() {
 
   return (
     <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-2xl mx-auto">
-      <Link href="/games" className="text-text-4 text-sm hover:text-text-2">← All games</Link>
-      <h1 className="font-display text-3xl font-bold tracking-tight mt-3">Complexity Blitz</h1>
+      <h1 className="type-display">Complexity Blitz</h1>
       <p className="text-text-3 mt-1">Classify each fragment by Big-O before the clock runs out. Streaks multiply your score.</p>
 
       {phase === "ready" && (

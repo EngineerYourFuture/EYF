@@ -32,9 +32,11 @@ export default function Page() {
   async function save(slug: string) {
     setSaving(slug);
     try {
-      await action(`/jobs/${slug}/save`, { method: "POST" }, { silent: true });
+      await action(`/jobs/${slug}/save`, { method: "POST" });
       toast.success("Saved to your tracker.");
       await mutate();
+    } catch {
+      /* toasted */
     } finally {
       setSaving(null);
     }
@@ -43,7 +45,6 @@ export default function Page() {
   return (
     <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-7xl mx-auto">
       <PageHeader
-        eyebrow="Find · save · track"
         title="Jobs"
         subtitle="Roles worth your time, with real comp bands — saved straight into a pipeline you can drive to an offer."
       />
@@ -78,7 +79,7 @@ export default function Page() {
 
         <aside>
           <div className="flex items-center justify-between mb-3">
-            <h2 className="font-display text-lg font-bold">My tracker</h2>
+            <h2 className="type-title">My tracker</h2>
             <Link href="/pipeline" className="text-accent text-sm hover:underline">Open pipeline →</Link>
           </div>
           <div className="space-y-2">

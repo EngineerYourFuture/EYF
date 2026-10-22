@@ -13,7 +13,7 @@ export default function Page() {
 
   return (
     <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-5xl mx-auto">
-      <PageHeader eyebrow="Proof of work" title="Certificates" subtitle="Verifiable, shareable on LinkedIn. PDF on demand." />
+      <PageHeader title="Certificates" subtitle="Verifiable, shareable on LinkedIn. PDF on demand." />
 
       <div className="mt-8 space-y-3">
         {!data && <SkeletonRows rows={2} />}
@@ -27,7 +27,7 @@ export default function Page() {
                 <div className="font-display text-lg truncate">{c.title}</div>
                 <div className="text-text-3 text-xs mt-0.5 flex items-center gap-2 flex-wrap">
                   <Badge>{c.type}</Badge>
-                  <span>Issued {new Date(c.issuedAt).toLocaleDateString()}</span>
+                  <span>Issued {new Date(c.issuedAt).toLocaleDateString("en-IN")}</span>
                   <span className="font-mono">{c.verificationCode}</span>
                 </div>
               </div>

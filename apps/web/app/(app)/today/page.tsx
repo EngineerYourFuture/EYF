@@ -8,7 +8,7 @@ import { PageMotion } from "@/components/page-motion";
 import { TodayFocus } from "@/components/today-focus";
 import { SprintEntry } from "@/components/placement-sprint";
 import { Reveal } from "@/components/motion";
-import { Icons, type IconName } from "@/components/icons";
+import { Icons, iconFor, type IconName } from "@/components/icons";
 import { useGuidance, type Guidance } from "@/lib/use-guidance";
 
 type Today = {
@@ -21,7 +21,7 @@ type App = { id: string; status: string; job: { slug: string; title: string; com
 const SUBJECTS = ["os", "dbms", "cn", "oop"] as const;
 const diffTone = { EASY: "easy", MEDIUM: "medium", HARD: "hard", EXPERT: "expert" } as const;
 
-type PlanItem = { id: string; label: string; detail: string; href: string; icon: IconName; done: boolean; auto: boolean };
+type PlanItem = { id: string; label: string; detail: string; href: string; icon: string; done: boolean; auto: boolean };
 
 export default function Page() {
   const { data: today } = useApi<Today>("/roadmap/today");
@@ -96,9 +96,9 @@ export default function Page() {
     <PageMotion className="relative">
       <div className="relative px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-7xl mx-auto">
         <div className="text-xs font-mono uppercase tracking-widest text-accent mb-2">
-          {new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" })}
+          {new Date().toLocaleDateString("en-IN", { weekday: "long", month: "long", day: "numeric", timeZone: "Asia/Kolkata" })}
         </div>
-        <h1 className="font-display text-3xl sm:text-4xl font-bold tracking-tight">Today</h1>
+        <h1 className="type-display">Today</h1>
         <p className="text-text-3 mt-2">Continue your placement sprint, then make room for daily practice.</p>
         <SprintEntry />
 
@@ -124,7 +124,7 @@ export default function Page() {
             {/* Plan */}
             <Card variant="glow" className="mt-6">
               <div className="flex items-center justify-between mb-1">
-                <h2 className="font-display text-xl font-bold">Today&apos;s plan</h2>
+                <h2 className="type-title">Today&apos;s plan</h2>
                 <span className="text-text-3 text-sm font-mono">{doneCount}/{plan.length || "—"}</span>
               </div>
               <div className="h-1.5 bg-surface-3 rounded-full overflow-hidden mb-5">
@@ -160,7 +160,7 @@ export default function Page() {
             {deadlines.length > 0 && (
               <Reveal className="mt-6"><Card>
                 <div className="flex items-center justify-between mb-3">
-                  <h2 className="font-display text-lg font-bold flex items-center gap-2">
+                  <h2 className="type-title flex items-center gap-2">
                     <span className="text-hard"><Icons.Gauge width={18} height={18} /></span> Deadlines this week
                   </h2>
                   <Link href="/pipeline" className="text-accent text-sm hover:underline">Pipeline →</Link>
@@ -222,7 +222,7 @@ function CoachCard({ guidance }: Readonly<{ guidance: Guidance | null }>) {
           </div>
           <div className="space-y-2">
             {actions.map((a, i) => {
-              const Icon = Icons[a.icon];
+              const Icon = iconFor(a.icon);
               return (
                 <Link key={a.pillarKey} href={a.href}
                   className="group flex items-start gap-3 rounded-xl border border-border bg-surface px-3.5 py-3 hover:border-accent/40 hover:bg-surface-2 transition-colors">
@@ -254,7 +254,7 @@ function CoachCard({ guidance }: Readonly<{ guidance: Guidance | null }>) {
 
 type Mission = {
   date: string;
-  tasks: { key: string; label: string; detail: string; href: string; icon: IconName; xp: number; done: boolean }[];
+  tasks: { key: string; label: string; detail: string; href: string; icon: string; xp: number; done: boolean }[];
   earnedXp: number; bonusXp: number; allDone: boolean; claimed: boolean;
 };
 
@@ -286,7 +286,7 @@ function DailyMission() {
       <div className="flex items-center justify-between mb-1">
         <div className="flex items-center gap-2">
           <span className="text-accent"><Icons.Bolt width={18} height={18} /></span>
-          <h2 className="font-display text-xl font-bold">Daily mission</h2>
+          <h2 className="type-title">Daily mission</h2>
         </div>
         <Badge tone={data.allDone ? "easy" : "accent"}>
           {(() => { if (data.claimed) { return "Claimed"; } if (data.allDone) { return "Ready to claim"; } return `+${data.bonusXp} XP`; })()}
@@ -300,7 +300,7 @@ function DailyMission() {
 
       <div className="space-y-2">
         {data.tasks.map((t) => {
-          const Icon = Icons[t.icon];
+          const Icon = iconFor(t.icon);
           return (
             <Link key={t.key} href={t.href}
               className={`flex items-center gap-3 rounded-xl border p-3 transition-colors ${
@@ -340,7 +340,7 @@ function DailyMission() {
 }
 
 function PlanRow({ item, onToggle }: Readonly<{ item: PlanItem; onToggle: () => void }>) {
-  const Icon = Icons[item.icon];
+  const Icon = iconFor(item.icon);
   const tone = item.detail in diffTone ? diffTone[item.detail as keyof typeof diffTone] : undefined;
   return (
     <div className={`flex items-center gap-3 rounded-xl border p-3 transition-colors ${

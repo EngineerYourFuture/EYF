@@ -32,6 +32,8 @@ export function ParentDigestCard() {
       toast.success(next ? "Weekly updates on — your parent gets the first one this Sunday." : "Parent updates turned off.");
       setEmail("");
       await mutate();
+    } catch {
+      /* toasted */
     } finally {
       setBusy(false);
     }
@@ -41,7 +43,7 @@ export function ParentDigestCard() {
     <Card className="mt-5">
       <div className="flex items-center gap-2">
         <span className="text-accent"><Icons.Users width={18} height={18} /></span>
-        <h2 className="font-display text-lg font-bold">Keep a parent in the loop</h2>
+        <h2 className="type-title">Keep a parent in the loop</h2>
       </div>
       <p className="mt-1.5 text-sm text-text-3">
         A warm weekly recap of your progress, sent to a parent or guardian. No guarantees, no pressure — just so they can cheer you on.

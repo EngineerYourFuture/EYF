@@ -154,8 +154,7 @@
 
   html, body {
     @apply bg-bg text-text-1 font-sans;
-    font-feature-settings: "ss01", "cv11";
-    font-optical-sizing: auto;
+    font-feature-settings: "ss01"; /* Geist's tailless "a" */
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
     transition: background-color 0.25s ease, color 0.25s ease;
@@ -232,6 +231,14 @@
 
 
 @layer components {
+  /* Type roles (DESIGN.md → Typography). A role looks the same on every screen;
+     size, weight, tracking and wrapping live here, never at the call site. */
+  .type-display  { @apply font-display text-3xl sm:text-4xl font-bold tracking-tight text-balance; }
+  .type-headline { @apply font-display text-xl font-bold text-balance; }
+  .type-title    { @apply font-display text-lg font-semibold; }
+  /* User-written titles (threads, resumes, courses) can hold unbroken strings. */
+  .type-display, .type-headline, .type-title { overflow-wrap: anywhere; }
+
   /* Physical feedback without a layout shift. Menus use colour; action buttons
      use a small press scale. Both respond as soon as the pointer goes down. */
   .pressable { @apply touch-manipulation active:bg-surface-3; }
@@ -354,6 +361,5 @@
 /* Native progress semantics with the same theme colors as learning controls. */
 .eyf-progress { display: block; appearance: none; border: 0; border-radius: 9999px; overflow: hidden; background: rgb(var(--surface-3)); }
 .eyf-progress::-webkit-progress-bar { background: rgb(var(--surface-3)); }
-.eyf-progress::-webkit-progress-value { background: rgb(var(--accent)); border-radius: 9999px; transition: width 300ms; }
+.eyf-progress::-webkit-progress-value { background: rgb(var(--accent)); border-radius: 9999px; }
 .eyf-progress::-moz-progress-bar { background: rgb(var(--accent)); border-radius: 9999px; }
-@media (prefers-reduced-motion: reduce) { .eyf-progress::-webkit-progress-value { transition: none; } }

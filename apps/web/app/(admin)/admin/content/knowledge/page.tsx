@@ -33,9 +33,13 @@ export default function Page() {
 
   function startNew() { setForm(EMPTY); setEditing({ id: null }); }
   async function startEdit(id: string) {
-    const x = await action<Full>(`/admin/content/knowledge/${id}`);
-    setForm({ question: x.question, answer: x.answer, topic: x.topic, tags: x.tags.join(", "), reviewed: true, active: x.active });
-    setEditing({ id });
+    try {
+      const x = await action<Full>(`/admin/content/knowledge/${id}`);
+      setForm({ question: x.question, answer: x.answer, topic: x.topic, tags: x.tags.join(", "), reviewed: true, active: x.active });
+      setEditing({ id });
+    } catch {
+      /* toasted */
+    }
   }
   async function save() {
     setSaving(true);
@@ -58,7 +62,7 @@ export default function Page() {
     return (
       <div className="px-6 lg:px-10 py-10 lg:py-12 max-w-3xl mx-auto">
         <button type="button" onClick={() => setEditing(null)} className="text-text-3 hover:text-text-1 text-sm mb-4">← Back to knowledge base</button>
-        <h1 className="font-display text-2xl font-bold tracking-tight">{editing.id ? "Curate answer" : "New answer"}</h1>
+        <h1 className="type-display">{editing.id ? "Curate answer" : "New answer"}</h1>
         <p className="text-text-3 text-sm mt-2">Saving marks the entry as reviewed — it shows a &quot;Curated by EYF&quot; badge to students.</p>
         <Card className="mt-6 space-y-4">
           <Field label="Question"><input className={inputCls} value={form.question} onChange={(e) => set("question", e.target.value)} placeholder="What is the event loop in Node.js?" /></Field>
@@ -81,7 +85,7 @@ export default function Page() {
     <div className="px-6 lg:px-10 py-10 lg:py-12 max-w-4xl mx-auto">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="font-display text-3xl font-bold tracking-tight">Knowledge base</h1>
+          <h1 className="type-display">Knowledge base</h1>
           <p className="text-text-3 mt-2">{data?.length ?? 0} answers · EYF-original Q&A from Ask EYF. Review AI drafts; they compound into your owned corpus.</p>
         </div>
         <Button onClick={startNew}>+ New answer</Button>

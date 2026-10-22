@@ -18,7 +18,6 @@ export default function Page() {
   return (
     <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-4xl mx-auto">
       <PageHeader
-        eyebrow="Train the interview muscle"
         title="Cognitive Games"
         subtitle="Pattern recognition, working memory, reaction, spatial reasoning, and attention — the raw aptitudes companies actually screen for."
       />
@@ -36,8 +35,8 @@ export default function Page() {
               </div>
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <h3 className="font-display text-lg font-bold">{g.name}</h3>
-                  <span className="text-[10px] font-mono uppercase tracking-wider text-text-4 border border-border rounded px-1.5 py-0.5">{g.tag}</span>
+                  <h3 className="type-title">{g.name}</h3>
+                  <span className="text-[11px] font-mono uppercase tracking-wider text-text-4 border border-border rounded px-1.5 py-0.5">{g.tag}</span>
                 </div>
                 <p className="text-text-3 text-sm mt-1 leading-relaxed">{g.blurb}</p>
                 <span className="inline-flex items-center gap-1 text-sm text-accent mt-3 opacity-0 group-hover:opacity-100 transition-opacity">

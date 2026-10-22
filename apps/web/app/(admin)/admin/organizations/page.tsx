@@ -22,7 +22,7 @@ export default function Page() {
   if (!allowed) return <p className="p-8">Only platform administrators can provision LMS organizations.</p>;
   return <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10 space-y-10">
     <PageHeader title="LMS organizations" subtitle="Provision a private workspace, assign its first owner and set the licensed seat limit." />
-    <section aria-labelledby="provision-title"><h2 id="provision-title" className="text-xl font-semibold">Create a workspace</h2><p className="mt-2 text-text-2 max-w-prose">The owner needs an existing EYF account. Platform administration does not automatically give you access to a customer’s courses or learner records.</p>
+    <section aria-labelledby="provision-title"><h2 id="provision-title" className="type-headline">Create a workspace</h2><p className="mt-2 text-text-2 max-w-prose">The owner needs an existing EYF account. Platform administration does not automatically give you access to a customer’s courses or learner records.</p>
       <form className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3" onSubmit={async (e) => {
         e.preventDefault(); setBusy(true); setError(""); setNotice("");
         try { await action("/orgs", { method: "POST", body: JSON.stringify({ name, ownerEmail, seatsLicensed: seats }) }, { silent: true }); setNotice(`Workspace created for ${ownerEmail}. No payment was collected.`); setName(""); setOwnerEmail(""); await orgs.mutate(); }
@@ -35,8 +35,8 @@ export default function Page() {
       </form>
       {error && <p role="alert" className="mt-3 text-hard">{error}</p>}{notice && <output  className="block mt-3 text-easy">{notice}</output>}
     </section>
-    <section aria-labelledby="licenses-title" className="space-y-4"><h2 id="licenses-title" className="text-xl font-semibold">Workspaces and licenses</h2><label className="block max-w-md">Search organizations<input type="search" className={`${fieldClass} mt-1`} value={search} onChange={(e) => setSearch(e.target.value)} maxLength={120} /></label>
-      <LoadError error={orgs.error} retry={orgs.mutate} />{orgs.isLoading && <SkeletonRows rows={3} />}
+    <section aria-labelledby="licenses-title" className="space-y-4"><h2 id="licenses-title" className="type-headline">Workspaces and licenses</h2><label className="block max-w-md">Search organizations<input type="search" className={`${fieldClass} mt-1`} value={search} onChange={(e) => setSearch(e.target.value)} maxLength={120} /></label>
+      <LoadError error={orgs.error} retry={orgs.mutate} what="page" />{orgs.isLoading && <SkeletonRows rows={3} />}
       {orgs.data?.length === 0 && <p className="text-text-2">No organizations found.</p>}
       {orgs.data?.map((org) => <LicenseRow key={org.id} org={org} refresh={() => orgs.mutate()} />)}
       <p className="text-sm text-text-2">Showing up to 100 matching workspaces. Seat changes are recorded in the audit log. Payment integration is pending.</p>

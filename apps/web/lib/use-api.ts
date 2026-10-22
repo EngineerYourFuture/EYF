@@ -2,7 +2,7 @@
 import useSWR, { type SWRConfiguration } from "swr";
 import { toast } from "sonner";
 import { useEyfAuth as useAuth } from "@/lib/auth";
-import { fetchApi, ApiClientError } from "./api";
+import { fetchApi, ApiClientError, isTerminalError } from "./api";
 
 export function useApi<T>(path: string | null, options?: SWRConfiguration<T>) {
   const { getToken } = useAuth();
@@ -13,14 +13,11 @@ export function useApi<T>(path: string | null, options?: SWRConfiguration<T>) {
       return fetchApi<T>(key, { token });
     },
     {
-      // 400/402/403/404 are terminal — the response won't change on retry, so
-      // retrying wastes 5 round-trips and pins components on their loading state
-      // (e.g. the "no editorial yet" 404 that used to hang forever). But KEEP
-      // retrying 401: auth can become available after a token refresh, so a 401
-      // is transient. 5xx / network errors also stay retryable. Callers override
-      // via `options`.
-      shouldRetryOnError: (err: unknown) =>
-        !(err instanceof ApiClientError && [400, 402, 403, 404].includes(err.status)),
+      // Terminal 4xx won't change on retry, so retrying wastes round-trips and pins
+      // components on their loading state (e.g. the "no editorial yet" 404 that used
+      // to hang forever). 401 stays retryable (a token refresh can fix it), as do
+      // 408/429, 5xx and network errors. Callers override via `options`.
+      shouldRetryOnError: (err: unknown) => !isTerminalError(err),
       ...options,
     },
   );

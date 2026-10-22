@@ -44,7 +44,7 @@ export const metadata: Metadata = IS_LMS ? {
 };
 
 export const viewport = {
-  themeColor: "#0A0A0A",
+  themeColor: "#090A0D", // --bg (dark default)
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover" as const,

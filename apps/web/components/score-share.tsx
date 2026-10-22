@@ -59,7 +59,7 @@ export function ScoreShare() {
       >
         {share && (
           <>
-            <h3 id="score-share-title" className="font-display text-lg font-bold">Your EYF Score is live</h3>
+            <h3 id="score-share-title" className="type-title">Your EYF Score is live</h3>
             <p className="text-text-3 text-sm mt-1">
               Anyone with this link sees a <span className="text-text-1">verified, EYF-computed</span> snapshot of your score — recruiters can trust it.
             </p>

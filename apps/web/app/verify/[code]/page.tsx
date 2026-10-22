@@ -77,7 +77,7 @@ export default function VerifyPage() {
               {cert.issuer && <Row label="Issued by" value={cert.issuer} />}
               <Row label="Type" value={cert.type.replaceAll("_", " ").toLowerCase()} />
               {cert.score != null && <Row label="Score" value={`${cert.score}/100`} />}
-              <Row label="Issued" value={new Date(cert.issuedAt).toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" })} />
+              <Row label="Issued" value={new Date(cert.issuedAt).toLocaleDateString("en-IN", { year: "numeric", month: "long", day: "numeric" })} />
             </div>
             {cert.skillsAsserted && cert.skillsAsserted.length > 0 && (
               <div className="mt-4 border-t border-border pt-3">

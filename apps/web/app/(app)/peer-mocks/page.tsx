@@ -9,6 +9,7 @@ const FOCUSES = ["two-pointers", "sliding-window", "graph", "dp", "system-design
 
 export default function Page() {
   const action = useApiAction();
+  const [joining, setJoining] = useState(false);
   const router = useRouter();
   const [focus, setFocus] = useState("two-pointers");
   const [inQueue, setInQueue] = useState(false);
@@ -31,6 +32,8 @@ export default function Page() {
   }, [inQueue, action, router]);
 
   async function join() {
+    if (joining) { return; }
+    setJoining(true);
     try {
       const r = await action<
         | { matched: true; mockSessionId: string }
@@ -44,20 +47,25 @@ export default function Page() {
         toast.success("In the queue. We'll match you with a peer.");
       }
     } catch (e) { toast.error((e as Error).message); }
+    finally { setJoining(false); }
   }
 
   async function leave() {
-    await action("/peer/queue/leave", { method: "POST" });
-    setInQueue(false); setPosition(null);
+    try {
+      await action("/peer/queue/leave", { method: "POST" });
+      setInQueue(false); setPosition(null);
+    } catch {
+      /* toasted */
+    }
   }
 
   return (
     <div className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-3xl">
-      <h1 className="font-display text-4xl font-bold tracking-tight">Peer Mocks</h1>
+      <h1 className="type-display">Peer Mocks</h1>
       <p className="text-text-3 mt-2">Random pair, real time, 30 min. Take turns being interviewer.</p>
 
       <Card className="mt-10">
-        <h2 className="font-display text-xl font-bold mb-3">Find a partner</h2>
+        <h2 className="type-title mb-3">Find a partner</h2>
         <fieldset className="min-w-0 border-0 p-0 m-0" aria-labelledby="peer-focus-label">
         <span id="peer-focus-label" className="text-xs text-text-3 uppercase tracking-wider">Problem focus</span>
         <div className="mt-2 flex flex-wrap gap-2">
@@ -71,7 +79,7 @@ export default function Page() {
         </fieldset>
 
         {!inQueue
-          ? <Button onClick={join} className="mt-6">Find a partner</Button>
+          ? <Button onClick={join} disabled={joining} className="mt-6">Find a partner</Button>
           : (
             <div className="mt-6">
               <Badge tone="accent">In queue · {position != null ? `${position} ahead` : "looking"}</Badge>

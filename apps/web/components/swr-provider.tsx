@@ -16,7 +16,7 @@
  */
 import { SWRConfig } from "swr";
 import { toast } from "sonner";
-import { ApiClientError } from "@/lib/api";
+import { isTerminalError } from "@/lib/api";
 import { HAS_REAL_CLERK, useEyfAuth } from "@/lib/auth";
 import { useMemo } from "react";
 
@@ -42,11 +42,11 @@ function AccountCache({ children }: Readonly<{ children: React.ReactNode }>) {
         errorRetryCount: 3,
         // U1 (docs/KNOWN-ISSUES.md): give EVERY read a global error surface so a degraded
         // API shows a message instead of an infinite skeleton. Terminal 4xx states (404
-        // "no data yet", 402 upgrade, 403 forbidden, 400) are handled inline by pages, so
-        // only transient failures (5xx / network) toast. Deduped per key so the 3 retries
-        // don't stack toasts.
+        // "no data yet", 402 upgrade, 403 forbidden, 400…) are the page's to explain (detail
+        // pages render <LoadError>), so only transient failures (5xx / network / 401) toast.
+        // Deduped per key so the 3 retries don't stack toasts.
         onError: (err, key) => {
-          if (err instanceof ApiClientError && [400, 402, 403, 404].includes(err.status)) return;
+          if (isTerminalError(err)) return;
           toast.error("Trouble loading data — retrying. Check your connection.", { id: `swr:${key}` });
         },
       }}

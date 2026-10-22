@@ -72,7 +72,7 @@ export function ConceptMap() {
     <div className="mt-8 rounded-2xl border border-border bg-surface p-5 sm:p-6 shadow-card">
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <h2 className="font-display text-xl font-bold">Concept map</h2>
+          <h2 className="type-title">Concept map</h2>
           <p className="text-text-3 text-sm mt-1">Theory builds on itself — learn left to right. Coloured by your flashcard mastery.</p>
         </div>
         <select value={subj} onChange={(e) => setSubj(e.target.value)}
@@ -102,7 +102,7 @@ export function ConceptMap() {
               <div key={k} className={`absolute rounded-lg border px-3 py-2 ${tone}`} style={{ left: x, top: y, width: NW, height: NH }}>
                 <div className="text-sm font-medium leading-tight truncate">{n.label}</div>
                 {m == null
-                  ? <div className="text-[10px] text-text-4 mt-0.5">not tracked</div>
+                  ? <div className="text-[11px] text-text-4 mt-0.5">not tracked</div>
                   : <div className="mt-1 h-1 rounded-full bg-surface-3 overflow-hidden"><div className={`h-full ${masteryBarClass(m)}`} style={{ width: `${Math.max(4, m)}%` }} /></div>}
               </div>
             );

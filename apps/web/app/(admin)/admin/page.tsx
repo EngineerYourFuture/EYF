@@ -16,7 +16,7 @@ export default function Page() {
   if (error) {
     return (
       <div className="px-6 lg:px-10 py-12 max-w-3xl mx-auto">
-        <PageHeader eyebrow="Admin" title="Moderation" />
+        <PageHeader title="Moderation" />
         <div className="mt-8"><ErrorState message={error.message} retry={() => mutate()} /></div>
       </div>
     );
@@ -24,7 +24,7 @@ export default function Page() {
 
   return (
     <PageMotion className="px-6 lg:px-10 py-10 lg:py-12 max-w-5xl mx-auto">
-      <PageHeader eyebrow="Admin" title="Moderation" subtitle="Keep the platform clean. Verify, lock, and prune." />
+      <PageHeader title="Moderation" subtitle="Keep the platform clean. Verify, lock, and prune." />
 
       {!data ? (
         <div className="mt-8 grid grid-cols-2 lg:grid-cols-5 gap-4">
@@ -65,7 +65,7 @@ function AdminCard({ href, icon, title, body, badge }: Readonly<{ href: string; 
             <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-accent text-accent-ink text-xs font-bold px-1.5">{badge}</span>
           )}
         </div>
-        <h2 className="font-display text-lg font-bold mt-3">{title}</h2>
+        <h2 className="type-title mt-3">{title}</h2>
         <p className="text-text-3 text-sm mt-1.5">{body}</p>
       </Card>
     </Link>

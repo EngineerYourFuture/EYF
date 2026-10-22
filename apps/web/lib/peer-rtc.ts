@@ -68,6 +68,7 @@ export async function startPeer(opts: {
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000/v1"}/peer/${opts.mockId}/signal`, {
           headers: { authorization: `Bearer ${token}` },
         });
+        if (!res.ok) { await new Promise((r) => setTimeout(r, 1000)); continue; }
         const json = await res.json();
         const env = json.data;
         if (!env) continue;
@@ -83,7 +84,10 @@ export async function startPeer(opts: {
         } else if (env.kind === "bye") {
           stop();
         }
-      } catch { /* swallow + retry */ }
+      } catch {
+        // Network down, token or JSON failure: retry, but never in a tight loop.
+        if (!stopped) await new Promise((r) => setTimeout(r, 1000));
+      }
     }
   }
 

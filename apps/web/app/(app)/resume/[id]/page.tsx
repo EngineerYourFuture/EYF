@@ -7,6 +7,7 @@ import { track, Events } from "@/lib/analytics";
 import { toast } from "sonner";
 import { useEffect, useState, useRef } from "react";
 import type { ResumeDocument } from "@eyf/types";
+import { LoadError, loadFailed } from "@/components/load-error";
 
 type Resume = {
   id: string; title: string; template: string;
@@ -19,7 +20,7 @@ const draftKey = (id: string) => `eyf:resume:${id}`;
 
 export default function Page() {
   const params = useParams<{ id: string }>();
-  const { data, mutate } = useApi<Resume>(`/resume/${params.id}`);
+  const { data, error, mutate } = useApi<Resume>(`/resume/${params.id}`);
   const action = useApiAction();
   const [doc, setDoc] = useState<ResumeDocument | null>(null);
   const [saving, setSaving] = useState(false);
@@ -61,6 +62,7 @@ export default function Page() {
     try { localStorage.removeItem(draftKey(params.id)); } catch { /* ignore */ }
   }
 
+  if (loadFailed(error, data)) return <div className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-3xl mx-auto"><LoadError page error={error} what="resume" retry={() => mutate()} back={{ href: "/resume", label: "All resumes" }} /></div>;
   if (!data || !doc) { return <div className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 text-text-3">Loading…</div>; }
 
   async function save() {
@@ -83,7 +85,7 @@ export default function Page() {
   return (
     <div className="px-4 sm:px-6 lg:px-10 py-8 grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-8 max-w-7xl mx-auto">
       <div className="space-y-5">
-        <h1 className="font-display text-3xl font-bold">{data.title}</h1>
+        <h1 className="type-display">{data.title}</h1>
 
         {restored && (
           <output className="flex w-full items-center justify-between gap-3 rounded-lg border border-accent/40 bg-accent-tint/40 px-4 py-2.5 text-sm">
@@ -96,7 +98,7 @@ export default function Page() {
         )}
 
         <Card>
-          <h3 className="font-display text-lg font-bold mb-3">Contact</h3>
+          <h3 className="type-title mb-3">Contact</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <TextField label="Name"     value={doc.contact.name}     onChange={(v) => setDoc({ ...doc, contact: { ...doc.contact, name: v } })} />
             <TextField label="Email"    value={doc.contact.email}    onChange={(v) => setDoc({ ...doc, contact: { ...doc.contact, email: v } })} />
@@ -108,7 +110,7 @@ export default function Page() {
         </Card>
 
         <Card>
-          <h3 className="font-display text-lg font-bold mb-3">Summary</h3>
+          <h3 className="type-title mb-3">Summary</h3>
           <textarea
             rows={4}
             aria-label="Professional summary"
@@ -120,7 +122,7 @@ export default function Page() {
         </Card>
 
         <Card>
-          <h3 className="font-display text-lg font-bold mb-3">Skills</h3>
+          <h3 className="type-title mb-3">Skills</h3>
           <input
             className="w-full bg-bg border border-border rounded-md px-3 py-2 text-sm"
             placeholder="comma-separated, e.g. Java, Spring, AWS, SQL"
@@ -196,7 +198,7 @@ export default function Page() {
 
       <aside className="space-y-4">
         <Card>
-          <h3 className="font-display text-lg font-bold">ATS score</h3>
+          <h3 className="type-title">ATS score</h3>
           <div className="mt-2 font-display text-4xl font-bold">
             {data.atsScore ?? "—"}<span className="text-text-3 text-2xl"> /100</span>
           </div>
@@ -250,7 +252,7 @@ function ListSection<T extends object>({
   return (
     <Card>
       <div className="flex items-center justify-between mb-3">
-        <h3 className="font-display text-lg font-bold">{title}</h3>
+        <h3 className="type-title">{title}</h3>
         <Button size="sm" variant="secondary" onClick={() => onChange([...items, { ...empty }])} aria-label={`Add ${title.replace(/s$/, "").toLowerCase()}`}>+ Add</Button>
       </div>
       <div className="space-y-4">

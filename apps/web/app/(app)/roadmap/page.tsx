@@ -28,7 +28,6 @@ export default function Page() {
     <PageMotion className="relative">
       <div className="relative px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-6xl mx-auto">
         <PageHeader
-          eyebrow="Your plan"
           title="Roadmap"
           subtitle="A week-by-week plan generated for your role, your target company, and — most importantly — your weakest areas. One path. Finish it."
         />
@@ -79,7 +78,7 @@ function Generator({ onDone, onCancel }: Readonly<{ onDone: () => void; onCancel
 
   return (
     <Card variant="glow" className="mt-8">
-      <h2 className="font-display text-xl font-bold">Build my roadmap</h2>
+      <h2 className="type-title">Build my roadmap</h2>
       <p className="text-text-3 text-sm mt-1">Four inputs. We do the rest, calibrated to your live skill graph.</p>
 
       <div className="mt-6 space-y-6">
@@ -167,7 +166,7 @@ function PlanView({ roadmap, onRegenerate }: Readonly<{ roadmap: Roadmap; onRege
       <aside className="lg:sticky lg:top-6 space-y-4 order-1 lg:order-2">
         <Card variant="glow">
           <div className="text-xs font-mono uppercase tracking-widest text-text-3">Active roadmap</div>
-          <h2 className="font-display text-xl font-bold mt-1 leading-tight">{roadmap.title}</h2>
+          <h2 className="type-title mt-1">{roadmap.title}</h2>
           <div className="mt-3 flex flex-wrap items-center gap-2">
             {roadmap.targetRole && <Badge tone="accent">{roadmap.targetRole}</Badge>}
             {roadmap.targetCompany && <Badge>{companyLabel(roadmap.targetCompany)}</Badge>}

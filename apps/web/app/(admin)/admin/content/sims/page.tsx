@@ -34,9 +34,13 @@ export default function Page() {
 
   function startNew() { setForm({ ...EMPTY, sections: [editorRow(EMPTY_SECTION)] }); setEditing({ id: null }); }
   async function startEdit(id: string) {
-    const x = await action<Full>(`/admin/content/sims/${id}`);
-    setForm({ slug: x.slug, company: x.company, label: x.label, blurb: x.blurb, usedBy: x.usedBy, sections: x.sections.map(editorRow), active: x.active });
-    setEditing({ id });
+    try {
+      const x = await action<Full>(`/admin/content/sims/${id}`);
+      setForm({ slug: x.slug, company: x.company, label: x.label, blurb: x.blurb, usedBy: x.usedBy, sections: x.sections.map(editorRow), active: x.active });
+      setEditing({ id });
+    } catch {
+      /* toasted */
+    }
   }
   async function save() {
     setSaving(true);
@@ -63,7 +67,7 @@ export default function Page() {
     return (
       <div className="px-6 lg:px-10 py-10 lg:py-12 max-w-3xl mx-auto">
         <button type="button" onClick={() => setEditing(null)} className="text-text-3 hover:text-text-1 text-sm mb-4">← Back to sims</button>
-        <h1 className="font-display text-2xl font-bold tracking-tight">{editing.id ? "Edit sim blueprint" : "New sim blueprint"}</h1>
+        <h1 className="type-display">{editing.id ? "Edit sim blueprint" : "New sim blueprint"}</h1>
         <p className="text-text-3 text-sm mt-2">Mirror the real test exactly — sections, question counts, per-section minutes.</p>
         <Card className="mt-6 space-y-4">
           <div className="grid grid-cols-2 gap-4">
@@ -104,7 +108,7 @@ export default function Page() {
     <div className="px-6 lg:px-10 py-10 lg:py-12 max-w-4xl mx-auto">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="font-display text-3xl font-bold tracking-tight">Company sims</h1>
+          <h1 className="type-display">Company sims</h1>
           <p className="text-text-3 mt-2">{data?.length ?? 0} blueprints · the exact section layout + timing of real recruiter tests.</p>
         </div>
         <div className="flex gap-2">

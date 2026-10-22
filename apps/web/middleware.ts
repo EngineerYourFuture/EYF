@@ -30,7 +30,13 @@ export default async function middleware(req: NextRequest, event: NextFetchEvent
   if (IS_LMS && path === "/robots.txt") return new NextResponse("User-agent: *\nDisallow: /\n", { headers: { "Content-Type": "text/plain" } });
   if (IS_LMS && (path === "/" || path === "/org")) return NextResponse.redirect(new URL("/orgs", req.url));
   if ((!IS_LMS && isLmsPath(path)) || (IS_LMS && !allowedInLms(path))) {
-    return new NextResponse("Not found", { status: 404, headers: { "Cache-Control": "private, no-store", "X-Robots-Tag": "noindex, nofollow" } });
+    // Rewrite to a path no route matches, so the request renders the app's branded
+    // not-found page (status 404) instead of a bare text body with no way back.
+    const notFound = NextResponse.rewrite(new URL("/_portal-not-found", req.url));
+    notFound.headers.set("Cache-Control", "private, no-store");
+    notFound.headers.set("X-Robots-Tag", IS_LMS ? "noindex, nofollow, noarchive" : "noindex, nofollow");
+    if (IS_LMS) notFound.headers.set("Referrer-Policy", "no-referrer");
+    return notFound;
   }
   const response = await authenticate(req, event);
   if (IS_LMS && response) {

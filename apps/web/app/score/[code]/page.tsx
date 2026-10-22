@@ -4,7 +4,7 @@ import Link from "next/link";
 import { companyReadiness, readinessBand, tierOf, SPOTLIGHT_COMPANIES } from "@/lib/company-readiness";
 import { ScoreRing } from "@/components/score-ring";
 import { companyLabel } from "@/lib/company";
-import type { Pillar } from "@/lib/readiness";
+import type { Pillar } from "@eyf/types";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000/v1";
 
@@ -72,7 +72,7 @@ export default async function ScorePage({ params }: Readonly<{ params: Promise<{
     return { slug, pct, band: readinessBand(pct) };
   }).sort((a, b) => b.pct - a.pct);
 
-  const issued = new Date(share.issuedAt).toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" });
+  const issued = new Date(share.issuedAt).toLocaleDateString("en-IN", { year: "numeric", month: "long", day: "numeric", timeZone: "Asia/Kolkata" });
   const who = [s.college, s.graduationYear ? `Class of ${s.graduationYear}` : null].filter(Boolean).join(" · ");
 
   return (

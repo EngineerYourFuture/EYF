@@ -37,7 +37,7 @@ export function CompanyFunnel({ tier }: Readonly<{ tier: CompanyTier }>) {
 
   return (
     <div className="rounded-2xl border border-border bg-surface p-5 sm:p-6 shadow-card">
-      <h2 className="font-display text-lg font-bold">Hiring process</h2>
+      <h2 className="type-title">Hiring process</h2>
       <p className="text-text-3 text-sm mt-1">The rounds you&apos;ll face, their format, and where most candidates get cut.</p>
 
       <div className="mt-5 space-y-3">

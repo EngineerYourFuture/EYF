@@ -25,7 +25,6 @@ export default function SkillsPage() {
     <PageMotion className="relative">
       <div className="relative px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-5xl mx-auto">
         <PageHeader
-          eyebrow="Your engineering skill graph"
           title="Skill Graph"
           subtitle="An honest map of where you stand across everything placements test — so you always know what to fix next, not just what to grind."
         />

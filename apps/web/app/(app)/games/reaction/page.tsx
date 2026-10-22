@@ -83,7 +83,7 @@ export default function Page() {
 
   return (
     <div className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-3xl">
-      <h1 className="font-display text-3xl font-bold tracking-tight">Reaction Time</h1>
+      <h1 className="type-display">Reaction Time</h1>
       <p className="text-text-3 mt-2">Click as soon as the box turns green. 5 rounds. Don&apos;t jump the gun.</p>
 
       <button

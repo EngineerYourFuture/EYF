@@ -18,6 +18,11 @@ export class ApiClientError extends Error {
   }
 }
 
+/** A 4xx that fails the same way on every retry. 401 (token refresh), 408 and 429 can recover. */
+export function isTerminalError(err: unknown): boolean {
+  return err instanceof ApiClientError && err.status >= 400 && err.status < 500 && ![401, 408, 429].includes(err.status);
+}
+
 export async function fetchApi<T = unknown>(
   path: string,
   init: RequestInit & { token?: string | null } = {},

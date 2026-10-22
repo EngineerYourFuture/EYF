@@ -16,18 +16,26 @@ export default function Page() {
   const confirm = useConfirm();
 
   async function toggle(t: Thread, op: "lock" | "unlock" | "pin") {
-    await action(`/admin/mod/forum/threads/${t.id}/${op}`, { method: "POST" });
-    await mutate();
+    try {
+      await action(`/admin/mod/forum/threads/${t.id}/${op}`, { method: "POST" });
+      await mutate();
+    } catch {
+      /* toasted */
+    }
   }
   async function del(t: Thread) {
-    if (!(await confirm({ title: `Delete "${t.title}"? Irreversible.`, confirmLabel: "Delete", danger: true }))) return;
-    await action(`/admin/mod/forum/threads/${t.id}`, { method: "DELETE" });
-    await mutate();
+    try {
+      if (!(await confirm({ title: `Delete "${t.title}"? Irreversible.`, confirmLabel: "Delete", danger: true }))) return;
+      await action(`/admin/mod/forum/threads/${t.id}`, { method: "DELETE" });
+      await mutate();
+    } catch {
+      /* toasted */
+    }
   }
 
   return (
     <div className="px-6 lg:px-10 py-10 lg:py-12 max-w-5xl mx-auto">
-      <h1 className="font-display text-3xl font-bold tracking-tight">Forum moderation</h1>
+      <h1 className="type-display">Forum moderation</h1>
       <p className="text-text-3 mt-2">Recent {data?.length ?? 0} threads</p>
 
       <div className="mt-8 space-y-2">

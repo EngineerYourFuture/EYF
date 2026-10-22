@@ -6,6 +6,8 @@ import { useState } from "react";
 import { PageMotion } from "@/components/page-motion";
 import { Icons } from "@/components/icons";
 import { difficultyTone } from "@/lib/ui-helpers";
+import { useCapabilities } from "@/lib/use-capabilities";
+import { AiUnavailable } from "@/components/ai-unavailable";
 
 type Dna = {
   totalSubmissions: number; acceptedCount: number; acceptanceRate: number;
@@ -30,6 +32,7 @@ export default function Page() {
   const [plan, setPlan] = useState<Plan | null>(null);
   const [loading, setLoading] = useState(false);
   const action = useApiAction();
+  const caps = useCapabilities();
 
   async function generate() {
     setLoading(true);
@@ -44,7 +47,6 @@ export default function Page() {
   return (
     <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-5xl mx-auto">
       <PageHeader
-        eyebrow="Your fingerprint"
         title="Code DNA"
         subtitle={dna ? `Synthesised from ${dna.totalSubmissions} submissions — language mix, pattern strengths, and habits.` : "Synthesising your coding fingerprint…"}
       />
@@ -63,12 +65,13 @@ export default function Page() {
           <div>
             <div className="flex items-center gap-2">
               <span className="text-accent"><Icons.Sparkle width={20} height={20} /></span>
-              <h2 className="font-display text-2xl font-bold">AI Career Strategist</h2>
+              <h2 className="type-title">AI Career Strategist</h2>
               <Badge tone="accent">Pro+</Badge>
             </div>
             <p className="text-text-3 text-sm mt-2 max-w-md">Claude reads your DNA and writes a personalised 4-week playbook — what to drill, what to ship, where to aim.</p>
+            <AiUnavailable className="mt-3 max-w-md">The AI strategist isn&rsquo;t set up on this server yet, so plans can&rsquo;t be generated right now.</AiUnavailable>
           </div>
-          <Button onClick={generate} disabled={loading} glow>
+          <Button onClick={generate} disabled={loading || caps?.ai === false}>
             {(() => { if (loading) { return "Thinking…"; } if (plan) { return "Regenerate"; } return "Generate plan"; })()}
           </Button>
         </div>
@@ -157,7 +160,7 @@ function DnaSummary({ dna }: Readonly<{ dna: Dna }>) {
             <Card>
               <div className="flex items-center gap-2 mb-4">
                 <span className="text-easy"><Icons.Award width={18} height={18} /></span>
-                <h3 className="font-display text-lg font-bold">Strengths</h3>
+                <h3 className="type-title">Strengths</h3>
               </div>
               {dna.patternStrengths.length === 0
                 ? <EmptyState title="No patterns yet" description="Solve a handful of problems and your strongest patterns surface here." className="py-8" />
@@ -168,7 +171,7 @@ function DnaSummary({ dna }: Readonly<{ dna: Dna }>) {
             <Card>
               <div className="flex items-center gap-2 mb-4">
                 <span className="text-hard"><Icons.Target width={18} height={18} /></span>
-                <h3 className="font-display text-lg font-bold">Soft spots</h3>
+                <h3 className="type-title">Soft spots</h3>
               </div>
               {dna.patternWeaknesses.length === 0
                 ? <EmptyState title="Nothing flagged" description="Once you have enough attempts, weak patterns show up here to target." className="py-8" />
@@ -180,7 +183,7 @@ function DnaSummary({ dna }: Readonly<{ dna: Dna }>) {
 
           <div className="grid md:grid-cols-2 gap-5 mt-5">
             <Card>
-              <h3 className="font-display text-lg font-bold mb-4">Language mix</h3>
+              <h3 className="type-title mb-4">Language mix</h3>
               {dna.languageMix.length === 0
                 ? <EmptyState title="No data yet" description="Submit solutions to map your language footprint." className="py-8" />
                 : <div className="space-y-3">{dna.languageMix.map((l) => (
@@ -188,7 +191,7 @@ function DnaSummary({ dna }: Readonly<{ dna: Dna }>) {
                   ))}</div>}
             </Card>
             <Card>
-              <h3 className="font-display text-lg font-bold mb-4">Difficulty mix</h3>
+              <h3 className="type-title mb-4">Difficulty mix</h3>
               {dna.difficultyMix.length === 0
                 ? <EmptyState title="No data yet" description="Your difficulty spread appears as you solve." className="py-8" />
                 : <div className="space-y-3">{dna.difficultyMix.map((d) => (
@@ -201,7 +204,7 @@ function DnaSummary({ dna }: Readonly<{ dna: Dna }>) {
 
           {dna.habitFlags.length > 0 && (
             <Card className="mt-5">
-              <h3 className="font-display text-lg font-bold mb-3">Habits flagged</h3>
+              <h3 className="type-title mb-3">Habits flagged</h3>
               <div className="flex flex-wrap gap-2">
                 {dna.habitFlags.map((f) => <Badge key={f} tone="medium">{f}</Badge>)}
               </div>

@@ -39,10 +39,13 @@ export function ErrorState({
   title = "Couldn’t load this",
   message,
   retry,
+  titleAs: Title = "h3",
 }: Readonly<{
   title?: string;
   message: string;
   retry?: () => void;
+  /** Heading level for the title; "h1" when the error replaces a whole page. */
+  titleAs?: "h1" | "h2" | "h3";
 }>) {
   return (
     <div className="border border-hard/30 bg-hard/5 rounded-xl py-10 px-6 text-center" role="alert">
@@ -52,7 +55,7 @@ export function ErrorState({
           <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z" />
         </svg>
       </div>
-      <h3 className="font-display text-base font-bold text-text-1">{title}</h3>
+      <Title className="font-display text-base font-bold text-text-1">{title}</Title>
       <p className="text-text-2 text-sm mt-1 max-w-sm mx-auto leading-relaxed">{message}</p>
       {retry && (
         <button type="button"

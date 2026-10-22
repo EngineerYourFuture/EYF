@@ -33,9 +33,11 @@ export default function Page() {
   async function save(slug: string) {
     setSaving(slug);
     try {
-      await action(`/internships/${slug}/save`, { method: "POST" }, { silent: true });
+      await action(`/internships/${slug}/save`, { method: "POST" });
       toast.success("Saved to your tracker.");
       await mutate();
+    } catch {
+      /* toasted */
     } finally {
       setSaving(null);
     }
@@ -44,7 +46,6 @@ export default function Page() {
   return (
     <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-7xl mx-auto">
       <PageHeader
-        eyebrow="Your entry point"
         title="Internships"
         subtitle="2nd or 3rd year? Start here. We surface PPO conversion data so you chase the internships that actually turn into jobs."
       />
@@ -72,7 +73,7 @@ export default function Page() {
 
         <aside>
           <div className="flex items-center justify-between mb-3">
-            <h2 className="font-display text-lg font-bold">My applications</h2>
+            <h2 className="type-title">My applications</h2>
             {apps && apps.length > 0 && <span className="text-text-4 font-mono text-xs">{apps.length}</span>}
           </div>
           <div className="space-y-2">
