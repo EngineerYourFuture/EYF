@@ -192,3 +192,35 @@ networks. Also lets CSP drop the jsdelivr allowance.
 
 **Files.** `apps/web/app/(app)/problems/[slug]/page.tsx`, `apps/web/next.config.mjs`.
 **Effort.** human ~half day / CC ~30 min.
+
+---
+
+## DESIGN-1 — Clear the remaining DESIGN.md violations on older screens  `[P3 · design · S]`
+
+**Problem.** The 2026-10-22 review of the type-role sweep fixed what that sweep caused (card
+titles, LMS view titles, orgs section headings, whole-page error h1s) and deferred older debt
+that predates it. Each item breaks a named DESIGN.md rule:
+- **Kickers above headings** (no eyebrow/kicker rule): Today's accent mono date above the h1
+  (`app/(app)/today/page.tsx:98`), the dashboard greeting (`app/(app)/dashboard/page.tsx:62`),
+  "Year in review" above the Wrapped h1 (`app/(app)/wrapped/page.tsx:35`), the welcome steps ("Welcome to EYF", "Step 2 of 4",
+  `app/welcome/page.tsx`), `components/comeback-plan.tsx:46`, `app/(app)/roadmap/page.tsx:168`,
+  `app/(admin)/admin/colleges/page.tsx:39`, `app/(app)/assessment/page.tsx:118`. Several also use
+  Geist Mono for prose labels (Mono-Means-Measurement).
+- **Decorative Signal Red** (One Signal Rule): `components/today-focus.tsx:36` (red-bordered,
+  red-tinted card plus red mono kicker) and the assessment chooser's "Recommended" card.
+- **Hand-sized page titles** (headings take their role from a class): h1s that still set size and
+  weight at the call site, some above Display: `dashboard/page.tsx` (lg:text-5xl), `tracks/page.tsx:38`,
+  `wrapped/page.tsx:36`, `problems/[slug]/page.tsx:263`, `orgs/[orgId]/build/[courseId]/page.tsx:106`,
+  `app/(app)/error.tsx:20`. Move them to `type-display` (or a deliberate smaller role via class).
+- **Side stripe** (only the active-nav bar may use one): curriculum weeks in
+  `app/(app)/tracks/[slug]/page.tsx` use `border-l-2 border-accent`.
+
+**Proposed change.** Fold kicker context into the subtitle or a Badge; use a non-mono
+progress indicator for onboarding steps; neutral surface with a hairline border for
+TodayFocus; hairline dividers (`divide-y divide-border`) for curriculum weeks.
+
+**Acceptance criteria.** None of the files listed under Kickers renders a mono uppercase label
+directly above its heading; Today shows red only on its single key action; screenshots at 1440px and 390px in
+both themes.
+
+**Files.** Listed above. **Effort.** human ~half day / CC ~20 min (`/impeccable polish`).

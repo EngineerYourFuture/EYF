@@ -106,9 +106,9 @@ across 43 files), consistent loading/empty states. Method: code-grounded (not pi
 screenshot `/design-review` pass is the complement. Findings:
 
 - **U1 — Inconsistent read-error handling · Medium · FIXED.** Fixed systemically in one place: the
-  global `SwrProvider` now has an `onError` that toasts transient read failures (5xx/network),
-  deduped per key, while leaving terminal 4xx states (404/402/403/400) to the pages that handle
-  them inline. No more silent infinite skeleton on a degraded API — all 81 data pages covered
+  global `SwrProvider` now has an `onError` that toasts transient read failures (5xx, network,
+  401/408/429), deduped per key, while leaving every other 4xx (`isTerminalError` in `lib/api.ts`)
+  to the page, where detail pages render `LoadError`. No more silent infinite skeleton on a degraded API — all 81 data pages covered
   without touching any of them.
 - **U2 — Wrapped poster violated the no-decorative-gradient rule · Low-Med · FIXED.** `wrapped`
   ShareCard used two white radial "aurora" glows (DESIGN.md forbids them); replaced with the

@@ -106,7 +106,7 @@ Audio endpoints (`/v1/mocks/:id/transcribe`, `/v1/communication/transcribe`) acc
 
 | HTTP | Code | Meaning | Source |
 | --- | --- | --- | --- |
-| 400 | `VALIDATION_ERROR` | Zod rejected the body; `details` carries `flatten()` | `middleware/error.ts` |
+| 400 | `VALIDATION_ERROR` | Zod rejected the body, params or query; `message` names up to three failing fields, `details` carries `flatten()` | `middleware/error.ts` |
 | 400 | `VALIDATION` | Domain validation failure | route handlers |
 | 400 | `BAD_REQUEST` | Generic 4xx fallback | `middleware/error.ts` |
 | 401 | `UNAUTHENTICATED` | Missing/invalid session | `middleware/auth.ts` |
@@ -120,6 +120,8 @@ Audio endpoints (`/v1/mocks/:id/transcribe`, `/v1/communication/transcribe`) acc
 | 409 | `NOT_EDITABLE` | State machine forbids the edit (e.g. published course) | `routes/org-learn.ts` |
 | 429 | `RATE_LIMITED` | Over the per-plan limit | `app.ts:83` |
 | 500 | `INTERNAL_ERROR` | Unhandled; generic message in production | `middleware/error.ts` |
+| 503 | `AI_UNAVAILABLE` | AI provider not configured, or the call failed | `routes/mocks.ts`, `routes/communication.ts` |
+| 503 | `TRANSCRIPTION_FAILED` | Whisper call failed; fixed message ("Transcription isn't available right now. Type your answer instead."), the provider error is logged, never returned | `routes/mocks.ts`, `routes/communication.ts` |
 
 > [!NOTE]
 > In production, 5xx messages are replaced with *"Something went wrong on our end."* and the exception is sent to Sentry with `{ reqId, url, method }`. Use `x-request-id` to correlate a user report with the Sentry event.
@@ -142,11 +144,13 @@ A `ZodError` is caught centrally and returned as:
   "success": false,
   "error": {
     "code": "VALIDATION_ERROR",
-    "message": "Invalid request body.",
+    "message": "Title needs at least 2 characters.",
     "details": { "formErrors": [], "fieldErrors": { "title": ["String must contain at least 2 character(s)"] } }
   }
 }
 ```
+
+`message` is learner-readable: up to three sentences naming the failing fields (a refinement's own message is used as written), falling back to `"Request validation failed."` when no field is named. It is display text and may change, so clients branch on `code` and read `details.fieldErrors`, never on `message`.
 
 ### Rate limits
 
@@ -244,7 +248,7 @@ Prefix `/v1/me` — `routes/me.ts`
 
 | Method | Route | Purpose | Auth |
 | --- | --- | --- | --- |
-| GET | `/v1/me` | Current user profile | Auth |
+| GET | `/v1/me` | Current user profile, plus `capabilities: { ai, transcription }` (whether this server has the AI and transcription providers configured; treat a missing field as unknown, not false) | Auth |
 | PATCH | `/v1/me` | Update profile | Auth |
 | GET | `/v1/me/export` | GDPR-style data export | Auth |
 | POST | `/v1/me/delete` | Account deletion | Auth |
@@ -304,7 +308,7 @@ Prefix `/v1/me` — `routes/me.ts`
 | --- | --- | --- | --- |
 | GET | `/v1/mocks/me` | My mock sessions | Auth |
 | GET | `/v1/mocks/composure` | Composure trend | Auth |
-| GET | `/v1/mocks/:id` | Mock detail | Auth |
+| GET | `/v1/mocks/:id` | Mock detail. The candidate gets the full record with `viewerIsCandidate: true`; the matched peer of a peer mock gets only `id`, `type`, `status`, `problemFocus`, `startedAt` and `viewerIsCandidate: false`; anyone else gets 404 | Auth |
 | POST | `/v1/mocks/ai/start` | Start an AI mock | Auth |
 | POST | `/v1/mocks/:id/turn` | Submit a conversational turn | Auth |
 | POST | `/v1/mocks/:id/end` | End + grade the mock | Auth |

@@ -297,7 +297,7 @@ Before writing a helper, check these:
 ```tsx
 if (isLoading) return <SkeletonRows />;
 if (!data?.length) {
-  return <EmptyState icon={<Icons.doc width={28} height={28} />} title="No notes yet"
+  return <EmptyState icon={<Icons.Doc width={28} height={28} />} title="No notes yet"
                      description="Write the first theory note — it lands on the student subject page immediately." />;
 }
 ```

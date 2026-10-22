@@ -71,7 +71,7 @@ The shape follows the architecture: **pure logic lives in `@eyf/types`, so the m
 
 ### `@eyf/api` — unit tests
 
-`lib/judge-retry.test.ts` · `lib/mock-feedback.test.ts` · `lib/org-token.test.ts` · `lib/rate-limits.test.ts` · `lib/subscription.test.ts` · `services/clerk-key.test.ts` · `services/assessment.test.ts` · `services/ats.test.ts` · `services/mcq.test.ts` · `services/pressure.test.ts` · `services/srs.test.ts`
+`lib/judge-retry.test.ts` · `lib/mock-feedback.test.ts` · `lib/org-token.test.ts` · `lib/rate-limits.test.ts` · `lib/subscription.test.ts` · `services/clerk-key.test.ts` · `services/assessment.test.ts` · `services/ats.test.ts` · `services/mcq.test.ts` · `services/pressure.test.ts` · `services/srs.test.ts` · `middleware/auth.test.ts` · `middleware/error.test.ts`
 
 > [!TIP]
 > `services/clerk-key.test.ts` exists because `clerk-key.ts` was **deliberately split** from `clerk.ts` — *"so it can be unit-tested in isolation"* without importing env + prisma + the Clerk SDK. Extracting a pure function to make it testable is the pattern to copy.

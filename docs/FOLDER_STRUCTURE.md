@@ -140,8 +140,9 @@ Plus `layout.tsx`, `loading.tsx`, `error.tsx`.
 | --- | --- |
 | `api.ts`, `use-api.ts` | Fetch wrapper + SWR hooks (`useApi`, `useApiAction`) |
 | `auth.ts` | Client auth helpers (`EyfAuth`) |
-| `readiness.ts` | Re-types the shared engine's `icon` to the web `IconName` union |
-| `use-readiness.ts` | Readiness hook |
+| `use-readiness.ts` | Readiness hook (engine imported from `@eyf/types`) |
+| `use-capabilities.ts` | `GET /me` capabilities: whether AI and transcription are configured |
+| `application-stage.ts` | Tracker stage labels (`STAGE_LABEL`) |
 | `use-guidance.ts` | Ranked next actions |
 | `comeback.ts` | Comeback-plan logic |
 | `company-readiness.ts`, `company.ts` | Company-fit scoring |
@@ -159,7 +160,9 @@ Plus `layout.tsx`, `loading.tsx`, `error.tsx`.
 | `motion.tsx` | `Reveal` motion primitive (reduced-motion safe) |
 | `theme.tsx` | Light/dark theming |
 | `command-palette.tsx` | ⌘K palette |
-| `icons.tsx` | `Icons` map + `IconName` union |
+| `icons.tsx` | `Icons` map + `IconName` union; `iconFor(name)` renders data-driven (lowercase) icon names safely |
+| `load-error.tsx` | `LoadError` (status-worded load failure) + `loadFailed()` (when stale data must give way) |
+| `ai-unavailable.tsx` | Notice shown before an AI feature the server can't run |
 
 ---
 

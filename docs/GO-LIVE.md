@@ -250,6 +250,7 @@ A `/cso` audit found the app solid (CORS restricted, rate-limited, IDOR-scoped, 
 - [ ] **`API_CORS_ORIGINS`** set to your real web domain (not the localhost default).
 - [ ] **`ADMIN_ACCESS_CODE`** set to a real staff gate code — do NOT ship a placeholder.
 - [ ] **Enable MFA for staff (ADMIN / CONTENT_CREATOR) in Clerk** — admin access is a role claim; a second factor is the real gate on the back-office.
+- [ ] **Fill the legal placeholders** before the pages go public: support phone and registered business address on `/contact`; grievance officer name and registered address on `/privacy` (required under India's privacy rules); jurisdiction city and state on `/terms`. Search the web app for `[` + capitals to find them. Consider a support address on your own domain instead of the gmail one.
 
 ---
 

@@ -1,7 +1,7 @@
 # Frontend
 
 **Audience:** frontend engineers.
-**Related:** [DESIGN](DESIGN.md) · [ACCESSIBILITY](ACCESSIBILITY.md) · [PERFORMANCE](PERFORMANCE.md) · [FOLDER_STRUCTURE](FOLDER_STRUCTURE.md)
+**Related:** [DESIGN](../DESIGN.md) · [ACCESSIBILITY](ACCESSIBILITY.md) · [PERFORMANCE](PERFORMANCE.md) · [FOLDER_STRUCTURE](FOLDER_STRUCTURE.md)
 
 ---
 
@@ -160,18 +160,30 @@ const { data, error, isLoading } = useApi<Readiness>("/guidance/me");
 Its retry policy is the most important detail in the file:
 
 ```ts
-shouldRetryOnError: (err) =>
-  !(err instanceof ApiClientError && [400, 402, 403, 404].includes(err.status)),
+shouldRetryOnError: (err: unknown) => !isTerminalError(err),
 ```
+
+`isTerminalError` (`lib/api.ts`) is true for an `ApiClientError` with any 4xx status except 401, 408 and 429. The global toast (below) and `LoadError` use the same predicate, so retry, toast and on-page wording always agree.
 
 | Status | Retry? | Why |
 | --- | :-: | --- |
-| 400, 402, 403, 404 | ❌ | Terminal — the response will not change; retrying wastes 5 round-trips and pins the component in a loading state |
+| 4xx except 401/408/429 | ❌ | Terminal — the response will not change; retrying wastes round-trips and pins the component in a loading state |
 | **401** | ✅ | **Transient** — auth can become available after a token refresh |
+| 408, 429 | ✅ | Transient — a timeout or a rate-limit window clears |
 | 5xx / network | ✅ | Transient |
 
 > [!TIP]
 > The 401-stays-retryable rule is subtle and deliberate. Treating 401 as terminal would break the refresh flow: a component mounting mid-refresh would fail permanently instead of recovering.
+
+### Load failures on a page
+
+A page whose main record fails renders `LoadError` (`components/load-error.tsx`) when `loadFailed(error, data)` is true:
+
+```tsx
+if (loadFailed(error, data)) return <LoadError error={error} what="mock interview" retry={() => mutate()} back={{ href: "/mocks", label: "All mocks" }} page />;
+```
+
+A failed background refresh keeps the stale record on screen; a 402, 403 or 404 replaces even cached content, so revoked access ends. `LoadError` words each case: 404 "isn't available", 403 "you don't have access", 402 the server's plan message, any other terminal 4xx "couldn't be opened", each with the way back. Only retryable failures show **Try again**. Pass `page` when the error replaces the whole page, so its title is the h1.
 
 ### `useApiAction()` — mutations
 
@@ -192,7 +204,9 @@ Maps failures to human messages via `actionMessage()`:
 
 | Setting | Value | Rationale (from the file) |
 | --- | --- | --- |
-| `keepPreviousData` | on | Navigating between filters shows last data instead of flashing skeletons |
+| `keepPreviousData` | off | Account changes remount the cache; a previous account's or organization's response never shows while a different key loads |
+| `errorRetryCount` | 3 | Bounded retries for transient failures |
+| `onError` | toast unless `isTerminalError(err)` | Every read gets an error surface; terminal 4xx are left to the page; one toast per key |
 | `dedupingInterval` | 15s | Five components asking for `/me` share one request |
 | `revalidateOnFocus` | off | Alt-tabbing back doesn't jank the UI with refetch waterfalls |
 | localStorage persistence | **deliberately none** | Responses are per-user (scores, resumes, payments) and the content-protection posture treats shared machines as hostile |
@@ -271,18 +285,12 @@ Three tiers:
 | `useEyfAuth` | Token access |
 | `useRole` | Current role for UI gating |
 | `useRecorder` | Audio capture (mocks, drills) |
+| `useCapabilities` | Which AI providers this server runs (`capabilities` from `/me`); `undefined` while loading |
 | `useIsReduced` | `prefers-reduced-motion` |
 
-### The boundary re-type
+### Readiness icons are plain strings
 
-`lib/readiness.ts` is a deliberate, minimal adapter:
-
-```ts
-// The engine emits IconName-valued strings; the cast is safe at this boundary.
-export const computeReadiness = computeReadinessShared as (i: ReadinessInput) => Readiness;
-```
-
-The shared engine in `@eyf/types` types `icon` as `string`; the web narrows it to its `IconName` union. **No behaviour lives in this file** — one implementation, re-typed at the edge.
+The readiness engine lives once in `@eyf/types` and the web imports it from there directly. It emits lowercase icon names (`"code"`, `"mic"`), typed as `string`. Render them through `iconFor(name)` from `components/icons.tsx`, which matches case-insensitively and falls back to a neutral icon. Never index `Icons[name]`: an unknown or lowercase name returns `undefined` and crashes the page.
 
 ---
 
@@ -297,7 +305,7 @@ The shared engine in `@eyf/types` types `icon` as `string`; the web narrows it t
 ```
 
 > [!NOTE]
-> Client-side validation is minimal by design — Zod on the API is the authority, and its `400 VALIDATION_ERROR` includes `details.fieldErrors`. The trade-off is fewer inline hints; the benefit is exactly one validation implementation.
+> Client-side validation is minimal by design — Zod on the API is the authority, and its `400 VALIDATION_ERROR` includes `details.fieldErrors` and a learner-readable `message` naming up to three failing fields, which `useApiAction` toasts as written. The trade-off is fewer inline hints; the benefit is exactly one validation implementation.
 
 ---
 
@@ -305,7 +313,7 @@ The shared engine in `@eyf/types` types `icon` as `string`; the web narrows it t
 
 Light/dark via CSS custom properties in `globals.css` + `components/theme.tsx`. Tokens are consumed through Tailwind classes (`text-text-3`, `border-border`, `bg-[rgb(var(--lp-paper))]`).
 
-Rules and token names: [DESIGN](DESIGN.md).
+Rules and token names: [DESIGN](../DESIGN.md).
 
 > [!TIP]
 > Never hardcode a hex value in a component. Use a token so both themes stay correct.
@@ -344,7 +352,7 @@ The file's own brief: *"premium craft, not cinema. Fast (300–600ms), once, red
 | Code splitting | `next/dynamic` for Three.js + Monaco |
 | Request dedup | SWR `dedupingInterval: 15s` |
 | No refetch storms | `revalidateOnFocus: false` |
-| Perceived speed | `keepPreviousData` |
+| Perceived speed | In-memory SWR cache that survives client-side navigation |
 | Fonts | `next/font` (`geist`, Bricolage) — no layout shift |
 | Images | AVIF/WebP via `next/image` |
 | Bundle analysis | `ANALYZE=true pnpm --filter @eyf/web build` |
@@ -393,7 +401,7 @@ export default function Page() {
   const { data, isLoading } = useApi<Widget[]>("/widgets");
   if (isLoading) return <SkeletonRows />;
   if (!data?.length) {
-    return <EmptyState icon={<Icons.doc width={28} height={28} />} title="No widgets yet" description="Create your first widget." />;
+    return <EmptyState icon={<Icons.Doc width={28} height={28} />} title="No widgets yet" description="Create your first widget." />;
   }
   return <div className="space-y-2">{data.map((w) => <Card key={w.id}>{w.name}</Card>)}</div>;
 }
@@ -407,6 +415,7 @@ export default function Page() {
 - [ ] `"use client"` only if the component needs hooks
 - [ ] `useApi`, never bare `fetch`
 - [ ] Loading (`SkeletonRows`) **and** empty (`EmptyState`) states
+- [ ] Detail pages: `LoadError` when `loadFailed(error, data)`
 - [ ] Design tokens, not hex values
 - [ ] Reduced-motion respected
 - [ ] Route added to `middleware.ts` if it needs auth
@@ -414,4 +423,4 @@ export default function Page() {
 
 ---
 
-**Next:** [DESIGN.md](DESIGN.md) · [ACCESSIBILITY.md](ACCESSIBILITY.md) · [PERFORMANCE.md](PERFORMANCE.md)
+**Next:** [DESIGN.md](../DESIGN.md) · [ACCESSIBILITY.md](ACCESSIBILITY.md) · [PERFORMANCE.md](PERFORMANCE.md)

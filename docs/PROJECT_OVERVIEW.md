@@ -47,7 +47,7 @@ Nothing connects. Because nothing connects:
 EYF's premise is that **integration is the product**. Every activity feeds one number — the **Placement Readiness score** — and that score drives what the platform asks the student to do next.
 
 > [!NOTE]
-> The readiness engine is a single pure implementation in `packages/types/src/readiness.ts`, shared by the web app (`apps/web/lib/readiness.ts`) and the API's guidance service (`apps/api/src/services/guidance.ts`). One definition of "ready", used everywhere.
+> The readiness engine is a single pure implementation in `packages/types/src/readiness.ts`, shared by the web app (`apps/web/lib/use-readiness.ts`) and the API's guidance service (`apps/api/src/services/guidance.ts`). One definition of "ready", used everywhere.
 
 ---
 

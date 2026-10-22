@@ -75,7 +75,7 @@ SWR is tuned globally in `components/swr-provider.tsx`:
 | --- | --- | --- |
 | `dedupingInterval` | **15s** | Five components requesting `/me` within a screen share one request |
 | `revalidateOnFocus` | **off** | Alt-tabbing back doesn't trigger refetch waterfalls |
-| `keepPreviousData` | **on** | Filter changes show last data instead of flashing skeletons |
+| `keepPreviousData` | **off** | Account changes remount the cache; a previous account's response never shows while a different key loads |
 | localStorage persistence | **none** | Deliberate — see below |
 
 > [!NOTE]
@@ -84,11 +84,11 @@ SWR is tuned globally in `components/swr-provider.tsx`:
 Retry policy avoids wasted round-trips:
 
 ```ts
-shouldRetryOnError: (err) => !(err instanceof ApiClientError && [400, 402, 403, 404].includes(err.status)),
+shouldRetryOnError: (err: unknown) => !isTerminalError(err), // any 4xx except 401, 408, 429
 ```
 
 > [!TIP]
-> Retrying a terminal 404 five times wastes five round-trips **and pins the component in a loading state** — the comment cites a real bug ("the 'no editorial yet' 404 that used to hang forever"). 401 stays retryable because a token refresh can make it succeed.
+> Retrying a terminal 4xx wastes round-trips (SWR's `errorRetryCount` is 3) **and pins the component in a loading state** — the comment cites a real bug ("the 'no editorial yet' 404 that used to hang forever"). 401, 408 and 429 stay retryable because a token refresh, a timeout or a rate-limit window can clear them.
 
 ---
 
