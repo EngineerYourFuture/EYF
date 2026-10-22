@@ -54,9 +54,14 @@ export async function mockRoutes(app: FastifyInstance) {
 
   app.get("/:id", { preHandler: app.requireAuth }, async (req, reply) => {
     const { id } = z.object({ id: z.string() }).parse(req.params);
-    const m = await prisma.mockSession.findFirst({ where: { id, candidateId: req.session!.id } });
+    // Both sides of a peer mock open it: the matcher stores the waiting user as peerId.
+    const uid = req.session!.id;
+    const m = await prisma.mockSession.findFirst({ where: { id, OR: [{ candidateId: uid }, { peerId: uid }] } });
     if (!m) return reply.code(404).send({ success: false, error: { code: "NOT_FOUND", message: "Mock not found" } });
-    return { success: true, data: m };
+    if (m.candidateId === uid) return { success: true, data: { ...m, viewerIsCandidate: true } };
+    // The peer gets only what the call needs, never the candidate's evaluation or recordings.
+    const { id: mockId, type, status, problemFocus, startedAt } = m;
+    return { success: true, data: { id: mockId, type, status, problemFocus, startedAt, viewerIsCandidate: false } };
   });
 
   // AI mock: Pro+ per spec. Creates session + first interviewer message.
@@ -193,7 +198,7 @@ export async function mockRoutes(app: FastifyInstance) {
         req.log.error({ err }, "whisper transcription failed");
         return reply.code(503).send({
           success: false,
-          error: { code: "TRANSCRIPTION_FAILED", message: (err as Error).message },
+          error: { code: "TRANSCRIPTION_FAILED", message: "Transcription isn't available right now. Type your answer instead." },
         });
       }
     },

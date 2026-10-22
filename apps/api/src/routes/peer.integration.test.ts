@@ -113,6 +113,23 @@ describe.skipIf(!hasDb)("peer mocks — plan gate + signalling participants (int
     expect(res.statusCode).toBe(404);
   });
 
+  // Value: protects=both participants of a matched peer mock can open it, and nobody else can;
+  // fails_when=GET /mocks/:id filters on candidateId only, so the waiting user the matcher stores as peerId
+  // lands on "not available"; why_new=the specs above cover signalling only, never loading the session;
+  // seam=none; no_claim=what the mock page renders
+  it("opens a peer mock for both participants and hides it from strangers", async () => {
+    const open = (id: string) => app.inject({ method: "GET", url: `/v1/mocks/${peerMockId}`, headers: auth(id) });
+    const [asCandidate, asPeer] = [await open(aId), await open(bId)];
+    expect(asCandidate.statusCode).toBe(200);
+    expect(asPeer.statusCode).toBe(200);
+    // Exactly one side starts the WebRTC offer.
+    expect(asCandidate.json().data.viewerIsCandidate).toBe(true);
+    expect(asPeer.json().data.viewerIsCandidate).toBe(false);
+    // The peer never receives the candidate's evaluation or recordings.
+    for (const field of ["feedback", "transcript", "recordingUrl", "transcriptUrl", "candidateId", "peerId"]) expect(asPeer.json().data).not.toHaveProperty(field);
+    expect((await open(strangerId)).statusCode).toBe(404);
+  });
+
   it("requires authentication to signal at all", async () => {
     const res = await app.inject({
       method: "POST", url: `/v1/peer/${peerMockId}/signal`,

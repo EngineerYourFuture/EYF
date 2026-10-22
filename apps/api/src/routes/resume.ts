@@ -8,7 +8,8 @@ import { renderResumePdf } from "../services/pdf.js";
 const resumeDocSchema: z.ZodType<ResumeDocument> = z.object({
   contact: z.object({
     name: z.string(),
-    email: z.string().email(),
+    // A new resume starts blank, so a draft may have no email yet; anything typed must be valid.
+    email: z.string().email().or(z.literal("")),
     phone: z.string().optional(),
     location: z.string().optional(),
     github: z.string().optional(),

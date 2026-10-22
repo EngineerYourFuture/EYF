@@ -1,5 +1,10 @@
 import "dotenv/config";
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
+
+// Provider clients the capability flags must track; getters so each test can flip them.
+const providers = vi.hoisted(() => ({ anthropic: null as unknown, openai: null as unknown }));
+vi.mock("../services/anthropic.js", async (original) => ({ ...await original<typeof import("../services/anthropic.js")>(), get anthropic() { return providers.anthropic; } }));
+vi.mock("../services/whisper.js", async (original) => ({ ...await original<typeof import("../services/whisper.js")>(), get openai() { return providers.openai; } }));
 
 /**
  * Mutation coverage for the self-service profile routes (`me.ts`).
@@ -44,6 +49,22 @@ describe.skipIf(!hasDb)("me — profile + parent-email writes (integration)", ()
   afterAll(async () => {
     await prisma.user.deleteMany({ where: { id: { in: [meId, otherId] } } }).catch(() => {});
     await app.close();
+  });
+
+  // Value: protects=each /me capability flag tracks its own provider client (the one AI routes call);
+  // fails_when=a flag is inverted, hardcoded, or ai/transcription read the wrong client;
+  // why_new=the shape check passed for any boolean; seam=none;
+  // no_claim=real provider reachability (clients mocked as present/absent at the module boundary)
+  it("reports which AI providers this server can run, so pages can say so before the learner starts", async () => {
+    const caps = async () => {
+      const res = await app.inject({ method: "GET", url: "/v1/me", headers: auth(meId) });
+      expect(res.statusCode).toBe(200);
+      return res.json().data.capabilities;
+    };
+    providers.anthropic = {}; providers.openai = null;
+    expect(await caps()).toEqual({ ai: true, transcription: false });
+    providers.anthropic = null; providers.openai = {};
+    expect(await caps()).toEqual({ ai: false, transcription: true });
   });
 
   it("requires authentication", async () => {

@@ -133,8 +133,9 @@ export async function placementSprintRoutes(app: FastifyInstance) {
     return { success: true, data: await stateFor(req.session!.id) };
   });
   app.get("/proof/:token", async (req, reply) => {
-    const { token } = z.object({ token: z.string().regex(/^[A-Za-z0-9_-]{32}$/) }).parse(req.params);
-    const s = await prisma.placementSprint.findFirst({ where: { shareToken: token, shareExpiresAt: { gt: new Date() }, user: { deletedAt: null } }, select: { shareSnapshot: true, sharedAt: true, shareExpiresAt: true } });
+    // A malformed link is just a broken link: same 404 as a revoked one, without revealing the token format.
+    const parsed = z.object({ token: z.string().regex(/^[A-Za-z0-9_-]{32}$/) }).safeParse(req.params);
+    const s = parsed.success ? await prisma.placementSprint.findFirst({ where: { shareToken: parsed.data.token, shareExpiresAt: { gt: new Date() }, user: { deletedAt: null } }, select: { shareSnapshot: true, sharedAt: true, shareExpiresAt: true } }) : null;
     if (!s?.shareSnapshot) return reply.code(404).send({ success: false, error: { code: "NOT_FOUND", message: "This report is unavailable. The owner may have revoked it, or its link has expired." } });
     return { success: true, data: { report: s.shareSnapshot, issuedAt: s.sharedAt, expiresAt: s.shareExpiresAt } };
   });

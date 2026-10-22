@@ -8,6 +8,8 @@ import {
 } from "../services/referral.js";
 import { parentDigestFor } from "../services/parent-digest.js";
 import { computeUserReadiness } from "../services/guidance.js";
+import { anthropic } from "../services/anthropic.js";
+import { openai } from "../services/whisper.js";
 
 function redeemError(reason: Exclude<RedeemCheck, { ok: true }>["reason"]): string {
   switch (reason) {
@@ -50,7 +52,9 @@ export async function meRoutes(app: FastifyInstance) {
       where: { id: req.session!.id },
       select: profileSelect,
     });
-    return { success: true, data: { user } };
+    // Lets AI surfaces say "not available" before the learner writes an answer.
+    const capabilities = { ai: anthropic !== null, transcription: openai !== null };
+    return { success: true, data: { user, capabilities } };
   });
 
   // Update editable profile fields (name, college, graduation year, target role).

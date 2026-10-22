@@ -45,6 +45,19 @@ describe.skipIf(!hasDb)("resume CRUD + ownership (integration)", () => {
     expect(data.title).toBe("Primary");
   });
 
+  it("creates the blank draft the New resume button sends (empty contact email)", async () => {
+    const blank = { contact: { name: "", email: "" }, summary: "", skills: [], experience: [], projects: [], education: [] };
+    const res = await app.inject({ method: "POST", url: "/v1/resume", headers: { authorization: `Bearer ${tok(userA)}`, "content-type": "application/json" }, payload: JSON.stringify({ title: "My Resume", template: "classic", json: blank }) });
+    expect(res.statusCode).toBe(200);
+    expect(res.json().data.json.contact.email).toBe("");
+  });
+
+  it("still rejects a contact email that is filled in but invalid", async () => {
+    const res = await app.inject({ method: "POST", url: "/v1/resume", headers: { authorization: `Bearer ${tok(userA)}`, "content-type": "application/json" }, payload: JSON.stringify({ json: { contact: { name: "A", email: "not-an-email" } } }) });
+    expect(res.statusCode).toBe(400);
+    expect(res.json().error.message).toBe("Email must be a valid email address.");
+  });
+
   it("lists only the caller's resumes", async () => {
     await create(userB, "B-resume"); // userB's — must not appear for userA
     const res = await app.inject({ method: "GET", url: "/v1/resume/me", headers: { authorization: `Bearer ${tok(userA)}` } });

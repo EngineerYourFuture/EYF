@@ -109,6 +109,11 @@ describe.skipIf(!process.env.DATABASE_URL)("placement sprint evidence boundaries
     await request("share", undefined, "DELETE");
     expect((await app.inject({ method: "GET", url: `/v1/placement-sprint/proof/${rotated}` })).statusCode).toBe(404);
   });
+  it("answers a malformed share link with the same unavailable 404 as a revoked one", async () => {
+    const res = await app.inject({ method: "GET", url: "/v1/placement-sprint/proof/NOPE123" });
+    expect(res.statusCode).toBe(404);
+    expect(res.json().error.code).toBe("NOT_FOUND");
+  });
   it("does not serve expired reports or reports from deleted accounts", async () => {
     let token = (await request("share", { consent: true })).json().data.share.token;
     await prisma.placementSprint.update({ where: { userId: student.id }, data: { shareExpiresAt: new Date(0) } });

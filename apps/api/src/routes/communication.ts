@@ -43,7 +43,7 @@ export async function communicationRoutes(app: FastifyInstance) {
         req.log.error({ err }, "communication transcription failed");
         return reply.code(503).send({
           success: false,
-          error: { code: "TRANSCRIPTION_FAILED", message: (err as Error).message },
+          error: { code: "TRANSCRIPTION_FAILED", message: "Transcription isn't available right now. Type your answer instead." },
         });
       }
     },
