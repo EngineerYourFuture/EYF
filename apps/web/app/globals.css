@@ -2,6 +2,24 @@
 @tailwind components;
 @tailwind utilities;
 
+@media print {
+  body:has(.evidence-report) {
+    --bg: 255 255 255;
+    --surface: 255 255 255;
+    --text-1: 17 17 17;
+    --text-2: 40 40 40;
+    --text-3: 65 65 65;
+    --border: 200 200 200;
+    color-scheme: light;
+  }
+  .eyf-app-shell:has(.evidence-report) { display: block; }
+  .eyf-app-shell:has(.evidence-report) > :not(main),
+  .placement-sprint:has(.evidence-report) > :not(.evidence-report) { display: none !important; }
+  .eyf-app-shell:has(.evidence-report) main { padding: 0; overflow: visible; }
+  .evidence-report h3, .evidence-report h4 { break-after: avoid; }
+  .evidence-report tr { break-inside: avoid; }
+}
+
 /* ============================================================
    Theme tokens — values are space-separated RGB channels so
    Tailwind can apply opacity modifiers (bg-accent/10 etc).
@@ -23,8 +41,12 @@
 
     --text-1:      244 245 248;
     --text-2:      166 171 182;
-    --text-3:      118 123 134;
-    --text-4:      80 85 96;
+    /* text-3/text-4 carry nav group labels, stat sub-text and other meta copy,
+       so they must be readable, not decorative. Both clear WCAG AA (≥4.5:1)
+       on the card surfaces they actually sit on (surface … surface-3), not
+       just on --bg — text-4 measures 4.52:1 on the lightest card (surface-3). */
+    --text-3:      138 144 156;
+    --text-4:      130 135 146;
 
     /* Monochrome primary — cool near-white. Premium, not neon. */
     --accent:      244 245 248;
@@ -44,6 +66,15 @@
     --expert:      176 112 160;
     --info:        120 150 190;
 
+    /* Named play colours. The Stroop game renders a colour NAME in a conflicting
+       ink colour, so these have to read as unmistakably red/green/blue/yellow
+       AND clear WCAG AA on the surface they sit on — which means a different
+       tuning per theme, not one fixed hex. */
+    --play-red:    255 90 60;
+    --play-green:  60 220 140;
+    --play-blue:   90 160 255;
+    --play-yellow: 240 200 70;
+
     --shadow:      0 0 0;        /* boxShadow base (neutral) */
     --hairline:    255 255 255;  /* inset top highlight */
   }
@@ -62,8 +93,9 @@
 
     --text-1:      17 19 24;
     --text-2:      66 71 82;
-    --text-3:      114 120 132;
-    --text-4:      154 159 170;
+    /* Lifted to clear WCAG AA (≥4.5:1) on the light --bg. */
+    --text-3:      92 98 110;
+    --text-4:      104 110 122;
 
     /* Monochrome primary — cool near-black on white. */
     --accent:      17 19 24;
@@ -81,6 +113,13 @@
     --expert:      150 80 140;
     --info:        60 110 170;
 
+    /* Darkened so each still clears AA on the light surface (the dark-theme
+       values measure ~1.4:1 here — effectively invisible). */
+    --play-red:    200 30 20;
+    --play-green:  15 120 70;
+    --play-blue:   30 90 200;
+    --play-yellow: 140 100 5;
+
     --shadow:      24 24 27;
     --hairline:    255 255 255;
   }
@@ -92,7 +131,7 @@
     --bg: 9 10 13; --bg-2: 12 13 17;
     --surface: 17 19 24; --surface-2: 22 25 31; --surface-3: 29 32 40;
     --border: 33 36 44; --border-2: 48 52 63;
-    --text-1: 244 245 248; --text-2: 166 171 182; --text-3: 118 123 134; --text-4: 80 85 96;
+    --text-1: 244 245 248; --text-2: 166 171 182; --text-3: 138 144 156; --text-4: 130 135 146;
     --accent: 244 245 248; --accent-hover: 210 214 222; --accent-tint: 29 32 40; --accent-ink: 9 10 13;
     --brand: 235 38 55; --brand-hover: 205 28 46; --brand-ink: 255 255 255;
     --easy: 90 190 120; --medium: 200 160 70; --hard: 210 90 70; --expert: 176 112 160; --info: 120 150 190;
@@ -106,7 +145,7 @@
     --bg: 255 255 255; --bg-2: 247 248 250;
     --surface: 255 255 255; --surface-2: 250 251 253; --surface-3: 242 244 247;
     --border: 226 229 235; --border-2: 208 213 221;
-    --text-1: 29 29 31; --text-2: 88 93 102; --text-3: 128 134 143; --text-4: 160 165 174;
+    --text-1: 29 29 31; --text-2: 88 93 102; --text-3: 92 98 110; --text-4: 104 110 122;
     --accent: 29 29 31; --accent-hover: 55 57 62; --accent-tint: 242 244 247; --accent-ink: 255 255 255;
     --brand: 214 24 42; --brand-hover: 186 16 34; --brand-ink: 255 255 255;
     --easy: 40 150 90; --medium: 170 120 20; --hard: 190 60 45; --expert: 150 80 140; --info: 26 115 232;
@@ -115,11 +154,15 @@
 
   html, body {
     @apply bg-bg text-text-1 font-sans;
-    font-feature-settings: "ss01", "cv11";
+    font-feature-settings: "ss01"; /* Geist's tailless "a" */
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
     transition: background-color 0.25s ease, color 0.25s ease;
   }
+
+  html { scrollbar-gutter: stable; }
+  button, a, input, select, textarea { touch-action: manipulation; }
+  :focus-visible { outline: 2px solid rgb(var(--accent)); outline-offset: 3px; }
 
   ::selection {
     background: rgb(var(--accent));
@@ -140,9 +183,103 @@
   *::-webkit-scrollbar-thumb:hover { background: rgb(var(--text-4)); background-clip: content-box; }
 }
 
+/* ── Marketing landing tokens — "night-shift to offer-morning" ────────
+   The named ground endpoints + the single chroma (brand red) and the earned
+   payoff (placed green, used once at the offer). Space-separated RGB channels
+   so /alpha modifiers keep working. Scoped to .landing-root so none of this
+   leaks into the authenticated app. */
+.landing-root {
+  --lp-ink:      11 13 19;
+  --lp-paper:    241 242 245;
+  --lp-graphite: 58 63 75;
+  --lp-brand:    235 38 55;
+  --lp-placed:   46 158 91;
+}
+
+/* ── Shared site footer ───────────────────────────────────────────────
+   The footer is mounted on the landing AND on themed pages (/pricing, the
+   legal/policy pages). It used to hardcode a paper background with
+   neutral-900/600/500 text, so on those themed pages it stayed a bright light
+   slab that ignored the theme toggle entirely — glaring in dark mode.
+
+   Default: follow the app tokens, so it flips with the toggle.
+   Inside .landing-root: pin to the paper palette, because the marketing landing
+   is a deliberate light-only design and must look identical regardless of
+   whichever theme the visitor has saved for the app. */
+.site-footer {
+  background: rgb(var(--bg-2));
+}
+
+/* ── Theme-toggle icons ───────────────────────────────────────────────
+   Visibility is driven by the <html> class, not React state, so the right icon
+   is correct in the server HTML and never swaps after hydration. Defaults to
+   the sun (the dark-theme default) when no class is present yet. */
+.theme-icon-sun  { display: block; }
+.theme-icon-moon { display: none; }
+:root.light .theme-icon-sun  { display: none; }
+:root.light .theme-icon-moon { display: block; }
+
+.landing-root .site-footer {
+  background: rgb(var(--lp-paper));
+  /* Re-point the text/border tokens for this subtree only — descendants using
+     text-text-1 / text-text-2 / border-border resolve against these. */
+  --text-1: var(--lp-ink);
+  --text-2: var(--lp-graphite);
+  --text-3: 115 117 124;
+  --border: 214 216 222;
+}
+
+
 @layer components {
+  /* Type roles (DESIGN.md → Typography). A role looks the same on every screen;
+     size, weight, tracking and wrapping live here, never at the call site. */
+  .type-display  { @apply font-display text-3xl sm:text-4xl font-bold tracking-tight text-balance; }
+  .type-headline { @apply font-display text-xl font-bold text-balance; }
+  .type-title    { @apply font-display text-lg font-semibold; }
+  /* User-written titles (threads, resumes, courses) can hold unbroken strings. */
+  .type-display, .type-headline, .type-title { overflow-wrap: anywhere; }
+
+  /* Physical feedback without a layout shift. Menus use colour; action buttons
+     use a small press scale. Both respond as soon as the pointer goes down. */
+  .pressable { @apply touch-manipulation active:bg-surface-3; }
+  .icon-button {
+    @apply pressable inline-flex shrink-0 items-center justify-center min-h-11 min-w-11 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent;
+  }
+  @media (pointer: coarse) {
+    .ui-button { min-height: 2.75rem; }
+  }
+
+  .eyf-dialog {
+    position: fixed;
+    inset: 0;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100dvh;
+    max-width: none;
+    max-height: none;
+    border: 0;
+    background: transparent;
+    color: rgb(var(--text-1));
+    overflow: hidden;
+  }
+  .eyf-dialog::backdrop { background: transparent; }
+  .eyf-dialog-panel { max-height: 100%; overflow-y: auto; overscroll-behavior: contain; outline: none; }
+  .safe-area-drawer { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); }
   /* Hairline divider that reads on both themes. */
   .hairline { height: 1px; @apply bg-hairline; }
+
+  /* Long-form legal / policy prose (terms, privacy, refund). Token-styled so it
+     reads on both themes and matches the app's type system. */
+  .legal { @apply text-text-2 leading-relaxed; }
+  .legal h2 { @apply font-display text-xl font-bold text-text-1 mt-10 mb-3 tracking-tight; }
+  .legal h3 { @apply font-display text-base font-bold text-text-1 mt-6 mb-2; }
+  .legal p { @apply my-3; }
+  .legal ul { @apply my-3 space-y-1.5 pl-5 list-disc marker:text-text-4; }
+  .legal li { @apply pl-1; }
+  .legal strong { @apply text-text-1 font-semibold; }
+  .legal a { @apply text-accent hover:underline; }
+  .legal hr { @apply my-8 border-border; }
 
   /* Compact form input (employer portal + forms). */
   .inp { @apply w-full h-10 bg-bg border border-border rounded-lg px-3 text-sm outline-none; }
@@ -152,14 +289,14 @@
      themes via tokens; only shows its blur over content behind it, so use it on
      chrome + overlays (nav bars, sidebars, sticky headers, modals). */
   .glass {
-    background-color: rgb(var(--surface) / 0.68);
+    background-color: rgb(var(--surface) / 0.86);
     backdrop-filter: blur(18px) saturate(1.5);
     -webkit-backdrop-filter: blur(18px) saturate(1.5);
     border-color: rgb(var(--border) / 0.7);
     box-shadow: inset 0 1px 0 0 rgb(var(--hairline) / 0.12);
   }
   .glass-strong {
-    background-color: rgb(var(--surface) / 0.82);
+    background-color: rgb(var(--surface) / 0.94);
     backdrop-filter: blur(24px) saturate(1.6);
     -webkit-backdrop-filter: blur(24px) saturate(1.6);
     border-color: rgb(var(--border) / 0.8);
@@ -172,11 +309,17 @@
 
   /* Card hover lift used across feature grids. */
   .card-interactive {
-    @apply transition-all duration-200 ease-out;
+    @apply transition-[transform,border-color,box-shadow] duration-200 ease-out;
   }
   .card-interactive:hover {
     @apply border-edge -translate-y-0.5 shadow-card-lg;
   }
+
+  /* Landing proof-ticker marquee — seamless because the row content is doubled. */
+  @keyframes lp-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+  .lp-marquee { animation: lp-marquee 42s linear infinite; }
+  .lp-marquee-rev { animation: lp-marquee 42s linear infinite reverse; }
+  @media (prefers-reduced-motion: reduce) { .lp-marquee, .lp-marquee-rev { animation: none; } }
 
   /* Shimmer sweep for skeletons (richer than a flat pulse). */
   .shimmer {
@@ -192,3 +335,31 @@
     @apply animate-shimmer;
   }
 }
+
+/* Preferences are independent: less motion, less transparency, more contrast. */
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .glass, .glass-strong {
+    background-color: rgb(var(--surface));
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+@media (prefers-contrast: more) {
+  .glass, .glass-strong { border-color: rgb(var(--text-2)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .card-interactive:hover, .ui-button:active { transform: none; }
+  .shimmer::after { display: none; }
+}
+
+/* Native progress semantics with the same theme colors as learning controls. */
+.eyf-progress { display: block; appearance: none; border: 0; border-radius: 9999px; overflow: hidden; background: rgb(var(--surface-3)); }
+.eyf-progress::-webkit-progress-bar { background: rgb(var(--surface-3)); }
+.eyf-progress::-webkit-progress-value { background: rgb(var(--accent)); border-radius: 9999px; }
+.eyf-progress::-moz-progress-bar { background: rgb(var(--accent)); border-radius: 9999px; }

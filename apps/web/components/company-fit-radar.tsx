@@ -95,7 +95,7 @@ export function CompanyFitRadar() {
               </div>
             </>
           ) : (
-            <div className="text-easy text-sm">You meet or beat their bar on every axis. 🎯</div>
+            <div className="text-easy text-sm">You meet or beat their bar on every axis.</div>
           )}
         </div>
       </div>

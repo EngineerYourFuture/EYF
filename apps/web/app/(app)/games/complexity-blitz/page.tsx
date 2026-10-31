@@ -49,7 +49,7 @@ export default function Page() {
   useEffect(() => { try { setBest(Number(localStorage.getItem(KEY) || 0)); } catch { /* */ } }, []);
 
   useEffect(() => {
-    if (phase !== "play") return;
+    if (phase !== "play") { return; }
     if (remaining <= 0) { finish(); return; }
     const t = setTimeout(() => setRemaining((r) => r - 1), 1000);
     return () => clearTimeout(t);
@@ -57,7 +57,7 @@ export default function Page() {
 
   const q = deck.current[idx];
   const choices = useMemo(() => {
-    if (!q) return [];
+    if (!q) { return []; }
     const distract = shuffle(OPTS.filter((o) => o !== q.answer)).slice(0, 3);
     return shuffle([q.answer, ...distract]);
   }, [idx, phase]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -68,7 +68,7 @@ export default function Page() {
     setCorrect(0); setAttempts(0); setIdx(0); setFlash(null);
   }
   function answer(c: Comp) {
-    if (!q || flash) return;
+    if (!q || flash) { return; }
     const ok = c === q.answer;
     setAttempts((a) => a + 1);
     if (ok) {
@@ -85,14 +85,13 @@ export default function Page() {
 
   return (
     <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-2xl mx-auto">
-      <Link href="/games" className="text-text-4 text-sm hover:text-text-2">← All games</Link>
-      <h1 className="font-display text-3xl font-bold tracking-tight mt-3">Complexity Blitz</h1>
+      <h1 className="type-display">Complexity Blitz</h1>
       <p className="text-text-3 mt-1">Classify each fragment by Big-O before the clock runs out. Streaks multiply your score.</p>
 
       {phase === "ready" && (
         <div className="mt-8 rounded-2xl border border-border bg-surface p-8 text-center shadow-card">
           <p className="text-text-2">60 seconds. As many fragments as you can. {best > 0 && <>Best: <span className="font-bold text-text-1">{best}</span></>}</p>
-          <button onClick={start} className="mt-5 px-6 py-2.5 rounded-lg bg-brand text-white text-sm font-medium">Start</button>
+          <button type="button" onClick={start} className="mt-5 px-6 py-2.5 rounded-lg bg-brand text-white text-sm font-medium">Start</button>
         </div>
       )}
 
@@ -102,12 +101,12 @@ export default function Page() {
             <span className={`font-mono ${remaining <= 10 ? "text-hard" : "text-text-3"}`}>⏱ {remaining}s</span>
             <span className="text-text-3">Score <span className="font-bold text-text-1 tabular-nums">{score}</span>{streak > 1 && <span className="text-brand ml-2">×{streak} streak</span>}</span>
           </div>
-          <div className={`mt-3 rounded-2xl border p-5 shadow-card transition-colors ${flash === "ok" ? "border-easy/60 bg-easy/[0.06]" : flash === "no" ? "border-hard/60 bg-hard/[0.06]" : "border-border bg-surface"}`}>
+          <div className={`mt-3 rounded-2xl border p-5 shadow-card transition-colors ${(() => { if (flash === "ok") { return "border-easy/60 bg-easy/[0.06]"; } if (flash === "no") { return "border-hard/60 bg-hard/[0.06]"; } return "border-border bg-surface"; })()}`}>
             <pre className="font-mono text-sm text-text-1 whitespace-pre-wrap leading-relaxed min-h-[72px]">{q.code}</pre>
           </div>
           <div className="mt-4 grid grid-cols-2 gap-3">
             {choices.map((c) => (
-              <button key={c} onClick={() => answer(c)} disabled={!!flash}
+              <button type="button" key={c} onClick={() => answer(c)} disabled={!!flash}
                 className="h-12 rounded-xl border border-border bg-surface font-mono text-sm hover:border-accent hover:bg-surface-2 transition-colors disabled:opacity-60">
                 {c}
               </button>
@@ -122,7 +121,7 @@ export default function Page() {
           <div className="mt-2 font-display text-5xl font-bold tabular-nums">{score}</div>
           <p className="text-text-3 text-sm mt-2">{correct}/{attempts} correct · best {best}{score >= best && score > 0 ? " (new best!)" : ""}</p>
           <div className="mt-6 flex gap-3 justify-center">
-            <button onClick={start} className="px-5 py-2.5 rounded-lg bg-brand text-white text-sm font-medium">Play again</button>
+            <button type="button" onClick={start} className="px-5 py-2.5 rounded-lg bg-brand text-white text-sm font-medium">Play again</button>
             <Link href="/games" className="px-5 py-2.5 rounded-lg border border-border text-sm">Back to games</Link>
           </div>
         </div>

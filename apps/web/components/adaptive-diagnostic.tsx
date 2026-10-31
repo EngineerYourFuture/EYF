@@ -15,14 +15,14 @@ const READ: Record<string, string> = {
   medium: "You're medium-comfortable. Hard problems are the gap to top offers — drill them next.",
   hard: "You're operating at hard difficulty. Now sharpen speed and edge-case rigour.",
 };
-const tone = (d: string): "easy" | "medium" | "hard" => (d === "easy" ? "easy" : d === "medium" ? "medium" : "hard");
+const tone = (d: string): "easy" | "medium" | "hard" => { if (d === "easy") { return "easy"; } if (d === "medium") { return "medium"; } return "hard"; };
 
 /**
  * Adaptive diagnostic — the Assessment differentiator. Questions harden on a
  * correct answer and soften on a wrong one, converging on the student's exact
  * mastery boundary in ~12 questions instead of a flat quiz.
  */
-export function AdaptiveDiagnostic({ onExit }: { onExit: () => void }) {
+export function AdaptiveDiagnostic({ onExit }: Readonly<{ onExit: () => void }>) {
   const action = useApiAction();
   const [q, setQ] = useState<Q | null>(null);
   const [seen, setSeen] = useState<string[]>([]);
@@ -43,7 +43,7 @@ export function AdaptiveDiagnostic({ onExit }: { onExit: () => void }) {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function answer(choice: number) {
-    if (!q || busy) return;
+    if (!q || busy) { return; }
     setBusy(true);
     const nextSeen = [...seen, q.id];
     try {
@@ -61,11 +61,11 @@ export function AdaptiveDiagnostic({ onExit }: { onExit: () => void }) {
         <div className="text-xs font-mono uppercase tracking-widest text-text-3">Diagnostic complete</div>
         <div className="mt-3 font-display text-2xl font-bold">Your mastery boundary: <span className="text-brand capitalize">{boundary}</span></div>
         <p className="text-text-3 text-sm mt-2 max-w-md mx-auto leading-relaxed">{READ[boundary]}</p>
-        <button onClick={onExit} className="mt-6 px-5 py-2.5 rounded-lg bg-brand text-white text-sm font-medium">Done</button>
+        <button type="button" onClick={onExit} className="mt-6 px-5 py-2.5 rounded-lg bg-brand text-white text-sm font-medium">Done</button>
       </div>
     );
   }
-  if (!q) return <div className="rounded-2xl border border-border bg-surface p-8 shadow-card text-text-3 text-sm">Loading diagnostic…</div>;
+  if (!q) { return <div className="rounded-2xl border border-border bg-surface p-8 shadow-card text-text-3 text-sm">Loading diagnostic…</div>; }
 
   return (
     <div className="rounded-2xl border border-border bg-surface p-6 shadow-card">
@@ -83,7 +83,7 @@ export function AdaptiveDiagnostic({ onExit }: { onExit: () => void }) {
       <p className="mt-5 text-text-1 font-medium">{q.prompt}</p>
       <div className="mt-4 grid gap-2">
         {q.choices.map((c, i) => (
-          <button key={i} disabled={busy} onClick={() => answer(i)}
+          <button type="button" key={i} disabled={busy} onClick={() => answer(i)}
             className="flex items-center gap-3 px-3 py-2.5 rounded-lg border border-border hover:border-accent hover:bg-surface-2 text-left text-sm transition-colors disabled:opacity-50">
             <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-surface-3 text-text-3 font-mono text-xs font-bold">{LETTERS[i]}</span>
             {c}

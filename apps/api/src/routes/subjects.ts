@@ -1,5 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
+import { env } from "../env.js";
 import { prisma, Subject } from "@eyf/db";
 import { nextReview } from "../services/srs.js";
 
@@ -74,7 +75,7 @@ export async function subjectRoutes(app: FastifyInstance) {
       const { slug } = z.object({ slug: z.string() }).parse(req.params);
       const note = await prisma.theoryNote.findUnique({ where: { slug } });
       if (!note) return reply.code(404).send({ success: false, error: { code: "NOT_FOUND", message: "Note not found." } });
-      if (note.premium && req.session!.plan === "free") {
+      if (env.BILLING_ENABLED && note.premium && req.session!.plan === "free") {
         return reply.code(402).send({
           success: false,
           error: { code: "PLAN_UPGRADE_REQUIRED", message: "Upgrade to Basic for full theory access.", upgradeRequired: true, plan: "basic" },

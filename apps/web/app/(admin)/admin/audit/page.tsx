@@ -9,21 +9,25 @@ type Log = {
 };
 
 const ENTITIES = ["", "problem", "job", "career-track", "user"] as const;
-const actionTone = (a: string) =>
-  a === "create" ? "easy" : a === "delete" ? "hard" : a === "update" ? "medium" : "accent";
+const actionTone = (a: string) => {
+  if (a === "create") return "easy";
+  if (a === "delete") return "hard";
+  if (a === "update") return "medium";
+  return "accent";
+};
 
 export default function Page() {
   const [entity, setEntity] = useState("");
-  const { data } = useApi<Log[]>(`/admin/audit${entity ? `?entity=${entity}` : ""}`);
+  const { data } = useApi<Log[]>(`/admin/audit${entity ? "?entity=" + entity : ""}`);
 
   return (
     <div className="px-6 lg:px-10 py-10 lg:py-12 max-w-4xl mx-auto">
-      <h1 className="font-display text-3xl font-bold tracking-tight">Audit log</h1>
+      <h1 className="type-display">Audit log</h1>
       <p className="text-text-3 mt-2">Who changed what in the back-office. Newest first.</p>
 
       <div className="mt-6 flex gap-1 flex-wrap">
         {ENTITIES.map((e) => (
-          <button key={e || "all"} onClick={() => setEntity(e)}
+          <button type="button" key={e || "all"} onClick={() => setEntity(e)}
             className={`px-3 py-1.5 rounded-md text-sm transition-colors ${entity === e ? "bg-surface text-text-1 border border-border" : "text-text-3 hover:text-text-1"}`}>
             {e || "All"}
           </button>

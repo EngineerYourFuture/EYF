@@ -1,10 +1,12 @@
 "use client";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Badge, PageHeader, SkeletonRows, EmptyState, ErrorState } from "@eyf/ui";
 import { useApi } from "@/lib/use-api";
 import { PageMotion } from "@/components/page-motion";
 import { PatternMastery } from "@/components/pattern-mastery";
+import { Icons } from "@/components/icons";
 
 type Problem = {
   id: string;
@@ -21,11 +23,18 @@ const tone = { EASY: "easy", MEDIUM: "medium", HARD: "hard", EXPERT: "expert" } 
 const DIFFS = ["EASY", "MEDIUM", "HARD", "EXPERT"] as const;
 
 export default function ProblemsPage() {
+  const router = useRouter();
   const [q, setQ] = useState("");
+  const [debouncedQ, setDebouncedQ] = useState("");
   const [diff, setDiff] = useState<string>("");
   const [pattern, setPattern] = useState<string>("");
+  // Debounce the search so typing doesn't fire one API request per keystroke.
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedQ(q.trim()), 300);
+    return () => clearTimeout(t);
+  }, [q]);
   // Server-side filters (difficulty + pattern + search); API caps limit at 50.
-  const qs = new URLSearchParams({ limit: "50", ...(q && { q }), ...(diff && { difficulty: diff }), ...(pattern && { pattern }) }).toString();
+  const qs = new URLSearchParams({ limit: "50", ...(debouncedQ && { q: debouncedQ }), ...(diff && { difficulty: diff }), ...(pattern && { pattern }) }).toString();
   const { data, isLoading, error, mutate } = useApi<Problem[]>(`/problems?${qs}`);
 
   // Stable pattern list for the rail — derived from an unfiltered load so the
@@ -34,25 +43,27 @@ export default function ProblemsPage() {
   const patterns = useMemo(() => {
     const set = new Set<string>();
     (catalog ?? []).forEach((p) => p.patterns.forEach((x) => set.add(x)));
-    return [...set].sort();
+    return [...set].sort((a, b) => a.localeCompare(b));
   }, [catalog]);
   const shown = data ?? [];
 
   return (
-    <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-7xl">
-      <PageHeader eyebrow="2,000+ problems · 15 patterns" title="Problems" subtitle="Patterns first. Grind second." />
+    <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-7xl mx-auto">
+      <PageHeader title="Problems" subtitle="Patterns first. Grind second." />
 
       <div className="mt-8"><PatternMastery /></div>
 
       <div className="mt-4 flex justify-end">
-        <button
+        <button type="button"
           onClick={() => {
             const pool = (catalog ?? shown);
-            if (pool.length) window.location.href = `/problems/${pool[Math.floor(Math.random() * pool.length)]!.slug}?blind=1`;
+            if (pool.length) router.push(`/problems/${pool[Math.floor(Math.random() * pool.length)]!.slug}?blind=1`);
           }}
-          className="text-sm font-medium text-brand hover:underline"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-brand hover:underline"
         >
-          🎯 Blind practice — random problem, no tags, timer on →
+          <Icons.Target width={15} height={15} />
+          Blind practice — random problem, no tags, timer on
+          <span aria-hidden>→</span>
         </button>
       </div>
 
@@ -85,6 +96,8 @@ export default function ProblemsPage() {
         {/* Main list */}
         <div className="min-w-0">
           <input
+            type="search"
+            aria-label="Search problems"
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Search problems…"
@@ -95,8 +108,8 @@ export default function ProblemsPage() {
             {isLoading && <SkeletonRows rows={10} />}
             {error && <ErrorState message={error.message} retry={() => mutate()} />}
             {data && shown.length === 0 && (
-              <EmptyState icon="🔍" title="No problems match" description="Try a different search, difficulty, or pattern."
-                action={<button onClick={() => { setQ(""); setDiff(""); setPattern(""); }} className="text-accent text-sm hover:underline">Clear filters</button>} />
+              <EmptyState icon={<Icons.Search width={22} height={22} />} title="No problems match" description="Try a different search, difficulty, or pattern."
+                action={<button type="button" onClick={() => { setQ(""); setDiff(""); setPattern(""); }} className="text-accent text-sm hover:underline">Clear filters</button>} />
             )}
             {data && shown.length > 0 && (
               <div className="border border-border rounded-xl overflow-hidden">
@@ -106,11 +119,11 @@ export default function ProblemsPage() {
                 <table className="w-full text-sm">
                   <thead className="bg-surface/40 text-text-3 text-xs uppercase tracking-wider">
                     <tr>
-                      <th className="text-left px-4 py-3 font-medium">Title</th>
-                      <th className="text-left px-4 py-3 font-medium">Difficulty</th>
-                      <th className="text-left px-4 py-3 font-medium hidden sm:table-cell">Patterns</th>
-                      <th className="text-left px-4 py-3 font-medium hidden lg:table-cell">Companies</th>
-                      <th className="text-right px-4 py-3 font-medium hidden md:table-cell">Acceptance</th>
+                      <th scope="col" className="text-left px-4 py-3 font-medium">Title</th>
+                      <th scope="col" className="text-left px-4 py-3 font-medium">Difficulty</th>
+                      <th scope="col" className="text-left px-4 py-3 font-medium hidden sm:table-cell">Patterns</th>
+                      <th scope="col" className="text-left px-4 py-3 font-medium hidden lg:table-cell">Companies</th>
+                      <th scope="col" className="text-right px-4 py-3 font-medium hidden md:table-cell">Acceptance</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -137,11 +150,12 @@ export default function ProblemsPage() {
   );
 }
 
-function FilterChip({ label, active, onClick, tone }: { label: string; active: boolean; onClick: () => void; tone?: string }) {
+function FilterChip({ label, active, onClick, tone }: Readonly<{ label: string; active: boolean; onClick: () => void; tone?: string }>) {
   return (
-    <button
+    <button type="button"
       onClick={onClick}
-      className={`px-3 py-1.5 text-xs rounded-md border transition-colors ${
+      aria-pressed={active}
+      className={`px-3 py-1.5 text-xs rounded-md border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
         active ? "border-accent text-text-1 bg-accent-tint" : "border-border text-text-3 hover:text-text-2"
       }`}
     >
@@ -150,11 +164,12 @@ function FilterChip({ label, active, onClick, tone }: { label: string; active: b
   );
 }
 
-function FilterRow({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
+function FilterRow({ label, active, onClick }: Readonly<{ label: string; active: boolean; onClick: () => void }>) {
   return (
-    <button
+    <button type="button"
       onClick={onClick}
-      className={`text-left px-2.5 py-1.5 text-sm rounded-md transition-colors ${
+      aria-pressed={active}
+      className={`text-left px-2.5 py-1.5 text-sm rounded-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
         active ? "bg-accent-tint text-text-1 font-medium" : "text-text-3 hover:text-text-1 hover:bg-surface-3"
       }`}
     >

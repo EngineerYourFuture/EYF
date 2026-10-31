@@ -6,9 +6,17 @@
  */
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
-import { prisma, Difficulty, JobRole, DemandLevel } from "@eyf/db";
+import { prisma, Difficulty, JobRole, DemandLevel, InterviewOutcome } from "@eyf/db";
 import { requirePermission } from "../middleware/permissions.js";
 import { recordAudit } from "../lib/audit.js";
+
+const testCasesInput = z.array(z.object({
+  input: z.string().max(50_000),
+  expected: z.string().max(50_000),
+  isPublic: z.boolean(),
+})).min(2, "Add a public example and a hidden test.").max(50)
+  .refine((tests) => tests.some((t) => t.isPublic) && tests.some((t) => !t.isPublic), "Include at least one public example and one hidden test.")
+  .refine((tests) => new Set(tests.map((t) => t.input)).size === tests.length, "Each test must have a different input.");
 
 const problemInput = z.object({
   slug: z.string().min(1).regex(/^[a-z0-9-]+$/, "lowercase letters, numbers and hyphens only"),
@@ -21,6 +29,7 @@ const problemInput = z.object({
   premium: z.boolean().default(false),
   timeLimitMs: z.number().int().positive().max(60_000).default(2000),
   memoryLimitKb: z.number().int().positive().default(262144),
+  testCases: testCasesInput,
 });
 
 const badRequest = (reply: import("fastify").FastifyReply, msg: string) =>
@@ -37,7 +46,7 @@ export async function adminContentRoutes(app: FastifyInstance) {
       select: {
         id: true, slug: true, title: true, difficulty: true, premium: true,
         topics: true, patterns: true, companies: true, acceptanceRate: true,
-        totalSubmissions: true, updatedAt: true,
+        totalSubmissions: true, updatedAt: true, _count: { select: { testCases: true } },
       },
     });
     return { success: true, data: problems };
@@ -46,7 +55,7 @@ export async function adminContentRoutes(app: FastifyInstance) {
   // Single — full record for the edit form.
   app.get("/problems/:id", guard, async (req, reply) => {
     const { id } = req.params as { id: string };
-    const problem = await prisma.problem.findUnique({ where: { id } });
+    const problem = await prisma.problem.findUnique({ where: { id }, include: { testCases: { orderBy: { orderIndex: "asc" } } } });
     if (!problem) return reply.code(404).send({ success: false, error: { code: "NOT_FOUND", message: "Problem not found." } });
     return { success: true, data: problem };
   });
@@ -57,7 +66,10 @@ export async function adminContentRoutes(app: FastifyInstance) {
     if (!parsed.success) return badRequest(reply, parsed.error.issues[0]?.message ?? "Invalid input");
     const dupe = await prisma.problem.findUnique({ where: { slug: parsed.data.slug }, select: { id: true } });
     if (dupe) return reply.code(409).send({ success: false, error: { code: "SLUG_TAKEN", message: "A problem with that slug already exists." } });
-    const created = await prisma.problem.create({ data: parsed.data });
+    const { testCases, ...data } = parsed.data;
+    const created = await prisma.problem.create({
+      data: { ...data, testCases: { create: testCases.map((t, orderIndex) => ({ ...t, orderIndex })) } },
+    });
     await recordAudit(req, { action: "create", entity: "problem", entityId: created.id, summary: `Created "${created.title}"` });
     return reply.code(201).send({ success: true, data: created });
   });
@@ -73,7 +85,12 @@ export async function adminContentRoutes(app: FastifyInstance) {
       const dupe = await prisma.problem.findFirst({ where: { slug: parsed.data.slug, NOT: { id } }, select: { id: true } });
       if (dupe) return reply.code(409).send({ success: false, error: { code: "SLUG_TAKEN", message: "That slug is taken by another problem." } });
     }
-    const updated = await prisma.problem.update({ where: { id }, data: parsed.data });
+    const { testCases, ...data } = parsed.data;
+    // Nested replacement is atomic: a student can never see half the new bank.
+    const updated = await prisma.problem.update({
+      where: { id },
+      data: { ...data, ...(testCases ? { testCases: { deleteMany: {}, create: testCases.map((t, orderIndex) => ({ ...t, orderIndex })) } } : {}) },
+    });
     await recordAudit(req, { action: "update", entity: "problem", entityId: id, summary: `Edited "${updated.title}"` });
     return { success: true, data: updated };
   });
@@ -208,6 +225,65 @@ export async function adminContentRoutes(app: FastifyInstance) {
     if (!existing) return reply.code(404).send({ success: false, error: { code: "NOT_FOUND", message: "Track not found." } });
     await prisma.careerTrack.delete({ where: { id } });
     await recordAudit(req, { action: "delete", entity: "career-track", entityId: id, summary: "Deleted a career track" });
+    return { success: true, data: { id } };
+  });
+
+  // ── Interview experiences ──────────────────────────────────────────
+  // Staff-curated round-by-round writeups. Created rows are attributed to the
+  // staff member and surface on the student /experiences feed immediately —
+  // this is how the feed gets seeded and moderated without touching code.
+  const experienceInput = z.object({
+    company: z.string().min(1),
+    role: z.string().min(1),
+    outcome: z.nativeEnum(InterviewOutcome).default(InterviewOutcome.OFFER),
+    difficulty: z.number().int().min(1).max(5).default(3),
+    rounds: z.number().int().min(1).max(15).default(1),
+    body: z.string().min(1),
+    tips: z.string().nullable().optional(),
+  });
+
+  app.get("/experiences", guard, async () => {
+    const rows = await prisma.interviewExperience.findMany({
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true, company: true, role: true, outcome: true, difficulty: true,
+        rounds: true, upvotes: true, createdAt: true,
+        author: { select: { name: true } },
+      },
+    });
+    return { success: true, data: rows };
+  });
+  app.get("/experiences/:id", guard, async (req, reply) => {
+    const { id } = req.params as { id: string };
+    const row = await prisma.interviewExperience.findUnique({ where: { id } });
+    if (!row) return reply.code(404).send({ success: false, error: { code: "NOT_FOUND", message: "Experience not found." } });
+    return { success: true, data: row };
+  });
+  app.post("/experiences", guard, async (req, reply) => {
+    const parsed = experienceInput.safeParse(req.body);
+    if (!parsed.success) return badRequest(reply, parsed.error.issues[0]?.message ?? "Invalid input");
+    const created = await prisma.interviewExperience.create({
+      data: { ...parsed.data, authorId: req.session!.id },
+    });
+    await recordAudit(req, { action: "create", entity: "experience", entityId: created.id, summary: `Added experience: ${created.company} · ${created.role}` });
+    return reply.code(201).send({ success: true, data: created });
+  });
+  app.patch("/experiences/:id", guard, async (req, reply) => {
+    const { id } = req.params as { id: string };
+    const parsed = experienceInput.partial().safeParse(req.body);
+    if (!parsed.success) return badRequest(reply, parsed.error.issues[0]?.message ?? "Invalid input");
+    const existing = await prisma.interviewExperience.findUnique({ where: { id }, select: { id: true } });
+    if (!existing) return reply.code(404).send({ success: false, error: { code: "NOT_FOUND", message: "Experience not found." } });
+    const updated = await prisma.interviewExperience.update({ where: { id }, data: parsed.data });
+    await recordAudit(req, { action: "update", entity: "experience", entityId: id, summary: `Edited experience: ${updated.company} · ${updated.role}` });
+    return { success: true, data: updated };
+  });
+  app.delete("/experiences/:id", guard, async (req, reply) => {
+    const { id } = req.params as { id: string };
+    const existing = await prisma.interviewExperience.findUnique({ where: { id }, select: { id: true } });
+    if (!existing) return reply.code(404).send({ success: false, error: { code: "NOT_FOUND", message: "Experience not found." } });
+    await prisma.interviewExperience.delete({ where: { id } });
+    await recordAudit(req, { action: "delete", entity: "experience", entityId: id, summary: "Deleted an interview experience" });
     return { success: true, data: { id } };
   });
 }

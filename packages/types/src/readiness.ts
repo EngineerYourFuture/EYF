@@ -73,6 +73,14 @@ export type ReadinessGoal = { targetRole?: string | null; targetCompany?: string
 
 type WeightSet = { dsa: number; interview: number; aptitude: number; resume: number; consistency: number; projects: number };
 
+/**
+ * Version stamp for the readiness algorithm. The Proof Loop freezes this onto every
+ * PlacementOutcome snapshot so calibration NEVER correlates scores computed under
+ * different WEIGHTS/formulas. BUMP THIS whenever WEIGHTS, the band thresholds, or the
+ * `computeReadiness` formula change (e.g. "r2"). See docs/PLAN-proof-loop.md (H2).
+ */
+export const READINESS_ALGO_VERSION = "r1";
+
 // Pillar weight profiles by goal archetype (each sums to 1.00).
 const WEIGHTS: Record<string, WeightSet> = {
   //        dsa   interview aptitude resume consistency projects
@@ -96,6 +104,24 @@ function resolveProfile(goal?: ReadinessGoal): { key: string; weights: WeightSet
   if (/data|\bml\b|\bai\b|analyst|scien/.test(role)) return { key: "data", weights: WEIGHTS.data! };
   if (/sde|software|backend|product/.test(role)) return { key: "product", weights: WEIGHTS.product! };
   return { key: "balanced", weights: WEIGHTS.balanced! };
+}
+
+const plural = (n: number) => (n === 1 ? "" : "s");
+
+function readinessBand(overall: number): string {
+  if (overall < 35) return "Just getting started";
+  if (overall < 60) return "Building momentum";
+  if (overall < 80) return "Getting interview-ready";
+  if (overall < 92) return "Almost placement-ready";
+  return "Placement-ready";
+}
+
+function readinessSummaryBase(overall: number): string {
+  if (overall < 35) return "Pick one track and start the daily loop — small, consistent reps compound fast.";
+  if (overall < 60) return "Solid base forming. Layer in mock interviews and keep the streak alive.";
+  if (overall < 80) return "You're interview-shaped. Sharpen weak patterns and polish your resume.";
+  if (overall < 92) return "Genuinely close. Close the last gaps below and you're drive-ready.";
+  return "You're placement-ready. Keep sharp and start applying with confidence.";
 }
 
 export function computeReadiness(i: ReadinessInput, goal?: ReadinessGoal): Readiness {
@@ -136,7 +162,7 @@ export function computeReadiness(i: ReadinessInput, goal?: ReadinessGoal): Readi
       detail: i.totalSolved ? `${i.totalSolved} solved · ${Math.round(i.acceptanceRate * 100)}% acceptance` : "No problems solved yet",
       href: "/problems", action: "Solve problems daily" },
     { key: "interview", label: "Interview Practice", icon: "mic", score: interview, weight: w.interview,
-      detail: practiceCount ? `${mockCount} mock${mockCount === 1 ? "" : "s"} · ${i.commDrills.length} drill${i.commDrills.length === 1 ? "" : "s"}` : "No interview practice yet",
+      detail: practiceCount ? `${mockCount} mock${plural(mockCount)} · ${i.commDrills.length} drill${plural(i.commDrills.length)}` : "No interview practice yet",
       href: mockCount || !i.commDrills.length ? "/mocks" : "/communication", action: "Do a mock or HR drill" },
     { key: "aptitude", label: "Aptitude", icon: "clipboard", score: aptitude, weight: w.aptitude,
       detail: aptScores.length ? `Best ${Math.round(Math.max(...aptScores))}% on MCQ tests` : "No aptitude tests taken",
@@ -154,19 +180,8 @@ export function computeReadiness(i: ReadinessInput, goal?: ReadinessGoal): Readi
 
   const overall = clamp(pillars.reduce((a, p) => a + p.score * p.weight, 0));
 
-  const band =
-    overall < 35 ? "Just getting started" :
-    overall < 60 ? "Building momentum" :
-    overall < 80 ? "Getting interview-ready" :
-    overall < 92 ? "Almost placement-ready" :
-                   "Placement-ready";
-
-  const base =
-    overall < 35 ? "Pick one track and start the daily loop — small, consistent reps compound fast." :
-    overall < 60 ? "Solid base forming. Layer in mock interviews and keep the streak alive." :
-    overall < 80 ? "You're interview-shaped. Sharpen weak patterns and polish your resume." :
-    overall < 92 ? "Genuinely close. Close the last gaps below and you're drive-ready." :
-                   "You're placement-ready. Keep sharp and start applying with confidence.";
+  const band = readinessBand(overall);
+  const base = readinessSummaryBase(overall);
 
   // Tell the student this score is tuned to their target — the differentiator.
   const goalTune: Record<string, string> = {
@@ -204,11 +219,10 @@ export function rankActions(r: Readiness, limit = 3): GuidanceAction[] {
 
   return ranked.slice(0, Math.max(1, limit)).map((p, idx) => {
     const impact = Math.round(p.weight * (100 - p.score));
-    const reason = !anyProgress
-      ? `Start here — ${p.label.toLowerCase()} is the foundation the rest compounds on.`
-      : idx === 0
-        ? `Your biggest lever right now: ${p.label} is at ${p.score}/100 and carries ${Math.round(p.weight * 100)}% of your score. ${p.detail}.`
-        : `Then ${p.label} (${p.score}/100). ${p.detail}.`;
+    let reason: string;
+    if (!anyProgress) reason = `Start here — ${p.label.toLowerCase()} is the foundation the rest compounds on.`;
+    else if (idx === 0) reason = `Your biggest lever right now: ${p.label} is at ${p.score}/100 and carries ${Math.round(p.weight * 100)}% of your score. ${p.detail}.`;
+    else reason = `Then ${p.label} (${p.score}/100). ${p.detail}.`;
     return {
       pillarKey: p.key,
       label: p.action,

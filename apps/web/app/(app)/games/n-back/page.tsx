@@ -29,8 +29,8 @@ export default function Page() {
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      if (!running || e.code !== "Space") return;
-      if (respondedRef.current) return;
+      if (!running || e.code !== "Space") { return; }
+      if (respondedRef.current) { return; }
       respondedRef.current = true;
       const idx = sequenceRef.current.length - 1;
       const isMatch = idx >= N && sequenceRef.current[idx] === sequenceRef.current[idx - N];
@@ -93,13 +93,13 @@ export default function Page() {
 
   return (
     <div className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-3xl">
-      <h1 className="font-display text-3xl font-bold tracking-tight">2-Back</h1>
+      <h1 className="type-display">2-Back</h1>
       <p className="text-text-3 mt-2">Press <kbd className="font-mono bg-surface border border-border px-1.5 py-0.5 rounded">SPACE</kbd> when the current letter matches the one shown 2 steps ago.</p>
 
       <Card className="mt-10 h-72 flex items-center justify-center">
         <div className="text-center">
           <div className="font-display text-[8rem] leading-none">
-            {running ? (letter ?? "•") : done ? "✓" : "—"}
+            {(() => { if (running) { return letter ?? "•"; } if (done) { return "✓"; } return "—"; })()}
           </div>
           {running && <div className="mt-2 text-text-3">Trial {trial}/{TRIALS}</div>}
         </div>
@@ -113,7 +113,7 @@ export default function Page() {
 
       {done && (
         <Card className="mt-6">
-          <h3 className="font-display text-lg font-bold mb-2">Result</h3>
+          <h3 className="type-title mb-2">Result</h3>
           <Row label="Hits"            value={s.hits} />
           <Row label="Misses"          value={s.misses} />
           <Row label="False alarms"    value={s.falseAlarms} />
@@ -125,7 +125,7 @@ export default function Page() {
   );
 }
 
-function Row({ label, value }: { label: string; value: number | string }) {
+function Row({ label, value }: Readonly<{ label: string; value: number | string }>) {
   return (
     <div className="flex justify-between py-1.5 border-b border-border last:border-0 text-sm">
       <span className="text-text-3">{label}</span>

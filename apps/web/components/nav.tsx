@@ -12,7 +12,7 @@ const AuthButtons = HAS_REAL_CLERK
 
 export function Nav() {
   return (
-    <header className="border-b border-border sticky top-0 bg-bg/80 backdrop-blur-sm z-50">
+    <header className="border-b border-border sticky top-0 glass z-50">
       <nav className="mx-auto max-w-7xl px-6 h-16 flex items-center justify-between">
         <Link href="/" className="font-display font-bold text-xl tracking-tight">EYF</Link>
         <div className="hidden md:flex items-center gap-8 text-sm text-text-2">

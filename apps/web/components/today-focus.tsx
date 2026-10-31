@@ -34,11 +34,11 @@ export function TodayFocus() {
     return (
       <div className="rounded-2xl border border-brand/25 bg-brand/[0.04] p-5 sm:p-6">
         <div className="text-xs font-mono uppercase tracking-widest text-brand">Commit to one thing</div>
-        <h2 className="font-display text-xl font-bold mt-1">What&apos;s your one focus today?</h2>
+        <h2 className="type-title mt-1">What&apos;s your one focus today?</h2>
         <p className="text-text-3 text-sm mt-1">Pick a single goal and the day orients around it — beats a scattered to-do list.</p>
         <div className="mt-4 flex flex-wrap gap-2">
           {GOALS.map((x) => (
-            <button key={x.key} onClick={() => pick(x.key)}
+            <button type="button" key={x.key} onClick={() => pick(x.key)}
               className="px-3.5 py-2 rounded-lg border border-border bg-surface text-sm hover:border-accent hover:bg-surface-2 transition-colors">
               {x.label}
             </button>
@@ -52,12 +52,12 @@ export function TodayFocus() {
     <div className="rounded-2xl border border-brand/25 bg-brand/[0.04] p-5 sm:p-6 flex items-start justify-between gap-4 flex-wrap">
       <div>
         <div className="text-xs font-mono uppercase tracking-widest text-brand">Today&apos;s focus</div>
-        <h2 className="font-display text-xl font-bold mt-1">{g.label}</h2>
+        <h2 className="type-title mt-1">{g.label}</h2>
         <p className="text-text-3 text-sm mt-1">{g.detail}</p>
       </div>
       <div className="flex items-center gap-4 shrink-0">
         <Link href={g.href} className="px-4 py-2 rounded-lg bg-brand text-white text-sm font-medium">Start →</Link>
-        <button onClick={reset} className="text-text-4 text-xs hover:text-text-2">Change</button>
+        <button type="button" onClick={reset} className="text-text-4 text-xs hover:text-text-2">Change</button>
       </div>
     </div>
   );

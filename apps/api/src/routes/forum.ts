@@ -81,7 +81,7 @@ export async function forumRoutes(app: FastifyInstance) {
     // A reply's parent must live in the same thread.
     if (parentId) {
       const parent = await prisma.forumPost.findUnique({ where: { id: parentId }, select: { threadId: true } });
-      if (!parent || parent.threadId !== thread.id) {
+      if (parent?.threadId !== thread.id) {
         return reply.code(400).send({ success: false, error: { code: "INVALID_PARENT", message: "Parent post is not in this thread." } });
       }
     }

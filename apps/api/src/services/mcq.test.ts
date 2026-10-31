@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { scoreMcq } from "./mcq.js";
-import { MCQ_BANK, MCQ_CATEGORIES, mcqCount, pickTest, getMcq } from "../lib/mcq-bank.js";
+import { MCQ_BANK, MCQ_CATEGORIES, mcqCount, pickTest, getMcq, mcqCompanies } from "../lib/mcq-bank.js";
 
 describe("mcq bank integrity", () => {
   it("every question has a valid correctIndex and non-empty explanation", () => {
@@ -64,5 +64,14 @@ describe("mcq scorer", () => {
   it("ignores unknown question ids", () => {
     const result = scoreMcq([{ questionId: "does-not-exist", choice: 0 }]);
     expect(result.totalQuestions).toBe(0);
+  });
+});
+
+describe("mcqCompanies", () => {
+  it("returns a sorted, de-duplicated list of company tags", () => {
+    const cs = mcqCompanies();
+    expect(Array.isArray(cs)).toBe(true);
+    expect(new Set(cs).size).toBe(cs.length);
+    expect([...cs].sort((a, b) => a.localeCompare(b))).toEqual(cs);
   });
 });

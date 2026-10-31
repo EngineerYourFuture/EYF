@@ -6,8 +6,9 @@ import { useApi, useApiAction } from "@/lib/use-api";
 import { toast } from "sonner";
 import { PageMotion } from "@/components/page-motion";
 import { TodayFocus } from "@/components/today-focus";
+import { SprintEntry } from "@/components/placement-sprint";
 import { Reveal } from "@/components/motion";
-import { Icons, type IconName } from "@/components/icons";
+import { Icons, iconFor, type IconName } from "@/components/icons";
 import { useGuidance, type Guidance } from "@/lib/use-guidance";
 
 type Today = {
@@ -20,7 +21,7 @@ type App = { id: string; status: string; job: { slug: string; title: string; com
 const SUBJECTS = ["os", "dbms", "cn", "oop"] as const;
 const diffTone = { EASY: "easy", MEDIUM: "medium", HARD: "hard", EXPERT: "expert" } as const;
 
-type PlanItem = { id: string; label: string; detail: string; href: string; icon: IconName; done: boolean; auto: boolean };
+type PlanItem = { id: string; label: string; detail: string; href: string; icon: string; done: boolean; auto: boolean };
 
 export default function Page() {
   const { data: today } = useApi<Today>("/roadmap/today");
@@ -65,11 +66,11 @@ export default function Page() {
   const loaded = !!today;
 
   const plan: PlanItem[] = useMemo(() => {
-    if (!today) return [];
+    if (!today) { return []; }
     const items: PlanItem[] = [];
     if (today.challenge) {
       items.push({
-        id: "daily", icon: "bolt", href: `/problems/${today.challenge.problem.slug}`,
+        id: "daily", icon: "Bolt", href: `/problems/${today.challenge.problem.slug}`,
         label: `Solve today's challenge: ${today.challenge.problem.title}`,
         detail: today.challenge.problem.difficulty,
         done: today.challenge.alreadySolvedToday, auto: true,
@@ -77,7 +78,7 @@ export default function Page() {
     }
     if (dueCount > 0) {
       items.push({
-        id: "flashcards", icon: "book", href: "/subjects",
+        id: "flashcards", icon: "Book", href: "/subjects",
         label: `Review ${dueCount} due flashcard${dueCount > 1 ? "s" : ""}`,
         detail: "Spaced repetition keeps core CS sticky", done: checked.has("flashcards"), auto: false,
       });
@@ -93,58 +94,65 @@ export default function Page() {
 
   return (
     <PageMotion className="relative">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-64 bg-glow-radial" aria-hidden />
       <div className="relative px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-7xl mx-auto">
         <div className="text-xs font-mono uppercase tracking-widest text-accent mb-2">
-          {new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" })}
+          {new Date().toLocaleDateString("en-IN", { weekday: "long", month: "long", day: "numeric", timeZone: "Asia/Kolkata" })}
         </div>
-        <h1 className="font-display text-3xl sm:text-4xl font-bold tracking-tight">Today</h1>
-        <p className="text-text-3 mt-2">Your one plan for the day. Finish it and you&apos;ve moved the needle.</p>
+        <h1 className="type-display">Today</h1>
+        <p className="text-text-3 mt-2">Continue your placement sprint, then make room for daily practice.</p>
+        <SprintEntry />
 
         {/* Today stats */}
         <div className="mt-6 grid grid-cols-3 gap-4">
-          <MiniStat icon="flame" tone="accent" label="Streak" value={today ? `${today.streak}` : "—"} unit="d" />
-          <MiniStat icon="bolt" tone="medium" label="XP today" value={today ? `${today.xpToday}` : "—"} />
-          <MiniStat icon="code" label="Solved today" value={today ? `${today.problemsSolvedToday}` : "—"} />
+          <MiniStat icon="Flame" tone="accent" label="Streak" value={today ? `${today.streak}` : "—"} unit="d" />
+          <MiniStat icon="Bolt" tone="medium" label="XP today" value={today ? `${today.xpToday}` : "—"} />
+          <MiniStat icon="Code" label="Solved today" value={today ? `${today.problemsSolvedToday}` : "—"} />
         </div>
 
         <div className="mt-6"><TodayFocus /></div>
 
         {/* Two-column workspace — fills the width */}
+        {/* min-w-0 on the columns lets fr tracks shrink below content width —
+            without it the coach badge forces the whole card past the viewport
+            on mobile. */}
         <div className="grid lg:grid-cols-[1.6fr_1fr] gap-x-6 items-start">
           {/* Left: coach + today's plan */}
-          <div>
+          <div className="min-w-0">
             {/* Your Coach — the active guidance engine (readiness → next best action) */}
             <CoachCard guidance={guidance} />
 
             {/* Plan */}
             <Card variant="glow" className="mt-6">
               <div className="flex items-center justify-between mb-1">
-                <h2 className="font-display text-xl font-bold">Today&apos;s plan</h2>
+                <h2 className="type-title">Today&apos;s plan</h2>
                 <span className="text-text-3 text-sm font-mono">{doneCount}/{plan.length || "—"}</span>
               </div>
               <div className="h-1.5 bg-surface-3 rounded-full overflow-hidden mb-5">
                 <div className="h-full bg-accent transition-all duration-500" style={{ width: `${pct}%` }} />
               </div>
 
-              {!loaded ? (
+              {(() => {
+  if (!loaded) { return (
                 <div className="space-y-3">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-16 rounded-xl" />)}</div>
-              ) : allDone ? (
+              ); }
+  if (allDone) { return (
                 <div className="text-center py-8">
-                  <div className="text-easy mb-3 flex justify-center"><Icons.trophy width={32} height={32} /></div>
+                  <div className="text-easy mb-3 flex justify-center"><Icons.Trophy width={32} height={32} /></div>
                   <p className="font-display text-lg font-bold">Plan complete. 🎯</p>
                   <p className="text-text-3 text-sm mt-1">You showed up today — that&apos;s how offers get built. See you tomorrow.</p>
                 </div>
-              ) : (
+              ); }
+  return (
                 <div className="space-y-2.5">
                   {plan.map((item) => <PlanRow key={item.id} item={item} onToggle={() => toggle(item.id)} />)}
                 </div>
-              )}
+              );
+})()}
             </Card>
           </div>
 
           {/* Right: daily mission + deadlines */}
-          <div>
+          <div className="min-w-0">
             {/* Daily Mission — the retention loop */}
             <DailyMission />
 
@@ -152,8 +160,8 @@ export default function Page() {
             {deadlines.length > 0 && (
               <Reveal className="mt-6"><Card>
                 <div className="flex items-center justify-between mb-3">
-                  <h2 className="font-display text-lg font-bold flex items-center gap-2">
-                    <span className="text-hard"><Icons.gauge width={18} height={18} /></span> Deadlines this week
+                  <h2 className="type-title flex items-center gap-2">
+                    <span className="text-hard"><Icons.Gauge width={18} height={18} /></span> Deadlines this week
                   </h2>
                   <Link href="/pipeline" className="text-accent text-sm hover:underline">Pipeline →</Link>
                 </div>
@@ -165,7 +173,7 @@ export default function Page() {
                         <div className="text-sm font-medium truncate">{d.job.title}</div>
                         <div className="text-text-4 text-xs truncate">{d.job.company} · {d.status}</div>
                       </div>
-                      <Badge tone={d.days <= 2 ? "hard" : d.days <= 5 ? "medium" : "default"}>
+                      <Badge tone={(() => { if (d.days <= 2) { return "hard" as const; } if (d.days <= 5) { return "medium" as const; } return "default" as const; })()}>
                         {d.days === 0 ? "Today" : `${d.days}d`}
                       </Badge>
                     </Link>
@@ -185,19 +193,22 @@ export default function Page() {
   );
 }
 
-function CoachCard({ guidance }: { guidance: Guidance | null }) {
-  if (!guidance) return <Skeleton className="mt-6 h-40 rounded-2xl" />;
+function CoachCard({ guidance }: Readonly<{ guidance: Guidance | null }>) {
+  if (!guidance) { return <Skeleton className="mt-6 h-40 rounded-2xl" />; }
   const { readiness, actions, coachNote } = guidance;
-  const tone = readiness.overall >= 80 ? "easy" : readiness.overall >= 50 ? "accent" : "medium";
+  let tone: "easy" | "accent" | "medium";
+  if (readiness.overall >= 80) tone = "easy";
+  else if (readiness.overall >= 50) tone = "accent";
+  else tone = "medium";
   return (
     <Card variant="glow" className="mt-6">
-      <div className="flex items-center justify-between gap-3 mb-3">
+      <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
         <div className="flex items-center gap-2">
-          <span className="text-accent"><Icons.sparkle width={18} height={18} /></span>
+          <span className="text-accent"><Icons.Sparkle width={18} height={18} /></span>
           <span className="font-mono text-[11px] uppercase tracking-widest text-accent">Your coach</span>
         </div>
-        <Link href="/readiness">
-          <Badge tone={tone}>{readiness.overall} · {readiness.band}</Badge>
+        <Link href="/readiness" className="min-w-0">
+          <Badge tone={tone} className="max-w-full truncate">{readiness.overall} · {readiness.band}</Badge>
         </Link>
       </div>
 
@@ -211,7 +222,7 @@ function CoachCard({ guidance }: { guidance: Guidance | null }) {
           </div>
           <div className="space-y-2">
             {actions.map((a, i) => {
-              const Icon = Icons[a.icon];
+              const Icon = iconFor(a.icon);
               return (
                 <Link key={a.pillarKey} href={a.href}
                   className="group flex items-start gap-3 rounded-xl border border-border bg-surface px-3.5 py-3 hover:border-accent/40 hover:bg-surface-2 transition-colors">
@@ -225,7 +236,7 @@ function CoachCard({ guidance }: { guidance: Guidance | null }) {
                       <div className="text-text-4 text-xs mt-0.5 leading-snug">{a.reason}</div>
                     )}
                   </div>
-                  <span className="shrink-0 self-center text-text-4 group-hover:text-accent transition-colors"><Icons.arrow width={16} height={16} /></span>
+                  <span className="shrink-0 self-center text-text-4 group-hover:text-accent transition-colors"><Icons.Arrow width={16} height={16} /></span>
                 </Link>
               );
             })}
@@ -243,7 +254,7 @@ function CoachCard({ guidance }: { guidance: Guidance | null }) {
 
 type Mission = {
   date: string;
-  tasks: { key: string; label: string; detail: string; href: string; icon: IconName; xp: number; done: boolean }[];
+  tasks: { key: string; label: string; detail: string; href: string; icon: string; xp: number; done: boolean }[];
   earnedXp: number; bonusXp: number; allDone: boolean; claimed: boolean;
 };
 
@@ -252,7 +263,7 @@ function DailyMission() {
   const action = useApiAction();
   const [claiming, setClaiming] = useState(false);
 
-  if (!data) return <Skeleton className="mt-6 h-44 rounded-2xl" />;
+  if (!data) { return <Skeleton className="mt-6 h-44 rounded-2xl" />; }
 
   const doneCount = data.tasks.filter((t) => t.done).length;
   const pct = Math.round((doneCount / data.tasks.length) * 100);
@@ -274,11 +285,11 @@ function DailyMission() {
     <Card variant="glow" className="mt-6 relative overflow-hidden">
       <div className="flex items-center justify-between mb-1">
         <div className="flex items-center gap-2">
-          <span className="text-accent"><Icons.bolt width={18} height={18} /></span>
-          <h2 className="font-display text-xl font-bold">Daily mission</h2>
+          <span className="text-accent"><Icons.Bolt width={18} height={18} /></span>
+          <h2 className="type-title">Daily mission</h2>
         </div>
         <Badge tone={data.allDone ? "easy" : "accent"}>
-          {data.claimed ? "Claimed" : data.allDone ? "Ready to claim" : `+${data.bonusXp} XP`}
+          {(() => { if (data.claimed) { return "Claimed"; } if (data.allDone) { return "Ready to claim"; } return `+${data.bonusXp} XP`; })()}
         </Badge>
       </div>
       <p className="text-text-3 text-sm mb-4">Clear all three to bank a {data.bonusXp} XP bonus and protect your streak.</p>
@@ -289,7 +300,7 @@ function DailyMission() {
 
       <div className="space-y-2">
         {data.tasks.map((t) => {
-          const Icon = Icons[t.icon];
+          const Icon = iconFor(t.icon);
           return (
             <Link key={t.key} href={t.href}
               className={`flex items-center gap-3 rounded-xl border p-3 transition-colors ${
@@ -315,7 +326,7 @@ function DailyMission() {
         <div className="mt-4">
           {data.claimed ? (
             <div className="flex items-center justify-center gap-2 text-easy text-sm font-medium py-2">
-              <Icons.trophy width={18} height={18} /> Bonus claimed — see you tomorrow.
+              <Icons.Trophy width={18} height={18} /> Bonus claimed — see you tomorrow.
             </div>
           ) : (
             <Button glow className="w-full" onClick={claim} disabled={claiming}>
@@ -328,14 +339,14 @@ function DailyMission() {
   );
 }
 
-function PlanRow({ item, onToggle }: { item: PlanItem; onToggle: () => void }) {
-  const Icon = Icons[item.icon];
+function PlanRow({ item, onToggle }: Readonly<{ item: PlanItem; onToggle: () => void }>) {
+  const Icon = iconFor(item.icon);
   const tone = item.detail in diffTone ? diffTone[item.detail as keyof typeof diffTone] : undefined;
   return (
     <div className={`flex items-center gap-3 rounded-xl border p-3 transition-colors ${
       item.done ? "border-border bg-surface-2/50" : "border-border bg-surface hover:border-edge"
     }`}>
-      <button
+      <button type="button"
         onClick={onToggle}
         disabled={item.auto}
         aria-label={item.done ? "Done" : "Mark done"}
@@ -356,11 +367,14 @@ function PlanRow({ item, onToggle }: { item: PlanItem; onToggle: () => void }) {
   );
 }
 
-function MiniStat({ icon, label, value, unit, tone = "default" }: {
+function MiniStat({ icon, label, value, unit, tone = "default" }: Readonly<{
   icon: IconName; label: string; value: string; unit?: string; tone?: "default" | "accent" | "medium";
-}) {
+}>) {
   const Icon = Icons[icon];
-  const cls = tone === "accent" ? "text-accent" : tone === "medium" ? "text-medium" : "text-text-2";
+  let cls;
+  if (tone === "accent") cls = "text-accent";
+  else if (tone === "medium") cls = "text-medium";
+  else cls = "text-text-2";
   return (
     <div className="rounded-xl border border-border bg-surface p-4 shadow-card">
       <div className="flex items-center justify-between">

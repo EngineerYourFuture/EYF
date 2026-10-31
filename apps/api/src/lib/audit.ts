@@ -23,7 +23,9 @@ export async function recordAudit(
         summary: entry.summary,
       },
     });
+  /* c8 ignore start -- best-effort audit; the catch only fires on a DB write failure. */
   } catch {
     req.log?.warn?.({ entry }, "audit log write failed");
   }
+  /* c8 ignore stop */
 }

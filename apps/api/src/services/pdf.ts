@@ -61,7 +61,7 @@ function ResumeDoc({ data }: { data: ResumeDocument }) {
           ...data.education.map((e, i) =>
             React.createElement(View, { key: i, style: sty.expHeader },
               React.createElement(Text, { style: sty.expCompany }, `${e.degree} · ${e.institution}`),
-              React.createElement(Text, { style: sty.expRole }, `${e.start} – ${e.end ?? "Present"}${e.gpa ? ` · GPA ${e.gpa}` : ""}`)))) : null,
+              React.createElement(Text, { style: sty.expRole }, `${e.start} – ${e.end ?? "Present"}${e.gpa ? " · GPA " + e.gpa : ""}`)))) : null,
       ),
     )
   );
@@ -79,7 +79,7 @@ function CertificateDoc({ name, title, score, verificationCode, issuedAt }: {
           React.createElement(Text, { style: sty.certBody }, "Awarded to"),
           React.createElement(Text, { style: sty.certName }, name),
           React.createElement(Text, { style: sty.certBody },
-            `for completing ${title}${score != null ? ` with a score of ${score}` : ""}.`),
+            `for completing ${title}${score != null ? " with a score of " + score : ""}.`),
           React.createElement(Text, { style: sty.certFooter },
             `Issued ${issuedAt.toDateString()} · Verify at eyf.in/verify/${verificationCode}`),
         ),

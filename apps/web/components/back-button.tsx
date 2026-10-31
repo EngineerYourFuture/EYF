@@ -15,13 +15,17 @@ const PARENT: Record<string, string> = {
   "peer-mocks": "/peer-mocks",
   resume: "/resume",
   subjects: "/subjects",
+  orgs: "/orgs",
+  learn: "/learn",
+  companies: "/companies",
+  games: "/games",
 };
 
 /**
  * Contextual back button. Renders only on detail pages (≥2 path segments).
  * Prefers in-app history; falls back to the section index when deep-linked.
  */
-export function BackButton({ className = "" }: { className?: string }) {
+export function BackButton({ className = "" }: Readonly<{ className?: string }>) {
   const pathname = usePathname();
   const router = useRouter();
   const segments = pathname.split("/").filter(Boolean);
@@ -37,9 +41,9 @@ export function BackButton({ className = "" }: { className?: string }) {
   }
 
   return (
-    <button
+    <button type="button"
       onClick={goBack}
-      className={`inline-flex items-center gap-1.5 text-sm text-text-3 hover:text-text-1 transition-colors ${className}`}
+      className={`pressable inline-flex min-h-11 items-center gap-1.5 rounded-md text-sm text-text-3 hover:text-text-1 transition-colors ${className}`}
       aria-label="Go back"
     >
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

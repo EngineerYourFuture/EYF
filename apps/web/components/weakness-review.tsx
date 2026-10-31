@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useApi } from "@/lib/use-api";
+import { masteryBarClass } from "@/lib/ui-helpers";
 
 type Review = {
   overall: number;
@@ -58,7 +59,7 @@ export function WeaknessReview() {
                 </div>
                 <div className="mt-1.5 h-1.5 rounded-full bg-surface-3 overflow-hidden">
                   <div
-                    className={`h-full rounded-full transition-all duration-500 ${t.mastery >= 70 ? "bg-easy" : t.mastery >= 40 ? "bg-medium" : "bg-brand"}`}
+                    className={`h-full rounded-full transition-all duration-500 ${masteryBarClass(t.mastery)}`}
                     style={{ width: `${Math.max(3, t.mastery)}%` }}
                   />
                 </div>

@@ -58,7 +58,7 @@ export default function Daily() {
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+function Stat({ label, value }: Readonly<{ label: string; value: string }>) {
   return (
     <View style={{ flex: 1, borderWidth: 1, borderColor: theme.border, borderRadius: 8, padding: 12 }}>
       <Text style={{ color: theme.text3, fontSize: 10, letterSpacing: 1, textTransform: "uppercase" }}>{label}</Text>

@@ -23,14 +23,18 @@ export default function Page() {
   const action = useApiAction();
 
   async function choose(slug: string) {
-    await action(`/tracks/${slug}/choose`, { method: "POST" });
-    ev(Events.TrackChosen, { slug });
-    toast.success("Track selected — your roadmap will calibrate to it.");
-    await mutate();
+    try {
+      await action(`/tracks/${slug}/choose`, { method: "POST" });
+      ev(Events.TrackChosen, { slug });
+      toast.success("Track selected — your roadmap will calibrate to it.");
+      await mutate();
+    } catch {
+      /* toasted */
+    }
   }
 
   return (
-    <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-6xl">
+    <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-6xl mx-auto">
       <h1 className="font-display text-5xl font-bold tracking-tight">Choose your path.</h1>
       <p className="text-text-3 mt-3 max-w-2xl text-lg">
         Pick one. The assessment, roadmap, and problem weighting will all calibrate to your target role.
@@ -50,7 +54,7 @@ export default function Page() {
         {data?.map((t) => (
           <Card key={t.id} className="flex flex-col hover:border-accent transition-colors">
             <div className="flex items-center justify-between">
-              <h3 className="font-display text-xl font-bold">{t.name}</h3>
+              <h3 className="type-title">{t.name}</h3>
               {t.premium && <Badge tone="accent">Pro</Badge>}
             </div>
             <p className="text-text-2 text-sm mt-2 flex-1">{t.tagline}</p>
@@ -75,7 +79,7 @@ export default function Page() {
   );
 }
 
-function Row({ label, value }: { label: string; value: React.ReactNode }) {
+function Row({ label, value }: Readonly<{ label: string; value: React.ReactNode }>) {
   return (
     <div className="flex items-center justify-between">
       <span className="text-text-3 text-xs uppercase tracking-wider">{label}</span>

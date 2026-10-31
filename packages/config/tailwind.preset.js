@@ -1,13 +1,13 @@
 /**
- * EYF design tokens.
- * Dark-first, with a full light theme. Single brand accent (lime #E8FF47).
+ * EYF design tokens — see DESIGN.md.
+ * Dark-first, with a full light theme. Monochrome primary plus one brand red.
  *
  * Colors resolve to CSS variables (space-separated RGB channels) so that:
  *   - Tailwind opacity modifiers keep working  →  bg-accent/10, border-border/60
  *   - Light/dark themes swap by re-defining the variables in globals.css
  *
- * The "vibrant" layer (glows, gradients, elevated surfaces) lives in the
- * boxShadow / backgroundImage / colors extensions below.
+ * Elevation and the neutral back-compat aliases (glow, accent-grad) live in
+ * the boxShadow / backgroundImage extensions below.
  */
 
 /** rgb(var) helper so every color supports `/<alpha>` opacity modifiers. */
@@ -51,9 +51,14 @@ module.exports = {
         info:    v("info"),
       },
       fontFamily: {
-        display: ["Geist", "ui-sans-serif", "system-ui"],
-        sans:    ["Geist", "ui-sans-serif", "system-ui"],
-        mono:    ["Geist Mono", "JetBrains Mono", "ui-monospace", "monospace"],
+        // Self-hosted via the `geist` package (next/font) — no third-party font
+        // request, no FOUT, size-adjusted fallback. Vars set on <html>.
+        display: ["var(--font-geist-sans)", "ui-sans-serif", "system-ui"],
+        sans:    ["var(--font-geist-sans)", "ui-sans-serif", "system-ui"],
+        mono:    ["var(--font-geist-mono)", "JetBrains Mono", "ui-monospace", "monospace"],
+        // Marketing display face (Bricolage Grotesque). Falls back to Geist where
+        // --font-display isn't defined, so it's inert outside the landing.
+        brand:   ["var(--font-display)", "var(--font-geist-sans)", "ui-sans-serif", "system-ui"],
       },
       spacing: {
         "4.5": "1.125rem",

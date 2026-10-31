@@ -2,17 +2,38 @@
   "ci": {
     "collect": {
       "startServerCommand": "pnpm --filter @eyf/web start",
-      "url": ["http://localhost:3000/"],
-      "numberOfRuns": 1,
+      "url": [
+        "http://localhost:3000/",
+        "http://localhost:3000/pricing",
+        "http://localhost:3000/about",
+        "http://localhost:3000/security",
+        "http://localhost:3000/terms",
+        "http://localhost:3000/privacy"
+      ],
+      "numberOfRuns": 2,
       "settings": { "preset": "desktop" }
     },
     "assert": {
-      "assertions": {
-        "categories:accessibility": ["error", { "minScore": 0.9 }],
-        "categories:performance": ["warn", { "minScore": 0.6 }],
-        "categories:best-practices": ["warn", { "minScore": 0.8 }],
-        "categories:seo": ["warn", { "minScore": 0.9 }]
-      }
+      "assertMatrix": [
+        {
+          "matchingUrlPattern": "http://localhost:3000/$",
+          "assertions": {
+            "categories:accessibility": ["error", { "minScore": 0.9 }],
+            "categories:performance": ["warn", { "minScore": 0.6 }],
+            "categories:best-practices": ["warn", { "minScore": 0.8 }],
+            "categories:seo": ["warn", { "minScore": 0.9 }]
+          }
+        },
+        {
+          "matchingUrlPattern": "http://localhost:3000/(pricing|about|security|terms|privacy).*",
+          "assertions": {
+            "categories:accessibility": ["warn", { "minScore": 0.9 }],
+            "categories:performance": ["warn", { "minScore": 0.6 }],
+            "categories:best-practices": ["warn", { "minScore": 0.8 }],
+            "categories:seo": ["warn", { "minScore": 0.9 }]
+          }
+        }
+      ]
     },
     "upload": { "target": "temporary-public-storage" }
   }

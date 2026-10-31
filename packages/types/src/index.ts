@@ -1,4 +1,6 @@
 // Shared transport types — used by both web and api.
+export { lessonUrl, lessonEmbed } from "./lms";
+export type { LessonBlock } from "./lms";
 // Keep aligned with the API contract in specs/EYF_Master_Docs_Final.md Doc 12.
 
 export type ApiSuccess<T> = {
@@ -33,6 +35,7 @@ export type SessionUser = {
     | "STUDENT_PRO"
     | "STUDENT_ELITE"
     | "MENTOR"
+    | "MODERATOR"
     | "CONTENT_CREATOR"
     | "ADMIN";
   plan: Plan;
@@ -139,7 +142,7 @@ export function levelForXp(xp: number): number {
 // linker under `tsx watch`. Extensionless (not `.js`): tsx resolves it, and
 // Next's webpack resolves `./readiness`->`.ts` — a `.js` specifier would break
 // the web build (no readiness.js exists). Named + extensionless satisfies both.
-export { computeReadiness, rankActions } from "./readiness";
+export { computeReadiness, rankActions, READINESS_ALGO_VERSION } from "./readiness";
 export type {
   ReadinessInput,
   ReadinessGoal,
@@ -148,8 +151,62 @@ export type {
   GuidanceAction,
 } from "./readiness";
 
+// Proof Loop — cohort key + descriptive-verified proof (docs/PLAN-proof-loop.md).
+export { collegeSlug, ctcBand, descriptiveCohortProof, validateSelfReport, COHORT_K, MAX_SELF_REPORT_CTC } from "./placement";
+export type { ProofRow, CohortProof, SelfReportInput, SelfReportCheck } from "./placement";
+
+// Proof Loop Phase 2 — denominator-aware readiness calibration (INTERNAL-only output).
+export { calibrateBatch, pooledCalibration, CALIBRATION_K } from "./calibration";
+export type { PlacementStatus, CalibrationMember, BandCalibration } from "./calibration";
+
 // RBAC capability layer (admin/staff portal — scalable, shared web+api).
 export { CAPABILITIES, capabilitiesFor, hasCapability, isStaffRole } from "./permissions";
 export type { Capability, StaffRole } from "./permissions";
 
 export { buildIceServers, type IceServer } from "./webrtc";
+
+// Org-scoped RBAC+ABAC (enterprise platform — PRD §9). Named re-exports per
+// the tsx-watch linker note above.
+export {
+  ORG_CAPABILITIES,
+  orgGrantsFor,
+  canInOrg,
+  hasOrgCapability,
+  isOrgStaff,
+  canGrantRoles,
+} from "./org-permissions";
+export type { OrgCapability, OrgRoleName, OrgScope, OrgDecision } from "./org-permissions";
+
+// Deterministic permission-resolution engine (allow/deny, temporary access,
+// multi-source) + composable policies + platform/tenant role separation.
+// Additive superset of canInOrg — see docs/AUTHORIZATION.md.
+export {
+  resolveOrgAccess,
+  isAllowed,
+  invalidTenantRoles,
+  isOrgRoleName,
+  isPlatformRole,
+  ORG_ROLE_NAMES,
+  CanManageOrg,
+  CanViewBilling,
+  CanInviteMember,
+  CanViewAudit,
+  CanManageBranding,
+  CanAuthorCourse,
+  CanPublishCourse,
+  CanEnrollLearners,
+  CanAuthorAssessment,
+  CanGradeAssessment,
+  CanViewResults,
+  CanReadSkills,
+  CanSearchTalent,
+  CanManagePipeline,
+  CanMakeOffer,
+  CanViewOrgReports,
+} from "./authz";
+export type { Effect, GrantSource, PermissionEntry, ResolveInput, AccessDecision, Policy } from "./authz";
+
+// Skill Ledger (enterprise evidence layer — PRD §15.13). Named re-exports.
+export { computeSkillLevel, barFit, EVIDENCE_WEIGHT } from "./skill-ledger";
+export type { Evidence, SkillLevel, RoleBarReq, BarGap } from "./skill-ledger";
+export * from "./sprint";

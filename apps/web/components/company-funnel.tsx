@@ -31,13 +31,13 @@ const FUNNELS: Record<CompanyTier, Round[]> = {
   ],
 };
 
-export function CompanyFunnel({ tier }: { tier: CompanyTier }) {
+export function CompanyFunnel({ tier }: Readonly<{ tier: CompanyTier }>) {
   const rounds = FUNNELS[tier];
   let survival = 100;
 
   return (
     <div className="rounded-2xl border border-border bg-surface p-5 sm:p-6 shadow-card">
-      <h2 className="font-display text-lg font-bold">Hiring process</h2>
+      <h2 className="type-title">Hiring process</h2>
       <p className="text-text-3 text-sm mt-1">The rounds you&apos;ll face, their format, and where most candidates get cut.</p>
 
       <div className="mt-5 space-y-3">
@@ -45,7 +45,7 @@ export function CompanyFunnel({ tier }: { tier: CompanyTier }) {
           const entering = survival;
           survival = Math.max(1, Math.round(survival * (1 - r.dropPct / 100)));
           return (
-            <div key={i}>
+            <div key={r.round}>
               <div className="flex items-center justify-between gap-2 text-sm">
                 <span className="font-medium text-text-1">{i + 1}. {r.round}</span>
                 <span className="text-text-4 text-xs font-mono shrink-0">{r.mins}min · ~{r.dropPct}% cut</span>

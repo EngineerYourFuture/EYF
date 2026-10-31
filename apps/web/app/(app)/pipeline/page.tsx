@@ -7,6 +7,8 @@ import { PipelineFunnel } from "@/components/pipeline-funnel";
 import { PageMotion } from "@/components/page-motion";
 import { Reveal } from "@/components/motion";
 import { Icons, type IconName } from "@/components/icons";
+import { ComebackPlanModal } from "@/components/comeback-plan";
+import { rememberRejectionStage, type RejectionStage } from "@/lib/comeback";
 
 type App = {
   id: string;
@@ -35,15 +37,34 @@ export default function PipelinePage() {
   const { data: apps, isLoading, mutate } = useApi<App[]>("/jobs/me/applications");
   const action = useApiAction();
   const [busy, setBusy] = useState<string | null>(null);
+  const [comebackFor, setComebackFor] = useState<App | null>(null);
 
+  /** Moves an application; false when the move failed (already toasted). */
   async function setStatus(id: string, status: Status) {
     setBusy(id);
     try {
-      await action(`/jobs/me/applications/${id}`, { method: "PATCH", body: JSON.stringify({ status }) }, { silent: true });
-      await mutate();
+      await action(`/jobs/me/applications/${id}`, { method: "PATCH", body: JSON.stringify({ status }) });
+      // The move landed: show it now and refresh in the background, so a slow or
+      // failed refresh can't leave a stale stage on screen or undo a real move.
+      void mutate((list) => list?.map((x) => (x.id === id ? { ...x, status } : x)));
+      return true;
+    } catch {
+      return false;
     } finally {
       setBusy(null);
     }
+  }
+
+  // Rejection is the moment students quit — capture the stage it died at and
+  // open the comeback plan immediately instead of letting the card just vanish.
+  async function reject(a: App) {
+    let stage: RejectionStage;
+  if (a.status === "OA") stage = "OA";
+  else if (a.status === "INTERVIEW") stage = "INTERVIEW";
+  else stage = "APPLIED";
+    if (!(await setStatus(a.id, "REJECTED"))) return;
+    rememberRejectionStage(a.id, stage);
+    setComebackFor({ ...a, status: "REJECTED" });
   }
 
   const active = (apps ?? []).filter((a) => a.status !== "REJECTED" && a.status !== "WITHDRAWN");
@@ -52,37 +73,49 @@ export default function PipelinePage() {
   const offers = byStage("OFFER").length;
   const interviewing = byStage("INTERVIEW").length + byStage("OA").length;
 
+  const renderCard = (a: App) => (
+    <AppCard
+      key={a.id}
+      app={a}
+      busy={busy === a.id}
+      onAdvance={NEXT[a.status] ? () => setStatus(a.id, NEXT[a.status]!) : undefined}
+      onReject={() => void reject(a)}
+    />
+  );
+
   return (
     <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-7xl mx-auto">
       <PageHeader
-        eyebrow="Your placement command center"
         title="Application Pipeline"
         subtitle="Every role you're chasing, from saved to offer. Move cards as you progress — deadlines surface automatically."
       />
 
       {/* Funnel stats */}
       <div className="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <Stat label="Tracking" value={active.length} icon="briefcase" />
-        <Stat label="In process" value={interviewing} icon="activity" tone="medium" />
-        <Stat label="Offers" value={offers} icon="trophy" tone="easy" />
-        <Stat label="Closed" value={closed.length} icon="doc" />
+        <Stat label="Tracking" value={active.length} icon="Briefcase" />
+        <Stat label="In process" value={interviewing} icon="Activity" tone="medium" />
+        <Stat label="Offers" value={offers} icon="Trophy" tone="easy" />
+        <Stat label="Closed" value={closed.length} icon="Doc" />
       </div>
 
       {apps && apps.length >= 2 && (
         <div className="mt-6"><PipelineFunnel apps={apps} /></div>
       )}
 
-      {isLoading ? (
+      {(() => {
+  if (isLoading) return (
         <SkeletonRows rows={6} className="mt-8" />
-      ) : active.length === 0 ? (
+      );
+  if (active.length === 0) return (
         <EmptyState
           className="mt-10"
-          icon={<Icons.briefcase width={28} height={28} />}
+          icon={<Icons.Briefcase width={28} height={28} />}
           title="Your pipeline is empty"
           description="Save roles from the jobs board and they'll appear here, ready to track through to an offer."
           action={<Link href="/jobs"><Button>Browse jobs</Button></Link>}
         />
-      ) : (
+      );
+  return (
         <div className="mt-8 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4 items-start">
           {STAGES.map((stage) => {
             const items = byStage(stage.key);
@@ -96,21 +129,14 @@ export default function PipelinePage() {
                   {items.length === 0 && (
                     <div className="text-text-4 text-xs px-1 py-4 text-center">—</div>
                   )}
-                  {items.map((a) => (
-                    <AppCard
-                      key={a.id}
-                      app={a}
-                      busy={busy === a.id}
-                      onAdvance={NEXT[a.status] ? () => setStatus(a.id, NEXT[a.status]!) : undefined}
-                      onReject={() => setStatus(a.id, "REJECTED")}
-                    />
-                  ))}
+                  {items.map(renderCard)}
                 </div>
               </div>
             );
           })}
         </div>
-      )}
+      );
+})()}
 
       {closed.length > 0 && (
         <Reveal>
@@ -120,12 +146,17 @@ export default function PipelinePage() {
           </summary>
           <div className="mt-3 grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {closed.map((a) => (
-              <Card key={a.id} className="opacity-70">
+              <Card key={a.id} className="opacity-80">
                 <div className="text-sm font-medium">{a.job.title}</div>
                 <div className="text-text-4 text-xs">{a.job.company}</div>
-                <div className="mt-2 flex items-center gap-2">
+                <div className="mt-2 flex items-center gap-2 flex-wrap">
                   <Badge tone={a.status === "OFFER" ? "easy" : "default"}>{a.status}</Badge>
-                  <button onClick={() => setStatus(a.id, "SAVED")} className="text-accent text-xs hover:underline">Reopen</button>
+                  {a.status === "REJECTED" && (
+                    <button type="button" onClick={() => setComebackFor(a)} className="text-easy text-xs font-medium hover:underline">
+                      Comeback plan →
+                    </button>
+                  )}
+                  <button type="button" onClick={() => setStatus(a.id, "SAVED")} className="text-text-4 text-xs hover:underline">Reopen</button>
                 </div>
               </Card>
             ))}
@@ -133,13 +164,22 @@ export default function PipelinePage() {
         </details>
         </Reveal>
       )}
+
+      {comebackFor && (
+        <ComebackPlanModal
+          appId={comebackFor.id}
+          companyName={comebackFor.job.company}
+          jobTitle={comebackFor.job.title}
+          onClose={() => setComebackFor(null)}
+        />
+      )}
     </PageMotion>
   );
 }
 
-function AppCard({ app: a, busy, onAdvance, onReject }: {
+function AppCard({ app: a, busy, onAdvance, onReject }: Readonly<{
   app: App; busy: boolean; onAdvance?: () => void; onReject: () => void;
-}) {
+}>) {
   const dl = deadline(a.job.closesAt);
   return (
     <div className={`rounded-xl border border-border bg-surface p-3 shadow-card transition-opacity ${busy ? "opacity-50" : ""}`}>
@@ -154,10 +194,10 @@ function AppCard({ app: a, busy, onAdvance, onReject }: {
       <div className="mt-3 flex items-center gap-1.5">
         {onAdvance && (
           <Button size="sm" onClick={onAdvance} disabled={busy} className="flex-1">
-            Advance <Icons.arrow width={13} height={13} />
+            Advance <Icons.Arrow width={13} height={13} />
           </Button>
         )}
-        <button
+        <button type="button"
           onClick={onReject}
           disabled={busy}
           title="Mark closed"
@@ -173,18 +213,21 @@ function AppCard({ app: a, busy, onAdvance, onReject }: {
 function deadline(closesAt: string | null): { label: string; tone: "hard" | "medium" | "default" } | null {
   if (!closesAt) return null;
   const days = Math.ceil((new Date(closesAt).getTime() - Date.now()) / 86_400_000);
-  if (days < 0) return { label: "Closed", tone: "default" };
+  if (days < 0) return { label: "Deadline passed", tone: "default" };
   if (days === 0) return { label: "Closes today", tone: "hard" };
   if (days <= 3) return { label: `${days}d left`, tone: "hard" };
   if (days <= 7) return { label: `${days}d left`, tone: "medium" };
   return { label: `${days}d left`, tone: "default" };
 }
 
-function Stat({ label, value, icon, tone = "default" }: {
+function Stat({ label, value, icon, tone = "default" }: Readonly<{
   label: string; value: number; icon: IconName; tone?: "default" | "medium" | "easy";
-}) {
+}>) {
   const Icon = Icons[icon];
-  const cls = tone === "easy" ? "text-easy" : tone === "medium" ? "text-medium" : "text-text-2";
+  let cls;
+  if (tone === "easy") cls = "text-easy";
+  else if (tone === "medium") cls = "text-medium";
+  else cls = "text-text-2";
   return (
     <div className="rounded-xl border border-border bg-surface p-4 shadow-card">
       <div className="flex items-center justify-between">

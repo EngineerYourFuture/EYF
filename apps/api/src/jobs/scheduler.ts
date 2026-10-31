@@ -8,11 +8,12 @@
 import { Queue } from "bullmq";
 import { redis } from "../lib/redis.js";
 
-export type CronJobName = "streak-break-alert" | "weekly-leaderboard" | "daily-digest";
+export type CronJobName = "streak-break-alert" | "weekly-leaderboard" | "daily-digest" | "parent-digest" | "lms-invitation-reminders";
 
 export const cronQueue = new Queue<unknown, void, CronJobName>("cron", { connection: redis });
 
 export async function registerCronJobs(): Promise<void> {
+  await cronQueue.upsertJobScheduler("lms-invitation-reminders", { pattern: "0 3 * * *" }, { name: "lms-invitation-reminders", data: {} });
   await cronQueue.upsertJobScheduler(
     "streak-break-alert",
     { pattern: "30 15 * * *" }, // 21:00 IST = 15:30 UTC
@@ -27,5 +28,10 @@ export async function registerCronJobs(): Promise<void> {
     "weekly-leaderboard",
     { pattern: "30 2 * * 1" }, // Monday 08:00 IST
     { name: "weekly-leaderboard", data: {} },
+  );
+  await cronQueue.upsertJobScheduler(
+    "parent-digest",
+    { pattern: "30 2 * * 0" }, // Sunday 08:00 IST — parents read the week's recap
+    { name: "parent-digest", data: {} },
   );
 }

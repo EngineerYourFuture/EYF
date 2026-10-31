@@ -27,13 +27,21 @@ export type McqResult = {
   review: McqReviewItem[];
 };
 
-export function scoreMcq(answers: McqAnswer[]): McqResult {
+/**
+ * `lookup` resolves a question id to its full record — defaults to the legacy
+ * TS bank; the route passes a DB-first resolver (lib/mcq-source.ts) so staff-
+ * authored questions grade identically.
+ */
+export function scoreMcq(
+  answers: McqAnswer[],
+  lookup: (id: string) => McqQuestion | undefined = getMcq,
+): McqResult {
   const byTopic: Record<string, { right: number; total: number }> = {};
   const review: McqReviewItem[] = [];
   let correct = 0;
 
   for (const a of answers) {
-    const q: McqQuestion | undefined = getMcq(a.questionId);
+    const q: McqQuestion | undefined = lookup(a.questionId);
     if (!q) continue; // ignore unknown ids rather than trusting client
     const isCorrect = a.choice === q.correctIndex;
     if (isCorrect) correct += 1;

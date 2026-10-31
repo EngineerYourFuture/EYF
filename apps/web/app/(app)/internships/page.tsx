@@ -33,9 +33,11 @@ export default function Page() {
   async function save(slug: string) {
     setSaving(slug);
     try {
-      await action(`/internships/${slug}/save`, { method: "POST" }, { silent: true });
+      await action(`/internships/${slug}/save`, { method: "POST" });
       toast.success("Saved to your tracker.");
       await mutate();
+    } catch {
+      /* toasted */
     } finally {
       setSaving(null);
     }
@@ -44,7 +46,6 @@ export default function Page() {
   return (
     <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-7xl mx-auto">
       <PageHeader
-        eyebrow="Your entry point"
         title="Internships"
         subtitle="2nd or 3rd year? Start here. We surface PPO conversion data so you chase the internships that actually turn into jobs."
       />
@@ -53,22 +54,26 @@ export default function Page() {
 
       <div className="mt-8 grid lg:grid-cols-[1fr_300px] gap-8">
         <div>
-          {isLoading ? (
+          {(() => {
+  if (isLoading) return (
             <SkeletonRows rows={5} />
-          ) : data && data.length === 0 ? (
-            <EmptyState icon={<Icons.building width={28} height={28} />} title="No internships listed" description="New roles are added each drive season. Check back soon." />
-          ) : (
+          );
+  if (data?.length === 0) return (
+            <EmptyState icon={<Icons.Building width={28} height={28} />} title="No internships listed" description="New roles are added each drive season. Check back soon." />
+          );
+  return (
             <div className="grid sm:grid-cols-2 gap-4">
               {data?.map((i) => (
                 <InternCard key={i.id} i={i} saved={savedSlugs.has(i.slug)} saving={saving === i.slug} onSave={() => save(i.slug)} />
               ))}
             </div>
-          )}
+          );
+})()}
         </div>
 
         <aside>
           <div className="flex items-center justify-between mb-3">
-            <h2 className="font-display text-lg font-bold">My applications</h2>
+            <h2 className="type-title">My applications</h2>
             {apps && apps.length > 0 && <span className="text-text-4 font-mono text-xs">{apps.length}</span>}
           </div>
           <div className="space-y-2">
@@ -81,7 +86,7 @@ export default function Page() {
                 </Card>
               </Link>
             ))}
-            {apps && apps.length === 0 && (
+            {apps?.length === 0 && (
               <div className="rounded-xl border border-dashed border-border p-5 text-center">
                 <p className="text-text-3 text-sm">Nothing saved yet.</p>
                 <p className="text-text-4 text-xs mt-1">Save internships to track them here.</p>
@@ -94,11 +99,11 @@ export default function Page() {
   );
 }
 
-function InternCard({ i, saved, saving, onSave }: { i: Internship; saved: boolean; saving: boolean; onSave: () => void }) {
+function InternCard({ i, saved, saving, onSave }: Readonly<{ i: Internship; saved: boolean; saving: boolean; onSave: () => void }>) {
   const ppo = i.ppoConversion != null ? Math.round(i.ppoConversion * 100) : null;
   return (
-    <Link href={`/internships/${i.slug}`}>
-      <Card interactive className="flex h-full flex-col">
+    <Link href={`/internships/${i.slug}`} className="min-w-0">
+      <Card interactive className="flex h-full flex-col min-w-0">
         <div className="flex items-start gap-3">
           <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-accent/20 bg-accent-tint font-display font-bold text-accent">
             {i.company[0]}

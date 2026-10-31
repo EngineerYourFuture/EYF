@@ -3,7 +3,9 @@ import Link from "next/link";
 import { Card, Badge, Button, EmptyState } from "@eyf/ui";
 import { useApi, useApiAction } from "@/lib/use-api";
 import { useState } from "react";
+import { toast } from "sonner";
 import { Icons } from "@/components/icons";
+import { difficultyTone } from "@/lib/ui-helpers";
 
 type Report = {
   id: string; company: string; role: string; driveDate: string;
@@ -16,7 +18,7 @@ const SECTIONS = ["DSA","APTITUDE","CORE_CS","DEBUG","ENGLISH","PSYCHOMETRIC","S
 
 export default function Page() {
   const [company, setCompany] = useState("");
-  const { data, mutate } = useApi<Report[]>(`/oa${company ? `?company=${encodeURIComponent(company)}` : ""}`);
+  const { data, mutate } = useApi<Report[]>(`/oa${company ? "?company=" + encodeURIComponent(company) : ""}`);
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({
     company: "", role: "", driveDate: new Date().toISOString().slice(0, 10),
@@ -24,26 +26,35 @@ export default function Page() {
     notes: "", patterns: "",
   });
   const action = useApiAction();
+  const [posting, setPosting] = useState(false);
 
   async function submit() {
-    await action("/oa", {
-      method: "POST",
-      body: JSON.stringify({
-        ...form,
-        driveDate: new Date(form.driveDate).toISOString(),
-        patterns: form.patterns.split(",").map((s) => s.trim()).filter(Boolean),
-      }),
-    });
-    setOpen(false);
-    setForm({ ...form, notes: "", patterns: "" });
-    await mutate();
+    if (posting) { return; }
+    const driveDate = new Date(form.driveDate);
+    if (Number.isNaN(driveDate.getTime())) { toast.error("Pick the drive date."); return; }
+    setPosting(true);
+    try {
+      await action("/oa", {
+        method: "POST",
+        body: JSON.stringify({
+          ...form,
+          driveDate: driveDate.toISOString(),
+          patterns: form.patterns.split(",").map((s) => s.trim()).filter(Boolean),
+        }),
+      });
+      setOpen(false);
+      setForm({ ...form, notes: "", patterns: "" });
+      await mutate();
+    } catch {
+      /* toasted */
+    } finally { setPosting(false); }
   }
 
   return (
-    <div className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-5xl">
+    <div className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-5xl mx-auto">
       <div className="flex items-baseline justify-between">
         <div>
-          <h1 className="font-display text-4xl font-bold tracking-tight">OA Fingerprint</h1>
+          <h1 className="type-display">OA Fingerprint</h1>
           <p className="text-text-3 mt-2">Community-sourced patterns of recent online assessments. Add yours after every drive.</p>
         </div>
         <Button onClick={() => setOpen((o) => !o)}>{open ? "Close" : "Submit report"}</Button>
@@ -56,36 +67,36 @@ export default function Page() {
             <Input label="Role"     value={form.role}     onChange={(v) => setForm({ ...form, role: v })} />
             <Input label="Date"     type="date" value={form.driveDate} onChange={(v) => setForm({ ...form, driveDate: v })} />
             <Input label="Duration (min)" type="number" value={String(form.durationMin)} onChange={(v) => setForm({ ...form, durationMin: Number(v) })} />
-            <div>
-              <label className="text-xs text-text-3 uppercase tracking-wider">Difficulty</label>
+            <label className="block">
+              <span className="text-xs text-text-3 uppercase tracking-wider">Difficulty</span>
               <select value={form.difficulty} onChange={(e) => setForm({ ...form, difficulty: e.target.value })}
                 className="w-full mt-1 bg-bg border border-border rounded-md px-3 py-2 text-sm">
                 {["EASY","MEDIUM","HARD","EXPERT"].map((d) => <option key={d}>{d}</option>)}
               </select>
-            </div>
+            </label>
           </div>
-          <div>
-            <label className="text-xs text-text-3 uppercase tracking-wider">Sections</label>
+          <fieldset className="min-w-0 border-0 p-0 m-0" aria-labelledby="oa-sections-label">
+            <span id="oa-sections-label" className="text-xs text-text-3 uppercase tracking-wider">Sections</span>
             <div className="mt-1 flex flex-wrap gap-2">
               {SECTIONS.map((s) => {
                 const on = form.sections.includes(s);
                 return (
-                  <button key={s} onClick={() => setForm({ ...form,
+                  <button type="button" key={s} aria-pressed={on} onClick={() => setForm({ ...form,
                     sections: on ? form.sections.filter((x) => x !== s) : [...form.sections, s],
-                  })} className={`px-2 py-1 text-xs border rounded ${on ? "border-accent text-text-1" : "border-border text-text-3"}`}>
+                  })} className={`px-2 py-1 text-xs border rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${on ? "border-accent text-text-1" : "border-border text-text-3"}`}>
                     {s}
                   </button>
                 );
               })}
             </div>
-          </div>
+          </fieldset>
           <Input label="Patterns seen (comma-separated)" value={form.patterns} onChange={(v) => setForm({ ...form, patterns: v })} />
-          <div>
-            <label className="text-xs text-text-3 uppercase tracking-wider">Notes (markdown)</label>
+          <label className="block">
+            <span className="text-xs text-text-3 uppercase tracking-wider">Notes (markdown)</span>
             <textarea rows={5} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })}
               className="w-full mt-1 bg-bg border border-border rounded-md px-3 py-2 font-mono text-sm" />
-          </div>
-          <Button onClick={submit}>Post report</Button>
+          </label>
+          <Button onClick={submit} disabled={posting}>Post report</Button>
         </Card>
       )}
 
@@ -103,10 +114,10 @@ export default function Page() {
                   <div className="flex items-center gap-2">
                     <span className="font-display text-base font-semibold">{r.company}</span>
                     <Badge>{r.role}</Badge>
-                    <Badge tone={r.difficulty === "HARD" ? "hard" : r.difficulty === "EASY" ? "easy" : "medium"}>{r.difficulty}</Badge>
+                    <Badge tone={difficultyTone(r.difficulty)}>{r.difficulty}</Badge>
                   </div>
                   <div className="text-text-3 text-xs mt-1">
-                    {new Date(r.driveDate).toLocaleDateString()} · {r.durationMin}m · by {r.author.name} · 👍 {r.helpfulCount}
+                    {new Date(r.driveDate).toLocaleDateString("en-IN")} · {r.durationMin}m · by {r.author.name} · 👍 {r.helpfulCount}
                   </div>
                   {r.patterns.length > 0 && (
                     <div className="mt-2 flex flex-wrap gap-1">
@@ -118,9 +129,9 @@ export default function Page() {
             </Card>
           </Link>
         ))}
-        {data && data.length === 0 && (
+        {data?.length === 0 && (
           <EmptyState
-            icon={<Icons.target width={28} height={28} />}
+            icon={<Icons.Target width={28} height={28} />}
             title={company ? `No reports for “${company}” yet` : "No reports yet"}
             description="OA patterns are crowd-sourced. Just finished a drive? Post what you saw and help the next batch."
             action={<Button onClick={() => setOpen(true)}>Submit a report</Button>}
@@ -131,7 +142,7 @@ export default function Page() {
   );
 }
 
-function Input({ label, value, onChange, type = "text" }: { label: string; value: string; onChange: (v: string) => void; type?: string }) {
+function Input({ label, value, onChange, type = "text" }: Readonly<{ label: string; value: string; onChange: (v: string) => void; type?: string }>) {
   return (
     <div>
       <label className="text-xs text-text-3 uppercase tracking-wider">{label}</label>

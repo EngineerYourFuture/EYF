@@ -18,7 +18,7 @@ type Thread = {
 const CATS = ["GENERAL","PLACEMENTS","DSA","CORE_SUBJECTS","PROJECTS","RESUME","INTERVIEWS","OFF_TOPIC"];
 const catLabel = (c: string) => {
   if (c === "DSA") return "DSA";
-  const s = c.replace(/_/g, " ").toLowerCase();
+  const s = c.replaceAll("_", " ").toLowerCase();
   return s.charAt(0).toUpperCase() + s.slice(1);
 };
 const relTime = (iso: string) => {
@@ -31,22 +31,29 @@ const relTime = (iso: string) => {
 
 export default function Page() {
   const [cat, setCat] = useState("");
-  const { data, isLoading, mutate } = useApi<Thread[]>(`/forum/threads${cat ? `?category=${cat}` : ""}`);
+  const { data, isLoading, mutate } = useApi<Thread[]>(`/forum/threads${cat ? "?category=" + cat : ""}`);
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ title: "", body: "", category: "GENERAL" });
   const action = useApiAction();
+  const [posting, setPosting] = useState(false);
 
   async function create() {
-    await action("/forum/threads", { method: "POST", body: JSON.stringify(form) });
-    track(Events.ForumPosted, { category: form.category });
-    setOpen(false); setForm({ title: "", body: "", category: "GENERAL" });
-    await mutate();
+    if (posting) { return; }
+    setPosting(true);
+    try {
+      await action("/forum/threads", { method: "POST", body: JSON.stringify(form) });
+      track(Events.ForumPosted, { category: form.category });
+      setOpen(false); setForm({ title: "", body: "", category: "GENERAL" });
+      await mutate();
+    } catch {
+      /* toasted */
+    } finally { setPosting(false); }
   }
 
   return (
     <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-5xl mx-auto">
       <div className="flex items-start justify-between gap-4">
-        <PageHeader eyebrow="Learn in public" title="Community" subtitle="Ask a doubt, share a win, debrief an interview. No fluff." />
+        <PageHeader title="Community" subtitle="Ask a doubt, share a win, debrief an interview. No fluff." />
         <Button onClick={() => setOpen((o) => !o)}>{open ? "Close" : "New thread"}</Button>
       </div>
 
@@ -71,7 +78,7 @@ export default function Page() {
             onChange={(e) => setForm({ ...form, body: e.target.value })}
             className="w-full bg-bg border border-border rounded-md px-3 py-2.5 font-mono text-sm focus:border-accent/50 outline-none"
           />
-          <Button glow onClick={create}>Post</Button>
+          <Button onClick={create} disabled={posting}>Post</Button>
         </Card>
       )}
 
@@ -99,14 +106,14 @@ export default function Page() {
                 </div>
               </div>
               <div className="hidden sm:flex items-center gap-4 shrink-0 text-text-4 text-xs">
-                <span className="inline-flex items-center gap-1"><Icons.chat width={13} height={13} /> {t.postCount}</span>
-                <span className="inline-flex items-center gap-1"><Icons.activity width={13} height={13} /> {t.viewCount}</span>
+                <span className="inline-flex items-center gap-1"><Icons.Chat width={13} height={13} /> {t.postCount}</span>
+                <span className="inline-flex items-center gap-1"><Icons.Activity width={13} height={13} /> {t.viewCount}</span>
               </div>
             </Card>
           </Link>
         ))}
-        {data && data.length === 0 && (
-          <EmptyState icon="💬" title="No threads here yet"
+        {data?.length === 0 && (
+          <EmptyState icon={<Icons.Chat width={22} height={22} />} title="No threads here yet"
             description={cat ? "Nothing in this category. Be the first to post." : "Start the conversation — ask a doubt, share a win, debrief an interview."}
             action={<Button onClick={() => setOpen(true)}>Start a thread</Button>} />
         )}
@@ -115,9 +122,9 @@ export default function Page() {
   );
 }
 
-function Chip({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+function Chip({ active, onClick, children }: Readonly<{ active: boolean; onClick: () => void; children: React.ReactNode }>) {
   return (
-    <button onClick={onClick}
+    <button type="button" onClick={onClick}
       className={`px-3 py-1.5 rounded-lg border transition-colors ${
         active ? "border-accent bg-accent-tint text-accent" : "border-border text-text-3 hover:border-edge"
       }`}>{children}</button>

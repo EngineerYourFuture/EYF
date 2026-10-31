@@ -1,7 +1,8 @@
+import { randomInt } from "node:crypto";
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { prisma } from "@eyf/db";
-import { pickQuestions, ASSESSMENT_BANK } from "../lib/assessment-bank.js";
+import { pickQuestionsSource, assessmentPoolSource, assessmentLookupSource } from "../lib/assessment-source.js";
 import { scoreAssessment } from "../services/assessment.js";
 
 const LEVELS = ["easy", "medium", "hard"] as const;
@@ -27,8 +28,11 @@ export async function assessmentRoutes(app: FastifyInstance) {
     let correct: boolean | null = null;
     let correctIndex: number | null = null;
 
+    const pool = await assessmentPoolSource();
+
     if (body.current) {
-      const q = ASSESSMENT_BANK.find((x) => x.id === body.current!.questionId);
+      const lookup = await assessmentLookupSource([body.current.questionId]);
+      const q = lookup(body.current.questionId);
       if (q) {
         correct = q.correctIndex === body.current.choice;
         correctIndex = q.correctIndex;
@@ -41,9 +45,9 @@ export async function assessmentRoutes(app: FastifyInstance) {
     if (!done) {
       // prefer the target level, fall back to the nearest with unseen questions
       for (const l of [level, level + 1, level - 1, level + 2, level - 2].filter((x) => x >= 0 && x <= 2)) {
-        const pool = ASSESSMENT_BANK.filter((q) => q.difficulty === LEVELS[l] && !body.seen.includes(q.id));
-        if (pool.length) {
-          const p = pool[Math.floor(Math.random() * pool.length)]!;
+        const candidates = pool.filter((q) => q.difficulty === LEVELS[l] && !body.seen.includes(q.id));
+        if (candidates.length) {
+          const p = candidates[randomInt(candidates.length)]!;
           next = { id: p.id, topic: p.topic, area: p.area, difficulty: p.difficulty, prompt: p.prompt, choices: p.choices };
           break;
         }
@@ -65,7 +69,7 @@ export async function assessmentRoutes(app: FastifyInstance) {
   });
 
   app.get("/start", { preHandler: app.requireAuth }, async () => {
-    const questions = pickQuestions({}); // 12 + 4 + 4
+    const questions = await pickQuestionsSource(); // 12 + 4 + 4
     // Strip the answer key before sending to the client.
     const safe = questions.map(({ correctIndex: _c, explanation: _e, ...rest }) => rest);
     return { success: true, data: { questions: safe } };
@@ -73,7 +77,8 @@ export async function assessmentRoutes(app: FastifyInstance) {
 
   app.post("/submit", { preHandler: app.requireAuth }, async (req) => {
     const { answers, durationSeconds } = submitBody.parse(req.body);
-    const scored = scoreAssessment(answers);
+    const lookup = await assessmentLookupSource(answers.map((a) => a.questionId));
+    const scored = scoreAssessment(answers, lookup);
     const session = await prisma.assessmentSession.create({
       data: {
         userId: req.session!.id,

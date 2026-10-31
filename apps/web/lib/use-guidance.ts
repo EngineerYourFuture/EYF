@@ -1,6 +1,6 @@
 "use client";
 import { useApi } from "./use-api";
-import type { Readiness, GuidanceAction } from "./readiness";
+import type { Readiness, GuidanceAction } from "@eyf/types";
 
 /** Server-computed guidance: readiness + ranked next-best-actions + coach note. */
 export type Guidance = {

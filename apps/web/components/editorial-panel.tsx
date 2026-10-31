@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
-import { Card, Badge, Button } from "@eyf/ui";
+import Link from "next/link";
+import { Card, Badge, Button, Tabs, TabPanel } from "@eyf/ui";
 import { useApi } from "@/lib/use-api";
 
 type Editorial = {
@@ -14,34 +15,29 @@ type Variant = {
   id: string; title: string; description: string; twistExplanation: string; createdAt: string;
 };
 
-export function EditorialPanel({ slug }: { slug: string }) {
-  const [tab, setTab] = useState<"editorial" | "variants">("editorial");
+const TABS = ["editorial", "variants"] as const;
+type Tab = (typeof TABS)[number];
+
+export function EditorialPanel({ slug }: Readonly<{ slug: string }>) {
+  const [tab, setTab] = useState<Tab>("editorial");
   return (
     <Card className="mt-4">
-      <div className="flex gap-1 border-b border-border mb-4">
-        {(["editorial", "variants"] as const).map((t) => (
-          <button
-            key={t}
-            onClick={() => setTab(t)}
-            className={`px-3 py-1.5 text-sm border-b-2 transition-colors capitalize ${
-              tab === t ? "border-accent text-text-1" : "border-transparent text-text-3 hover:text-text-2"
-            }`}
-          >{t}</button>
-        ))}
-      </div>
-      {tab === "editorial" && <EditorialTab slug={slug} />}
-      {tab === "variants"  && <VariantsTab slug={slug} />}
+      <Tabs tabs={TABS} value={tab} onChange={setTab} idBase="ed" aria-label="Problem help" className="mb-4" />
+      <TabPanel idBase="ed" value={tab}>
+        {tab === "editorial" && <EditorialTab slug={slug} />}
+        {tab === "variants"  && <VariantsTab slug={slug} />}
+      </TabPanel>
     </Card>
   );
 }
 
-function EditorialTab({ slug }: { slug: string }) {
+function EditorialTab({ slug }: Readonly<{ slug: string }>) {
   const { data, error } = useApi<Editorial>(`/admin/problems/${slug}/editorial`);
   if (error?.message?.includes("PLAN_UPGRADE_REQUIRED") || (error as { code?: string })?.code === "PLAN_UPGRADE_REQUIRED") {
     return (
       <div className="text-center py-8">
         <Badge tone="accent">Basic+</Badge>
-        <p className="text-text-3 text-sm mt-3">Editorials are part of Basic. <a href="/billing" className="text-accent hover:underline">Upgrade</a> to read.</p>
+        <p className="text-text-3 text-sm mt-3">Editorials are part of Basic. <Link href="/billing" className="text-accent hover:underline">Upgrade</Link> to read.</p>
       </div>
     );
   }
@@ -71,7 +67,7 @@ function EditorialTab({ slug }: { slug: string }) {
   );
 }
 
-function VariantsTab({ slug }: { slug: string }) {
+function VariantsTab({ slug }: Readonly<{ slug: string }>) {
   const { data } = useApi<Variant[]>(`/admin/problems/${slug}/variants`);
   if (!data) return <p className="text-text-3 text-sm">Loading…</p>;
   if (data.length === 0) return <p className="text-text-3 text-sm">No variants generated yet.</p>;

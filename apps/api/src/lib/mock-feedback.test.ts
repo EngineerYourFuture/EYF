@@ -36,3 +36,12 @@ describe("parseMockFeedback — hardened grader response parsing", () => {
     expect(f.rubric.communication).toBe(100);
   });
 });
+
+describe("parseMockFeedback — failure modes", () => {
+  it("throws on output with no JSON object", () => {
+    expect(() => parseMockFeedback("no braces here")).toThrow(/non-JSON/);
+  });
+  it("throws on malformed JSON between braces", () => {
+    expect(() => parseMockFeedback("prefix { not: valid, json } suffix")).toThrow(/malformed JSON/);
+  });
+});

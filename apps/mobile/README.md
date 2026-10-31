@@ -1,5 +1,10 @@
 # @eyf/mobile
 
+> **Status: Experimental.** A nascent companion app (~10 source files). It is **not** part of
+> the main CI health stack — no `.github/workflows/` job builds, lints, or tests it — so treat
+> it as unverified against `main`. Has its own `typecheck`/`lint` scripts; run them manually.
+> Decide active vs paused before investing (see `docs/KNOWN-ISSUES.md` KI-5).
+
 EYF companion mobile app — daily challenge, flashcards (SRS), streak. Built with Expo + React Native + expo-router.
 
 ## Run

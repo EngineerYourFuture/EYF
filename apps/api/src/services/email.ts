@@ -4,12 +4,13 @@
  */
 import { Resend } from "resend";
 import { env } from "../env.js";
+import { credentialStatus } from "../lib/configuration-status.js";
 
-const resend = env.RESEND_API_KEY ? new Resend(env.RESEND_API_KEY) : null;
+const resend = credentialStatus(env.RESEND_API_KEY) === "configured" ? new Resend(env.RESEND_API_KEY) : null;
 
 export type EmailSend = { to: string; subject: string; html: string };
 
-export async function sendEmail(msg: EmailSend): Promise<{ sent: boolean; id?: string; reason?: string }> {
+export async function sendEmail(msg: EmailSend, idempotencyKey?: string): Promise<{ sent: boolean; id?: string; reason?: string }> {
   if (!resend) return { sent: false, reason: "RESEND_API_KEY not set" };
   try {
     const res = await resend.emails.send({
@@ -17,7 +18,7 @@ export async function sendEmail(msg: EmailSend): Promise<{ sent: boolean; id?: s
       to: [msg.to],
       subject: msg.subject,
       html: msg.html,
-    });
+    }, idempotencyKey ? { idempotencyKey } : undefined);
     if (res.error) return { sent: false, reason: res.error.message };
     return { sent: true, id: res.data?.id };
   } catch (err) {
@@ -27,9 +28,23 @@ export async function sendEmail(msg: EmailSend): Promise<{ sent: boolean; id?: s
 
 // ─── Templates ────────────────────────────────────────────────────
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://eyf.in";
+const APP_URL = env.NEXT_PUBLIC_APP_URL;
 
-function shell(title: string, body: string): string {
+export function escapeEmailText(text: string): string {
+  return text.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#39;");
+}
+
+export function invitationEmail(orgName: string, token: string, expiresAt: Date, reminder = false): string {
+  const title = reminder ? "Your LMS invitation is waiting" : "You’re invited to a private EYF workspace";
+  const link = ctaBtn("Open the private LMS", `${env.NEXT_PUBLIC_LMS_URL.replace(/\/$/, "")}/orgs`);
+  return shell(title, `<p>You have been invited to ${escapeEmailText(orgName)}.</p>
+    <p>Sign in to the private LMS with this email address, then enter this invitation code:</p>
+    <p style="font-family:monospace;font-size:20px;">${escapeEmailText(token)}</p>
+    <p>Expires ${expiresAt.toISOString().slice(0, 10)} (UTC). If you weren’t expecting this invitation, you can ignore it.</p>
+    ${link}`, "You received this because a workspace administrator invited this email address to EYF.");
+}
+
+function shell(title: string, body: string, footer = `You're receiving this because you signed up for EYF · <a href="${APP_URL}/settings" style="color:#e8ff47;">Manage preferences</a>`): string {
   return `<!doctype html><html><body style="margin:0;padding:0;background:#0a0a0a;color:#fafaf9;font-family:Inter,-apple-system,sans-serif;">
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#0a0a0a;padding:40px 20px;">
   <tr><td align="center">
@@ -39,7 +54,7 @@ function shell(title: string, body: string): string {
         <h1 style="font-size:24px;line-height:1.3;margin:20px 0 16px;color:#fafaf9;">${title}</h1>
         ${body}
         <div style="margin-top:28px;padding-top:20px;border-top:1px solid #1c1c1c;font-size:12px;color:#8a8a87;">
-          You're receiving this because you signed up for EYF · <a href="${APP_URL}/settings" style="color:#e8ff47;">Manage preferences</a>
+          ${footer}
         </div>
       </td></tr>
     </table>
@@ -101,5 +116,25 @@ export function weeklyLeaderboardEmail(name: string, top: string[]): EmailSend["
       ${top.map((row) => `<li>${row}</li>`).join("")}
     </ol>
     ${ctaBtn("See the full leaderboard", `${APP_URL}/dashboard`)}
+  `);
+}
+
+/** Weekly progress digest to a student's parent (Innovation Roadmap B3). */
+export function parentDigestEmail(digest: import("./parent-digest.js").ParentDigest): EmailSend["html"] {
+  const rows = digest.metrics
+    .map(
+      (m) => `<tr>
+        <td style="padding:8px 0;color:#8a8a87;font-size:13px;">${m.label}</td>
+        <td style="padding:8px 0;color:#fafaf9;font-size:15px;font-weight:600;text-align:right;">${m.value}</td>
+      </tr>`,
+    )
+    .join("");
+  return shell(digest.headline, `
+    <p style="color:#c9c9c7;line-height:1.6;">A quick weekly update on how ${digest.firstName} is progressing on EYF.</p>
+    <div style="background:#0a0a0a;border:1px solid #1c1c1c;border-radius:8px;padding:8px 16px;margin-top:16px;">
+      <table style="width:100%;border-collapse:collapse;">${rows}</table>
+    </div>
+    <p style="color:#c9c9c7;line-height:1.6;margin-top:16px;">${digest.note}</p>
+    <p style="color:#5a5a57;font-size:12px;margin-top:20px;">You're receiving this because ${digest.firstName} added your email for weekly updates. They can turn it off anytime in their EYF settings.</p>
   `);
 }

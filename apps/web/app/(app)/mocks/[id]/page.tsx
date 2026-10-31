@@ -1,4 +1,5 @@
 "use client";
+import { useParams } from "next/navigation";
 import { toast } from "sonner";
 import { Card, Badge, Button, Meter } from "@eyf/ui";
 import { useApi, useApiAction } from "@/lib/use-api";
@@ -6,6 +7,9 @@ import { track, Events } from "@/lib/analytics";
 import { useEyfAuth as useAuth } from "@/lib/auth";
 import { useRecorder } from "@/lib/use-recorder";
 import { useState, useRef, useEffect } from "react";
+import { scoreTone } from "@/lib/ui-helpers";
+import { LoadError, loadFailed } from "@/components/load-error";
+import { useCapabilities } from "@/lib/use-capabilities";
 
 type Turn = { role: "user" | "assistant"; content: string; ts: number };
 type Mock = {
@@ -21,35 +25,46 @@ type Mock = {
   } | null;
 };
 
-export default function Page({ params }: { params: { id: string } }) {
-  const { data, mutate } = useApi<Mock>(`/mocks/${params.id}`);
+export default function Page() {
+  const params = useParams<{ id: string }>();
+  const { data, error, mutate } = useApi<Mock>(`/mocks/${params.id}`);
   const action = useApiAction();
   const [sending, setSending] = useState(false);
   const [ending, setEnding] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+    const reduce = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: reduce ? "auto" : "smooth" });
   }, [data?.transcript?.length, sending]);
 
+  if (loadFailed(error, data)) return <div className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-3xl mx-auto"><LoadError error={error} what="mock interview" retry={() => mutate()} back={{ href: "/mocks", label: "All mocks" }} page /></div>;
   if (!data) return <div className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 text-text-3">Loading…</div>;
 
+  /** Sends a turn; false when it failed (already toasted), so the composer keeps the draft. */
   async function handleSend(m: string) {
     setSending(true);
     try {
       await action(`/mocks/${params.id}/turn`, { method: "POST", body: JSON.stringify({ message: m }) });
       await mutate();
+      return true;
+    } catch {
+      return false;
     } finally {
       setSending(false);
     }
   }
 
   async function end() {
+    // Ending runs the grader; a double click must not grade (and overwrite feedback) twice.
+    if (ending) return;
     setEnding(true);
     try {
       await action(`/mocks/${params.id}/end`, { method: "POST" });
       track(Events.MockEnded, { mockId: params.id });
       await mutate();
+    } catch {
+      /* toasted */
     } finally {
       setEnding(false);
     }
@@ -64,7 +79,7 @@ export default function Page({ params }: { params: { id: string } }) {
           <Badge tone={data.status === "COMPLETED" ? "default" : "accent"} className="ml-auto">{data.status}</Badge>
         </header>
 
-        <div ref={scrollRef} className="flex-1 overflow-auto px-6 py-8 space-y-4 max-w-3xl">
+        <div ref={scrollRef} role="log" aria-live="polite" aria-label="Interview transcript" className="flex-1 overflow-auto px-6 py-8 space-y-4 max-w-3xl">
           {(data.transcript ?? []).map((t, i) => (
             <div key={i} className={t.role === "assistant" ? "" : "ml-12"}>
               <div className="text-text-3 text-xs uppercase tracking-wider mb-1">
@@ -81,10 +96,10 @@ export default function Page({ params }: { params: { id: string } }) {
           {sending && (
             <div className="flex items-center gap-2 text-text-3 text-sm">
               <span className="flex gap-1">
-                <span className="h-1.5 w-1.5 rounded-full bg-text-3 animate-bounce" style={{ animationDelay: "0ms" }} />
-                <span className="h-1.5 w-1.5 rounded-full bg-text-3 animate-bounce" style={{ animationDelay: "150ms" }} />
-                <span className="h-1.5 w-1.5 rounded-full bg-text-3 animate-bounce" style={{ animationDelay: "300ms" }} />
-              </span>
+                <span className="h-1.5 w-1.5 rounded-full bg-text-3 animate-pulse motion-reduce:animate-none" style={{ animationDelay: "0ms" }} />
+                <span className="h-1.5 w-1.5 rounded-full bg-text-3 animate-pulse motion-reduce:animate-none" style={{ animationDelay: "150ms" }} />
+                <span className="h-1.5 w-1.5 rounded-full bg-text-3 animate-pulse motion-reduce:animate-none" style={{ animationDelay: "300ms" }} />
+              </span>{" "}
               Interviewer is thinking…
             </div>
           )}
@@ -96,7 +111,7 @@ export default function Page({ params }: { params: { id: string } }) {
       </div>
 
       <aside className="overflow-auto p-6">
-        <h2 className="font-display text-xl font-bold mb-4">Feedback</h2>
+        <h2 className="type-headline mb-4">Feedback</h2>
         {data.feedback ? (
           <>
             <Card variant="glow">
@@ -111,19 +126,19 @@ export default function Page({ params }: { params: { id: string } }) {
                 {Object.entries(data.feedback.rubric).map(([k, v]) => (
                   <Meter key={k} label={<span className="capitalize">{k.replace(/([A-Z])/g, " $1")}</span>}
                     value={`${v}/100`} pct={v / 100}
-                    tone={v >= 70 ? "easy" : v >= 40 ? "medium" : "hard"} />
+                    tone={scoreTone(v)} />
                 ))}
               </div>
             </Card>
 
             <Card className="mt-4">
               <h3 className="font-display text-sm uppercase tracking-wider text-text-3 mb-2">Strengths</h3>
-              <ul className="text-sm space-y-1.5">{data.feedback.strengths.map((s, i) => <li key={i} className="flex gap-2"><span className="text-easy">✓</span>{s}</li>)}</ul>
+              <ul className="text-sm space-y-1.5">{data.feedback.strengths.map((s) => <li key={s} className="flex gap-2"><span className="text-easy">✓</span>{s}</li>)}</ul>
             </Card>
 
             <Card className="mt-4">
               <h3 className="font-display text-sm uppercase tracking-wider text-text-3 mb-2">Improve</h3>
-              <ul className="text-sm space-y-1.5">{data.feedback.improvements.map((s, i) => <li key={i} className="flex gap-2"><span className="text-hard">→</span>{s}</li>)}</ul>
+              <ul className="text-sm space-y-1.5">{data.feedback.improvements.map((s) => <li key={s} className="flex gap-2"><span className="text-hard">→</span>{s}</li>)}</ul>
             </Card>
           </>
         ) : (
@@ -144,18 +159,19 @@ const WHISPER_LANGS = [
   { code: "bn", label: "Bengali" },
 ];
 
-function Composer({ onSend, onEnd, mockId }: { onSend: (m: string) => Promise<void>; onEnd: () => void; mockId: string }) {
+function Composer({ onSend, onEnd, mockId }: Readonly<{ onSend: (m: string) => Promise<boolean>; onEnd: () => void; mockId: string }>) {
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
   const [transcribing, setTranscribing] = useState(false);
   const [lang, setLang] = useState("en");
   const { state: recState, blob, start, stop, reset, error } = useRecorder();
   const { getToken } = useAuth();
+  const caps = useCapabilities();
 
   async function send(msg: string) {
     if (!msg.trim() || sending) return;
     setSending(true);
-    try { await onSend(msg); setText(""); reset(); } finally { setSending(false); }
+    try { if (await onSend(msg)) { setText((t) => (t === msg ? "" : t)); reset(); } } finally { setSending(false); }
   }
 
   async function transcribeAndSend() {
@@ -183,23 +199,24 @@ function Composer({ onSend, onEnd, mockId }: { onSend: (m: string) => Promise<vo
     <div className="border-t border-border p-4 flex gap-2">
       <textarea
         rows={2}
+        aria-label="Your message"
         value={text}
         onChange={(e) => setText(e.target.value)}
         onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) send(text); }}
-        placeholder="Type or hold the mic… (⌘+Enter to send)"
+        placeholder={caps?.transcription === false ? "Type your answer… (⌘+Enter to send)" : "Type or hold the mic… (⌘+Enter to send)"}
         className="flex-1 bg-bg border border-border rounded-md px-3 py-2 text-sm font-mono"
       />
       <div className="flex flex-col gap-2">
-        <select value={lang} onChange={(e) => setLang(e.target.value)}
+        {caps?.transcription !== false && <select value={lang} onChange={(e) => setLang(e.target.value)} aria-label="Transcription language"
           className="bg-surface border border-border rounded-md px-2 py-1 text-xs">
           {WHISPER_LANGS.map((l) => <option key={l.code} value={l.code}>{l.label}</option>)}
-        </select>
-        {recState === "recording"
+        </select>}
+        {recState !== "recording" && caps?.transcription === false ? null : recState === "recording"
           ? <Button size="sm" variant="ghost" onClick={stop}>⏹ Stop</Button>
           : <Button size="sm" variant="ghost" onClick={start} disabled={recState === "requesting"}>
               {recState === "requesting" ? "…" : "🎤 Record"}
             </Button>}
-        {blob && (
+        {blob && caps?.transcription !== false && (
           <Button size="sm" variant="secondary" onClick={transcribeAndSend} disabled={transcribing}>
             {transcribing ? "Transcribing…" : "Transcribe"}
           </Button>

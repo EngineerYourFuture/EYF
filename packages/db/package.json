@@ -2,6 +2,8 @@
   "name": "@eyf/db",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
+  "files": ["src"],
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "exports": {
@@ -12,8 +14,12 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:deploy": "prisma migrate deploy",
+    "prisma:status": "prisma migrate status",
+    "prisma:resolve": "prisma migrate resolve",
     "prisma:studio": "prisma studio",
     "seed": "tsx prisma/seed.ts",
+    "db:rls": "tsx scripts/apply-rls.ts",
+    "db:rls:verify": "tsx scripts/verify-rls.ts",
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf src/generated .turbo"
   },

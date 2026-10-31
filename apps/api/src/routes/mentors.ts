@@ -145,7 +145,7 @@ export async function mentorRoutes(app: FastifyInstance) {
     const mentor = await prisma.mentor.findUnique({ where: { userId: req.session!.id } });
     if (!mentor) return reply.code(403).send({ success: false, error: { code: "NOT_A_MENTOR", message: "Not a mentor." } });
     const mock = await prisma.mockSession.findUnique({ where: { id: mockId } });
-    if (!mock || mock.mentorId !== mentor.id) {
+    if (mock?.mentorId !== mentor.id) {
       return reply.code(404).send({ success: false, error: { code: "NOT_FOUND", message: "Mock not found." } });
     }
     if (mock.type !== MockType.EXPERT) {

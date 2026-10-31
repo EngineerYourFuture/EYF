@@ -9,18 +9,19 @@
  */
 
 export const CAPABILITIES = [
-  "manage:content",   // CRUD problems, subjects, jobs, companies, tracks…
-  "manage:users",     // list users, change role/plan, suspend
-  "manage:payments",  // view subscriptions/transactions, issue refunds
-  "moderate",         // forum/OA moderation
-  "verify:mentors",   // approve/reject mentor applications
-  "view:analytics",   // admin dashboards + metrics
+  "manage:content",     // CRUD problems, subjects, jobs, companies, tracks, experiences…
+  "manage:users",       // list users, change role/plan, suspend
+  "manage:payments",    // view subscriptions/transactions, issue refunds
+  "moderate",           // forum/OA moderation + admin overview
+  "verify:mentors",     // approve/reject mentor applications
+  "view:analytics",     // admin dashboards + metrics + audit log
+  "issue:certificates", // mint certificates for arbitrary users (ADMIN only)
 ] as const;
 
 export type Capability = (typeof CAPABILITIES)[number];
 
 /** Staff-side roles that can hold capabilities. Student tiers hold none. */
-export type StaffRole = "ADMIN" | "CONTENT_CREATOR";
+export type StaffRole = "ADMIN" | "CONTENT_CREATOR" | "MODERATOR";
 
 /**
  * Role → capabilities. ADMIN (authority) holds everything; CONTENT_CREATOR
@@ -30,6 +31,7 @@ export type StaffRole = "ADMIN" | "CONTENT_CREATOR";
 const ROLE_CAPABILITIES: Record<string, readonly Capability[]> = {
   ADMIN: CAPABILITIES,
   CONTENT_CREATOR: ["manage:content", "moderate"],
+  MODERATOR: ["moderate"],
 };
 
 export function capabilitiesFor(role: string | null | undefined): readonly Capability[] {

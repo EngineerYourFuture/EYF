@@ -1,3 +1,4 @@
+import { trackedMessage } from "../lib/provider-usage.js";
 /**
  * Project interview-prep generator. Given a project's title, summary and tech
  * stack, Claude produces the grilling a candidate will face defending it —
@@ -28,7 +29,7 @@ export async function generateProjectPrep(input: {
 }): Promise<ProjectPrepResult> {
   if (!anthropic) throw new Error("ANTHROPIC_API_KEY not set");
 
-  const msg = await anthropic.messages.create({
+  const msg = await trackedMessage(anthropic, {
     model: MODEL,
     max_tokens: 2000,
     system: prepSystemPrompt(),

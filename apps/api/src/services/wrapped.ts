@@ -42,7 +42,21 @@ export async function buildWrapped(userId: string, year: number): Promise<Wrappe
       select: { longestStreak: true, currentXp: true },
     }),
   ]);
+  return wrappedFrom({ solutions, streaks, badges, mocks, profile, year });
+}
 
+export type WrappedInput = {
+  solutions: { verdict: Verdict; language: string; problem: { difficulty: string; patterns: string[] } }[];
+  streaks: { date: Date; problemsSolved: number }[];
+  badges: number;
+  mocks: number;
+  profile: { longestStreak: number; currentXp: number } | null;
+  year: number;
+};
+
+/** Pure year-in-review aggregation — separated from the queries for unit testing. */
+export function wrappedFrom(data: WrappedInput): WrappedYear {
+  const { solutions, streaks, badges, mocks, profile, year } = data;
   const accepted = solutions.filter((s) => s.verdict === Verdict.ACCEPTED);
   const byDifficulty: Record<string, number> = {};
   const patternCounts = new Map<string, number>();

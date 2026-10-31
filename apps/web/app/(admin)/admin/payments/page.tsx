@@ -13,7 +13,7 @@ type Invoice = {
 
 const rupees = (n: number) => "₹" + n.toLocaleString("en-IN");
 const fromPaisa = (p: number) => rupees(Math.round(p / 100));
-const statusTone = (s: string) => (s === "paid" ? "easy" : s === "failed" ? "hard" : "medium");
+const statusTone = (s: string) => { if (s === "paid") { return "easy"; } if (s === "failed") { return "hard"; } return "medium"; };
 
 export default function Page() {
   const { data: ov } = useApi<Overview>("/admin/payments/overview");
@@ -21,7 +21,7 @@ export default function Page() {
 
   return (
     <div className="px-6 lg:px-10 py-10 lg:py-12 max-w-5xl mx-auto">
-      <h1 className="font-display text-3xl font-bold tracking-tight">Payments</h1>
+      <h1 className="type-display">Payments</h1>
       <p className="text-text-3 mt-2">Revenue, subscriptions, and transactions.</p>
 
       {/* Metrics */}
@@ -34,7 +34,7 @@ export default function Page() {
       {/* Plan mix + invoice status */}
       <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
         <Card>
-          <h2 className="font-display text-lg font-bold mb-3">Plan mix</h2>
+          <h2 className="type-title mb-3">Plan mix</h2>
           {!ov ? <SkeletonRows rows={2} /> : (
             <div className="flex flex-wrap gap-2">
               {ov.planBreakdown.map((p) => (
@@ -45,7 +45,7 @@ export default function Page() {
           )}
         </Card>
         <Card>
-          <h2 className="font-display text-lg font-bold mb-3">Invoices</h2>
+          <h2 className="type-title mb-3">Invoices</h2>
           {!ov ? <SkeletonRows rows={2} /> : (
             <div className="flex flex-wrap gap-2">
               {Object.entries(ov.invoiceStats).map(([s, n]) => (
@@ -58,7 +58,7 @@ export default function Page() {
       </div>
 
       {/* Transactions */}
-      <h2 className="font-display text-xl font-bold mt-8 mb-3">Recent transactions</h2>
+      <h2 className="type-headline mt-8 mb-3">Recent transactions</h2>
       <div className="space-y-2">
         {!invoices && <SkeletonRows rows={4} />}
         {invoices?.map((i) => (
@@ -87,7 +87,7 @@ export default function Page() {
   );
 }
 
-function Metric({ label, value, hint }: { label: string; value?: string; hint: string }) {
+function Metric({ label, value, hint }: Readonly<{ label: string; value?: string; hint: string }>) {
   return (
     <Card>
       <div className="text-text-3 text-xs uppercase tracking-wider">{label}</div>

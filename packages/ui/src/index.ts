@@ -5,4 +5,6 @@ export { Skeleton, SkeletonText, SkeletonCards, SkeletonRows, type SkeletonProps
 export { EmptyState, ErrorState, type EmptyStateProps } from "./empty-state";
 export { PageHeader, Stat, type PageHeaderProps } from "./page-header";
 export { MetricTile, Meter } from "./metric";
+export { Field, TextField, type FieldProps, type TextFieldProps } from "./field";
+export { Tabs, TabPanel, type TabsProps } from "./tabs";
 export { cn } from "./cn";

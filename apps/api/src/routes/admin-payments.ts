@@ -68,4 +68,38 @@ export async function adminPaymentsRoutes(app: FastifyInstance) {
       })),
     };
   });
+
+  // Employer placement-fee revenue (Roadmap C1) — the recruiting income line,
+  // separate from student subscriptions.
+  app.get("/fees", guard, async () => {
+    const [fees, agg] = await Promise.all([
+      prisma.placementFee.findMany({
+        orderBy: { createdAt: "desc" }, take: 100,
+        select: {
+          id: true, ctcInr: true, feeBps: true, feeInr: true, status: true, createdAt: true,
+          org: { select: { name: true } },
+          offer: { select: { title: true } },
+        },
+      }),
+      prisma.placementFee.groupBy({ by: ["status"], _sum: { feeInr: true }, _count: true }),
+    ]);
+    const byStatus = Object.fromEntries(
+      agg.map((g) => [g.status, { count: g._count, feeInr: g._sum.feeInr ?? 0 }]),
+    ) as Record<string, { count: number; feeInr: number }>;
+    const totalFeeInr = agg.reduce((s, g) => s + (g._sum.feeInr ?? 0), 0);
+    return {
+      success: true,
+      data: {
+        totalFeeInr,
+        pendingFeeInr: byStatus.PENDING?.feeInr ?? 0,
+        collectedFeeInr: byStatus.PAID?.feeInr ?? 0,
+        placements: fees.length,
+        byStatus,
+        fees: fees.map((f) => ({
+          id: f.id, org: f.org.name, role: f.offer.title,
+          ctcInr: f.ctcInr, feePct: f.feeBps / 100, feeInr: f.feeInr, status: f.status, createdAt: f.createdAt,
+        })),
+      },
+    };
+  });
 }

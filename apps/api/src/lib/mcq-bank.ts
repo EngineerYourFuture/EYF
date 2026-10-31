@@ -1,3 +1,4 @@
+import { shuffle } from "./shuffle.js";
 /**
  * MCQ test bank — timed, sectioned multiple-choice practice.
  *
@@ -268,7 +269,7 @@ export const MCQ_CATEGORIES: { id: McqCategory; name: string; blurb: string; fre
 
 /** Distinct company tags across the whole bank, sorted. */
 export function mcqCompanies(): string[] {
-  return [...new Set(MCQ_BANK.flatMap((q) => q.companies))].sort();
+  return [...new Set(MCQ_BANK.flatMap((q) => q.companies))].sort((a, b) => a.localeCompare(b));
 }
 
 /** Count available questions for a category (optionally company-filtered). */
@@ -290,6 +291,6 @@ export function pickTest(opts: { category: McqCategory; company?: string; count?
   if (pool.length < count) {
     pool = MCQ_BANK.filter((q) => q.category === opts.category);
   }
-  const shuffled = [...pool].sort(() => Math.random() - 0.5);
+  const shuffled = shuffle(pool);
   return shuffled.slice(0, Math.min(count, shuffled.length));
 }

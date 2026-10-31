@@ -18,13 +18,19 @@ export type PlacementProbability = {
  * (100 = mastered, 0 = needs work) and a calibrated placement probability for
  * three company tiers.
  */
-export function scoreAssessment(answers: { questionId: string; choice: number }[]): {
+export function scoreAssessment(
+  answers: { questionId: string; choice: number }[],
+  // Defaults to the legacy TS bank; the route passes a DB-first resolver
+  // (lib/assessment-source.ts) so staff-authored questions grade identically.
+  lookup?: (id: string) => AssessmentQuestion | undefined,
+): {
   totalQuestions: number;
   correctAnswers: number;
   gapAnalysis: GapAnalysis;
   placementProbability: PlacementProbability;
 } {
-  const byId = new Map(ASSESSMENT_BANK.map((q) => [q.id, q]));
+  const bankById = new Map(ASSESSMENT_BANK.map((q) => [q.id, q]));
+  const byId = { get: (id: string) => (lookup ? lookup(id) : bankById.get(id)) };
   const counters = {
     dsa:      { right: 0, total: 0 },
     cs:       { right: 0, total: 0 },

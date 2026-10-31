@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useApi } from "@/lib/use-api";
+import { masteryBarClass } from "@/lib/ui-helpers";
 
 type Mastery = { patterns: { pattern: string; total: number; solved: number; mastery: number }[] };
 
@@ -35,11 +36,12 @@ const EDGES: [string, string][] = [
 const COL = 210, ROW = 68, NW = 150, NH = 50;
 const W = 3 * COL + NW, H = 3 * ROW + NH;
 const pos = (k: string) => ({ x: NODES[k]!.level * COL, y: NODES[k]!.row * ROW });
-const toneCls = (m: number, has: boolean) =>
-  !has ? "border-border bg-surface text-text-4"
-  : m >= 70 ? "border-easy/50 bg-easy/[0.08] text-text-1"
-  : m >= 40 ? "border-medium/50 bg-medium/[0.08] text-text-1"
-  : "border-brand/50 bg-brand/[0.06] text-text-1";
+const toneCls = (m: number, has: boolean) => {
+  if (!has) return "border-border bg-surface text-text-4";
+  if (m >= 70) return "border-easy/50 bg-easy/[0.08] text-text-1";
+  if (m >= 40) return "border-medium/50 bg-medium/[0.08] text-text-1";
+  return "border-brand/50 bg-brand/[0.06] text-text-1";
+};
 
 /**
  * Pattern prerequisite tree — the Skill Graph differentiator. A DAG of the core
@@ -60,7 +62,7 @@ export function PatternTree() {
 
   return (
     <div className="mt-8 rounded-2xl border border-border bg-surface p-5 sm:p-6 shadow-card">
-      <h2 className="font-display text-xl font-bold">Pattern prerequisite map</h2>
+      <h2 className="type-title">Pattern prerequisite map</h2>
       <p className="text-text-3 text-sm mt-1 max-w-2xl">
         Patterns build on each other. A weak foundation caps everything downstream — fix roots first.
         {rootFix && rootFix.m < 70 && <> Your weakest root: <span className="text-brand font-medium">{rootFix.label}</span> ({rootFix.m}%).</>}
@@ -88,9 +90,9 @@ export function PatternTree() {
                 <div className="text-sm font-medium leading-tight truncate">{NODES[k]!.label}</div>
                 <div className="mt-1 flex items-center gap-2">
                   <div className="flex-1 h-1 rounded-full bg-surface-3 overflow-hidden">
-                    <div className={`h-full rounded-full ${m >= 70 ? "bg-easy" : m >= 40 ? "bg-medium" : "bg-brand"}`} style={{ width: `${Math.max(3, m)}%` }} />
+                    <div className={`h-full rounded-full ${masteryBarClass(m)}`} style={{ width: `${Math.max(3, m)}%` }} />
                   </div>
-                  <span className="text-[10px] font-mono text-text-4 shrink-0">{p ? `${p.solved}/${p.total}` : "—"}</span>
+                  <span className="text-[11px] font-mono text-text-4 shrink-0">{p ? `${p.solved}/${p.total}` : "—"}</span>
                 </div>
               </Link>
             );

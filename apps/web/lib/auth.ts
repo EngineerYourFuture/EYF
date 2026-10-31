@@ -37,7 +37,7 @@ let devTokenPromise: Promise<string | null> | null = null;
  * is manually cleared. */
 function tokenIsFresh(token: string): boolean {
   try {
-    const part = token.split(".")[1]!.replace(/-/g, "+").replace(/_/g, "/");
+    const part = token.split(".")[1]!.replaceAll("-", "+").replaceAll("_", "/");
     const exp = JSON.parse(atob(part)).exp as number | undefined;
     return typeof exp === "number" && exp * 1000 > Date.now() + 60_000;
   } catch {
@@ -51,8 +51,7 @@ async function ensureDevToken(): Promise<string | null> {
   if (cached && tokenIsFresh(cached)) return cached;
   // Missing or stale → (re)fetch. Reset the memo when it settles so the next
   // expiry can trigger a fresh login instead of returning the old token forever.
-  if (!devTokenPromise) {
-    devTokenPromise = fetch(`${API}/auth/dev-login`, {
+  devTokenPromise ??= fetch(`${API}/auth/dev-login`, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ email: DEV_EMAIL }),
@@ -70,7 +69,6 @@ async function ensureDevToken(): Promise<string | null> {
       .finally(() => {
         devTokenPromise = null;
       });
-  }
   return devTokenPromise;
 }
 

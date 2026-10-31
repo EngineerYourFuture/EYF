@@ -1,31 +1,39 @@
 "use client";
+import { useParams } from "next/navigation";
 import { useState } from "react";
 import { Card, Badge, Button, SkeletonRows, PageHeader } from "@eyf/ui";
 import { useApi, useApiAction } from "@/lib/use-api";
 import { toast } from "sonner";
 import { PageMotion } from "@/components/page-motion";
+import { LessonBlocks } from "@/components/lms/lesson-blocks";
+import type { LessonBlock } from "@eyf/types";
+import { LoadError } from "@/components/lms/shared";
 import { BackButton } from "@/components/back-button";
+import { loadFailed } from "@/components/load-error";
 
-type Lesson = { id: string; title: string; content: string; completed: boolean };
-type CourseLearn = { id: string; title: string; org: string; lessons: Lesson[] };
+type Lesson = { id: string; title: string; content: string; blocks?: LessonBlock[]; completed: boolean };
+type CourseLearn = { id: string; title: string; org: string; orgId: string; lessons: Lesson[] };
 
-export default function CoursePlayer({ params }: { params: { courseId: string } }) {
-  const { data, isLoading, mutate } = useApi<CourseLearn>(`/org/courses/${params.courseId}/learn`);
+export default function CoursePlayer() {
+  const params = useParams<{ courseId: string }>();
+  const { data, error, isLoading, mutate } = useApi<CourseLearn>(`/org/courses/${params.courseId}/learn`);
   const action = useApiAction();
   const [active, setActive] = useState(0);
+  const [answers, setAnswers] = useState<Record<string, Record<string, number>>>({});
   const [busy, setBusy] = useState(false);
 
   async function complete(lessonId: string) {
     setBusy(true);
     try {
-      await action(`/org/lessons/${lessonId}/complete`, { method: "POST" }, { silent: true });
+      await action(`/org/lessons/${lessonId}/complete`, { method: "POST", body: JSON.stringify({ answers: answers[lessonId] ?? {} }) });
       toast.success("Lesson complete.");
       await mutate();
-    } finally {
+    } catch { /* server validation is shown by useApiAction */ } finally {
       setBusy(false);
     }
   }
 
+  if (loadFailed(error, data)) return <LoadError error={error} retry={mutate} what="course" page />;
   if (isLoading) return <div className="px-4 sm:px-6 lg:px-10 py-8"><SkeletonRows /></div>;
   if (!data) return <div className="px-4 sm:px-6 lg:px-10 py-8 text-text-3">Course not found.</div>;
 
@@ -35,32 +43,35 @@ export default function CoursePlayer({ params }: { params: { courseId: string } 
 
   return (
     <PageMotion>
-      <div className="px-4 sm:px-6 lg:px-10 py-8 max-w-5xl">
+      <div className="px-4 sm:px-6 lg:px-10 py-8 max-w-5xl mx-auto">
         <BackButton className="mb-4" />
         <PageHeader title={data.title} subtitle={`${data.org} · ${done}/${lessons.length} lessons complete`} />
         <div className="mt-6 grid md:grid-cols-[240px_1fr] gap-6">
-          <aside className="flex flex-col gap-1">
+          <nav aria-label="Lessons" className="flex flex-col gap-1">
             {lessons.map((l, i) => (
-              <button
+              <button type="button"
                 key={l.id}
                 onClick={() => setActive(i)}
-                className={`text-left px-3 py-2 rounded-lg text-sm flex items-center gap-2 transition-colors ${i === active ? "bg-surface-3" : "hover:bg-surface-2"}`}
+                aria-current={i === active ? "true" : undefined}
+                className={`text-left px-3 py-2 rounded-lg text-sm flex items-center gap-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${i === active ? "bg-surface-3" : "hover:bg-surface-2"}`}
               >
-                <span className={`h-4 w-4 rounded-full flex-shrink-0 grid place-items-center text-[10px] ${l.completed ? "bg-easy text-white" : "border border-border"}`}>
+                <span className={`h-4 w-4 rounded-full flex-shrink-0 grid place-items-center text-[10px] ${l.completed ? "bg-easy text-white" : "border border-border"}`} aria-hidden="true">
                   {l.completed ? "✓" : ""}
                 </span>
                 <span className="truncate">{l.title}</span>
+                {l.completed && <span className="sr-only">(completed)</span>}
               </button>
             ))}
-          </aside>
+          </nav>
           <main>
             {lesson ? (
               <Card className="p-6">
                 <div className="flex items-center gap-2 mb-3">
-                  <h2 className="font-display text-xl">{lesson.title}</h2>
+                  <h2 className="type-headline">{lesson.title}</h2>
                   {lesson.completed && <Badge tone="easy" className="ml-auto">Done</Badge>}
                 </div>
-                <div className="text-sm text-text-2 whitespace-pre-wrap leading-relaxed">{lesson.content || "No content yet."}</div>
+                <div className="text-text-2 whitespace-pre-wrap leading-relaxed">{lesson.content}</div>
+                <LessonBlocks orgId={data.orgId} lessonId={lesson.id} blocks={lesson.blocks ?? []} completed={lesson.completed} answers={answers[lesson.id] ?? {}} onAnswer={(key, choice) => setAnswers((a) => ({ ...a, [lesson.id]: { ...a[lesson.id], [key]: choice } }))} />
                 {!lesson.completed && (
                   <Button className="mt-6" onClick={() => complete(lesson.id)} disabled={busy}>
                     {busy ? "Saving…" : "Mark complete"}

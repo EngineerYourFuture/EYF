@@ -1,12 +1,13 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { prisma } from "@eyf/db";
-
-const ADMIN_ROLES = ["ADMIN", "CONTENT_CREATOR"] as const;
+import { requirePermission } from "../middleware/permissions.js";
 
 export async function adminRoutes(app: FastifyInstance) {
-  const requireAdmin = app.requireRole(["ADMIN"]);
-  const requireMod   = app.requireRole(ADMIN_ROLES as unknown as ("ADMIN" | "CONTENT_CREATOR")[]);
+  // Capability-gated (RBAC source of truth: @eyf/types/permissions) —
+  // mentor verification is its own capability, moderation another.
+  const requireAdmin = requirePermission("verify:mentors");
+  const requireMod   = requirePermission("moderate");
 
   // ─── Overview counts ───────────────────────────────────────────
   app.get("/overview", { preHandler: [app.requireAuth, requireMod] }, async () => {
@@ -66,7 +67,7 @@ export async function adminRoutes(app: FastifyInstance) {
     return { success: true, data: t };
   });
 
-  app.delete("/forum/threads/:id", { preHandler: [app.requireAuth, requireAdmin] }, async (req) => {
+  app.delete("/forum/threads/:id", { preHandler: [app.requireAuth, requireMod] }, async (req) => {
     const { id } = z.object({ id: z.string() }).parse(req.params);
     await prisma.forumThread.delete({ where: { id } });
     return { success: true, data: { deleted: true } };

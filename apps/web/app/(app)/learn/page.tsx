@@ -19,9 +19,11 @@ export default function LearnPage() {
   async function enroll(id: string) {
     setBusy(id);
     try {
-      await action(`/org/courses/${id}/enroll`, { method: "POST" }, { silent: true });
+      await action(`/org/courses/${id}/enroll`, { method: "POST" });
       toast.success("Enrolled — start learning.");
       await mutate();
+    } catch {
+      /* toasted */
     } finally {
       setBusy(null);
     }
@@ -29,15 +31,18 @@ export default function LearnPage() {
 
   return (
     <PageMotion>
-      <div className="px-4 sm:px-6 lg:px-10 py-8 max-w-5xl">
-        <PageHeader title="Learn" subtitle="Courses from partner organisations — enroll and track your progress." />
-        {isLoading ? (
+      <div className="px-4 sm:px-6 lg:px-10 py-8 max-w-5xl mx-auto">
+        <PageHeader title="Learn" subtitle="Published courses from organizations you belong to. Enroll and track your progress." />
+        {(() => {
+  if (isLoading) return (
           <div className="mt-6"><SkeletonRows /></div>
-        ) : !data?.length ? (
+        );
+  if (!data?.length) return (
           <div className="mt-6">
-            <EmptyState title="No courses yet" description="Partner organisations haven't published courses yet. Check back soon." />
+            <EmptyState title="No courses yet" description="Your organizations have no published courses available. Ask your administrator about your learning program." />
           </div>
-        ) : (
+        );
+  return (
           <div className="mt-6 grid gap-4 sm:grid-cols-2">
             {data.map((c) => (
               <Card key={c.id} className="p-5 flex flex-col gap-3">
@@ -46,7 +51,7 @@ export default function LearnPage() {
                   <span className="text-xs text-text-3 ml-auto">{c.lessons} lesson{c.lessons === 1 ? "" : "s"}</span>
                 </div>
                 <div>
-                  <h3 className="font-display text-lg leading-tight">{c.title}</h3>
+                  <h3 className="type-title">{c.title}</h3>
                   {c.description && <p className="text-sm text-text-2 mt-1 line-clamp-2">{c.description}</p>}
                 </div>
                 {c.enrolled && (
@@ -71,7 +76,8 @@ export default function LearnPage() {
               </Card>
             ))}
           </div>
-        )}
+        );
+})()}
       </div>
     </PageMotion>
   );

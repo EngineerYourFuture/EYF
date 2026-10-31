@@ -1,6 +1,7 @@
 "use client";
 import { Card, Badge, Button, EmptyState, SkeletonRows } from "@eyf/ui";
 import { useApi, useApiAction } from "@/lib/use-api";
+import { useConfirm } from "@/components/confirm";
 import { Icons } from "@/components/icons";
 
 type Pending = {
@@ -13,21 +14,30 @@ type Pending = {
 export default function Page() {
   const { data, mutate } = useApi<Pending[]>("/admin/mod/mentors/pending");
   const action = useApiAction();
+  const confirm = useConfirm();
 
   async function verify(id: string) {
-    if (!confirm("Verify this mentor?")) return;
-    await action(`/admin/mod/mentors/${id}/verify`, { method: "POST" });
-    await mutate();
+    try {
+      if (!(await confirm({ title: "Verify this mentor?", message: "They'll be able to offer paid sessions to students.", confirmLabel: "Verify" }))) return;
+      await action(`/admin/mod/mentors/${id}/verify`, { method: "POST" });
+      await mutate();
+    } catch {
+      /* toasted */
+    }
   }
   async function reject(id: string) {
-    if (!confirm("Reject + delete this application?")) return;
-    await action(`/admin/mod/mentors/${id}/reject`, { method: "POST" });
-    await mutate();
+    try {
+      if (!(await confirm({ title: "Reject application?", message: "This deletes the application permanently.", confirmLabel: "Reject", danger: true }))) return;
+      await action(`/admin/mod/mentors/${id}/reject`, { method: "POST" });
+      await mutate();
+    } catch {
+      /* toasted */
+    }
   }
 
   return (
     <div className="px-6 lg:px-10 py-10 lg:py-12 max-w-4xl mx-auto">
-      <h1 className="font-display text-3xl font-bold tracking-tight">Mentor verification queue</h1>
+      <h1 className="type-display">Mentor verification queue</h1>
       <p className="text-text-3 mt-2">{data?.length ?? 0} pending</p>
 
       <div className="mt-8 space-y-3">
@@ -48,14 +58,14 @@ export default function Page() {
                 )}
               </div>
               <div className="flex flex-col gap-2">
-                <Button size="sm" onClick={() => verify(m.id)}>Verify</Button>
-                <Button size="sm" variant="ghost" onClick={() => reject(m.id)}>Reject</Button>
+                <Button size="sm" onClick={() => verify(m.id)} aria-label={`Verify ${m.user.name}`}>Verify</Button>
+                <Button size="sm" variant="ghost" onClick={() => reject(m.id)} aria-label={`Reject ${m.user.name}`}>Reject</Button>
               </div>
             </div>
           </Card>
         ))}
         {data?.length === 0 && (
-          <EmptyState icon={<Icons.users width={28} height={28} />} title="Queue is clear"
+          <EmptyState icon={<Icons.Users width={28} height={28} />} title="Queue is clear"
             description="No mentor applications waiting for review. New applications will appear here." />
         )}
       </div>

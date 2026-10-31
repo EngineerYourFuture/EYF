@@ -22,7 +22,7 @@ export async function mockRoutes(app: FastifyInstance) {
     const sessions = await prisma.mockSession.findMany({
       where: { candidateId: req.session!.id, feedback: { not: undefined } },
       orderBy: { createdAt: "asc" },
-      select: { company: true, createdAt: true, endedAt: true, feedback: true },
+      select: { id: true, company: true, createdAt: true, endedAt: true, feedback: true },
     });
 
     const series = sessions
@@ -34,7 +34,7 @@ export async function mockRoutes(app: FastifyInstance) {
         const comm = r.communication ?? f.overallScore ?? 0;
         const composure = Math.round((clarity + comm) / 2);
         if (composure <= 0) return null;
-        return { date: (s.endedAt ?? s.createdAt).toISOString().slice(0, 10), composure, overall: f.overallScore ?? 0, company: s.company };
+        return { id: s.id, date: (s.endedAt ?? s.createdAt).toISOString().slice(0, 10), composure, overall: f.overallScore ?? 0, company: s.company };
       })
       .filter((p): p is NonNullable<typeof p> => p !== null);
 
@@ -44,15 +44,24 @@ export async function mockRoutes(app: FastifyInstance) {
     const last = n ? series[n - 1]!.composure : 0;
     const delta = last - first;
     const best = n ? Math.max(...series.map((p) => p.composure)) : 0;
-    const trend = n < 2 ? "new" : delta >= 5 ? "improving" : delta <= -5 ? "declining" : "steady";
+    let trend: string;
+    if (n < 2) trend = "new";
+    else if (delta >= 5) trend = "improving";
+    else if (delta <= -5) trend = "declining";
+    else trend = "steady";
     return { success: true, data: { series, sessions: n, avg, best, delta, trend } };
   });
 
   app.get("/:id", { preHandler: app.requireAuth }, async (req, reply) => {
     const { id } = z.object({ id: z.string() }).parse(req.params);
-    const m = await prisma.mockSession.findFirst({ where: { id, candidateId: req.session!.id } });
+    // Both sides of a peer mock open it: the matcher stores the waiting user as peerId.
+    const uid = req.session!.id;
+    const m = await prisma.mockSession.findFirst({ where: { id, OR: [{ candidateId: uid }, { peerId: uid }] } });
     if (!m) return reply.code(404).send({ success: false, error: { code: "NOT_FOUND", message: "Mock not found" } });
-    return { success: true, data: m };
+    if (m.candidateId === uid) return { success: true, data: { ...m, viewerIsCandidate: true } };
+    // The peer gets only what the call needs, never the candidate's evaluation or recordings.
+    const { id: mockId, type, status, problemFocus, startedAt } = m;
+    return { success: true, data: { id: mockId, type, status, problemFocus, startedAt, viewerIsCandidate: false } };
   });
 
   // AI mock: Pro+ per spec. Creates session + first interviewer message.
@@ -189,7 +198,7 @@ export async function mockRoutes(app: FastifyInstance) {
         req.log.error({ err }, "whisper transcription failed");
         return reply.code(503).send({
           success: false,
-          error: { code: "TRANSCRIPTION_FAILED", message: (err as Error).message },
+          error: { code: "TRANSCRIPTION_FAILED", message: "Transcription isn't available right now. Type your answer instead." },
         });
       }
     },

@@ -19,17 +19,21 @@ const STEPS = [
  * into analytics: how many reach each stage, the step-by-step conversion, and
  * the biggest leak. Pure-logic from the student's own applications.
  */
-export function PipelineFunnel({ apps }: { apps: App[] }) {
-  if (!apps || apps.length < 2) return null;
+export function PipelineFunnel({ apps }: Readonly<{ apps: App[] }>) {
+  if (!apps || apps.length < 2) { return null; }
   const reached = (i: number) => apps.filter((a) => (FURTHEST[a.status] ?? 0) >= i).length;
   const applied = reached(1);
-  if (applied === 0) return null;
+  if (applied === 0) { return null; }
 
   const stages = STEPS.map((s) => ({ label: s.label, n: reached(s.i) }));
   // step conversion from the previous stage
   const withConv = stages.map((s, i) => ({
     ...s,
-    conv: i === 0 ? 100 : stages[i - 1]!.n ? Math.round((s.n / stages[i - 1]!.n) * 100) : 0,
+    conv: (() => {
+      if (i === 0) { return 100; }
+      if (stages[i - 1]!.n) { return Math.round((s.n / stages[i - 1]!.n) * 100); }
+      return 0;
+    })(),
     pctOfApplied: applied ? Math.round((s.n / applied) * 100) : 0,
   }));
   const leak = withConv.slice(1).reduce((lo, s) => (s.conv < lo.conv ? s : lo), withConv[1] ?? withConv[0]!);
@@ -50,7 +54,7 @@ export function PipelineFunnel({ apps }: { apps: App[] }) {
             <div className="mt-1 font-display text-2xl font-bold tabular-nums">{s.n}</div>
             <div className="text-text-4 text-xs">{s.pctOfApplied}% of applied</div>
             {i > 0 && (
-              <div className={`mt-2 text-xs font-mono ${s.conv >= 50 ? "text-easy" : s.conv >= 25 ? "text-medium" : "text-brand"}`}>
+              <div className={`mt-2 text-xs font-mono ${(() => { if (s.conv >= 50) { return "text-easy"; } if (s.conv >= 25) { return "text-medium"; } return "text-brand"; })()}`}>
                 {s.conv}% from {withConv[i - 1]!.label}
               </div>
             )}

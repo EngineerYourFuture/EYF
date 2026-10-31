@@ -1,9 +1,12 @@
 "use client";
 import { useState } from "react";
+import Link from "next/link";
 import { Card, Badge, Button } from "@eyf/ui";
 import { useApi, useApiAction } from "@/lib/use-api";
 import { useEyfAuth as useAuth } from "@/lib/auth";
 import { toast } from "sonner";
+import { useCapabilities } from "@/lib/use-capabilities";
+import { AiUnavailable } from "@/components/ai-unavailable";
 
 type Resume = { id: string; title: string; isDefault: boolean };
 type Roast = {
@@ -16,6 +19,7 @@ type Roast = {
 export default function Page() {
   const { data: resumes } = useApi<Resume[]>("/resume/me");
   const action = useApiAction();
+  const caps = useCapabilities();
   const [roast, setRoast] = useState<Roast | null>(null);
   const [roasting, setRoasting] = useState(false);
 
@@ -32,15 +36,16 @@ export default function Page() {
 
   return (
     <div className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-3xl">
-      <h1 className="font-display text-4xl font-bold tracking-tight">Fun + Motivation</h1>
+      <h1 className="type-display">Fun + Motivation</h1>
       <p className="text-text-3 mt-2">Get roasted. Visualise the offer. Stay hungry.</p>
 
       <Card className="mt-10">
-        <h2 className="font-display text-xl font-bold">Get Roasted <Badge tone="accent" className="ml-2">Pro+</Badge></h2>
+        <h2 className="type-title">Get Roasted <Badge tone="accent" className="ml-2">Pro+</Badge></h2>
         <p className="text-text-3 text-sm mt-1">Claude reads your resume in 30 seconds. Brutal. No softening.</p>
+        <AiUnavailable className="mt-4">Roasts need the AI reviewer, which isn&rsquo;t set up on this server yet.</AiUnavailable>
         {!defaultId
-          ? <p className="text-text-3 mt-4 text-sm">Build a resume first → <a href="/resume" className="text-accent hover:underline">resume editor</a></p>
-          : <Button className="mt-4" onClick={() => roastIt(defaultId)} disabled={roasting}>
+          ? <p className="text-text-3 mt-4 text-sm">Build a resume first → <Link href="/resume" className="text-accent hover:underline">resume editor</Link></p>
+          : <Button className="mt-4" onClick={() => roastIt(defaultId)} disabled={roasting || caps?.ai === false}>
               {roasting ? "Reading…" : "Roast my default resume"}
             </Button>}
         {roast && <RoastView roast={roast} />}
@@ -51,7 +56,7 @@ export default function Page() {
   );
 }
 
-function RoastView({ roast }: { roast: Roast }) {
+function RoastView({ roast }: Readonly<{ roast: Roast }>) {
   const gradeColor: Record<Roast["finalGrade"], string> = {
     F: "text-hard", D: "text-hard", C: "text-medium", B: "text-easy", A: "text-easy",
   };
@@ -64,14 +69,14 @@ function RoastView({ roast }: { roast: Roast }) {
       <div>
         <h4 className="text-xs text-text-3 uppercase tracking-wider mb-2">Brutal</h4>
         <ul className="space-y-1.5 text-sm">
-          {roast.brutal.map((b, i) => <li key={i} className="flex gap-2"><span className="text-hard">→</span>{b}</li>)}
+          {roast.brutal.map((b) => <li key={b} className="flex gap-2"><span className="text-hard">→</span>{b}</li>)}
         </ul>
       </div>
       <div>
         <h4 className="text-xs text-text-3 uppercase tracking-wider mb-2">Fixable</h4>
         <ul className="space-y-3 text-sm">
-          {roast.fixable.map((f, i) => (
-            <li key={i} className="border-l-2 border-accent pl-3">
+          {roast.fixable.map((f) => (
+            <li key={f.issue} className="border-l-2 border-accent pl-3">
               <div className="font-medium">{f.issue}</div>
               <div className="text-text-3 mt-1">→ {f.fix}</div>
             </li>
@@ -109,7 +114,7 @@ function OfferLetter() {
 
   return (
     <Card className="mt-6">
-      <h2 className="font-display text-xl font-bold">Mock Offer Letter</h2>
+      <h2 className="type-title">Mock Offer Letter</h2>
       <p className="text-text-3 text-sm mt-1">A realistic-looking PDF to keep you hungry until the real one shows up.</p>
       <div className="mt-4 grid grid-cols-2 gap-3">
         <Input label="Company" value={form.company} onChange={(v) => setForm({ ...form, company: v })} />
@@ -122,7 +127,7 @@ function OfferLetter() {
   );
 }
 
-function Input({ label, value, onChange, type = "text" }: { label: string; value: string; onChange: (v: string) => void; type?: string }) {
+function Input({ label, value, onChange, type = "text" }: Readonly<{ label: string; value: string; onChange: (v: string) => void; type?: string }>) {
   return (
     <div>
       <label className="text-xs text-text-3 uppercase tracking-wider">{label}</label>

@@ -7,6 +7,7 @@ import { track, Events } from "@/lib/analytics";
 import { useState } from "react";
 import { PageMotion } from "@/components/page-motion";
 import { Icons } from "@/components/icons";
+import { difficultyTone } from "@/lib/ui-helpers";
 
 type Wrapped = {
   year: number;
@@ -53,12 +54,12 @@ export default function Page() {
           <ShareRow data={data} />
 
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-6">
-            <MetricTile icon={<Icons.code width={16} height={16} />} tone="accent" label="Solved" value={data.totalSolved} />
-            <MetricTile icon={<Icons.bolt width={16} height={16} />} label="Submissions" value={data.totalSubmissions} />
-            <MetricTile icon={<Icons.flame width={16} height={16} />} tone="medium" label="Best streak" value={data.bestStreakDays} unit="d" />
-            <MetricTile icon={<Icons.mic width={16} height={16} />} tone="info" label="Mocks" value={data.mockSessions} />
-            <MetricTile icon={<Icons.trophy width={16} height={16} />} label="Badges" value={data.badgesEarned} />
-            <MetricTile icon={<Icons.compass width={16} height={16} />} label="Top pattern" value={<span className="font-mono text-xl">{data.topPattern ?? "—"}</span>} />
+            <MetricTile icon={<Icons.Code width={16} height={16} />} tone="accent" label="Solved" value={data.totalSolved} />
+            <MetricTile icon={<Icons.Bolt width={16} height={16} />} label="Submissions" value={data.totalSubmissions} />
+            <MetricTile icon={<Icons.Flame width={16} height={16} />} tone="medium" label="Best streak" value={data.bestStreakDays} unit="d" />
+            <MetricTile icon={<Icons.Mic width={16} height={16} />} tone="info" label="Mocks" value={data.mockSessions} />
+            <MetricTile icon={<Icons.Trophy width={16} height={16} />} label="Badges" value={data.badgesEarned} />
+            <MetricTile icon={<Icons.Compass width={16} height={16} />} label="Top pattern" value={<span className="font-mono text-xl">{data.topPattern ?? "—"}</span>} />
           </div>
 
           <Card className="mt-5">
@@ -68,7 +69,7 @@ export default function Page() {
               : <div className="space-y-3">
                   {Object.entries(data.byDifficulty).map(([d, n]) => (
                     <Meter key={d}
-                      tone={d === "HARD" || d === "EXPERT" ? "hard" : d === "EASY" ? "easy" : "medium"}
+                      tone={difficultyTone(d)}
                       label={d} value={n} pct={n / diffTotal} />
                   ))}
                 </div>}
@@ -77,7 +78,7 @@ export default function Page() {
           {data.longestSession && (
             <Card className="mt-5 flex items-center gap-4">
               <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-accent-tint text-accent border border-accent/20">
-                <Icons.flame width={22} height={22} />
+                <Icons.Flame width={22} height={22} />
               </span>
               <div>
                 <h3 className="font-display text-lg font-bold">Biggest day</h3>
@@ -92,11 +93,12 @@ export default function Page() {
 }
 
 /* ─────────── The shareable poster ─────────── */
-function ShareCard({ data }: { data: Wrapped }) {
+function ShareCard({ data }: Readonly<{ data: Wrapped }>) {
   return (
     <div className="mt-8 theme-dark relative overflow-hidden rounded-2xl border border-accent/20 bg-bg p-7 sm:p-9 shadow-glow-sm">
-      <div className="pointer-events-none absolute -top-1/3 -right-10 h-72 w-72 rounded-full blur-[90px]" style={{ background: "radial-gradient(circle, rgba(255, 255, 255,0.28), transparent 60%)" }} />
-      <div className="pointer-events-none absolute -bottom-20 -left-10 h-72 w-72 rounded-full blur-[100px]" style={{ background: "radial-gradient(circle, rgba(255, 255, 255,0.18), transparent 60%)" }} />
+      {/* DESIGN.md: no aurora blobs / colored radial glows. A near-invisible neutral
+          vignette for depth is the sanctioned alternative; the dot-grid is a subtle material. */}
+      <div className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(120% 100% at 50% -10%, transparent 55%, rgba(0,0,0,0.35))" }} />
       <div className="pointer-events-none absolute inset-0 opacity-[0.05]" style={{ backgroundImage: "radial-gradient(rgba(255, 255, 255,0.8) 1px, transparent 1px)", backgroundSize: "26px 26px" }} />
 
       <div className="relative">
@@ -123,7 +125,7 @@ function ShareCard({ data }: { data: Wrapped }) {
     </div>
   );
 }
-function PosterStat({ value, label }: { value: number | string; label: string }) {
+function PosterStat({ value, label }: Readonly<{ value: number | string; label: string }>) {
   return (
     <div>
       <div className="font-display text-3xl sm:text-4xl font-bold text-accent leading-none tabular-nums">{value}</div>
@@ -133,8 +135,8 @@ function PosterStat({ value, label }: { value: number | string; label: string })
 }
 
 /* ─────────── Share actions ─────────── */
-function ShareRow({ data }: { data: Wrapped }) {
-  const shareText = `My ${data.year} on EYF: ${data.totalSolved} problems solved, a ${data.bestStreakDays}-day best streak${data.mockSessions ? `, ${data.mockSessions} mock interviews` : ""} 🔥 Engineering my future.`;
+function ShareRow({ data }: Readonly<{ data: Wrapped }>) {
+  const shareText = `My ${data.year} on EYF: ${data.totalSolved} problems solved, a ${data.bestStreakDays}-day best streak${data.mockSessions ? ", " + data.mockSessions + " mock interviews" : ""} 🔥 Engineering my future.`;
   const shareUrl = typeof window !== "undefined" ? window.location.origin : "https://engineeryourfuture.app";
 
   async function share() {
@@ -159,7 +161,7 @@ function ShareRow({ data }: { data: Wrapped }) {
   );
 }
 
-function DownloadPdf({ year }: { year: number }) {
+function DownloadPdf({ year }: Readonly<{ year: number }>) {
   const { getToken } = useAuth();
   const [busy, setBusy] = useState(false);
   async function download() {

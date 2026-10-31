@@ -2,8 +2,11 @@
 import { useState } from "react";
 import { Card, Badge, Button, EmptyState, SkeletonRows } from "@eyf/ui";
 import { useApi, useApiAction } from "@/lib/use-api";
+import { useConfirm } from "@/components/confirm";
 import { Icons } from "@/components/icons";
 import { ContentTabs } from "../_tabs";
+import { Field } from "../_field";
+import { saveLabel } from "@/lib/ui-helpers";
 
 const ROLES = ["SDE", "FULLSTACK", "BACKEND", "FRONTEND", "DATA", "ML", "DEVOPS", "ANDROID", "IOS", "QA", "PM", "DESIGN"] as const;
 type Role = (typeof ROLES)[number];
@@ -20,6 +23,7 @@ const inputCls = "w-full h-11 px-3 rounded-lg bg-surface border border-border te
 export default function Page() {
   const { data, mutate } = useApi<JobRow[]>("/admin/content/jobs");
   const action = useApiAction();
+  const confirm = useConfirm();
   const [editing, setEditing] = useState<null | { id: string | null }>(null);
   const [form, setForm] = useState<Form>(EMPTY);
   const [saving, setSaving] = useState(false);
@@ -27,9 +31,13 @@ export default function Page() {
 
   function startNew() { setForm(EMPTY); setEditing({ id: null }); }
   async function startEdit(id: string) {
-    const j = await action<JobFull>(`/admin/content/jobs/${id}`);
-    setForm({ slug: j.slug, company: j.company, title: j.title, role: j.role, location: j.location, remote: j.remote, salaryMinInr: j.salaryMinInr?.toString() ?? "", salaryMaxInr: j.salaryMaxInr?.toString() ?? "", experienceMin: j.experienceMin, description: j.description, applyUrl: j.applyUrl, isActive: j.isActive });
-    setEditing({ id });
+    try {
+      const j = await action<JobFull>(`/admin/content/jobs/${id}`);
+      setForm({ slug: j.slug, company: j.company, title: j.title, role: j.role, location: j.location, remote: j.remote, salaryMinInr: j.salaryMinInr?.toString() ?? "", salaryMaxInr: j.salaryMaxInr?.toString() ?? "", experienceMin: j.experienceMin, description: j.description, applyUrl: j.applyUrl, isActive: j.isActive });
+      setEditing({ id });
+    } catch {
+      /* toasted */
+    }
   }
   async function save() {
     setSaving(true);
@@ -45,15 +53,15 @@ export default function Page() {
     } catch { /* toasted */ } finally { setSaving(false); }
   }
   async function remove(id: string, title: string) {
-    if (!confirm(`Delete "${title}"? Only if no applications.`)) return;
+    if (!(await confirm({ title: `Delete "${title}"? Only if no applications.`, confirmLabel: "Delete", danger: true }))) return;
     try { await action(`/admin/content/jobs/${id}`, { method: "DELETE" }); await mutate(); } catch { /* toasted */ }
   }
 
   if (editing) {
     return (
       <div className="px-6 lg:px-10 py-10 lg:py-12 max-w-3xl mx-auto">
-        <button onClick={() => setEditing(null)} className="text-text-3 hover:text-text-1 text-sm mb-4">← Back to jobs</button>
-        <h1 className="font-display text-2xl font-bold tracking-tight">{editing.id ? "Edit job" : "New job"}</h1>
+        <button type="button" onClick={() => setEditing(null)} className="text-text-3 hover:text-text-1 text-sm mb-4">← Back to jobs</button>
+        <h1 className="type-display">{editing.id ? "Edit job" : "New job"}</h1>
         <Card className="mt-6 space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <Field label="Title"><input className={inputCls} value={form.title} onChange={(e) => set("title", e.target.value)} placeholder="SDE-1" /></Field>
@@ -76,7 +84,7 @@ export default function Page() {
             <label className="flex items-center gap-2 text-sm text-text-2"><input type="checkbox" checked={form.isActive} onChange={(e) => set("isActive", e.target.checked)} /> Active (visible to students)</label>
           </div>
           <div className="flex gap-3 pt-2">
-            <Button onClick={save} disabled={saving || !form.title || !form.slug || !form.company || !form.applyUrl}>{saving ? "Saving…" : editing.id ? "Save changes" : "Create job"}</Button>
+            <Button onClick={save} disabled={saving || !form.title || !form.slug || !form.company || !form.applyUrl}>{saveLabel(saving, editing.id, "Create job")}</Button>
             <Button variant="ghost" onClick={() => setEditing(null)}>Cancel</Button>
           </div>
         </Card>
@@ -88,7 +96,7 @@ export default function Page() {
     <div className="px-6 lg:px-10 py-10 lg:py-12 max-w-4xl mx-auto">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="font-display text-3xl font-bold tracking-tight">Jobs</h1>
+          <h1 className="type-display">Jobs</h1>
           <p className="text-text-3 mt-2">{data?.length ?? 0} jobs · manage the job board.</p>
         </div>
         <Button onClick={startNew}>+ New job</Button>
@@ -109,21 +117,12 @@ export default function Page() {
             </div>
             <div className="flex items-center gap-2 shrink-0">
               <Button size="sm" variant="secondary" onClick={() => startEdit(j.id)}>Edit</Button>
-              <button onClick={() => remove(j.id, j.title)} className="text-text-4 hover:text-hard text-sm px-2 py-1">Delete</button>
+              <button type="button" onClick={() => remove(j.id, j.title)} className="text-text-4 hover:text-hard text-sm px-2 py-1">Delete</button>
             </div>
           </Card>
         ))}
-        {data?.length === 0 && <EmptyState icon={<Icons.briefcase width={28} height={28} />} title="No jobs yet" description="Post your first job — it shows on the student job board immediately." />}
+        {data?.length === 0 && <EmptyState icon={<Icons.Briefcase width={28} height={28} />} title="No jobs yet" description="Post your first job — it shows on the student job board immediately." />}
       </div>
     </div>
-  );
-}
-
-function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
-  return (
-    <label className="block">
-      <span className="text-text-3 text-xs uppercase tracking-wider">{label}{hint && <span className="text-text-4 normal-case tracking-normal"> · {hint}</span>}</span>
-      <div className="mt-1.5">{children}</div>
-    </label>
   );
 }

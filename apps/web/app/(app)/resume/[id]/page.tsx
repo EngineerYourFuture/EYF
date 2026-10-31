@@ -1,11 +1,13 @@
 "use client";
-import { Card, Button, Badge } from "@eyf/ui";
+import { useParams } from "next/navigation";
+import { Card, Button, Badge, TextField, Field } from "@eyf/ui";
 import { useApi, useApiAction } from "@/lib/use-api";
 import { ResumeGap } from "@/components/resume-gap";
 import { track, Events } from "@/lib/analytics";
 import { toast } from "sonner";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import type { ResumeDocument } from "@eyf/types";
+import { LoadError, loadFailed } from "@/components/load-error";
 
 type Resume = {
   id: string; title: string; template: string;
@@ -14,15 +16,54 @@ type Resume = {
   json: ResumeDocument;
 };
 
-export default function Page({ params }: { params: { id: string } }) {
-  const { data, mutate } = useApi<Resume>(`/resume/${params.id}`);
+const draftKey = (id: string) => `eyf:resume:${id}`;
+
+export default function Page() {
+  const params = useParams<{ id: string }>();
+  const { data, error, mutate } = useApi<Resume>(`/resume/${params.id}`);
   const action = useApiAction();
   const [doc, setDoc] = useState<ResumeDocument | null>(null);
   const [saving, setSaving] = useState(false);
+  const [restored, setRestored] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
 
-  useEffect(() => { if (data && !doc) setDoc(data.json); }, [data, doc]);
+  // Load once: restore an unsaved local draft if it differs from the server copy,
+  // so a refresh never loses edits (the draft is decoupled from Save + rescoring).
+  useEffect(() => {
+    if (!data || hydrated) { return; }
+    let initial = data.json;
+    try {
+      const raw = localStorage.getItem(draftKey(params.id));
+      if (raw) {
+        const draft = JSON.parse(raw) as { json?: ResumeDocument };
+        if (draft.json && JSON.stringify(draft.json) !== JSON.stringify(data.json)) {
+          initial = draft.json;
+          setRestored(true);
+        }
+      }
+    } catch { /* private mode / corrupt draft */ }
+    setDoc(initial);
+    setHydrated(true);
+  }, [data, hydrated, params.id]);
 
-  if (!data || !doc) return <div className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 text-text-3">Loading…</div>;
+  // Autosave the draft (debounced) on every edit.
+  useEffect(() => {
+    if (!hydrated || !doc) { return; }
+    const t = setTimeout(() => {
+      try { localStorage.setItem(draftKey(params.id), JSON.stringify({ json: doc, ts: Date.now() })); } catch { /* quota */ }
+    }, 500);
+    return () => clearTimeout(t);
+  }, [doc, hydrated, params.id]);
+
+  function discardDraft() {
+    if (!data) { return; }
+    setDoc(data.json);
+    setRestored(false);
+    try { localStorage.removeItem(draftKey(params.id)); } catch { /* ignore */ }
+  }
+
+  if (loadFailed(error, data)) return <div className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-3xl mx-auto"><LoadError page error={error} what="resume" retry={() => mutate()} back={{ href: "/resume", label: "All resumes" }} /></div>;
+  if (!data || !doc) { return <div className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 text-text-3">Loading…</div>; }
 
   async function save() {
     setSaving(true);
@@ -33,18 +74,31 @@ export default function Page({ params }: { params: { id: string } }) {
       track(Events.ResumeScored, { score: r.atsScore });
       toast.success(r.atsScore != null ? `Saved · ATS ${r.atsScore}/100` : "Saved");
       await mutate();
+      // Server is now the source of truth — clear the local draft.
+      try { localStorage.removeItem(draftKey(params.id)); } catch { /* ignore */ }
+      setRestored(false);
     } finally {
       setSaving(false);
     }
   }
 
   return (
-    <div className="px-4 sm:px-6 lg:px-10 py-8 grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-8 max-w-7xl">
+    <div className="px-4 sm:px-6 lg:px-10 py-8 grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-8 max-w-7xl mx-auto">
       <div className="space-y-5">
-        <h1 className="font-display text-3xl font-bold">{data.title}</h1>
+        <h1 className="type-display">{data.title}</h1>
+
+        {restored && (
+          <output className="flex w-full items-center justify-between gap-3 rounded-lg border border-accent/40 bg-accent-tint/40 px-4 py-2.5 text-sm">
+            <span className="text-text-2">Restored unsaved changes from your last session.</span>
+            <button type="button"
+              onClick={discardDraft}
+              className="shrink-0 text-accent hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded px-1"
+            >Discard</button>
+          </output>
+        )}
 
         <Card>
-          <h3 className="font-display text-lg font-bold mb-3">Contact</h3>
+          <h3 className="type-title mb-3">Contact</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <TextField label="Name"     value={doc.contact.name}     onChange={(v) => setDoc({ ...doc, contact: { ...doc.contact, name: v } })} />
             <TextField label="Email"    value={doc.contact.email}    onChange={(v) => setDoc({ ...doc, contact: { ...doc.contact, email: v } })} />
@@ -56,9 +110,10 @@ export default function Page({ params }: { params: { id: string } }) {
         </Card>
 
         <Card>
-          <h3 className="font-display text-lg font-bold mb-3">Summary</h3>
+          <h3 className="type-title mb-3">Summary</h3>
           <textarea
             rows={4}
+            aria-label="Professional summary"
             className="w-full bg-bg border border-border rounded-md px-3 py-2 text-sm"
             value={doc.summary ?? ""}
             onChange={(e) => setDoc({ ...doc, summary: e.target.value })}
@@ -67,7 +122,7 @@ export default function Page({ params }: { params: { id: string } }) {
         </Card>
 
         <Card>
-          <h3 className="font-display text-lg font-bold mb-3">Skills</h3>
+          <h3 className="type-title mb-3">Skills</h3>
           <input
             className="w-full bg-bg border border-border rounded-md px-3 py-2 text-sm"
             placeholder="comma-separated, e.g. Java, Spring, AWS, SQL"
@@ -86,15 +141,14 @@ export default function Page({ params }: { params: { id: string } }) {
               <TextField label="Role"    value={e.role}    onChange={(v) => set({ ...e, role: v })} />
               <TextField label="Start"   value={e.start}   onChange={(v) => set({ ...e, start: v })} />
               <TextField label="End"     value={e.end ?? ""} onChange={(v) => set({ ...e, end: v })} />
-              <div className="col-span-2">
-                <label className="text-xs text-text-3 uppercase tracking-wider">Bullets (one per line)</label>
+              <Field label="Bullets (one per line)" className="col-span-2">
                 <textarea
                   rows={4}
-                  className="w-full bg-bg border border-border rounded-md px-3 py-2 text-sm mt-1"
+                  className="w-full bg-bg border border-border rounded-md px-3 py-2 text-sm"
                   value={(e.bullets ?? []).join("\n")}
                   onChange={(ev) => set({ ...e, bullets: ev.target.value.split("\n").filter((s) => s.trim()) })}
                 />
-              </div>
+              </Field>
             </div>
           )}
           empty={{ company: "", role: "", start: "", bullets: [] }}
@@ -108,15 +162,14 @@ export default function Page({ params }: { params: { id: string } }) {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <TextField label="Name" value={p.name} onChange={(v) => set({ ...p, name: v })} />
               <TextField label="Link" value={p.link ?? ""} onChange={(v) => set({ ...p, link: v })} />
-              <div className="col-span-2">
-                <label className="text-xs text-text-3 uppercase tracking-wider">Description</label>
+              <Field label="Description" className="col-span-2">
                 <textarea
                   rows={3}
-                  className="w-full bg-bg border border-border rounded-md px-3 py-2 text-sm mt-1"
+                  className="w-full bg-bg border border-border rounded-md px-3 py-2 text-sm"
                   value={p.description}
                   onChange={(e) => set({ ...p, description: e.target.value })}
                 />
-              </div>
+              </Field>
             </div>
           )}
           empty={{ name: "", description: "" }}
@@ -145,7 +198,7 @@ export default function Page({ params }: { params: { id: string } }) {
 
       <aside className="space-y-4">
         <Card>
-          <h3 className="font-display text-lg font-bold">ATS score</h3>
+          <h3 className="type-title">ATS score</h3>
           <div className="mt-2 font-display text-4xl font-bold">
             {data.atsScore ?? "—"}<span className="text-text-3 text-2xl"> /100</span>
           </div>
@@ -154,7 +207,7 @@ export default function Page({ params }: { params: { id: string } }) {
               {data.atsBreakdown.factors.map((f) => (
                 <li key={f.name} className="flex items-center justify-between gap-2">
                   <span className="text-text-2">{f.name}</span>
-                  <Badge tone={f.score === f.max ? "easy" : f.score === 0 ? "hard" : "medium"}>
+                  <Badge tone={(() => { if (f.score === f.max) { return "easy" as const; } if (f.score === 0) { return "hard" as const; } return "medium" as const; })()}>
                     {f.score}/{f.max}
                   </Badge>
                 </li>
@@ -177,41 +230,39 @@ export default function Page({ params }: { params: { id: string } }) {
   );
 }
 
-function TextField({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
-  return (
-    <div>
-      <label className="text-xs text-text-3 uppercase tracking-wider">{label}</label>
-      <input
-        className="w-full mt-1 bg-bg border border-border rounded-md px-3 py-2 text-sm"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-      />
-    </div>
-  );
-}
-
 function ListSection<T extends object>({
   title, items, onChange, render, empty,
-}: {
+}: Readonly<{
   title: string;
   items: T[];
   onChange: (items: T[]) => void;
   render: (item: T, set: (next: T) => void) => React.ReactNode;
   empty: T;
-}) {
+}>) {
+  const keys = useRef(new WeakMap<T, string>());
+  const rowKey = (item: T) => {
+    let key = keys.current.get(item);
+    if (!key) { key = crypto.randomUUID(); keys.current.set(item, key); }
+    return key;
+  };
+  const replace = (item: T, next: T) => {
+    keys.current.set(next, rowKey(item));
+    onChange(items.map((row) => row === item ? next : row));
+  };
   return (
     <Card>
       <div className="flex items-center justify-between mb-3">
-        <h3 className="font-display text-lg font-bold">{title}</h3>
-        <Button size="sm" variant="secondary" onClick={() => onChange([...items, empty])}>+ Add</Button>
+        <h3 className="type-title">{title}</h3>
+        <Button size="sm" variant="secondary" onClick={() => onChange([...items, { ...empty }])} aria-label={`Add ${title.replace(/s$/, "").toLowerCase()}`}>+ Add</Button>
       </div>
       <div className="space-y-4">
         {items.map((it, i) => (
-          <div key={i} className="border border-border rounded-md p-3">
-            {render(it, (next) => onChange(items.map((x, j) => (j === i ? next : x))))}
-            <button
-              className="mt-2 text-xs text-hard hover:underline"
+          <div key={rowKey(it)} className="border border-border rounded-md p-3">
+            {render(it, (next) => replace(it, next))}
+            <button type="button"
+              className="mt-2 text-xs text-hard hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded px-1"
               onClick={() => onChange(items.filter((_, j) => j !== i))}
+              aria-label={`Remove ${title.replace(/s$/, "").toLowerCase()} ${i + 1}`}
             >Remove</button>
           </div>
         ))}

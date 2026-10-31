@@ -23,7 +23,7 @@ const lpa = (n: number) => Math.round(n / 100_000);
 
 export default function Page() {
   const [role, setRole] = useState<string>("");
-  const { data: jobs, isLoading } = useApi<Job[]>(`/jobs${role ? `?role=${role}` : ""}`);
+  const { data: jobs, isLoading } = useApi<Job[]>(`/jobs${role ? "?role=" + role : ""}`);
   const { data: apps, mutate } = useApi<App[]>("/jobs/me/applications");
   const action = useApiAction();
   const [saving, setSaving] = useState<string | null>(null);
@@ -32,9 +32,11 @@ export default function Page() {
   async function save(slug: string) {
     setSaving(slug);
     try {
-      await action(`/jobs/${slug}/save`, { method: "POST" }, { silent: true });
+      await action(`/jobs/${slug}/save`, { method: "POST" });
       toast.success("Saved to your tracker.");
       await mutate();
+    } catch {
+      /* toasted */
     } finally {
       setSaving(null);
     }
@@ -43,38 +45,41 @@ export default function Page() {
   return (
     <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-7xl mx-auto">
       <PageHeader
-        eyebrow="Find · save · track"
         title="Jobs"
         subtitle="Roles worth your time, with real comp bands — saved straight into a pipeline you can drive to an offer."
       />
 
-      <div className="mt-6 flex items-center gap-2 text-sm">
-        <label className="text-text-3 uppercase text-xs tracking-wider">Role</label>
+      <label className="mt-6 flex items-center gap-2 text-sm">
+        <span className="text-text-3 uppercase text-xs tracking-wider">Role</span>
         <select value={role} onChange={(e) => setRole(e.target.value)}
           className="bg-surface border border-border rounded-md px-2.5 py-1.5 focus:border-accent/50 outline-none">
           <option value="">All</option>
           {ROLES.map((r) => <option key={r}>{r}</option>)}
         </select>
-      </div>
+      </label>
 
       <div className="mt-8 grid lg:grid-cols-[1fr_300px] gap-8">
         <div>
-          {isLoading ? (
+          {(() => {
+  if (isLoading) return (
             <SkeletonRows rows={6} />
-          ) : jobs && jobs.length === 0 ? (
-            <EmptyState icon={<Icons.briefcase width={28} height={28} />} title="No jobs for this filter" description="Try a different role, or check back — new roles are added regularly." />
-          ) : (
+          );
+  if (jobs?.length === 0) return (
+            <EmptyState icon={<Icons.Briefcase width={28} height={28} />} title="No jobs for this filter" description="Try a different role, or check back — new roles are added regularly." />
+          );
+  return (
             <div className="grid sm:grid-cols-2 gap-4">
               {jobs?.map((j) => (
                 <JobCard key={j.id} j={j} saved={savedSlugs.has(j.slug)} saving={saving === j.slug} onSave={() => save(j.slug)} />
               ))}
             </div>
-          )}
+          );
+})()}
         </div>
 
         <aside>
           <div className="flex items-center justify-between mb-3">
-            <h2 className="font-display text-lg font-bold">My tracker</h2>
+            <h2 className="type-title">My tracker</h2>
             <Link href="/pipeline" className="text-accent text-sm hover:underline">Open pipeline →</Link>
           </div>
           <div className="space-y-2">
@@ -87,7 +92,7 @@ export default function Page() {
                 </Card>
               </Link>
             ))}
-            {apps && apps.length === 0 && (
+            {apps?.length === 0 && (
               <div className="rounded-xl border border-dashed border-border p-5 text-center">
                 <p className="text-text-3 text-sm">Nothing saved yet.</p>
                 <p className="text-text-4 text-xs mt-1">Save roles to track them to an offer.</p>
@@ -100,10 +105,10 @@ export default function Page() {
   );
 }
 
-function JobCard({ j, saved, saving, onSave }: { j: Job; saved: boolean; saving: boolean; onSave: () => void }) {
+function JobCard({ j, saved, saving, onSave }: Readonly<{ j: Job; saved: boolean; saving: boolean; onSave: () => void }>) {
   return (
-    <Link href={`/jobs/${j.slug}`}>
-      <Card interactive className="flex h-full flex-col">
+    <Link href={`/jobs/${j.slug}`} className="min-w-0">
+      <Card interactive className="flex h-full flex-col min-w-0">
         <div className="flex items-start gap-3">
           <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-accent/20 bg-accent-tint font-display font-bold text-accent">
             {j.company[0]}

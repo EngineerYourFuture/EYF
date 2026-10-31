@@ -1,7 +1,111 @@
 /** @type {import('next').NextConfig} */
+
+// Content-Security-Policy. Enforced (not report-only). The high-impact vectors
+// — framing/clickjacking, <base> injection, plugin objects, form hijacking —
+// are locked down hard; script/style/connect stay permissive enough for the
+// third-party stack (Clerk, PostHog, Monaco, R2) so nothing silently breaks.
+// Tightening script-src to per-request nonces is the documented next step.
+const isDev = process.env.NODE_ENV !== "production";
+if (process.env.NEXT_PUBLIC_EYF_PORTAL && !["public", "lms"].includes(process.env.NEXT_PUBLIC_EYF_PORTAL)) {
+  throw new Error("NEXT_PUBLIC_EYF_PORTAL must be public or lms.");
+}
+
+// The browser talks directly to the API (NEXT_PUBLIC_API_URL) — its origin must
+// be in connect-src or every client fetch is blocked. In prod the API is HTTPS
+// (covered by `https:`); in local dev it's http://localhost:4000, so we allow
+// localhost + the HMR websocket explicitly. Never loosens production.
+const apiOrigin = (() => {
+  try { return new URL(process.env.NEXT_PUBLIC_API_URL ?? "").origin; } catch { return ""; }
+})();
+const connectSrc = [
+  "'self'",
+  apiOrigin,
+  "https:",
+  "wss:",
+  ...(isDev ? ["http://localhost:*", "http://127.0.0.1:*", "ws://localhost:*", "ws://127.0.0.1:*"] : []),
+].filter(Boolean).join(" ");
+
+const csp = [
+  "default-src 'self'",
+  "base-uri 'self'",
+  "object-src 'none'",
+  "frame-ancestors 'none'",
+  "form-action 'self'",
+  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https: blob:",
+  // Monaco (the code editor) loads its stylesheet from jsdelivr — script-src
+  // already allows the CDN via `https:`; style-src must allow the host too or the
+  // editor renders unstyled. Scoped to the one CDN, not all https.
+  "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net",
+  "img-src 'self' data: blob: https:",
+  "font-src 'self' data:",
+  `connect-src ${connectSrc}`,
+  "worker-src 'self' blob:",
+  "frame-src 'self' https:",
+  ...(isDev ? [] : ["upgrade-insecure-requests"]),
+].join("; ");
+
+// Security finding S1 (docs/KNOWN-ISSUES.md): the enforced script-src above allows scripts
+// from ANY https origin. We can't safely enforce a tighter allowlist blind — Clerk's prod
+// domain is deployment-specific and CSP breakage only surfaces at runtime — so we ship the
+// tightened policy in REPORT-ONLY mode first. It blocks nothing; the browser just reports
+// what WOULD be blocked. Confirm zero violations on staging, then promote this to the
+// enforced `Content-Security-Policy` header and delete the permissive one.
+//
+// Monaco (unsafe-eval, jsdelivr) and Next hydration (unsafe-inline) are intentionally kept —
+// dropping them needs per-request nonces + dynamic rendering (a separate, larger task).
+const scriptSrcTight = [
+  "'self'", "'unsafe-inline'", "'unsafe-eval'", "blob:",
+  "https://cdn.jsdelivr.net", // Monaco editor loader/workers
+  "https://*.posthog.com", // PostHog analytics (assets + surveys)
+  "https://*.clerk.accounts.dev", "https://*.clerk.com", "https://*.clerk.services", // Clerk auth
+  "https://challenges.cloudflare.com", // Clerk bot protection (Turnstile)
+].join(" ");
+const cspReportOnly = csp
+  .replace("script-src 'self' 'unsafe-inline' 'unsafe-eval' https: blob:", `script-src ${scriptSrcTight}`)
+  // `upgrade-insecure-requests` is IGNORED in a report-only policy and the browser logs a
+  // console error about it — strip it here so report-only mode stays console-clean.
+  .replace(/;\s*upgrade-insecure-requests/, "");
+
+const securityHeaders = [
+  { key: "Content-Security-Policy", value: csp },
+  // Report-only shadow of the tightened script-src (S1). Promote to enforced after staging QA.
+  { key: "Content-Security-Policy-Report-Only", value: cspReportOnly },
+  { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
+  { key: "X-Frame-Options", value: "DENY" },
+  { key: "X-Content-Type-Options", value: "nosniff" },
+  { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+  // Deny the sensitive sensors we never use; allow camera/mic to self for peer
+  // mocks + voice interviews.
+  { key: "Permissions-Policy", value: "camera=(self), microphone=(self), geolocation=(), payment=(), usb=()" },
+  { key: "X-DNS-Prefetch-Control", value: "on" },
+];
+
 const nextConfig = {
+  // Keep local browser-test builds separate from a running development server.
+  distDir: process.env.NEXT_DIST_DIR || ".next",
   reactStrictMode: true,
   transpilePackages: ["@eyf/ui", "@eyf/types"],
+  poweredByHeader: false,
+  // Lean, self-contained server bundle for the production Docker image.
+  output: "standalone",
+  // Trace workspace deps from the monorepo root so the standalone bundle is
+  // complete. Stabilized as a top-level key in Next 15 (was under `experimental`
+  // in 14.2); leaving it under experimental now silently under-traces deps.
+  outputFileTracingRoot: new URL("../../", import.meta.url).pathname,
+  images: {
+    formats: ["image/avif", "image/webp"],
+    // Allow the R2/CDN host for resume/certificate assets (set at deploy).
+    remotePatterns: [
+      { protocol: "https", hostname: "**.r2.cloudflarestorage.com" },
+      { protocol: "https", hostname: "cdn.eyf.in" },
+    ],
+  },
+  async headers() {
+    return [{ source: "/:path*", headers: securityHeaders }];
+  },
 };
 
-export default nextConfig;
+// Bundle analysis on demand: `ANALYZE=true pnpm --filter @eyf/web build`.
+export default process.env.ANALYZE === "true"
+  ? (await import("@next/bundle-analyzer")).default({ enabled: true })(nextConfig)
+  : nextConfig;

@@ -32,7 +32,7 @@ export async function peerRoutes(app: FastifyInstance) {
     }).parse(req.body);
 
     const mock = await prisma.mockSession.findUnique({ where: { id: mockId } });
-    if (!mock || mock.type !== MockType.PEER) {
+    if (mock?.type !== MockType.PEER) {
       return reply.code(404).send({ success: false, error: { code: "NOT_FOUND", message: "Peer mock not found" } });
     }
     const me = req.session!.id;

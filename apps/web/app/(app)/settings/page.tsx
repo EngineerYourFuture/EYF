@@ -5,6 +5,9 @@ import { Card, Button, PageHeader } from "@eyf/ui";
 import { useApi, useApiAction } from "@/lib/use-api";
 import { PageMotion } from "@/components/page-motion";
 import { ThemeToggle } from "@/components/theme";
+import { ReferralCard } from "@/components/referral-card";
+import { ParentDigestCard } from "@/components/parent-digest-card";
+import { PlacementReportCard } from "@/components/placement-report-card";
 import { Icons } from "@/components/icons";
 import { PERSONA_LIST, type PersonaId } from "@/lib/persona";
 
@@ -78,10 +81,16 @@ export default function Page() {
 
   return (
     <PageMotion className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-2xl mx-auto">
-      <PageHeader eyebrow="Account" title="Settings" subtitle="Manage your profile and how EYF looks." />
+      <PageHeader title="Settings" subtitle="Manage your profile and how EYF looks." />
 
-      <Card className="mt-8">
-        <h2 className="font-display text-lg font-bold mb-4">Profile</h2>
+      <div className="mt-8"><ReferralCard /></div>
+
+      <div className="mt-5"><ParentDigestCard /></div>
+
+      <div className="mt-5"><PlacementReportCard /></div>
+
+      <Card className="mt-5">
+        <h2 className="type-title mb-4">Profile</h2>
         <div className="space-y-4">
           <Field label="Email" hint="Managed by your sign-in provider">
             <div className="h-11 flex items-center px-3.5 rounded-lg bg-surface-2 border border-border text-text-3 text-sm">
@@ -109,14 +118,14 @@ export default function Page() {
       </Card>
 
       <Card className="mt-5">
-        <h2 className="font-display text-lg font-bold">How you use EYF</h2>
+        <h2 className="type-title">How you use EYF</h2>
         <p className="text-text-3 text-sm mt-1">Tailors your home screen and your journey.</p>
         <div className="mt-4 grid sm:grid-cols-3 gap-3">
           {PERSONA_LIST.map((p) => {
             const Icon = Icons[p.icon];
             const active = u?.persona === p.id;
             return (
-              <button key={p.id} onClick={() => setPersona(p.id)} disabled={savingPersona}
+              <button type="button" key={p.id} onClick={() => setPersona(p.id)} disabled={savingPersona}
                 className={`text-left rounded-xl border p-4 transition-colors ${active ? "border-accent bg-accent-tint" : "border-border bg-surface hover:border-edge"}`}>
                 <span className={active ? "text-accent" : "text-text-3"}><Icon width={20} height={20} /></span>
                 <div className="font-medium mt-2 text-text-1">{p.label}</div>
@@ -130,7 +139,7 @@ export default function Page() {
       <Card className="mt-5">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="font-display text-lg font-bold">Appearance</h2>
+            <h2 className="type-title">Appearance</h2>
             <p className="text-text-3 text-sm mt-1">Switch between light and dark themes.</p>
           </div>
           <ThemeToggle />
@@ -140,7 +149,7 @@ export default function Page() {
   );
 }
 
-function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
+function Field({ label, hint, children }: Readonly<{ label: string; hint?: string; children: React.ReactNode }>) {
   return (
     <label className="block">
       <div className="flex items-baseline justify-between mb-1.5">
@@ -152,9 +161,9 @@ function Field({ label, hint, children }: { label: string; hint?: string; childr
   );
 }
 
-function Input({ value, onChange, placeholder, inputMode }: {
+function Input({ value, onChange, placeholder, inputMode }: Readonly<{
   value: string; onChange: (v: string) => void; placeholder?: string; inputMode?: "numeric" | "text";
-}) {
+}>) {
   return (
     <input
       value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} inputMode={inputMode}

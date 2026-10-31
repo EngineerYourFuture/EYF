@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useApi } from "@/lib/use-api";
 import { Badge } from "@eyf/ui";
+import { masteryBarClass } from "@/lib/ui-helpers";
 
 type Mastery = {
   overall: number;
@@ -56,7 +57,7 @@ export function PatternMastery() {
             </div>
             <div className="mt-1.5 h-1.5 rounded-full bg-surface-3 overflow-hidden">
               <div
-                className={`h-full rounded-full transition-all duration-500 ${p.mastery >= 80 ? "bg-easy" : p.mastery >= 40 ? "bg-medium" : "bg-brand"}`}
+                className={`h-full rounded-full transition-all duration-500 ${masteryBarClass(p.mastery, 80)}`}
                 style={{ width: `${Math.max(3, p.mastery)}%` }}
               />
             </div>

@@ -1,7 +1,7 @@
 "use client";
 import { useMemo } from "react";
 import { useApi } from "./use-api";
-import { computeReadiness, type Readiness, type ReadinessInput } from "./readiness";
+import { computeReadiness, type Readiness, type ReadinessInput } from "@eyf/types";
 
 type Gam = { streak: number; longestStreak: number; totalSolved: number };
 type Dna = { acceptanceRate: number; difficultyMix: { difficulty: string; count: number }[] };

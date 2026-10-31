@@ -2,8 +2,11 @@
 import { useState } from "react";
 import { Card, Badge, Button, EmptyState, SkeletonRows } from "@eyf/ui";
 import { useApi, useApiAction } from "@/lib/use-api";
+import { useConfirm } from "@/components/confirm";
 import { Icons } from "@/components/icons";
 import { ContentTabs } from "../_tabs";
+import { Field } from "../_field";
+import { saveLabel } from "@/lib/ui-helpers";
 
 const DEMAND = ["LOW", "MEDIUM", "HIGH", "VERY_HIGH"] as const;
 type Demand = (typeof DEMAND)[number];
@@ -22,6 +25,7 @@ const csv = (s: string) => s.split(",").map((x) => x.trim()).filter(Boolean);
 export default function Page() {
   const { data, mutate } = useApi<TrackRow[]>("/admin/content/career-tracks");
   const action = useApiAction();
+  const confirm = useConfirm();
   const [editing, setEditing] = useState<null | { id: string | null }>(null);
   const [form, setForm] = useState<Form>(EMPTY);
   const [saving, setSaving] = useState(false);
@@ -29,9 +33,13 @@ export default function Page() {
 
   function startNew() { setForm(EMPTY); setEditing({ id: null }); }
   async function startEdit(id: string) {
-    const t = await action<TrackFull>(`/admin/content/career-tracks/${id}`);
-    setForm({ slug: t.slug, name: t.name, tagline: t.tagline, description: t.description, icon: t.icon, salaryMinInr: t.salaryMinInr, salaryMaxInr: t.salaryMaxInr, demand: t.demand, weeks: t.weeks, patterns: t.patterns.join(", "), topics: t.topics.join(", "), companies: t.companies.join(", "), curriculum: JSON.stringify(t.curriculum ?? [], null, 2), premium: t.premium });
-    setEditing({ id });
+    try {
+      const t = await action<TrackFull>(`/admin/content/career-tracks/${id}`);
+      setForm({ slug: t.slug, name: t.name, tagline: t.tagline, description: t.description, icon: t.icon, salaryMinInr: t.salaryMinInr, salaryMaxInr: t.salaryMaxInr, demand: t.demand, weeks: t.weeks, patterns: t.patterns.join(", "), topics: t.topics.join(", "), companies: t.companies.join(", "), curriculum: JSON.stringify(t.curriculum ?? [], null, 2), premium: t.premium });
+      setEditing({ id });
+    } catch {
+      /* toasted */
+    }
   }
   async function save() {
     let curriculum: unknown = [];
@@ -46,15 +54,15 @@ export default function Page() {
     } catch { /* toasted */ } finally { setSaving(false); }
   }
   async function remove(id: string, name: string) {
-    if (!confirm(`Delete track "${name}"?`)) return;
+    if (!(await confirm({ title: `Delete track "${name}"?`, confirmLabel: "Delete", danger: true }))) return;
     try { await action(`/admin/content/career-tracks/${id}`, { method: "DELETE" }); await mutate(); } catch { /* toasted */ }
   }
 
   if (editing) {
     return (
       <div className="px-6 lg:px-10 py-10 lg:py-12 max-w-3xl mx-auto">
-        <button onClick={() => setEditing(null)} className="text-text-3 hover:text-text-1 text-sm mb-4">← Back to tracks</button>
-        <h1 className="font-display text-2xl font-bold tracking-tight">{editing.id ? "Edit track" : "New career track"}</h1>
+        <button type="button" onClick={() => setEditing(null)} className="text-text-3 hover:text-text-1 text-sm mb-4">← Back to tracks</button>
+        <h1 className="type-display">{editing.id ? "Edit track" : "New career track"}</h1>
         <Card className="mt-6 space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <Field label="Name"><input className={inputCls} value={form.name} onChange={(e) => set("name", e.target.value)} placeholder="Backend Engineer" /></Field>
@@ -77,7 +85,7 @@ export default function Page() {
           <Field label="Curriculum" hint="JSON (advanced)"><textarea className={`${inputCls} min-h-32 font-mono text-xs`} value={form.curriculum} onChange={(e) => set("curriculum", e.target.value)} /></Field>
           <label className="flex items-center gap-2 text-sm text-text-2"><input type="checkbox" checked={form.premium} onChange={(e) => set("premium", e.target.checked)} /> Premium track</label>
           <div className="flex gap-3 pt-2">
-            <Button onClick={save} disabled={saving || !form.name || !form.slug || !form.tagline}>{saving ? "Saving…" : editing.id ? "Save changes" : "Create track"}</Button>
+            <Button onClick={save} disabled={saving || !form.name || !form.slug || !form.tagline}>{saveLabel(saving, editing.id, "Create track")}</Button>
             <Button variant="ghost" onClick={() => setEditing(null)}>Cancel</Button>
           </div>
         </Card>
@@ -89,7 +97,7 @@ export default function Page() {
     <div className="px-6 lg:px-10 py-10 lg:py-12 max-w-4xl mx-auto">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="font-display text-3xl font-bold tracking-tight">Career tracks</h1>
+          <h1 className="type-display">Career tracks</h1>
           <p className="text-text-3 mt-2">{data?.length ?? 0} tracks · the &ldquo;Choose Your Path&rdquo; catalog.</p>
         </div>
         <Button onClick={startNew}>+ New track</Button>
@@ -109,21 +117,12 @@ export default function Page() {
             </div>
             <div className="flex items-center gap-2 shrink-0">
               <Button size="sm" variant="secondary" onClick={() => startEdit(t.id)}>Edit</Button>
-              <button onClick={() => remove(t.id, t.name)} className="text-text-4 hover:text-hard text-sm px-2 py-1">Delete</button>
+              <button type="button" onClick={() => remove(t.id, t.name)} className="text-text-4 hover:text-hard text-sm px-2 py-1">Delete</button>
             </div>
           </Card>
         ))}
-        {data?.length === 0 && <EmptyState icon={<Icons.compass width={28} height={28} />} title="No tracks yet" description="Create a career track for the Choose Your Path catalog." />}
+        {data?.length === 0 && <EmptyState icon={<Icons.Compass width={28} height={28} />} title="No tracks yet" description="Create a career track for the Choose Your Path catalog." />}
       </div>
     </div>
-  );
-}
-
-function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
-  return (
-    <label className="block">
-      <span className="text-text-3 text-xs uppercase tracking-wider">{label}{hint && <span className="text-text-4 normal-case tracking-normal"> · {hint}</span>}</span>
-      <div className="mt-1.5">{children}</div>
-    </label>
   );
 }

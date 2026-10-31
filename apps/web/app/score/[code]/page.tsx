@@ -2,8 +2,9 @@ import { cache } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { companyReadiness, readinessBand, tierOf, SPOTLIGHT_COMPANIES } from "@/lib/company-readiness";
+import { ScoreRing } from "@/components/score-ring";
 import { companyLabel } from "@/lib/company";
-import type { Pillar } from "@/lib/readiness";
+import type { Pillar } from "@eyf/types";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000/v1";
 
@@ -35,9 +36,10 @@ const getShare = cache(async (code: string): Promise<Share | null> => {
   }
 });
 
-export async function generateMetadata({ params }: { params: { code: string } }): Promise<Metadata> {
-  const share = await getShare(params.code);
-  if (!share) return { title: "EYF Score — not found" };
+export async function generateMetadata({ params }: { params: Promise<{ code: string }> }): Promise<Metadata> {
+  const { code } = await params;
+  const share = await getShare(code);
+  if (!share) { return { title: "EYF Score — not found" }; }
   const s = share.snapshot;
   return {
     title: `${s.name} — EYF Score ${s.overall}/100`,
@@ -45,8 +47,9 @@ export async function generateMetadata({ params }: { params: { code: string } })
   };
 }
 
-export default async function ScorePage({ params }: { params: { code: string } }) {
-  const share = await getShare(params.code);
+export default async function ScorePage({ params }: Readonly<{ params: Promise<{ code: string }> }>) {
+  const { code } = await params;
+  const share = await getShare(code);
 
   if (!share) {
     return (
@@ -63,13 +66,13 @@ export default async function ScorePage({ params }: { params: { code: string } }
   const s = share.snapshot;
   // companyReadiness only reads key + score off each pillar; the rest of the
   // Pillar shape (icon/detail/href/action) is filler to satisfy the type.
-  const pillars: Pillar[] = s.pillars.map((p) => ({ ...p, icon: "code" as Pillar["icon"], detail: "", href: "", action: "" }));
+  const pillars: Pillar[] = s.pillars.map((p) => ({ ...p, icon: "Code" as Pillar["icon"], detail: "", href: "", action: "" }));
   const companies = SPOTLIGHT_COMPANIES.map((slug) => {
     const pct = companyReadiness(pillars, tierOf(slug));
     return { slug, pct, band: readinessBand(pct) };
   }).sort((a, b) => b.pct - a.pct);
 
-  const issued = new Date(share.issuedAt).toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" });
+  const issued = new Date(share.issuedAt).toLocaleDateString("en-IN", { year: "numeric", month: "long", day: "numeric", timeZone: "Asia/Kolkata" });
   const who = [s.college, s.graduationYear ? `Class of ${s.graduationYear}` : null].filter(Boolean).join(" · ");
 
   return (
@@ -81,7 +84,7 @@ export default async function ScorePage({ params }: { params: { code: string } }
         </div>
 
         <div className="mt-8 grid sm:grid-cols-[auto_1fr] gap-8 items-center">
-          <ScoreRing score={s.overall} />
+          <PageRing score={s.overall} />
           <div>
             <h1 className="font-display text-2xl font-bold">{s.name}</h1>
             {who && <p className="text-text-3 text-sm mt-1">{who}</p>}
@@ -114,7 +117,7 @@ export default async function ScorePage({ params }: { params: { code: string } }
               <div key={c.slug} className="rounded-xl border border-border bg-surface-2 px-3 py-2.5">
                 <div className="text-sm font-medium truncate">{companyLabel(c.slug)}</div>
                 <div className="font-display text-lg font-bold">{c.pct}%</div>
-                <div className={`text-[11px] ${c.band.tone === "easy" ? "text-easy" : c.band.tone === "hard" ? "text-hard" : "text-text-3"}`}>{c.band.label}</div>
+                <div className={`text-[11px] ${(() => { if (c.band.tone === "easy") { return "text-easy"; } if (c.band.tone === "hard") { return "text-hard"; } return "text-text-3"; })()}`}>{c.band.label}</div>
               </div>
             ))}
           </div>
@@ -134,7 +137,7 @@ export default async function ScorePage({ params }: { params: { code: string } }
   );
 }
 
-function Shell({ children, wide = false }: { children: React.ReactNode; wide?: boolean }) {
+function Shell({ children, wide = false }: Readonly<{ children: React.ReactNode; wide?: boolean }>) {
   return (
     <main className="min-h-screen bg-bg text-text-1 flex items-center justify-center px-4 py-16">
       <div className={`w-full ${wide ? "max-w-2xl" : "max-w-md"}`}>
@@ -151,19 +154,10 @@ function Shell({ children, wide = false }: { children: React.ReactNode; wide?: b
   );
 }
 
-function ScoreRing({ score }: { score: number }) {
-  const radius = 62, c = 2 * Math.PI * radius;
+function PageRing({ score }: Readonly<{ score: number }>) {
   return (
-    <div className="relative h-40 w-40 mx-auto">
-      <svg viewBox="0 0 150 150" className="h-40 w-40 -rotate-90">
-        <circle cx="75" cy="75" r={radius} className="fill-none stroke-surface-3" strokeWidth="10" />
-        <circle cx="75" cy="75" r={radius} className="fill-none stroke-accent" strokeWidth="10" strokeLinecap="round"
-          strokeDasharray={c} strokeDashoffset={c - (c * score) / 100} />
-      </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="font-display text-5xl font-bold leading-none">{score}</span>
-        <span className="text-text-3 text-xs font-mono mt-1">/ 100</span>
-      </div>
+    <div className="mx-auto w-40">
+      <ScoreRing score={score} size={160} stroke={10} label="/ 100" />
     </div>
   );
 }

@@ -22,6 +22,15 @@ export type CodeDna = {
   habitFlags: string[];
 };
 
+export type DnaSubmission = {
+  problemId: string;
+  verdict: Verdict;
+  language: Language;
+  runtimeMs: number | null;
+  submittedAt: Date;
+  problem: { difficulty: Difficulty; patterns: string[] };
+};
+
 export async function computeCodeDna(userId: string): Promise<CodeDna> {
   const submissions = await prisma.problemSolution.findMany({
     where: { userId },
@@ -31,7 +40,12 @@ export async function computeCodeDna(userId: string): Promise<CodeDna> {
     },
     orderBy: { submittedAt: "asc" },
   });
+  return codeDnaFromSubmissions(submissions);
+}
 
+/** Pure fingerprint computation — separated from the query so it's unit-testable
+ *  with fixtures (submissions are expected pre-sorted by submittedAt asc). */
+export function codeDnaFromSubmissions(submissions: DnaSubmission[]): CodeDna {
   const total = submissions.length;
   const accepted = submissions.filter((s) => s.verdict === Verdict.ACCEPTED);
 
@@ -48,21 +62,7 @@ export async function computeCodeDna(userId: string): Promise<CodeDna> {
   const difficultyMix = Array.from(diffCounts.entries())
     .map(([difficulty, count]) => ({ difficulty, count, pct: accepted.length ? count / accepted.length : 0 }));
 
-  // Pattern strengths/weaknesses — per-pattern acceptance rate.
-  const patternStats = new Map<string, { attempts: number; accepted: number }>();
-  for (const s of submissions) {
-    for (const p of s.problem.patterns) {
-      const cur = patternStats.get(p) ?? { attempts: 0, accepted: 0 };
-      cur.attempts += 1;
-      if (s.verdict === Verdict.ACCEPTED) cur.accepted += 1;
-      patternStats.set(p, cur);
-    }
-  }
-  const patternRows = Array.from(patternStats.entries())
-    .filter(([, v]) => v.attempts >= 2) // ignore one-offs
-    .map(([pattern, v]) => ({ pattern, attempts: v.attempts, acceptanceRate: v.accepted / v.attempts }));
-  const patternStrengths = [...patternRows].sort((a, b) => b.acceptanceRate - a.acceptanceRate).slice(0, 5);
-  const patternWeaknesses = [...patternRows].sort((a, b) => a.acceptanceRate - b.acceptanceRate).slice(0, 5);
+  const { patternStrengths, patternWeaknesses } = patternProfile(submissions);
 
   const runtimes = accepted.map((s) => s.runtimeMs).filter((r): r is number => r != null);
   const avgRuntimeMs = runtimes.length ? Math.round(runtimes.reduce((a, b) => a + b, 0) / runtimes.length) : null;
@@ -71,35 +71,9 @@ export async function computeCodeDna(userId: string): Promise<CodeDna> {
   // For now: fastest single accepted runtime is the closest signal.
   const fastestSolveMin = runtimes.length ? Math.round(Math.min(...runtimes) / 60_000 * 10) / 10 : null;
 
-  // Speed vs accuracy — per-problem, how many submissions until the first AC.
-  const byProblem = new Map<string, Verdict[]>();
-  for (const s of submissions) {
-    const arr = byProblem.get(s.problemId) ?? [];
-    arr.push(s.verdict);
-    byProblem.set(s.problemId, arr);
-  }
-  let solvedProblems = 0, firstTryACs = 0, attemptsSum = 0;
-  for (const verdicts of byProblem.values()) {
-    const firstAc = verdicts.indexOf(Verdict.ACCEPTED);
-    if (firstAc === -1) continue;
-    solvedProblems += 1;
-    attemptsSum += firstAc + 1;
-    if (firstAc === 0) firstTryACs += 1;
-  }
-  const firstTryRate = solvedProblems ? firstTryACs / solvedProblems : 0;
-  const avgAttemptsToSolve = solvedProblems ? Math.round((attemptsSum / solvedProblems) * 10) / 10 : 0;
-  const speedAccuracy =
-    solvedProblems < 3 ? "Solve a few more to read your style."
-    : avgAttemptsToSolve <= 1.4 ? "One-shot solver — you commit correct code first try."
-    : firstTryRate < 0.35 && avgAttemptsToSolve >= 2.4 ? "Fast but buggy — you rush the first submit. Dry-run on paper before running."
-    : avgAttemptsToSolve <= 2.2 ? "Iterates to correct — a couple of tries, then lands it."
-    : "Brute-forces via retries — slow down and trace edge cases before submitting.";
+  const { firstTryRate, avgAttemptsToSolve, speedAccuracy } = solveStyle(submissions);
 
-  const habitFlags: string[] = [];
-  if (total >= 50 && accepted.length / total < 0.4) habitFlags.push("low-acceptance-grinder");
-  if (total >= 20 && languageMix[0] && languageMix[0].pct > 0.85) habitFlags.push("monolingual");
-  if (diffCounts.get("HARD") && diffCounts.get("HARD")! >= 5) habitFlags.push("hard-leaner");
-  if (accepted.length >= 30 && (diffCounts.get("EASY") ?? 0) / accepted.length > 0.7) habitFlags.push("easy-mode");
+  const habitFlags = submissionHabits(total, accepted.length, languageMix[0]?.pct ?? 0, diffCounts);
 
   return {
     totalSubmissions: total,
@@ -117,4 +91,62 @@ export async function computeCodeDna(userId: string): Promise<CodeDna> {
     speedAccuracy,
     habitFlags,
   };
+}
+
+function patternProfile(submissions: DnaSubmission[]) {
+  // Pattern strengths/weaknesses — per-pattern acceptance rate.
+  const patternStats = new Map<string, { attempts: number; accepted: number }>();
+  for (const s of submissions) {
+    for (const p of s.problem.patterns) {
+      const cur = patternStats.get(p) ?? { attempts: 0, accepted: 0 };
+      cur.attempts += 1;
+      if (s.verdict === Verdict.ACCEPTED) cur.accepted += 1;
+      patternStats.set(p, cur);
+    }
+  }
+  const patternRows = Array.from(patternStats.entries())
+    .filter(([, v]) => v.attempts >= 2) // ignore one-offs
+    .map(([pattern, v]) => ({ pattern, attempts: v.attempts, acceptanceRate: v.accepted / v.attempts }));
+  const patternStrengths = [...patternRows].sort((a, b) => b.acceptanceRate - a.acceptanceRate).slice(0, 5);
+  const patternWeaknesses = [...patternRows].sort((a, b) => a.acceptanceRate - b.acceptanceRate).slice(0, 5);
+
+  return { patternStrengths, patternWeaknesses };
+}
+
+function solveStyle(submissions: DnaSubmission[]) {
+  // Speed vs accuracy — per-problem, how many submissions until the first AC.
+  const byProblem = new Map<string, Verdict[]>();
+  for (const s of submissions) {
+    const arr = byProblem.get(s.problemId) ?? [];
+    arr.push(s.verdict);
+    byProblem.set(s.problemId, arr);
+  }
+  let solvedProblems = 0, firstTryACs = 0, attemptsSum = 0;
+  for (const verdicts of byProblem.values()) {
+    const firstAc = verdicts.indexOf(Verdict.ACCEPTED);
+    if (firstAc === -1) continue;
+    solvedProblems += 1;
+    attemptsSum += firstAc + 1;
+    if (firstAc === 0) firstTryACs += 1;
+  }
+  const firstTryRate = solvedProblems ? firstTryACs / solvedProblems : 0;
+  const avgAttemptsToSolve = solvedProblems ? Math.round((attemptsSum / solvedProblems) * 10) / 10 : 0;
+  let speedAccuracy: string;
+  if (solvedProblems < 3) speedAccuracy = "Solve a few more to read your style.";
+  else if (avgAttemptsToSolve <= 1.4) speedAccuracy = "One-shot solver — you commit correct code first try.";
+  else if (firstTryRate < 0.35 && avgAttemptsToSolve >= 2.4) speedAccuracy = "Fast but buggy — you rush the first submit. Dry-run on paper before running.";
+  else if (avgAttemptsToSolve <= 2.2) speedAccuracy = "Iterates to correct — a couple of tries, then lands it.";
+  else speedAccuracy = "Brute-forces via retries — slow down and trace edge cases before submitting.";
+
+  return { firstTryRate, avgAttemptsToSolve, speedAccuracy };
+}
+
+function submissionHabits(total: number, acceptedCount: number, primaryLanguagePct: number, diffCounts: Map<Difficulty, number>) {
+  const habitFlags: string[] = [];
+  if (total >= 50 && acceptedCount / total < 0.4) habitFlags.push("low-acceptance-grinder");
+  if (total >= 20 && primaryLanguagePct > 0.85) habitFlags.push("monolingual");
+  if ((diffCounts.get("HARD") ?? 0) >= 5) habitFlags.push("hard-leaner");
+  if (acceptedCount >= 30 && (diffCounts.get("EASY") ?? 0) / acceptedCount > 0.7) habitFlags.push("easy-mode");
+
+  return habitFlags;
 }

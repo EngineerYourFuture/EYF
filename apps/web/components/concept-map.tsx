@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useApi } from "@/lib/use-api";
+import { masteryBarClass } from "@/lib/ui-helpers";
 
 type Review = { allTopics: { subject: string; topic: string; mastery: number }[] };
 type Node = { level: number; row: number; label: string };
@@ -71,7 +72,7 @@ export function ConceptMap() {
     <div className="mt-8 rounded-2xl border border-border bg-surface p-5 sm:p-6 shadow-card">
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <h2 className="font-display text-xl font-bold">Concept map</h2>
+          <h2 className="type-title">Concept map</h2>
           <p className="text-text-3 text-sm mt-1">Theory builds on itself — learn left to right. Coloured by your flashcard mastery.</p>
         </div>
         <select value={subj} onChange={(e) => setSubj(e.target.value)}
@@ -83,25 +84,26 @@ export function ConceptMap() {
       <div className="mt-5 overflow-x-auto pb-2">
         <div className="relative" style={{ width: W, height: H }}>
           <svg width={W} height={H} className="absolute inset-0 pointer-events-none">
-            {s.edges.map(([a, b], i) => {
+            {s.edges.map(([a, b]) => {
               const pa = pos(s.nodes[a]!), pb = pos(s.nodes[b]!);
               const x1 = pa.x + NW, y1 = pa.y + NH / 2, x2 = pb.x, y2 = pb.y + NH / 2, mid = (x1 + x2) / 2;
-              return <path key={i} d={`M ${x1} ${y1} C ${mid} ${y1}, ${mid} ${y2}, ${x2} ${y2}`} fill="none" stroke="rgb(var(--text-1) / 0.14)" strokeWidth="1.5" />;
+              return <path key={`${a}:${b}`} d={`M ${x1} ${y1} C ${mid} ${y1}, ${mid} ${y2}, ${x2} ${y2}`} fill="none" stroke="rgb(var(--text-1) / 0.14)" strokeWidth="1.5" />;
             })}
           </svg>
           {Object.entries(s.nodes).map(([k, n]) => {
             const m = masteryOf(n.label);
             const { x, y } = pos(n);
-            const tone = m == null ? "border-border bg-surface text-text-3"
-              : m >= 70 ? "border-easy/50 bg-easy/[0.08] text-text-1"
-              : m >= 40 ? "border-medium/50 bg-medium/[0.08] text-text-1"
-              : "border-brand/50 bg-brand/[0.06] text-text-1";
+            let tone: string;
+            if (m == null) tone = "border-border bg-surface text-text-3";
+            else if (m >= 70) tone = "border-easy/50 bg-easy/[0.08] text-text-1";
+            else if (m >= 40) tone = "border-medium/50 bg-medium/[0.08] text-text-1";
+            else tone = "border-brand/50 bg-brand/[0.06] text-text-1";
             return (
               <div key={k} className={`absolute rounded-lg border px-3 py-2 ${tone}`} style={{ left: x, top: y, width: NW, height: NH }}>
                 <div className="text-sm font-medium leading-tight truncate">{n.label}</div>
                 {m == null
-                  ? <div className="text-[10px] text-text-4 mt-0.5">not tracked</div>
-                  : <div className="mt-1 h-1 rounded-full bg-surface-3 overflow-hidden"><div className={`h-full ${m >= 70 ? "bg-easy" : m >= 40 ? "bg-medium" : "bg-brand"}`} style={{ width: `${Math.max(4, m)}%` }} /></div>}
+                  ? <div className="text-[11px] text-text-4 mt-0.5">not tracked</div>
+                  : <div className="mt-1 h-1 rounded-full bg-surface-3 overflow-hidden"><div className={`h-full ${masteryBarClass(m)}`} style={{ width: `${Math.max(4, m)}%` }} /></div>}
               </div>
             );
           })}

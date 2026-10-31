@@ -1,14 +1,12 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { prisma, McqCategory } from "@eyf/db";
-import {
-  MCQ_CATEGORIES,
-  mcqCompanies,
-  mcqCount,
-  pickTest,
-} from "../lib/mcq-bank.js";
+import { MCQ_CATEGORIES } from "../lib/mcq-bank.js";
+import { mcqCompaniesSource, mcqCountSource, pickTestSource, mcqLookupSource } from "../lib/mcq-source.js";
 import { scoreMcq } from "../services/mcq.js";
-import { COMPANY_SIMS, simSummary } from "../lib/company-sims.js";
+import { simSummary } from "../lib/company-sims.js";
+import { companySimsSource } from "../lib/company-sims-source.js";
+import { env } from "../env.js";
 
 /** Verbal + Technical sections and company-pattern filters are premium. */
 const FREE_CATEGORIES = new Set(
@@ -25,19 +23,25 @@ function upgradeRequired(reply: import("fastify").FastifyReply, message: string)
 export async function mcqRoutes(app: FastifyInstance) {
   // Catalog — categories with live counts + available company filters. Public so
   // the config screen renders instantly.
-  app.get("/catalog", async () => ({
-    success: true,
-    data: {
-      categories: MCQ_CATEGORIES.map((c) => ({ ...c, count: mcqCount(c.id) })),
-      companies: mcqCompanies(),
-    },
-  }));
+  app.get("/catalog", async () => {
+    const [counts, companies] = await Promise.all([
+      Promise.all(MCQ_CATEGORIES.map((c) => mcqCountSource(c.id))),
+      mcqCompaniesSource(),
+    ]);
+    return {
+      success: true,
+      data: {
+        categories: MCQ_CATEGORIES.map((c, i) => ({ ...c, count: counts[i] ?? 0 })),
+        companies,
+      },
+    };
+  });
 
   // Real-company sims — the Aptitude differentiator. The exact section layout +
   // timing of the tests students actually sit (TCS NQT, AMCAT, InfyTQ, CoCubes).
   app.get("/sims", async () => ({
     success: true,
-    data: COMPANY_SIMS.map((s) => ({ ...s, ...simSummary(s) })),
+    data: (await companySimsSource()).map((s) => ({ ...s, ...simSummary(s) })),
   }));
 
   // Start a test — returns questions WITHOUT the correct answer.
@@ -48,7 +52,7 @@ export async function mcqRoutes(app: FastifyInstance) {
       count: z.number().int().min(5).max(25).default(10),
     }).parse(req.body);
 
-    const isFreePlan = req.session!.plan === "free";
+    const isFreePlan = env.BILLING_ENABLED && req.session!.plan === "free";
     if (isFreePlan && !FREE_CATEGORIES.has(body.category)) {
       return upgradeRequired(reply, "Verbal and Technical sections are on Basic. Upgrade to unlock.");
     }
@@ -56,7 +60,7 @@ export async function mcqRoutes(app: FastifyInstance) {
       return upgradeRequired(reply, "Company-specific tests are on Basic. Upgrade to target a company.");
     }
 
-    const questions = pickTest(body).map((q) => ({
+    const questions = (await pickTestSource(body)).map((q) => ({
       id: q.id,
       category: q.category,
       topic: q.topic,
@@ -89,7 +93,8 @@ export async function mcqRoutes(app: FastifyInstance) {
       })).min(1).max(25),
     }).parse(req.body);
 
-    const result = scoreMcq(body.answers);
+    const lookup = await mcqLookupSource(body.answers.map((a) => a.questionId));
+    const result = scoreMcq(body.answers, lookup);
     if (result.totalQuestions === 0) {
       return reply.code(400).send({
         success: false,

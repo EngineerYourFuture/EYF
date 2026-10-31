@@ -15,6 +15,7 @@ import { prisma, Verdict } from "@eyf/db";
 import {
   computeReadiness,
   rankActions,
+  READINESS_ALGO_VERSION,
   type ReadinessInput,
   type ReadinessGoal,
   type Readiness,
@@ -140,6 +141,30 @@ export async function computeUserReadiness(
     resolveGoal(userId),
   ]);
   return { readiness: computeReadiness(input, goal), goal };
+}
+
+/** Short TTL for the talent-search readiness cache — readiness is a slowly-changing signal, so
+ *  an employer seeing a value up to 5 min old is fine, and it keeps repeated searches cheap. */
+const READINESS_CACHE_TTL_SECONDS = 300;
+
+/**
+ * Cached `computeUserReadiness` for the FAN-OUT paths (talent search ranks readiness across a whole
+ * consented pool — see KNOWN-ISSUES P1). Each live compute is ~9 queries, so ranking N candidates
+ * is ~N×9; caching turns repeated/overlapping searches into cache hits. Keyed by the algorithm
+ * version so a scoring change auto-invalidates. NOT used for a student's own live score (that stays
+ * fresh via the uncached `computeUserReadiness`). Best-effort: a Redis miss just computes.
+ */
+export async function computeUserReadinessCached(
+  userId: string,
+): Promise<{ readiness: Readiness; goal: ReadinessGoal | undefined }> {
+  const key = `readiness:${READINESS_ALGO_VERSION}:${userId}`;
+  try {
+    const cached = await redis.get(key);
+    if (cached) return JSON.parse(cached) as { readiness: Readiness; goal: ReadinessGoal | undefined };
+  } catch { /* best-effort — fall through and compute */ }
+  const result = await computeUserReadiness(userId);
+  try { await redis.set(key, JSON.stringify(result), "EX", READINESS_CACHE_TTL_SECONDS); } catch { /* best-effort */ }
+  return result;
 }
 
 export async function computeGuidance(userId: string): Promise<Guidance> {

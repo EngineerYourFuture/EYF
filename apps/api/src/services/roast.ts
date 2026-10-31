@@ -1,3 +1,4 @@
+import { trackedMessage } from "../lib/provider-usage.js";
 /**
  * Get Roasted — Claude reads the user's resume and delivers a harsh,
  * concrete critique. Spec §"Get Roasted" (Phase 4 Week 32–34).
@@ -16,7 +17,7 @@ export type Roast = {
 
 export async function roastResume(doc: ResumeDocument): Promise<Roast> {
   if (!anthropic) throw new Error("ANTHROPIC_API_KEY not set");
-  const msg = await anthropic.messages.create({
+  const msg = await trackedMessage(anthropic, {
     model: MODEL,
     max_tokens: 1200,
     system:

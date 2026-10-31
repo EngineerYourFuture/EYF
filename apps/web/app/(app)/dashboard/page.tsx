@@ -1,5 +1,7 @@
 "use client";
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { motion, useReducedMotion } from "framer-motion";
 import { Card, Badge, Button, Skeleton } from "@eyf/ui";
 import { useApi } from "@/lib/use-api";
 import { Heatmap } from "@/components/heatmap";
@@ -7,6 +9,9 @@ import { PageMotion } from "@/components/page-motion";
 import { CompanyFitRadar } from "@/components/company-fit-radar";
 import { Reveal } from "@/components/motion";
 import { Icons, type IconName } from "@/components/icons";
+import { ScoreRing } from "@/components/score-ring";
+import { AnimatedNumber } from "@/components/animated-number";
+import { takeScoreDelta } from "@/lib/score-memory";
 import { useGuidance, type Guidance } from "@/lib/use-guidance";
 import { PERSONAS, type PersonaId } from "@/lib/persona";
 
@@ -50,9 +55,6 @@ export default function DashboardPage() {
 
   return (
     <PageMotion className="relative">
-      {/* ambient top glow */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-64 bg-glow-radial" aria-hidden />
-
       <div className="relative px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-7xl mx-auto">
         {/* Greeting */}
         <div className="flex items-start justify-between gap-4 flex-wrap">
@@ -62,11 +64,11 @@ export default function DashboardPage() {
               {isLoading ? <Skeleton className="h-12 w-72" /> : <>Hey, {name}.</>}
             </h1>
             <p className="text-text-3 mt-2">
-              {today?.problemsSolvedToday
-                ? `${today.problemsSolvedToday} solved today · keep the streak alive.`
-                : me?.user?.persona
-                  ? PERSONAS[me.user.persona].tagline
-                  : "Your next step is one click away."}
+              {(() => {
+                if (today?.problemsSolvedToday) { return `${today.problemsSolvedToday} solved today · keep the streak alive.`; }
+                if (me?.user?.persona) { return PERSONAS[me.user.persona].tagline; }
+                return "Your next step is one click away.";
+              })()}
             </p>
           </div>
           {me?.user?.subscription && (
@@ -84,13 +86,13 @@ export default function DashboardPage() {
           <Link href="/welcome"
             className="mt-6 flex items-center gap-3 rounded-xl border border-accent/40 bg-accent-tint px-4 py-3 shadow-glow-sm card-interactive">
             <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent text-accent-ink">
-              <Icons.sparkle width={18} height={18} />
+              <Icons.Sparkle width={18} height={18} />
             </span>
             <div className="min-w-0 flex-1">
               <div className="font-medium text-text-1">Tailor EYF to you</div>
               <div className="text-text-3 text-sm truncate">Tell us if you&apos;re a student, switcher, or developer — we&apos;ll shape your journey.</div>
             </div>
-            <span className="text-accent shrink-0"><Icons.arrow width={18} height={18} /></span>
+            <span className="text-accent shrink-0"><Icons.Arrow width={18} height={18} /></span>
           </Link>
         )}
 
@@ -105,19 +107,19 @@ export default function DashboardPage() {
 
         {/* Metric tiles */}
         <div className="mt-5 grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <Metric icon="flame" tone="accent" label="Current streak"
-            value={gam?.streak ?? 0} unit="d" sub={gam ? `Best ${gam.longestStreak}d` : undefined} />
-          <Metric icon="bolt" tone="medium" label="Earned today"
-            value={today?.xpToday ?? 0} unit="xp" sub="Today" />
-          <Metric icon="code" label="Total solved" value={gam?.totalSolved ?? 0} sub="All time" />
-          <Metric icon="trophy" tone="info" label="Badges"
-            value={gam?.badges.length ?? 0} sub={gam?.badges.length ? "Earned" : "None yet"} />
+          <Metric icon="Flame" tone="accent" label="Current streak" loading={!gam}
+            value={<AnimatedNumber value={gam?.streak ?? 0} />} unit="d" sub={gam ? `Best ${gam.longestStreak}d` : undefined} />
+          <Metric icon="Bolt" tone="medium" label="Earned today" loading={!today}
+            value={<AnimatedNumber value={today?.xpToday ?? 0} />} unit="XP" sub="Today" />
+          <Metric icon="Code" label="Total solved" loading={!gam} value={<AnimatedNumber value={gam?.totalSolved ?? 0} />} sub="All time" />
+          <Metric icon="Trophy" tone="info" label="Badges" loading={!gam}
+            value={<AnimatedNumber value={gam?.badges.length ?? 0} />} sub={(() => { if (!gam) { return undefined; } return gam.badges.length ? "Earned" : "None yet"; })()} />
         </div>
 
         {/* Quick actions */}
         <Reveal className="mt-10">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-display text-xl font-bold">Jump back in</h2>
+            <h2 className="type-headline">Jump back in</h2>
             <Link href="/assessment" className="text-sm text-accent hover:underline">Take assessment →</Link>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -132,7 +134,7 @@ export default function DashboardPage() {
         <Reveal className="mt-8">
         <Card>
           <div className="flex items-center justify-between">
-            <h2 className="font-display text-xl font-bold">Activity</h2>
+            <h2 className="type-title">Activity</h2>
             <span className="text-text-3 text-xs font-mono">past 12 months</span>
           </div>
           <div className="mt-5">
@@ -151,7 +153,7 @@ export default function DashboardPage() {
         {gam && gam.badges.length > 0 && (
           <Reveal className="mt-5">
           <Card>
-            <h2 className="font-display text-xl font-bold mb-4">Your badges</h2>
+            <h2 className="type-title mb-4">Your badges</h2>
             <div className="flex flex-wrap gap-3">
               {gam.badges.map((b) => (
                 <div key={b.slug} className="flex items-center gap-2 rounded-lg border border-border bg-surface-2 px-3 py-2">
@@ -173,24 +175,51 @@ export default function DashboardPage() {
 
 /* ---------- pieces ---------- */
 
-function ReadinessStrip({ guidance: g }: { guidance: Guidance | null }) {
-  if (!g) return <Skeleton className="mt-6 h-24 rounded-2xl" />;
+function ReadinessStrip({ guidance: g }: Readonly<{ guidance: Guidance | null }>) {
+  // The score moment: remember what the student last saw, animate from there,
+  // and celebrate the delta. Hook order is safe — early return happens after.
+  const reduce = useReducedMotion();
+  const [moment, setMoment] = useState<{ from: number | null; delta: number } | null>(null);
+  const overall = g?.readiness.overall;
+  useEffect(() => {
+    if (overall != null && moment == null) setMoment(takeScoreDelta(overall));
+  }, [overall, moment]);
+
+  if (!g) { return <Skeleton className="mt-6 h-24 rounded-2xl" />; }
   const r = g.readiness;
   const top = g.actions[0];
-  const tone = r.overall >= 80 ? "easy" : r.overall >= 50 ? "accent" : "medium";
+  let tone: "easy" | "accent" | "medium";
+  if (r.overall >= 80) tone = "easy";
+  else if (r.overall >= 50) tone = "accent";
+  else tone = "medium";
   // Sibling links, never nested: an <a> inside an <a> is invalid HTML and caused a
   // React hydration error that blanked this strip on the dashboard.
   return (
     <div className="mt-6 flex items-center gap-5 rounded-2xl border border-border bg-surface px-5 py-4 shadow-card">
       <Link href="/today" className="flex min-w-0 flex-1 items-center gap-5 rounded-xl card-interactive">
-        <MiniRing score={r.overall} />
+        <div className="shrink-0">
+          <ScoreRing score={r.overall} size={72} stroke={7} label="/100" duration={1.2}
+            from={moment?.from ?? undefined} />
+        </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="font-display text-lg font-bold">Placement Readiness</span>
             <Badge tone={tone}>{r.band}</Badge>
+            {moment && moment.delta !== 0 && (
+              <motion.span
+                initial={reduce ? false : { opacity: 0, scale: 0.8, y: 4 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={reduce ? { duration: 0 } : { delay: 1.1, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                className={`font-mono text-[11px] px-1.5 py-0.5 rounded border ${
+                  moment.delta > 0 ? "text-easy border-easy/40 bg-easy/10" : "text-hard border-hard/40 bg-hard/10"
+                }`}
+              >
+                {moment.delta > 0 ? `▲ +${moment.delta}` : `▼ ${moment.delta}`} since your last visit
+              </motion.span>
+            )}
           </div>
           {/* The active coaching line — personalised guidance on the landing screen. */}
-          <p className="text-text-3 text-sm mt-1 truncate">
+          <p className="text-text-3 text-sm mt-1 line-clamp-2">
             {top ? g.coachNote : "Every pillar is strong — start applying with confidence."}
           </p>
         </div>
@@ -202,38 +231,21 @@ function ReadinessStrip({ guidance: g }: { guidance: Guidance | null }) {
           </Link>
         )}
         <Link href="/today" aria-label="Open today" className="text-accent">
-          <Icons.arrow width={18} height={18} />
+          <Icons.Arrow width={18} height={18} />
         </Link>
       </div>
     </div>
   );
 }
 
-function MiniRing({ score }: { score: number }) {
-  const r = 28, c = 2 * Math.PI * r;
-  return (
-    <div className="relative h-[72px] w-[72px] shrink-0">
-      <svg viewBox="0 0 72 72" className="h-[72px] w-[72px] -rotate-90">
-        <circle cx="36" cy="36" r={r} className="fill-none stroke-surface-3" strokeWidth="7" />
-        <circle cx="36" cy="36" r={r} className="fill-none stroke-accent" strokeWidth="7" strokeLinecap="round"
-          strokeDasharray={c} strokeDashoffset={c - (c * score) / 100}
-          style={{ transition: "stroke-dashoffset 1s cubic-bezier(0.16,1,0.3,1)" }} />
-      </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="font-display text-xl font-bold leading-none">{score}</span>
-        <span className="text-text-4 text-[9px] font-mono">/100</span>
-      </div>
-    </div>
-  );
-}
 
-function YourJourney({ persona }: { persona: PersonaId }) {
+function YourJourney({ persona }: Readonly<{ persona: PersonaId }>) {
   const p = PERSONAS[persona];
   return (
     <div className="mt-8">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <h2 className="font-display text-xl font-bold">Your journey</h2>
+          <h2 className="type-headline">Your journey</h2>
           <Badge tone="accent">{p.label}</Badge>
         </div>
         <Link href="/welcome" className="text-sm text-text-3 hover:text-text-1">Change</Link>
@@ -260,10 +272,12 @@ function YourJourney({ persona }: { persona: PersonaId }) {
 
 function greeting() {
   const h = new Date().getHours();
-  return h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening";
+  if (h < 12) { return "Good morning"; }
+  if (h < 18) { return "Good afternoon"; }
+  return "Good evening";
 }
 
-function TodaysFocus({ today }: { today?: Today }) {
+function TodaysFocus({ today }: Readonly<{ today?: Today }>) {
   const c = today?.challenge;
   return (
     <Card variant="glow" className="lg:col-span-2 relative overflow-hidden">
@@ -307,20 +321,20 @@ function TodaysFocus({ today }: { today?: Today }) {
   );
 }
 
-function LevelCard({ gam, xpPct }: { gam?: GamMe; xpPct: number }) {
+function LevelCard({ gam, xpPct }: Readonly<{ gam?: GamMe; xpPct: number }>) {
   return (
     <Card variant="elevated" className="flex flex-col items-center justify-center text-center">
       <ProgressRing pct={xpPct} label={`L${gam?.level ?? 1}`} />
-      <div className="mt-4 font-display text-2xl font-bold">{(gam?.xp ?? 0).toLocaleString()} XP</div>
+      <div className="mt-4 font-display text-2xl font-bold">{(gam?.xp ?? 0).toLocaleString("en-IN")} XP</div>
       {gam
-        ? <div className="text-text-3 text-sm mt-1">{gam.xpToNext.toLocaleString()} XP to Level {gam.level + 1}</div>
+        ? <div className="text-text-3 text-sm mt-1">{gam.xpToNext.toLocaleString("en-IN")} XP to Level {gam.level + 1}</div>
         : <Skeleton className="h-4 w-32 mt-2" />}
       <Link href="/wrapped" className="mt-4 text-sm text-accent hover:underline">View your wrapped →</Link>
     </Card>
   );
 }
 
-function ProgressRing({ pct, label }: { pct: number; label: string }) {
+function ProgressRing({ pct, label }: Readonly<{ pct: number; label: string }>) {
   const r = 52, c = 2 * Math.PI * r;
   return (
     <div className="relative h-32 w-32">
@@ -338,39 +352,47 @@ function ProgressRing({ pct, label }: { pct: number; label: string }) {
   );
 }
 
-function Metric({ icon, label, value, unit, sub, tone = "default" }: {
-  icon: IconName; label: string; value: number; unit?: string; sub?: string;
-  tone?: "default" | "accent" | "medium" | "info";
-}) {
+function Metric({ icon, label, value, unit, sub, tone = "default", loading = false }: Readonly<{
+  icon: IconName; label: string; value: React.ReactNode; unit?: string; sub?: string;
+  tone?: "default" | "accent" | "medium" | "info"; loading?: boolean;
+}>) {
   const Icon = Icons[icon];
-  const toneCls = tone === "accent" ? "text-accent" : tone === "medium" ? "text-medium" : tone === "info" ? "text-info" : "text-text-2";
+  let toneCls;
+  if (tone === "accent") toneCls = "text-accent";
+  else if (tone === "medium") toneCls = "text-medium";
+  else if (tone === "info") toneCls = "text-info";
+  else toneCls = "text-text-2";
   return (
     <div className="rounded-xl border border-border bg-surface p-4 shadow-card">
       <div className="flex items-center justify-between">
         <span className="font-mono text-[11px] uppercase tracking-wider text-text-3">{label}</span>
         <span className={toneCls}><Icon width={16} height={16} /></span>
       </div>
-      <div className="mt-2 font-display text-3xl font-bold leading-none">
-        {value.toLocaleString()}{unit && <span className="text-text-3 text-lg font-semibold"> {unit}</span>}
-      </div>
-      {sub && <div className="text-text-4 text-xs mt-1.5">{sub}</div>}
+      {loading ? (
+        <Skeleton className="mt-2 h-8 w-16" />
+      ) : (
+        <div className="mt-2 font-display text-3xl font-bold leading-none">
+          {value}{unit && <span className="text-text-3 text-lg font-semibold"> {unit}</span>}
+        </div>
+      )}
+      {loading ? <Skeleton className="mt-2 h-3 w-20" /> : sub && <div className="text-text-4 text-xs mt-1.5">{sub}</div>}
     </div>
   );
 }
 
 type QA = { href: string; label: string; desc: string; icon: IconName };
 const QUICK_ACTIONS: QA[] = [
-  { href: "/readiness",  label: "Readiness",    desc: "Am I ready?",        icon: "target" },
-  { href: "/problems",   label: "Problems",     desc: "1000+ patterns",     icon: "code" },
-  { href: "/companies",  label: "Company Prep", desc: "Targeted coverage",  icon: "building" },
-  { href: "/mocks",      label: "AI Mock",      desc: "Interview practice", icon: "mic" },
-  { href: "/subjects",   label: "Core CS",      desc: "OS · DBMS · CN",     icon: "book" },
-  { href: "/resume",     label: "Resume",       desc: "ATS-scored",         icon: "doc" },
-  { href: "/pipeline",   label: "Pipeline",     desc: "Track to offer",     icon: "activity" },
-  { href: "/jobs",       label: "Jobs",         desc: "Find roles",         icon: "briefcase" },
+  { href: "/readiness",  label: "Readiness",    desc: "Am I ready?",        icon: "Target" },
+  { href: "/problems",   label: "Problems",     desc: "1000+ patterns",     icon: "Code" },
+  { href: "/companies",  label: "Company Prep", desc: "Targeted coverage",  icon: "Building" },
+  { href: "/mocks",      label: "AI Mock",      desc: "Interview practice", icon: "Mic" },
+  { href: "/subjects",   label: "Core CS",      desc: "OS · DBMS · CN",     icon: "Book" },
+  { href: "/resume",     label: "Resume",       desc: "ATS-scored",         icon: "Doc" },
+  { href: "/pipeline",   label: "Pipeline",     desc: "Track to offer",     icon: "Activity" },
+  { href: "/jobs",       label: "Jobs",         desc: "Find roles",         icon: "Briefcase" },
 ];
 
-function QuickAction({ href, label, desc, icon }: QA) {
+function QuickAction({ href, label, desc, icon }: Readonly<QA>) {
   const Icon = Icons[icon];
   return (
     <Link href={href}

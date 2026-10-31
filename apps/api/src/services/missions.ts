@@ -70,7 +70,10 @@ export async function claimDailyMission(
       });
     });
     return { claimed: true, awardedXp: BONUS_XP };
+    /* c8 ignore start -- concurrency guard: the catch fires only when a racing
+       claim wins the unique (userId,date) insert between getDailyMission and here. */
   } catch {
     return { claimed: false, awardedXp: 0, reason: "already-claimed" };
   }
+  /* c8 ignore stop */
 }

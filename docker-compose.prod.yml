@@ -1,0 +1,125 @@
+# Production topology — the full 6-process EYF stack plus its datastores.
+# Datastores here are for a single-host / staging deploy; in real production use
+# managed Postgres (pooled) + managed Redis and drop the postgres/redis services.
+#
+#   docker compose -f docker-compose.prod.yml up -d --build
+#
+# All services read secrets from a root .env (never commit real values).
+x-api-environment: &api-environment
+  NODE_ENV: production
+  DEV_LOGIN_ENABLED: "false"
+  DISABLE_SSRF_GUARD: "false"
+  DISABLE_RATE_LIMIT: "false"
+
+services:
+  api:
+    build: { context: ., dockerfile: apps/api/Dockerfile }
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      <<: *api-environment
+      PRIVATE_MEDIA_DIR: /app/private-media
+    volumes: ["eyf_private_media:/app/private-media"]
+    ports: ["4000:4000"]
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:4000/readyz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  worker:
+    build: { context: ., dockerfile: apps/api/Dockerfile }
+    restart: unless-stopped
+    env_file: .env
+    command: ["node", "--import", "tsx", "dist/jobs/judge.worker.js"]
+    environment: *api-environment
+    healthcheck: { disable: true }
+    depends_on:
+      redis: { condition: service_healthy }
+
+  cron:
+    build: { context: ., dockerfile: apps/api/Dockerfile }
+    restart: unless-stopped
+    env_file: .env
+    command: ["node", "--import", "tsx", "dist/jobs/cron.worker.js"]
+    environment: *api-environment
+    healthcheck: { disable: true }
+    depends_on:
+      redis: { condition: service_healthy }
+
+  webhook:
+    build: { context: ., dockerfile: apps/api/Dockerfile }
+    restart: unless-stopped
+    env_file: .env
+    command: ["node", "--import", "tsx", "dist/jobs/webhook.worker.js"]
+    environment: *api-environment
+    healthcheck: { disable: true }
+    depends_on:
+      redis: { condition: service_healthy }
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+        NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL}
+        NEXT_PUBLIC_LMS_URL: ${NEXT_PUBLIC_LMS_URL}
+        NEXT_PUBLIC_EYF_PORTAL: public
+        NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+        NEXT_PUBLIC_POSTHOG_KEY: ${NEXT_PUBLIC_POSTHOG_KEY}
+        NEXT_PUBLIC_POSTHOG_HOST: ${NEXT_PUBLIC_POSTHOG_HOST}
+    restart: unless-stopped
+    ports: ["3000:3000"]
+    environment:
+      CLERK_SECRET_KEY: ${CLERK_SECRET_KEY}
+    depends_on: [api]
+
+  lms:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+        NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL}
+        NEXT_PUBLIC_LMS_URL: ${NEXT_PUBLIC_LMS_URL}
+        NEXT_PUBLIC_EYF_PORTAL: lms
+        NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+    restart: unless-stopped
+    ports: ["3001:3000"]
+    environment:
+      CLERK_SECRET_KEY: ${CLERK_SECRET_KEY}
+    depends_on: [api]
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-eyf}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-eyf}
+    volumes: ["eyf_pgdata:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-eyf}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes: ["eyf_redisdata:/data"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  eyf_private_media:
+  eyf_pgdata:
+  eyf_redisdata:

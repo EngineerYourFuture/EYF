@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { Button } from "@eyf/ui";
 import { useApiAction } from "@/lib/use-api";
 import { ThemeToggle } from "@/components/theme";
@@ -10,14 +10,14 @@ import { Icons } from "@/components/icons";
 import { PERSONA_LIST, type PersonaId } from "@/lib/persona";
 
 const ROLES = [
-  { v: "SDE",       label: "Software Engineer", icon: "code" as const },
-  { v: "Frontend",  label: "Frontend",          icon: "cube" as const },
-  { v: "Backend",   label: "Backend",           icon: "briefcase" as const },
-  { v: "Full-Stack",label: "Full-Stack",        icon: "compass" as const },
-  { v: "Data",      label: "Data Engineer",     icon: "map" as const },
-  { v: "ML",        label: "ML / AI",           icon: "brain" as const },
-  { v: "DevOps",    label: "DevOps / SRE",      icon: "bolt" as const },
-  { v: "Mobile",    label: "Mobile",            icon: "target" as const },
+  { v: "SDE",       label: "Software Engineer", icon: "Code" as const },
+  { v: "Frontend",  label: "Frontend",          icon: "Cube" as const },
+  { v: "Backend",   label: "Backend",           icon: "Briefcase" as const },
+  { v: "Full-Stack",label: "Full-Stack",        icon: "Compass" as const },
+  { v: "Data",      label: "Data Engineer",     icon: "Map" as const },
+  { v: "ML",        label: "ML / AI",           icon: "Brain" as const },
+  { v: "DevOps",    label: "DevOps / SRE",      icon: "Bolt" as const },
+  { v: "Mobile",    label: "Mobile",            icon: "Target" as const },
 ];
 
 const YEARS = [2026, 2027, 2028, 2029];
@@ -26,6 +26,7 @@ const STEPS = 4;
 export default function WelcomePage() {
   const router = useRouter();
   const action = useApiAction();
+  const reduce = useReducedMotion();
   const [step, setStep] = useState(0);
   const [persona, setPersona] = useState<PersonaId | null>(null);
   const [role, setRole] = useState<string | null>(null);
@@ -57,41 +58,39 @@ export default function WelcomePage() {
 
   return (
     <div className="min-h-screen bg-bg text-text-1 flex flex-col">
-      <div className="pointer-events-none fixed inset-x-0 top-0 h-80 bg-glow-radial" aria-hidden />
 
       <header className="relative flex items-center justify-between px-5 sm:px-8 h-16">
         <Link href="/" className="font-display font-bold text-xl tracking-tight">EYF</Link>
         <div className="flex items-center gap-3">
           <ThemeToggle />
-          <button onClick={() => finish("/dashboard")} className="text-sm text-text-3 hover:text-text-1">Skip</button>
+          <button type="button" onClick={() => finish("/dashboard")} className="text-sm text-text-3 hover:text-text-1">Skip</button>
         </div>
       </header>
 
       <main className="relative flex-1 flex items-center justify-center px-5 py-8">
         <div className="w-full max-w-lg">
           {/* progress */}
-          <div className="flex items-center gap-2 mb-8">
-            {Array.from({ length: STEPS }).map((_, i) => (
-              <div key={i} className={`h-1 flex-1 rounded-full transition-colors duration-300 ${i <= step ? "bg-accent" : "bg-surface-3"}`} />
-            ))}
-          </div>
+          <progress className="eyf-progress mb-8 h-1 w-full" value={step + 1} max={STEPS}
+            aria-valuetext={`Step ${step + 1} of ${STEPS}`} aria-label="Onboarding progress" />
 
           <AnimatePresence mode="wait">
             <motion.div key={step}
-              initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }}
-              transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}>
+              initial={reduce ? { opacity: 0 } : { opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={reduce ? { opacity: 0 } : { opacity: 0, y: -12 }}
+              transition={reduce ? { duration: 0 } : { duration: 0.3, ease: [0.16, 1, 0.3, 1] }}>
 
               {step === 0 && (
                 <div>
                   <div className="text-xs font-mono uppercase tracking-widest text-accent mb-3">Welcome to EYF</div>
-                  <h1 className="font-display text-3xl sm:text-4xl font-bold tracking-tight">How do you want to use EYF?</h1>
+                  <h1 className="type-display">How do you want to use EYF?</h1>
                   <p className="text-text-3 mt-2">This shapes your home screen and your journey. You can change it later.</p>
                   <div className="mt-6 space-y-3">
                     {PERSONA_LIST.map((p) => {
                       const Icon = Icons[p.icon];
                       const on = persona === p.id;
                       return (
-                        <button key={p.id} onClick={() => setPersona(p.id)}
+                        <button type="button" key={p.id} onClick={() => setPersona(p.id)} aria-pressed={on}
                           className={`flex w-full items-center gap-4 rounded-xl border p-4 text-left transition-all ${
                             on ? "border-accent bg-accent-tint shadow-glow-sm" : "border-border bg-surface hover:border-edge"}`}>
                           <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${on ? "bg-accent text-accent-ink" : "bg-surface-2 text-text-3"}`}>
@@ -114,14 +113,14 @@ export default function WelcomePage() {
               {step === 1 && (
                 <div>
                   <div className="text-xs font-mono uppercase tracking-widest text-accent mb-3">Step 2 of 4</div>
-                  <h1 className="font-display text-3xl sm:text-4xl font-bold tracking-tight">What role are you aiming for?</h1>
+                  <h1 className="type-display">What role are you aiming for?</h1>
                   <p className="text-text-3 mt-2">We&apos;ll tune your roadmap, problems, and mock interviews around it.</p>
                   <div className="mt-6 grid grid-cols-2 gap-3">
                     {ROLES.map((r) => {
                       const Icon = Icons[r.icon];
                       const on = role === r.v;
                       return (
-                        <button key={r.v} onClick={() => setRole(r.v)}
+                        <button type="button" key={r.v} onClick={() => setRole(r.v)} aria-pressed={on}
                           className={`flex items-center gap-3 rounded-xl border p-4 text-left transition-all ${
                             on ? "border-accent bg-accent-tint shadow-glow-sm" : "border-border bg-surface hover:border-edge"}`}>
                           <span className={on ? "text-accent" : "text-text-3"}><Icon width={20} height={20} /></span>
@@ -140,11 +139,11 @@ export default function WelcomePage() {
               {step === 2 && (
                 <div>
                   <div className="text-xs font-mono uppercase tracking-widest text-accent mb-3">Step 3 of 4</div>
-                  <h1 className="font-display text-3xl sm:text-4xl font-bold tracking-tight">When do you graduate?</h1>
+                  <h1 className="type-display">When do you graduate?</h1>
                   <p className="text-text-3 mt-2">This sets how aggressive your prep timeline should be.</p>
                   <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3">
                     {YEARS.map((y) => (
-                      <button key={y} onClick={() => setYear(y)}
+                      <button type="button" key={y} onClick={() => setYear(y)} aria-pressed={year === y}
                         className={`rounded-xl border p-4 font-display text-xl font-bold transition-all ${
                           year === y ? "border-accent bg-accent-tint text-accent shadow-glow-sm" : "border-border bg-surface hover:border-edge"}`}>
                         {y}
@@ -161,7 +160,7 @@ export default function WelcomePage() {
               {step === 3 && (
                 <div>
                   <div className="text-xs font-mono uppercase tracking-widest text-accent mb-3">Last step</div>
-                  <h1 className="font-display text-3xl sm:text-4xl font-bold tracking-tight">Where do you study?</h1>
+                  <h1 className="type-display">Where do you study?</h1>
                   <p className="text-text-3 mt-2">Optional — helps us benchmark you against your cohort.</p>
                   <input
                     autoFocus value={college} onChange={(e) => setCollege(e.target.value)}

@@ -48,7 +48,6 @@ export default function Page() {
     if (phase !== "input") return;
     let correct = 0;
     for (const i of picked) if (pattern.has(i)) correct += 1;
-    const total = pattern.size;
     const roundScore = Math.max(0, correct - (picked.size - correct)); // penalise wrong picks
     setHits((h) => h + roundScore);
     setPhase("result");
@@ -58,7 +57,6 @@ export default function Page() {
         setPhase("done");
       } else startRound(round + 1);
     }, 1200);
-    void total;
   }
 
   async function finalize(totalScore: number) {
@@ -79,7 +77,7 @@ export default function Page() {
 
   return (
     <div className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-2xl">
-      <h1 className="font-display text-3xl font-bold tracking-tight">Pattern Recall</h1>
+      <h1 className="type-display">Pattern Recall</h1>
       <p className="text-text-3 mt-2">Memorize the highlighted cells. Recreate the pattern.</p>
 
       <div className="mt-6 flex items-center gap-3">
@@ -99,17 +97,17 @@ export default function Page() {
             const isRight   = phase === "result" && pattern.has(i);
             const isWrongPick = phase === "result" && isPicked && !pattern.has(i);
             return (
-              <button
+              <button type="button"
                 key={i}
                 onClick={() => pick(i)}
                 disabled={phase !== "input"}
-                className={`h-14 w-14 rounded-md border transition-colors ${
-                  isWrongPick ? "bg-hard border-hard" :
-                  isRight     ? "bg-easy border-easy" :
-                  isPattern   ? "bg-accent border-accent" :
-                  isPicked    ? "bg-accent-tint border-accent" :
-                                "bg-surface border-border"
-                }`}
+                className={`h-14 w-14 rounded-md border transition-colors ${(() => {
+                  if (isWrongPick) return "bg-hard border-hard";
+                  if (isRight) return "bg-easy border-easy";
+                  if (isPattern) return "bg-accent border-accent";
+                  if (isPicked) return "bg-accent-tint border-accent";
+                  return "bg-surface border-border";
+                })()}`}
               />
             );
           })}

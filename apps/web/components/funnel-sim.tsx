@@ -16,7 +16,7 @@ const STAGES: { name: string; blurb: string; weights: Record<string, number> }[]
 ];
 const PASS = 50; // stage readiness below this = likely fail
 
-export function FunnelSim({ pillars }: { pillars: PillarLite[] }) {
+export function FunnelSim({ pillars }: Readonly<{ pillars: PillarLite[] }>) {
   const score = (k: string) => pillars.find((p) => p.key === k)?.score ?? 0;
   const stages = STAGES.map((s) => ({
     ...s,
@@ -27,7 +27,7 @@ export function FunnelSim({ pillars }: { pillars: PillarLite[] }) {
 
   return (
     <div className="mt-10">
-      <h2 className="font-display text-xl font-bold mb-1">Where you&apos;d fall out of the funnel</h2>
+      <h2 className="type-headline mb-1">Where you&apos;d fall out of the funnel</h2>
       <p className="text-text-3 text-sm mb-4 max-w-2xl">
         {clears
           ? "You clear every stage at today's readiness — time to apply with confidence."
@@ -38,7 +38,10 @@ export function FunnelSim({ pillars }: { pillars: PillarLite[] }) {
         {stages.map((s, i) => {
           const isFail = i === failIdx;
           const cleared = failIdx === -1 || i < failIdx;
-          const tone = s.val >= 70 ? "bg-easy" : s.val >= PASS ? "bg-medium" : "bg-hard";
+          let tone;
+  if (s.val >= 70) tone = "bg-easy";
+  else if (s.val >= PASS) tone = "bg-medium";
+  else tone = "bg-hard";
           return (
             <div key={s.name} className={`rounded-xl border p-4 ${isFail ? "border-hard/50 bg-hard/[0.04]" : "border-border bg-surface"}`}>
               <div className="flex items-center justify-between">

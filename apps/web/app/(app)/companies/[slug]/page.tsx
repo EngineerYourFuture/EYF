@@ -1,6 +1,7 @@
 "use client";
+import { useParams } from "next/navigation";
 import Link from "next/link";
-import { Card, Badge, Button, Meter, Skeleton, ErrorState } from "@eyf/ui";
+import { Card, Badge, Button, Meter, Skeleton } from "@eyf/ui";
 import { useApi } from "@/lib/use-api";
 import { PageMotion } from "@/components/page-motion";
 import { Icons } from "@/components/icons";
@@ -8,6 +9,8 @@ import { companyLabel } from "@/lib/company";
 import { useReadiness } from "@/lib/use-readiness";
 import { companyReadiness, readinessBand, tierOf, biggestGap } from "@/lib/company-readiness";
 import { CompanyFunnel } from "@/components/company-funnel";
+import { difficultyTone, readinessBarClass } from "@/lib/ui-helpers";
+import { LoadError, loadFailed } from "@/components/load-error";
 
 type Problem = {
   id: string; slug: string; title: string;
@@ -25,34 +28,35 @@ type Detail = {
 
 const tone = { EASY: "easy", MEDIUM: "medium", HARD: "hard", EXPERT: "expert" } as const;
 
-export default function Page({ params }: { params: { slug: string } }) {
+export default function Page() {
+  const params = useParams<{ slug: string }>();
   const { data, isLoading, error, mutate } = useApi<Detail>(`/companies/${params.slug}`);
   const label = companyLabel(params.slug);
 
   return (
     <PageMotion className="relative">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-64 bg-glow-radial" aria-hidden />
       <div className="relative px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-5xl mx-auto">
-        <Link href="/companies" className="text-text-3 hover:text-text-1 text-sm inline-flex items-center gap-1.5">
-          <span className="rotate-180"><Icons.arrow width={14} height={14} /></span> All companies
-        </Link>
 
-        {error ? (
-          <div className="mt-8"><ErrorState message="Couldn't load this company." retry={() => mutate()} /></div>
-        ) : isLoading || !data ? (
-          <div className="mt-6 grid lg:grid-cols-[320px_1fr] gap-6">
+        {(() => {
+  if (loadFailed(error, data)) return (
+          <div><LoadError page error={error} what="company" retry={() => mutate()} back={{ href: "/companies", label: "All companies" }} /></div>
+        );
+  if (isLoading || !data) return (
+          <div className="grid lg:grid-cols-[320px_1fr] gap-6">
             <Skeleton className="h-64 rounded-2xl" />
             <div className="space-y-3">{Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-14 rounded-xl" />)}</div>
           </div>
-        ) : (
+        );
+  return (
           <CompanyView label={label} data={data} />
-        )}
+        );
+})()}
       </div>
     </PageMotion>
   );
 }
 
-function CompanyView({ label, data }: { label: string; data: Detail }) {
+function CompanyView({ label, data }: Readonly<{ label: string; data: Detail }>) {
   const nextUnsolved = data.problems.find((p) => !p.solved);
   const { readiness } = useReadiness();
   const tier = tierOf(data.company);
@@ -62,12 +66,12 @@ function CompanyView({ label, data }: { label: string; data: Detail }) {
 
   return (
     <>
-      <h1 className="font-display text-3xl sm:text-4xl font-bold tracking-tight mt-3">{label}</h1>
+      <h1 className="type-display">{label}</h1>
       <p className="text-text-3 mt-2">
         {data.counts.total} problems reported in {label} interviews — sorted by how often they show up.
       </p>
       <Link href={`/experiences?company=${data.company}`} className="mt-2 inline-flex items-center gap-1.5 text-accent text-sm hover:underline">
-        <Icons.chat width={14} height={14} /> Read {label} interview experiences
+        <Icons.Chat width={14} height={14} /> Read {label} interview experiences
       </Link>
 
       {/* Per-company readiness banner */}
@@ -80,7 +84,7 @@ function CompanyView({ label, data }: { label: string; data: Detail }) {
           <Badge tone={band.tone}>{band.label}</Badge>
           <div className="h-2 flex-1 min-w-32 bg-surface-3 rounded-full overflow-hidden">
             <div className={`h-full rounded-full transition-all duration-700 ${
-              ready >= 85 ? "bg-easy" : ready >= 65 ? "bg-accent" : ready >= 40 ? "bg-medium" : "bg-hard"
+              readinessBarClass(ready)
             }`} style={{ width: `${ready}%` }} />
           </div>
           {gap && (
@@ -97,9 +101,11 @@ function CompanyView({ label, data }: { label: string; data: Detail }) {
           <CoverageRing pct={data.coverage} />
           <div className="mt-4 font-display text-lg font-bold">{data.counts.solved}/{data.counts.total} solved</div>
           <p className="text-text-3 text-sm mt-1 max-w-xs">
-            {data.coverage >= 70 ? "Strong coverage — keep it sharp." :
-             data.coverage >= 35 ? "Good start. Close the gaps below." :
-             "Lots of upside here. Start with the easy wins."}
+            {(() => {
+              if (data.coverage >= 70) return "Strong coverage — keep it sharp.";
+              if (data.coverage >= 35) return "Good start. Close the gaps below.";
+              return "Lots of upside here. Start with the easy wins.";
+            })()}
           </p>
           {nextUnsolved && (
             <Link href={`/problems/${nextUnsolved.slug}`} className="mt-5 w-full">
@@ -110,12 +116,12 @@ function CompanyView({ label, data }: { label: string; data: Detail }) {
 
         {/* Breakdown + patterns */}
         <Card>
-          <h2 className="font-display text-lg font-bold mb-4">Coverage by difficulty</h2>
+          <h2 className="type-title mb-4">Coverage by difficulty</h2>
           <div className="space-y-4">
             {data.breakdown.map((b) => (
               <Meter
                 key={b.difficulty}
-                tone={b.difficulty === "EASY" ? "easy" : b.difficulty === "MEDIUM" ? "medium" : "hard"}
+                tone={difficultyTone(b.difficulty)}
                 pct={b.total ? b.solved / b.total : 0}
                 label={<span className="capitalize">{b.difficulty.toLowerCase()}</span>}
                 value={`${b.solved}/${b.total}`}
@@ -139,7 +145,7 @@ function CompanyView({ label, data }: { label: string; data: Detail }) {
       <div className="mt-8"><CompanyFunnel tier={tier} /></div>
 
       {/* Problem list */}
-      <h2 className="font-display text-xl font-bold mt-10 mb-4">The problem set</h2>
+      <h2 className="type-headline mt-10 mb-4">The problem set</h2>
       <div className="space-y-2">
         {data.problems.map((p) => (
           <Link key={p.id} href={`/problems/${p.slug}`}
@@ -160,7 +166,7 @@ function CompanyView({ label, data }: { label: string; data: Detail }) {
   );
 }
 
-function CoverageRing({ pct }: { pct: number }) {
+function CoverageRing({ pct }: Readonly<{ pct: number }>) {
   const r = 60, c = 2 * Math.PI * r;
   return (
     <div className="relative h-40 w-40">

@@ -7,7 +7,7 @@ import { useRole } from "@/lib/use-role";
  * CONTENT_CREATOR). Non-staff users never see the link, and the admin
  * route itself re-checks the role (and the API gates every action).
  */
-export function StaffLink({ onNavigate }: { onNavigate?: () => void }) {
+export function StaffLink({ onNavigate }: Readonly<{ onNavigate?: () => void }>) {
   const { isStaff } = useRole();
   if (!isStaff) return null;
   return (

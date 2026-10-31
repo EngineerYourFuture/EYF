@@ -28,15 +28,15 @@ function mirror(cells: { x: number; y: number }[]) {
   return cells.map((c) => ({ x: maxX - c.x, y: c.y }));
 }
 
-function Tetromino({ cells, color = "#F5F5F5" }: { cells: { x: number; y: number }[]; color?: string }) {
+function Tetromino({ cells, color = "#F5F5F5" }: Readonly<{ cells: { x: number; y: number }[]; color?: string }>) {
   const maxX = Math.max(...cells.map((c) => c.x));
   const maxY = Math.max(...cells.map((c) => c.y));
   const w = (maxX + 1) * CELL;
   const h = (maxY + 1) * CELL;
   return (
     <svg width={w + 4} height={h + 4} className="block">
-      {cells.map((c, i) => (
-        <rect key={i}
+      {cells.map((c) => (
+        <rect key={`${c.x}:${c.y}`}
           x={c.x * CELL + 2} y={c.y * CELL + 2}
           width={CELL - 2} height={CELL - 2}
           fill={color} rx={3}
@@ -112,7 +112,7 @@ export default function Page() {
 
   return (
     <div className="px-4 sm:px-6 lg:px-10 py-8 lg:py-12 max-w-2xl">
-      <h1 className="font-display text-3xl font-bold tracking-tight">Spatial · Mental Rotation</h1>
+      <h1 className="type-display">Spatial · Mental Rotation</h1>
       <p className="text-text-3 mt-2">Is the right shape the same as the left, just rotated? Or is it mirrored?</p>
 
       <div className="mt-6 flex items-center gap-3">
