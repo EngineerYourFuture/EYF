@@ -52,3 +52,10 @@ shot.mjs
 test-results/
 playwright-report/
 blob-report/
+
+# local agent/design tooling
+.context/
+.github/agents/
+.github/hooks/
+.github/skills/
+.impeccable/
